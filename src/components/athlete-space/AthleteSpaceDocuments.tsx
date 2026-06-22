@@ -1,10 +1,17 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState, useRef } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/contexts/AuthContext";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FileText, File, Image, Download, Users, User, Calendar } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FileText, File, Image, Download, Users, User, Calendar, Plus, Upload, Trash2, UserCircle } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
@@ -14,18 +21,32 @@ import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 interface AthleteSpaceDocumentsProps {
   playerId: string;
   categoryId: string;
+  /** "athlete" when used in the athlete portal, "staff" when used in the coach view of a player profile */
+  viewerMode?: "athlete" | "staff";
 }
 
-const DOCUMENT_TYPES: Record<string, string> = {
-  license: "Licence sportive",
-  medical_certificate: "Certificat médical",
-  medical_return_training: "Certificat de reprise à l'entraînement",
-  medical_return_competition: "Certificat de reprise à la compétition",
-  identity: "Pièce d'identité",
-  contract: "Contrat",
-  insurance: "Assurance",
-  parental_authorization: "Autorisation parentale",
-  image_rights: "Droit à l'image",
+const DOCUMENT_TYPES: { value: string; label: string }[] = [
+  { value: "license", label: "Licence sportive" },
+  { value: "medical_certificate", label: "Certificat médical" },
+  { value: "medical_return_training", label: "Certificat de reprise à l'entraînement" },
+  { value: "medical_return_competition", label: "Certificat de reprise à la compétition" },
+  { value: "identity", label: "Pièce d'identité" },
+  { value: "contract", label: "Contrat" },
+  { value: "insurance", label: "Assurance" },
+  { value: "parental_authorization", label: "Autorisation parentale" },
+  { value: "image_rights", label: "Droit à l'image" },
+  { value: "custom", label: "Autre (personnalisé)" },
+];
+
+const ACCEPTED_FILE_TYPES = ".pdf,.jpg,.jpeg,.png,.webp,.heic,.gif,.bmp,.tiff,.tif";
+const MAX_FILE_SIZE_MB = 10;
+
+const ROLE_LABEL: Record<string, string> = {
+  athlete: "Athlète",
+  staff: "Coach",
+  coach: "Coach",
+  admin: "Admin",
+  legacy: "Auteur non renseigné",
 };
 
 function getFileIcon(url: string | null) {
@@ -37,8 +58,22 @@ function getFileIcon(url: string | null) {
   return <FileText className="h-5 w-5 text-muted-foreground" />;
 }
 
-export function AthleteSpaceDocuments({ playerId, categoryId }: AthleteSpaceDocumentsProps) {
-  // Fetch team documents (player_id is null)
+export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athlete" }: AthleteSpaceDocumentsProps) {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [customDocumentType, setCustomDocumentType] = useState("");
+  const [formData, setFormData] = useState({
+    document_type: "license",
+    title: "",
+    expiry_date: "",
+    notes: "",
+  });
+
   const { data: teamDocuments, isLoading: teamLoading } = useQuery({
     queryKey: ["athlete-team-documents", categoryId],
     queryFn: async () => {
@@ -53,7 +88,6 @@ export function AthleteSpaceDocuments({ playerId, categoryId }: AthleteSpaceDocu
     },
   });
 
-  // Fetch personal documents (player_id matches)
   const { data: personalDocuments, isLoading: personalLoading } = useQuery({
     queryKey: ["athlete-personal-documents", categoryId, playerId],
     queryFn: async () => {
@@ -68,25 +102,132 @@ export function AthleteSpaceDocuments({ playerId, categoryId }: AthleteSpaceDocu
     },
   });
 
+  // Resolve author display names for all visible docs
+  const allDocs = [...(personalDocuments || []), ...(teamDocuments || [])];
+  const authorIds = Array.from(new Set(allDocs.map((d: any) => d.created_by).filter(Boolean)));
+  const { data: authors } = useQuery({
+    queryKey: ["doc-authors", authorIds.sort().join(",")],
+    enabled: authorIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .in("id", authorIds);
+      if (error) throw error;
+      return data as { id: string; full_name: string | null; email: string | null }[];
+    },
+  });
+
+  const authorMap = new Map((authors || []).map((a) => [a.id, a]));
+
+  const uploadFile = async (file: File): Promise<string> => {
+    const ext = file.name.split(".").pop()?.toLowerCase() || "bin";
+    const fileName = `${categoryId}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage
+      .from("admin-documents")
+      .upload(fileName, file, { upsert: false });
+    if (error) throw error;
+    return fileName;
+  };
+
+  const addDocumentMutation = useMutation({
+    mutationFn: async () => {
+      if (!user?.id) throw new Error("Non authentifié");
+      if (!selectedFile) throw new Error("Fichier requis");
+      if (!formData.title.trim()) throw new Error("Titre requis");
+      if (formData.document_type === "custom" && !customDocumentType.trim())
+        throw new Error("Nom du type requis");
+
+      setIsUploading(true);
+      const fileUrl = await uploadFile(selectedFile);
+
+      const { error } = await supabase.from("admin_documents" as any).insert({
+        category_id: categoryId,
+        player_id: playerId,
+        created_by: user.id,
+        created_by_role: viewerMode === "athlete" ? "athlete" : "staff",
+        document_type:
+          formData.document_type === "custom" ? customDocumentType : formData.document_type,
+        title: formData.title.trim(),
+        file_url: fileUrl,
+        original_filename: selectedFile.name,
+        expiry_date: formData.expiry_date || null,
+        notes: formData.notes || null,
+        status: "valid",
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["athlete-personal-documents", categoryId, playerId] });
+      setShowAddDialog(false);
+      resetForm();
+      toast.success("Document ajouté");
+    },
+    onError: (e: any) => toast.error(e.message || "Erreur lors de l'ajout"),
+    onSettled: () => setIsUploading(false),
+  });
+
+  const deleteDocumentMutation = useMutation({
+    mutationFn: async (doc: any) => {
+      if (doc.file_url && !doc.file_url.startsWith("http")) {
+        await supabase.storage.from("admin-documents").remove([doc.file_url]);
+      }
+      const { error } = await supabase.from("admin_documents" as any).delete().eq("id", doc.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["athlete-personal-documents", categoryId, playerId] });
+      queryClient.invalidateQueries({ queryKey: ["athlete-team-documents", categoryId] });
+      toast.success("Document supprimé");
+    },
+    onError: (e: any) => toast.error(e.message || "Suppression impossible"),
+  });
+
+  const resetForm = () => {
+    setFormData({ document_type: "license", title: "", expiry_date: "", notes: "" });
+    setCustomDocumentType("");
+    setSelectedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+      toast.error(`Fichier trop volumineux (max ${MAX_FILE_SIZE_MB} Mo)`);
+      e.target.value = "";
+      return;
+    }
+    setSelectedFile(file);
+    if (!formData.title) {
+      const nameWithoutExt = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
+      setFormData((prev) => ({ ...prev, title: nameWithoutExt }));
+    }
+  };
+
   const handleDownload = async (fileUrl: string, title: string) => {
     if (!fileUrl) return;
     try {
-      const { data, error } = await supabase.storage
-        .from("admin-documents")
-        .createSignedUrl(fileUrl, 60 * 60);
-      if (error) throw error;
-
+      let url: string;
+      if (fileUrl.startsWith("http")) {
+        url = fileUrl;
+      } else {
+        const { data, error } = await supabase.storage
+          .from("admin-documents")
+          .createSignedUrl(fileUrl, 60 * 60);
+        if (error) throw error;
+        url = data.signedUrl;
+      }
       const ext = fileUrl.split(".").pop()?.toLowerCase() || "";
       const safeTitle = (title || "document").replace(/[\\/:*?"<>|]+/g, "_").trim();
       const filename = ext && !safeTitle.toLowerCase().endsWith(`.${ext}`)
         ? `${safeTitle}.${ext}`
         : safeTitle;
 
-      const response = await fetch(data.signedUrl);
+      const response = await fetch(url);
       if (!response.ok) throw new Error("Download failed");
       const blob = await response.blob();
       const blobUrl = URL.createObjectURL(blob);
-
       const a = document.createElement("a");
       a.href = blobUrl;
       a.download = filename;
@@ -99,16 +240,48 @@ export function AthleteSpaceDocuments({ playerId, categoryId }: AthleteSpaceDocu
     }
   };
 
-  const getDocTypeLabel = (docType: string) => {
-    return DOCUMENT_TYPES[docType] || docType;
+  const getDocTypeLabel = (docType: string) =>
+    DOCUMENT_TYPES.find((t) => t.value === docType)?.label || docType;
+
+  const renderAuthorLine = (doc: any) => {
+    const author = doc.created_by ? authorMap.get(doc.created_by) : null;
+    const name = author?.full_name || author?.email || null;
+    const role = doc.created_by_role || (doc.created_by ? null : "legacy");
+    const roleLabel = role ? ROLE_LABEL[role] || role : null;
+    const date = format(new Date(doc.created_at), "dd/MM/yyyy", { locale: fr });
+
+    if (!name && role === "legacy") {
+      return (
+        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+          <UserCircle className="h-3 w-3" />
+          Auteur non renseigné · Ajouté le {date}
+        </p>
+      );
+    }
+    return (
+      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+        <UserCircle className="h-3 w-3" />
+        Ajouté par {name || "Utilisateur"}
+        {roleLabel ? ` (${roleLabel})` : ""} le {date}
+      </p>
+    );
   };
 
-  const renderDocumentList = (documents: any[] | undefined, isLoading: boolean, emptyMessage: string) => {
+  const canDelete = (doc: any) => {
+    if (!user?.id) return false;
+    if (doc.created_by === user.id) return true;
+    if (viewerMode === "staff" && doc.player_id === playerId) return true;
+    return false;
+  };
+
+  const renderDocumentList = (
+    documents: any[] | undefined,
+    isLoading: boolean,
+    emptyMessage: string,
+  ) => {
     if (isLoading) return <Skeleton className="h-32 w-full" />;
     if (!documents || documents.length === 0) {
-      return (
-        <p className="text-center text-muted-foreground py-8">{emptyMessage}</p>
-      );
+      return <p className="text-center text-muted-foreground py-8">{emptyMessage}</p>;
     }
 
     return (
@@ -125,6 +298,11 @@ export function AthleteSpaceDocuments({ playerId, categoryId }: AthleteSpaceDocu
                       <Badge variant="secondary" className="text-xs">
                         {getDocTypeLabel(doc.document_type)}
                       </Badge>
+                      {doc.original_filename && (
+                        <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                          {doc.original_filename}
+                        </span>
+                      )}
                       {doc.expiry_date && (
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
@@ -135,22 +313,33 @@ export function AthleteSpaceDocuments({ playerId, categoryId }: AthleteSpaceDocu
                     {doc.notes && (
                       <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{doc.notes}</p>
                     )}
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Ajouté le {format(new Date(doc.created_at), "dd MMM yyyy", { locale: fr })}
-                    </p>
+                    {renderAuthorLine(doc)}
                   </div>
                 </div>
-                {doc.file_url && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDownload(doc.file_url, doc.title)}
-                    className="shrink-0"
-                  >
-                    <Download className="h-4 w-4 mr-1" />
-                    <span className="hidden sm:inline">Télécharger</span>
-                  </Button>
-                )}
+                <div className="flex items-center gap-1 shrink-0">
+                  {doc.file_url && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDownload(doc.file_url, doc.title)}
+                    >
+                      <Download className="h-4 w-4 mr-1" />
+                      <span className="hidden sm:inline">Télécharger</span>
+                    </Button>
+                  )}
+                  {canDelete(doc) && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => {
+                        if (confirm("Supprimer ce document ?")) deleteDocumentMutation.mutate(doc);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -162,25 +351,38 @@ export function AthleteSpaceDocuments({ playerId, categoryId }: AthleteSpaceDocu
   return (
     <div className="space-y-4">
       <Tabs defaultValue="personal" className="w-full">
-        <TabsList
-          className="grid w-full grid-cols-2 bg-muted/40 rounded-xl p-1"
-          style={{ ["--tab-accent" as any]: NAV_COLORS.admin.base }}
-        >
-          <TabsTrigger
-            value="personal"
-            className="gap-1.5 rounded-lg font-semibold transition-all data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <TabsList
+            className="grid grid-cols-2 bg-muted/40 rounded-xl p-1 sm:w-auto"
+            style={{ ["--tab-accent" as any]: NAV_COLORS.admin.base }}
           >
-            <User className="h-3.5 w-3.5" />
-            Mes documents ({personalDocuments?.length || 0})
-          </TabsTrigger>
-          <TabsTrigger
-            value="team"
-            className="gap-1.5 rounded-lg font-semibold transition-all data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
+            <TabsTrigger
+              value="personal"
+              className="gap-1.5 rounded-lg font-semibold transition-all data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
+            >
+              <User className="h-3.5 w-3.5" />
+              Mes documents ({personalDocuments?.length || 0})
+            </TabsTrigger>
+            <TabsTrigger
+              value="team"
+              className="gap-1.5 rounded-lg font-semibold transition-all data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
+            >
+              <Users className="h-3.5 w-3.5" />
+              Documents d'équipe ({teamDocuments?.length || 0})
+            </TabsTrigger>
+          </TabsList>
+
+          <Button
+            onClick={() => {
+              resetForm();
+              setShowAddDialog(true);
+            }}
+            size="sm"
           >
-            <Users className="h-3.5 w-3.5" />
-            Documents d'équipe ({teamDocuments?.length || 0})
-          </TabsTrigger>
-        </TabsList>
+            <Plus className="h-4 w-4 mr-1" />
+            Ajouter un document
+          </Button>
+        </div>
 
         <TabsContent value="personal" className="mt-4">
           {renderDocumentList(personalDocuments, personalLoading, "Aucun document personnel")}
@@ -190,6 +392,129 @@ export function AthleteSpaceDocuments({ playerId, categoryId }: AthleteSpaceDocu
           {renderDocumentList(teamDocuments, teamLoading, "Aucun document d'équipe")}
         </TabsContent>
       </Tabs>
+
+      <Dialog
+        open={showAddDialog}
+        onOpenChange={(open) => {
+          setShowAddDialog(open);
+          if (!open) resetForm();
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nouveau document</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Fichier (PDF, image) *</Label>
+              <div
+                className="mt-1 border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept={ACCEPTED_FILE_TYPES}
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                {selectedFile ? (
+                  <div className="flex items-center justify-center gap-3">
+                    {getFileIcon(selectedFile.name)}
+                    <div className="text-left">
+                      <p className="text-sm font-medium truncate max-w-[250px]">{selectedFile.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {(selectedFile.size / (1024 * 1024)).toFixed(2)} Mo
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Upload className="h-8 w-8 mx-auto text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">Cliquez pour sélectionner un fichier</p>
+                    <p className="text-xs text-muted-foreground">
+                      PDF, JPG, PNG, WEBP, GIF • Max {MAX_FILE_SIZE_MB} Mo
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <Label>Type de document *</Label>
+              <Select
+                value={formData.document_type}
+                onValueChange={(v) => {
+                  setFormData({ ...formData, document_type: v });
+                  if (v !== "custom") setCustomDocumentType("");
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {DOCUMENT_TYPES.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>
+                      {t.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {formData.document_type === "custom" && (
+                <Input
+                  className="mt-2"
+                  value={customDocumentType}
+                  onChange={(e) => setCustomDocumentType(e.target.value)}
+                  placeholder="Nom du type personnalisé"
+                />
+              )}
+            </div>
+
+            <div>
+              <Label>Titre *</Label>
+              <Input
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                placeholder="Ex: Licence 2024-2025"
+              />
+            </div>
+
+            <div>
+              <Label>Date d'expiration</Label>
+              <Input
+                type="date"
+                value={formData.expiry_date}
+                onChange={(e) => setFormData({ ...formData, expiry_date: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <Label>Notes</Label>
+              <Textarea
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                placeholder="Notes additionnelles..."
+                rows={2}
+              />
+            </div>
+
+            <Button
+              onClick={() => addDocumentMutation.mutate()}
+              disabled={isUploading || addDocumentMutation.isPending}
+              className="w-full"
+            >
+              {isUploading ? (
+                <>
+                  <Upload className="h-4 w-4 mr-2 animate-pulse" />
+                  Envoi en cours...
+                </>
+              ) : (
+                "Ajouter"
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
