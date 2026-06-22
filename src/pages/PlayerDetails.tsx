@@ -622,7 +622,7 @@ function PlayerDetailsContent() {
             </TabsContent>
           )}
           <TabsContent value="documents">
-            <AthleteSpaceDocuments playerId={playerId!} categoryId={player.category_id} />
+            <AthleteSpaceDocuments playerId={playerId!} categoryId={player.category_id} viewerMode="staff" />
           </TabsContent>
 
         </Tabs>

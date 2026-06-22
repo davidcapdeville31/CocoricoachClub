@@ -185,11 +185,13 @@ export type Database = {
           category_id: string
           created_at: string
           created_by: string | null
+          created_by_role: string | null
           document_type: string
           expiry_date: string | null
           file_url: string | null
           id: string
           notes: string | null
+          original_filename: string | null
           player_id: string | null
           status: string
           title: string
@@ -198,11 +200,13 @@ export type Database = {
           category_id: string
           created_at?: string
           created_by?: string | null
+          created_by_role?: string | null
           document_type: string
           expiry_date?: string | null
           file_url?: string | null
           id?: string
           notes?: string | null
+          original_filename?: string | null
           player_id?: string | null
           status?: string
           title: string
@@ -211,11 +215,13 @@ export type Database = {
           category_id?: string
           created_at?: string
           created_by?: string | null
+          created_by_role?: string | null
           document_type?: string
           expiry_date?: string | null
           file_url?: string | null
           id?: string
           notes?: string | null
+          original_filename?: string | null
           player_id?: string | null
           status?: string
           title?: string
@@ -15109,7 +15115,15 @@ export type Database = {
         Returns: boolean
       }
       is_approved_user: { Args: { _user_id: string }; Returns: boolean }
+      is_category_athlete: {
+        Args: { _category_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_own_personal_match: { Args: { _match_id: string }; Returns: boolean }
+      is_player_owner: {
+        Args: { _player_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       is_team_sport_category: {
         Args: { _category_id: string }

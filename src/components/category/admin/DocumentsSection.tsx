@@ -31,8 +31,19 @@ interface AdminDocument {
   status: string;
   notes: string | null;
   created_at: string;
+  created_by: string | null;
+  created_by_role: string | null;
+  original_filename: string | null;
   players?: { name: string; first_name?: string | null } | null;
 }
+
+const ROLE_LABEL: Record<string, string> = {
+  athlete: "Athlète",
+  staff: "Coach",
+  coach: "Coach",
+  admin: "Admin",
+  legacy: "Auteur non renseigné",
+};
 
 const DOCUMENT_TYPES = [
   { value: "license", label: "Licence sportive" },
@@ -127,6 +138,23 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
     },
   });
 
+  const authorIds = Array.from(
+    new Set((documents || []).map((d) => d.created_by).filter(Boolean) as string[]),
+  );
+  const { data: authors } = useQuery({
+    queryKey: ["doc-authors", authorIds.sort().join(",")],
+    enabled: authorIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .in("id", authorIds);
+      if (error) throw error;
+      return data as { id: string; full_name: string | null; email: string | null }[];
+    },
+  });
+  const authorMap = new Map((authors || []).map((a) => [a.id, a]));
+
   const uploadFile = async (file: File): Promise<string | null> => {
     const ext = file.name.split(".").pop()?.toLowerCase() || "bin";
     const fileName = `${categoryId}/${crypto.randomUUID()}.${ext}`;
@@ -162,10 +190,12 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
       const { error } = await supabase.from("admin_documents" as any).insert({
         category_id: categoryId,
         created_by: user?.id,
+        created_by_role: "staff",
         player_id: playerId,
         document_type: data.document_type === "custom" ? customDocumentType : data.document_type,
         title: data.title,
         file_url: fileUrl,
+        original_filename: selectedFile?.name ?? null,
         expiry_date: data.expiry_date || null,
         notes: data.notes || null,
         status: "valid",
@@ -555,11 +585,21 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
                             Expire le {format(new Date(doc.expiry_date), "d MMM yyyy", { locale: fr })}
                           </span>
                         )}
-                        {doc.created_at && (
-                          <span className="text-xs">
-                            Ajouté le {format(new Date(doc.created_at), "d MMM yyyy", { locale: fr })}
-                          </span>
-                        )}
+                        {(() => {
+                          const author = doc.created_by ? authorMap.get(doc.created_by) : null;
+                          const name = author?.full_name || author?.email || null;
+                          const role = doc.created_by_role || (doc.created_by ? null : "legacy");
+                          const roleLabel = role ? ROLE_LABEL[role] || role : null;
+                          const date = format(new Date(doc.created_at), "dd/MM/yyyy", { locale: fr });
+                          if (!name && role === "legacy") {
+                            return <span className="text-xs">Auteur non renseigné · Ajouté le {date}</span>;
+                          }
+                          return (
+                            <span className="text-xs">
+                              Ajouté par {name || "Utilisateur"}{roleLabel ? ` (${roleLabel})` : ""} le {date}
+                            </span>
+                          );
+                        })()}
                       </div>
                     </div>
                   </div>
