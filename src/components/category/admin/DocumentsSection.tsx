@@ -31,8 +31,19 @@ interface AdminDocument {
   status: string;
   notes: string | null;
   created_at: string;
+  created_by: string | null;
+  created_by_role: string | null;
+  original_filename: string | null;
   players?: { name: string; first_name?: string | null } | null;
 }
+
+const ROLE_LABEL: Record<string, string> = {
+  athlete: "Athlète",
+  staff: "Coach",
+  coach: "Coach",
+  admin: "Admin",
+  legacy: "Auteur non renseigné",
+};
 
 const DOCUMENT_TYPES = [
   { value: "license", label: "Licence sportive" },
