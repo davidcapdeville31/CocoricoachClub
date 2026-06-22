@@ -138,6 +138,23 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
     },
   });
 
+  const authorIds = Array.from(
+    new Set((documents || []).map((d) => d.created_by).filter(Boolean) as string[]),
+  );
+  const { data: authors } = useQuery({
+    queryKey: ["doc-authors", authorIds.sort().join(",")],
+    enabled: authorIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .in("id", authorIds);
+      if (error) throw error;
+      return data as { id: string; full_name: string | null; email: string | null }[];
+    },
+  });
+  const authorMap = new Map((authors || []).map((a) => [a.id, a]));
+
   const uploadFile = async (file: File): Promise<string | null> => {
     const ext = file.name.split(".").pop()?.toLowerCase() || "bin";
     const fileName = `${categoryId}/${crypto.randomUUID()}.${ext}`;
