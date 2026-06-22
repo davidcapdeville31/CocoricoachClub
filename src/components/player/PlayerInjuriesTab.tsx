@@ -314,7 +314,7 @@ export function PlayerInjuriesTab({ playerId, categoryId, playerName = "Joueur",
             <div>
               <CardTitle>Historique Médical</CardTitle>
               <p className="text-sm text-muted-foreground mt-1">
-                Toutes les blessures du joueur
+                Blessures terminées du joueur
               </p>
             </div>
             {!isViewer && (
@@ -326,9 +326,9 @@ export function PlayerInjuriesTab({ playerId, categoryId, playerName = "Joueur",
           </div>
         </CardHeader>
         <CardContent>
-          {injuries && injuries.length > 0 ? (
+          {historyInjuries && historyInjuries.length > 0 ? (
             <div className="space-y-4">
-              {injuries.map((injury) => (
+              {historyInjuries.map((injury) => (
                 <div
                   key={injury.id}
                   className="border rounded-lg p-4 space-y-3 bg-muted/30"
