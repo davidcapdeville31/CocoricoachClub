@@ -88,6 +88,8 @@ function PlayerDetailTab({ value, label, icon: Icon, color }: { value: string; l
 function PlayerDetailsContent() {
   const { playerId } = useParams<{ playerId: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab") || "charge";
   const queryClient = useQueryClient();
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const [isEditingPosition, setIsEditingPosition] = useState(false);
