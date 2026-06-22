@@ -585,11 +585,21 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
                             Expire le {format(new Date(doc.expiry_date), "d MMM yyyy", { locale: fr })}
                           </span>
                         )}
-                        {doc.created_at && (
-                          <span className="text-xs">
-                            Ajouté le {format(new Date(doc.created_at), "d MMM yyyy", { locale: fr })}
-                          </span>
-                        )}
+                        {(() => {
+                          const author = doc.created_by ? authorMap.get(doc.created_by) : null;
+                          const name = author?.full_name || author?.email || null;
+                          const role = doc.created_by_role || (doc.created_by ? null : "legacy");
+                          const roleLabel = role ? ROLE_LABEL[role] || role : null;
+                          const date = format(new Date(doc.created_at), "dd/MM/yyyy", { locale: fr });
+                          if (!name && role === "legacy") {
+                            return <span className="text-xs">Auteur non renseigné · Ajouté le {date}</span>;
+                          }
+                          return (
+                            <span className="text-xs">
+                              Ajouté par {name || "Utilisateur"}{roleLabel ? ` (${roleLabel})` : ""} le {date}
+                            </span>
+                          );
+                        })()}
                       </div>
                     </div>
                   </div>
