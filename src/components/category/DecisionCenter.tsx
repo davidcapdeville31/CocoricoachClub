@@ -930,9 +930,9 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
               <CardTitle className="text-sm flex items-center gap-2">
                 <XCircle className="h-4 w-4 text-red-500" />
                 Blessés / Incertains / Malades
-                {(groupStatus.injured + groupStatus.uncertain + groupStatus.sick) > 0 && (
+                {(groupStatus.total - groupStatus.available) > 0 && (
                   <Badge variant="secondary" className="ml-auto bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
-                    {groupStatus.injured + groupStatus.uncertain + groupStatus.sick}
+                    {groupStatus.total - groupStatus.available}
                   </Badge>
                 )}
               </CardTitle>
