@@ -488,7 +488,7 @@ function PlayerDetailsContent() {
           </div>
         )}
 
-        <Tabs defaultValue="charge" className="space-y-6">
+        <Tabs value={initialTab} onValueChange={(v) => setSearchParams((prev) => { const p = new URLSearchParams(prev); p.set("tab", v); return p; }, { replace: true })} className="space-y-6">
           <ScrollArea className="w-full whitespace-nowrap pb-2">
             <ColoredNavTabsList className="flex w-max gap-1.5 p-2">
               <PlayerDetailTab value="charge" label="Charge" icon={Activity} color="hsl(350 80% 55%)" />
