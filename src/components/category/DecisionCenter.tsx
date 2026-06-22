@@ -950,24 +950,38 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
                       <div
                         key={`inj-${p.id}`}
                         className="flex items-center justify-between p-2 rounded-lg bg-red-50 dark:bg-red-900/10 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors"
-                        onClick={() => navigate(`/players/${p.id}`)}
+                        onClick={() => navigate(`/players/${p.id}?tab=injuries`)}
+                        title="Voir le détail des blessures"
                       >
                         <div className="flex items-center gap-2 min-w-0">
                           <XCircle className="h-3.5 w-3.5 text-red-500 shrink-0" />
-                          <p className="text-sm font-medium truncate">{p.name}</p>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">{p.name}</p>
+                            {p.injuryCount > 1 && (
+                              <p className="text-[10px] text-muted-foreground">{p.injuryCount} blessures actives</p>
+                            )}
+                          </div>
                         </div>
-                        <Badge className="text-[10px] bg-red-500 text-white shrink-0">Blessé</Badge>
+                        <Badge className="text-[10px] bg-red-500 text-white shrink-0">
+                          {p.injuryCount > 1 ? `${p.injuryCount} blessures` : "Blessé"}
+                        </Badge>
                       </div>
                     ))}
                     {groupStatus.uncertainPlayers.map(p => (
                       <div
                         key={`unc-${p.id}`}
                         className="flex items-center justify-between p-2 rounded-lg bg-yellow-50 dark:bg-yellow-900/10 cursor-pointer hover:bg-yellow-100 dark:hover:bg-yellow-900/20 transition-colors"
-                        onClick={() => navigate(`/players/${p.id}`)}
+                        onClick={() => navigate(`/players/${p.id}?tab=injuries`)}
+                        title="Voir le détail des blessures"
                       >
                         <div className="flex items-center gap-2 min-w-0">
                           <Clock className="h-3.5 w-3.5 text-yellow-500 shrink-0" />
-                          <p className="text-sm font-medium truncate">{p.name}</p>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">{p.name}</p>
+                            {p.injuryCount > 1 && (
+                              <p className="text-[10px] text-muted-foreground">{p.injuryCount} blessures en réathlé.</p>
+                            )}
+                          </div>
                         </div>
                         <Badge className="text-[10px] bg-yellow-500 text-white shrink-0">Réathléti.</Badge>
                       </div>
