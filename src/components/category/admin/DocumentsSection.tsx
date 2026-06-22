@@ -173,10 +173,12 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
       const { error } = await supabase.from("admin_documents" as any).insert({
         category_id: categoryId,
         created_by: user?.id,
+        created_by_role: "staff",
         player_id: playerId,
         document_type: data.document_type === "custom" ? customDocumentType : data.document_type,
         title: data.title,
         file_url: fileUrl,
+        original_filename: selectedFile?.name ?? null,
         expiry_date: data.expiry_date || null,
         notes: data.notes || null,
         status: "valid",
