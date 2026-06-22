@@ -409,7 +409,7 @@ export function PlayerInjuriesTab({ playerId, categoryId, playerName = "Joueur",
             </div>
           ) : (
             <p className="text-muted-foreground text-center py-4">
-              Aucune blessure enregistrée
+              Aucune blessure terminée
             </p>
           )}
         </CardContent>
