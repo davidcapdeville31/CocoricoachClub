@@ -77,7 +77,7 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
    categoryName?: string;
  }
  
-  interface GroupStatus {
+ interface GroupStatus {
     total: number;
     available: number;
     atRisk: number;
@@ -85,8 +85,8 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
     uncertain: number;
     sick: number;
     atRiskPlayers: { id: string; name: string; reason: string }[];
-    injuredPlayers: { id: string; name: string }[];
-    uncertainPlayers: { id: string; name: string }[];
+    injuredPlayers: { id: string; name: string; injuryCount: number }[];
+    uncertainPlayers: { id: string; name: string; injuryCount: number }[];
     sickPlayers: { id: string; name: string; illness?: string }[];
   }
  
@@ -541,19 +541,27 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
         }
       });
 
-      const injuredPlayers = injuries
-        .filter(i => i.status === "active")
-        .map(i => {
-          const p = players.find(pl => pl.id === i.player_id);
-          return { id: i.player_id, name: p ? getFullName(p) : "Inconnu" };
-        });
+      // Group injuries by player (avoid duplicate rows when one athlete has multiple injuries)
+      const activeInjuriesByPlayer = new Map<string, number>();
+      injuries.filter(i => i.status === "active").forEach(i => {
+        activeInjuriesByPlayer.set(i.player_id, (activeInjuriesByPlayer.get(i.player_id) || 0) + 1);
+      });
+      const recoveringInjuriesByPlayer = new Map<string, number>();
+      injuries.filter(i => i.status === "recovering").forEach(i => {
+        // If a player has at least one active injury, prioritize the "Blessé" bucket
+        if (activeInjuriesByPlayer.has(i.player_id)) return;
+        recoveringInjuriesByPlayer.set(i.player_id, (recoveringInjuriesByPlayer.get(i.player_id) || 0) + 1);
+      });
 
-      const uncertainPlayers = injuries
-        .filter(i => i.status === "recovering")
-        .map(i => {
-          const p = players.find(pl => pl.id === i.player_id);
-          return { id: i.player_id, name: p ? getFullName(p) : "Inconnu" };
-        });
+      const injuredPlayers = Array.from(activeInjuriesByPlayer.entries()).map(([pid, count]) => {
+        const p = players.find(pl => pl.id === pid);
+        return { id: pid, name: p ? getFullName(p) : "Inconnu", injuryCount: count };
+      });
+
+      const uncertainPlayers = Array.from(recoveringInjuriesByPlayer.entries()).map(([pid, count]) => {
+        const p = players.find(pl => pl.id === pid);
+        return { id: pid, name: p ? getFullName(p) : "Inconnu", injuryCount: count };
+      });
 
       const sickPlayers = illnesses
         .filter((i: any) => i.status === "active")
@@ -562,12 +570,12 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
           return { id: i.player_id, name: p ? getFullName(p) : "Inconnu", illness: i.illness_type };
         });
 
-      const injured = injuredPlayerIds.size;
-      const uncertain = uncertainPlayerIds.size;
+      const injured = injuredPlayers.length;
+      const uncertain = uncertainPlayers.length;
       const sick = sickPlayerIds.size;
       const atRisk = atRiskPlayersList.length;
       // Count unique unavailable players (avoid double-counting if injured + sick)
-      const unavailableIds = new Set<string>([...injuredPlayerIds, ...uncertainPlayerIds, ...sickPlayerIds]);
+      const unavailableIds = new Set<string>([...injuredPlayers.map(p => p.id), ...uncertainPlayers.map(p => p.id), ...sickPlayerIds]);
       const available = total - unavailableIds.size;
   
       return { total, available, atRisk, injured, uncertain, sick, atRiskPlayers: atRiskPlayersList, injuredPlayers, uncertainPlayers, sickPlayers };
@@ -922,9 +930,9 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
               <CardTitle className="text-sm flex items-center gap-2">
                 <XCircle className="h-4 w-4 text-red-500" />
                 Blessés / Incertains / Malades
-                {(groupStatus.injured + groupStatus.uncertain + groupStatus.sick) > 0 && (
+                {(groupStatus.total - groupStatus.available) > 0 && (
                   <Badge variant="secondary" className="ml-auto bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
-                    {groupStatus.injured + groupStatus.uncertain + groupStatus.sick}
+                    {groupStatus.total - groupStatus.available}
                   </Badge>
                 )}
               </CardTitle>
@@ -942,24 +950,38 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
                       <div
                         key={`inj-${p.id}`}
                         className="flex items-center justify-between p-2 rounded-lg bg-red-50 dark:bg-red-900/10 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors"
-                        onClick={() => navigate(`/players/${p.id}`)}
+                        onClick={() => navigate(`/players/${p.id}?tab=injuries`)}
+                        title="Voir le détail des blessures"
                       >
                         <div className="flex items-center gap-2 min-w-0">
                           <XCircle className="h-3.5 w-3.5 text-red-500 shrink-0" />
-                          <p className="text-sm font-medium truncate">{p.name}</p>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">{p.name}</p>
+                            {p.injuryCount > 1 && (
+                              <p className="text-[10px] text-muted-foreground">{p.injuryCount} blessures actives</p>
+                            )}
+                          </div>
                         </div>
-                        <Badge className="text-[10px] bg-red-500 text-white shrink-0">Blessé</Badge>
+                        <Badge className="text-[10px] bg-red-500 text-white shrink-0">
+                          {p.injuryCount > 1 ? `${p.injuryCount} blessures` : "Blessé"}
+                        </Badge>
                       </div>
                     ))}
                     {groupStatus.uncertainPlayers.map(p => (
                       <div
                         key={`unc-${p.id}`}
                         className="flex items-center justify-between p-2 rounded-lg bg-yellow-50 dark:bg-yellow-900/10 cursor-pointer hover:bg-yellow-100 dark:hover:bg-yellow-900/20 transition-colors"
-                        onClick={() => navigate(`/players/${p.id}`)}
+                        onClick={() => navigate(`/players/${p.id}?tab=injuries`)}
+                        title="Voir le détail des blessures"
                       >
                         <div className="flex items-center gap-2 min-w-0">
                           <Clock className="h-3.5 w-3.5 text-yellow-500 shrink-0" />
-                          <p className="text-sm font-medium truncate">{p.name}</p>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">{p.name}</p>
+                            {p.injuryCount > 1 && (
+                              <p className="text-[10px] text-muted-foreground">{p.injuryCount} blessures en réathlé.</p>
+                            )}
+                          </div>
                         </div>
                         <Badge className="text-[10px] bg-yellow-500 text-white shrink-0">Réathléti.</Badge>
                       </div>

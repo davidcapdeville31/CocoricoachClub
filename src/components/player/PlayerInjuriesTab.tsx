@@ -140,14 +140,43 @@ export function PlayerInjuriesTab({ playerId, categoryId, playerName = "Joueur",
     setProtocolDialogOpen(true);
   };
 
-  const activeInjury = injuries?.find((i) => i.status === INJURY_STATUS.ACTIVE);
-  const rehabInjuries = injuries?.filter((i) => i.status === INJURY_STATUS.REHABILITATION) || [];
+  const todayStr = new Date().toISOString().split("T")[0];
+  const severityRank = (s: string) => (s === "grave" ? 0 : s === "modérée" ? 1 : s === "légère" ? 2 : 3);
+
+  // Une blessure est "active" si son statut est active/recovering ET
+  // qu'elle n'a pas de date de retour réelle passée.
+  const isCurrentlyActive = (i: any) => {
+    const status = i.status;
+    const hasReturned = i.actual_return_date && i.actual_return_date <= todayStr;
+    if (hasReturned) return false;
+    return status === INJURY_STATUS.ACTIVE || status === INJURY_STATUS.REHABILITATION;
+  };
+
+  const activeAll = (injuries || [])
+    .filter(isCurrentlyActive)
+    .sort((a: any, b: any) => {
+      const s = severityRank(a.severity) - severityRank(b.severity);
+      if (s !== 0) return s;
+      return (b.injury_date || "").localeCompare(a.injury_date || "");
+    });
+
+  const activeInjuries = activeAll.filter((i: any) => i.status === INJURY_STATUS.ACTIVE);
+  const rehabInjuries = activeAll.filter((i: any) => i.status === INJURY_STATUS.REHABILITATION);
+  const activeIds = new Set(activeAll.map((i: any) => i.id));
+
+  // L'historique = tout ce qui n'est pas actuellement actif, trié date desc
+  const historyInjuries = (injuries || [])
+    .filter((i: any) => !activeIds.has(i.id))
+    .sort((a: any, b: any) => (b.injury_date || "").localeCompare(a.injury_date || ""));
+
+  const isReturnOverdue = (i: any) =>
+    i.estimated_return_date && i.estimated_return_date < todayStr && !i.actual_return_date;
 
   return (
     <div className="space-y-6">
-      {/* Active Injury Alert */}
-      {activeInjury && (
-        <Card className="bg-destructive/10 border-destructive/50">
+      {/* Active Injuries (peut en avoir plusieurs) */}
+      {activeInjuries.map((activeInjury: any) => (
+        <Card key={activeInjury.id} className="bg-destructive/10 border-destructive/50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-destructive">
               <AlertCircle className="h-5 w-5" />
@@ -179,12 +208,17 @@ export function PlayerInjuriesTab({ playerId, categoryId, playerName = "Joueur",
                 <p className="font-medium">
                   {new Date(activeInjury.estimated_return_date).toLocaleDateString("fr-FR")}
                 </p>
+                {isReturnOverdue(activeInjury) && (
+                  <Badge variant="outline" className="mt-1 border-orange-500/50 text-orange-600 dark:text-orange-400">
+                    Retour estimé dépassé
+                  </Badge>
+                )}
               </div>
             )}
-            
+
             {/* Protocol Assignment */}
             {!getRehabProtocol(activeInjury.id) && !isViewer ? (
-              <Button 
+              <Button
                 onClick={() => handleAssignProtocol(activeInjury)}
                 className="w-full"
                 variant="outline"
@@ -205,7 +239,7 @@ export function PlayerInjuriesTab({ playerId, categoryId, playerName = "Joueur",
             )}
           </CardContent>
         </Card>
-      )}
+      ))}
 
       {/* Rehabilitation in Progress */}
       {rehabInjuries.map((injury) => (
@@ -225,6 +259,11 @@ export function PlayerInjuriesTab({ playerId, categoryId, playerName = "Joueur",
                       <p className="text-sm text-muted-foreground">
                         En réhabilitation depuis le {new Date(injury.injury_date).toLocaleDateString("fr-FR")}
                       </p>
+                      {isReturnOverdue(injury) && (
+                        <Badge variant="outline" className="mt-1 border-orange-500/50 text-orange-600 dark:text-orange-400">
+                          Retour estimé dépassé
+                        </Badge>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -245,7 +284,7 @@ export function PlayerInjuriesTab({ playerId, categoryId, playerName = "Joueur",
             <CollapsibleContent>
               <CardContent>
                 {!getRehabProtocol(injury.id) && !isViewer ? (
-                  <Button 
+                  <Button
                     onClick={() => handleAssignProtocol(injury)}
                     variant="outline"
                     className="w-full"
@@ -275,7 +314,7 @@ export function PlayerInjuriesTab({ playerId, categoryId, playerName = "Joueur",
             <div>
               <CardTitle>Historique Médical</CardTitle>
               <p className="text-sm text-muted-foreground mt-1">
-                Toutes les blessures du joueur
+                Blessures terminées du joueur
               </p>
             </div>
             {!isViewer && (
@@ -287,9 +326,9 @@ export function PlayerInjuriesTab({ playerId, categoryId, playerName = "Joueur",
           </div>
         </CardHeader>
         <CardContent>
-          {injuries && injuries.length > 0 ? (
+          {historyInjuries && historyInjuries.length > 0 ? (
             <div className="space-y-4">
-              {injuries.map((injury) => (
+              {historyInjuries.map((injury) => (
                 <div
                   key={injury.id}
                   className="border rounded-lg p-4 space-y-3 bg-muted/30"
@@ -370,7 +409,7 @@ export function PlayerInjuriesTab({ playerId, categoryId, playerName = "Joueur",
             </div>
           ) : (
             <p className="text-muted-foreground text-center py-4">
-              Aucune blessure enregistrée
+              Aucune blessure terminée
             </p>
           )}
         </CardContent>

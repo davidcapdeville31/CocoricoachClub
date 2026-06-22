@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -88,6 +88,8 @@ function PlayerDetailTab({ value, label, icon: Icon, color }: { value: string; l
 function PlayerDetailsContent() {
   const { playerId } = useParams<{ playerId: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab") || "charge";
   const queryClient = useQueryClient();
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const [isEditingPosition, setIsEditingPosition] = useState(false);
@@ -486,7 +488,7 @@ function PlayerDetailsContent() {
           </div>
         )}
 
-        <Tabs defaultValue="charge" className="space-y-6">
+        <Tabs value={initialTab} onValueChange={(v) => setSearchParams((prev) => { const p = new URLSearchParams(prev); p.set("tab", v); return p; }, { replace: true })} className="space-y-6">
           <ScrollArea className="w-full whitespace-nowrap pb-2">
             <ColoredNavTabsList className="flex w-max gap-1.5 p-2">
               <PlayerDetailTab value="charge" label="Charge" icon={Activity} color="hsl(350 80% 55%)" />
