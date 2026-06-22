@@ -77,7 +77,7 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
    categoryName?: string;
  }
  
-  interface GroupStatus {
+ interface GroupStatus {
     total: number;
     available: number;
     atRisk: number;
@@ -85,8 +85,8 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
     uncertain: number;
     sick: number;
     atRiskPlayers: { id: string; name: string; reason: string }[];
-    injuredPlayers: { id: string; name: string }[];
-    uncertainPlayers: { id: string; name: string }[];
+    injuredPlayers: { id: string; name: string; injuryCount: number }[];
+    uncertainPlayers: { id: string; name: string; injuryCount: number }[];
     sickPlayers: { id: string; name: string; illness?: string }[];
   }
  
