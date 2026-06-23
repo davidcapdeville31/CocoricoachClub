@@ -67,7 +67,7 @@ export function SessionAthleteEntriesPanel({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("awcr_tracking")
-        .select("player_id, rpe, duration_minutes")
+        .select("player_id, rpe, duration_minutes, post_session_feeling, post_session_notes")
         .eq("training_session_id", sessionId);
       if (error) throw error;
       return data || [];
@@ -227,9 +227,14 @@ export function SessionAthleteEntriesPanel({
     exerciseLogsByPlayer.set(log.player_id, list);
   });
 
-  const awcrByPlayer = new Map<string, { rpe: number | null; duration: number | null }>();
+  const awcrByPlayer = new Map<string, { rpe: number | null; duration: number | null; feeling: number | null; notes: string | null }>();
   (awcr || []).forEach((a: any) => {
-    awcrByPlayer.set(a.player_id, { rpe: a.rpe ?? null, duration: a.duration_minutes ?? null });
+    awcrByPlayer.set(a.player_id, {
+      rpe: a.rpe ?? null,
+      duration: a.duration_minutes ?? null,
+      feeling: a.post_session_feeling ?? null,
+      notes: a.post_session_notes ?? null,
+    });
   });
 
   const wellnessByPlayer = new Map<string, { feeling: number | null; notes: string | null }>();
@@ -270,6 +275,8 @@ export function SessionAthleteEntriesPanel({
           const playerLogs = exerciseLogsByPlayer.get(p.id) || [];
           const playerAwcr = awcrByPlayer.get(p.id);
           const playerWellness = wellnessByPlayer.get(p.id);
+          const playerFeeling = playerAwcr?.feeling ?? playerWellness?.feeling ?? null;
+          const playerComment = playerAwcr?.notes ?? playerWellness?.notes ?? null;
           const hasMuscuData = isMuscu && (playerLogs.length > 0 || !!playerAwcr || !!playerWellness);
           const hasAnyData = rpeList.length > 0 || (bowl?.total || 0) > 0 || hasMuscuData;
           const avgRpe =
@@ -378,7 +385,7 @@ export function SessionAthleteEntriesPanel({
                     <div className="rounded-md border bg-background p-2">
                       <div className="text-muted-foreground text-[10px] uppercase tracking-wide">Ressenti</div>
                       <div className="font-medium">
-                        {playerWellness?.feeling ? FEELING_LABELS[playerWellness.feeling] : "—"}
+                        {playerFeeling ? FEELING_LABELS[playerFeeling] : "—"}
                       </div>
                     </div>
                     <div className="rounded-md border bg-background p-2">
@@ -400,10 +407,10 @@ export function SessionAthleteEntriesPanel({
                     </div>
                   </div>
 
-                  {playerWellness?.notes && (
+                  {playerComment && (
                     <div className="rounded-md border bg-background p-2 text-xs flex gap-2">
                       <MessageSquare className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
-                      <span className="italic text-muted-foreground">« {playerWellness.notes} »</span>
+                      <span className="italic text-muted-foreground">« {playerComment} »</span>
                     </div>
                   )}
 
