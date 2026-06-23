@@ -360,7 +360,19 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange, tr
   };
 
 
-  if (gymExercises.length === 0) return null;
+  if (gymExercises.length === 0) {
+    if (isMusculationType(trainingType)) {
+      return (
+        <div className="rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 p-4 text-center">
+          <Dumbbell className="h-6 w-6 text-primary mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground">
+            Aucun exercice musculation prévu pour cette séance.
+          </p>
+        </div>
+      );
+    }
+    return null;
+  }
 
   return (
     <div className="space-y-3 rounded-lg border border-primary/30 bg-primary/5 p-3">
