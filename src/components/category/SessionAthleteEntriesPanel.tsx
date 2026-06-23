@@ -32,7 +32,62 @@ export function SessionAthleteEntriesPanel({
 }: Props) {
   const tt = (trainingType || "").toLowerCase();
   const isBowling = tt.startsWith("bowling");
+  const isMuscu = isMusculationType(trainingType);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+
+  const { data: sessionMeta } = useQuery({
+    queryKey: ["session-meta-for-entries", sessionId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("training_sessions")
+        .select("session_date")
+        .eq("id", sessionId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!sessionId && isMuscu,
+  });
+
+  const { data: exerciseLogs } = useQuery({
+    queryKey: ["session-athlete-exercise-logs", sessionId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("athlete_exercise_logs")
+        .select("player_id, exercise_name, exercise_category, prescribed_sets, prescribed_reps, actual_weight_kg, actual_sets, actual_reps, tonnage, notes")
+        .eq("training_session_id", sessionId);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!sessionId && isMuscu,
+  });
+
+  const { data: awcr } = useQuery({
+    queryKey: ["session-awcr-tracking", sessionId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("awcr_tracking")
+        .select("player_id, rpe, duration_minutes")
+        .eq("training_session_id", sessionId);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!sessionId && isMuscu,
+  });
+
+  const { data: wellness } = useQuery({
+    queryKey: ["session-wellness-tracking", sessionId, sessionMeta?.session_date],
+    queryFn: async () => {
+      if (!sessionMeta?.session_date) return [];
+      const { data, error } = await supabase
+        .from("wellness_tracking")
+        .select("player_id, general_fatigue, notes")
+        .eq("tracking_date", sessionMeta.session_date);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!sessionId && isMuscu && !!sessionMeta?.session_date,
+  });
 
   const toggle = (id: string) =>
     setExpanded((prev) => {
