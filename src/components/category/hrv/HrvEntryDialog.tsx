@@ -185,7 +185,9 @@ export function HrvEntryDialog({
                             ? "Chargement des athlètes..."
                             : playersError
                               ? "Impossible de charger les athlètes"
-                              : "Aucun athlète dans cette catégorie"}
+                              : activeSeasonOnly && activeSeasonId
+                                ? "Aucun athlète disponible pour cette saison."
+                                : "Aucun athlète dans cette catégorie"}
                         </CommandEmpty>
                         <CommandGroup>
                           {players.map((player: any) => {
