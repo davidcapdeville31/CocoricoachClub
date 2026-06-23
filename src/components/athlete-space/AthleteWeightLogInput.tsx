@@ -190,7 +190,7 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange }: 
     queryFn: async () => {
       const { data, error } = await supabase
         .from("athlete_exercise_logs")
-        .select("exercise_name, actual_weight_kg, actual_sets, actual_reps")
+        .select("exercise_name, actual_weight_kg, actual_sets, actual_reps, notes")
         .eq("training_session_id", sessionId)
         .eq("player_id", playerId);
       if (error) throw error;
@@ -200,16 +200,21 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange }: 
   });
 
   const existingByName = useMemo(() => {
-    const map = new Map<string, { weight: number; sets: number | null; reps: number | null }>();
+    const map = new Map<string, { weight: number; sets: number | null; reps: number | null; notes: string | null; status: ExerciseStatus }>();
     existingLogs.forEach((l) => {
+      const notes = (l as any).notes ?? null;
+      const { status, comment } = parseNotesStatus(notes);
       map.set(l.exercise_name, {
         weight: Number(l.actual_weight_kg),
         sets: l.actual_sets,
         reps: l.actual_reps,
+        notes: comment || null,
+        status,
       });
     });
     return map;
   }, [existingLogs]);
+
 
   const gymExercises = useMemo(() => {
     const seen = new Set<string>();
