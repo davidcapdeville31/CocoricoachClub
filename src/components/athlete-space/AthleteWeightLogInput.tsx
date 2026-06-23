@@ -777,17 +777,51 @@ export function buildWeightLogRecords(
   actual_weight_kg: number;
   actual_sets: number;
   actual_reps: number;
+  notes: string | null;
 }> {
   // NOTE: `tonnage` is a GENERATED column in DB (weight × sets × reps).
   // We must NOT include it in the insert payload — Postgres will reject the row otherwise.
   const out: ReturnType<typeof buildWeightLogRecords> = [];
 
   Object.entries(state).forEach(([exerciseName, entry]) => {
+    const status = entry.status ?? "done";
+    const notes = encodeNotesStatus(status, entry.comment);
+
+    // Skipped exercise: still emit a row with 0/0/0 so the coach sees it was deliberately not done.
+    if (status === "skipped") {
+      out.push({
+        player_id: ctx.playerId,
+        category_id: ctx.categoryId,
+        training_session_id: ctx.trainingSessionId,
+        exercise_name: exerciseName,
+        actual_weight_kg: 0,
+        actual_sets: 0,
+        actual_reps: 0,
+        notes,
+      });
+      return;
+    }
+
     if (entry.mode === "quick") {
       const weight = parseFloat(entry.weight);
       const sets = parseInt(entry.sets);
       const reps = parseInt(entry.reps);
-      if (!weight || !sets || !reps) return;
+      if (!weight || !sets || !reps) {
+        // Allow saving comment alone (e.g. "Adapté" without numeric values)
+        if (notes) {
+          out.push({
+            player_id: ctx.playerId,
+            category_id: ctx.categoryId,
+            training_session_id: ctx.trainingSessionId,
+            exercise_name: exerciseName,
+            actual_weight_kg: 0,
+            actual_sets: 0,
+            actual_reps: 0,
+            notes,
+          });
+        }
+        return;
+      }
       out.push({
         player_id: ctx.playerId,
         category_id: ctx.categoryId,
@@ -796,12 +830,13 @@ export function buildWeightLogRecords(
         actual_weight_kg: weight,
         actual_sets: sets,
         actual_reps: reps,
+        notes,
       });
       return;
     }
 
-    // detailed OR special (drop set / cluster / rest-pause / pyramid): aggregate exactly per sub-set
-    const series = entry.mode === "detailed" ? entry.series : entry.series;
+    // detailed OR special: aggregate exactly per sub-set
+    const series = entry.series;
     let totalTonnage = 0;
     let totalReps = 0;
     let validSeries = 0;
@@ -813,10 +848,21 @@ export function buildWeightLogRecords(
       totalReps += r;
       validSeries += 1;
     });
-    if (validSeries === 0 || totalReps === 0) return;
-    // Reconstruct an "equivalent weight" so that weight × sets × reps = totalTonnage in DB.
-    // We use sets=1, reps=totalReps and weight=totalTonnage/totalReps to keep the generated
-    // tonnage exact even for drop sets / clusters where the real volume ≠ avg×sets×reps.
+    if (validSeries === 0 || totalReps === 0) {
+      if (notes) {
+        out.push({
+          player_id: ctx.playerId,
+          category_id: ctx.categoryId,
+          training_session_id: ctx.trainingSessionId,
+          exercise_name: exerciseName,
+          actual_weight_kg: 0,
+          actual_sets: 0,
+          actual_reps: 0,
+          notes,
+        });
+      }
+      return;
+    }
     const equivalentWeight = Math.round((totalTonnage / totalReps) * 100) / 100;
     out.push({
       player_id: ctx.playerId,
@@ -826,6 +872,7 @@ export function buildWeightLogRecords(
       actual_weight_kg: equivalentWeight,
       actual_sets: 1,
       actual_reps: totalReps,
+      notes,
     });
   });
 
@@ -834,11 +881,13 @@ export function buildWeightLogRecords(
 
 /**
  * Count how many gym exercises in the state still have no usable weight/reps entered.
+ * Skipped exercises count as "complete" (the athlete made an explicit choice).
  * Used to warn the athlete before validating their RPE.
  */
 export function countIncompleteWeightLogs(state: WeightLogState): number {
   let incomplete = 0;
   Object.values(state).forEach((entry) => {
+    if (entry.status === "skipped") return;
     if (entry.mode === "quick") {
       const w = parseFloat(entry.weight);
       const s = parseInt(entry.sets);
@@ -851,3 +900,4 @@ export function countIncompleteWeightLogs(state: WeightLogState): number {
   });
   return incomplete;
 }
+
