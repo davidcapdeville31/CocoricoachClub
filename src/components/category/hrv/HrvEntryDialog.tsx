@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -11,6 +11,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import {
   Select,
   SelectContent,
@@ -20,9 +29,10 @@ import {
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { Heart, Loader2, Save } from "lucide-react";
+import { Check, ChevronsUpDown, Heart, Loader2, Save } from "lucide-react";
 import { HrvInputSection, emptyHrvData, type HrvData } from "./HrvInputSection";
 import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
+import { cn } from "@/lib/utils";
 
 interface HrvEntryDialogProps {
   open: boolean;
@@ -47,11 +57,12 @@ export function HrvEntryDialog({
 }: HrvEntryDialogProps) {
   const queryClient = useQueryClient();
   const [selectedPlayerId, setSelectedPlayerId] = useState(defaultPlayerId || "");
+  const [playerPickerOpen, setPlayerPickerOpen] = useState(false);
   const [recordDate, setRecordDate] = useState(defaultDate || new Date().toISOString().split("T")[0]);
   const [recordType, setRecordType] = useState(defaultType);
   const [hrvData, setHrvData] = useState<HrvData>(emptyHrvData);
 
-  const { data: players } = useQuery({
+  const { data: players = [], isLoading: playersLoading, error: playersError } = useQuery({
     queryKey: ["hrv-dialog-players", categoryId],
     queryFn: async () => {
       const roster = await fetchCategoryRosterPlayers(categoryId);
@@ -63,6 +74,12 @@ export function HrvEntryDialog({
     },
     enabled: open && !!categoryId,
   });
+
+  const selectedPlayerLabel = useMemo(() => {
+    const player = players.find((p: any) => p.id === selectedPlayerId);
+    if (!player) return "";
+    return player.first_name ? `${player.first_name} ${player.name}` : player.name;
+  }, [players, selectedPlayerId]);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -124,24 +141,66 @@ export function HrvEntryDialog({
             {!defaultPlayerId && (
               <div className="space-y-2">
                 <Label>Athlète *</Label>
-                <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId}>
-                  <SelectTrigger className="bg-background">
-                    <SelectValue placeholder="Sélectionner un athlète" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background border z-50 max-h-[300px]">
-                    {players && players.length > 0 ? (
-                      players.map((player) => (
-                        <SelectItem key={player.id} value={player.id}>
-                          {player.first_name ? `${player.first_name} ${player.name}` : player.name}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <div className="px-3 py-2 text-xs text-muted-foreground italic">
-                        Aucun athlète dans cette catégorie
-                      </div>
-                    )}
-                  </SelectContent>
-                </Select>
+                <Popover open={playerPickerOpen} onOpenChange={setPlayerPickerOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={playerPickerOpen}
+                      className="w-full justify-between bg-background font-normal"
+                    >
+                      <span className={cn("truncate", !selectedPlayerLabel && "text-muted-foreground")}>
+                        {selectedPlayerLabel || "Sélectionner un athlète"}
+                      </span>
+                      {playersLoading ? (
+                        <Loader2 className="ml-2 h-4 w-4 shrink-0 animate-spin opacity-60" />
+                      ) : (
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Rechercher un athlète..." />
+                      <CommandList>
+                        <CommandEmpty>
+                          {playersLoading
+                            ? "Chargement des athlètes..."
+                            : playersError
+                              ? "Impossible de charger les athlètes"
+                              : "Aucun athlète dans cette catégorie"}
+                        </CommandEmpty>
+                        <CommandGroup>
+                          {players.map((player: any) => {
+                            const label = player.first_name ? `${player.first_name} ${player.name}` : player.name;
+                            return (
+                              <CommandItem
+                                key={player.id}
+                                value={label}
+                                onSelect={() => {
+                                  setSelectedPlayerId(player.id);
+                                  setPlayerPickerOpen(false);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    selectedPlayerId === player.id ? "opacity-100" : "opacity-0",
+                                  )}
+                                />
+                                <span className="truncate">{label}</span>
+                              </CommandItem>
+                            );
+                          })}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                <p className="text-xs text-muted-foreground">
+                  La liste reprend les athlètes présents dans l'effectif de cette catégorie.
+                </p>
               </div>
             )}
 
