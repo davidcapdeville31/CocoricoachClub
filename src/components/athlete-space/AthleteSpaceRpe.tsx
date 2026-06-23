@@ -268,6 +268,8 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
   const [expandedExerciseSessionId, setExpandedExerciseSessionId] = useState<string | null>(null);
   const [rpe, setRpe] = useState(5);
+  const [feeling, setFeeling] = useState<number>(2);
+  const [comment, setComment] = useState<string>("");
   const [duration, setDuration] = useState("");
   const [durationLocked, setDurationLocked] = useState(false);
   const [spareExerciseType, setSpareExerciseType] = useState<string>("spare_pin_7");
