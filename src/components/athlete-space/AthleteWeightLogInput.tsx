@@ -48,14 +48,21 @@ function getPrescribedRounds(
   return { count: 1, label: "Série" };
 }
 
-export type WeightLogQuickEntry = {
+export type ExerciseStatus = "done" | "skipped" | "adapted";
+
+type CommonExerciseFields = {
+  status?: ExerciseStatus;
+  comment?: string;
+};
+
+export type WeightLogQuickEntry = CommonExerciseFields & {
   mode: "quick";
   weight: string;
   sets: string;
   reps: string;
 };
 
-export type WeightLogDetailedEntry = {
+export type WeightLogDetailedEntry = CommonExerciseFields & {
   mode: "detailed";
   seriesLabel?: string; // "Série" | "Tour" | "Round"
   series: Array<{ weight: string; reps: string }>;
@@ -63,7 +70,7 @@ export type WeightLogDetailedEntry = {
 
 // Auto mode for special methods (drop set, cluster, rest-pause, pyramid).
 // Each sub-entry has its own weight + reps. Read-only structure (count fixed by prescription).
-export type WeightLogSpecialEntry = {
+export type WeightLogSpecialEntry = CommonExerciseFields & {
   mode: "special";
   method: string; // drop_set, cluster, rest_pause, pyramid_up, pyramid_down, pyramid_full
   series: Array<{ weight: string; reps: string; label?: string }>;
@@ -72,6 +79,7 @@ export type WeightLogSpecialEntry = {
 export type WeightLogEntry = WeightLogQuickEntry | WeightLogDetailedEntry | WeightLogSpecialEntry;
 
 export type WeightLogState = Record<string, WeightLogEntry>;
+
 
 interface Props {
   sessionId: string;
