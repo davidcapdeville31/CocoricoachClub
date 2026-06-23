@@ -277,7 +277,7 @@ export function SessionAthleteEntriesPanel({
           const playerLogs = exerciseLogsByPlayer.get(p.id) || [];
           const playerAwcr = awcrByPlayer.get(p.id);
           const playerWellness = wellnessByPlayer.get(p.id);
-          const playerFeeling = playerAwcr?.feeling ?? playerWellness?.feeling ?? null;
+          const playerFeeling = playerAwcr?.feeling ?? playerWellness?.feeling ?? (playerAwcr ? 2 : null);
           const playerComment = playerAwcr?.notes ?? playerWellness?.notes ?? null;
           const hasMuscuData = isMuscu && (playerLogs.length > 0 || !!playerAwcr || !!playerWellness);
           const hasAnyData = rpeList.length > 0 || (bowl?.total || 0) > 0 || hasMuscuData;
