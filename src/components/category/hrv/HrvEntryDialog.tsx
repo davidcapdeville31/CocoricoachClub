@@ -99,7 +99,7 @@ export function HrvEntryDialog({
 
       if (activeSeasonOnly && activeSeasonId) {
         const player = players.find((p: any) => p.id === selectedPlayerId);
-        if (player && player.season_id && player.season_id !== activeSeasonId) {
+        if (!player || player.season_id !== activeSeasonId) {
           throw new Error("Athlète hors saison active");
         }
       }
@@ -160,65 +160,27 @@ export function HrvEntryDialog({
             {!defaultPlayerId && (
               <div className="space-y-2">
                 <Label>Athlète *</Label>
-                <Popover open={playerPickerOpen} onOpenChange={setPlayerPickerOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={playerPickerOpen}
-                      className="w-full justify-between bg-background font-normal"
-                    >
-                      <span className={cn("truncate", !selectedPlayerLabel && "text-muted-foreground")}>
-                        {selectedPlayerLabel || "Sélectionner un athlète"}
-                      </span>
-                      {playersLoading ? (
-                        <Loader2 className="ml-2 h-4 w-4 shrink-0 animate-spin opacity-60" />
-                      ) : (
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                    <Command>
-                      <CommandInput placeholder="Rechercher un athlète..." />
-                      <CommandList>
-                        <CommandEmpty>
-                          {playersLoading
-                            ? "Chargement des athlètes..."
-                            : playersError
-                              ? "Impossible de charger les athlètes"
-                              : activeSeasonOnly && activeSeasonId
-                                ? "Aucun athlète disponible pour cette saison."
-                                : "Aucun athlète dans cette catégorie"}
-                        </CommandEmpty>
-                        <CommandGroup>
-                          {players.map((player: any) => {
-                            const label = player.first_name ? `${player.first_name} ${player.name}` : player.name;
-                            return (
-                              <CommandItem
-                                key={player.id}
-                                value={label}
-                                onSelect={() => {
-                                  setSelectedPlayerId(player.id);
-                                  setPlayerPickerOpen(false);
-                                }}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    selectedPlayerId === player.id ? "opacity-100" : "opacity-0",
-                                  )}
-                                />
-                                <span className="truncate">{label}</span>
-                              </CommandItem>
-                            );
-                          })}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId}>
+                  <SelectTrigger className="bg-background">
+                    <SelectValue placeholder={playersLoading ? "Chargement des athlètes..." : "Sélectionner un athlète"} />
+                  </SelectTrigger>
+                  <SelectContent className="z-[9999] bg-background border">
+                    {players.length === 0 ? (
+                      <div className="px-3 py-2 text-sm text-muted-foreground">
+                        {emptyPlayersMessage}
+                      </div>
+                    ) : (
+                      players.map((player: any) => {
+                        const label = player.first_name ? `${player.first_name} ${player.name}` : player.name;
+                        return (
+                          <SelectItem key={player.id} value={player.id}>
+                            {label}
+                          </SelectItem>
+                        );
+                      })
+                    )}
+                  </SelectContent>
+                </Select>
                 <p className="text-xs text-muted-foreground">
                   La liste reprend les athlètes présents dans l'effectif de cette catégorie.
                 </p>
