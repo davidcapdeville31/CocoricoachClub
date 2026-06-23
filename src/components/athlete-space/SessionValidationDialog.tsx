@@ -219,6 +219,7 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
               playerId={playerId}
               value={weightLogs}
               onChange={setWeightLogs}
+              trainingType={session.training_type ?? null}
             />
           )}
 

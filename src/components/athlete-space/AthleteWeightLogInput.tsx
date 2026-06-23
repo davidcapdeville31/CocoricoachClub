@@ -113,11 +113,27 @@ export type WeightLogEntry = WeightLogQuickEntry | WeightLogDetailedEntry | Weig
 export type WeightLogState = Record<string, WeightLogEntry>;
 
 
+const MUSCU_TRAINING_TYPES = new Set([
+  "musculation",
+  "crossfit_strength",
+  "crossfit_bodybuilding",
+  "crossfit_powerlifting",
+  "crossfit_halterophilie",
+  "crossfit_accessoire",
+]);
+
+export function isMusculationType(trainingType?: string | null): boolean {
+  if (!trainingType) return false;
+  return MUSCU_TRAINING_TYPES.has(trainingType);
+}
+
 interface Props {
   sessionId: string;
   playerId: string;
   value: WeightLogState;
   onChange: (next: WeightLogState) => void;
+  /** Training type — used to show an empty-state message for musculation sessions without exercises. */
+  trainingType?: string | null;
 }
 
 const SPECIAL_AUTO_METHODS = new Set([
@@ -195,7 +211,7 @@ function buildSpecialSeries(
   return [{ weight: baseWeight ? String(baseWeight) : "", reps: "", label: "Série" }];
 }
 
-export function AthleteWeightLogInput({ sessionId, playerId, value, onChange }: Props) {
+export function AthleteWeightLogInput({ sessionId, playerId, value, onChange, trainingType }: Props) {
   // Fetch prescribed exercises (now includes set_type, method, drop_sets, cluster_sets)
   const { data: rawExercises = [] } = useQuery({
     queryKey: ["athlete-weight-log-exercises", sessionId, playerId],
@@ -344,7 +360,19 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange }: 
   };
 
 
-  if (gymExercises.length === 0) return null;
+  if (gymExercises.length === 0) {
+    if (isMusculationType(trainingType)) {
+      return (
+        <div className="rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 p-4 text-center">
+          <Dumbbell className="h-6 w-6 text-primary mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground">
+            Aucun exercice musculation prévu pour cette séance.
+          </p>
+        </div>
+      );
+    }
+    return null;
+  }
 
   return (
     <div className="space-y-3 rounded-lg border border-primary/30 bg-primary/5 p-3">

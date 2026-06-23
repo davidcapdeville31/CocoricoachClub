@@ -1006,6 +1006,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                         playerId={playerId}
                         value={weightLogs}
                         onChange={setWeightLogs}
+                        trainingType={selectedSessionData?.training_type ?? null}
                       />
                     )}
 
