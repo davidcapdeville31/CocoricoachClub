@@ -50,6 +50,7 @@ export function HrvEntryDialog({
   const [selectedPlayerId, setSelectedPlayerId] = useState(defaultPlayerId || "");
   const [recordDate, setRecordDate] = useState(defaultDate || new Date().toISOString().split("T")[0]);
   const [recordType, setRecordType] = useState(defaultType);
+  const [selectedSessionId, setSelectedSessionId] = useState<string>(trainingSessionId || "");
   const [hrvData, setHrvData] = useState<HrvData>(emptyHrvData);
 
   const { activeSeasonOnly, activeSeasonId } = useSeasonRosterFilter();
