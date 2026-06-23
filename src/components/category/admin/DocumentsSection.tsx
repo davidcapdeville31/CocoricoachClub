@@ -142,15 +142,31 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
     new Set((documents || []).map((d) => d.created_by).filter(Boolean) as string[]),
   );
   const { data: authors } = useQuery({
-    queryKey: ["doc-authors", authorIds.sort().join(",")],
+    queryKey: ["doc-authors", categoryId, authorIds.sort().join(",")],
     enabled: authorIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, full_name, email")
-        .in("id", authorIds);
-      if (error) throw error;
-      return data as { id: string; full_name: string | null; email: string | null }[];
+      const [profilesRes, playersRes] = await Promise.all([
+        supabase.from("profiles").select("id, full_name, email").in("id", authorIds),
+        supabase
+          .from("players")
+          .select("user_id, first_name, name")
+          .eq("category_id", categoryId)
+          .in("user_id", authorIds),
+      ]);
+      const map = new Map<string, { id: string; full_name: string | null; email: string | null }>();
+      (profilesRes.data || []).forEach((p: any) => map.set(p.id, p));
+      (playersRes.data || []).forEach((pl: any) => {
+        if (!pl.user_id) return;
+        const display = [pl.first_name, pl.name].filter(Boolean).join(" ").trim();
+        if (!display) return;
+        const existing = map.get(pl.user_id);
+        map.set(pl.user_id, {
+          id: pl.user_id,
+          full_name: display,
+          email: existing?.email ?? null,
+        });
+      });
+      return Array.from(map.values());
     },
   });
   const authorMap = new Map((authors || []).map((a) => [a.id, a]));
