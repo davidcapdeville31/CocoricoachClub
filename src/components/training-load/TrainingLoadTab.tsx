@@ -134,12 +134,34 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
 
   return (
     <div className="space-y-6">
+      {/* Pedagogical banner */}
+      <Card className="bg-primary/5 border-primary/20">
+        <CardContent className="py-3 px-4 flex items-start gap-3">
+          <div className="rounded-full bg-primary/10 p-1.5 shrink-0">
+            <Lightbulb className="h-4 w-4 text-primary" />
+          </div>
+          <div className="text-sm text-foreground/90 leading-relaxed">
+            <span className="font-semibold">Comment lire cet onglet ?</span>{" "}
+            Le Workload aide à suivre la charge d'entraînement, repérer les pics de fatigue et adapter les séances.
+            Cliquez sur les icônes <Info className="inline h-3.5 w-3.5 mx-0.5 text-muted-foreground" /> pour comprendre chaque indicateur.
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Header with actions */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Charge d'entraînement</h2>
-          <p className="text-muted-foreground">
-            Monitoring {loadModel === "ewma" ? "EWMA" : "AWCR (Gabbett)"} - Charge interne et externe
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            Charge d'entraînement
+            <InfoHint
+              title="Charge d'entraînement"
+              what="La quantité d'effort cumulé fait par l'athlète, séance après séance."
+              how="Pour chaque séance : durée × RPE (perception d'effort de 1 à 10). On compare ensuite la semaine en cours à la moyenne du mois."
+              why="Une charge bien dosée = progression. Trop brutale = blessure. Trop faible = désentraînement."
+            />
+          </h2>
+          <p className="text-muted-foreground text-sm">
+            Suivi {loadModel === "ewma" ? "EWMA (moyenne pondérée)" : "AWCR (moyenne simple, Gabbett)"} — charge interne & récupération.
           </p>
         </div>
 
