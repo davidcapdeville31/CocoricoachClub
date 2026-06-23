@@ -41,6 +41,7 @@ import {
   getCorrelationRiskLabel,
 } from "@/lib/hrvCalculations";
 import { EWMAResult } from "@/lib/trainingLoadCalculations";
+import { InfoHint } from "./InfoHint";
 
 interface HrvAnalysisPanelProps {
   hrvRecords: any[];
@@ -163,7 +164,15 @@ export function HrvAnalysisPanel({ hrvRecords, loadData, playerId, isLoading }: 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Card className="bg-gradient-card shadow-sm">
           <CardContent className="p-3">
-            <p className="text-xs text-muted-foreground">HRV actuel</p>
+            <div className="flex items-center gap-1">
+              <p className="text-xs text-muted-foreground">HRV actuel</p>
+              <InfoHint
+                title="HRV — Variabilité de la fréquence cardiaque"
+                what="C'est la variation du temps entre deux battements de cœur, mesurée en millisecondes (ms). Plus elle est élevée, mieux l'organisme récupère et s'adapte."
+                how="Mesurée généralement le matin au repos avec une ceinture cardio, une montre ou une appli (RMSSD en ms)."
+                why="Une HRV stable ou en hausse = athlète bien récupéré. Une HRV qui chute fortement = signe de fatigue, stress ou maladie. À comparer à la baseline personnelle."
+              />
+            </div>
             <p className="text-xl font-bold">
               {latest?.hrvMs != null ? `${latest.hrvMs} ms` : "—"}
             </p>
@@ -177,7 +186,15 @@ export function HrvAnalysisPanel({ hrvRecords, loadData, playerId, isLoading }: 
 
         <Card className="bg-gradient-card shadow-sm">
           <CardContent className="p-3">
-            <p className="text-xs text-muted-foreground">CV% (7j)</p>
+            <div className="flex items-center gap-1">
+              <p className="text-xs text-muted-foreground">CV% (7j)</p>
+              <InfoHint
+                title="CV% — Coefficient de variation sur 7 jours"
+                what="Indique à quel point la HRV varie d'un jour à l'autre sur la dernière semaine. C'est la stabilité de la récupération."
+                how="CV% = (écart-type des HRV / moyenne des HRV) × 100, calculé sur les 7 derniers jours."
+                why="< 5% = athlète stable et bien adapté · 5-8% = phase d'adaptation, vigilance · > 8% = instabilité, risque de surcharge ou fatigue."
+              />
+            </div>
             <p className={`text-xl font-bold ${getCvStatusColor(latest?.cvStatus ?? null)}`}>
               {latest?.cvPercent != null ? `${latest.cvPercent}%` : "—"}
             </p>
@@ -191,7 +208,15 @@ export function HrvAnalysisPanel({ hrvRecords, loadData, playerId, isLoading }: 
 
         <Card className="bg-gradient-card shadow-sm">
           <CardContent className="p-3">
-            <p className="text-xs text-muted-foreground">Score HRV</p>
+            <div className="flex items-center gap-1">
+              <p className="text-xs text-muted-foreground">Score HRV</p>
+              <InfoHint
+                title="Score HRV"
+                what="Score synthétique (0 à 10 environ) qui compare la HRV du jour à la baseline personnelle de l'athlète."
+                how="Calculé à partir de l'écart entre la HRV actuelle et la moyenne habituelle (z-score normalisé)."
+                why="Score élevé = forme du jour supérieure à l'habitude · score bas = signe de fatigue, à confirmer avec le wellness avant d'adapter la séance."
+              />
+            </div>
             <p className={`text-xl font-bold ${getHrvScoreColor(latest?.hrvScoreStatus ?? null)}`}>
               {latest?.hrvScore != null ? latest.hrvScore.toFixed(2) : "—"}
             </p>

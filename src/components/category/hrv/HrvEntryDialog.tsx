@@ -175,8 +175,14 @@ export function HrvEntryDialog({
             Annuler
           </Button>
           <Button
-            onClick={() => saveMutation.mutate()}
-            disabled={!selectedPlayerId || saveMutation.isPending}
+            onClick={() => {
+              if (!selectedPlayerId) {
+                toast.error("Veuillez sélectionner un athlète");
+                return;
+              }
+              saveMutation.mutate();
+            }}
+            disabled={saveMutation.isPending}
           >
             {saveMutation.isPending ? (
               <>
