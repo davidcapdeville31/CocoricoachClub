@@ -94,6 +94,13 @@ export function HrvEntryDialog({
     mutationFn: async () => {
       if (!selectedPlayerId) throw new Error("Veuillez sélectionner un athlète");
 
+      if (activeSeasonOnly && activeSeasonId) {
+        const player = players.find((p: any) => p.id === selectedPlayerId);
+        if (player && player.season_id && player.season_id !== activeSeasonId) {
+          throw new Error("Athlète hors saison active");
+        }
+      }
+
       const hasData = Object.values(hrvData).some((v) => v !== "");
       if (!hasData) throw new Error("Veuillez saisir au moins une valeur");
 
