@@ -451,10 +451,12 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         .insert({
           player_id: playerId,
           category_id: categoryId,
-          session_date: today,
+          session_date: selectedSessionData?.session_date || today,
           rpe,
           duration_minutes: durationMin,
           training_session_id: selectedSession,
+          post_session_feeling: feeling,
+          post_session_notes: comment || null,
         })
         .select("id")
         .single();
@@ -467,7 +469,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
           .from("wellness_tracking")
           .select("id")
           .eq("player_id", playerId)
-          .eq("tracking_date", today)
+          .eq("tracking_date", selectedSessionData?.session_date || today)
           .maybeSingle();
         if (existingW?.id) {
           await supabase
@@ -478,8 +480,13 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
           await supabase.from("wellness_tracking").insert([{
             player_id: playerId,
             category_id: categoryId,
-            tracking_date: today,
+            tracking_date: selectedSessionData?.session_date || today,
+            sleep_quality: 3,
+            sleep_duration: 3,
             general_fatigue: feeling,
+            stress_level: 3,
+            soreness_upper_body: 3,
+            soreness_lower_body: 3,
             notes: comment || null,
           } as any]);
         }
