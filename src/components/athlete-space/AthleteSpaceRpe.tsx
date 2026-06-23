@@ -446,20 +446,31 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         throw new Error("Renseigne des statistiques valides (réussites ≤ tentatives)");
       }
 
-      const { data: awcrRow, error: awcrError } = await supabase
+      const sessionDate = selectedSessionData?.session_date || today;
+      const awcrPayload = {
+        player_id: playerId,
+        category_id: categoryId,
+        session_date: sessionDate,
+        rpe,
+        duration_minutes: durationMin,
+        training_session_id: selectedSession,
+        post_session_feeling: feeling,
+        post_session_notes: comment || null,
+      };
+      const { data: existingAwcr } = await supabase
         .from("awcr_tracking")
-        .insert({
-          player_id: playerId,
-          category_id: categoryId,
-          session_date: selectedSessionData?.session_date || today,
-          rpe,
-          duration_minutes: durationMin,
-          training_session_id: selectedSession,
-          post_session_feeling: feeling,
-          post_session_notes: comment || null,
-        })
         .select("id")
-        .single();
+        .eq("player_id", playerId)
+        .eq("training_session_id", selectedSession)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const hadExistingAwcr = !!existingAwcr?.id;
+      const awcrMutation = hadExistingAwcr
+        ? supabase.from("awcr_tracking").update(awcrPayload).eq("id", existingAwcr.id).select("id").single()
+        : supabase.from("awcr_tracking").insert(awcrPayload).select("id").single();
+      const { data: awcrRow, error: awcrError } = await awcrMutation;
 
       if (awcrError || !awcrRow) throw awcrError || new Error("Erreur AWCR");
 
@@ -469,7 +480,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
           .from("wellness_tracking")
           .select("id")
           .eq("player_id", playerId)
-          .eq("tracking_date", selectedSessionData?.session_date || today)
+          .eq("tracking_date", sessionDate)
           .maybeSingle();
         if (existingW?.id) {
           await supabase
@@ -495,7 +506,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         });
 
         if (spareError) {
-          await supabase.from("awcr_tracking").delete().eq("id", awcrRow.id);
+          if (!hadExistingAwcr) await supabase.from("awcr_tracking").delete().eq("id", awcrRow.id);
           throw spareError;
         }
       } else if (isGenericPrecision && !isRugbyPrecision && attemptsValue > 0) {
@@ -512,7 +523,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         });
 
         if (precisionError) {
-          await supabase.from("awcr_tracking").delete().eq("id", awcrRow.id);
+          if (!hadExistingAwcr) await supabase.from("awcr_tracking").delete().eq("id", awcrRow.id);
           throw precisionError;
         }
       }
