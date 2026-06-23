@@ -842,6 +842,45 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                       </div>
                     </div>
 
+                    {/* Ressenti global de la séance */}
+                    <div>
+                      <Label className="text-sm">Ressenti global</Label>
+                      <div className="mt-2 grid grid-cols-5 gap-2">
+                        {[
+                          { value: 1, label: "Super forme", emoji: "💪" },
+                          { value: 2, label: "Bien", emoji: "🙂" },
+                          { value: 3, label: "Moyen", emoji: "😐" },
+                          { value: 4, label: "Fatigué", emoji: "😓" },
+                          { value: 5, label: "Épuisé", emoji: "🥵" },
+                        ].map((f) => (
+                          <button
+                            key={f.value}
+                            type="button"
+                            onClick={() => setFeeling(f.value)}
+                            className={`rounded-lg border p-2 text-center text-xs transition-colors ${
+                              feeling === f.value
+                                ? "border-accent bg-accent/10 ring-2 ring-accent"
+                                : "border-border hover:border-accent/50"
+                            }`}
+                          >
+                            <div className="text-xl leading-none">{f.emoji}</div>
+                            <div className="mt-1 text-[10px] text-muted-foreground">{f.label}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="text-sm">Commentaire (optionnel)</Label>
+                      <Input
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value)}
+                        placeholder="Ressenti, points forts, difficultés..."
+                        className="mt-1"
+                      />
+                    </div>
+
+
                     {/* Bowling precision */}
                     {isBowlingPrecision && (
                       <div className="space-y-3 rounded-lg border border-border p-3">
