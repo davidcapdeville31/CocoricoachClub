@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -11,15 +11,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
 import {
   Select,
   SelectContent,
@@ -29,10 +20,9 @@ import {
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { Check, ChevronsUpDown, Heart, Loader2, Save } from "lucide-react";
+import { Heart, Loader2, Save } from "lucide-react";
 import { HrvInputSection, emptyHrvData, type HrvData } from "./HrvInputSection";
 import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
-import { cn } from "@/lib/utils";
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 
 interface HrvEntryDialogProps {
@@ -58,7 +48,6 @@ export function HrvEntryDialog({
 }: HrvEntryDialogProps) {
   const queryClient = useQueryClient();
   const [selectedPlayerId, setSelectedPlayerId] = useState(defaultPlayerId || "");
-  const [playerPickerOpen, setPlayerPickerOpen] = useState(false);
   const [recordDate, setRecordDate] = useState(defaultDate || new Date().toISOString().split("T")[0]);
   const [recordType, setRecordType] = useState(defaultType);
   const [hrvData, setHrvData] = useState<HrvData>(emptyHrvData);
@@ -84,11 +73,25 @@ export function HrvEntryDialog({
     enabled: open && !!categoryId,
   });
 
-  const selectedPlayerLabel = useMemo(() => {
-    const player = players.find((p: any) => p.id === selectedPlayerId);
-    if (!player) return "";
-    return player.first_name ? `${player.first_name} ${player.name}` : player.name;
-  }, [players, selectedPlayerId]);
+  useEffect(() => {
+    if (!open) return;
+    setSelectedPlayerId(defaultPlayerId || "");
+  }, [defaultPlayerId, open]);
+
+  useEffect(() => {
+    if (!selectedPlayerId) return;
+    if (playersLoading) return;
+    if (!players.some((p: any) => p.id === selectedPlayerId)) {
+      setSelectedPlayerId(defaultPlayerId || "");
+    }
+  }, [defaultPlayerId, players, playersLoading, selectedPlayerId]);
+
+  const emptyPlayersMessage = useMemo(() => {
+    if (playersLoading) return "Chargement des athlètes...";
+    if (playersError) return "Impossible de charger les athlètes";
+    if (activeSeasonOnly && activeSeasonId) return "Aucun athlète disponible pour cette saison.";
+    return "Aucun athlète dans cette catégorie";
+  }, [activeSeasonId, activeSeasonOnly, playersError, playersLoading]);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
