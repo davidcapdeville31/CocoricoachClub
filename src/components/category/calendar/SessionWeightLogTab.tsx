@@ -56,13 +56,14 @@ export function SessionWeightLogTab({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("athlete_exercise_logs")
-        .select("*")
+        .select("*, notes")
         .eq("training_session_id", sessionId);
       if (error) throw error;
       return data;
     },
     enabled: !!sessionId,
   });
+
 
   // Dedupe by exercise_name, keep first occurrence (preserves order_index)
   const uniqueExercises: UniqueExercise[] = exercises
