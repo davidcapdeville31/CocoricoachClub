@@ -22,6 +22,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { Heart, Loader2, Save } from "lucide-react";
 import { HrvInputSection, emptyHrvData, type HrvData } from "./HrvInputSection";
+import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
 
 interface HrvEntryDialogProps {
   open: boolean;
@@ -51,17 +52,16 @@ export function HrvEntryDialog({
   const [hrvData, setHrvData] = useState<HrvData>(emptyHrvData);
 
   const { data: players } = useQuery({
-    queryKey: ["players", categoryId],
+    queryKey: ["hrv-dialog-players", categoryId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("players")
-        .select("id, name, first_name")
-        .eq("category_id", categoryId)
-        .order("name");
-      if (error) throw error;
-      return data;
+      const roster = await fetchCategoryRosterPlayers(categoryId);
+      return (roster || [])
+        .map((p: any) => ({ id: p.id, name: p.name, first_name: p.first_name }))
+        .sort((a: any, b: any) =>
+          `${a.first_name ?? ""} ${a.name ?? ""}`.localeCompare(`${b.first_name ?? ""} ${b.name ?? ""}`)
+        );
     },
-    enabled: open,
+    enabled: open && !!categoryId,
   });
 
   const saveMutation = useMutation({
@@ -129,11 +129,17 @@ export function HrvEntryDialog({
                     <SelectValue placeholder="Sélectionner un athlète" />
                   </SelectTrigger>
                   <SelectContent className="bg-background border z-50 max-h-[300px]">
-                    {players?.map((player) => (
-                      <SelectItem key={player.id} value={player.id}>
-                        {player.first_name ? `${player.first_name} ${player.name}` : player.name}
-                      </SelectItem>
-                    ))}
+                    {players && players.length > 0 ? (
+                      players.map((player) => (
+                        <SelectItem key={player.id} value={player.id}>
+                          {player.first_name ? `${player.first_name} ${player.name}` : player.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <div className="px-3 py-2 text-xs text-muted-foreground italic">
+                        Aucun athlète dans cette catégorie
+                      </div>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
