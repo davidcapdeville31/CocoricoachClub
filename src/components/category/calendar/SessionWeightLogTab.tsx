@@ -9,6 +9,7 @@ import { Dumbbell, Link2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getMethodColors } from "@/components/program-builder-v2/shared/MethodGroupWrapper";
 import { getTrainingStyleConfig } from "@/lib/program-builder-v2/trainingStyles";
+import { parseNotesStatus } from "@/components/athlete-space/AthleteWeightLogInput";
 
 interface SessionWeightLogTabProps {
   sessionId: string;
