@@ -113,11 +113,27 @@ export type WeightLogEntry = WeightLogQuickEntry | WeightLogDetailedEntry | Weig
 export type WeightLogState = Record<string, WeightLogEntry>;
 
 
+const MUSCU_TRAINING_TYPES = new Set([
+  "musculation",
+  "crossfit_strength",
+  "crossfit_bodybuilding",
+  "crossfit_powerlifting",
+  "crossfit_halterophilie",
+  "crossfit_accessoire",
+]);
+
+export function isMusculationType(trainingType?: string | null): boolean {
+  if (!trainingType) return false;
+  return MUSCU_TRAINING_TYPES.has(trainingType);
+}
+
 interface Props {
   sessionId: string;
   playerId: string;
   value: WeightLogState;
   onChange: (next: WeightLogState) => void;
+  /** Training type — used to show an empty-state message for musculation sessions without exercises. */
+  trainingType?: string | null;
 }
 
 const SPECIAL_AUTO_METHODS = new Set([
