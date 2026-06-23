@@ -1163,6 +1163,8 @@ export type Database = {
           gps_player_load: number | null
           id: string
           player_id: string
+          post_session_feeling: number | null
+          post_session_notes: string | null
           rpe: number
           session_date: string
           training_load: number | null
@@ -1178,6 +1180,8 @@ export type Database = {
           gps_player_load?: number | null
           id?: string
           player_id: string
+          post_session_feeling?: number | null
+          post_session_notes?: string | null
           rpe: number
           session_date: string
           training_load?: number | null
@@ -1193,6 +1197,8 @@ export type Database = {
           gps_player_load?: number | null
           id?: string
           player_id?: string
+          post_session_feeling?: number | null
+          post_session_notes?: string | null
           rpe?: number
           session_date?: string
           training_load?: number | null
