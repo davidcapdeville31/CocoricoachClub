@@ -476,19 +476,6 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
             .from("wellness_tracking")
             .update({ general_fatigue: feeling, notes: comment || null })
             .eq("id", existingW.id);
-        } else {
-          await supabase.from("wellness_tracking").insert([{
-            player_id: playerId,
-            category_id: categoryId,
-            tracking_date: selectedSessionData?.session_date || today,
-            sleep_quality: 3,
-            sleep_duration: 3,
-            general_fatigue: feeling,
-            stress_level: 3,
-            soreness_upper_body: 3,
-            soreness_lower_body: 3,
-            notes: comment || null,
-          } as any]);
         }
       } catch (e) {
         console.error("Wellness post-session save error:", e);
