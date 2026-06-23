@@ -457,20 +457,18 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         post_session_feeling: feeling,
         post_session_notes: comment || null,
       };
-      const { data: existingAwcr } = await supabase
+      const { data: updatedAwcrRows, error: updateAwcrError } = await supabase
         .from("awcr_tracking")
-        .select("id")
+        .update(awcrPayload)
         .eq("player_id", playerId)
         .eq("training_session_id", selectedSession)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .select("id, post_session_feeling");
+      if (updateAwcrError) throw updateAwcrError;
 
-      const hadExistingAwcr = !!existingAwcr?.id;
-      const awcrMutation = hadExistingAwcr
-        ? supabase.from("awcr_tracking").update(awcrPayload).eq("id", existingAwcr.id).select("id").single()
-        : supabase.from("awcr_tracking").insert(awcrPayload).select("id").single();
-      const { data: awcrRow, error: awcrError } = await awcrMutation;
+      const hadExistingAwcr = (updatedAwcrRows || []).length > 0;
+      const { data: awcrRow, error: awcrError } = hadExistingAwcr
+        ? { data: updatedAwcrRows?.[0] ?? null, error: null }
+        : await supabase.from("awcr_tracking").insert(awcrPayload).select("id, post_session_feeling").single();
 
       if (awcrError || !awcrRow) throw awcrError || new Error("Erreur AWCR");
 

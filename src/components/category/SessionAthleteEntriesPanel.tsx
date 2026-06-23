@@ -230,6 +230,27 @@ export function SessionAthleteEntriesPanel({
 
   const normalizeFeeling = (value: unknown): number | null => {
     if (value === null || value === undefined) return null;
+    if (typeof value === "string") {
+      const normalized = value
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim();
+      const labelMap: Record<string, number> = {
+        excellent: 1,
+        super_forme: 1,
+        superforme: 1,
+        good: 2,
+        bien: 2,
+        average: 3,
+        moyen: 3,
+        tired: 4,
+        fatigue: 4,
+        exhausted: 5,
+        epuise: 5,
+      };
+      if (labelMap[normalized] != null) return labelMap[normalized];
+    }
     const parsed = Number(value);
     return Number.isFinite(parsed) && parsed >= 1 && parsed <= 5 ? parsed : null;
   };

@@ -122,8 +122,10 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
         if (rpeErr) throw rpeErr;
       }
 
-      // 2) AWCR tracking (one entry for the session) — used by charge d'entraînement
-      // If an old RPE row already exists, update it so the selected ressenti is not lost.
+      // 2) AWCR tracking (one entry for the session) — used by charge d'entraînement.
+      // Update every existing row for this athlete/session first: older validations may have
+      // created duplicate RPE rows without the post-session feedback, and the coach view reads
+      // these rows by session.
       const awcrPayload = {
         player_id: playerId,
         category_id: categoryId,
@@ -134,17 +136,16 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
         post_session_feeling: feeling,
         post_session_notes: comment || null,
       };
-      const { data: existingAwcr } = await supabase
+      const { data: updatedAwcrRows, error: updateAwcrErr } = await supabase
         .from("awcr_tracking")
-        .select("id")
+        .update(awcrPayload)
         .eq("player_id", playerId)
         .eq("training_session_id", session.id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .select("id, post_session_feeling");
+      if (updateAwcrErr) throw updateAwcrErr;
 
-      const { error: awcrErr } = existingAwcr?.id
-        ? await supabase.from("awcr_tracking").update(awcrPayload).eq("id", existingAwcr.id)
+      const { error: awcrErr } = (updatedAwcrRows || []).length > 0
+        ? { error: null }
         : await supabase.from("awcr_tracking").insert(awcrPayload);
       if (awcrErr) throw awcrErr;
 
