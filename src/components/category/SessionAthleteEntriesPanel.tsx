@@ -4,10 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Circle, Users, Activity, Trophy, ChevronDown, ChevronRight } from "lucide-react";
+import { CheckCircle2, Circle, Users, Activity, Trophy, ChevronDown, ChevronRight, Dumbbell, Clock, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DetailedBlockView } from "@/components/bowling/simplified/DetailedBlockView";
 import type { SimplifiedBlock } from "@/components/bowling/simplified/types";
+import { parseNotesStatus, isMusculationType } from "@/components/athlete-space/AthleteWeightLogInput";
 
 interface Props {
   sessionId: string;
