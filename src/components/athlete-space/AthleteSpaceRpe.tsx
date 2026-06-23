@@ -461,6 +461,32 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
 
       if (awcrError || !awcrRow) throw awcrError || new Error("Erreur AWCR");
 
+      // Persist feeling + global session comment into wellness_tracking (post-séance)
+      try {
+        const { data: existingW } = await supabase
+          .from("wellness_tracking")
+          .select("id")
+          .eq("player_id", playerId)
+          .eq("tracking_date", today)
+          .maybeSingle();
+        if (existingW?.id) {
+          await supabase
+            .from("wellness_tracking")
+            .update({ general_fatigue: feeling, notes: comment || null })
+            .eq("id", existingW.id);
+        } else {
+          await supabase.from("wellness_tracking").insert({
+            player_id: playerId,
+            category_id: categoryId,
+            tracking_date: today,
+            general_fatigue: feeling,
+            notes: comment || null,
+          });
+        }
+      } catch (e) {
+        console.error("Wellness post-session save error:", e);
+      }
+
       if (isBowlingPrecision) {
         const successRate = Math.round((successesValue / attemptsValue) * 10000) / 100;
         const { error: spareError } = await supabase.from("bowling_spare_training").insert({
