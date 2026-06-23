@@ -191,9 +191,36 @@ export function SessionWeightLogTab({
                 </span>
 
                 {existing ? (
-                  <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
-                    ✓ {existing.actual_weight_kg}kg {existing.actual_sets}×{existing.actual_reps}
-                  </span>
+                  (() => {
+                    const { status, comment } = parseNotesStatus(existing.notes ?? null);
+                    return (
+                      <div className="flex flex-col items-end gap-0.5 max-w-[60%]">
+                        <div className="flex items-center gap-1.5">
+                          {status === "skipped" && (
+                            <Badge variant="outline" className="text-[10px] border-destructive/40 text-destructive">
+                              Non fait
+                            </Badge>
+                          )}
+                          {status === "adapted" && (
+                            <Badge variant="outline" className="text-[10px] border-warning/40 text-warning">
+                              Adapté
+                            </Badge>
+                          )}
+                          {status !== "skipped" && (
+                            <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
+                              ✓ {existing.actual_weight_kg}kg {existing.actual_sets}×{existing.actual_reps}
+                            </span>
+                          )}
+                        </div>
+                        {comment && (
+                          <span className="text-[10px] italic text-muted-foreground truncate max-w-full">
+                            « {comment} »
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })()
+
                 ) : (
                   <div className="flex items-center gap-1 shrink-0">
                     <Input
