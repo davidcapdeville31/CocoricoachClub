@@ -33,6 +33,7 @@ import { Check, ChevronsUpDown, Heart, Loader2, Save } from "lucide-react";
 import { HrvInputSection, emptyHrvData, type HrvData } from "./HrvInputSection";
 import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
 import { cn } from "@/lib/utils";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 
 interface HrvEntryDialogProps {
   open: boolean;
