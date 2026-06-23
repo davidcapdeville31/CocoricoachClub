@@ -268,6 +268,8 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
   const [expandedExerciseSessionId, setExpandedExerciseSessionId] = useState<string | null>(null);
   const [rpe, setRpe] = useState(5);
+  const [feeling, setFeeling] = useState<number>(2);
+  const [comment, setComment] = useState<string>("");
   const [duration, setDuration] = useState("");
   const [durationLocked, setDurationLocked] = useState(false);
   const [spareExerciseType, setSpareExerciseType] = useState<string>("spare_pin_7");
@@ -459,6 +461,32 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
 
       if (awcrError || !awcrRow) throw awcrError || new Error("Erreur AWCR");
 
+      // Persist feeling + global session comment into wellness_tracking (post-séance)
+      try {
+        const { data: existingW } = await supabase
+          .from("wellness_tracking")
+          .select("id")
+          .eq("player_id", playerId)
+          .eq("tracking_date", today)
+          .maybeSingle();
+        if (existingW?.id) {
+          await supabase
+            .from("wellness_tracking")
+            .update({ general_fatigue: feeling, notes: comment || null })
+            .eq("id", existingW.id);
+        } else {
+          await supabase.from("wellness_tracking").insert([{
+            player_id: playerId,
+            category_id: categoryId,
+            tracking_date: today,
+            general_fatigue: feeling,
+            notes: comment || null,
+          } as any]);
+        }
+      } catch (e) {
+        console.error("Wellness post-session save error:", e);
+      }
+
       if (isBowlingPrecision) {
         const successRate = Math.round((successesValue / attemptsValue) * 10000) / 100;
         const { error: spareError } = await supabase.from("bowling_spare_training").insert({
@@ -579,6 +607,8 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
       }
       setSelectedSession(null);
       setRpe(5);
+      setFeeling(2);
+      setComment("");
       setDuration("");
       setSpareAttempts("");
       setSpareSuccesses("");
@@ -813,6 +843,45 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                         )}
                       </div>
                     </div>
+
+                    {/* Ressenti global de la séance */}
+                    <div>
+                      <Label className="text-sm">Ressenti global</Label>
+                      <div className="mt-2 grid grid-cols-5 gap-2">
+                        {[
+                          { value: 1, label: "Super forme", emoji: "💪" },
+                          { value: 2, label: "Bien", emoji: "🙂" },
+                          { value: 3, label: "Moyen", emoji: "😐" },
+                          { value: 4, label: "Fatigué", emoji: "😓" },
+                          { value: 5, label: "Épuisé", emoji: "🥵" },
+                        ].map((f) => (
+                          <button
+                            key={f.value}
+                            type="button"
+                            onClick={() => setFeeling(f.value)}
+                            className={`rounded-lg border p-2 text-center text-xs transition-colors ${
+                              feeling === f.value
+                                ? "border-accent bg-accent/10 ring-2 ring-accent"
+                                : "border-border hover:border-accent/50"
+                            }`}
+                          >
+                            <div className="text-xl leading-none">{f.emoji}</div>
+                            <div className="mt-1 text-[10px] text-muted-foreground">{f.label}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="text-sm">Commentaire (optionnel)</Label>
+                      <Input
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value)}
+                        placeholder="Ressenti, points forts, difficultés..."
+                        className="mt-1"
+                      />
+                    </div>
+
 
                     {/* Bowling precision */}
                     {isBowlingPrecision && (
