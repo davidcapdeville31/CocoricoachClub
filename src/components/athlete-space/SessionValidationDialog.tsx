@@ -94,6 +94,7 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
     setSubmitting(true);
     try {
       const today = new Date().toISOString().split("T")[0];
+      const sessionDate = session.session_date || today;
 
       // 1) Per-block RPE (when coach provided blocks)
       if (blocks.length > 0) {
@@ -122,24 +123,37 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
       }
 
       // 2) AWCR tracking (one entry for the session) — used by charge d'entraînement
-      const { error: awcrErr } = await supabase.from("awcr_tracking").insert({
+      // If an old RPE row already exists, update it so the selected ressenti is not lost.
+      const awcrPayload = {
         player_id: playerId,
         category_id: categoryId,
-        session_date: session.session_date || today,
+        session_date: sessionDate,
         rpe,
         duration_minutes: duration,
         training_session_id: session.id,
         post_session_feeling: feeling,
         post_session_notes: comment || null,
-      });
-      if (awcrErr && !String(awcrErr.message || "").includes("duplicate")) throw awcrErr;
+      };
+      const { data: existingAwcr } = await supabase
+        .from("awcr_tracking")
+        .select("id")
+        .eq("player_id", playerId)
+        .eq("training_session_id", session.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const { error: awcrErr } = existingAwcr?.id
+        ? await supabase.from("awcr_tracking").update(awcrPayload).eq("id", existingAwcr.id)
+        : await supabase.from("awcr_tracking").insert(awcrPayload);
+      if (awcrErr) throw awcrErr;
 
       // 3) Also update the day's wellness row when it already exists.
       const { data: existingW } = await supabase
         .from("wellness_tracking")
         .select("id")
         .eq("player_id", playerId)
-        .eq("tracking_date", session.session_date || today)
+        .eq("tracking_date", sessionDate)
         .maybeSingle();
       if (existingW?.id) {
         await supabase

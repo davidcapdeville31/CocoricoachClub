@@ -228,28 +228,35 @@ export function SessionAthleteEntriesPanel({
     exerciseLogsByPlayer.set(log.player_id, list);
   });
 
+  const normalizeFeeling = (value: unknown): number | null => {
+    if (value === null || value === undefined) return null;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed >= 1 && parsed <= 5 ? parsed : null;
+  };
+
   const awcrByPlayer = new Map<string, { rpe: number | null; duration: number | null; feeling: number | null; notes: string | null }>();
   (awcr || []).forEach((a: any) => {
     const existing = awcrByPlayer.get(a.player_id);
+    const savedFeeling = normalizeFeeling(a.post_session_feeling);
     awcrByPlayer.set(a.player_id, {
       rpe: a.rpe ?? existing?.rpe ?? null,
       duration: a.duration_minutes ?? existing?.duration ?? null,
-      feeling: a.post_session_feeling ?? existing?.feeling ?? null,
+      feeling: savedFeeling ?? existing?.feeling ?? null,
       notes: a.post_session_notes ?? existing?.notes ?? null,
     });
   });
 
   const wellnessByPlayer = new Map<string, { feeling: number | null; notes: string | null }>();
   (wellness || []).forEach((w: any) => {
-    wellnessByPlayer.set(w.player_id, { feeling: w.general_fatigue ?? null, notes: w.notes ?? null });
+    wellnessByPlayer.set(w.player_id, { feeling: normalizeFeeling(w.general_fatigue), notes: w.notes ?? null });
   });
 
   const FEELING_LABELS: Record<number, string> = {
-    1: "💪 Super forme",
-    2: "🙂 Bien",
-    3: "😐 Moyen",
-    4: "😓 Fatigué",
-    5: "🥵 Épuisé",
+    1: "Super forme",
+    2: "Bien",
+    3: "Moyen",
+    4: "Fatigué",
+    5: "Épuisé",
   };
 
   const filledCount = players.filter((p) => {
@@ -277,7 +284,7 @@ export function SessionAthleteEntriesPanel({
           const playerLogs = exerciseLogsByPlayer.get(p.id) || [];
           const playerAwcr = awcrByPlayer.get(p.id);
           const playerWellness = wellnessByPlayer.get(p.id);
-          const playerFeeling = playerAwcr?.feeling ?? playerWellness?.feeling ?? (playerAwcr ? 2 : null);
+          const playerFeeling = normalizeFeeling(playerAwcr?.feeling) ?? normalizeFeeling(playerWellness?.feeling);
           const playerComment = playerAwcr?.notes ?? playerWellness?.notes ?? null;
           const hasMuscuData = isMuscu && (playerLogs.length > 0 || !!playerAwcr || !!playerWellness);
           const hasAnyData = rpeList.length > 0 || (bowl?.total || 0) > 0 || hasMuscuData;
@@ -387,7 +394,7 @@ export function SessionAthleteEntriesPanel({
                     <div className="rounded-md border bg-background p-2">
                       <div className="text-muted-foreground text-[10px] uppercase tracking-wide">Ressenti</div>
                       <div className="font-medium">
-                        {playerFeeling ? FEELING_LABELS[playerFeeling] : "—"}
+                        {playerFeeling != null ? FEELING_LABELS[playerFeeling] : "—"}
                       </div>
                     </div>
                     <div className="rounded-md border bg-background p-2">
