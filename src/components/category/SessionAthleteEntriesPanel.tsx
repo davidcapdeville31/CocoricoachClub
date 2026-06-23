@@ -67,8 +67,9 @@ export function SessionAthleteEntriesPanel({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("awcr_tracking")
-        .select("player_id, rpe, duration_minutes, post_session_feeling, post_session_notes")
-        .eq("training_session_id", sessionId);
+        .select("player_id, rpe, duration_minutes, post_session_feeling, post_session_notes, created_at")
+        .eq("training_session_id", sessionId)
+        .order("created_at", { ascending: true });
       if (error) throw error;
       return data || [];
     },
@@ -229,11 +230,12 @@ export function SessionAthleteEntriesPanel({
 
   const awcrByPlayer = new Map<string, { rpe: number | null; duration: number | null; feeling: number | null; notes: string | null }>();
   (awcr || []).forEach((a: any) => {
+    const existing = awcrByPlayer.get(a.player_id);
     awcrByPlayer.set(a.player_id, {
-      rpe: a.rpe ?? null,
-      duration: a.duration_minutes ?? null,
-      feeling: a.post_session_feeling ?? null,
-      notes: a.post_session_notes ?? null,
+      rpe: a.rpe ?? existing?.rpe ?? null,
+      duration: a.duration_minutes ?? existing?.duration ?? null,
+      feeling: a.post_session_feeling ?? existing?.feeling ?? null,
+      notes: a.post_session_notes ?? existing?.notes ?? null,
     });
   });
 
