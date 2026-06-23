@@ -5,12 +5,44 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dumbbell, Lock, Plus, Trash2, Zap } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Dumbbell, Lock, Plus, Trash2, Zap, Check, SkipForward, Wrench } from "lucide-react";
 import { resolveSessionExerciseRows } from "@/lib/utils/sessionExercises";
 import { cn } from "@/lib/utils";
 import { ReadOnlyMethodCard } from "@/components/program-builder-v2/ReadOnlyMethodCard";
 import { parseV2MethodConfig } from "@/lib/program-builder-v2/parseV2MethodConfig";
 import { getMethodColors } from "@/components/program-builder-v2/shared/MethodGroupWrapper";
+
+// ============= Notes encoding (status + comment in a single `notes` column) =============
+const STATUS_TAGS: Record<"skipped" | "adapted", string> = {
+  skipped: "[NON FAIT]",
+  adapted: "[ADAPTÉ]",
+};
+
+export function parseNotesStatus(notes: string | null): {
+  status: "done" | "skipped" | "adapted";
+  comment: string;
+} {
+  if (!notes) return { status: "done", comment: "" };
+  const trimmed = notes.trim();
+  if (trimmed.startsWith(STATUS_TAGS.skipped)) {
+    return { status: "skipped", comment: trimmed.slice(STATUS_TAGS.skipped.length).trim() };
+  }
+  if (trimmed.startsWith(STATUS_TAGS.adapted)) {
+    return { status: "adapted", comment: trimmed.slice(STATUS_TAGS.adapted.length).trim() };
+  }
+  return { status: "done", comment: trimmed };
+}
+
+export function encodeNotesStatus(
+  status: "done" | "skipped" | "adapted" | undefined,
+  comment: string | undefined,
+): string | null {
+  const c = (comment || "").trim();
+  if (status === "skipped") return c ? `${STATUS_TAGS.skipped} ${c}` : STATUS_TAGS.skipped;
+  if (status === "adapted") return c ? `${STATUS_TAGS.adapted} ${c}` : STATUS_TAGS.adapted;
+  return c || null;
+}
 
 /**
  * Compute the number of "rounds/series" the athlete should fill for an exercise,
@@ -48,14 +80,21 @@ function getPrescribedRounds(
   return { count: 1, label: "Série" };
 }
 
-export type WeightLogQuickEntry = {
+export type ExerciseStatus = "done" | "skipped" | "adapted";
+
+type CommonExerciseFields = {
+  status?: ExerciseStatus;
+  comment?: string;
+};
+
+export type WeightLogQuickEntry = CommonExerciseFields & {
   mode: "quick";
   weight: string;
   sets: string;
   reps: string;
 };
 
-export type WeightLogDetailedEntry = {
+export type WeightLogDetailedEntry = CommonExerciseFields & {
   mode: "detailed";
   seriesLabel?: string; // "Série" | "Tour" | "Round"
   series: Array<{ weight: string; reps: string }>;
@@ -63,7 +102,7 @@ export type WeightLogDetailedEntry = {
 
 // Auto mode for special methods (drop set, cluster, rest-pause, pyramid).
 // Each sub-entry has its own weight + reps. Read-only structure (count fixed by prescription).
-export type WeightLogSpecialEntry = {
+export type WeightLogSpecialEntry = CommonExerciseFields & {
   mode: "special";
   method: string; // drop_set, cluster, rest_pause, pyramid_up, pyramid_down, pyramid_full
   series: Array<{ weight: string; reps: string; label?: string }>;
@@ -72,6 +111,7 @@ export type WeightLogSpecialEntry = {
 export type WeightLogEntry = WeightLogQuickEntry | WeightLogDetailedEntry | WeightLogSpecialEntry;
 
 export type WeightLogState = Record<string, WeightLogEntry>;
+
 
 interface Props {
   sessionId: string;
@@ -182,7 +222,7 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange }: 
     queryFn: async () => {
       const { data, error } = await supabase
         .from("athlete_exercise_logs")
-        .select("exercise_name, actual_weight_kg, actual_sets, actual_reps")
+        .select("exercise_name, actual_weight_kg, actual_sets, actual_reps, notes")
         .eq("training_session_id", sessionId)
         .eq("player_id", playerId);
       if (error) throw error;
@@ -192,16 +232,21 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange }: 
   });
 
   const existingByName = useMemo(() => {
-    const map = new Map<string, { weight: number; sets: number | null; reps: number | null }>();
+    const map = new Map<string, { weight: number; sets: number | null; reps: number | null; notes: string | null; status: ExerciseStatus }>();
     existingLogs.forEach((l) => {
+      const notes = (l as any).notes ?? null;
+      const { status, comment } = parseNotesStatus(notes);
       map.set(l.exercise_name, {
         weight: Number(l.actual_weight_kg),
         sets: l.actual_sets,
         reps: l.actual_reps,
+        notes: comment || null,
+        status,
       });
     });
     return map;
   }, [existingLogs]);
+
 
   const gymExercises = useMemo(() => {
     const seen = new Set<string>();
@@ -321,19 +366,36 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange }: 
         const isSpecial = SPECIAL_AUTO_METHODS.has(method);
 
         if (existing) {
+          const statusBadge =
+            existing.status === "skipped"
+              ? <Badge variant="outline" className="text-[10px] border-destructive/40 text-destructive">Non fait</Badge>
+              : existing.status === "adapted"
+                ? <Badge variant="outline" className="text-[10px] border-warning/40 text-warning">Adapté</Badge>
+                : null;
           return (
             <div
               key={ex.exercise_name}
-              className="flex items-center gap-2 rounded-md border border-muted bg-muted/40 p-2 opacity-70"
+              className="rounded-md border border-muted bg-muted/40 p-2 opacity-80 space-y-1"
             >
-              <Lock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-              <span className="text-xs font-medium flex-1 truncate">{ex.exercise_name}</span>
-              <Badge variant="secondary" className="text-[10px]">
-                ✓ {existing.weight}kg {existing.sets ?? "–"}×{existing.reps ?? "–"}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Lock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="text-xs font-medium flex-1 truncate">{ex.exercise_name}</span>
+                {statusBadge}
+                {existing.status !== "skipped" && (
+                  <Badge variant="secondary" className="text-[10px]">
+                    ✓ {existing.weight}kg {existing.sets ?? "–"}×{existing.reps ?? "–"}
+                  </Badge>
+                )}
+              </div>
+              {existing.notes && (
+                <p className="text-[10px] text-muted-foreground italic pl-5 truncate">
+                  « {existing.notes} »
+                </p>
+              )}
             </div>
           );
         }
+
 
         if (!entry) return null;
 
@@ -379,11 +441,31 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange }: 
 
             {/* Saisie des charges réelles */}
             <div className="p-2.5 space-y-2 bg-card">
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  Mes charges réelles
-                </Label>
-                {!isSpecial && (
+              {/* Status pills (Fait / Adapté / Non fait) */}
+              <div className="flex items-center gap-1 flex-wrap">
+                <StatusPill
+                  active={(entry.status ?? "done") === "done"}
+                  onClick={() => updateEntry(ex.exercise_name, { ...entry, status: "done" })}
+                  icon={<Check className="h-3 w-3" />}
+                  label="Fait"
+                  activeClass="bg-status-optimal/15 text-status-optimal border-status-optimal/40"
+                />
+                <StatusPill
+                  active={entry.status === "adapted"}
+                  onClick={() => updateEntry(ex.exercise_name, { ...entry, status: "adapted" })}
+                  icon={<Wrench className="h-3 w-3" />}
+                  label="Adapté"
+                  activeClass="bg-warning/15 text-warning border-warning/40"
+                />
+                <StatusPill
+                  active={entry.status === "skipped"}
+                  onClick={() => updateEntry(ex.exercise_name, { ...entry, status: "skipped" })}
+                  icon={<SkipForward className="h-3 w-3" />}
+                  label="Non fait"
+                  activeClass="bg-destructive/15 text-destructive border-destructive/40"
+                />
+                <div className="ml-auto" />
+                {!isSpecial && entry.status !== "skipped" && (
                   <Button
                     type="button"
                     variant="ghost"
@@ -396,26 +478,50 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange }: 
                 )}
               </div>
 
-              {entry.mode === "quick" && (
-                <QuickModeRow
-                  entry={entry}
-                  onChange={(e) => updateEntry(ex.exercise_name, e)}
-                />
+              {entry.status !== "skipped" && (
+                <>
+                  <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Mes charges réelles
+                  </Label>
+
+                  {entry.mode === "quick" && (
+                    <QuickModeRow
+                      entry={entry}
+                      onChange={(e) => updateEntry(ex.exercise_name, e)}
+                    />
+                  )}
+
+                  {entry.mode === "detailed" && (
+                    <DetailedModeRows
+                      entry={entry}
+                      onChange={(e) => updateEntry(ex.exercise_name, e)}
+                    />
+                  )}
+
+                  {entry.mode === "special" && (
+                    <SpecialModeRows
+                      entry={entry}
+                      onChange={(e) => updateEntry(ex.exercise_name, e)}
+                    />
+                  )}
+                </>
               )}
 
-              {entry.mode === "detailed" && (
-                <DetailedModeRows
-                  entry={entry}
-                  onChange={(e) => updateEntry(ex.exercise_name, e)}
-                />
-              )}
-
-              {entry.mode === "special" && (
-                <SpecialModeRows
-                  entry={entry}
-                  onChange={(e) => updateEntry(ex.exercise_name, e)}
-                />
-              )}
+              {/* Per-exercise comment */}
+              <Textarea
+                value={entry.comment ?? ""}
+                onChange={(e) => updateEntry(ex.exercise_name, { ...entry, comment: e.target.value })}
+                placeholder={
+                  entry.status === "skipped"
+                    ? "Raison (douleur, fatigue, matériel manquant...)"
+                    : entry.status === "adapted"
+                      ? "Adaptation effectuée (charge réduite, variante...)"
+                      : "Commentaire (optionnel)"
+                }
+                rows={2}
+                maxLength={300}
+                className="text-xs"
+              />
             </div>
           </div>
         );
@@ -423,6 +529,35 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange }: 
     </div>
   );
 }
+
+function StatusPill({
+  active,
+  onClick,
+  icon,
+  label,
+  activeClass,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+  activeClass: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium transition",
+        active ? activeClass : "border-border bg-background text-muted-foreground hover:bg-muted",
+      )}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
+
 
 // ============= Sub-components =============
 
@@ -642,17 +777,51 @@ export function buildWeightLogRecords(
   actual_weight_kg: number;
   actual_sets: number;
   actual_reps: number;
+  notes: string | null;
 }> {
   // NOTE: `tonnage` is a GENERATED column in DB (weight × sets × reps).
   // We must NOT include it in the insert payload — Postgres will reject the row otherwise.
   const out: ReturnType<typeof buildWeightLogRecords> = [];
 
   Object.entries(state).forEach(([exerciseName, entry]) => {
+    const status = entry.status ?? "done";
+    const notes = encodeNotesStatus(status, entry.comment);
+
+    // Skipped exercise: still emit a row with 0/0/0 so the coach sees it was deliberately not done.
+    if (status === "skipped") {
+      out.push({
+        player_id: ctx.playerId,
+        category_id: ctx.categoryId,
+        training_session_id: ctx.trainingSessionId,
+        exercise_name: exerciseName,
+        actual_weight_kg: 0,
+        actual_sets: 0,
+        actual_reps: 0,
+        notes,
+      });
+      return;
+    }
+
     if (entry.mode === "quick") {
       const weight = parseFloat(entry.weight);
       const sets = parseInt(entry.sets);
       const reps = parseInt(entry.reps);
-      if (!weight || !sets || !reps) return;
+      if (!weight || !sets || !reps) {
+        // Allow saving comment alone (e.g. "Adapté" without numeric values)
+        if (notes) {
+          out.push({
+            player_id: ctx.playerId,
+            category_id: ctx.categoryId,
+            training_session_id: ctx.trainingSessionId,
+            exercise_name: exerciseName,
+            actual_weight_kg: 0,
+            actual_sets: 0,
+            actual_reps: 0,
+            notes,
+          });
+        }
+        return;
+      }
       out.push({
         player_id: ctx.playerId,
         category_id: ctx.categoryId,
@@ -661,12 +830,13 @@ export function buildWeightLogRecords(
         actual_weight_kg: weight,
         actual_sets: sets,
         actual_reps: reps,
+        notes,
       });
       return;
     }
 
-    // detailed OR special (drop set / cluster / rest-pause / pyramid): aggregate exactly per sub-set
-    const series = entry.mode === "detailed" ? entry.series : entry.series;
+    // detailed OR special: aggregate exactly per sub-set
+    const series = entry.series;
     let totalTonnage = 0;
     let totalReps = 0;
     let validSeries = 0;
@@ -678,10 +848,21 @@ export function buildWeightLogRecords(
       totalReps += r;
       validSeries += 1;
     });
-    if (validSeries === 0 || totalReps === 0) return;
-    // Reconstruct an "equivalent weight" so that weight × sets × reps = totalTonnage in DB.
-    // We use sets=1, reps=totalReps and weight=totalTonnage/totalReps to keep the generated
-    // tonnage exact even for drop sets / clusters where the real volume ≠ avg×sets×reps.
+    if (validSeries === 0 || totalReps === 0) {
+      if (notes) {
+        out.push({
+          player_id: ctx.playerId,
+          category_id: ctx.categoryId,
+          training_session_id: ctx.trainingSessionId,
+          exercise_name: exerciseName,
+          actual_weight_kg: 0,
+          actual_sets: 0,
+          actual_reps: 0,
+          notes,
+        });
+      }
+      return;
+    }
     const equivalentWeight = Math.round((totalTonnage / totalReps) * 100) / 100;
     out.push({
       player_id: ctx.playerId,
@@ -691,6 +872,7 @@ export function buildWeightLogRecords(
       actual_weight_kg: equivalentWeight,
       actual_sets: 1,
       actual_reps: totalReps,
+      notes,
     });
   });
 
@@ -699,11 +881,13 @@ export function buildWeightLogRecords(
 
 /**
  * Count how many gym exercises in the state still have no usable weight/reps entered.
+ * Skipped exercises count as "complete" (the athlete made an explicit choice).
  * Used to warn the athlete before validating their RPE.
  */
 export function countIncompleteWeightLogs(state: WeightLogState): number {
   let incomplete = 0;
   Object.values(state).forEach((entry) => {
+    if (entry.status === "skipped") return;
     if (entry.mode === "quick") {
       const w = parseFloat(entry.weight);
       const s = parseInt(entry.sets);
@@ -716,3 +900,4 @@ export function countIncompleteWeightLogs(state: WeightLogState): number {
   });
   return incomplete;
 }
+
