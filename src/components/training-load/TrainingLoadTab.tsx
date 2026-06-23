@@ -371,7 +371,11 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
               </ColoredSubTabsList>
             </div>
 
-            <TabsContent value="chart">
+            <TabsContent value="chart" className="space-y-2">
+              <SubTabHelp
+                title="Comment lire le graphique ?"
+                text="Axe horizontal = dates. Axe vertical = niveau de charge. La courbe 'aiguë' (récente, 7j) doit rester proche de la courbe 'chronique' (habituelle, 28j). Quand l'écart se creuse vers le haut, l'athlète est en surcharge."
+              />
               <TrainingLoadChart
                 chartData={chartData}
                 availableMetrics={availableMetrics}
@@ -383,15 +387,27 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
               />
             </TabsContent>
 
-            <TabsContent value="calendar">
+            <TabsContent value="calendar" className="space-y-2">
+              <SubTabHelp
+                title="Vue calendrier"
+                text="Chaque case = un jour. La couleur indique l'intensité de la séance. Permet de repérer d'un coup d'œil les jours surchargés ou les périodes de repos."
+              />
               <TrainingLoadCalendar categoryId={categoryId} />
             </TabsContent>
 
-            <TabsContent value="rpe">
+            <TabsContent value="rpe" className="space-y-2">
+              <SubTabHelp
+                title="RPE prévu vs RPE réel"
+                text="Compare l'intensité que le coach avait prévue (RPE prévu) avec celle ressentie par l'athlète après la séance (RPE réel). Un écart important = la séance a été plus dure ou plus légère que prévu : utile pour ajuster les prochaines."
+              />
               <IntensityComparisonDashboard categoryId={categoryId} />
             </TabsContent>
 
-            <TabsContent value="team">
+            <TabsContent value="team" className="space-y-2">
+              <SubTabHelp
+                title="Comparaison entre athlètes"
+                text="Permet de voir d'un coup d'œil quels athlètes sont en zone optimale, en vigilance ou en danger. Cliquez sur un athlète pour zoomer sur sa charge."
+              />
               <TeamLoadComparison
                 players={players}
                 teamAverage={teamAverage}
@@ -401,7 +417,11 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
               />
             </TabsContent>
 
-            <TabsContent value="distribution">
+            <TabsContent value="distribution" className="space-y-2">
+              <SubTabHelp
+                title="Répartition de la charge"
+                text="Montre comment la charge se répartit par type de séance ou par objectif (technique, physique, tactique...). Utile pour vérifier que la planification respecte les priorités."
+              />
               <TrainingDistribution categoryId={categoryId} />
             </TabsContent>
 
