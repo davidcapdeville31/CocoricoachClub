@@ -33,6 +33,7 @@ import { Check, ChevronsUpDown, Heart, Loader2, Save } from "lucide-react";
 import { HrvInputSection, emptyHrvData, type HrvData } from "./HrvInputSection";
 import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
 import { cn } from "@/lib/utils";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 
 interface HrvEntryDialogProps {
   open: boolean;
@@ -62,12 +63,20 @@ export function HrvEntryDialog({
   const [recordType, setRecordType] = useState(defaultType);
   const [hrvData, setHrvData] = useState<HrvData>(emptyHrvData);
 
+  const { activeSeasonOnly, activeSeasonId } = useSeasonRosterFilter();
+  const seasonScope = activeSeasonOnly && activeSeasonId ? activeSeasonId : "all";
+
   const { data: players = [], isLoading: playersLoading, error: playersError } = useQuery({
-    queryKey: ["hrv-dialog-players", categoryId],
+    queryKey: ["hrv-dialog-players", categoryId, seasonScope],
     queryFn: async () => {
       const roster = await fetchCategoryRosterPlayers(categoryId);
-      return (roster || [])
-        .map((p: any) => ({ id: p.id, name: p.name, first_name: p.first_name }))
+      const filtered = (roster || []).filter((p: any) => {
+        if (!(activeSeasonOnly && activeSeasonId)) return true;
+        // Exclude players without season_id when season filter is on
+        return p.season_id === activeSeasonId;
+      });
+      return filtered
+        .map((p: any) => ({ id: p.id, name: p.name, first_name: p.first_name, season_id: p.season_id }))
         .sort((a: any, b: any) =>
           `${a.first_name ?? ""} ${a.name ?? ""}`.localeCompare(`${b.first_name ?? ""} ${b.name ?? ""}`)
         );
@@ -84,6 +93,13 @@ export function HrvEntryDialog({
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!selectedPlayerId) throw new Error("Veuillez sélectionner un athlète");
+
+      if (activeSeasonOnly && activeSeasonId) {
+        const player = players.find((p: any) => p.id === selectedPlayerId);
+        if (player && player.season_id && player.season_id !== activeSeasonId) {
+          throw new Error("Athlète hors saison active");
+        }
+      }
 
       const hasData = Object.values(hrvData).some((v) => v !== "");
       if (!hasData) throw new Error("Veuillez saisir au moins une valeur");
@@ -169,7 +185,9 @@ export function HrvEntryDialog({
                             ? "Chargement des athlètes..."
                             : playersError
                               ? "Impossible de charger les athlètes"
-                              : "Aucun athlète dans cette catégorie"}
+                              : activeSeasonOnly && activeSeasonId
+                                ? "Aucun athlète disponible pour cette saison."
+                                : "Aucun athlète dans cette catégorie"}
                         </CommandEmpty>
                         <CommandGroup>
                           {players.map((player: any) => {
