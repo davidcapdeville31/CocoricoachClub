@@ -52,13 +52,14 @@ export function TrainingLoadKPIs({ summary, isLoading, loadModel = "ewma" }: Tra
       {/* Current Load */}
       <Card className="bg-gradient-card shadow-md">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-            <MetricTooltip
+          <CardTitle className="text-sm font-medium flex items-center gap-1.5">
+            <span>Charge du jour</span>
+            <InfoHint
               title="Charge du jour"
-              description="Dernière charge d'entraînement enregistrée (sRPE = RPE × durée)"
-            >
-              Charge du jour
-            </MetricTooltip>
+              what="La quantité d'effort de la dernière séance enregistrée."
+              how="Durée de la séance (en min) × RPE ressenti (1 à 10)."
+              why="Pour voir si la séance a été légère, normale ou très lourde par rapport à l'habitude de l'athlète."
+            />
           </CardTitle>
           <Zap className="h-4 w-4 text-primary" />
         </CardHeader>
@@ -71,15 +72,16 @@ export function TrainingLoadKPIs({ summary, isLoading, loadModel = "ewma" }: Tra
       {/* Acute */}
       <Card className="bg-gradient-card shadow-md">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-            <MetricTooltip
-              title={loadModel === "ewma" ? "EWMA Aiguë" : "Charge Aiguë (7j)"}
-              description={loadModel === "ewma" 
-                ? "Moyenne exponentielle pondérée sur 7 jours. Les données récentes ont plus de poids."
-                : "Moyenne simple de la charge sur les 7 derniers jours (méthode Gabbett)."}
-            >
-              {loadModel === "ewma" ? "EWMA Aiguë" : "Aiguë (7j)"}
-            </MetricTooltip>
+          <CardTitle className="text-sm font-medium flex items-center gap-1.5">
+            <span>{loadModel === "ewma" ? "Charge récente" : "Charge récente (7j)"}</span>
+            <InfoHint
+              title="Charge récente (7 derniers jours)"
+              what="Ce que l'athlète a encaissé cette semaine."
+              how={loadModel === "ewma"
+                ? "Moyenne des 7 derniers jours, avec plus de poids sur les séances les plus récentes (EWMA)."
+                : "Moyenne simple de la charge des 7 derniers jours (méthode Gabbett)."}
+              why="Si elle monte brutalement, l'athlète est en surcharge potentielle. Si elle chute, il se désentraîne."
+            />
           </CardTitle>
           <Activity className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
@@ -92,7 +94,7 @@ export function TrainingLoadKPIs({ summary, isLoading, loadModel = "ewma" }: Tra
             </span>
           </div>
           <p className="text-[10px] text-muted-foreground/70 mt-2 leading-relaxed border-t border-border/30 pt-1.5">
-            Calculée à partir du RPE et de la durée des séances. Le coach saisit le RPE prévu dans <span className="font-semibold">Programmation</span>, l'athlète peut ajuster son RPE réel après la séance.
+            Alimentée par le RPE et la durée des séances saisis dans <span className="font-semibold">Programmation</span>.
           </p>
         </CardContent>
       </Card>
@@ -100,15 +102,16 @@ export function TrainingLoadKPIs({ summary, isLoading, loadModel = "ewma" }: Tra
       {/* Chronic */}
       <Card className="bg-gradient-card shadow-md">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-            <MetricTooltip
-              title={loadModel === "ewma" ? "EWMA Chronique" : "Charge Chronique (28j)"}
-              description={loadModel === "ewma"
-                ? "Moyenne exponentielle pondérée sur 28 jours. Représente la capacité d'entraînement de base."
-                : "Moyenne simple de la charge sur les 28 derniers jours (méthode Gabbett)."}
-            >
-              {loadModel === "ewma" ? "EWMA Chronique" : "Chronique (28j)"}
-            </MetricTooltip>
+          <CardTitle className="text-sm font-medium flex items-center gap-1.5">
+            <span>{loadModel === "ewma" ? "Charge habituelle" : "Charge habituelle (28j)"}</span>
+            <InfoHint
+              title="Charge habituelle (28 derniers jours)"
+              what="La capacité de travail de base de l'athlète — son niveau de référence."
+              how={loadModel === "ewma"
+                ? "Moyenne pondérée des 28 derniers jours (EWMA)."
+                : "Moyenne simple des charges sur 28 jours."}
+              why="C'est le 'point d'équilibre' contre lequel on compare la semaine en cours. Elle évolue lentement."
+            />
           </CardTitle>
           <Target className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
@@ -116,7 +119,7 @@ export function TrainingLoadKPIs({ summary, isLoading, loadModel = "ewma" }: Tra
           <div className="text-2xl font-bold">{summary.ewmaChronic.toFixed(1)}</div>
           <p className="text-xs text-muted-foreground">Capacité de base (28j)</p>
           <p className="text-[10px] text-muted-foreground/70 mt-2 leading-relaxed border-t border-border/30 pt-1.5">
-            Reflète la charge habituelle sur 28 jours. Se met à jour automatiquement à chaque séance enregistrée dans <span className="font-semibold">Programmation → Séances</span>.
+            Se met à jour automatiquement à chaque séance enregistrée.
           </p>
         </CardContent>
       </Card>
@@ -124,17 +127,14 @@ export function TrainingLoadKPIs({ summary, isLoading, loadModel = "ewma" }: Tra
       {/* Ratio */}
       <Card className="bg-gradient-card shadow-md">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-            <MetricTooltip
-              title={loadModel === "ewma" ? "Ratio EWMA" : "Ratio AWCR"}
-              description={loadModel === "ewma"
-                ? "Rapport charge aiguë / chronique (EWMA). Zone optimale: 0.85 - 1.30"
-                : "Rapport charge aiguë / chronique (Gabbett). Zone optimale: 0.85 - 1.30"}
-              optimalRange="0.85 - 1.30"
-              warningText="> 1.5 risque blessure | < 0.8 désentraînement"
-            >
-              {loadModel === "ewma" ? "Ratio EWMA" : "Ratio AWCR"}
-            </MetricTooltip>
+          <CardTitle className="text-sm font-medium flex items-center gap-1.5">
+            <span>Ratio charge récente / habituelle</span>
+            <InfoHint
+              title={loadModel === "ewma" ? "Ratio EWMA (aiguë / chronique)" : "Ratio AWCR (aiguë / chronique)"}
+              what="Compare ce que l'athlète fait cette semaine à ce qu'il fait d'habitude."
+              how="Charge récente (7j) ÷ Charge habituelle (28j)."
+              why="🟢 0,85–1,30 = zone optimale. 🟡 0,8–0,85 ou 1,30–1,50 = à surveiller. 🔴 <0,8 = désentraînement, >1,5 = risque de blessure élevé."
+            />
           </CardTitle>
           {summary.riskLevel !== "optimal" ? (
             <AlertTriangle className={`h-4 w-4 ${riskColor}`} />
@@ -158,7 +158,7 @@ export function TrainingLoadKPIs({ summary, isLoading, loadModel = "ewma" }: Tra
              summary.riskLevel === "warning" ? "Vigilance" : "Zone danger"}
           </Badge>
           <p className="text-[10px] text-muted-foreground/70 mt-2 leading-relaxed border-t border-border/30 pt-1.5">
-            Ratio automatique (aiguë ÷ chronique). Pour le faire évoluer, saisissez le RPE et la durée de chaque séance dans <span className="font-semibold">Programmation</span>. L'athlète peut aussi renseigner son RPE ressenti.
+            En zone danger : alléger la prochaine séance. En sous-charge : réintroduire progressivement de l'intensité.
           </p>
         </CardContent>
       </Card>
