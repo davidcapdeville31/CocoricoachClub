@@ -63,12 +63,20 @@ export function HrvEntryDialog({
   const [recordType, setRecordType] = useState(defaultType);
   const [hrvData, setHrvData] = useState<HrvData>(emptyHrvData);
 
+  const { activeSeasonOnly, activeSeasonId } = useSeasonRosterFilter();
+  const seasonScope = activeSeasonOnly && activeSeasonId ? activeSeasonId : "all";
+
   const { data: players = [], isLoading: playersLoading, error: playersError } = useQuery({
-    queryKey: ["hrv-dialog-players", categoryId],
+    queryKey: ["hrv-dialog-players", categoryId, seasonScope],
     queryFn: async () => {
       const roster = await fetchCategoryRosterPlayers(categoryId);
-      return (roster || [])
-        .map((p: any) => ({ id: p.id, name: p.name, first_name: p.first_name }))
+      const filtered = (roster || []).filter((p: any) => {
+        if (!(activeSeasonOnly && activeSeasonId)) return true;
+        // Exclude players without season_id when season filter is on
+        return p.season_id === activeSeasonId;
+      });
+      return filtered
+        .map((p: any) => ({ id: p.id, name: p.name, first_name: p.first_name, season_id: p.season_id }))
         .sort((a: any, b: any) =>
           `${a.first_name ?? ""} ${a.name ?? ""}`.localeCompare(`${b.first_name ?? ""} ${b.name ?? ""}`)
         );
