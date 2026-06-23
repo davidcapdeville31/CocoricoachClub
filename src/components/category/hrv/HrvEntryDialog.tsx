@@ -50,6 +50,7 @@ export function HrvEntryDialog({
   const [selectedPlayerId, setSelectedPlayerId] = useState(defaultPlayerId || "");
   const [recordDate, setRecordDate] = useState(defaultDate || new Date().toISOString().split("T")[0]);
   const [recordType, setRecordType] = useState(defaultType);
+  const [selectedSessionId, setSelectedSessionId] = useState<string>(trainingSessionId || "");
   const [hrvData, setHrvData] = useState<HrvData>(emptyHrvData);
 
   const { activeSeasonOnly, activeSeasonId } = useSeasonRosterFilter();
@@ -73,10 +74,32 @@ export function HrvEntryDialog({
     enabled: open && !!categoryId,
   });
 
+  // Fetch training sessions for the category (last 30 days + next 7) for session picker
+  const { data: sessions = [], isLoading: sessionsLoading } = useQuery({
+    queryKey: ["hrv-dialog-sessions", categoryId, recordDate],
+    queryFn: async () => {
+      const base = new Date(recordDate);
+      const from = new Date(base); from.setDate(from.getDate() - 30);
+      const to = new Date(base); to.setDate(to.getDate() + 7);
+      const fmt = (d: Date) => d.toISOString().split("T")[0];
+      const { data, error } = await supabase
+        .from("training_sessions")
+        .select("id, session_date, training_type, notes")
+        .eq("category_id", categoryId)
+        .gte("session_date", fmt(from))
+        .lte("session_date", fmt(to))
+        .order("session_date", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open && !!categoryId && recordType === "session",
+  });
+
   useEffect(() => {
     if (!open) return;
     setSelectedPlayerId(defaultPlayerId || "");
-  }, [defaultPlayerId, open]);
+    setSelectedSessionId(trainingSessionId || "");
+  }, [defaultPlayerId, trainingSessionId, open]);
 
   useEffect(() => {
     if (!selectedPlayerId) return;
@@ -121,7 +144,7 @@ export function HrvEntryDialog({
         zone3_minutes: hrvData.zone3_minutes ? parseFloat(hrvData.zone3_minutes) : null,
         zone4_minutes: hrvData.zone4_minutes ? parseFloat(hrvData.zone4_minutes) : null,
         zone5_minutes: hrvData.zone5_minutes ? parseFloat(hrvData.zone5_minutes) : null,
-        training_session_id: trainingSessionId || null,
+        training_session_id: recordType === "session" ? (selectedSessionId || trainingSessionId || null) : null,
         match_id: matchId || null,
       });
 
@@ -213,8 +236,40 @@ export function HrvEntryDialog({
               </div>
             </div>
 
+            {/* Optional session picker when context = Séance */}
+            {recordType === "session" && !trainingSessionId && (
+              <div className="space-y-2">
+                <Label>Séance liée (optionnel)</Label>
+                <Select value={selectedSessionId || "none"} onValueChange={(v) => setSelectedSessionId(v === "none" ? "" : v)}>
+                  <SelectTrigger className="bg-background">
+                    <SelectValue placeholder={sessionsLoading ? "Chargement..." : "Aucune séance liée"} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background border z-[9999] max-h-72">
+                    <SelectItem value="none">Aucune séance liée</SelectItem>
+                    {sessions.map((s: any) => {
+                      const label = `${s.session_date} · ${s.training_type || "Séance"}${s.notes ? ` — ${String(s.notes).slice(0, 40)}` : ""}`;
+                      return (
+                        <SelectItem key={s.id} value={s.id}>
+                          {label}
+                        </SelectItem>
+                      );
+                    })}
+                    {!sessionsLoading && sessions.length === 0 && (
+                      <div className="px-3 py-2 text-sm text-muted-foreground">
+                        Aucune séance autour de cette date
+                      </div>
+                    )}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Lier la mesure HRV à une séance précise est facultatif. Sans sélection, la donnée reste enregistrée pour la date choisie.
+                </p>
+              </div>
+            )}
+
             {/* HRV Input Section */}
             <HrvInputSection data={hrvData} onChange={setHrvData} />
+
           </div>
         </ScrollArea>
 
