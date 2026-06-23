@@ -144,7 +144,7 @@ export function HrvEntryDialog({
         zone3_minutes: hrvData.zone3_minutes ? parseFloat(hrvData.zone3_minutes) : null,
         zone4_minutes: hrvData.zone4_minutes ? parseFloat(hrvData.zone4_minutes) : null,
         zone5_minutes: hrvData.zone5_minutes ? parseFloat(hrvData.zone5_minutes) : null,
-        training_session_id: trainingSessionId || null,
+        training_session_id: recordType === "session" ? (selectedSessionId || trainingSessionId || null) : null,
         match_id: matchId || null,
       });
 
