@@ -441,11 +441,31 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange }: 
 
             {/* Saisie des charges réelles */}
             <div className="p-2.5 space-y-2 bg-card">
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  Mes charges réelles
-                </Label>
-                {!isSpecial && (
+              {/* Status pills (Fait / Adapté / Non fait) */}
+              <div className="flex items-center gap-1 flex-wrap">
+                <StatusPill
+                  active={(entry.status ?? "done") === "done"}
+                  onClick={() => updateEntry(ex.exercise_name, { ...entry, status: "done" })}
+                  icon={<Check className="h-3 w-3" />}
+                  label="Fait"
+                  activeClass="bg-status-optimal/15 text-status-optimal border-status-optimal/40"
+                />
+                <StatusPill
+                  active={entry.status === "adapted"}
+                  onClick={() => updateEntry(ex.exercise_name, { ...entry, status: "adapted" })}
+                  icon={<Wrench className="h-3 w-3" />}
+                  label="Adapté"
+                  activeClass="bg-warning/15 text-warning border-warning/40"
+                />
+                <StatusPill
+                  active={entry.status === "skipped"}
+                  onClick={() => updateEntry(ex.exercise_name, { ...entry, status: "skipped" })}
+                  icon={<SkipForward className="h-3 w-3" />}
+                  label="Non fait"
+                  activeClass="bg-destructive/15 text-destructive border-destructive/40"
+                />
+                <div className="ml-auto" />
+                {!isSpecial && entry.status !== "skipped" && (
                   <Button
                     type="button"
                     variant="ghost"
@@ -458,26 +478,50 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange }: 
                 )}
               </div>
 
-              {entry.mode === "quick" && (
-                <QuickModeRow
-                  entry={entry}
-                  onChange={(e) => updateEntry(ex.exercise_name, e)}
-                />
+              {entry.status !== "skipped" && (
+                <>
+                  <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Mes charges réelles
+                  </Label>
+
+                  {entry.mode === "quick" && (
+                    <QuickModeRow
+                      entry={entry}
+                      onChange={(e) => updateEntry(ex.exercise_name, e)}
+                    />
+                  )}
+
+                  {entry.mode === "detailed" && (
+                    <DetailedModeRows
+                      entry={entry}
+                      onChange={(e) => updateEntry(ex.exercise_name, e)}
+                    />
+                  )}
+
+                  {entry.mode === "special" && (
+                    <SpecialModeRows
+                      entry={entry}
+                      onChange={(e) => updateEntry(ex.exercise_name, e)}
+                    />
+                  )}
+                </>
               )}
 
-              {entry.mode === "detailed" && (
-                <DetailedModeRows
-                  entry={entry}
-                  onChange={(e) => updateEntry(ex.exercise_name, e)}
-                />
-              )}
-
-              {entry.mode === "special" && (
-                <SpecialModeRows
-                  entry={entry}
-                  onChange={(e) => updateEntry(ex.exercise_name, e)}
-                />
-              )}
+              {/* Per-exercise comment */}
+              <Textarea
+                value={entry.comment ?? ""}
+                onChange={(e) => updateEntry(ex.exercise_name, { ...entry, comment: e.target.value })}
+                placeholder={
+                  entry.status === "skipped"
+                    ? "Raison (douleur, fatigue, matériel manquant...)"
+                    : entry.status === "adapted"
+                      ? "Adaptation effectuée (charge réduite, variante...)"
+                      : "Commentaire (optionnel)"
+                }
+                rows={2}
+                maxLength={300}
+                className="text-xs"
+              />
             </div>
           </div>
         );
@@ -485,6 +529,35 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange }: 
     </div>
   );
 }
+
+function StatusPill({
+  active,
+  onClick,
+  icon,
+  label,
+  activeClass,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+  activeClass: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium transition",
+        active ? activeClass : "border-border bg-background text-muted-foreground hover:bg-muted",
+      )}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
+
 
 // ============= Sub-components =============
 
