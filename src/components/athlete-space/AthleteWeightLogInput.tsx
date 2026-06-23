@@ -5,12 +5,44 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dumbbell, Lock, Plus, Trash2, Zap } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Dumbbell, Lock, Plus, Trash2, Zap, Check, SkipForward, Wrench } from "lucide-react";
 import { resolveSessionExerciseRows } from "@/lib/utils/sessionExercises";
 import { cn } from "@/lib/utils";
 import { ReadOnlyMethodCard } from "@/components/program-builder-v2/ReadOnlyMethodCard";
 import { parseV2MethodConfig } from "@/lib/program-builder-v2/parseV2MethodConfig";
 import { getMethodColors } from "@/components/program-builder-v2/shared/MethodGroupWrapper";
+
+// ============= Notes encoding (status + comment in a single `notes` column) =============
+const STATUS_TAGS: Record<"skipped" | "adapted", string> = {
+  skipped: "[NON FAIT]",
+  adapted: "[ADAPTÉ]",
+};
+
+export function parseNotesStatus(notes: string | null): {
+  status: "done" | "skipped" | "adapted";
+  comment: string;
+} {
+  if (!notes) return { status: "done", comment: "" };
+  const trimmed = notes.trim();
+  if (trimmed.startsWith(STATUS_TAGS.skipped)) {
+    return { status: "skipped", comment: trimmed.slice(STATUS_TAGS.skipped.length).trim() };
+  }
+  if (trimmed.startsWith(STATUS_TAGS.adapted)) {
+    return { status: "adapted", comment: trimmed.slice(STATUS_TAGS.adapted.length).trim() };
+  }
+  return { status: "done", comment: trimmed };
+}
+
+export function encodeNotesStatus(
+  status: "done" | "skipped" | "adapted" | undefined,
+  comment: string | undefined,
+): string | null {
+  const c = (comment || "").trim();
+  if (status === "skipped") return c ? `${STATUS_TAGS.skipped} ${c}` : STATUS_TAGS.skipped;
+  if (status === "adapted") return c ? `${STATUS_TAGS.adapted} ${c}` : STATUS_TAGS.adapted;
+  return c || null;
+}
 
 /**
  * Compute the number of "rounds/series" the athlete should fill for an exercise,
