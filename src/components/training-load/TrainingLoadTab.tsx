@@ -478,3 +478,16 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
     </div>
   );
 }
+
+/** Petite aide contextuelle affichée en haut de chaque sous-onglet. */
+function SubTabHelp({ title, text }: { title: string; text: string }) {
+  return (
+    <div className="flex items-start gap-2 rounded-md bg-muted/40 border border-border/50 px-3 py-2 text-xs text-muted-foreground">
+      <Info className="h-3.5 w-3.5 mt-0.5 shrink-0 text-primary/70" />
+      <p className="leading-relaxed">
+        <span className="font-medium text-foreground">{title} · </span>
+        {text}
+      </p>
+    </div>
+  );
+}
