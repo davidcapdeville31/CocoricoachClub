@@ -220,10 +220,36 @@ export function SessionAthleteEntriesPanel({
     bowlingBlocksByPlayer.set(b.athlete_id, list);
   });
 
+  const exerciseLogsByPlayer = new Map<string, any[]>();
+  (exerciseLogs || []).forEach((log: any) => {
+    const list = exerciseLogsByPlayer.get(log.player_id) || [];
+    list.push(log);
+    exerciseLogsByPlayer.set(log.player_id, list);
+  });
+
+  const awcrByPlayer = new Map<string, { rpe: number | null; duration: number | null }>();
+  (awcr || []).forEach((a: any) => {
+    awcrByPlayer.set(a.player_id, { rpe: a.rpe ?? null, duration: a.duration_minutes ?? null });
+  });
+
+  const wellnessByPlayer = new Map<string, { feeling: number | null; notes: string | null }>();
+  (wellness || []).forEach((w: any) => {
+    wellnessByPlayer.set(w.player_id, { feeling: w.general_fatigue ?? null, notes: w.notes ?? null });
+  });
+
+  const FEELING_LABELS: Record<number, string> = {
+    1: "💪 Super forme",
+    2: "🙂 Bien",
+    3: "😐 Moyen",
+    4: "😓 Fatigué",
+    5: "🥵 Épuisé",
+  };
+
   const filledCount = players.filter((p) => {
     const hasRpe = (rpeByPlayer.get(p.id)?.length || 0) > 0;
     const hasBowling = (bowlingByPlayer.get(p.id)?.total || 0) > 0;
-    return hasRpe || hasBowling;
+    const hasMuscu = (exerciseLogsByPlayer.get(p.id)?.length || 0) > 0 || awcrByPlayer.has(p.id);
+    return hasRpe || hasBowling || hasMuscu;
   }).length;
 
   return (
