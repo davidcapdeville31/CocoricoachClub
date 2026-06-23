@@ -134,19 +134,7 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
       });
       if (awcrErr && !String(awcrErr.message || "").includes("duplicate")) throw awcrErr;
 
-      // 3) Wellness post-session (optional, captures feeling + comment)
-      const wellnessRow: any = {
-        player_id: playerId,
-        category_id: categoryId,
-        tracking_date: session.session_date || today,
-        sleep_quality: 3,
-        sleep_duration: 3,
-        general_fatigue: feeling,
-        stress_level: 3,
-        soreness_upper_body: 3,
-        soreness_lower_body: 3,
-        notes: comment || null,
-      };
+      // 3) Also update the day's wellness row when it already exists.
       const { data: existingW } = await supabase
         .from("wellness_tracking")
         .select("id")
@@ -158,8 +146,6 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
           .from("wellness_tracking")
           .update({ general_fatigue: feeling, notes: comment || null })
           .eq("id", existingW.id);
-      } else {
-        await supabase.from("wellness_tracking").insert(wellnessRow);
       }
 
       // 4) Persist actual weights into athlete_exercise_logs (feeds Tonnage & training load)
