@@ -41,6 +41,7 @@ import {
   getCorrelationRiskLabel,
 } from "@/lib/hrvCalculations";
 import { EWMAResult } from "@/lib/trainingLoadCalculations";
+import { InfoHint } from "./InfoHint";
 
 interface HrvAnalysisPanelProps {
   hrvRecords: any[];
