@@ -366,19 +366,36 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange }: 
         const isSpecial = SPECIAL_AUTO_METHODS.has(method);
 
         if (existing) {
+          const statusBadge =
+            existing.status === "skipped"
+              ? <Badge variant="outline" className="text-[10px] border-destructive/40 text-destructive">Non fait</Badge>
+              : existing.status === "adapted"
+                ? <Badge variant="outline" className="text-[10px] border-warning/40 text-warning">Adapté</Badge>
+                : null;
           return (
             <div
               key={ex.exercise_name}
-              className="flex items-center gap-2 rounded-md border border-muted bg-muted/40 p-2 opacity-70"
+              className="rounded-md border border-muted bg-muted/40 p-2 opacity-80 space-y-1"
             >
-              <Lock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-              <span className="text-xs font-medium flex-1 truncate">{ex.exercise_name}</span>
-              <Badge variant="secondary" className="text-[10px]">
-                ✓ {existing.weight}kg {existing.sets ?? "–"}×{existing.reps ?? "–"}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Lock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="text-xs font-medium flex-1 truncate">{ex.exercise_name}</span>
+                {statusBadge}
+                {existing.status !== "skipped" && (
+                  <Badge variant="secondary" className="text-[10px]">
+                    ✓ {existing.weight}kg {existing.sets ?? "–"}×{existing.reps ?? "–"}
+                  </Badge>
+                )}
+              </div>
+              {existing.notes && (
+                <p className="text-[10px] text-muted-foreground italic pl-5 truncate">
+                  « {existing.notes} »
+                </p>
+              )}
             </div>
           );
         }
+
 
         if (!entry) return null;
 
