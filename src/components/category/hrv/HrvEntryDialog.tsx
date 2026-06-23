@@ -129,11 +129,17 @@ export function HrvEntryDialog({
                     <SelectValue placeholder="Sélectionner un athlète" />
                   </SelectTrigger>
                   <SelectContent className="bg-background border z-50 max-h-[300px]">
-                    {players?.map((player) => (
-                      <SelectItem key={player.id} value={player.id}>
-                        {player.first_name ? `${player.first_name} ${player.name}` : player.name}
-                      </SelectItem>
-                    ))}
+                    {players && players.length > 0 ? (
+                      players.map((player) => (
+                        <SelectItem key={player.id} value={player.id}>
+                          {player.first_name ? `${player.first_name} ${player.name}` : player.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <div className="px-3 py-2 text-xs text-muted-foreground italic">
+                        Aucun athlète dans cette catégorie
+                      </div>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
