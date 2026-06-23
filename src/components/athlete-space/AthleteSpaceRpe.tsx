@@ -481,7 +481,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
             tracking_date: today,
             general_fatigue: feeling,
             notes: comment || null,
-          }]);
+          } as any]);
         }
       } catch (e) {
         console.error("Wellness post-session save error:", e);
