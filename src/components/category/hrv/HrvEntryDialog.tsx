@@ -22,6 +22,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { Heart, Loader2, Save } from "lucide-react";
 import { HrvInputSection, emptyHrvData, type HrvData } from "./HrvInputSection";
+import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
 
 interface HrvEntryDialogProps {
   open: boolean;
