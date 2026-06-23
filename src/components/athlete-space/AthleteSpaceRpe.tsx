@@ -607,6 +607,8 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
       }
       setSelectedSession(null);
       setRpe(5);
+      setFeeling(2);
+      setComment("");
       setDuration("");
       setSpareAttempts("");
       setSpareSuccesses("");
