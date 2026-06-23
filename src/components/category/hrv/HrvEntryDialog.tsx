@@ -52,17 +52,16 @@ export function HrvEntryDialog({
   const [hrvData, setHrvData] = useState<HrvData>(emptyHrvData);
 
   const { data: players } = useQuery({
-    queryKey: ["players", categoryId],
+    queryKey: ["hrv-dialog-players", categoryId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("players")
-        .select("id, name, first_name")
-        .eq("category_id", categoryId)
-        .order("name");
-      if (error) throw error;
-      return data;
+      const roster = await fetchCategoryRosterPlayers(categoryId);
+      return (roster || [])
+        .map((p: any) => ({ id: p.id, name: p.name, first_name: p.first_name }))
+        .sort((a: any, b: any) =>
+          `${a.first_name ?? ""} ${a.name ?? ""}`.localeCompare(`${b.first_name ?? ""} ${b.name ?? ""}`)
+        );
     },
-    enabled: open,
+    enabled: open && !!categoryId,
   });
 
   const saveMutation = useMutation({
