@@ -129,6 +129,8 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
         rpe,
         duration_minutes: duration,
         training_session_id: session.id,
+        post_session_feeling: feeling,
+        post_session_notes: comment || null,
       });
       if (awcrErr && !String(awcrErr.message || "").includes("duplicate")) throw awcrErr;
 
@@ -136,15 +138,20 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
       const wellnessRow: any = {
         player_id: playerId,
         category_id: categoryId,
-        tracking_date: today,
+        tracking_date: session.session_date || today,
+        sleep_quality: 3,
+        sleep_duration: 3,
         general_fatigue: feeling,
+        stress_level: 3,
+        soreness_upper_body: 3,
+        soreness_lower_body: 3,
         notes: comment || null,
       };
       const { data: existingW } = await supabase
         .from("wellness_tracking")
         .select("id")
         .eq("player_id", playerId)
-        .eq("tracking_date", today)
+        .eq("tracking_date", session.session_date || today)
         .maybeSingle();
       if (existingW?.id) {
         await supabase
