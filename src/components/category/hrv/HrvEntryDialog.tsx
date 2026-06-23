@@ -236,8 +236,40 @@ export function HrvEntryDialog({
               </div>
             </div>
 
+            {/* Optional session picker when context = Séance */}
+            {recordType === "session" && !trainingSessionId && (
+              <div className="space-y-2">
+                <Label>Séance liée (optionnel)</Label>
+                <Select value={selectedSessionId || "none"} onValueChange={(v) => setSelectedSessionId(v === "none" ? "" : v)}>
+                  <SelectTrigger className="bg-background">
+                    <SelectValue placeholder={sessionsLoading ? "Chargement..." : "Aucune séance liée"} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background border z-[9999] max-h-72">
+                    <SelectItem value="none">Aucune séance liée</SelectItem>
+                    {sessions.map((s: any) => {
+                      const label = `${s.session_date} · ${s.training_type || "Séance"}${s.notes ? ` — ${String(s.notes).slice(0, 40)}` : ""}`;
+                      return (
+                        <SelectItem key={s.id} value={s.id}>
+                          {label}
+                        </SelectItem>
+                      );
+                    })}
+                    {!sessionsLoading && sessions.length === 0 && (
+                      <div className="px-3 py-2 text-sm text-muted-foreground">
+                        Aucune séance autour de cette date
+                      </div>
+                    )}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Lier la mesure HRV à une séance précise est facultatif. Sans sélection, la donnée reste enregistrée pour la date choisie.
+                </p>
+              </div>
+            )}
+
             {/* HRV Input Section */}
             <HrvInputSection data={hrvData} onChange={setHrvData} />
+
           </div>
         </ScrollArea>
 
