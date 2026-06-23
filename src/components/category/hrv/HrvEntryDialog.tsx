@@ -74,10 +74,32 @@ export function HrvEntryDialog({
     enabled: open && !!categoryId,
   });
 
+  // Fetch training sessions for the category (last 30 days + next 7) for session picker
+  const { data: sessions = [], isLoading: sessionsLoading } = useQuery({
+    queryKey: ["hrv-dialog-sessions", categoryId, recordDate],
+    queryFn: async () => {
+      const base = new Date(recordDate);
+      const from = new Date(base); from.setDate(from.getDate() - 30);
+      const to = new Date(base); to.setDate(to.getDate() + 7);
+      const fmt = (d: Date) => d.toISOString().split("T")[0];
+      const { data, error } = await supabase
+        .from("training_sessions")
+        .select("id, session_date, training_type, notes")
+        .eq("category_id", categoryId)
+        .gte("session_date", fmt(from))
+        .lte("session_date", fmt(to))
+        .order("session_date", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open && !!categoryId && recordType === "session",
+  });
+
   useEffect(() => {
     if (!open) return;
     setSelectedPlayerId(defaultPlayerId || "");
-  }, [defaultPlayerId, open]);
+    setSelectedSessionId(trainingSessionId || "");
+  }, [defaultPlayerId, trainingSessionId, open]);
 
   useEffect(() => {
     if (!selectedPlayerId) return;
