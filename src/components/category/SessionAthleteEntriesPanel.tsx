@@ -267,14 +267,20 @@ export function SessionAthleteEntriesPanel({
           const rpeList = rpeByPlayer.get(p.id) || [];
           const bowl = bowlingByPlayer.get(p.id);
           const playerBlocks = bowlingBlocksByPlayer.get(p.id) || [];
-          const hasAnyData = rpeList.length > 0 || (bowl?.total || 0) > 0;
+          const playerLogs = exerciseLogsByPlayer.get(p.id) || [];
+          const playerAwcr = awcrByPlayer.get(p.id);
+          const playerWellness = wellnessByPlayer.get(p.id);
+          const hasMuscuData = isMuscu && (playerLogs.length > 0 || !!playerAwcr || !!playerWellness);
+          const hasAnyData = rpeList.length > 0 || (bowl?.total || 0) > 0 || hasMuscuData;
           const avgRpe =
-            rpeList.length > 0
-              ? rpeList.reduce((a, b) => a + b, 0) / rpeList.length
-              : null;
+            playerAwcr?.rpe != null
+              ? playerAwcr.rpe
+              : rpeList.length > 0
+                ? rpeList.reduce((a, b) => a + b, 0) / rpeList.length
+                : null;
           const displayName = p.first_name ? `${p.first_name} ${p.name}` : p.name || "Athlète";
           const initials = (p.first_name || p.name || "A").slice(0, 2).toUpperCase();
-          const canExpand = isBowling && playerBlocks.length > 0;
+          const canExpand = (isBowling && playerBlocks.length > 0) || (isMuscu && hasMuscuData);
           const isOpen = expanded.has(p.id);
 
           return (
@@ -308,11 +314,23 @@ export function SessionAthleteEntriesPanel({
                   <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                 </Avatar>
                 <span className="truncate flex-1 min-w-0">{displayName}</span>
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="flex items-center gap-1 shrink-0 flex-wrap justify-end">
                   {avgRpe !== null && (
                     <Badge variant="outline" className="gap-1 text-xs">
                       <Activity className="h-3 w-3" />
-                      RPE {avgRpe.toFixed(1)}
+                      RPE {Number(avgRpe).toFixed(1)}
+                    </Badge>
+                  )}
+                  {isMuscu && playerAwcr?.duration != null && (
+                    <Badge variant="outline" className="gap-1 text-xs">
+                      <Clock className="h-3 w-3" />
+                      {playerAwcr.duration} min
+                    </Badge>
+                  )}
+                  {isMuscu && playerLogs.length > 0 && (
+                    <Badge variant="outline" className="gap-1 text-xs">
+                      <Dumbbell className="h-3 w-3" />
+                      {playerLogs.length} ex.
                     </Badge>
                   )}
                   {isBowling && bowl && bowl.total > 0 && (
@@ -329,11 +347,10 @@ export function SessionAthleteEntriesPanel({
                 </div>
               </div>
 
-              {canExpand && isOpen && (
+              {canExpand && isOpen && isBowling && (
                 <div className="border-t bg-muted/20 p-3 space-y-2">
                   {playerBlocks.map((b: any, idx: number) => {
                     const cfg = (b.config || {}) as any;
-                    // Reconstitue un SimplifiedBlock à partir de la config persistée
                     const block: SimplifiedBlock = {
                       ...cfg,
                       id: cfg.id || b.id,
@@ -351,6 +368,107 @@ export function SessionAthleteEntriesPanel({
                       />
                     );
                   })}
+                </div>
+              )}
+
+              {canExpand && isOpen && isMuscu && (
+                <div className="border-t bg-muted/20 p-3 space-y-3">
+                  {/* Synthèse globale */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                    <div className="rounded-md border bg-background p-2">
+                      <div className="text-muted-foreground text-[10px] uppercase tracking-wide">Ressenti</div>
+                      <div className="font-medium">
+                        {playerWellness?.feeling ? FEELING_LABELS[playerWellness.feeling] : "—"}
+                      </div>
+                    </div>
+                    <div className="rounded-md border bg-background p-2">
+                      <div className="text-muted-foreground text-[10px] uppercase tracking-wide">Durée</div>
+                      <div className="font-medium">{playerAwcr?.duration != null ? `${playerAwcr.duration} min` : "—"}</div>
+                    </div>
+                    <div className="rounded-md border bg-background p-2">
+                      <div className="text-muted-foreground text-[10px] uppercase tracking-wide">RPE</div>
+                      <div className="font-medium">{playerAwcr?.rpe != null ? `${playerAwcr.rpe}/10` : "—"}</div>
+                    </div>
+                    <div className="rounded-md border bg-background p-2">
+                      <div className="text-muted-foreground text-[10px] uppercase tracking-wide">Tonnage</div>
+                      <div className="font-medium">
+                        {(() => {
+                          const total = playerLogs.reduce((s, l) => s + (Number(l.tonnage) || 0), 0);
+                          return total > 0 ? `${total.toFixed(0)} kg` : "—";
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+
+                  {playerWellness?.notes && (
+                    <div className="rounded-md border bg-background p-2 text-xs flex gap-2">
+                      <MessageSquare className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
+                      <span className="italic text-muted-foreground">« {playerWellness.notes} »</span>
+                    </div>
+                  )}
+
+                  {/* Détail exercices */}
+                  {playerLogs.length === 0 ? (
+                    <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground text-center">
+                      Aucun détail musculation renseigné.
+                    </div>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {playerLogs.map((log: any, idx: number) => {
+                        const { status, comment } = parseNotesStatus(log.notes ?? null);
+                        return (
+                          <div
+                            key={`${log.exercise_name}-${idx}`}
+                            className={cn(
+                              "rounded-md border p-2 text-xs",
+                              status === "skipped" && "border-destructive/40 bg-destructive/5",
+                              status === "adapted" && "border-warning/40 bg-warning/5",
+                              status === "done" && "border-border bg-background",
+                            )}
+                          >
+                            <div className="flex items-start gap-2 flex-wrap">
+                              <Dumbbell className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
+                              <span className="font-medium flex-1 min-w-0">{log.exercise_name}</span>
+                              {status === "skipped" && (
+                                <Badge variant="outline" className="text-[10px] border-destructive/40 text-destructive">
+                                  Non fait
+                                </Badge>
+                              )}
+                              {status === "adapted" && (
+                                <Badge variant="outline" className="text-[10px] border-warning/40 text-warning">
+                                  Adapté
+                                </Badge>
+                              )}
+                              {status === "done" && (
+                                <Badge variant="outline" className="text-[10px] border-emerald-400/40 text-emerald-600 dark:text-emerald-400">
+                                  Fait
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 pl-5 text-muted-foreground">
+                              {(log.prescribed_sets || log.prescribed_reps) && (
+                                <span>
+                                  Prévu : {log.prescribed_sets ?? "?"}×{log.prescribed_reps ?? "?"}
+                                </span>
+                              )}
+                              {status !== "skipped" && (
+                                <span className="text-foreground font-medium">
+                                  Réalisé : {log.actual_sets ?? "?"}×{log.actual_reps ?? "?"}
+                                  {log.actual_weight_kg != null ? ` @ ${log.actual_weight_kg}kg` : ""}
+                                </span>
+                              )}
+                              {log.tonnage != null && Number(log.tonnage) > 0 && (
+                                <span>Tonnage : {Number(log.tonnage).toFixed(0)} kg</span>
+                              )}
+                            </div>
+                            {comment && (
+                              <div className="mt-1 pl-5 italic text-muted-foreground">« {comment} »</div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
