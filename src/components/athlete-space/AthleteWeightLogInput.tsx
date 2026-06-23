@@ -211,7 +211,7 @@ function buildSpecialSeries(
   return [{ weight: baseWeight ? String(baseWeight) : "", reps: "", label: "Série" }];
 }
 
-export function AthleteWeightLogInput({ sessionId, playerId, value, onChange }: Props) {
+export function AthleteWeightLogInput({ sessionId, playerId, value, onChange, trainingType }: Props) {
   // Fetch prescribed exercises (now includes set_type, method, drop_sets, cluster_sets)
   const { data: rawExercises = [] } = useQuery({
     queryKey: ["athlete-weight-log-exercises", sessionId, playerId],
