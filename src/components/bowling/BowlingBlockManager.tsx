@@ -532,7 +532,7 @@ export function BowlingBlockManager({
                   ) : (
                     <DndContext
                       sensors={sensors}
-                      collisionDetection={closestCenter}
+                      collisionDetection={closestCorners}
                       onDragEnd={(event: DragEndEvent) => {
                         const { active, over } = event;
                         if (!over || active.id === over.id) return;
