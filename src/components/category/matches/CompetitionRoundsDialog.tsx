@@ -713,7 +713,7 @@ export function CompetitionRoundsDialog({
             !!playerData.specialty;
 
           return shouldInsertStats
-            ? [{ round_id: roundId, stat_data: JSON.parse(JSON.stringify(statDataToSave)) }]
+            ? [{ round_id: roundId, stat_data: statDataToSave as any }]
             : [];
         });
 
