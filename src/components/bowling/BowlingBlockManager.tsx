@@ -15,8 +15,50 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, Circle, Lock, ChevronDown, ChevronRight, Package, ArrowRightLeft } from "lucide-react";
+import { Plus, Trash2, Circle, Lock, ChevronDown, ChevronRight, Package, ArrowRightLeft, GripVertical } from "lucide-react";
 import { BowlingScoreSheet, FrameData, BowlingStats } from "@/components/athlete-portal/BowlingScoreSheet";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
+function SortableRoundWrapper({
+  id,
+  children,
+}: {
+  id: string | number;
+  children: (handleProps: {
+    listeners: ReturnType<typeof useSortable>["listeners"];
+    attributes: ReturnType<typeof useSortable>["attributes"];
+    isDragging: boolean;
+  }) => React.ReactNode;
+}) {
+  const { setNodeRef, transform, transition, listeners, attributes, isDragging } = useSortable({ id });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 50 : "auto",
+  };
+  return (
+    <div ref={setNodeRef} style={style}>
+      {children({ listeners, attributes, isDragging })}
+    </div>
+  );
+}
 
 const blurOnWheel = (e: React.WheelEvent<HTMLInputElement>) => {
   e.currentTarget.blur();
