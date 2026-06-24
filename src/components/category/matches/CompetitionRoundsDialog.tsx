@@ -748,11 +748,11 @@ export function CompetitionRoundsDialog({
         const matchDate = matchData.match_date?.split("T")[0] || new Date().toISOString().split("T")[0];
         
         const playerIds = playerRoundsData.map(p => p.playerId);
-        for (const playerId of playerIds) {
+        if (playerIds.length > 0) {
           await supabase
             .from("awcr_tracking")
             .delete()
-            .eq("player_id", playerId)
+            .in("player_id", playerIds)
             .eq("category_id", categoryId)
             .eq("session_date", matchDate)
             .is("training_session_id", null)
