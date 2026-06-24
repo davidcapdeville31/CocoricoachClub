@@ -238,16 +238,23 @@ export function SessionAthleteEntriesPanel({
         .trim();
       const labelMap: Record<string, number> = {
         excellent: 1,
+        super: 1,
+        "super forme": 1,
+        super_form: 1,
         super_forme: 1,
         superforme: 1,
+        forme: 1,
         good: 2,
         bien: 2,
+        ok: 2,
         average: 3,
         moyen: 3,
         tired: 4,
         fatigue: 4,
+        fatiguee: 4,
         exhausted: 5,
         epuise: 5,
+        epuisee: 5,
       };
       if (labelMap[normalized] != null) return labelMap[normalized];
     }

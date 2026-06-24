@@ -14948,6 +14948,10 @@ export type Database = {
         Args: { _club_id: string; _user_id: string }
         Returns: boolean
       }
+      can_manage_category_documents: {
+        Args: { _category_id: string; _user_id: string }
+        Returns: boolean
+      }
       can_modify_club_data: {
         Args: { _club_id: string; _user_id: string }
         Returns: boolean

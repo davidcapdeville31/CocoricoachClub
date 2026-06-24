@@ -1,0 +1,203 @@
+-- Helpers for document management permissions
+CREATE OR REPLACE FUNCTION public.can_manage_category_documents(_user_id uuid, _category_id uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.categories c
+    JOIN public.clubs cl ON cl.id = c.club_id
+    WHERE c.id = _category_id
+      AND cl.user_id = _user_id
+  )
+  OR EXISTS (
+    SELECT 1
+    FROM public.category_members cm
+    WHERE cm.category_id = _category_id
+      AND cm.user_id = _user_id
+      AND cm.role IN ('admin', 'coach', 'prepa_physique', 'administratif')
+  )
+  OR EXISTS (
+    SELECT 1
+    FROM public.categories c
+    JOIN public.club_members cm ON cm.club_id = c.club_id
+    WHERE c.id = _category_id
+      AND cm.user_id = _user_id
+      AND cm.role IN ('admin', 'coach', 'administratif')
+      AND (cm.assigned_categories IS NULL OR _category_id = ANY(cm.assigned_categories))
+  )
+$$;
+
+GRANT EXECUTE ON FUNCTION public.can_manage_category_documents(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.can_manage_category_documents(uuid, uuid) TO service_role;
+
+-- Ensure Data API privileges are explicit for affected tables
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.admin_documents TO authenticated;
+GRANT ALL ON public.admin_documents TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.notifications TO authenticated;
+GRANT ALL ON public.notifications TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.awcr_tracking TO authenticated;
+GRANT ALL ON public.awcr_tracking TO service_role;
+
+-- Tighten document write permissions:
+-- athletes can create their own documents only; staff can manage category documents.
+DROP POLICY IF EXISTS "Users can insert documents in their categories" ON public.admin_documents;
+DROP POLICY IF EXISTS "Users can update documents in their categories" ON public.admin_documents;
+DROP POLICY IF EXISTS "Users can delete documents in their categories" ON public.admin_documents;
+
+CREATE POLICY "Users can insert documents in their categories"
+ON public.admin_documents
+FOR INSERT
+TO authenticated
+WITH CHECK (
+  created_by = auth.uid()
+  AND public.can_access_category(auth.uid(), category_id)
+  AND (
+    public.can_manage_category_documents(auth.uid(), category_id)
+    OR (player_id IS NOT NULL AND public.is_player_owner(auth.uid(), player_id))
+  )
+);
+
+CREATE POLICY "Staff can update category documents"
+ON public.admin_documents
+FOR UPDATE
+TO authenticated
+USING (public.can_manage_category_documents(auth.uid(), category_id))
+WITH CHECK (public.can_manage_category_documents(auth.uid(), category_id));
+
+CREATE POLICY "Staff can delete category documents"
+ON public.admin_documents
+FOR DELETE
+TO authenticated
+USING (public.can_manage_category_documents(auth.uid(), category_id));
+
+-- Coach notification when an athlete submits or updates session feedback.
+CREATE OR REPLACE FUNCTION public.notify_staff_athlete_session_feedback()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_player_name text;
+  v_training_type text;
+  v_session_date date;
+  v_actor_user_id uuid;
+  v_target_user_ids uuid[];
+  v_user_id uuid;
+BEGIN
+  -- Only notify for real session feedback, not rest-day/auto rows.
+  IF NEW.training_session_id IS NULL THEN
+    RETURN NEW;
+  END IF;
+
+  -- Avoid duplicate notifications when non-feedback fields are edited.
+  IF TG_OP = 'UPDATE'
+     AND NEW.rpe IS NOT DISTINCT FROM OLD.rpe
+     AND NEW.duration_minutes IS NOT DISTINCT FROM OLD.duration_minutes
+     AND NEW.post_session_feeling IS NOT DISTINCT FROM OLD.post_session_feeling
+     AND NEW.post_session_notes IS NOT DISTINCT FROM OLD.post_session_notes THEN
+    RETURN NEW;
+  END IF;
+
+  SELECT
+    COALESCE(NULLIF(TRIM(CONCAT(COALESCE(p.first_name, ''), ' ', COALESCE(p.name, ''))), ''), p.name, 'Athlète'),
+    p.user_id
+  INTO v_player_name, v_actor_user_id
+  FROM public.players p
+  WHERE p.id = NEW.player_id;
+
+  SELECT ts.training_type, ts.session_date
+  INTO v_training_type, v_session_date
+  FROM public.training_sessions ts
+  WHERE ts.id = NEW.training_session_id;
+
+  SELECT ARRAY(
+    SELECT DISTINCT target_user_id
+    FROM (
+      SELECT cl.user_id AS target_user_id
+      FROM public.categories c
+      JOIN public.clubs cl ON cl.id = c.club_id
+      WHERE c.id = NEW.category_id
+
+      UNION
+
+      SELECT cm.user_id AS target_user_id
+      FROM public.category_members cm
+      WHERE cm.category_id = NEW.category_id
+        AND cm.role IN ('admin', 'coach', 'prepa_physique', 'administratif')
+
+      UNION
+
+      SELECT clubm.user_id AS target_user_id
+      FROM public.categories c
+      JOIN public.club_members clubm ON clubm.club_id = c.club_id
+      WHERE c.id = NEW.category_id
+        AND clubm.role IN ('admin', 'coach', 'administratif')
+        AND (clubm.assigned_categories IS NULL OR NEW.category_id = ANY(clubm.assigned_categories))
+    ) recipients
+    WHERE target_user_id IS NOT NULL
+      AND (v_actor_user_id IS NULL OR target_user_id <> v_actor_user_id)
+  ) INTO v_target_user_ids;
+
+  IF v_target_user_ids IS NULL OR array_length(v_target_user_ids, 1) IS NULL THEN
+    RETURN NEW;
+  END IF;
+
+  FOREACH v_user_id IN ARRAY v_target_user_ids LOOP
+    -- Prevent multiple unread duplicates for the same athlete/session/staff recipient.
+    IF NOT EXISTS (
+      SELECT 1
+      FROM public.notifications n
+      WHERE n.user_id = v_user_id
+        AND n.category_id = NEW.category_id
+        AND n.notification_type = 'session_feedback'
+        AND n.is_read = false
+        AND n.metadata->>'session_id' = NEW.training_session_id::text
+        AND n.metadata->>'player_id' = NEW.player_id::text
+    ) THEN
+      INSERT INTO public.notifications (
+        user_id,
+        category_id,
+        notification_type,
+        notification_subtype,
+        title,
+        message,
+        is_read,
+        priority,
+        metadata
+      ) VALUES (
+        v_user_id,
+        NEW.category_id,
+        'session_feedback',
+        COALESCE(v_training_type, 'session'),
+        'Retour séance reçu',
+        format('%s a renseigné son retour de séance%s.', v_player_name, CASE WHEN v_session_date IS NOT NULL THEN ' du ' || to_char(v_session_date, 'DD/MM/YYYY') ELSE '' END),
+        false,
+        'normal',
+        jsonb_build_object(
+          'session_id', NEW.training_session_id,
+          'player_id', NEW.player_id,
+          'rpe', NEW.rpe,
+          'duration_minutes', NEW.duration_minutes,
+          'post_session_feeling', NEW.post_session_feeling,
+          'training_type', v_training_type,
+          'session_date', v_session_date
+        )
+      );
+    END IF;
+  END LOOP;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_notify_staff_athlete_session_feedback ON public.awcr_tracking;
+CREATE TRIGGER trg_notify_staff_athlete_session_feedback
+AFTER INSERT OR UPDATE OF rpe, duration_minutes, post_session_feeling, post_session_notes
+ON public.awcr_tracking
+FOR EACH ROW
+EXECUTE FUNCTION public.notify_staff_athlete_session_feedback();

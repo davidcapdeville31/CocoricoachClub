@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, FileText, Calendar, AlertTriangle, Download, Trash2, Search, User, Upload, File, Image, Eye, Users } from "lucide-react";
+import { Plus, FileText, Calendar, AlertTriangle, Download, Trash2, Search, User, Upload, File, Image, Eye, Users, Pencil } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -90,6 +90,7 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
   const queryClient = useQueryClient();
   const guard = useSeasonGuard(categoryId);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [editingDoc, setEditingDoc] = useState<AdminDocument | null>(null);
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -247,6 +248,36 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
     },
   });
 
+  const updateDocumentMutation = useMutation({
+    mutationFn: async () => {
+      if (!editingDoc) throw new Error("Document introuvable");
+      if (!formData.title.trim()) throw new Error("Titre requis");
+      if (formData.document_type === "custom" && !customDocumentType.trim()) {
+        throw new Error("Nom du type requis");
+      }
+
+      const { error } = await supabase
+        .from("admin_documents" as any)
+        .update({
+          document_type: formData.document_type === "custom" ? customDocumentType.trim() : formData.document_type,
+          title: formData.title.trim(),
+          expiry_date: formData.expiry_date || null,
+          notes: formData.notes || null,
+        })
+        .eq("id", editingDoc.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-documents", categoryId] });
+      setEditingDoc(null);
+      resetForm();
+      toast({ title: "Document modifié" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    },
+  });
+
   const handleViewFile = async (doc: AdminDocument) => {
     if (!doc.file_url) return;
     if (doc.file_url.startsWith("http")) {
@@ -303,6 +334,18 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
     setCustomDocumentType("");
     setSelectedFile(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const openEditDialog = (doc: AdminDocument) => {
+    setEditingDoc(doc);
+    const knownType = DOCUMENT_TYPES.some((t) => t.value === doc.document_type);
+    setFormData({
+      document_type: knownType ? doc.document_type : "custom",
+      title: doc.title || "",
+      expiry_date: doc.expiry_date || "",
+      notes: doc.notes || "",
+    });
+    setCustomDocumentType(knownType ? "" : doc.document_type || "");
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -552,6 +595,66 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
           </DialogContent>
         </Dialog>
 
+        <Dialog open={!!editingDoc} onOpenChange={(open) => { if (!open) { setEditingDoc(null); resetForm(); } }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Modifier le document</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label>Type de document *</Label>
+                <Select value={formData.document_type} onValueChange={(v) => { setFormData({ ...formData, document_type: v }); if (v !== "custom") setCustomDocumentType(""); }}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {DOCUMENT_TYPES.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {formData.document_type === "custom" && (
+                  <div className="mt-2">
+                    <Label className="text-xs">Nom du type personnalisé *</Label>
+                    <Input
+                      value={customDocumentType}
+                      onChange={(e) => setCustomDocumentType(e.target.value)}
+                      placeholder="Ex: Bilan annuel, Fiche technique..."
+                    />
+                  </div>
+                )}
+              </div>
+              <div>
+                <Label>Titre / Description *</Label>
+                <Input
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Date d'expiration</Label>
+                <Input
+                  type="date"
+                  value={formData.expiry_date}
+                  onChange={(e) => setFormData({ ...formData, expiry_date: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Notes</Label>
+                <Textarea
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  rows={2}
+                />
+              </div>
+              <Button
+                onClick={() => updateDocumentMutation.mutate()}
+                className="w-full"
+              >
+                {updateDocumentMutation.isPending ? "Enregistrement..." : "Enregistrer"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Liste des documents */}
         <div className="grid gap-3">
           {isLoading ? (
@@ -630,6 +733,9 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
                         </Button>
                       </>
                     )}
+                    <Button variant="ghost" size="icon" title="Modifier" onClick={() => openEditDialog(doc)}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
                     <Button
                       variant="ghost"
                       size="icon"
