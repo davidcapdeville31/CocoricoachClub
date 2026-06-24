@@ -609,85 +609,88 @@ export function CompetitionRoundsDialog({
 
   const saveRounds = useMutation({
     mutationFn: async () => {
+      const savedRoundRows: Array<{ id: string; player_id: string; round_number: number }> = [];
+
       console.log("[CompetitionRoundsDialog] SAVE start", {
         matchId,
-        entries: playerRoundsData.map((p) => ({
-          entryKey: p.entryKey,
-          playerId: p.playerId,
-          discipline: p.discipline,
-          specialty: p.specialty,
-          roundsCount: p.rounds.length,
-          rounds: p.rounds.map((r) => ({
-            n: r.round_number,
-            time: r.final_time_seconds,
-            ranking: r.ranking,
-            phase: r.phase,
-            result: r.result,
-            statsKeys: Object.keys(r.stats || {}),
-          })),
-        })),
+        entriesCount: playerRoundsData.length,
+        roundsCount: playerRoundsData.reduce((total, p) => total + p.rounds.length, 0),
       });
 
       // Safety: never wipe all rounds before re-inserting. Saved rows are updated in place,
       // new rows are inserted, and only rows explicitly removed by the user are deleted.
-      // Players and their rounds are processed in parallel for performance — Supabase handles
-      // concurrent writes safely (rows are independent: distinct match_id/player_id/round_number).
-      await Promise.all(playerRoundsData.map(async (playerData) => {
-        // Update crew info in match_lineups if Aviron
-        if (isAviron) {
-          await supabase
-            .from("match_lineups")
-            .update({
-              boat_type: playerData.boat_type || null,
-              crew_role: playerData.crew_role || null,
-              seat_position: playerData.seat_position || null,
-            })
-            .eq("match_id", matchId)
-            .eq("player_id", playerData.playerId);
+      // Performance: save all rounds in one bulk upsert, then replace all stats in two batched
+      // calls. This avoids one network round-trip per partie + one delete/insert per stats row.
+      if (isAviron) {
+        await Promise.all(playerRoundsData.map((playerData) => supabase
+          .from("match_lineups")
+          .update({
+            boat_type: playerData.boat_type || null,
+            crew_role: playerData.crew_role || null,
+            seat_position: playerData.seat_position || null,
+          })
+          .eq("match_id", matchId)
+          .eq("player_id", playerData.playerId)));
+      }
+
+      const flatRoundEntries = playerRoundsData.flatMap((playerData) =>
+        playerData.rounds.map((round) => ({ playerData, round })),
+      );
+
+      if (flatRoundEntries.length > 0) {
+        const roundPayloads = flatRoundEntries.map(({ playerData, round }) => ({
+          match_id: matchId,
+          player_id: playerData.playerId,
+          round_number: round.round_number,
+          opponent_name: round.opponent_name || null,
+          opponent_profile_id: round.opponent_profile_id || null,
+          result: round.result || null,
+          notes: round.notes || null,
+          phase: round.phase || null,
+          lane: round.lane || null,
+          wind_conditions: round.wind_conditions || null,
+          wind_direction: round.wind_direction || null,
+          current_conditions: round.current_conditions || null,
+          temperature_celsius: round.temperature_celsius || null,
+          final_time_seconds: round.final_time_seconds ?? null,
+          ranking: round.ranking ?? null,
+          gap_to_first: round.gap_to_first || null,
+          is_personal_record: !!round.is_personal_record,
+          video_url: round.video_url || null,
+        }));
+
+        const { data: savedRounds, error: roundsError } = await supabase
+          .from("competition_rounds")
+          .upsert(roundPayloads as any[], { onConflict: "match_id,player_id,round_number" })
+          .select("id, match_id, player_id, round_number");
+
+        if (roundsError) {
+          console.error("[CompetitionRoundsDialog] BULK SAVE rounds ERROR", roundsError, roundPayloads);
+          throw roundsError;
         }
 
-        // Save rounds in parallel
-        await Promise.all(playerData.rounds.map(async (round) => {
-          const roundPayload = {
-            match_id: matchId,
-            player_id: playerData.playerId,
-            round_number: round.round_number,
-            opponent_name: round.opponent_name || null,
-            opponent_profile_id: round.opponent_profile_id || null,
-            result: round.result || null,
-            notes: round.notes || null,
-            phase: round.phase || null,
-            lane: round.lane || null,
-            wind_conditions: round.wind_conditions || null,
-            wind_direction: round.wind_direction || null,
-            current_conditions: round.current_conditions || null,
-            temperature_celsius: round.temperature_celsius || null,
-            final_time_seconds: round.final_time_seconds ?? null,
-            ranking: round.ranking ?? null,
-            gap_to_first: round.gap_to_first || null,
-            is_personal_record: !!round.is_personal_record,
-            video_url: round.video_url || null,
-          };
-          const roundMutation = round.id
-            ? supabase
-                .from("competition_rounds")
-                .update(roundPayload as any)
-                .eq("id", round.id)
-                .select()
-                .single()
-            : supabase
-                .from("competition_rounds")
-                .insert(roundPayload as any)
-                .select()
-                .single();
-          const { data: roundData, error: roundError } = await roundMutation;
+        savedRoundRows.push(...((savedRounds || []) as Array<{ id: string; player_id: string; round_number: number }>));
 
-          if (roundError) {
-            console.error("[CompetitionRoundsDialog] SAVE round ERROR", roundError, roundPayload);
-            throw roundError;
+        const savedRoundByKey = new Map(
+          (savedRounds || []).map((r: any) => [`${r.player_id}|${r.round_number}`, r.id]),
+        );
+        const savedRoundIds = (savedRounds || []).map((r: any) => r.id).filter(Boolean);
+
+        if (savedRoundIds.length > 0) {
+          const { error: deleteStatsError } = await supabase
+            .from("competition_round_stats")
+            .delete()
+            .in("round_id", savedRoundIds);
+          if (deleteStatsError) {
+            console.error("[CompetitionRoundsDialog] BULK DELETE stat_data ERROR", deleteStatsError);
+            throw deleteStatsError;
           }
+        }
 
-          // Insert stats for this round (include bowling frames, ballData, blockId if present)
+        const statsPayloads = flatRoundEntries.flatMap(({ playerData, round }) => {
+          const roundId = savedRoundByKey.get(`${playerData.playerId}|${round.round_number}`);
+          if (!roundId) return [];
+
           const playerBlocks = bowlingBlocks[playerData.playerId] || [];
           const roundBlock = playerBlocks.find(b => b.id === round.blockId);
           const statDataToSave = {
@@ -709,34 +712,21 @@ export function CompetitionRoundsDialog({
             !!playerData.discipline ||
             !!playerData.specialty;
 
-          const { error: deleteStatsError } = await supabase
-            .from("competition_round_stats")
-            .delete()
-            .eq("round_id", roundData.id);
-          if (deleteStatsError) {
-            console.error("[CompetitionRoundsDialog] DELETE stat_data ERROR", deleteStatsError);
-            throw deleteStatsError;
-          }
+          return shouldInsertStats
+            ? [{ round_id: roundId, stat_data: statDataToSave as any }]
+            : [];
+        });
 
-          if (shouldInsertStats) {
-            const insertData = {
-              round_id: roundData.id,
-              stat_data: JSON.parse(JSON.stringify(statDataToSave)),
-            };
-            const { error: statsError } = await supabase
-              .from("competition_round_stats")
-              .insert(insertData);
-            if (statsError) {
-              console.error(
-                "[CompetitionRoundsDialog] INSERT stat_data ERROR",
-                statsError,
-                insertData,
-              );
-              throw statsError;
-            }
+        if (statsPayloads.length > 0) {
+          const { error: statsError } = await supabase
+            .from("competition_round_stats")
+            .insert(statsPayloads as any[]);
+          if (statsError) {
+            console.error("[CompetitionRoundsDialog] BULK INSERT stat_data ERROR", statsError, statsPayloads);
+            throw statsError;
           }
-        }));
-      }));
+        }
+      }
 
 
       // SAFETY: Save NEVER deletes rounds. Deletion only happens via the explicit
@@ -819,25 +809,46 @@ export function CompetitionRoundsDialog({
           console.error("[athletics] sync records failed:", err);
         }
       }
+
+      return savedRoundRows;
     },
-    onSuccess: () => {
+    onSuccess: (savedRoundRows) => {
+      if (savedRoundRows?.length) {
+        const savedRoundByKey = new Map(
+          savedRoundRows.map((r) => [`${r.player_id}|${r.round_number}`, r.id]),
+        );
+        setPlayerRoundsData((prev) => prev.map((playerData) => ({
+          ...playerData,
+          rounds: playerData.rounds.map((round) => ({
+            ...round,
+            id: savedRoundByKey.get(`${playerData.playerId}|${round.round_number}`) || round.id,
+          })),
+        })));
+      }
+
       setDeletedRoundIds([]);
       setLastSavedAt(new Date());
       queryClient.invalidateQueries({ queryKey: ["competition_rounds", matchId] });
-      queryClient.invalidateQueries({ queryKey: ["competition_match_lineup", matchId] });
-      queryClient.invalidateQueries({ queryKey: ["match_lineup", matchId] });
+      if (isAviron) {
+        queryClient.invalidateQueries({ queryKey: ["competition_match_lineup", matchId] });
+        queryClient.invalidateQueries({ queryKey: ["match_lineup", matchId] });
+      }
       queryClient.invalidateQueries({ queryKey: ["awcr_tracking"] });
       // Refresh des records & matrice minimas pour propagation immédiate
-      queryClient.invalidateQueries({ queryKey: ["athletics_records"] });
-      queryClient.invalidateQueries({ queryKey: ["athletics_records_matrix", categoryId] });
-      queryClient.invalidateQueries({ queryKey: ["athletics_records_dialog", categoryId] });
-      queryClient.invalidateQueries({ queryKey: ["athletics_minimas_matrix", categoryId] });
+      if (isAthletics) {
+        queryClient.invalidateQueries({ queryKey: ["athletics_records"] });
+        queryClient.invalidateQueries({ queryKey: ["athletics_records_matrix", categoryId] });
+        queryClient.invalidateQueries({ queryKey: ["athletics_records_dialog", categoryId] });
+        queryClient.invalidateQueries({ queryKey: ["athletics_minimas_matrix", categoryId] });
+      }
       // Refresh "Stats compétition" (cumulative) pour que les résultats partiels apparaissent
       // au fur et à mesure, même quand la compétition n'est pas terminée.
       queryClient.invalidateQueries({ queryKey: ["matches-list-cumulative", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["cumulative_player_stats", categoryId] });
-      queryClient.invalidateQueries({ queryKey: ["kicking-from-match-stats", categoryId] });
-      queryClient.invalidateQueries({ queryKey: ["kicking-attempts-cumulative", categoryId] });
+      if (sportType.toLowerCase().includes("rugby")) {
+        queryClient.invalidateQueries({ queryKey: ["kicking-from-match-stats", categoryId] });
+        queryClient.invalidateQueries({ queryKey: ["kicking-attempts-cumulative", categoryId] });
+      }
       // Refresh distinct phases on the match card
       queryClient.invalidateQueries({ queryKey: ["match-distinct-round-phases", matchId] });
       queryClient.invalidateQueries({ queryKey: ["distinct-round-phases", matchId] });
@@ -845,16 +856,8 @@ export function CompetitionRoundsDialog({
       queryClient.invalidateQueries({ queryKey: ["competition_rounds_count", matchId] });
       queryClient.invalidateQueries({ queryKey: ["competition_rounds_phases", matchId] });
       if (keepOpenAfterSave) {
-        (async () => {
-          try {
-            await queryClient.refetchQueries({ queryKey: ["competition_rounds", matchId] });
-          } catch (e) {
-            console.error("[CompetitionRoundsDialog] refetch error", e);
-          }
-          setIsDataInitialized(false);
-          toast.success("Enregistré — tu peux sélectionner un autre athlète");
-          setKeepOpenAfterSave(false);
-        })();
+        toast.success("Enregistré — tu peux sélectionner un autre athlète");
+        setKeepOpenAfterSave(false);
       } else {
         toast.success("Données et charge match enregistrées");
         onOpenChange(false);
