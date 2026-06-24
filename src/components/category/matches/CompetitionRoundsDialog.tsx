@@ -652,7 +652,6 @@ export function CompetitionRoundsDialog({
 
       if (flatRoundEntries.length > 0) {
         const roundPayloads = flatRoundEntries.map(({ playerData, round }) => ({
-          ...(round.id ? { id: round.id } : {}),
           match_id: matchId,
           player_id: playerData.playerId,
           round_number: round.round_number,
