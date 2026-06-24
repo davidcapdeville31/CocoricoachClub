@@ -560,6 +560,7 @@ export function BowlingBlockManager({
                                 variant="outline"
                                 size="sm"
                                 className={focusMode ? "h-6 text-[10px] gap-1 px-2" : "h-7 text-xs gap-1"}
+                                onPointerDown={(e) => e.stopPropagation()}
                                 onClick={() => onUnlock(round.round_number)}
                               >
                                 <Lock className="h-3 w-3" />
@@ -571,21 +572,18 @@ export function BowlingBlockManager({
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-1">
                                 {!focusMode && (
-                                  <button
-                                    type="button"
-                                    {...attributes}
-                                    {...listeners}
-                                    className="cursor-grab active:cursor-grabbing touch-none p-1 -ml-1 rounded hover:bg-muted text-muted-foreground"
-                                    title="Réordonner cette partie"
-                                    aria-label="Réordonner cette partie"
-                                    onClick={(e) => e.stopPropagation()}
+                                  <span
+                                    className="p-1 -ml-1 rounded text-muted-foreground"
+                                    title="Glissez pour réordonner"
+                                    aria-hidden
                                   >
                                     <GripVertical className="h-4 w-4" />
-                                  </button>
+                                  </span>
                                 )}
                                 <button
                                   type="button"
                                   className="flex items-center gap-2 text-left hover:opacity-80 transition-opacity"
+                                  onPointerDown={(e) => e.stopPropagation()}
                                   onClick={() => round.isLocked && toggleRoundExpanded(round.round_number)}
                                 >
                                   {round.isLocked && (
@@ -604,7 +602,10 @@ export function BowlingBlockManager({
                                   </CardTitle>
                                 </button>
                               </div>
-                              <div className="flex items-center gap-1">
+                              <div
+                                className="flex items-center gap-1"
+                                onPointerDown={(e) => e.stopPropagation()}
+                              >
                                 {/* Move to another block — hidden in focus mode */}
                                 {!focusMode && blocks.length > 1 && (
                                   <Select onValueChange={(v) => moveGameToBlock(round.round_number, v)}>
@@ -632,7 +633,10 @@ export function BowlingBlockManager({
                           </CardHeader>
                           {(!round.isLocked || expandedRounds.has(round.round_number)) && (
                             <>
-                              <CardContent className={focusMode ? "pt-0 px-2 pb-2" : "pt-0"}>
+                              <CardContent
+                                className={focusMode ? "pt-0 px-2 pb-2" : "pt-0"}
+                                onPointerDown={(e) => e.stopPropagation()}
+                              >
                                 <BowlingScoreSheet
                                   compact={compact}
                                   trackPockets={block.trackPockets !== false}
