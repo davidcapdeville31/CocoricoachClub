@@ -630,7 +630,9 @@ export function CompetitionRoundsDialog({
 
       // Safety: never wipe all rounds before re-inserting. Saved rows are updated in place,
       // new rows are inserted, and only rows explicitly removed by the user are deleted.
-      for (const playerData of playerRoundsData) {
+      // Players and their rounds are processed in parallel for performance — Supabase handles
+      // concurrent writes safely (rows are independent: distinct match_id/player_id/round_number).
+      await Promise.all(playerRoundsData.map(async (playerData) => {
         // Update crew info in match_lineups if Aviron
         if (isAviron) {
           await supabase
@@ -644,8 +646,8 @@ export function CompetitionRoundsDialog({
             .eq("player_id", playerData.playerId);
         }
 
-        // Save rounds one by one
-        for (const round of playerData.rounds) {
+        // Save rounds in parallel
+        await Promise.all(playerData.rounds.map(async (round) => {
           const roundPayload = {
             match_id: matchId,
             player_id: playerData.playerId,
@@ -666,10 +668,6 @@ export function CompetitionRoundsDialog({
             is_personal_record: !!round.is_personal_record,
             video_url: round.video_url || null,
           };
-          console.log(
-            round.id ? "[CompetitionRoundsDialog] UPDATE round" : "[CompetitionRoundsDialog] INSERT round",
-            { entry: playerData.entryKey, roundId: round.id, payload: roundPayload },
-          );
           const roundMutation = round.id
             ? supabase
                 .from("competition_rounds")
@@ -690,7 +688,6 @@ export function CompetitionRoundsDialog({
           }
 
           // Insert stats for this round (include bowling frames, ballData, blockId if present)
-          // Find block debriefing for this round
           const playerBlocks = bowlingBlocks[playerData.playerId] || [];
           const roundBlock = playerBlocks.find(b => b.id === round.blockId);
           const statDataToSave = {
@@ -703,13 +700,10 @@ export function CompetitionRoundsDialog({
             ...(roundBlock?.debriefing ? { blockDebriefing: roundBlock.debriefing } : {}),
             ...(roundBlock?.name ? { blockName: roundBlock.name } : {}),
             ...(roundBlock ? { trackPockets: roundBlock.trackPockets } : {}),
-            // Tag round with its lineup discipline/specialty so we can re-group on reload
             ...(playerData.discipline ? { _discipline: playerData.discipline } : {}),
             ...(playerData.specialty ? { _specialty: playerData.specialty } : {}),
           };
 
-          // Always insert stat_data for athletics so the discipline tag is preserved,
-          // even when the user only filled time/ranking on the round header (no per-stat values).
           const shouldInsertStats =
             Object.keys(statDataToSave).length > 0 ||
             !!playerData.discipline ||
@@ -729,10 +723,6 @@ export function CompetitionRoundsDialog({
               round_id: roundData.id,
               stat_data: JSON.parse(JSON.stringify(statDataToSave)),
             };
-            console.log(
-              "[CompetitionRoundsDialog] INSERT stat_data",
-              { round_id: roundData.id, stat_data: insertData.stat_data },
-            );
             const { error: statsError } = await supabase
               .from("competition_round_stats")
               .insert(insertData);
@@ -745,8 +735,9 @@ export function CompetitionRoundsDialog({
               throw statsError;
             }
           }
-        }
-      }
+        }));
+      }));
+
 
       // SAFETY: Save NEVER deletes rounds. Deletion only happens via the explicit
       // delete button (removeRound) with its own confirmation + immediate DB call.
@@ -757,11 +748,11 @@ export function CompetitionRoundsDialog({
         const matchDate = matchData.match_date?.split("T")[0] || new Date().toISOString().split("T")[0];
         
         const playerIds = playerRoundsData.map(p => p.playerId);
-        for (const playerId of playerIds) {
+        if (playerIds.length > 0) {
           await supabase
             .from("awcr_tracking")
             .delete()
-            .eq("player_id", playerId)
+            .in("player_id", playerIds)
             .eq("category_id", categoryId)
             .eq("session_date", matchDate)
             .is("training_session_id", null)
