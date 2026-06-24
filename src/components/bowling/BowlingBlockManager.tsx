@@ -233,6 +233,33 @@ export function BowlingBlockManager({
     onRoundsChange(rounds.filter(r => r.blockId !== blockId));
   };
 
+  const reorderRoundsInBlock = (blockId: string, oldIndex: number, newIndex: number) => {
+    if (oldIndex === newIndex) return;
+    const blockRoundsSorted = rounds
+      .filter((r) => r.blockId === blockId)
+      .sort((a, b) => a.round_number - b.round_number);
+    if (oldIndex < 0 || newIndex < 0 || oldIndex >= blockRoundsSorted.length || newIndex >= blockRoundsSorted.length) return;
+    const originalNumbers = blockRoundsSorted.map((r) => r.round_number);
+    const reordered = arrayMove(blockRoundsSorted, oldIndex, newIndex);
+    // Reassign round_number based on the original sorted numbers (keeping the block's number set intact).
+    const renumberMap = new Map<number, number>();
+    reordered.forEach((round, idx) => {
+      renumberMap.set(round.round_number, originalNumbers[idx]);
+    });
+    onRoundsChange(
+      rounds.map((r) => {
+        if (r.blockId !== blockId) return r;
+        const newNumber = renumberMap.get(r.round_number);
+        return newNumber !== undefined ? { ...r, round_number: newNumber } : r;
+      }),
+    );
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
   const toggleBlock = (blockId: string) => {
     onBlocksChange(blocks.map(b => b.id === blockId ? { ...b, isCollapsed: !b.isCollapsed } : b));
   };
