@@ -54,7 +54,13 @@ function SortableRoundWrapper({
     zIndex: isDragging ? 50 : "auto",
   };
   return (
-    <div ref={setNodeRef} style={style}>
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={`touch-none ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
+    >
       {children({ listeners, attributes, isDragging })}
     </div>
   );
