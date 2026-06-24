@@ -235,7 +235,24 @@ export function BowlingBlockManager({
     }
   };
 
-  const removeBlock = (blockId: string) => {
+  const removeBlock = async (blockId: string) => {
+    const blockRounds = rounds.filter(r => r.blockId === blockId);
+    const persistedIds = blockRounds.map(r => r.id).filter((id): id is string => !!id);
+    const confirmMsg = persistedIds.length > 0
+      ? `Supprimer définitivement cette épreuve et ses ${persistedIds.length} partie(s) ? Cette action est irréversible.`
+      : "Supprimer cette épreuve ?";
+    if (!window.confirm(confirmMsg)) return;
+
+    if (persistedIds.length > 0) {
+      const { error } = await supabase
+        .from("competition_rounds")
+        .delete()
+        .in("id", persistedIds);
+      if (error) {
+        console.error("[BowlingBlockManager] delete block rounds error", error);
+        return;
+      }
+    }
     onBlocksChange(blocks.filter(b => b.id !== blockId));
     onRoundsChange(rounds.filter(r => r.blockId !== blockId));
   };
