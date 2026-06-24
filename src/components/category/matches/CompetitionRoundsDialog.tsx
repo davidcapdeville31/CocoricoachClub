@@ -609,6 +609,8 @@ export function CompetitionRoundsDialog({
 
   const saveRounds = useMutation({
     mutationFn: async () => {
+      const savedRoundRows: Array<{ id: string; player_id: string; round_number: number }> = [];
+
       console.log("[CompetitionRoundsDialog] SAVE start", {
         matchId,
         entries: playerRoundsData.map((p) => ({
@@ -680,6 +682,8 @@ export function CompetitionRoundsDialog({
           console.error("[CompetitionRoundsDialog] BULK SAVE rounds ERROR", roundsError, roundPayloads);
           throw roundsError;
         }
+
+        savedRoundRows.push(...((savedRounds || []) as Array<{ id: string; player_id: string; round_number: number }>));
 
         const savedRoundByKey = new Map(
           (savedRounds || []).map((r: any) => [`${r.player_id}|${r.round_number}`, r.id]),
@@ -819,25 +823,46 @@ export function CompetitionRoundsDialog({
           console.error("[athletics] sync records failed:", err);
         }
       }
+
+      return savedRoundRows;
     },
-    onSuccess: () => {
+    onSuccess: (savedRoundRows) => {
+      if (savedRoundRows?.length) {
+        const savedRoundByKey = new Map(
+          savedRoundRows.map((r) => [`${r.player_id}|${r.round_number}`, r.id]),
+        );
+        setPlayerRoundsData((prev) => prev.map((playerData) => ({
+          ...playerData,
+          rounds: playerData.rounds.map((round) => ({
+            ...round,
+            id: round.id || savedRoundByKey.get(`${playerData.playerId}|${round.round_number}`),
+          })),
+        })));
+      }
+
       setDeletedRoundIds([]);
       setLastSavedAt(new Date());
       queryClient.invalidateQueries({ queryKey: ["competition_rounds", matchId] });
-      queryClient.invalidateQueries({ queryKey: ["competition_match_lineup", matchId] });
-      queryClient.invalidateQueries({ queryKey: ["match_lineup", matchId] });
+      if (isAviron) {
+        queryClient.invalidateQueries({ queryKey: ["competition_match_lineup", matchId] });
+        queryClient.invalidateQueries({ queryKey: ["match_lineup", matchId] });
+      }
       queryClient.invalidateQueries({ queryKey: ["awcr_tracking"] });
       // Refresh des records & matrice minimas pour propagation immédiate
-      queryClient.invalidateQueries({ queryKey: ["athletics_records"] });
-      queryClient.invalidateQueries({ queryKey: ["athletics_records_matrix", categoryId] });
-      queryClient.invalidateQueries({ queryKey: ["athletics_records_dialog", categoryId] });
-      queryClient.invalidateQueries({ queryKey: ["athletics_minimas_matrix", categoryId] });
+      if (isAthletics) {
+        queryClient.invalidateQueries({ queryKey: ["athletics_records"] });
+        queryClient.invalidateQueries({ queryKey: ["athletics_records_matrix", categoryId] });
+        queryClient.invalidateQueries({ queryKey: ["athletics_records_dialog", categoryId] });
+        queryClient.invalidateQueries({ queryKey: ["athletics_minimas_matrix", categoryId] });
+      }
       // Refresh "Stats compétition" (cumulative) pour que les résultats partiels apparaissent
       // au fur et à mesure, même quand la compétition n'est pas terminée.
       queryClient.invalidateQueries({ queryKey: ["matches-list-cumulative", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["cumulative_player_stats", categoryId] });
-      queryClient.invalidateQueries({ queryKey: ["kicking-from-match-stats", categoryId] });
-      queryClient.invalidateQueries({ queryKey: ["kicking-attempts-cumulative", categoryId] });
+      if (sportType.toLowerCase().includes("rugby")) {
+        queryClient.invalidateQueries({ queryKey: ["kicking-from-match-stats", categoryId] });
+        queryClient.invalidateQueries({ queryKey: ["kicking-attempts-cumulative", categoryId] });
+      }
       // Refresh distinct phases on the match card
       queryClient.invalidateQueries({ queryKey: ["match-distinct-round-phases", matchId] });
       queryClient.invalidateQueries({ queryKey: ["distinct-round-phases", matchId] });
@@ -845,16 +870,8 @@ export function CompetitionRoundsDialog({
       queryClient.invalidateQueries({ queryKey: ["competition_rounds_count", matchId] });
       queryClient.invalidateQueries({ queryKey: ["competition_rounds_phases", matchId] });
       if (keepOpenAfterSave) {
-        (async () => {
-          try {
-            await queryClient.refetchQueries({ queryKey: ["competition_rounds", matchId] });
-          } catch (e) {
-            console.error("[CompetitionRoundsDialog] refetch error", e);
-          }
-          setIsDataInitialized(false);
-          toast.success("Enregistré — tu peux sélectionner un autre athlète");
-          setKeepOpenAfterSave(false);
-        })();
+        toast.success("Enregistré — tu peux sélectionner un autre athlète");
+        setKeepOpenAfterSave(false);
       } else {
         toast.success("Données et charge match enregistrées");
         onOpenChange(false);
