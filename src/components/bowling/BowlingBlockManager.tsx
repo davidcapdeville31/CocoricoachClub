@@ -523,11 +523,29 @@ export function BowlingBlockManager({
                       Aucune partie dans cette épreuve. Ajoutez votre première partie ci-dessous.
                     </p>
                   ) : (
-                    <div className="space-y-3">
-                      {blockRounds.map((round, gameIdx) => {
-                        if (focusMode && focusGameIdx !== null && gameIdx !== focusGameIdx) return null;
-                        return (
-                        <Card key={round.round_number} className={`relative ${round.isLocked ? "border-muted-foreground/30" : ""} ${focusMode ? "shadow-none" : ""}`}>
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={(event: DragEndEvent) => {
+                        const { active, over } = event;
+                        if (!over || active.id === over.id) return;
+                        const ids = blockRounds.map((r) => r.round_number);
+                        const oldIndex = ids.indexOf(Number(active.id));
+                        const newIndex = ids.indexOf(Number(over.id));
+                        reorderRoundsInBlock(block.id, oldIndex, newIndex);
+                      }}
+                    >
+                      <SortableContext
+                        items={blockRounds.map((r) => r.round_number)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        <div className="space-y-3">
+                          {blockRounds.map((round, gameIdx) => {
+                            if (focusMode && focusGameIdx !== null && gameIdx !== focusGameIdx) return null;
+                            return (
+                              <SortableRoundWrapper key={round.round_number} id={round.round_number}>
+                                {({ listeners, attributes }) => (
+                        <Card className={`relative ${round.isLocked ? "border-muted-foreground/30" : ""} ${focusMode ? "shadow-none" : ""}`}>
                           {round.isLocked && (
                             <div className={`absolute ${focusMode ? "top-1 right-1" : "top-2 right-2"} z-10`}>
                               <Button
@@ -543,26 +561,41 @@ export function BowlingBlockManager({
                           )}
                           <CardHeader className={focusMode ? "py-1 px-2" : "pb-1 pt-3"}>
                             <div className="flex items-center justify-between">
-                              <button
-                                type="button"
-                                className="flex items-center gap-2 text-left hover:opacity-80 transition-opacity"
-                                onClick={() => round.isLocked && toggleRoundExpanded(round.round_number)}
-                              >
-                                {round.isLocked && (
-                                  expandedRounds.has(round.round_number)
-                                    ? <ChevronDown className="h-3 w-3 text-muted-foreground" />
-                                    : <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                              <div className="flex items-center gap-1">
+                                {!focusMode && (
+                                  <button
+                                    type="button"
+                                    {...attributes}
+                                    {...listeners}
+                                    className="cursor-grab active:cursor-grabbing touch-none p-1 -ml-1 rounded hover:bg-muted text-muted-foreground"
+                                    title="Réordonner cette partie"
+                                    aria-label="Réordonner cette partie"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <GripVertical className="h-4 w-4" />
+                                  </button>
                                 )}
-                                <CardTitle className={focusMode ? "text-xs flex items-center gap-1.5" : "text-sm flex items-center gap-2"}>
-                                  <Circle className="h-3 w-3 text-primary" />
-                                  Partie {gameIdx + 1}
-                                  {round.stats["gameScore"] > 0 && (
-                                    <Badge variant="outline" className="text-[10px] font-mono px-1 py-0">
-                                      {round.stats["gameScore"]}
-                                    </Badge>
+                                <button
+                                  type="button"
+                                  className="flex items-center gap-2 text-left hover:opacity-80 transition-opacity"
+                                  onClick={() => round.isLocked && toggleRoundExpanded(round.round_number)}
+                                >
+                                  {round.isLocked && (
+                                    expandedRounds.has(round.round_number)
+                                      ? <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                                      : <ChevronRight className="h-3 w-3 text-muted-foreground" />
                                   )}
-                                </CardTitle>
-                              </button>
+                                  <CardTitle className={focusMode ? "text-xs flex items-center gap-1.5" : "text-sm flex items-center gap-2"}>
+                                    <Circle className="h-3 w-3 text-primary" />
+                                    Partie {gameIdx + 1}
+                                    {round.stats["gameScore"] > 0 && (
+                                      <Badge variant="outline" className="text-[10px] font-mono px-1 py-0">
+                                        {round.stats["gameScore"]}
+                                      </Badge>
+                                    )}
+                                  </CardTitle>
+                                </button>
+                              </div>
                               <div className="flex items-center gap-1">
                                 {/* Move to another block — hidden in focus mode */}
                                 {!focusMode && blocks.length > 1 && (
@@ -611,9 +644,13 @@ export function BowlingBlockManager({
                             </>
                           )}
                         </Card>
-                        );
-                      })}
-                    </div>
+                                )}
+                              </SortableRoundWrapper>
+                            );
+                          })}
+                        </div>
+                      </SortableContext>
+                    </DndContext>
                   )}
 
                   {/* Debriefing section */}
