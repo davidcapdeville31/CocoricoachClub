@@ -613,21 +613,8 @@ export function CompetitionRoundsDialog({
 
       console.log("[CompetitionRoundsDialog] SAVE start", {
         matchId,
-        entries: playerRoundsData.map((p) => ({
-          entryKey: p.entryKey,
-          playerId: p.playerId,
-          discipline: p.discipline,
-          specialty: p.specialty,
-          roundsCount: p.rounds.length,
-          rounds: p.rounds.map((r) => ({
-            n: r.round_number,
-            time: r.final_time_seconds,
-            ranking: r.ranking,
-            phase: r.phase,
-            result: r.result,
-            statsKeys: Object.keys(r.stats || {}),
-          })),
-        })),
+        entriesCount: playerRoundsData.length,
+        roundsCount: playerRoundsData.reduce((total, p) => total + p.rounds.length, 0),
       });
 
       // Safety: never wipe all rounds before re-inserting. Saved rows are updated in place,
