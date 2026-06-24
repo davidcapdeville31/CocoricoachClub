@@ -19,7 +19,7 @@ import { Plus, Trash2, Circle, Lock, ChevronDown, ChevronRight, Package, ArrowRi
 import { BowlingScoreSheet, FrameData, BowlingStats } from "@/components/athlete-portal/BowlingScoreSheet";
 import {
   DndContext,
-  closestCenter,
+  closestCorners,
   PointerSensor,
   KeyboardSensor,
   useSensor,
@@ -33,6 +33,7 @@ import {
   verticalListSortingStrategy,
   arrayMove,
 } from "@dnd-kit/sortable";
+import { restrictToVerticalAxis, restrictToParentElement } from "@dnd-kit/modifiers";
 import { CSS } from "@dnd-kit/utilities";
 
 function SortableRoundWrapper({
