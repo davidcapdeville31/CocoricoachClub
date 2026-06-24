@@ -308,7 +308,24 @@ export function BowlingBlockManager({
     onRoundsChange([...rounds, newRound]);
   };
 
-  const removeGame = (roundNumber: number) => {
+  const removeGame = async (roundNumber: number) => {
+    const target = rounds.find(r => r.round_number === roundNumber);
+    const persistedId = target?.id;
+    const confirmMsg = persistedId
+      ? `Supprimer définitivement la partie #${roundNumber} ? Cette action est irréversible.`
+      : `Retirer la partie #${roundNumber} ?`;
+    if (!window.confirm(confirmMsg)) return;
+
+    if (persistedId) {
+      const { error } = await supabase
+        .from("competition_rounds")
+        .delete()
+        .eq("id", persistedId);
+      if (error) {
+        console.error("[BowlingBlockManager] removeGame DELETE error", error);
+        return;
+      }
+    }
     onRoundsChange(rounds.filter(r => r.round_number !== roundNumber));
   };
 
