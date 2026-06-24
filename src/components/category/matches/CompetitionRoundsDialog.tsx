@@ -821,7 +821,7 @@ export function CompetitionRoundsDialog({
           ...playerData,
           rounds: playerData.rounds.map((round) => ({
             ...round,
-            id: round.id || savedRoundByKey.get(`${playerData.playerId}|${round.round_number}`),
+            id: savedRoundByKey.get(`${playerData.playerId}|${round.round_number}`) || round.id,
           })),
         })));
       }
