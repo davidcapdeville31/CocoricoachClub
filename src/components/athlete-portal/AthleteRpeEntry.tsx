@@ -81,12 +81,21 @@ const BOWLING_EXERCISE_LABELS: Record<string, string> = {
   poche: "Poche",
 };
 
+const FEELINGS = [
+  { value: 1, label: "Super forme", emoji: "💪" },
+  { value: 2, label: "Bien", emoji: "🙂" },
+  { value: 3, label: "Moyen", emoji: "😐" },
+  { value: 4, label: "Fatigué", emoji: "😓" },
+  { value: 5, label: "Épuisé", emoji: "🥵" },
+];
+
 export function AthleteRpeEntry({ token, playerId, categoryId, sportType, onRefreshStats }: AthleteRpeEntryProps) {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [completedSessionIds, setCompletedSessionIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
   const [rpe, setRpe] = useState<number>(5);
+  const [feeling, setFeeling] = useState<number>(2);
   const [duration, setDuration] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmittingSpare, setIsSubmittingSpare] = useState(false);
@@ -139,6 +148,7 @@ export function AthleteRpeEntry({ token, playerId, categoryId, sportType, onRefr
     const session = sessions.find(s => s.id === sessionId);
     if (session) {
       setDuration(getSessionDuration(session).toString());
+      setFeeling(2);
     }
   };
 
@@ -167,6 +177,7 @@ export function AthleteRpeEntry({ token, playerId, categoryId, sportType, onRefr
           session_id: selectedSession,
           rpe,
           duration: parseInt(duration),
+          post_session_feeling: feeling,
         }),
       });
       const data = await res.json();
@@ -175,6 +186,7 @@ export function AthleteRpeEntry({ token, playerId, categoryId, sportType, onRefr
         setCompletedSessionIds(prev => new Set([...prev, selectedSession]));
         setSelectedSession(null);
         setRpe(5);
+        setFeeling(2);
         setDuration("");
         onRefreshStats?.();
       } else {
@@ -498,6 +510,27 @@ export function AthleteRpeEntry({ token, playerId, categoryId, sportType, onRefr
                   onChange={(e) => setDuration(e.target.value)}
                   placeholder="60"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Ressenti global</Label>
+                <div className="grid grid-cols-5 gap-2">
+                  {FEELINGS.map((f) => (
+                    <button
+                      key={f.value}
+                      type="button"
+                      onClick={() => setFeeling(f.value)}
+                      className={`rounded-lg border p-2 text-center text-xs transition-colors ${
+                        feeling === f.value
+                          ? "border-primary bg-primary/10 ring-2 ring-primary"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <div className="text-lg leading-none">{f.emoji}</div>
+                      <div className="mt-1 text-[10px] text-muted-foreground">{f.label}</div>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="p-3 bg-muted rounded-lg">

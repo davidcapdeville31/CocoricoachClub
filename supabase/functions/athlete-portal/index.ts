@@ -286,7 +286,7 @@ serve(async (req) => {
     // ─── SUBMIT RPE ───
     if (action === "submit-rpe" && req.method === "POST") {
       const body = await req.json();
-      const { session_id, rpe, duration } = body;
+      const { session_id, rpe, duration, post_session_feeling, post_session_notes } = body;
 
       if (!session_id || !rpe || !duration) {
         return json({ success: false, error: "Données manquantes" }, 400);
@@ -329,7 +329,8 @@ serve(async (req) => {
       const chronicAvg = chronicTotal / 28;
       const awcr = chronicAvg > 0 ? acuteAvg / chronicAvg : 0;
 
-      const { error: insertError } = await supabase.from("awcr_tracking").insert({
+      const normalizedFeeling = Number(post_session_feeling);
+      const feedbackPayload = {
         player_id,
         category_id,
         training_session_id: session_id,
@@ -340,7 +341,25 @@ serve(async (req) => {
         acute_load: acuteAvg,
         chronic_load: chronicAvg,
         awcr,
-      });
+        post_session_feeling: Number.isFinite(normalizedFeeling) && normalizedFeeling >= 1 && normalizedFeeling <= 5
+          ? normalizedFeeling
+          : null,
+        post_session_notes: typeof post_session_notes === "string" && post_session_notes.trim()
+          ? post_session_notes.trim()
+          : null,
+      };
+
+      const { data: updatedRows, error: updateError } = await supabase
+        .from("awcr_tracking")
+        .update(feedbackPayload)
+        .eq("player_id", player_id)
+        .eq("training_session_id", session_id)
+        .select("id");
+      if (updateError) throw updateError;
+
+      const { error: insertError } = (updatedRows || []).length > 0
+        ? { error: null }
+        : await supabase.from("awcr_tracking").insert(feedbackPayload);
 
       if (insertError) throw insertError;
 

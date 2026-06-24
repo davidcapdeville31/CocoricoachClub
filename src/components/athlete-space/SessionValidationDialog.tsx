@@ -149,6 +149,15 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
         : await supabase.from("awcr_tracking").insert(awcrPayload);
       if (awcrErr) throw awcrErr;
 
+      // Safety net: older duplicate rows may exist and the coach panel reads all rows for the session.
+      // Force the selected post-session feeling onto every athlete/session row.
+      const { error: feelingPatchErr } = await supabase
+        .from("awcr_tracking")
+        .update({ post_session_feeling: feeling, post_session_notes: comment || null })
+        .eq("player_id", playerId)
+        .eq("training_session_id", session.id);
+      if (feelingPatchErr) throw feelingPatchErr;
+
       // 3) Also update the day's wellness row when it already exists.
       const { data: existingW } = await supabase
         .from("wellness_tracking")
@@ -198,6 +207,7 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
       qc.invalidateQueries({ queryKey: ["athlete-weight-log-exercises"] });
       qc.invalidateQueries({ queryKey: ["tonnage"] });
       qc.invalidateQueries({ queryKey: ["pending-weight-logs"] });
+      qc.invalidateQueries({ queryKey: ["notifications"] });
       onOpenChange(false);
     } catch (e: any) {
       toast.error(e?.message || "Erreur lors de l'enregistrement");

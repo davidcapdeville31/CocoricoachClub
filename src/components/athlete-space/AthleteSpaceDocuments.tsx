@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, File, Image, Download, Users, User, Calendar, Plus, Upload, Trash2, UserCircle } from "lucide-react";
+import { FileText, File, Image, Download, Users, User, Calendar, Plus, Upload, Trash2, UserCircle, Pencil } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
@@ -63,6 +63,7 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
   const queryClient = useQueryClient();
 
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [editingDoc, setEditingDoc] = useState<any | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -200,6 +201,36 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
     onError: (e: any) => toast.error(e.message || "Suppression impossible"),
   });
 
+  const updateDocumentMutation = useMutation({
+    mutationFn: async () => {
+      if (!editingDoc) throw new Error("Document introuvable");
+      if (viewerMode !== "staff") throw new Error("Modification réservée au staff");
+      if (!formData.title.trim()) throw new Error("Titre requis");
+      if (formData.document_type === "custom" && !customDocumentType.trim()) {
+        throw new Error("Nom du type requis");
+      }
+
+      const { error } = await supabase
+        .from("admin_documents" as any)
+        .update({
+          document_type: formData.document_type === "custom" ? customDocumentType.trim() : formData.document_type,
+          title: formData.title.trim(),
+          expiry_date: formData.expiry_date || null,
+          notes: formData.notes || null,
+        })
+        .eq("id", editingDoc.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["athlete-personal-documents", categoryId, playerId] });
+      queryClient.invalidateQueries({ queryKey: ["athlete-team-documents", categoryId] });
+      setEditingDoc(null);
+      resetForm();
+      toast.success("Document modifié");
+    },
+    onError: (e: any) => toast.error(e.message || "Modification impossible"),
+  });
+
   const resetForm = () => {
     setFormData({ document_type: "license", title: "", expiry_date: "", notes: "" });
     setCustomDocumentType("");
@@ -260,6 +291,18 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
   const getDocTypeLabel = (docType: string) =>
     DOCUMENT_TYPES.find((t) => t.value === docType)?.label || docType;
 
+  const openEditDialog = (doc: any) => {
+    setEditingDoc(doc);
+    const knownType = DOCUMENT_TYPES.some((t) => t.value === doc.document_type);
+    setFormData({
+      document_type: knownType ? doc.document_type : "custom",
+      title: doc.title || "",
+      expiry_date: doc.expiry_date || "",
+      notes: doc.notes || "",
+    });
+    setCustomDocumentType(knownType ? "" : doc.document_type || "");
+  };
+
   const renderAuthorLine = (doc: any) => {
     const author = doc.created_by ? authorMap.get(doc.created_by) : null;
     const name = author?.full_name || author?.email || null;
@@ -286,10 +329,10 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
 
   const canDelete = (doc: any) => {
     if (!user?.id) return false;
-    if (doc.created_by === user.id) return true;
-    if (viewerMode === "staff" && doc.player_id === playerId) return true;
-    return false;
+    return viewerMode === "staff" && (!doc.player_id || doc.player_id === playerId);
   };
+
+  const canEdit = (doc: any) => canDelete(doc);
 
   const renderDocumentList = (
     documents: any[] | undefined,
@@ -342,6 +385,16 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
                     >
                       <Download className="h-4 w-4 mr-1" />
                       <span className="hidden sm:inline">Télécharger</span>
+                    </Button>
+                  )}
+                  {canEdit(doc) && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => openEditDialog(doc)}
+                      title="Modifier"
+                    >
+                      <Pencil className="h-4 w-4" />
                     </Button>
                   )}
                   {canDelete(doc) && (
@@ -528,6 +581,82 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
               ) : (
                 "Ajouter"
               )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={!!editingDoc}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditingDoc(null);
+            resetForm();
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Modifier le document</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Type de document *</Label>
+              <Select
+                value={formData.document_type}
+                onValueChange={(v) => {
+                  setFormData({ ...formData, document_type: v });
+                  if (v !== "custom") setCustomDocumentType("");
+                }}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {DOCUMENT_TYPES.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {formData.document_type === "custom" && (
+                <Input
+                  className="mt-2"
+                  value={customDocumentType}
+                  onChange={(e) => setCustomDocumentType(e.target.value)}
+                  placeholder="Nom du type personnalisé"
+                />
+              )}
+            </div>
+
+            <div>
+              <Label>Titre *</Label>
+              <Input
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <Label>Date d'expiration</Label>
+              <Input
+                type="date"
+                value={formData.expiry_date}
+                onChange={(e) => setFormData({ ...formData, expiry_date: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <Label>Notes</Label>
+              <Textarea
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                rows={2}
+              />
+            </div>
+
+            <Button
+              onClick={() => updateDocumentMutation.mutate()}
+              className="w-full"
+            >
+              {updateDocumentMutation.isPending ? "Enregistrement..." : "Enregistrer"}
             </Button>
           </div>
         </DialogContent>

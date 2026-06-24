@@ -472,6 +472,15 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
 
       if (awcrError || !awcrRow) throw awcrError || new Error("Erreur AWCR");
 
+      // Safety net for duplicate/legacy rows: all rows for this athlete/session must carry
+      // the selected post-session feeling used by the coach detail panel.
+      const { error: feelingPatchError } = await supabase
+        .from("awcr_tracking")
+        .update({ post_session_feeling: feeling, post_session_notes: comment || null })
+        .eq("player_id", playerId)
+        .eq("training_session_id", selectedSession);
+      if (feelingPatchError) throw feelingPatchError;
+
       // Persist feeling + global session comment into wellness_tracking (post-séance)
       try {
         const { data: existingW } = await supabase
@@ -630,6 +639,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
       queryClient.invalidateQueries({ queryKey: ["athlete-weight-log-existing"] });
       queryClient.invalidateQueries({ queryKey: ["athlete-exercise-logs"] });
       queryClient.invalidateQueries({ queryKey: ["athlete-exercise-logs-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
     },
     onError: (error: any) => toast.error(error?.message || "Erreur lors de l'enregistrement"),
   });
