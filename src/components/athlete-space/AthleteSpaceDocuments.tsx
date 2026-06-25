@@ -160,9 +160,10 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
       setIsUploading(true);
       const fileUrl = await uploadFile(selectedFile);
 
+      const isTeam = formData.scope === "team";
       const { error } = await supabase.from("admin_documents" as any).insert({
         category_id: categoryId,
-        player_id: playerId,
+        player_id: isTeam ? null : playerId,
         created_by: user.id,
         created_by_role: viewerMode === "athlete" ? "athlete" : "staff",
         document_type:
@@ -178,6 +179,7 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["athlete-personal-documents", categoryId, playerId] });
+      queryClient.invalidateQueries({ queryKey: ["athlete-team-documents", categoryId] });
       setShowAddDialog(false);
       resetForm();
       toast.success("Document ajouté");
