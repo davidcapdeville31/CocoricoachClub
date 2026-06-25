@@ -515,6 +515,22 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
             </div>
 
             <div>
+              <Label>Visibilité *</Label>
+              <Select
+                value={formData.scope}
+                onValueChange={(v: "personal" | "team") => setFormData({ ...formData, scope: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="personal">Mes documents (personnel)</SelectItem>
+                  <SelectItem value="team">Documents d'équipe</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
               <Label>Type de document *</Label>
               <Select
                 value={formData.document_type}
