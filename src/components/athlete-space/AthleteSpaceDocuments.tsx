@@ -233,7 +233,7 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
   });
 
   const resetForm = () => {
-    setFormData({ document_type: "license", title: "", expiry_date: "", notes: "" });
+    setFormData({ document_type: "license", title: "", expiry_date: "", notes: "", scope: "personal" });
     setCustomDocumentType("");
     setSelectedFile(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
