@@ -73,6 +73,7 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
     title: "",
     expiry_date: "",
     notes: "",
+    scope: "personal" as "personal" | "team",
   });
 
   const { data: teamDocuments, isLoading: teamLoading } = useQuery({
