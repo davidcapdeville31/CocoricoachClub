@@ -73,6 +73,7 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
     title: "",
     expiry_date: "",
     notes: "",
+    scope: "personal" as "personal" | "team",
   });
 
   const { data: teamDocuments, isLoading: teamLoading } = useQuery({
@@ -159,9 +160,10 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
       setIsUploading(true);
       const fileUrl = await uploadFile(selectedFile);
 
+      const isTeam = formData.scope === "team";
       const { error } = await supabase.from("admin_documents" as any).insert({
         category_id: categoryId,
-        player_id: playerId,
+        player_id: isTeam ? null : playerId,
         created_by: user.id,
         created_by_role: viewerMode === "athlete" ? "athlete" : "staff",
         document_type:
@@ -177,6 +179,7 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["athlete-personal-documents", categoryId, playerId] });
+      queryClient.invalidateQueries({ queryKey: ["athlete-team-documents", categoryId] });
       setShowAddDialog(false);
       resetForm();
       toast.success("Document ajouté");
@@ -232,7 +235,7 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
   });
 
   const resetForm = () => {
-    setFormData({ document_type: "license", title: "", expiry_date: "", notes: "" });
+    setFormData({ document_type: "license", title: "", expiry_date: "", notes: "", scope: "personal" });
     setCustomDocumentType("");
     setSelectedFile(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -299,6 +302,7 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
       title: doc.title || "",
       expiry_date: doc.expiry_date || "",
       notes: doc.notes || "",
+      scope: doc.player_id ? "personal" : "team",
     });
     setCustomDocumentType(knownType ? "" : doc.document_type || "");
   };
@@ -508,6 +512,22 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
                   </div>
                 )}
               </div>
+            </div>
+
+            <div>
+              <Label>Visibilité *</Label>
+              <Select
+                value={formData.scope}
+                onValueChange={(v: "personal" | "team") => setFormData({ ...formData, scope: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="personal">Mes documents (personnel)</SelectItem>
+                  <SelectItem value="team">Documents d'équipe</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
