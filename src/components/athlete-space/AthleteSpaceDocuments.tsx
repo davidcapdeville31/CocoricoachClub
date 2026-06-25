@@ -300,6 +300,7 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
       title: doc.title || "",
       expiry_date: doc.expiry_date || "",
       notes: doc.notes || "",
+      scope: doc.player_id ? "personal" : "team",
     });
     setCustomDocumentType(knownType ? "" : doc.document_type || "");
   };
