@@ -127,8 +127,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Save session for offline use
         saveOfflineSession(session, session?.user ?? null);
 
-        // Sync OneSignal on login (non-blocking, deferred)
-        if (session?.user) {
+        // Sync OneSignal ONLY on a real sign-in event — not on TOKEN_REFRESHED
+        // or USER_UPDATED, which would re-spam check/sync-onesignal calls.
+        if (session?.user && event === "SIGNED_IN") {
           resetOnboardingIfNeeded(session.user.id);
           setTimeout(() => syncOneSignalUser(session.user), 1000);
         }

@@ -13,6 +13,8 @@ declare global {
 }
 
 let isInitialized = false;
+let lastLoggedInUserId: string | null = null;
+
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -130,7 +132,7 @@ async function ensurePushSubscription(): Promise<boolean> {
   return false;
 }
 
-export async function waitForOneSignalServerSubscription(userId: string, attempts = 5, delayMs = 1500): Promise<boolean> {
+export async function waitForOneSignalServerSubscription(userId: string, attempts = 2, delayMs = 1500): Promise<boolean> {
   for (let attempt = 0; attempt < attempts; attempt++) {
     const subscribed = await checkOneSignalSubscriptionStatus(userId);
     if (subscribed) return true;
@@ -165,6 +167,13 @@ export async function oneSignalLogin(
   email: string,
   userTags: Record<string, string>
 ): Promise<boolean> {
+  // Memoize: once logged in for this user in this tab session, skip re-sync
+  // (auth listener can refire on focus / token refresh).
+  if (lastLoggedInUserId === userId) {
+    return true;
+  }
+  lastLoggedInUserId = userId;
+
   // ── Always sync server-side first (most reliable — works on any domain) ──
   try {
     const res = await supabase.functions.invoke("sync-onesignal-tags", {
@@ -233,6 +242,7 @@ export async function oneSignalLogin(
  * Logout user from OneSignal
  */
 export async function oneSignalLogout(): Promise<void> {
+  lastLoggedInUserId = null;
   if (typeof window === "undefined" || !window.OneSignal) return;
 
   try {
