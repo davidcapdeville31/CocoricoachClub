@@ -132,7 +132,7 @@ async function ensurePushSubscription(): Promise<boolean> {
   return false;
 }
 
-export async function waitForOneSignalServerSubscription(userId: string, attempts = 5, delayMs = 1500): Promise<boolean> {
+export async function waitForOneSignalServerSubscription(userId: string, attempts = 2, delayMs = 1500): Promise<boolean> {
   for (let attempt = 0; attempt < attempts; attempt++) {
     const subscribed = await checkOneSignalSubscriptionStatus(userId);
     if (subscribed) return true;
