@@ -13,6 +13,8 @@ declare global {
 }
 
 let isInitialized = false;
+let lastLoggedInUserId: string | null = null;
+
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -165,6 +167,13 @@ export async function oneSignalLogin(
   email: string,
   userTags: Record<string, string>
 ): Promise<boolean> {
+  // Memoize: once logged in for this user in this tab session, skip re-sync
+  // (auth listener can refire on focus / token refresh).
+  if (lastLoggedInUserId === userId) {
+    return true;
+  }
+  lastLoggedInUserId = userId;
+
   // ── Always sync server-side first (most reliable — works on any domain) ──
   try {
     const res = await supabase.functions.invoke("sync-onesignal-tags", {
