@@ -15,7 +15,9 @@ export function usePendingTestResultsCount(categoryId?: string) {
       return count || 0;
     },
     enabled: !!categoryId,
-    refetchInterval: 30000,
+    refetchInterval: 120_000,
+    refetchIntervalInBackground: false,
+    staleTime: 60_000,
   });
   return data || 0;
 }

@@ -26,8 +26,10 @@ export function MaintenanceGate({ children }: { children: React.ReactNode }) {
       if (error) throw error;
       return data as unknown as MaintenanceStatus;
     },
-    refetchInterval: 60_000, // re-check every minute
-    staleTime: 30_000,
+    refetchInterval: 5 * 60_000, // re-check every 5 minutes
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: true,
+    staleTime: 60_000,
   });
 
   const { data: isSuperAdmin } = useQuery({
@@ -38,6 +40,8 @@ export function MaintenanceGate({ children }: { children: React.ReactNode }) {
       return data === true;
     },
     enabled: !!user?.id,
+    staleTime: 5 * 60_000,
+    gcTime: 10 * 60_000,
   });
 
   // Always allow super admins to keep working — they can disable maintenance.

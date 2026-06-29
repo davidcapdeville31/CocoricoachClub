@@ -70,7 +70,9 @@ export function useUnreadMessages(categoryId: string) {
       return { total, byConversation };
     },
     enabled: !!user && !!categoryId,
-    refetchInterval: 15000, // Poll every 15 seconds
+    refetchInterval: 60_000, // Backup poll — realtime channel does the heavy lifting
+    refetchIntervalInBackground: false,
+    staleTime: 30_000,
   });
 
   // Subscribe to realtime message inserts to invalidate

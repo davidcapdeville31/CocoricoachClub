@@ -64,7 +64,9 @@ export function useUnreadAthleteSessionsCount(categoryId?: string) {
       return notifs.length - orphanIds.length;
     },
     enabled: !!categoryId && !!user?.id,
-    refetchInterval: 30000,
+    refetchInterval: 90_000,
+    refetchIntervalInBackground: false,
+    staleTime: 60_000,
   });
   return data || 0;
 }

@@ -80,6 +80,8 @@ export function useMenuPermissions(clubId?: string, categoryId?: string) {
       return null;
     },
     enabled: !!user && !!(clubId || categoryId),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 
   // Fetch the permissions matrix
