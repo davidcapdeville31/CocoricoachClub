@@ -242,6 +242,7 @@ export async function oneSignalLogin(
  * Logout user from OneSignal
  */
 export async function oneSignalLogout(): Promise<void> {
+  lastLoggedInUserId = null;
   if (typeof window === "undefined" || !window.OneSignal) return;
 
   try {
