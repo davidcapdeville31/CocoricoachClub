@@ -15,6 +15,42 @@ declare global {
 let isInitialized = false;
 let lastLoggedInUserId: string | null = null;
 
+// ── Persistent guard: avoid re-running OneSignal sync/subscription checks ──
+// for the same user across reloads, tab focus, and Supabase token refresh.
+// TTL kept at 30 min so role/club changes still propagate within a short window.
+const OS_SYNC_TTL_MS = 30 * 60 * 1000;
+const OS_SYNC_KEY = (userId: string) => `os_synced_${userId}`;
+const OS_SUBCHECK_KEY = (userId: string) => `os_subchecked_${userId}`;
+
+function isGuardFresh(key: string): boolean {
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return false;
+    const ts = Number(raw);
+    if (!Number.isFinite(ts)) return false;
+    return Date.now() - ts < OS_SYNC_TTL_MS;
+  } catch {
+    return false;
+  }
+}
+
+function setGuard(key: string): void {
+  try {
+    sessionStorage.setItem(key, String(Date.now()));
+  } catch {
+    // sessionStorage unavailable (private mode, SSR) — ignore
+  }
+}
+
+function clearGuards(userId: string | null): void {
+  if (!userId) return;
+  try {
+    sessionStorage.removeItem(OS_SYNC_KEY(userId));
+    sessionStorage.removeItem(OS_SUBCHECK_KEY(userId));
+  } catch {
+    // ignore
+  }
+}
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
