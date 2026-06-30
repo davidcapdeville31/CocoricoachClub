@@ -15,6 +15,42 @@ declare global {
 let isInitialized = false;
 let lastLoggedInUserId: string | null = null;
 
+// ── Persistent guard: avoid re-running OneSignal sync/subscription checks ──
+// for the same user across reloads, tab focus, and Supabase token refresh.
+// TTL kept at 30 min so role/club changes still propagate within a short window.
+const OS_SYNC_TTL_MS = 30 * 60 * 1000;
+const OS_SYNC_KEY = (userId: string) => `os_synced_${userId}`;
+const OS_SUBCHECK_KEY = (userId: string) => `os_subchecked_${userId}`;
+
+function isGuardFresh(key: string): boolean {
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return false;
+    const ts = Number(raw);
+    if (!Number.isFinite(ts)) return false;
+    return Date.now() - ts < OS_SYNC_TTL_MS;
+  } catch {
+    return false;
+  }
+}
+
+function setGuard(key: string): void {
+  try {
+    sessionStorage.setItem(key, String(Date.now()));
+  } catch {
+    // sessionStorage unavailable (private mode, SSR) — ignore
+  }
+}
+
+function clearGuards(userId: string | null): void {
+  if (!userId) return;
+  try {
+    sessionStorage.removeItem(OS_SYNC_KEY(userId));
+    sessionStorage.removeItem(OS_SUBCHECK_KEY(userId));
+  } catch {
+    // ignore
+  }
+}
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -147,11 +183,33 @@ export async function waitForOneSignalServerSubscription(userId: string, attempt
  * Returns true if the user has an active push subscription in OneSignal.
  */
 export async function checkOneSignalSubscriptionStatus(userId: string): Promise<boolean> {
+  // Persistent guard: avoid hammering check-onesignal-subscriptions for the
+  // same user within the TTL. If a previous check confirmed a subscription,
+  // we cache "true" alongside the timestamp.
+  try {
+    const cached = sessionStorage.getItem(OS_SUBCHECK_KEY(userId));
+    if (cached) {
+      const [tsRaw, valueRaw] = cached.split("|");
+      const ts = Number(tsRaw);
+      if (Number.isFinite(ts) && Date.now() - ts < OS_SYNC_TTL_MS) {
+        return valueRaw === "1";
+      }
+    }
+  } catch {
+    // ignore
+  }
+
   try {
     const { data } = await supabase.functions.invoke("check-onesignal-subscriptions", {
       body: { user_ids: [userId] },
     });
-    return data?.results?.[userId]?.hasPush === true;
+    const hasPush = data?.results?.[userId]?.hasPush === true;
+    try {
+      sessionStorage.setItem(OS_SUBCHECK_KEY(userId), `${Date.now()}|${hasPush ? "1" : "0"}`);
+    } catch {
+      // ignore
+    }
+    return hasPush;
   } catch {
     return false;
   }
@@ -172,6 +230,15 @@ export async function oneSignalLogin(
   if (lastLoggedInUserId === userId) {
     return true;
   }
+
+  // Persistent guard (survives reloads, HMR, tab focus) — TTL 30 min.
+  // Avoids spamming sync-onesignal-tags + check-onesignal-subscriptions
+  // for a user already synced recently.
+  if (isGuardFresh(OS_SYNC_KEY(userId))) {
+    lastLoggedInUserId = userId;
+    return true;
+  }
+
   lastLoggedInUserId = userId;
 
   // ── Always sync server-side first (most reliable — works on any domain) ──
@@ -191,7 +258,9 @@ export async function oneSignalLogin(
   // ── SDK-side: link external_id and set tags in the browser ───────────────
   // This only works on the production domain (cocoricoachclub.com)
   if (typeof window === "undefined" || !window.OneSignal) {
-    return waitForOneSignalServerSubscription(userId, 2, 1000);
+    const ok = await waitForOneSignalServerSubscription(userId, 2, 1000);
+    setGuard(OS_SYNC_KEY(userId));
+    return ok;
   }
 
   const tags: Record<string, string> = {
@@ -235,15 +304,22 @@ export async function oneSignalLogin(
     console.warn("[OneSignal] SDK login error (expected on non-production domains):", err);
   }
 
-  return waitForOneSignalServerSubscription(userId);
+  const subscribed = await waitForOneSignalServerSubscription(userId);
+  // Mark guard fresh once the full sync cycle has run, even if not subscribed yet —
+  // we don't want to re-spam the edge functions on every focus event.
+  setGuard(OS_SYNC_KEY(userId));
+  return subscribed;
 }
 
 /**
  * Logout user from OneSignal
  */
 export async function oneSignalLogout(): Promise<void> {
+  // Clear the persistent guards so the next sign-in re-syncs immediately.
+  clearGuards(lastLoggedInUserId);
   lastLoggedInUserId = null;
   if (typeof window === "undefined" || !window.OneSignal) return;
+
 
   try {
     const OneSignal = window.OneSignal;
