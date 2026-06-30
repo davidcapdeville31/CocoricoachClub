@@ -280,7 +280,11 @@ export async function oneSignalLogin(
     console.warn("[OneSignal] SDK login error (expected on non-production domains):", err);
   }
 
-  return waitForOneSignalServerSubscription(userId);
+  const subscribed = await waitForOneSignalServerSubscription(userId);
+  // Mark guard fresh once the full sync cycle has run, even if not subscribed yet —
+  // we don't want to re-spam the edge functions on every focus event.
+  setGuard(OS_SYNC_KEY(userId));
+  return subscribed;
 }
 
 /**
