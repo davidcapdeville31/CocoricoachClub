@@ -65,21 +65,8 @@ const TABS = [
     const [activeTab, setActiveTab] = useState(defaultTab);
  
    // Check if current user is super admin
-   const { data: isSuperAdmin, isLoading: checkingAdmin } = useQuery({
-     queryKey: ["is-super-admin", user?.id],
-     queryFn: async () => {
-       if (!user?.id) return false;
-       const { data, error } = await supabase.rpc("is_super_admin", {
-         _user_id: user.id,
-       });
-       if (error) {
-         console.error("Error checking super admin status:", error);
-         return false;
-       }
-       return data === true;
-     },
-     enabled: !!user?.id,
-   });
+   const { isSuperAdmin, isLoading: checkingAdmin } = useCurrentUserIdentity();
+
  
    // Redirect if not authenticated or not super admin
    useEffect(() => {
