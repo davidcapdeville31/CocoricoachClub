@@ -183,11 +183,33 @@ export async function waitForOneSignalServerSubscription(userId: string, attempt
  * Returns true if the user has an active push subscription in OneSignal.
  */
 export async function checkOneSignalSubscriptionStatus(userId: string): Promise<boolean> {
+  // Persistent guard: avoid hammering check-onesignal-subscriptions for the
+  // same user within the TTL. If a previous check confirmed a subscription,
+  // we cache "true" alongside the timestamp.
+  try {
+    const cached = sessionStorage.getItem(OS_SUBCHECK_KEY(userId));
+    if (cached) {
+      const [tsRaw, valueRaw] = cached.split("|");
+      const ts = Number(tsRaw);
+      if (Number.isFinite(ts) && Date.now() - ts < OS_SYNC_TTL_MS) {
+        return valueRaw === "1";
+      }
+    }
+  } catch {
+    // ignore
+  }
+
   try {
     const { data } = await supabase.functions.invoke("check-onesignal-subscriptions", {
       body: { user_ids: [userId] },
     });
-    return data?.results?.[userId]?.hasPush === true;
+    const hasPush = data?.results?.[userId]?.hasPush === true;
+    try {
+      sessionStorage.setItem(OS_SUBCHECK_KEY(userId), `${Date.now()}|${hasPush ? "1" : "0"}`);
+    } catch {
+      // ignore
+    }
+    return hasPush;
   } catch {
     return false;
   }
