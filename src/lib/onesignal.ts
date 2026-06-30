@@ -236,7 +236,9 @@ export async function oneSignalLogin(
   // ── SDK-side: link external_id and set tags in the browser ───────────────
   // This only works on the production domain (cocoricoachclub.com)
   if (typeof window === "undefined" || !window.OneSignal) {
-    return waitForOneSignalServerSubscription(userId, 2, 1000);
+    const ok = await waitForOneSignalServerSubscription(userId, 2, 1000);
+    setGuard(OS_SYNC_KEY(userId));
+    return ok;
   }
 
   const tags: Record<string, string> = {
