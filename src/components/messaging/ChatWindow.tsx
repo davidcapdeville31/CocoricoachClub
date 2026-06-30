@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCurrentUserIdentity } from "@/hooks/useCurrentUserIdentity";
 import { markConversationAsRead } from "@/hooks/useUnreadMessages";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -89,44 +90,30 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
   });
 
   // Only staff (club owner / admin / coach, or category admin / coach) can manage members
-  const { data: isChatManager } = useQuery({
-    queryKey: ["is-chat-manager", categoryId, user?.id],
+  // Optimisation: on lit l'identité (super admin, owner, memberships) depuis le cache partagé
+  // au lieu de refaire 4 requêtes Supabase à chaque ouverture du chat.
+  const identity = useCurrentUserIdentity();
+  const { data: chatCategoryClubId } = useQuery({
+    queryKey: ["chat-category-club", categoryId],
     queryFn: async () => {
-      if (!user) return false;
-      const { data: category } = await supabase
+      const { data } = await supabase
         .from("categories")
         .select("club_id")
         .eq("id", categoryId)
         .maybeSingle();
-      if (!category) return false;
-
-      const { data: club } = await supabase
-        .from("clubs")
-        .select("user_id")
-        .eq("id", category.club_id)
-        .maybeSingle();
-      if (club?.user_id === user.id) return true;
-
-      const { data: clubMember } = await supabase
-        .from("club_members")
-        .select("role")
-        .eq("club_id", category.club_id)
-        .eq("user_id", user.id)
-        .maybeSingle();
-      if (clubMember && ["admin", "coach"].includes(clubMember.role)) return true;
-
-      const { data: catMember } = await supabase
-        .from("category_members")
-        .select("role")
-        .eq("category_id", categoryId)
-        .eq("user_id", user.id)
-        .maybeSingle();
-      if (catMember && ["admin", "coach"].includes(catMember.role)) return true;
-
-      return false;
+      return data?.club_id ?? null;
     },
-    enabled: !!user && !!categoryId,
+    enabled: !!categoryId,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
+
+  const isChatManager =
+    !!user &&
+    (identity.isClubOwner(chatCategoryClubId) ||
+      ["admin", "coach"].includes(identity.getClubRole(chatCategoryClubId) ?? "") ||
+      ["admin", "coach"].includes(identity.getCategoryRole(categoryId) ?? ""));
+
 
   const canManageMembers =
     !!conversation && conversation.conversation_type !== "direct" && !!isChatManager;
