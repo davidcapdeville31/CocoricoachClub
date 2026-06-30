@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
+import { useCurrentUserIdentity } from "@/hooks/useCurrentUserIdentity";
 
 interface MenuPermissions {
   [menuKey: string]: boolean;
@@ -25,64 +25,24 @@ const ROLE_TO_COLUMN: Record<string, string> = {
 /**
  * Hook that returns which menus are visible for the current user
  * based on the role_menu_permissions matrix and the user's role.
- * 
+ *
  * Club owners and super admins see everything.
+ *
+ * Optimisation: l'identité (super admin, owner, memberships) est lue depuis
+ * `useCurrentUserIdentity` (cache partagé 5 min) au lieu de re-requêter
+ * super_admin_users / clubs / club_members / category_members à chaque page.
  */
 export function useMenuPermissions(clubId?: string, categoryId?: string) {
-  const { user } = useAuth();
+  const identity = useCurrentUserIdentity();
 
-  // Determine the user's effective role
-  const { data: userRole, isLoading: roleLoading } = useQuery({
-    queryKey: ["user-effective-role", clubId, categoryId, user?.id],
-    queryFn: async () => {
-      if (!user) return null;
-
-      // Check if super admin
-      const { data: superAdmin } = await supabase
-        .from("super_admin_users")
-        .select("id")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      if (superAdmin) return "super_admin";
-
-      // Check if club owner
-      if (clubId) {
-        const { data: club } = await supabase
-          .from("clubs")
-          .select("user_id")
-          .eq("id", clubId)
-          .single();
-        if (club?.user_id === user.id) return "owner";
-      }
-
-      // Check club member role
-      if (clubId) {
-        const { data: clubMember } = await supabase
-          .from("club_members")
-          .select("role")
-          .eq("club_id", clubId)
-          .eq("user_id", user.id)
-          .maybeSingle();
-        if (clubMember?.role) return clubMember.role;
-      }
-
-      // Check category member role
-      if (categoryId) {
-        const { data: categoryMember } = await supabase
-          .from("category_members")
-          .select("role")
-          .eq("category_id", categoryId)
-          .eq("user_id", user.id)
-          .maybeSingle();
-        if (categoryMember?.role) return categoryMember.role;
-      }
-
-      return null;
-    },
-    enabled: !!user && !!(clubId || categoryId),
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-  });
+  const roleLoading = identity.isLoading;
+  let userRole: string | null = null;
+  if (!roleLoading) {
+    if (identity.isSuperAdmin) userRole = "super_admin";
+    else if (identity.isClubOwner(clubId)) userRole = "owner";
+    else if (clubId && identity.getClubRole(clubId)) userRole = identity.getClubRole(clubId);
+    else if (categoryId && identity.getCategoryRole(categoryId)) userRole = identity.getCategoryRole(categoryId);
+  }
 
   // Fetch the permissions matrix
   const { data: permissionsMatrix, isLoading: matrixLoading } = useQuery({
