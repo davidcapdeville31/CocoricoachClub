@@ -79,16 +79,7 @@ export default function Clubs() {
     enabled: !!user?.id,
   });
 
-  const { data: isSuperAdmin, isLoading: superAdminLoading } = useQuery({
-    queryKey: ["is-super-admin", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return false;
-      const { data, error } = await supabase.rpc("is_super_admin", { _user_id: user.id });
-      if (error) return false;
-      return data === true;
-    },
-    enabled: !!user?.id,
-  });
+  const { isSuperAdmin, isLoading: superAdminLoading } = useCurrentUserIdentity();
 
   const { data: isApproved, isLoading: approvedLoading } = useQuery({
     queryKey: ["is-approved", user?.id],
