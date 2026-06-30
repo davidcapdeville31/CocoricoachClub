@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { AddClubDialog } from "@/components/clubs/AddClubDialog";
 import { ClubCard } from "@/components/clubs/ClubCard";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCurrentUserIdentity } from "@/hooks/useCurrentUserIdentity";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { SuperAdminShieldButton } from "@/components/notifications/SuperAdminShieldButton";
 import { InjuryReturnAlerts } from "@/components/injuries/InjuryReturnAlerts";
@@ -79,16 +80,7 @@ export default function Clubs() {
     enabled: !!user?.id,
   });
 
-  const { data: isSuperAdmin, isLoading: superAdminLoading } = useQuery({
-    queryKey: ["is-super-admin", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return false;
-      const { data, error } = await supabase.rpc("is_super_admin", { _user_id: user.id });
-      if (error) return false;
-      return data === true;
-    },
-    enabled: !!user?.id,
-  });
+  const { isSuperAdmin, isLoading: superAdminLoading } = useCurrentUserIdentity();
 
   const { data: isApproved, isLoading: approvedLoading } = useQuery({
     queryKey: ["is-approved", user?.id],

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
+import { useCurrentUserIdentity } from "@/hooks/useCurrentUserIdentity";
 import { Wrench } from "lucide-react";
 import logoLight from "@/assets/logo-light.png";
 
@@ -16,8 +16,8 @@ interface MaintenanceStatus {
  * EXCEPT super admins. Visible even to anonymous visitors thanks to a SECURITY DEFINER RPC.
  */
 export function MaintenanceGate({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
   const location = useLocation();
+  const { isSuperAdmin } = useCurrentUserIdentity();
 
   const { data: status } = useQuery({
     queryKey: ["maintenance-status"],
@@ -30,18 +30,6 @@ export function MaintenanceGate({ children }: { children: React.ReactNode }) {
     refetchIntervalInBackground: false,
     refetchOnWindowFocus: true,
     staleTime: 60_000,
-  });
-
-  const { data: isSuperAdmin } = useQuery({
-    queryKey: ["is-super-admin-gate", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return false;
-      const { data } = await supabase.rpc("is_super_admin", { _user_id: user.id });
-      return data === true;
-    },
-    enabled: !!user?.id,
-    staleTime: 5 * 60_000,
-    gcTime: 10 * 60_000,
   });
 
   // Always allow super admins to keep working — they can disable maintenance.

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCurrentUserIdentity } from "@/hooks/useCurrentUserIdentity";
 import { TutorialVideosSection } from "@/components/category/settings/TutorialVideosSection";
 import { NotificationManagementSection } from "@/components/category/settings/NotificationManagementSection";
 import { PersonalNotificationPreferences } from "@/components/notifications/PersonalNotificationPreferences";
@@ -35,15 +36,7 @@ export function SettingsTab({ categoryId }: SettingsTabProps) {
   const [myNotifsOpen, setMyNotifsOpen] = useState(false);
   const [tutorialsOpen, setTutorialsOpen] = useState(false);
 
-  const { data: isSuperAdmin } = useQuery({
-    queryKey: ["is-super-admin", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return false;
-      const { data } = await supabase.rpc("is_super_admin", { _user_id: user.id });
-      return data === true;
-    },
-    enabled: !!user?.id,
-  });
+  const { isSuperAdmin } = useCurrentUserIdentity();
 
   const archiveCategory = useMutation({
     mutationFn: async () => {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCurrentUserIdentity } from "@/hooks/useCurrentUserIdentity";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -70,15 +71,9 @@ export default function AthleteSpace() {
   const queryPlayerId = searchParams.get("playerId");
 
   // Check super admin status
-  const { data: isSuperAdmin } = useQuery({
-    queryKey: ["is-super-admin", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return false;
-      const { data } = await supabase.rpc("is_super_admin", { _user_id: user.id });
-      return data === true;
-    },
-    enabled: !!user?.id,
-  });
+  // Check super admin status (centralized cache)
+  const { isSuperAdmin } = useCurrentUserIdentity();
+
 
   // Fetch players for selector (super admin sees all, staff sees their categories)
   const { data: allPlayers = [] } = useQuery({
