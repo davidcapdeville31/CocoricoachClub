@@ -58,24 +58,7 @@ export default function Admin() {
   const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
 
   // Check if current user is super admin
-  const { data: isSuperAdmin, isLoading: checkingAdmin } = useQuery({
-    queryKey: ["is-super-admin", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return false;
-
-      const { data, error } = await supabase.rpc("is_super_admin", {
-        _user_id: user.id,
-      });
-
-      if (error) {
-        console.error("Error checking super admin status:", error);
-        return false;
-      }
-
-      return data === true;
-    },
-    enabled: !!user?.id,
-  });
+  const { isSuperAdmin, isLoading: checkingAdmin } = useCurrentUserIdentity();
 
   // Fetch all users with approval status
   const { data: users = [], isLoading: loadingUsers } = useQuery({
