@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCurrentUserIdentity } from "@/hooks/useCurrentUserIdentity";
 import { TutorialVideosSection } from "@/components/category/settings/TutorialVideosSection";
 import { NotificationManagementSection } from "@/components/category/settings/NotificationManagementSection";
 import { PersonalNotificationPreferences } from "@/components/notifications/PersonalNotificationPreferences";
