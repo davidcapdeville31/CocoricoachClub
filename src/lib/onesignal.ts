@@ -208,6 +208,15 @@ export async function oneSignalLogin(
   if (lastLoggedInUserId === userId) {
     return true;
   }
+
+  // Persistent guard (survives reloads, HMR, tab focus) — TTL 30 min.
+  // Avoids spamming sync-onesignal-tags + check-onesignal-subscriptions
+  // for a user already synced recently.
+  if (isGuardFresh(OS_SYNC_KEY(userId))) {
+    lastLoggedInUserId = userId;
+    return true;
+  }
+
   lastLoggedInUserId = userId;
 
   // ── Always sync server-side first (most reliable — works on any domain) ──
