@@ -36,15 +36,7 @@ export function SettingsTab({ categoryId }: SettingsTabProps) {
   const [myNotifsOpen, setMyNotifsOpen] = useState(false);
   const [tutorialsOpen, setTutorialsOpen] = useState(false);
 
-  const { data: isSuperAdmin } = useQuery({
-    queryKey: ["is-super-admin", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return false;
-      const { data } = await supabase.rpc("is_super_admin", { _user_id: user.id });
-      return data === true;
-    },
-    enabled: !!user?.id,
-  });
+  const { isSuperAdmin } = useCurrentUserIdentity();
 
   const archiveCategory = useMutation({
     mutationFn: async () => {
