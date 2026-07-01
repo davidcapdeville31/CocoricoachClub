@@ -129,7 +129,7 @@ export default function AthleteSpace() {
 
         if (!error && player) {
           // Check if user is super admin or has access to this category
-          const { data: isSA } = await supabase.rpc("is_super_admin", { _user_id: user!.id });
+          const isSA = isSuperAdmin;
           const { data: hasAccess } = await supabase.rpc("can_access_category", { 
             _user_id: user!.id, 
             _category_id: player.category_id 
@@ -173,7 +173,7 @@ export default function AthleteSpace() {
 
       if (!players || players.length === 0) {
         // If super admin or staff member, show player selector
-        const { data: isSA } = await supabase.rpc("is_super_admin", { _user_id: user!.id });
+        const isSA = isSuperAdmin;
         if (isSA) {
           setShowPlayerSelector(true);
           return;
