@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useCurrentUserIdentity } from '@/hooks/useCurrentUserIdentity';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Json } from '@/integrations/supabase/types';
@@ -44,10 +45,10 @@ export interface ExerciseOverride {
 }
 
 export function useMergedExercises() {
+  const { isSuperAdmin } = useCurrentUserIdentity();
   const [exercises, setExercises] = useState<MergedExercise[]>([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   const fetchExercises = useCallback(async () => {
     try {
@@ -74,12 +75,6 @@ export function useMergedExercises() {
       }
 
       setUserId(user.id);
-
-      // Check if super admin
-      const { data: superAdminCheck } = await supabase.rpc('is_super_admin', {
-        _user_id: user.id
-      });
-      setIsSuperAdmin(!!superAdminCheck);
 
       // Use the merged exercises function
       const { data, error } = await supabase.rpc('get_merged_exercises_for_coach', {
