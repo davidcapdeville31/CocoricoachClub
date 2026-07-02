@@ -61,7 +61,7 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
       if (error) throw error;
       return data as Message[];
     },
-    refetchInterval: 5000,
+    refetchInterval: 60 * 1000, // filet de sécurité ; Realtime pousse les nouveaux messages en temps réel
   });
 
   const { data: participants } = useQuery({
