@@ -142,7 +142,11 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
     enabled: !!messages && messages.length > 0,
   });
 
-  // Subscribe to realtime messages
+  // Ref vers les messages pour l'invalidation des reactions sans redéclencher l'abonnement Realtime
+  const messagesRef = useRef<Message[] | undefined>(messages);
+  useEffect(() => { messagesRef.current = messages; }, [messages]);
+
+  // Subscribe to realtime messages — ne dépend PAS de `messages` pour éviter le churn du channel
   useEffect(() => {
     const channel = supabase
       .channel(`messages-${conversationId}`)
@@ -159,15 +163,14 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
         schema: "public",
         table: "message_reactions",
       }, () => {
-        // Invalidate all reaction queries for this conversation's messages
-        messages?.forEach(m => {
+        messagesRef.current?.forEach(m => {
           queryClient.invalidateQueries({ queryKey: ["message-reactions", m.id] });
         });
       })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [conversationId, queryClient, messages]);
+  }, [conversationId, queryClient]);
 
   // Mark conversation as read — uniquement à l'entrée dans la conversation
   useEffect(() => {
