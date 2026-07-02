@@ -70,13 +70,15 @@ export function useUnreadMessages(categoryId: string) {
       return { total, byConversation };
     },
     enabled: !!user && !!categoryId,
-    // Pas de refetchInterval: le channel Realtime ci-dessous invalide déjà à l'INSERT.
+    // Pas de refetchInterval: le channel Realtime ci-dessous met à jour le cache localement.
     refetchIntervalInBackground: false,
+    refetchOnWindowFocus: false,
     staleTime: 30_000,
   });
 
-  // Subscribe to realtime message inserts to invalidate — invalidation debouncée à 2s
-  // pour absorber les rafales (envois multiples, salves de notifications, etc.).
+  // Realtime: incrémente localement le compteur de la conversation concernée
+  // au lieu de refetch N conversations. Filet de sécurité: debounce d'invalidation
+  // uniquement si le message concerne une conversation inconnue du cache local.
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (!user || !categoryId) return;
@@ -90,11 +92,52 @@ export function useUnreadMessages(categoryId: string) {
           schema: "public",
           table: "messages",
         },
-        () => {
-          if (debounceRef.current) clearTimeout(debounceRef.current);
-          debounceRef.current = setTimeout(() => {
-            queryClient.invalidateQueries({ queryKey: ["unread-messages", categoryId, user.id] });
-          }, 2000);
+        (payload) => {
+          const row = payload.new as {
+            conversation_id?: string;
+            sender_id?: string;
+          } | null;
+          if (!row?.conversation_id || !row.sender_id) return;
+          // Ignorer ses propres messages
+          if (row.sender_id === user.id) return;
+
+          const current = queryClient.getQueryData<UnreadCounts>([
+            "unread-messages",
+            categoryId,
+            user.id,
+          ]);
+
+          // Si on ne connaît pas encore cette conversation (pas participant côté cache local
+          // ou catégorie différente), on ignore : le prochain montage / navigation refetchera.
+          if (!current) return;
+
+          // Filet de sécurité: si l'INSERT vient d'une conv d'une autre catégorie,
+          // on ne peut pas le savoir depuis le payload → on incrémente uniquement si
+          // la conv fait partie du cache participations (byConversation existant ou 0).
+          // On applique l'incrément prudemment : seulement si la conv est déjà présente
+          // OU on invalide de manière debouncée en cas de doute.
+          const knownConv = row.conversation_id in current.byConversation;
+          if (knownConv) {
+            queryClient.setQueryData<UnreadCounts>(
+              ["unread-messages", categoryId, user.id],
+              {
+                total: current.total + 1,
+                byConversation: {
+                  ...current.byConversation,
+                  [row.conversation_id]: (current.byConversation[row.conversation_id] || 0) + 1,
+                },
+              }
+            );
+          } else {
+            // Conv inconnue du cache (première non-lue de cette conv, ou autre catégorie)
+            // → un seul refetch debouncé pour resynchroniser.
+            if (debounceRef.current) clearTimeout(debounceRef.current);
+            debounceRef.current = setTimeout(() => {
+              queryClient.invalidateQueries({
+                queryKey: ["unread-messages", categoryId, user.id],
+              });
+            }, 2000);
+          }
         }
       )
       .subscribe();
