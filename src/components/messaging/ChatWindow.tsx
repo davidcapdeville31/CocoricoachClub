@@ -169,13 +169,13 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
     return () => { supabase.removeChannel(channel); };
   }, [conversationId, queryClient, messages]);
 
-  // Mark conversation as read
+  // Mark conversation as read — uniquement à l'entrée dans la conversation
   useEffect(() => {
     if (user && conversationId) {
       markConversationAsRead(conversationId, user.id);
-      queryClient.invalidateQueries({ queryKey: ["unread-messages"] });
+      queryClient.invalidateQueries({ queryKey: ["unread-messages", categoryId, user.id] });
     }
-  }, [conversationId, user, messages?.length, queryClient]);
+  }, [conversationId, user, categoryId, queryClient]);
 
   // Scroll to bottom on new messages
   useEffect(() => {
