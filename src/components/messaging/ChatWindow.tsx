@@ -189,16 +189,20 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
 
   const sendMessage = useMutation({
     mutationFn: async () => {
-      if (!newMessage.trim() || !user) return;
+      if (!newMessage.trim() || !user) return null;
       const messageContent = newMessage.trim();
-      const { error } = await supabase.from("messages").insert({
-        conversation_id: conversationId,
-        sender_id: user.id,
-        content: messageContent,
-        is_announcement: isAnnouncement,
-        read_by: [user.id],
-        message_type: "text",
-      });
+      const { data: inserted, error } = await supabase
+        .from("messages")
+        .insert({
+          conversation_id: conversationId,
+          sender_id: user.id,
+          content: messageContent,
+          is_announcement: isAnnouncement,
+          read_by: [user.id],
+          message_type: "text",
+        })
+        .select("*")
+        .single();
       if (error) throw error;
 
       // Push notification (fire & forget)
@@ -218,11 +222,24 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
       } catch (e) {
         console.warn("[ChatWindow] Push notification failed:", e);
       }
+
+      return inserted as Message;
     },
-    onSuccess: () => {
+    onSuccess: (inserted) => {
       setNewMessage("");
       setIsAnnouncement(false);
-      // Le Realtime INSERT invalide déjà ["messages", conversationId] côté expéditeur et destinataires.
+      // Mise à jour optimiste ciblée du cache local côté émetteur (Realtime ne redéclenche pas
+      // toujours pour ses propres inserts). Pas d'invalidation → aucune requête réseau supplémentaire.
+      if (inserted) {
+        queryClient.setQueryData<Message[] | undefined>(
+          ["messages", conversationId],
+          (old) => {
+            if (!old) return [inserted];
+            if (old.some(m => m.id === inserted.id)) return old;
+            return [...old, inserted];
+          },
+        );
+      }
     },
     onError: () => { toast.error("Erreur lors de l'envoi"); },
   });
