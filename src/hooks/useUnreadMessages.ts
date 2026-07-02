@@ -70,12 +70,14 @@ export function useUnreadMessages(categoryId: string) {
       return { total, byConversation };
     },
     enabled: !!user && !!categoryId,
-    refetchInterval: 60_000, // Backup poll — realtime channel does the heavy lifting
+    // Pas de refetchInterval: le channel Realtime ci-dessous invalide déjà à l'INSERT.
     refetchIntervalInBackground: false,
     staleTime: 30_000,
   });
 
-  // Subscribe to realtime message inserts to invalidate
+  // Subscribe to realtime message inserts to invalidate — invalidation debouncée à 2s
+  // pour absorber les rafales (envois multiples, salves de notifications, etc.).
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (!user || !categoryId) return;
 
@@ -89,12 +91,16 @@ export function useUnreadMessages(categoryId: string) {
           table: "messages",
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ["unread-messages", categoryId, user.id] });
+          if (debounceRef.current) clearTimeout(debounceRef.current);
+          debounceRef.current = setTimeout(() => {
+            queryClient.invalidateQueries({ queryKey: ["unread-messages", categoryId, user.id] });
+          }, 2000);
         }
       )
       .subscribe();
 
     return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
       supabase.removeChannel(channel);
     };
   }, [user, categoryId, queryClient]);
