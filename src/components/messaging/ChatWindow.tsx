@@ -173,11 +173,25 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
     return () => { supabase.removeChannel(channel); };
   }, [conversationId, queryClient]);
 
-  // Mark conversation as read — uniquement à l'entrée dans la conversation
+  // Mark conversation as read — uniquement à l'entrée dans la conversation.
+  // Au lieu d'invalider ["unread-messages", ...] (qui déclenche N HEAD requests),
+  // on remet à 0 le compteur de cette conversation localement via setQueryData.
   useEffect(() => {
     if (user && conversationId) {
       markConversationAsRead(conversationId, user.id);
-      queryClient.invalidateQueries({ queryKey: ["unread-messages", categoryId, user.id] });
+      const key = ["unread-messages", categoryId, user.id] as const;
+      const current = queryClient.getQueryData<{
+        total: number;
+        byConversation: Record<string, number>;
+      }>(key as unknown as readonly unknown[]);
+      if (current && current.byConversation[conversationId]) {
+        const removed = current.byConversation[conversationId];
+        const { [conversationId]: _drop, ...rest } = current.byConversation;
+        queryClient.setQueryData(key as unknown as readonly unknown[], {
+          total: Math.max(0, current.total - removed),
+          byConversation: rest,
+        });
+      }
     }
   }, [conversationId, user, categoryId, queryClient]);
 
