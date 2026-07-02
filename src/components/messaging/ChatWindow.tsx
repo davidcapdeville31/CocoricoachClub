@@ -63,6 +63,7 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
     },
     // Pas de refetchInterval: Realtime pousse déjà les nouveaux messages en temps réel.
     staleTime: 30_000, // absorbe les focus rapprochés sans refetch inutile
+    refetchOnWindowFocus: false,
   });
 
   const { data: participants } = useQuery({
