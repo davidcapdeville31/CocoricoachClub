@@ -219,7 +219,7 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
     onSuccess: () => {
       setNewMessage("");
       setIsAnnouncement(false);
-      queryClient.invalidateQueries({ queryKey: ["messages", conversationId] });
+      // Le Realtime INSERT invalide déjà ["messages", conversationId] côté expéditeur et destinataires.
     },
     onError: () => { toast.error("Erreur lors de l'envoi"); },
   });
