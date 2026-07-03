@@ -89,7 +89,7 @@ export function ConversationList({ categoryId, selectedId, onSelect, isAthlete =
   const { byConversation: unreadByConversation } = useUnreadMessages(categoryId);
 
   useEffect(() => {
-    console.debug("[ConversationList] unread badge render source", {
+    console.info("[UNREAD_RT_DEBUG] ConversationList render source", {
       categoryId,
       userId: user?.id,
       queryKey: ["unread-messages", categoryId, user?.id],

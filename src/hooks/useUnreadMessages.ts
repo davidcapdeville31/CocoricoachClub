@@ -8,20 +8,24 @@ interface UnreadCounts {
   byConversation: Record<string, number>;
 }
 
+const unreadDebug = (label: string, data: Record<string, unknown>) => {
+  console.info(`[UNREAD_RT_DEBUG] ${label}`, data);
+};
+
 export function useUnreadMessages(categoryId: string) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const debugKey = ["unread-messages", categoryId, user?.id] as const;
 
   useEffect(() => {
-    console.debug("[useUnreadMessages] mounted", {
+    unreadDebug("mounted", {
       categoryId,
       userId: user?.id,
       queryKey: debugKey,
     });
 
     return () => {
-      console.debug("[useUnreadMessages] unmounted", {
+      unreadDebug("unmounted", {
         categoryId,
         userId: user?.id,
         queryKey: debugKey,
@@ -49,7 +53,7 @@ export function useUnreadMessages(categoryId: string) {
 
       if (!isUnreadKey) return;
 
-      console.debug("[useUnreadMessages] cache event", {
+      unreadDebug("cache event", {
         eventType: eventData.type,
         actionType: eventData.action?.type,
         queryKey: eventKey,
@@ -66,7 +70,7 @@ export function useUnreadMessages(categoryId: string) {
     queryFn: async () => {
       if (!user || !categoryId) return { total: 0, byConversation: {} };
 
-      console.debug("[useUnreadMessages] queryFn start", {
+      unreadDebug("queryFn start", {
         categoryId,
         userId: user.id,
         queryKey: ["unread-messages", categoryId, user.id],
@@ -80,7 +84,7 @@ export function useUnreadMessages(categoryId: string) {
       if (convErr) throw convErr;
       const convIds = (convs || []).map((c) => c.id);
       if (convIds.length === 0) {
-        console.debug("[useUnreadMessages] queryFn result", {
+        unreadDebug("queryFn result", {
           categoryId,
           userId: user.id,
           convIdsCount: 0,
@@ -98,7 +102,7 @@ export function useUnreadMessages(categoryId: string) {
         .in("conversation_id", convIds);
       if (partError) throw partError;
       if (!participations || participations.length === 0) {
-        console.debug("[useUnreadMessages] queryFn result", {
+        unreadDebug("queryFn result", {
           categoryId,
           userId: user.id,
           convIdsCount: convIds.length,
@@ -143,7 +147,7 @@ export function useUnreadMessages(categoryId: string) {
         })
       );
 
-      console.debug("[useUnreadMessages] queryFn result", {
+      unreadDebug("queryFn result", {
         categoryId,
         userId: user.id,
         convIdsCount: convIds.length,
@@ -169,7 +173,7 @@ export function useUnreadMessages(categoryId: string) {
   useEffect(() => {
     if (!user || !categoryId) return;
 
-    console.debug("[useUnreadMessages] realtime subscribe", {
+    unreadDebug("realtime subscribe", {
       channel: `unread-messages-${categoryId}`,
       categoryId,
       userId: user.id,
@@ -190,7 +194,7 @@ export function useUnreadMessages(categoryId: string) {
             conversation_id?: string;
             sender_id?: string;
           } | null;
-          console.debug("[useUnreadMessages] realtime INSERT received", {
+          unreadDebug("realtime INSERT received", {
             categoryId,
             userId: user.id,
             conversationId: row?.conversation_id,
@@ -200,7 +204,7 @@ export function useUnreadMessages(categoryId: string) {
           if (!row?.conversation_id || !row.sender_id) return;
           // Ignorer ses propres messages
           if (row.sender_id === user.id) {
-            console.debug("[useUnreadMessages] realtime INSERT ignored: own message", {
+            unreadDebug("realtime INSERT ignored: own message", {
               categoryId,
               userId: user.id,
               conversationId: row.conversation_id,
@@ -214,7 +218,7 @@ export function useUnreadMessages(categoryId: string) {
             user.id,
           ]);
 
-          console.debug("[useUnreadMessages] cache before realtime update", {
+          unreadDebug("cache before realtime update", {
             categoryId,
             userId: user.id,
             conversationId: row.conversation_id,
@@ -226,7 +230,7 @@ export function useUnreadMessages(categoryId: string) {
           // Si on ne connaît pas encore cette conversation (pas participant côté cache local
           // ou catégorie différente), on ignore : le prochain montage / navigation refetchera.
           if (!current) {
-            console.debug("[useUnreadMessages] realtime INSERT ignored: missing cache", {
+            unreadDebug("realtime INSERT ignored: missing cache", {
               categoryId,
               userId: user.id,
               conversationId: row.conversation_id,
@@ -249,7 +253,7 @@ export function useUnreadMessages(categoryId: string) {
                 [row.conversation_id]: (current.byConversation[row.conversation_id] || 0) + 1,
               },
             };
-            console.debug("[useUnreadMessages] setQueryData", {
+            unreadDebug("setQueryData", {
               categoryId,
               userId: user.id,
               conversationId: row.conversation_id,
@@ -264,7 +268,7 @@ export function useUnreadMessages(categoryId: string) {
               next
             );
           } else {
-            console.debug("[useUnreadMessages] realtime INSERT unknown conversation", {
+            unreadDebug("realtime INSERT unknown conversation", {
               categoryId,
               userId: user.id,
               conversationId: row.conversation_id,
@@ -275,7 +279,7 @@ export function useUnreadMessages(categoryId: string) {
             // → un seul refetch debouncé pour resynchroniser.
             if (debounceRef.current) clearTimeout(debounceRef.current);
             debounceRef.current = setTimeout(() => {
-              console.debug("[useUnreadMessages] invalidate debounced", {
+              unreadDebug("invalidate debounced", {
                 categoryId,
                 userId: user.id,
                 conversationId: row.conversation_id,
@@ -289,7 +293,7 @@ export function useUnreadMessages(categoryId: string) {
         }
       )
       .subscribe((status) => {
-        console.debug("[useUnreadMessages] realtime status", {
+        unreadDebug("realtime status", {
           status,
           channel: `unread-messages-${categoryId}`,
           categoryId,
@@ -300,7 +304,7 @@ export function useUnreadMessages(categoryId: string) {
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
-      console.debug("[useUnreadMessages] realtime unsubscribe", {
+      unreadDebug("realtime unsubscribe", {
         channel: `unread-messages-${categoryId}`,
         categoryId,
         userId: user.id,
