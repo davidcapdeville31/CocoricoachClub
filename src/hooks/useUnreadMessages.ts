@@ -189,7 +189,7 @@ export function useUnreadMessages(categoryId: string) {
           schema: "public",
           table: "messages",
         },
-        (payload) => {
+        async (payload) => {
           const row = payload.new as {
             conversation_id?: string;
             sender_id?: string;
@@ -230,12 +230,41 @@ export function useUnreadMessages(categoryId: string) {
           // Si on ne connaît pas encore cette conversation (pas participant côté cache local
           // ou catégorie différente), on ignore : le prochain montage / navigation refetchera.
           if (!current) {
-            unreadDebug("realtime INSERT ignored: missing cache", {
+            unreadDebug("realtime INSERT missing cache: validating conversation", {
               categoryId,
               userId: user.id,
               conversationId: row.conversation_id,
               queryKey: ["unread-messages", categoryId, user.id],
             });
+
+            const { data: conversation } = await supabase
+              .from("conversations")
+              .select("id")
+              .eq("id", row.conversation_id)
+              .eq("category_id", categoryId)
+              .maybeSingle();
+
+            const { data: participation } = await supabase
+              .from("conversation_participants")
+              .select("conversation_id")
+              .eq("conversation_id", row.conversation_id)
+              .eq("user_id", user.id)
+              .maybeSingle();
+
+            if (!conversation || !participation) {
+              unreadDebug("realtime INSERT ignored: missing cache invalid conversation", {
+                categoryId,
+                userId: user.id,
+                conversationId: row.conversation_id,
+                queryKey: ["unread-messages", categoryId, user.id],
+              });
+              return;
+            }
+
+            queryClient.setQueryData<UnreadCounts>(
+              ["unread-messages", categoryId, user.id],
+              { total: 1, byConversation: { [row.conversation_id]: 1 } }
+            );
             return;
           }
 
@@ -275,8 +304,52 @@ export function useUnreadMessages(categoryId: string) {
               knownConversationIds: Object.keys(current.byConversation),
               queryKey: ["unread-messages", categoryId, user.id],
             });
-            // Conv inconnue du cache (première non-lue de cette conv, ou autre catégorie)
-            // → un seul refetch debouncé pour resynchroniser.
+
+            const { data: conversation } = await supabase
+              .from("conversations")
+              .select("id")
+              .eq("id", row.conversation_id)
+              .eq("category_id", categoryId)
+              .maybeSingle();
+
+            const { data: participation } = await supabase
+              .from("conversation_participants")
+              .select("conversation_id")
+              .eq("conversation_id", row.conversation_id)
+              .eq("user_id", user.id)
+              .maybeSingle();
+
+            if (conversation && participation) {
+              queryClient.setQueryData<UnreadCounts>(
+                ["unread-messages", categoryId, user.id],
+                (previous) => {
+                  const safePrevious = previous ?? current;
+                  const previousConversationCount = safePrevious.byConversation[row.conversation_id] || 0;
+                  const next: UnreadCounts = {
+                    total: safePrevious.total + 1,
+                    byConversation: {
+                      ...safePrevious.byConversation,
+                      [row.conversation_id]: previousConversationCount + 1,
+                    },
+                  };
+
+                  unreadDebug("setQueryData unknown conversation validated", {
+                    categoryId,
+                    userId: user.id,
+                    conversationId: row.conversation_id,
+                    queryKey: ["unread-messages", categoryId, user.id],
+                    previous: safePrevious,
+                    next,
+                  });
+
+                  return next;
+                }
+              );
+              return;
+            }
+
+            // Conv inconnue du cache et non validée pour cette catégorie/utilisateur
+            // → un seul refetch debouncé pour resynchroniser sans faux positif.
             if (debounceRef.current) clearTimeout(debounceRef.current);
             debounceRef.current = setTimeout(() => {
               unreadDebug("invalidate debounced", {
