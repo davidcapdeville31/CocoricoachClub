@@ -345,6 +345,7 @@ function renderGeneral(
   pageH: number,
   margin: number,
   tournaments: JudoPdfTournament[],
+  opponentPhotos: Map<string, string>,
 ): number {
   let y = yStart;
   const allRounds = tournaments.flatMap((t) => t.rounds);
