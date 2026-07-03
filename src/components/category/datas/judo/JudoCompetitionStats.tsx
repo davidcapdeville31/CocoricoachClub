@@ -112,9 +112,9 @@ function GroupCardHeader({ theme, title, subtitle }: { theme: GroupTheme; title:
   return (
     <>
       <div className={`h-1 w-full ${theme.bar}`} />
-      <div className={`flex items-center gap-3 px-6 py-4 ${theme.headerBg}`}>
-        <div className={`h-9 w-9 rounded-xl flex items-center justify-center ${theme.chip}`}>
-          <Icon className={`h-4 w-4 ${theme.chipIcon}`} />
+      <div className={`flex items-center gap-3 px-4 py-3 ${theme.headerBg}`}>
+        <div className={`h-8 w-8 rounded-xl flex items-center justify-center ${theme.chip}`}>
+          <Icon className={`h-3.5 w-3.5 ${theme.chipIcon}`} />
         </div>
         <div className="min-w-0">
           <div className={`text-sm font-semibold tracking-tight ${theme.title}`}>{title}</div>
@@ -464,15 +464,16 @@ function GeneralView({ tournaments }: { tournaments: JudoMatchRow[] }) {
       )}
 
       {/* KPI headline */}
-      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
-        <KpiCard label="Combats" value={summary.combats} accent="primary" />
-        <KpiCard label="Victoires" value={summary.wins} accent="success" />
-        <KpiCard label="Défaites" value={summary.losses} accent="danger" />
-        <KpiCard label="% Victoires" value={`${summary.winRate}%`} accent="primary" />
+      <div className="grid gap-2 grid-cols-3 sm:grid-cols-4 lg:grid-cols-5">
+        <KpiCard label="Combats" value={summary.combats} accent="primary" compact />
+        <KpiCard label="Victoires" value={summary.wins} accent="success" compact />
+        <KpiCard label="Défaites" value={summary.losses} accent="danger" compact />
+        <KpiCard label="% Victoires" value={`${summary.winRate}%`} accent="primary" compact />
         <KpiCard
           label="Golden Score"
           value={summary.goldenScoreCount}
-          sub="combats joués en prolongation"
+          sub="combats en prolongation"
+          compact
         />
       </div>
 
@@ -482,13 +483,14 @@ function GeneralView({ tournaments }: { tournaments: JudoMatchRow[] }) {
         return (
           <Card key={group.title} className={`rounded-2xl overflow-hidden border-0 shadow-sm ${theme.ring}`}>
             <GroupCardHeader theme={theme} title={group.title} />
-            <CardContent className="pt-4">
-              <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+            <CardContent className="pt-3">
+              <div className="grid gap-2 grid-cols-3 sm:grid-cols-4 lg:grid-cols-5">
                 {group.metrics.map((m) => (
                   <KpiCard
                     key={m.key}
                     label={m.label}
                     value={formatMetric(summary[m.key] as number, m.format)}
+                    compact
                   />
                 ))}
               </div>
@@ -537,17 +539,17 @@ function CompareView({ tournaments }: { tournaments: CompareRow[] }) {
         return (
           <Card key={group.title} className={`rounded-2xl overflow-hidden border-0 shadow-sm ${theme.ring}`}>
             <GroupCardHeader theme={theme} title={group.title} />
-            <CardContent className="overflow-x-auto pt-4">
+            <CardContent className="overflow-x-auto pt-3">
               <table className="w-full text-sm">
                 <thead>
                   <tr className={`${theme.tableHead} rounded-lg`}>
-                    <th className="text-left py-2 pr-3 pl-2 font-medium text-muted-foreground">
+                    <th className="text-left py-1.5 pr-3 pl-2 font-medium text-muted-foreground">
                       Statistique
                     </th>
                     {ordered.map((t, i) => (
                       <th
                         key={t.id}
-                        className="text-center py-2 px-2 font-medium min-w-[140px]"
+                        className="text-center py-1.5 px-2 font-medium min-w-[140px]"
                       >
                         <div className="truncate max-w-[180px] mx-auto" title={t.label}>
                           {t.label}
@@ -566,11 +568,11 @@ function CompareView({ tournaments }: { tournaments: CompareRow[] }) {
                     const refVal = reference.summary[m.key] as number;
                     return (
                       <tr key={m.key} className={`border-b last:border-0 ${rowIdx % 2 === 1 ? "bg-muted/20" : ""}`}>
-                        <td className="py-2 pr-3 pl-2">{m.label}</td>
+                        <td className="py-1.5 pr-3 pl-2">{m.label}</td>
                         {ordered.map((t, i) => {
                           const val = t.summary[m.key] as number;
                           return (
-                            <td key={t.id} className="text-center py-2 px-2">
+                            <td key={t.id} className="text-center py-1.5 px-2">
                               <div className="flex items-center justify-center gap-2">
                                 <span className="font-semibold tabular-nums">
                                   {formatMetric(val, m.format)}
@@ -662,7 +664,7 @@ function ByLevelView({ tournaments }: { tournaments: JudoMatchRow[] }) {
       </div>
 
       {/* Volume by level */}
-      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid gap-2 grid-cols-3 sm:grid-cols-4 lg:grid-cols-5">
         {groups.map((g) => (
           <KpiCard
             key={g.id}
@@ -670,6 +672,7 @@ function ByLevelView({ tournaments }: { tournaments: JudoMatchRow[] }) {
             value={g.tournamentsCount}
             sub={`${g.combatsCount} combat(s)`}
             accent="primary"
+            compact
           />
         ))}
       </div>
@@ -679,17 +682,17 @@ function ByLevelView({ tournaments }: { tournaments: JudoMatchRow[] }) {
         return (
           <Card key={group.title} className={`rounded-2xl overflow-hidden border-0 shadow-sm ${theme.ring}`}>
             <GroupCardHeader theme={theme} title={group.title} />
-            <CardContent className="overflow-x-auto pt-4">
+            <CardContent className="overflow-x-auto pt-3">
               <table className="w-full text-sm">
                 <thead>
                   <tr className={theme.tableHead}>
-                    <th className="text-left py-2 pr-3 pl-2 font-medium text-muted-foreground">
+                    <th className="text-left py-1.5 pr-3 pl-2 font-medium text-muted-foreground">
                       Statistique
                     </th>
                     {groups.map((g, i) => (
                       <th
                         key={g.id}
-                        className="text-center py-2 px-2 font-medium min-w-[140px]"
+                        className="text-center py-1.5 px-2 font-medium min-w-[140px]"
                       >
                         <div className="truncate max-w-[180px] mx-auto" title={g.label}>
                           {g.label}
@@ -711,11 +714,11 @@ function ByLevelView({ tournaments }: { tournaments: JudoMatchRow[] }) {
                     const refVal = reference.summary[m.key] as number;
                     return (
                       <tr key={m.key} className={`border-b last:border-0 ${rowIdx % 2 === 1 ? "bg-muted/20" : ""}`}>
-                        <td className="py-2 pr-3 pl-2">{m.label}</td>
+                        <td className="py-1.5 pr-3 pl-2">{m.label}</td>
                         {groups.map((g, i) => {
                           const val = g.summary[m.key] as number;
                           return (
-                            <td key={g.id} className="text-center py-2 px-2">
+                            <td key={g.id} className="text-center py-1.5 px-2">
                               <div className="flex items-center justify-center gap-2">
                                 <span className="font-semibold tabular-nums">
                                   {formatMetric(val, m.format)}
