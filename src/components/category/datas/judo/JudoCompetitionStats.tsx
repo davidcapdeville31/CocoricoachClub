@@ -43,6 +43,9 @@ interface JudoMatchRow {
     result: string | null;
     stats: Record<string, number> | null;
     player_id: string | null;
+    competition_round_stats?: {
+      stat_data: Record<string, number> | null;
+    }[] | null;
   }[];
 }
 
@@ -74,7 +77,7 @@ export function JudoCompetitionStats({ categoryId }: Props) {
         .from("matches")
         .select(`
           id, match_date, competition, opponent, tournament_level,
-          rounds:competition_rounds(result, stats, player_id)
+          rounds:competition_rounds(result, player_id, competition_round_stats(stat_data))
         `)
         .eq("category_id", categoryId)
         .eq("is_personal", false)
@@ -109,9 +112,12 @@ export function JudoCompetitionStats({ categoryId }: Props) {
       .filter((m) => isDateInActiveSeason(m.match_date))
       .map((m) => ({
         ...m,
-        rounds: (m.rounds || []).filter(
-          (r) => playerId === "all" || r.player_id === playerId,
-        ),
+        rounds: (m.rounds || [])
+          .filter((r) => playerId === "all" || r.player_id === playerId)
+          .map((r) => ({
+            ...r,
+            stats: r.stats || r.competition_round_stats?.[0]?.stat_data || {},
+          })),
       }))
       .filter((m) => m.rounds.length > 0);
   }, [rawMatches, isDateInActiveSeason, playerId]);
