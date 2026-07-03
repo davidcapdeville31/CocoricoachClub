@@ -15,7 +15,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { BarChart3, GitCompare, ChevronDown, Check, Trophy, Layers, Award, Gavel, Shield, Swords, Brain, Flame } from "lucide-react";
+import { BarChart3, GitCompare, ChevronDown, Check, Trophy, Layers, Award, Gavel, Shield, Swords, Brain, Flame, FileDown, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { exportJudoCompetitionPdf, type JudoPdfMode } from "@/lib/judo/judoCompetitionPdfExport";
 
 // Premium theme per metric group — gradient bar, icon chip, colored header background & title.
 type GroupTheme = {
