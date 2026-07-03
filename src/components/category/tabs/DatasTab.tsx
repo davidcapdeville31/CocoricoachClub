@@ -125,6 +125,7 @@ export function DatasTab({ categoryId, sportType }: DatasTabProps) {
   const isBasket = isBasketballPrecisionSport(sportType);
   const isRugby = isRugbyType(sportType || "");
   const isAthletics = isAthletismeCategory(sportType || "");
+  const isJudo = (sportType || "").toLowerCase().includes("judo");
 
   return (
     <Tabs defaultValue="competition" className="space-y-4">
