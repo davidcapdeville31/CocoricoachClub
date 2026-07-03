@@ -37,7 +37,13 @@ export function useUnreadMessages(categoryId: string) {
         return { total: 0, byConversation: {} };
       }
 
+      // Pré-remplir avec 0 pour TOUTES les conversations connues (participant),
+      // afin que le handler Realtime reconnaisse la conversation dès le 1er
+      // message reçu, même après un mark-as-read local qui a remis le compteur à 0.
       const byConversation: Record<string, number> = {};
+      for (const participation of participations) {
+        byConversation[participation.conversation_id] = 0;
+      }
       let total = 0;
 
       // 3. Count unread per conversation in parallel
@@ -60,10 +66,8 @@ export function useUnreadMessages(categoryId: string) {
           if (error) return;
 
           const unread = count || 0;
-          if (unread > 0) {
-            byConversation[convId] = unread;
-            total += unread;
-          }
+          byConversation[convId] = unread;
+          total += unread;
         })
       );
 
