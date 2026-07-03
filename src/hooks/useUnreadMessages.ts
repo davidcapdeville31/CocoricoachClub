@@ -11,11 +11,66 @@ interface UnreadCounts {
 export function useUnreadMessages(categoryId: string) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const debugKey = ["unread-messages", categoryId, user?.id] as const;
+
+  useEffect(() => {
+    console.debug("[useUnreadMessages] mounted", {
+      categoryId,
+      userId: user?.id,
+      queryKey: debugKey,
+    });
+
+    return () => {
+      console.debug("[useUnreadMessages] unmounted", {
+        categoryId,
+        userId: user?.id,
+        queryKey: debugKey,
+      });
+    };
+  }, [categoryId, user?.id]);
+
+  useEffect(() => {
+    if (!user?.id || !categoryId) return;
+
+    const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
+      const eventData = event as {
+        type?: string;
+        action?: { type?: string };
+        query?: {
+          queryKey?: readonly unknown[];
+          state?: { data?: unknown; dataUpdatedAt?: number };
+        };
+      };
+      const eventKey = eventData.query?.queryKey;
+      const isUnreadKey =
+        Array.isArray(eventKey) &&
+        eventKey.length === debugKey.length &&
+        eventKey.every((part, index) => part === debugKey[index]);
+
+      if (!isUnreadKey) return;
+
+      console.debug("[useUnreadMessages] cache event", {
+        eventType: eventData.type,
+        actionType: eventData.action?.type,
+        queryKey: eventKey,
+        data: eventData.query?.state?.data,
+        dataUpdatedAt: eventData.query?.state?.dataUpdatedAt,
+      });
+    });
+
+    return unsubscribe;
+  }, [categoryId, user?.id, queryClient]);
 
   const { data: unreadCounts = { total: 0, byConversation: {} } } = useQuery<UnreadCounts>({
     queryKey: ["unread-messages", categoryId, user?.id],
     queryFn: async () => {
       if (!user || !categoryId) return { total: 0, byConversation: {} };
+
+      console.debug("[useUnreadMessages] queryFn start", {
+        categoryId,
+        userId: user.id,
+        queryKey: ["unread-messages", categoryId, user.id],
+      });
 
       // 1. Fetch conversations IDs for this category (filtered by RLS)
       const { data: convs, error: convErr } = await supabase
@@ -24,7 +79,16 @@ export function useUnreadMessages(categoryId: string) {
         .eq("category_id", categoryId);
       if (convErr) throw convErr;
       const convIds = (convs || []).map((c) => c.id);
-      if (convIds.length === 0) return { total: 0, byConversation: {} };
+      if (convIds.length === 0) {
+        console.debug("[useUnreadMessages] queryFn result", {
+          categoryId,
+          userId: user.id,
+          convIdsCount: 0,
+          total: 0,
+          byConversation: {},
+        });
+        return { total: 0, byConversation: {} };
+      }
 
       // 2. Fetch this user's participations (last_read_at) for those conversations
       const { data: participations, error: partError } = await supabase
@@ -34,6 +98,14 @@ export function useUnreadMessages(categoryId: string) {
         .in("conversation_id", convIds);
       if (partError) throw partError;
       if (!participations || participations.length === 0) {
+        console.debug("[useUnreadMessages] queryFn result", {
+          categoryId,
+          userId: user.id,
+          convIdsCount: convIds.length,
+          participationsCount: 0,
+          total: 0,
+          byConversation: {},
+        });
         return { total: 0, byConversation: {} };
       }
 
@@ -71,6 +143,16 @@ export function useUnreadMessages(categoryId: string) {
         })
       );
 
+      console.debug("[useUnreadMessages] queryFn result", {
+        categoryId,
+        userId: user.id,
+        convIdsCount: convIds.length,
+        participationsCount: participations.length,
+        total,
+        byConversation,
+        queryKey: ["unread-messages", categoryId, user.id],
+      });
+
       return { total, byConversation };
     },
     enabled: !!user && !!categoryId,
@@ -87,6 +169,13 @@ export function useUnreadMessages(categoryId: string) {
   useEffect(() => {
     if (!user || !categoryId) return;
 
+    console.debug("[useUnreadMessages] realtime subscribe", {
+      channel: `unread-messages-${categoryId}`,
+      categoryId,
+      userId: user.id,
+      queryKey: ["unread-messages", categoryId, user.id],
+    });
+
     const channel = supabase
       .channel(`unread-messages-${categoryId}`)
       .on(
@@ -101,9 +190,23 @@ export function useUnreadMessages(categoryId: string) {
             conversation_id?: string;
             sender_id?: string;
           } | null;
+          console.debug("[useUnreadMessages] realtime INSERT received", {
+            categoryId,
+            userId: user.id,
+            conversationId: row?.conversation_id,
+            senderId: row?.sender_id,
+            queryKey: ["unread-messages", categoryId, user.id],
+          });
           if (!row?.conversation_id || !row.sender_id) return;
           // Ignorer ses propres messages
-          if (row.sender_id === user.id) return;
+          if (row.sender_id === user.id) {
+            console.debug("[useUnreadMessages] realtime INSERT ignored: own message", {
+              categoryId,
+              userId: user.id,
+              conversationId: row.conversation_id,
+            });
+            return;
+          }
 
           const current = queryClient.getQueryData<UnreadCounts>([
             "unread-messages",
@@ -111,9 +214,26 @@ export function useUnreadMessages(categoryId: string) {
             user.id,
           ]);
 
+          console.debug("[useUnreadMessages] cache before realtime update", {
+            categoryId,
+            userId: user.id,
+            conversationId: row.conversation_id,
+            queryKey: ["unread-messages", categoryId, user.id],
+            current,
+            byConversation: current?.byConversation,
+          });
+
           // Si on ne connaît pas encore cette conversation (pas participant côté cache local
           // ou catégorie différente), on ignore : le prochain montage / navigation refetchera.
-          if (!current) return;
+          if (!current) {
+            console.debug("[useUnreadMessages] realtime INSERT ignored: missing cache", {
+              categoryId,
+              userId: user.id,
+              conversationId: row.conversation_id,
+              queryKey: ["unread-messages", categoryId, user.id],
+            });
+            return;
+          }
 
           // Filet de sécurité: si l'INSERT vient d'une conv d'une autre catégorie,
           // on ne peut pas le savoir depuis le payload → on incrémente uniquement si
@@ -122,21 +242,45 @@ export function useUnreadMessages(categoryId: string) {
           // OU on invalide de manière debouncée en cas de doute.
           const knownConv = row.conversation_id in current.byConversation;
           if (knownConv) {
+            const next: UnreadCounts = {
+              total: current.total + 1,
+              byConversation: {
+                ...current.byConversation,
+                [row.conversation_id]: (current.byConversation[row.conversation_id] || 0) + 1,
+              },
+            };
+            console.debug("[useUnreadMessages] setQueryData", {
+              categoryId,
+              userId: user.id,
+              conversationId: row.conversation_id,
+              queryKey: ["unread-messages", categoryId, user.id],
+              previous: current,
+              previousByConversation: current.byConversation,
+              next,
+              nextByConversation: next.byConversation,
+            });
             queryClient.setQueryData<UnreadCounts>(
               ["unread-messages", categoryId, user.id],
-              {
-                total: current.total + 1,
-                byConversation: {
-                  ...current.byConversation,
-                  [row.conversation_id]: (current.byConversation[row.conversation_id] || 0) + 1,
-                },
-              }
+              next
             );
           } else {
+            console.debug("[useUnreadMessages] realtime INSERT unknown conversation", {
+              categoryId,
+              userId: user.id,
+              conversationId: row.conversation_id,
+              knownConversationIds: Object.keys(current.byConversation),
+              queryKey: ["unread-messages", categoryId, user.id],
+            });
             // Conv inconnue du cache (première non-lue de cette conv, ou autre catégorie)
             // → un seul refetch debouncé pour resynchroniser.
             if (debounceRef.current) clearTimeout(debounceRef.current);
             debounceRef.current = setTimeout(() => {
+              console.debug("[useUnreadMessages] invalidate debounced", {
+                categoryId,
+                userId: user.id,
+                conversationId: row.conversation_id,
+                queryKey: ["unread-messages", categoryId, user.id],
+              });
               queryClient.invalidateQueries({
                 queryKey: ["unread-messages", categoryId, user.id],
               });
@@ -144,10 +288,24 @@ export function useUnreadMessages(categoryId: string) {
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.debug("[useUnreadMessages] realtime status", {
+          status,
+          channel: `unread-messages-${categoryId}`,
+          categoryId,
+          userId: user.id,
+          queryKey: ["unread-messages", categoryId, user.id],
+        });
+      });
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
+      console.debug("[useUnreadMessages] realtime unsubscribe", {
+        channel: `unread-messages-${categoryId}`,
+        categoryId,
+        userId: user.id,
+        queryKey: ["unread-messages", categoryId, user.id],
+      });
       supabase.removeChannel(channel);
     };
   }, [user, categoryId, queryClient]);
