@@ -184,13 +184,33 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
         total: number;
         byConversation: Record<string, number>;
       }>(key as unknown as readonly unknown[]);
+      console.debug("[ChatWindow] mark-as-read cache before", {
+        categoryId,
+        userId: user.id,
+        conversationId,
+        queryKey: key,
+        current,
+        byConversation: current?.byConversation,
+      });
       if (current && current.byConversation[conversationId]) {
         const removed = current.byConversation[conversationId];
         // Garder la clé (à 0) pour que le handler Realtime reconnaisse toujours
         // la conversation et incrémente immédiatement les prochains messages.
-        queryClient.setQueryData(key as unknown as readonly unknown[], {
+        const next = {
           total: Math.max(0, current.total - removed),
           byConversation: { ...current.byConversation, [conversationId]: 0 },
+        };
+        console.debug("[ChatWindow] mark-as-read setQueryData", {
+          categoryId,
+          userId: user.id,
+          conversationId,
+          queryKey: key,
+          previous: current,
+          next,
+        });
+        queryClient.setQueryData(key as unknown as readonly unknown[], {
+          total: next.total,
+          byConversation: next.byConversation,
         });
       }
     }
