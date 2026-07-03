@@ -177,7 +177,7 @@ export function JudoCompetitionStats({ categoryId }: Props) {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-2">
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-2 flex-wrap">
           <div className="w-full sm:w-56">
             <Select value={playerId} onValueChange={setPlayerId}>
               <SelectTrigger className="rounded-2xl">
@@ -194,74 +194,94 @@ export function JudoCompetitionStats({ categoryId }: Props) {
             </Select>
           </div>
 
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="w-full max-w-md rounded-2xl justify-between">
-                <span className="truncate text-left">
-                  {selected.length === 0
-                    ? "Sélectionnez un ou plusieurs tournois"
-                    : selected.length === 1
-                    ? tournamentLabel(selected[0])
-                    : `${selected.length} tournois sélectionnés`}
-                </span>
-                <div className="flex items-center gap-2 shrink-0">
-                  {selected.length > 1 && (
-                    <Badge variant="secondary" className="text-[10px]">
-                      {activeTab === "general" ? "cumul" : "compare"}
-                    </Badge>
-                  )}
-                  <ChevronDown className="h-4 w-4 opacity-60" />
-                </div>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[min(92vw,28rem)] p-0" align="center">
-              <div className="flex items-center justify-between px-3 py-2 border-b">
-                <span className="text-xs text-muted-foreground">
-                  {selectedIds.length} / {tournaments.length} sélectionné(s)
-                </span>
-                <div className="flex gap-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() => setSelectedIds(tournaments.map((t) => t.id))}
-                  >
-                    Tout
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() => setSelectedIds(tournaments[0] ? [tournaments[0].id] : [])}
-                  >
-                    Aucun
-                  </Button>
-                </div>
-              </div>
-              <div className="max-h-72 overflow-y-auto py-1">
-                {tournaments.map((t) => {
-                  const checked = selectedIds.includes(t.id);
-                  return (
-                    <button
-                      key={t.id}
-                      type="button"
-                      onClick={() => toggleId(t.id)}
-                      className="flex w-full items-center gap-3 px-3 py-2 text-sm hover:bg-accent text-left"
+          {activeTab !== "by-level" && (
+            <div className="w-full sm:w-56">
+              <Select value={levelFilter} onValueChange={setLevelFilter}>
+                <SelectTrigger className="rounded-2xl">
+                  <SelectValue placeholder="Niveau" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les niveaux</SelectItem>
+                  {TOURNAMENT_LEVELS.map((l) => (
+                    <SelectItem key={l.value} value={l.value}>
+                      {l.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {activeTab !== "by-level" && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full max-w-md rounded-2xl justify-between">
+                  <span className="truncate text-left">
+                    {selected.length === 0
+                      ? "Sélectionnez un ou plusieurs tournois"
+                      : selected.length === 1
+                      ? tournamentLabel(selected[0])
+                      : `${selected.length} tournois sélectionnés`}
+                  </span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {selected.length > 1 && (
+                      <Badge variant="secondary" className="text-[10px]">
+                        {activeTab === "general" ? "cumul" : "compare"}
+                      </Badge>
+                    )}
+                    <ChevronDown className="h-4 w-4 opacity-60" />
+                  </div>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[min(92vw,28rem)] p-0" align="center">
+                <div className="flex items-center justify-between px-3 py-2 border-b">
+                  <span className="text-xs text-muted-foreground">
+                    {selectedIds.length} / {tournaments.length} sélectionné(s)
+                  </span>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() => setSelectedIds(tournaments.map((t) => t.id))}
                     >
-                      <Checkbox checked={checked} onCheckedChange={() => toggleId(t.id)} />
-                      <div className="flex-1 min-w-0">
-                        <div className="truncate">{tournamentLabel(t)}</div>
-                        <div className="text-[11px] text-muted-foreground">
-                          {t.rounds.length} combat(s)
+                      Tout
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() => setSelectedIds(tournaments[0] ? [tournaments[0].id] : [])}
+                    >
+                      Aucun
+                    </Button>
+                  </div>
+                </div>
+                <div className="max-h-72 overflow-y-auto py-1">
+                  {tournaments.map((t) => {
+                    const checked = selectedIds.includes(t.id);
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => toggleId(t.id)}
+                        className="flex w-full items-center gap-3 px-3 py-2 text-sm hover:bg-accent text-left"
+                      >
+                        <Checkbox checked={checked} onCheckedChange={() => toggleId(t.id)} />
+                        <div className="flex-1 min-w-0">
+                          <div className="truncate">{tournamentLabel(t)}</div>
+                          <div className="text-[11px] text-muted-foreground">
+                            {t.rounds.length} combat(s) · {tournamentLevelLabel(t.tournament_level)}
+                          </div>
                         </div>
-                      </div>
-                      {checked && <Check className="h-4 w-4 text-primary" />}
-                    </button>
-                  );
-                })}
-              </div>
-            </PopoverContent>
-          </Popover>
+                        {checked && <Check className="h-4 w-4 text-primary" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
         </div>
 
         <TabsContent value="general">
@@ -276,6 +296,10 @@ export function JudoCompetitionStats({ categoryId }: Props) {
               summary: summarizeTournamentRounds(t.rounds),
             }))}
           />
+        </TabsContent>
+
+        <TabsContent value="by-level">
+          <ByLevelView tournaments={allAthleteTournaments} />
         </TabsContent>
       </Tabs>
     </div>
