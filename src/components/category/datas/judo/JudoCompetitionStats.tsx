@@ -263,10 +263,10 @@ export function JudoCompetitionStats({ categoryId }: Props) {
 
   const tournamentLabel = (t: JudoMatchRow) => {
     const date = format(new Date(t.match_date), "d MMM yyyy", { locale: fr });
-    const name = t.competition || t.opponent || tournamentLevelLabel(t.tournament_level) || "Tournoi";
+    // For judo individual competitions, opponent usually stores the actual tournament name.
+    const name = t.opponent || t.competition || tournamentLevelLabel(t.tournament_level) || "Tournoi";
     const parts = [name, date];
-    if (t.competition && t.location) parts.push(t.location);
-    else if (!t.competition && !t.opponent && t.location) parts.push(t.location);
+    if (t.location) parts.push(t.location);
     return parts.join(" · ");
   };
 
