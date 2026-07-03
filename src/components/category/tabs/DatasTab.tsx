@@ -16,6 +16,7 @@ import { BasketballPrecisionTracker } from "@/components/basketball/BasketballPr
 import { isBasketballPrecisionSport } from "@/lib/constants/basketballPrecisionExercises";
 import { isRugbyType, isAthletismeCategory } from "@/lib/constants/sportTypes";
 import { TeamSportsAnalytics } from "@/components/category/datas/team-sports/TeamSportsAnalytics";
+import { JudoCompetitionStats } from "@/components/category/datas/judo/JudoCompetitionStats";
 import { getAthleteGroups, type AthleticsGroup } from "@/lib/athletics/athleteDisciplines";
 import { SeasonRosterFilterToggle } from "@/components/category/SeasonRosterFilterToggle";
 
@@ -124,6 +125,7 @@ export function DatasTab({ categoryId, sportType }: DatasTabProps) {
   const isBasket = isBasketballPrecisionSport(sportType);
   const isRugby = isRugbyType(sportType || "");
   const isAthletics = isAthletismeCategory(sportType || "");
+  const isJudo = (sportType || "").toLowerCase().includes("judo");
 
   return (
     <Tabs defaultValue="competition" className="space-y-4">
@@ -156,6 +158,8 @@ export function DatasTab({ categoryId, sportType }: DatasTabProps) {
       <TabsContent value="competition">
         {isBowling ? (
           <BowlingCumulativeStats categoryId={categoryId} />
+        ) : isJudo ? (
+          <JudoCompetitionStats categoryId={categoryId} />
         ) : isRugby ? (
           <TeamSportsAnalytics categoryId={categoryId} sportType={sportType} />
         ) : (
