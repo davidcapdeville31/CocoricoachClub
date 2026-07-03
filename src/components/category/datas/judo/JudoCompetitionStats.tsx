@@ -51,6 +51,7 @@ export function JudoCompetitionStats({ categoryId }: Props) {
   const [activeTab, setActiveTab] = useState("general");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [playerId, setPlayerId] = useState<string>("all");
+  const [levelFilter, setLevelFilter] = useState<string>("all");
 
   const { data: players = [] } = useQuery({
     queryKey: ["judo_comp_stats_players", categoryId],
