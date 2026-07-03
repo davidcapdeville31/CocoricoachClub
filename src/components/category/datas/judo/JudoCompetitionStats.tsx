@@ -674,72 +674,73 @@ function ByLevelView({ tournaments }: { tournaments: JudoMatchRow[] }) {
         ))}
       </div>
 
-      {JUDO_METRIC_GROUPS.map((group) => (
-        <Card key={group.title} className="rounded-2xl">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">{group.title}</CardTitle>
-          </CardHeader>
-          <CardContent className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-2 pr-3 font-medium text-muted-foreground">
-                    Statistique
-                  </th>
-                  {groups.map((g, i) => (
-                    <th
-                      key={g.id}
-                      className="text-center py-2 px-2 font-medium min-w-[140px]"
-                    >
-                      <div className="truncate max-w-[180px] mx-auto" title={g.label}>
-                        {g.label}
-                      </div>
-                      <div className="text-[10px] text-muted-foreground">
-                        {g.tournamentsCount} tournoi(s)
-                      </div>
-                      {i === 0 && (
-                        <Badge variant="secondary" className="mt-1 text-[10px]">
-                          référence
-                        </Badge>
-                      )}
+      {JUDO_METRIC_GROUPS.map((group) => {
+        const theme = themeFor(group.title);
+        return (
+          <Card key={group.title} className={`rounded-2xl overflow-hidden border-0 shadow-sm ${theme.ring}`}>
+            <GroupCardHeader theme={theme} title={group.title} />
+            <CardContent className="overflow-x-auto pt-4">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className={theme.tableHead}>
+                    <th className="text-left py-2 pr-3 pl-2 font-medium text-muted-foreground">
+                      Statistique
                     </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {group.metrics.map((m) => {
-                  const refVal = reference.summary[m.key] as number;
-                  return (
-                    <tr key={m.key} className="border-b last:border-0">
-                      <td className="py-2 pr-3">{m.label}</td>
-                      {groups.map((g, i) => {
-                        const val = g.summary[m.key] as number;
-                        return (
-                          <td key={g.id} className="text-center py-2 px-2">
-                            <div className="flex items-center justify-center gap-2">
-                              <span className="font-semibold tabular-nums">
-                                {formatMetric(val, m.format)}
-                              </span>
-                              {i > 0 && (
-                                <TrendIndicator
-                                  current={val}
-                                  previous={refVal}
-                                  higherIsBetter={m.higherIsBetter}
-                                  showPercentage
-                                />
-                              )}
-                            </div>
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
-      ))}
+                    {groups.map((g, i) => (
+                      <th
+                        key={g.id}
+                        className="text-center py-2 px-2 font-medium min-w-[140px]"
+                      >
+                        <div className="truncate max-w-[180px] mx-auto" title={g.label}>
+                          {g.label}
+                        </div>
+                        <div className="text-[10px] text-muted-foreground">
+                          {g.tournamentsCount} tournoi(s)
+                        </div>
+                        {i === 0 && (
+                          <Badge variant="secondary" className="mt-1 text-[10px]">
+                            référence
+                          </Badge>
+                        )}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {group.metrics.map((m, rowIdx) => {
+                    const refVal = reference.summary[m.key] as number;
+                    return (
+                      <tr key={m.key} className={`border-b last:border-0 ${rowIdx % 2 === 1 ? "bg-muted/20" : ""}`}>
+                        <td className="py-2 pr-3 pl-2">{m.label}</td>
+                        {groups.map((g, i) => {
+                          const val = g.summary[m.key] as number;
+                          return (
+                            <td key={g.id} className="text-center py-2 px-2">
+                              <div className="flex items-center justify-center gap-2">
+                                <span className="font-semibold tabular-nums">
+                                  {formatMetric(val, m.format)}
+                                </span>
+                                {i > 0 && (
+                                  <TrendIndicator
+                                    current={val}
+                                    previous={refVal}
+                                    higherIsBetter={m.higherIsBetter}
+                                    showPercentage
+                                  />
+                                )}
+                              </div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 }
