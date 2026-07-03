@@ -186,10 +186,11 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
       }>(key as unknown as readonly unknown[]);
       if (current && current.byConversation[conversationId]) {
         const removed = current.byConversation[conversationId];
-        const { [conversationId]: _drop, ...rest } = current.byConversation;
+        // Garder la clé (à 0) pour que le handler Realtime reconnaisse toujours
+        // la conversation et incrémente immédiatement les prochains messages.
         queryClient.setQueryData(key as unknown as readonly unknown[], {
           total: Math.max(0, current.total - removed),
-          byConversation: rest,
+          byConversation: { ...current.byConversation, [conversationId]: 0 },
         });
       }
     }
