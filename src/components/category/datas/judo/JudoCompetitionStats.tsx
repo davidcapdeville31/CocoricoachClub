@@ -539,17 +539,17 @@ function CompareView({ tournaments }: { tournaments: CompareRow[] }) {
         return (
           <Card key={group.title} className={`rounded-2xl overflow-hidden border-0 shadow-sm ${theme.ring}`}>
             <GroupCardHeader theme={theme} title={group.title} />
-            <CardContent className="overflow-x-auto pt-4">
+            <CardContent className="overflow-x-auto pt-3">
               <table className="w-full text-sm">
                 <thead>
                   <tr className={`${theme.tableHead} rounded-lg`}>
-                    <th className="text-left py-2 pr-3 pl-2 font-medium text-muted-foreground">
+                    <th className="text-left py-1.5 pr-3 pl-2 font-medium text-muted-foreground">
                       Statistique
                     </th>
                     {ordered.map((t, i) => (
                       <th
                         key={t.id}
-                        className="text-center py-2 px-2 font-medium min-w-[140px]"
+                        className="text-center py-1.5 px-2 font-medium min-w-[140px]"
                       >
                         <div className="truncate max-w-[180px] mx-auto" title={t.label}>
                           {t.label}
