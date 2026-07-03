@@ -18,6 +18,8 @@ import {
 import { BarChart3, GitCompare, ChevronDown, Check, Trophy, Layers, Award, Gavel, Shield, Swords, Brain, Flame, FileDown, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { exportJudoCompetitionPdf, type JudoPdfMode } from "@/lib/judo/judoCompetitionPdfExport";
+import { extractFilledRoundStats, formatStatValue, resultLabel } from "@/lib/judo/roundDetail";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 // Premium theme per metric group — gradient bar, icon chip, colored header background & title.
 type GroupTheme = {
@@ -143,6 +145,26 @@ interface Props {
   categoryId: string;
 }
 
+export interface JudoRoundDetail {
+  id: string;
+  round_number: number | null;
+  result: string | null;
+  phase: string | null;
+  opponent_name: string | null;
+  stats: Record<string, number> | null;
+  player_id: string | null;
+  opponent_profile?: {
+    id: string;
+    first_name: string | null;
+    last_name: string;
+    photo_url: string | null;
+    weight_category: string | null;
+  } | null;
+  competition_round_stats?: {
+    stat_data: Record<string, number> | null;
+  }[] | null;
+}
+
 interface JudoMatchRow {
   id: string;
   match_date: string;
@@ -150,14 +172,7 @@ interface JudoMatchRow {
   opponent: string | null;
   location: string | null;
   tournament_level: string | null;
-  rounds: {
-    result: string | null;
-    stats: Record<string, number> | null;
-    player_id: string | null;
-    competition_round_stats?: {
-      stat_data: Record<string, number> | null;
-    }[] | null;
-  }[];
+  rounds: JudoRoundDetail[];
 }
 
 export function JudoCompetitionStats({ categoryId }: Props) {
@@ -189,7 +204,11 @@ export function JudoCompetitionStats({ categoryId }: Props) {
         .from("matches")
         .select(`
           id, match_date, competition, opponent, location, tournament_level,
-          rounds:competition_rounds(result, player_id, competition_round_stats(stat_data))
+          rounds:competition_rounds(
+            id, round_number, result, phase, opponent_name, player_id,
+            opponent_profile:opponent_profiles(id, first_name, last_name, photo_url, weight_category),
+            competition_round_stats(stat_data)
+          )
         `)
         .eq("category_id", categoryId)
         .eq("is_personal", false)
@@ -564,7 +583,134 @@ function GeneralView({ tournaments }: { tournaments: JudoMatchRow[] }) {
           </Card>
         );
       })}
+
+      {/* Détails par combat */}
+      <CombatsDetailSection tournaments={tournaments} />
     </div>
+  );
+}
+
+function CombatsDetailSection({ tournaments }: { tournaments: JudoMatchRow[] }) {
+  // Flatten rounds, keep tournament context.
+  const combats = tournaments.flatMap((t) =>
+    t.rounds.map((r) => ({ tournament: t, round: r })),
+  );
+  const enriched = combats
+    .map((c) => ({ ...c, entries: extractFilledRoundStats(c.round.stats) }))
+    // Show combats even if no stats filled — but they must have a result or opponent.
+    .filter((c) => c.entries.length > 0 || c.round.result || c.round.opponent_name || c.round.opponent_profile);
+
+  if (enriched.length === 0) return null;
+
+  const opponentDisplayName = (r: JudoRoundDetail) => {
+    const op = r.opponent_profile;
+    if (op) {
+      return `${(op.last_name || "").toUpperCase()} ${op.first_name || ""}`.trim();
+    }
+    return r.opponent_name || "Adversaire inconnu";
+  };
+
+  return (
+    <Card className="rounded-2xl overflow-hidden border-0 shadow-sm ring-1 ring-slate-500/10">
+      <div className="h-1 w-full bg-gradient-to-r from-slate-500 via-slate-400 to-slate-300" />
+      <div className="flex items-center gap-3 px-4 py-3 bg-slate-500/[0.04]">
+        <div className="h-8 w-8 rounded-xl flex items-center justify-center bg-slate-500/10">
+          <Swords className="h-3.5 w-3.5 text-slate-600 dark:text-slate-300" />
+        </div>
+        <div>
+          <div className="text-sm font-semibold tracking-tight">Détails par combat</div>
+          <div className="text-[11px] text-muted-foreground">
+            {enriched.length} combat(s) — uniquement les statistiques renseignées sont affichées
+          </div>
+        </div>
+      </div>
+      <CardContent className="pt-3 space-y-3">
+        {enriched.map(({ tournament, round, entries }) => {
+          const res = resultLabel(round.result);
+          const opName = opponentDisplayName(round);
+          const opPhoto = round.opponent_profile?.photo_url || null;
+          const weight = round.opponent_profile?.weight_category?.replace(/^judo_/i, "").replace(/_/g, " ");
+          return (
+            <div
+              key={round.id}
+              className="rounded-xl border bg-card/50 p-3 flex flex-col sm:flex-row sm:items-start gap-3"
+            >
+              <div className="flex items-center gap-3 sm:min-w-[220px]">
+                <Avatar className="h-11 w-11 ring-1 ring-border">
+                  {opPhoto && <AvatarImage src={opPhoto} alt={opName} />}
+                  <AvatarFallback className="text-xs">
+                    {opName
+                      .split(" ")
+                      .map((s) => s[0])
+                      .filter(Boolean)
+                      .slice(0, 2)
+                      .join("")
+                      .toUpperCase() || "?"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold truncate">{opName}</div>
+                  <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                    <Badge
+                      className={
+                        res.kind === "win"
+                          ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-0"
+                          : res.kind === "loss"
+                          ? "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-0"
+                          : "bg-muted text-muted-foreground border-0"
+                      }
+                    >
+                      {res.label}
+                    </Badge>
+                    {round.phase && (
+                      <Badge variant="outline" className="text-[10px] font-normal">
+                        {round.phase}
+                      </Badge>
+                    )}
+                    {weight && (
+                      <Badge variant="secondary" className="text-[10px] font-normal">
+                        {weight}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="text-[11px] text-muted-foreground mt-1 truncate">
+                    {tournament.opponent || tournament.competition || "Tournoi"} ·{" "}
+                    {format(new Date(tournament.match_date), "d MMM yyyy", { locale: fr })}
+                  </div>
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                {entries.length === 0 ? (
+                  <p className="text-xs text-muted-foreground italic">
+                    Aucune statistique détaillée renseignée pour ce combat.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5">
+                    {entries.map((e) => (
+                      <div
+                        key={e.key}
+                        className={`rounded-lg px-2 py-1.5 text-xs border ${
+                          e.polarity === "for"
+                            ? "bg-emerald-500/5 border-emerald-500/20"
+                            : e.polarity === "against"
+                            ? "bg-rose-500/5 border-rose-500/20"
+                            : "bg-muted/40 border-border"
+                        }`}
+                      >
+                        <div className="text-[10px] text-muted-foreground truncate">{e.label}</div>
+                        <div className="font-semibold tabular-nums">
+                          {formatStatValue(e.value, e.format)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </CardContent>
+    </Card>
   );
 }
 

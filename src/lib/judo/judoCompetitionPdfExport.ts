@@ -11,6 +11,7 @@ import {
   type JudoRoundStatsRow,
 } from "@/lib/judo/tournamentStats";
 import { tournamentLevelLabel } from "@/lib/judo/competitionAnalytics";
+import { extractFilledRoundStats, formatStatValue, resultLabel } from "@/lib/judo/roundDetail";
 
 // ---- Palette aligned with the on-screen theme (GROUP_THEMES) ----------------
 type RGB = [number, number, number];
@@ -69,6 +70,20 @@ const BORDER: RGB = [226, 232, 240];
 
 export type JudoPdfMode = "general" | "compare" | "by-level";
 
+export interface JudoPdfRound extends JudoRoundStatsRow {
+  id?: string;
+  round_number?: number | null;
+  phase?: string | null;
+  opponent_name?: string | null;
+  opponent_profile?: {
+    id: string;
+    first_name: string | null;
+    last_name: string;
+    photo_url: string | null;
+    weight_category: string | null;
+  } | null;
+}
+
 export interface JudoPdfTournament {
   id: string;
   label: string;
@@ -76,7 +91,7 @@ export interface JudoPdfTournament {
   location?: string | null;
   competition?: string | null;
   tournamentLevel?: string | null;
-  rounds: JudoRoundStatsRow[];
+  rounds: JudoPdfRound[];
 }
 
 export interface JudoPdfExportArgs {
@@ -275,9 +290,29 @@ export async function exportJudoCompetitionPdf(args: JudoPdfExportArgs): Promise
 
   y += 2;
 
+  // Preload opponent photos for the combat-detail section (general mode).
+  const opponentPhotos = new Map<string, string>();
+  if (mode === "general") {
+    const uniquePhotos = new Map<string, string>();
+    for (const t of tournaments) {
+      for (const r of t.rounds) {
+        const op = r.opponent_profile;
+        if (op && op.photo_url && !uniquePhotos.has(op.id)) {
+          uniquePhotos.set(op.id, op.photo_url);
+        }
+      }
+    }
+    await Promise.all(
+      Array.from(uniquePhotos.entries()).map(async ([id, url]) => {
+        const data = await loadImageAsDataUrl(url);
+        if (data) opponentPhotos.set(id, data);
+      }),
+    );
+  }
+
   // ---- Body ---------------------------------------------------------------
   if (mode === "general") {
-    y = renderGeneral(pdf, y, pageW, pageH, margin, tournaments);
+    y = renderGeneral(pdf, y, pageW, pageH, margin, tournaments, opponentPhotos);
   } else if (mode === "compare") {
     y = renderCompare(pdf, y, pageW, pageH, margin, tournaments);
   } else {
@@ -310,6 +345,7 @@ function renderGeneral(
   pageH: number,
   margin: number,
   tournaments: JudoPdfTournament[],
+  opponentPhotos: Map<string, string>,
 ): number {
   let y = yStart;
   const allRounds = tournaments.flatMap((t) => t.rounds);
@@ -386,6 +422,177 @@ function renderGeneral(
       pdf.text(formatMetric(summary[m.key] as number, m.format), x + 3, cy + 11.5);
     });
     y += rows * (cardH + gap) + 3;
+  }
+
+  // ---- Per-combat details -------------------------------------------------
+  y = renderCombatsDetail(pdf, y, pageW, pageH, margin, tournaments, opponentPhotos);
+  return y;
+}
+
+function renderCombatsDetail(
+  pdf: jsPDF,
+  yStart: number,
+  pageW: number,
+  pageH: number,
+  margin: number,
+  tournaments: JudoPdfTournament[],
+  opponentPhotos: Map<string, string>,
+): number {
+  const combats = tournaments.flatMap((t) =>
+    t.rounds.map((r) => ({ t, r, entries: extractFilledRoundStats(r.stats) })),
+  );
+  const displayable = combats.filter(
+    (c) => c.entries.length > 0 || c.r.result || c.r.opponent_name || c.r.opponent_profile,
+  );
+  if (displayable.length === 0) return yStart;
+
+  let y = yStart;
+  // Section header
+  y = ensureSpace(pdf, y, 14, pageH, margin);
+  drawGradientBar(pdf, margin, y, pageW - 2 * margin, 1.4, [100, 116, 139], [148, 163, 184]);
+  pdf.setFillColor(241, 245, 249);
+  pdf.rect(margin, y + 1.4, pageW - 2 * margin, 9, "F");
+  pdf.setTextColor(30, 41, 59);
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(11);
+  pdf.text("Détails par combat", margin + 3, y + 7.5);
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(7.5);
+  pdf.setTextColor(...MUTED);
+  pdf.text(
+    `${displayable.length} combat(s) — uniquement les statistiques renseignées`,
+    pageW - margin - 3,
+    y + 7.5,
+    { align: "right" },
+  );
+  y += 13;
+
+  for (const { t, r, entries } of displayable) {
+    const photoSize = 14;
+    const chipsPerRow = 4;
+    const chipH = 9;
+    const chipGap = 2;
+    const chipRows = Math.max(1, Math.ceil(entries.length / chipsPerRow));
+    const cardH = Math.max(photoSize + 6, 12 + chipRows * (chipH + chipGap));
+    y = ensureSpace(pdf, y, cardH + 4, pageH, margin);
+
+    // Card background
+    pdf.setFillColor(255, 255, 255);
+    pdf.setDrawColor(...BORDER);
+    pdf.roundedRect(margin, y, pageW - 2 * margin, cardH, 2, 2, "FD");
+
+    // Opponent photo
+    const px = margin + 3;
+    const py = y + 3;
+    const opId = r.opponent_profile?.id;
+    const photoData = opId ? opponentPhotos.get(opId) : undefined;
+    if (photoData) {
+      try {
+        pdf.addImage(photoData, "PNG", px, py, photoSize, photoSize);
+        pdf.setDrawColor(...BORDER);
+        pdf.rect(px, py, photoSize, photoSize, "S");
+      } catch { /* ignore */ }
+    } else {
+      pdf.setFillColor(241, 245, 249);
+      pdf.rect(px, py, photoSize, photoSize, "F");
+      const op = r.opponent_profile;
+      const opName = op
+        ? `${(op.last_name || "").toUpperCase()} ${op.first_name || ""}`
+        : r.opponent_name || "?";
+      const initials = opName
+        .split(" ")
+        .map((s) => s[0])
+        .filter(Boolean)
+        .slice(0, 2)
+        .join("")
+        .toUpperCase();
+      pdf.setTextColor(...MUTED);
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(7);
+      pdf.text(initials || "?", px + photoSize / 2, py + photoSize / 2 + 2, { align: "center" });
+    }
+
+    // Opponent name + result + phase + weight
+    const infoX = px + photoSize + 4;
+    const op = r.opponent_profile;
+    const opName = op
+      ? `${(op.last_name || "").toUpperCase()} ${op.first_name || ""}`.trim()
+      : r.opponent_name || "Adversaire inconnu";
+    pdf.setTextColor(...TEXT);
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(9.5);
+    pdf.text(truncate(opName, 40), infoX, py + 4.5);
+
+    // Result badge
+    const res = resultLabel(r.result);
+    const badgeColor: RGB = res.kind === "win"
+      ? [16, 185, 129]
+      : res.kind === "loss"
+      ? [239, 68, 68]
+      : [148, 163, 184];
+    pdf.setFillColor(badgeColor[0], badgeColor[1], badgeColor[2]);
+    const badgeW = pdf.getTextWidth(res.label) + 4;
+    pdf.roundedRect(infoX, py + 6.5, badgeW, 5, 1, 1, "F");
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(6.5);
+    pdf.text(res.label, infoX + 2, py + 10);
+
+    // Tournament + date sub-line
+    pdf.setTextColor(...MUTED);
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(6.8);
+    const subParts = [
+      t.competition || t.label || "Tournoi",
+      format(new Date(t.matchDate), "d MMM yyyy", { locale: fr }),
+    ];
+    if (r.phase) subParts.push(r.phase);
+    if (op?.weight_category) {
+      subParts.push(op.weight_category.replace(/^judo_/i, "").replace(/_/g, " "));
+    }
+    pdf.text(truncate(subParts.join(" · "), 65), infoX, py + 14);
+
+    // Stat chips (right side)
+    const chipsAreaX = margin + 90;
+    const chipsAreaW = pageW - margin - chipsAreaX - 3;
+    const chipW = (chipsAreaW - chipGap * (chipsPerRow - 1)) / chipsPerRow;
+    if (entries.length === 0) {
+      pdf.setTextColor(...MUTED);
+      pdf.setFont("helvetica", "italic");
+      pdf.setFontSize(7);
+      pdf.text("Aucune statistique détaillée renseignée", chipsAreaX, py + 8);
+    } else {
+      entries.forEach((e, i) => {
+        const col = i % chipsPerRow;
+        const row = Math.floor(i / chipsPerRow);
+        const cx = chipsAreaX + col * (chipW + chipGap);
+        const cy = y + 3 + row * (chipH + chipGap);
+        const bg: RGB =
+          e.polarity === "for"
+            ? [220, 252, 231]
+            : e.polarity === "against"
+            ? [254, 226, 226]
+            : [243, 244, 246];
+        const bd: RGB =
+          e.polarity === "for"
+            ? [110, 231, 183]
+            : e.polarity === "against"
+            ? [252, 165, 165]
+            : [209, 213, 219];
+        pdf.setFillColor(bg[0], bg[1], bg[2]);
+        pdf.setDrawColor(bd[0], bd[1], bd[2]);
+        pdf.roundedRect(cx, cy, chipW, chipH, 1, 1, "FD");
+        pdf.setTextColor(...MUTED);
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(6);
+        pdf.text(truncate(e.label, Math.floor(chipW / 1.2)), cx + 1.5, cy + 3.2);
+        pdf.setTextColor(...TEXT);
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(8);
+        pdf.text(formatStatValue(e.value, e.format), cx + 1.5, cy + 7.5);
+      });
+    }
+    y += cardH + 2.5;
   }
   return y;
 }
