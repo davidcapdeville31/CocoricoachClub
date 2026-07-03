@@ -412,9 +412,10 @@ export function JudoCompetitionStats({ categoryId }: Props) {
                         <Checkbox checked={checked} onCheckedChange={() => toggleId(t.id)} />
                         <div className="flex-1 min-w-0">
                           <div className="truncate">{tournamentLabel(t)}</div>
-                          <div className="text-[11px] text-muted-foreground">
-                            {t.rounds.length} combat(s) · {tournamentLevelLabel(t.tournament_level)}
-                          </div>
+                        <div className="text-[11px] text-muted-foreground">
+                          {t.opponent && t.opponent !== t.competition ? `${t.opponent} · ` : ""}
+                          {t.rounds.length} combat(s) · {tournamentLevelLabel(t.tournament_level)}
+                        </div>
                         </div>
                         {checked && <Check className="h-4 w-4 text-primary" />}
                       </button>
