@@ -146,6 +146,7 @@ interface JudoMatchRow {
   match_date: string;
   competition: string | null;
   opponent: string | null;
+  location: string | null;
   tournament_level: string | null;
   rounds: {
     result: string | null;
