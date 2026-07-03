@@ -15,7 +15,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { BarChart3, GitCompare, ChevronDown, Check, Trophy, Layers, Award, Gavel, Shield, Swords, Brain, Flame } from "lucide-react";
+import { BarChart3, GitCompare, ChevronDown, Check, Trophy, Layers, Award, Gavel, Shield, Swords, Brain, Flame, FileDown, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { exportJudoCompetitionPdf, type JudoPdfMode } from "@/lib/judo/judoCompetitionPdfExport";
 
 // Premium theme per metric group — gradient bar, icon chip, colored header background & title.
 type GroupTheme = {
@@ -165,6 +167,7 @@ export function JudoCompetitionStats({ categoryId }: Props) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [playerId, setPlayerId] = useState<string>("all");
   const [levelFilter, setLevelFilter] = useState<string>("all");
+  const [exporting, setExporting] = useState(false);
 
   const { data: players = [] } = useQuery({
     queryKey: ["judo_comp_stats_players", categoryId],
@@ -268,6 +271,47 @@ export function JudoCompetitionStats({ categoryId }: Props) {
     const parts = [name, date];
     if (t.location) parts.push(t.location);
     return parts.join(" · ");
+  };
+
+  const handleExportPdf = async () => {
+    const mode = activeTab as JudoPdfMode;
+    if (playerId === "all") {
+      toast.error("Sélectionne un athlète pour exporter le rapport PDF");
+      return;
+    }
+    // For general/compare, use the currently selected tournaments; for by-level use all
+    const source = mode === "by-level" ? allAthleteTournaments : selected;
+    if (source.length === 0) {
+      toast.error("Aucun tournoi disponible pour l'export");
+      return;
+    }
+    if (mode === "compare" && source.length < 2) {
+      toast.error("Sélectionne au moins 2 tournois pour la comparaison");
+      return;
+    }
+    setExporting(true);
+    try {
+      await exportJudoCompetitionPdf({
+        categoryId,
+        playerId,
+        mode,
+        tournaments: source.map((t) => ({
+          id: t.id,
+          label: tournamentLabel(t),
+          matchDate: t.match_date,
+          location: t.location,
+          competition: t.competition,
+          tournamentLevel: t.tournament_level,
+          rounds: t.rounds,
+        })),
+      });
+      toast.success("Rapport PDF généré");
+    } catch (e: any) {
+      console.error(e);
+      toast.error(`Erreur lors de l'export : ${e?.message || "inconnue"}`);
+    } finally {
+      setExporting(false);
+    }
   };
 
   if (isLoading) {
@@ -425,6 +469,20 @@ export function JudoCompetitionStats({ categoryId }: Props) {
               </PopoverContent>
             </Popover>
           )}
+
+          <Button
+            onClick={handleExportPdf}
+            disabled={exporting || playerId === "all"}
+            className="rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-sky-500 text-white hover:from-indigo-700 hover:to-sky-600 shadow-sm"
+            title={playerId === "all" ? "Sélectionne un athlète pour exporter" : "Exporter en PDF"}
+          >
+            {exporting ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <FileDown className="h-4 w-4 mr-2" />
+            )}
+            Exporter PDF
+          </Button>
         </div>
 
         <TabsContent value="general">
