@@ -500,22 +500,35 @@ export function JudoCompetitionStats({ categoryId }: Props) {
         </div>
 
         <TabsContent value="general">
-          <GeneralView tournaments={selected} />
+          {noTournaments ? (
+            <EmptyDataPanel message={emptyMessage} />
+          ) : (
+            <GeneralView tournaments={selected} />
+          )}
         </TabsContent>
 
         <TabsContent value="compare">
-          <CompareView
-            tournaments={selected.map((t) => ({
-              id: t.id,
-              label: tournamentLabel(t),
-              summary: summarizeTournamentRounds(t.rounds),
-            }))}
-          />
+          {noTournaments ? (
+            <EmptyDataPanel message={emptyMessage} />
+          ) : (
+            <CompareView
+              tournaments={selected.map((t) => ({
+                id: t.id,
+                label: tournamentLabel(t),
+                summary: summarizeTournamentRounds(t.rounds),
+              }))}
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="by-level">
-          <ByLevelView tournaments={allAthleteTournaments} />
+          {noTournaments ? (
+            <EmptyDataPanel message={emptyMessage} />
+          ) : (
+            <ByLevelView tournaments={allAthleteTournaments} />
+          )}
         </TabsContent>
+
       </Tabs>
     </div>
   );
