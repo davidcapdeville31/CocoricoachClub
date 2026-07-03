@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
@@ -48,6 +48,7 @@ interface JudoMatchRow {
 
 export function JudoCompetitionStats({ categoryId }: Props) {
   const { isDateInActiveSeason } = useSeasonRosterFilter();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("general");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [playerId, setPlayerId] = useState<string>("all");
@@ -73,7 +74,7 @@ export function JudoCompetitionStats({ categoryId }: Props) {
         .from("matches")
         .select(`
           id, match_date, competition, opponent, tournament_level,
-          competition_rounds(result, stats, player_id)
+          rounds:competition_rounds(result, stats, player_id)
         `)
         .eq("category_id", categoryId)
         .eq("is_personal", false)
@@ -82,6 +83,26 @@ export function JudoCompetitionStats({ categoryId }: Props) {
       return (data || []) as unknown as JudoMatchRow[];
     },
   });
+
+  // Realtime: invalidate on any change to matches or competition_rounds for this category
+  useEffect(() => {
+    const channel = supabase
+      .channel(`judo-comp-stats-${categoryId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "matches", filter: `category_id=eq.${categoryId}` },
+        () => queryClient.invalidateQueries({ queryKey: ["judo_comp_stats_matches", categoryId] }),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "competition_rounds" },
+        () => queryClient.invalidateQueries({ queryKey: ["judo_comp_stats_matches", categoryId] }),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [categoryId, queryClient]);
 
   const allAthleteTournaments = useMemo(() => {
     return rawMatches
