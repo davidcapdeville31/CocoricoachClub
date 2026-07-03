@@ -337,17 +337,12 @@ export function JudoCompetitionStats({ categoryId }: Props) {
     return <p className="text-sm text-muted-foreground py-8 text-center">Chargement…</p>;
   }
 
-  if (tournaments.length === 0) {
-    return (
-      <div className="rounded-2xl border bg-surface p-12 text-center">
-        <BarChart3 className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
-        <p className="font-medium">Aucun tournoi enregistré</p>
-        <p className="text-sm text-muted-foreground mt-1">
-          Les statistiques apparaîtront ici dès que vous saisirez les combats d'un tournoi.
-        </p>
-      </div>
-    );
-  }
+  const noTournaments = tournaments.length === 0;
+  const emptyMessage =
+    playerId === "all"
+      ? "Aucun tournoi enregistré."
+      : "Pas de donnée pour cet athlète.";
+
 
   return (
     <div className="space-y-4">
@@ -505,23 +500,45 @@ export function JudoCompetitionStats({ categoryId }: Props) {
         </div>
 
         <TabsContent value="general">
-          <GeneralView tournaments={selected} />
+          {noTournaments ? (
+            <EmptyDataPanel message={emptyMessage} />
+          ) : (
+            <GeneralView tournaments={selected} />
+          )}
         </TabsContent>
 
         <TabsContent value="compare">
-          <CompareView
-            tournaments={selected.map((t) => ({
-              id: t.id,
-              label: tournamentLabel(t),
-              summary: summarizeTournamentRounds(t.rounds),
-            }))}
-          />
+          {noTournaments ? (
+            <EmptyDataPanel message={emptyMessage} />
+          ) : (
+            <CompareView
+              tournaments={selected.map((t) => ({
+                id: t.id,
+                label: tournamentLabel(t),
+                summary: summarizeTournamentRounds(t.rounds),
+              }))}
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="by-level">
-          <ByLevelView tournaments={allAthleteTournaments} />
+          {noTournaments ? (
+            <EmptyDataPanel message={emptyMessage} />
+          ) : (
+            <ByLevelView tournaments={allAthleteTournaments} />
+          )}
         </TabsContent>
+
       </Tabs>
+    </div>
+  );
+}
+
+function EmptyDataPanel({ message }: { message: string }) {
+  return (
+    <div className="rounded-2xl border bg-surface p-12 text-center">
+      <BarChart3 className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
+      <p className="font-medium">{message}</p>
     </div>
   );
 }
