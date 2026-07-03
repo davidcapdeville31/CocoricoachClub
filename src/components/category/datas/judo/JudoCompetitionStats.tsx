@@ -465,3 +465,147 @@ function CompareView({ tournaments }: { tournaments: CompareRow[] }) {
     </div>
   );
 }
+
+function ByLevelView({ tournaments }: { tournaments: JudoMatchRow[] }) {
+  // Group by tournament_level, ordered from local → international.
+  const groups = useMemo(() => {
+    const map = new Map<string, JudoMatchRow[]>();
+    for (const t of tournaments) {
+      const key = t.tournament_level || "unknown";
+      const list = map.get(key) || [];
+      list.push(t);
+      map.set(key, list);
+    }
+    const order = [
+      ...TOURNAMENT_LEVELS.map((l) => l.value),
+      "unknown",
+    ];
+    return order
+      .filter((lvl) => map.has(lvl))
+      .map((lvl) => {
+        const list = map.get(lvl)!;
+        const rounds = list.flatMap((t) => t.rounds);
+        return {
+          id: lvl,
+          label:
+            lvl === "unknown"
+              ? "Non défini"
+              : tournamentLevelLabel(lvl),
+          tournamentsCount: list.length,
+          combatsCount: rounds.length,
+          summary: summarizeTournamentRounds(rounds),
+        };
+      });
+  }, [tournaments]);
+
+  if (groups.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground text-center py-8">
+        Aucun tournoi disponible.
+      </p>
+    );
+  }
+
+  if (groups.length === 1) {
+    return (
+      <div className="rounded-2xl border bg-surface p-8 text-center">
+        <Layers className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">
+          Un seul niveau ({groups[0].label}) enregistré. Renseignez des tournois d'autres niveaux
+          pour comparer le positionnement de l'athlète.
+        </p>
+      </div>
+    );
+  }
+
+  const reference = groups[0]; // lowest level present = baseline
+
+  return (
+    <div className="space-y-4">
+      <div className="text-sm text-muted-foreground text-center">
+        Référence : <span className="font-semibold text-foreground">{reference.label}</span>
+        {" "}— comment l'athlète se positionne quand le niveau monte
+      </div>
+
+      {/* Volume by level */}
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+        {groups.map((g) => (
+          <KpiCard
+            key={g.id}
+            label={g.label}
+            value={g.tournamentsCount}
+            sub={`${g.combatsCount} combat(s)`}
+            accent="primary"
+          />
+        ))}
+      </div>
+
+      {JUDO_METRIC_GROUPS.map((group) => (
+        <Card key={group.title} className="rounded-2xl">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">{group.title}</CardTitle>
+          </CardHeader>
+          <CardContent className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-2 pr-3 font-medium text-muted-foreground">
+                    Statistique
+                  </th>
+                  {groups.map((g, i) => (
+                    <th
+                      key={g.id}
+                      className="text-center py-2 px-2 font-medium min-w-[140px]"
+                    >
+                      <div className="truncate max-w-[180px] mx-auto" title={g.label}>
+                        {g.label}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground">
+                        {g.tournamentsCount} tournoi(s)
+                      </div>
+                      {i === 0 && (
+                        <Badge variant="secondary" className="mt-1 text-[10px]">
+                          référence
+                        </Badge>
+                      )}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {group.metrics.map((m) => {
+                  const refVal = reference.summary[m.key] as number;
+                  return (
+                    <tr key={m.key} className="border-b last:border-0">
+                      <td className="py-2 pr-3">{m.label}</td>
+                      {groups.map((g, i) => {
+                        const val = g.summary[m.key] as number;
+                        return (
+                          <td key={g.id} className="text-center py-2 px-2">
+                            <div className="flex items-center justify-center gap-2">
+                              <span className="font-semibold tabular-nums">
+                                {formatMetric(val, m.format)}
+                              </span>
+                              {i > 0 && (
+                                <TrendIndicator
+                                  current={val}
+                                  previous={refVal}
+                                  higherIsBetter={m.higherIsBetter}
+                                  showPercentage
+                                />
+                              )}
+                            </div>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
