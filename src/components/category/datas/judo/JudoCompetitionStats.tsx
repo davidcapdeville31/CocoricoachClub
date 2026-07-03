@@ -83,7 +83,7 @@ export function JudoCompetitionStats({ categoryId }: Props) {
     },
   });
 
-  const tournaments = useMemo(() => {
+  const allAthleteTournaments = useMemo(() => {
     return rawMatches
       .filter((m) => isDateInActiveSeason(m.match_date))
       .map((m) => ({
@@ -94,6 +94,13 @@ export function JudoCompetitionStats({ categoryId }: Props) {
       }))
       .filter((m) => m.rounds.length > 0);
   }, [rawMatches, isDateInActiveSeason, playerId]);
+
+  const tournaments = useMemo(() => {
+    if (levelFilter === "all") return allAthleteTournaments;
+    return allAthleteTournaments.filter(
+      (m) => (m.tournament_level || "unknown") === levelFilter,
+    );
+  }, [allAthleteTournaments, levelFilter]);
 
   useEffect(() => {
     if (tournaments.length > 0 && selectedIds.length === 0) {
