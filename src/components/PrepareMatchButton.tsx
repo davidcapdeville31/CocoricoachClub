@@ -22,6 +22,7 @@ import { toast } from "sonner";
 
 interface Props {
   matchId: string;
+  isJudo?: boolean;
   variant?: "default" | "outline" | "secondary" | "ghost";
   size?: "default" | "sm" | "lg" | "icon";
   className?: string;
@@ -30,11 +31,13 @@ interface Props {
 
 export function PrepareMatchButton({
   matchId,
+  isJudo = false,
   variant = "outline",
   size = "sm",
   className,
   fullWidth = true,
 }: Props) {
+
   const [open, setOpen] = useState(false);
   const [running, setRunning] = useState(false);
   const [steps, setSteps] = useState<Map<PrepareStep, PrepareProgress>>(new Map());
