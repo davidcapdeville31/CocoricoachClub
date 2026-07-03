@@ -11,6 +11,7 @@ import {
   type JudoRoundStatsRow,
 } from "@/lib/judo/tournamentStats";
 import { tournamentLevelLabel } from "@/lib/judo/competitionAnalytics";
+import { extractFilledRoundStats, formatStatValue, resultLabel } from "@/lib/judo/roundDetail";
 
 // ---- Palette aligned with the on-screen theme (GROUP_THEMES) ----------------
 type RGB = [number, number, number];
@@ -69,6 +70,20 @@ const BORDER: RGB = [226, 232, 240];
 
 export type JudoPdfMode = "general" | "compare" | "by-level";
 
+export interface JudoPdfRound extends JudoRoundStatsRow {
+  id?: string;
+  round_number?: number | null;
+  phase?: string | null;
+  opponent_name?: string | null;
+  opponent_profile?: {
+    id: string;
+    first_name: string | null;
+    last_name: string;
+    photo_url: string | null;
+    weight_category: string | null;
+  } | null;
+}
+
 export interface JudoPdfTournament {
   id: string;
   label: string;
@@ -76,7 +91,7 @@ export interface JudoPdfTournament {
   location?: string | null;
   competition?: string | null;
   tournamentLevel?: string | null;
-  rounds: JudoRoundStatsRow[];
+  rounds: JudoPdfRound[];
 }
 
 export interface JudoPdfExportArgs {
@@ -275,9 +290,29 @@ export async function exportJudoCompetitionPdf(args: JudoPdfExportArgs): Promise
 
   y += 2;
 
+  // Preload opponent photos for the combat-detail section (general mode).
+  const opponentPhotos = new Map<string, string>();
+  if (mode === "general") {
+    const uniquePhotos = new Map<string, string>();
+    for (const t of tournaments) {
+      for (const r of t.rounds) {
+        const op = r.opponent_profile;
+        if (op && op.photo_url && !uniquePhotos.has(op.id)) {
+          uniquePhotos.set(op.id, op.photo_url);
+        }
+      }
+    }
+    await Promise.all(
+      Array.from(uniquePhotos.entries()).map(async ([id, url]) => {
+        const data = await loadImageAsDataUrl(url);
+        if (data) opponentPhotos.set(id, data);
+      }),
+    );
+  }
+
   // ---- Body ---------------------------------------------------------------
   if (mode === "general") {
-    y = renderGeneral(pdf, y, pageW, pageH, margin, tournaments);
+    y = renderGeneral(pdf, y, pageW, pageH, margin, tournaments, opponentPhotos);
   } else if (mode === "compare") {
     y = renderCompare(pdf, y, pageW, pageH, margin, tournaments);
   } else {
