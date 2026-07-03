@@ -413,7 +413,7 @@ export function JudoCompetitionStats({ categoryId }: Props) {
                         <div className="flex-1 min-w-0">
                           <div className="truncate">{tournamentLabel(t)}</div>
                         <div className="text-[11px] text-muted-foreground">
-                          {t.opponent && t.opponent !== t.competition ? `${t.opponent} · ` : ""}
+                          {t.competition && t.competition !== t.opponent ? `${t.competition} · ` : ""}
                           {t.rounds.length} combat(s) · {tournamentLevelLabel(t.tournament_level)}
                         </div>
                         </div>
