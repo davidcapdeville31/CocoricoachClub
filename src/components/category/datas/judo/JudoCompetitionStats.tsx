@@ -534,6 +534,15 @@ export function JudoCompetitionStats({ categoryId }: Props) {
   );
 }
 
+function EmptyDataPanel({ message }: { message: string }) {
+  return (
+    <div className="rounded-2xl border bg-surface p-12 text-center">
+      <BarChart3 className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
+      <p className="font-medium">{message}</p>
+    </div>
+  );
+}
+
 function GeneralView({ tournaments }: { tournaments: JudoMatchRow[] }) {
   if (tournaments.length === 0) {
     return (
