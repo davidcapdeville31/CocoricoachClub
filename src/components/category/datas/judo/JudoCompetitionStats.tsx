@@ -15,7 +15,115 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { BarChart3, GitCompare, ChevronDown, Check, Trophy, Layers } from "lucide-react";
+import { BarChart3, GitCompare, ChevronDown, Check, Trophy, Layers, Award, Gavel, Shield, Swords, Brain, Flame } from "lucide-react";
+
+// Premium theme per metric group — gradient bar, icon chip, colored header background & title.
+type GroupTheme = {
+  icon: React.ComponentType<{ className?: string }>;
+  bar: string; // top gradient bar
+  chip: string; // icon chip background
+  chipIcon: string; // icon color
+  title: string; // title text color
+  headerBg: string; // subtle header background tint
+  ring: string; // subtle border tint
+  tableHead: string; // table header row tint
+};
+
+const GROUP_THEMES: Record<string, GroupTheme> = {
+  "Bilan combats": {
+    icon: Trophy,
+    bar: "bg-gradient-to-r from-indigo-500 via-indigo-400 to-sky-400",
+    chip: "bg-indigo-500/10 dark:bg-indigo-400/15",
+    chipIcon: "text-indigo-600 dark:text-indigo-300",
+    title: "text-indigo-700 dark:text-indigo-200",
+    headerBg: "bg-indigo-500/[0.04] dark:bg-indigo-400/[0.06]",
+    ring: "ring-1 ring-indigo-500/10 dark:ring-indigo-400/15",
+    tableHead: "bg-indigo-500/[0.06] dark:bg-indigo-400/[0.08]",
+  },
+  "Scores": {
+    icon: Award,
+    bar: "bg-gradient-to-r from-amber-500 via-orange-400 to-yellow-400",
+    chip: "bg-amber-500/10 dark:bg-amber-400/15",
+    chipIcon: "text-amber-600 dark:text-amber-300",
+    title: "text-amber-700 dark:text-amber-200",
+    headerBg: "bg-amber-500/[0.05] dark:bg-amber-400/[0.06]",
+    ring: "ring-1 ring-amber-500/10 dark:ring-amber-400/15",
+    tableHead: "bg-amber-500/[0.06] dark:bg-amber-400/[0.08]",
+  },
+  "Discipline": {
+    icon: Gavel,
+    bar: "bg-gradient-to-r from-rose-500 via-red-400 to-pink-400",
+    chip: "bg-rose-500/10 dark:bg-rose-400/15",
+    chipIcon: "text-rose-600 dark:text-rose-300",
+    title: "text-rose-700 dark:text-rose-200",
+    headerBg: "bg-rose-500/[0.05] dark:bg-rose-400/[0.06]",
+    ring: "ring-1 ring-rose-500/10 dark:ring-rose-400/15",
+    tableHead: "bg-rose-500/[0.06] dark:bg-rose-400/[0.08]",
+  },
+  "Ne-waza": {
+    icon: Swords,
+    bar: "bg-gradient-to-r from-violet-500 via-purple-400 to-fuchsia-400",
+    chip: "bg-violet-500/10 dark:bg-violet-400/15",
+    chipIcon: "text-violet-600 dark:text-violet-300",
+    title: "text-violet-700 dark:text-violet-200",
+    headerBg: "bg-violet-500/[0.05] dark:bg-violet-400/[0.06]",
+    ring: "ring-1 ring-violet-500/10 dark:ring-violet-400/15",
+    tableHead: "bg-violet-500/[0.06] dark:bg-violet-400/[0.08]",
+  },
+  "Défense": {
+    icon: Shield,
+    bar: "bg-gradient-to-r from-emerald-500 via-teal-400 to-green-400",
+    chip: "bg-emerald-500/10 dark:bg-emerald-400/15",
+    chipIcon: "text-emerald-600 dark:text-emerald-300",
+    title: "text-emerald-700 dark:text-emerald-200",
+    headerBg: "bg-emerald-500/[0.05] dark:bg-emerald-400/[0.06]",
+    ring: "ring-1 ring-emerald-500/10 dark:ring-emerald-400/15",
+    tableHead: "bg-emerald-500/[0.06] dark:bg-emerald-400/[0.08]",
+  },
+  "Tactique": {
+    icon: Brain,
+    bar: "bg-gradient-to-r from-cyan-500 via-sky-400 to-blue-400",
+    chip: "bg-cyan-500/10 dark:bg-cyan-400/15",
+    chipIcon: "text-cyan-600 dark:text-cyan-300",
+    title: "text-cyan-700 dark:text-cyan-200",
+    headerBg: "bg-cyan-500/[0.05] dark:bg-cyan-400/[0.06]",
+    ring: "ring-1 ring-cyan-500/10 dark:ring-cyan-400/15",
+    tableHead: "bg-cyan-500/[0.06] dark:bg-cyan-400/[0.08]",
+  },
+};
+
+const DEFAULT_THEME: GroupTheme = {
+  icon: Flame,
+  bar: "bg-gradient-to-r from-slate-400 to-slate-300",
+  chip: "bg-slate-500/10",
+  chipIcon: "text-slate-600 dark:text-slate-300",
+  title: "text-foreground",
+  headerBg: "bg-muted/30",
+  ring: "ring-1 ring-border",
+  tableHead: "bg-muted/40",
+};
+
+function themeFor(title: string): GroupTheme {
+  return GROUP_THEMES[title] || DEFAULT_THEME;
+}
+
+function GroupCardHeader({ theme, title, subtitle }: { theme: GroupTheme; title: string; subtitle?: string }) {
+  const Icon = theme.icon;
+  return (
+    <>
+      <div className={`h-1 w-full ${theme.bar}`} />
+      <div className={`flex items-center gap-3 px-6 py-4 ${theme.headerBg}`}>
+        <div className={`h-9 w-9 rounded-xl flex items-center justify-center ${theme.chip}`}>
+          <Icon className={`h-4 w-4 ${theme.chipIcon}`} />
+        </div>
+        <div className="min-w-0">
+          <div className={`text-sm font-semibold tracking-tight ${theme.title}`}>{title}</div>
+          {subtitle && <div className="text-[11px] text-muted-foreground">{subtitle}</div>}
+        </div>
+      </div>
+    </>
+  );
+}
 import { KpiCard } from "@/components/category/datas/team-sports/shared/KpiCard";
 import { TrendIndicator } from "@/components/ui/trend-indicator";
 import { format } from "date-fns";
@@ -369,27 +477,25 @@ function GeneralView({ tournaments }: { tournaments: JudoMatchRow[] }) {
       </div>
 
       {/* Metric groups */}
-      {JUDO_METRIC_GROUPS.filter((g) => g.title !== "Bilan combats").map((group) => (
-        <Card key={group.title} className="rounded-2xl">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Trophy className="h-4 w-4 text-primary" />
-              {group.title}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
-              {group.metrics.map((m) => (
-                <KpiCard
-                  key={m.key}
-                  label={m.label}
-                  value={formatMetric(summary[m.key] as number, m.format)}
-                />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+      {JUDO_METRIC_GROUPS.filter((g) => g.title !== "Bilan combats").map((group) => {
+        const theme = themeFor(group.title);
+        return (
+          <Card key={group.title} className={`rounded-2xl overflow-hidden border-0 shadow-sm ${theme.ring}`}>
+            <GroupCardHeader theme={theme} title={group.title} />
+            <CardContent className="pt-4">
+              <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+                {group.metrics.map((m) => (
+                  <KpiCard
+                    key={m.key}
+                    label={m.label}
+                    value={formatMetric(summary[m.key] as number, m.format)}
+                  />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 }
@@ -426,69 +532,70 @@ function CompareView({ tournaments }: { tournaments: CompareRow[] }) {
         {" "}— évolution en % vs cette référence
       </div>
 
-      {JUDO_METRIC_GROUPS.map((group) => (
-        <Card key={group.title} className="rounded-2xl">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">{group.title}</CardTitle>
-          </CardHeader>
-          <CardContent className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-2 pr-3 font-medium text-muted-foreground">
-                    Statistique
-                  </th>
-                  {ordered.map((t, i) => (
-                    <th
-                      key={t.id}
-                      className="text-center py-2 px-2 font-medium min-w-[140px]"
-                    >
-                      <div className="truncate max-w-[180px] mx-auto" title={t.label}>
-                        {t.label}
-                      </div>
-                      {i === 0 && (
-                        <Badge variant="secondary" className="mt-1 text-[10px]">
-                          référence
-                        </Badge>
-                      )}
+      {JUDO_METRIC_GROUPS.map((group) => {
+        const theme = themeFor(group.title);
+        return (
+          <Card key={group.title} className={`rounded-2xl overflow-hidden border-0 shadow-sm ${theme.ring}`}>
+            <GroupCardHeader theme={theme} title={group.title} />
+            <CardContent className="overflow-x-auto pt-4">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className={`${theme.tableHead} rounded-lg`}>
+                    <th className="text-left py-2 pr-3 pl-2 font-medium text-muted-foreground">
+                      Statistique
                     </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {group.metrics.map((m) => {
-                  const refVal = reference.summary[m.key] as number;
-                  return (
-                    <tr key={m.key} className="border-b last:border-0">
-                      <td className="py-2 pr-3">{m.label}</td>
-                      {ordered.map((t, i) => {
-                        const val = t.summary[m.key] as number;
-                        return (
-                          <td key={t.id} className="text-center py-2 px-2">
-                            <div className="flex items-center justify-center gap-2">
-                              <span className="font-semibold tabular-nums">
-                                {formatMetric(val, m.format)}
-                              </span>
-                              {i > 0 && (
-                                <TrendIndicator
-                                  current={val}
-                                  previous={refVal}
-                                  higherIsBetter={m.higherIsBetter}
-                                  showPercentage
-                                />
-                              )}
-                            </div>
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
-      ))}
+                    {ordered.map((t, i) => (
+                      <th
+                        key={t.id}
+                        className="text-center py-2 px-2 font-medium min-w-[140px]"
+                      >
+                        <div className="truncate max-w-[180px] mx-auto" title={t.label}>
+                          {t.label}
+                        </div>
+                        {i === 0 && (
+                          <Badge variant="secondary" className="mt-1 text-[10px]">
+                            référence
+                          </Badge>
+                        )}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {group.metrics.map((m, rowIdx) => {
+                    const refVal = reference.summary[m.key] as number;
+                    return (
+                      <tr key={m.key} className={`border-b last:border-0 ${rowIdx % 2 === 1 ? "bg-muted/20" : ""}`}>
+                        <td className="py-2 pr-3 pl-2">{m.label}</td>
+                        {ordered.map((t, i) => {
+                          const val = t.summary[m.key] as number;
+                          return (
+                            <td key={t.id} className="text-center py-2 px-2">
+                              <div className="flex items-center justify-center gap-2">
+                                <span className="font-semibold tabular-nums">
+                                  {formatMetric(val, m.format)}
+                                </span>
+                                {i > 0 && (
+                                  <TrendIndicator
+                                    current={val}
+                                    previous={refVal}
+                                    higherIsBetter={m.higherIsBetter}
+                                    showPercentage
+                                  />
+                                )}
+                              </div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 }
@@ -567,72 +674,73 @@ function ByLevelView({ tournaments }: { tournaments: JudoMatchRow[] }) {
         ))}
       </div>
 
-      {JUDO_METRIC_GROUPS.map((group) => (
-        <Card key={group.title} className="rounded-2xl">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">{group.title}</CardTitle>
-          </CardHeader>
-          <CardContent className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-2 pr-3 font-medium text-muted-foreground">
-                    Statistique
-                  </th>
-                  {groups.map((g, i) => (
-                    <th
-                      key={g.id}
-                      className="text-center py-2 px-2 font-medium min-w-[140px]"
-                    >
-                      <div className="truncate max-w-[180px] mx-auto" title={g.label}>
-                        {g.label}
-                      </div>
-                      <div className="text-[10px] text-muted-foreground">
-                        {g.tournamentsCount} tournoi(s)
-                      </div>
-                      {i === 0 && (
-                        <Badge variant="secondary" className="mt-1 text-[10px]">
-                          référence
-                        </Badge>
-                      )}
+      {JUDO_METRIC_GROUPS.map((group) => {
+        const theme = themeFor(group.title);
+        return (
+          <Card key={group.title} className={`rounded-2xl overflow-hidden border-0 shadow-sm ${theme.ring}`}>
+            <GroupCardHeader theme={theme} title={group.title} />
+            <CardContent className="overflow-x-auto pt-4">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className={theme.tableHead}>
+                    <th className="text-left py-2 pr-3 pl-2 font-medium text-muted-foreground">
+                      Statistique
                     </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {group.metrics.map((m) => {
-                  const refVal = reference.summary[m.key] as number;
-                  return (
-                    <tr key={m.key} className="border-b last:border-0">
-                      <td className="py-2 pr-3">{m.label}</td>
-                      {groups.map((g, i) => {
-                        const val = g.summary[m.key] as number;
-                        return (
-                          <td key={g.id} className="text-center py-2 px-2">
-                            <div className="flex items-center justify-center gap-2">
-                              <span className="font-semibold tabular-nums">
-                                {formatMetric(val, m.format)}
-                              </span>
-                              {i > 0 && (
-                                <TrendIndicator
-                                  current={val}
-                                  previous={refVal}
-                                  higherIsBetter={m.higherIsBetter}
-                                  showPercentage
-                                />
-                              )}
-                            </div>
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
-      ))}
+                    {groups.map((g, i) => (
+                      <th
+                        key={g.id}
+                        className="text-center py-2 px-2 font-medium min-w-[140px]"
+                      >
+                        <div className="truncate max-w-[180px] mx-auto" title={g.label}>
+                          {g.label}
+                        </div>
+                        <div className="text-[10px] text-muted-foreground">
+                          {g.tournamentsCount} tournoi(s)
+                        </div>
+                        {i === 0 && (
+                          <Badge variant="secondary" className="mt-1 text-[10px]">
+                            référence
+                          </Badge>
+                        )}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {group.metrics.map((m, rowIdx) => {
+                    const refVal = reference.summary[m.key] as number;
+                    return (
+                      <tr key={m.key} className={`border-b last:border-0 ${rowIdx % 2 === 1 ? "bg-muted/20" : ""}`}>
+                        <td className="py-2 pr-3 pl-2">{m.label}</td>
+                        {groups.map((g, i) => {
+                          const val = g.summary[m.key] as number;
+                          return (
+                            <td key={g.id} className="text-center py-2 px-2">
+                              <div className="flex items-center justify-center gap-2">
+                                <span className="font-semibold tabular-nums">
+                                  {formatMetric(val, m.format)}
+                                </span>
+                                {i > 0 && (
+                                  <TrendIndicator
+                                    current={val}
+                                    previous={refVal}
+                                    higherIsBetter={m.higherIsBetter}
+                                    showPercentage
+                                  />
+                                )}
+                              </div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 }
