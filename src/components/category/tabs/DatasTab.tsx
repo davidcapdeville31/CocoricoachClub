@@ -16,6 +16,7 @@ import { BasketballPrecisionTracker } from "@/components/basketball/BasketballPr
 import { isBasketballPrecisionSport } from "@/lib/constants/basketballPrecisionExercises";
 import { isRugbyType, isAthletismeCategory } from "@/lib/constants/sportTypes";
 import { TeamSportsAnalytics } from "@/components/category/datas/team-sports/TeamSportsAnalytics";
+import { JudoCompetitionStats } from "@/components/category/datas/judo/JudoCompetitionStats";
 import { getAthleteGroups, type AthleticsGroup } from "@/lib/athletics/athleteDisciplines";
 import { SeasonRosterFilterToggle } from "@/components/category/SeasonRosterFilterToggle";
 
