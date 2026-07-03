@@ -15,7 +15,115 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { BarChart3, GitCompare, ChevronDown, Check, Trophy, Layers } from "lucide-react";
+import { BarChart3, GitCompare, ChevronDown, Check, Trophy, Layers, Award, Gavel, Shield, Swords, Brain, Flame } from "lucide-react";
+
+// Premium theme per metric group — gradient bar, icon chip, colored header background & title.
+type GroupTheme = {
+  icon: React.ComponentType<{ className?: string }>;
+  bar: string; // top gradient bar
+  chip: string; // icon chip background
+  chipIcon: string; // icon color
+  title: string; // title text color
+  headerBg: string; // subtle header background tint
+  ring: string; // subtle border tint
+  tableHead: string; // table header row tint
+};
+
+const GROUP_THEMES: Record<string, GroupTheme> = {
+  "Bilan combats": {
+    icon: Trophy,
+    bar: "bg-gradient-to-r from-indigo-500 via-indigo-400 to-sky-400",
+    chip: "bg-indigo-500/10 dark:bg-indigo-400/15",
+    chipIcon: "text-indigo-600 dark:text-indigo-300",
+    title: "text-indigo-700 dark:text-indigo-200",
+    headerBg: "bg-indigo-500/[0.04] dark:bg-indigo-400/[0.06]",
+    ring: "ring-1 ring-indigo-500/10 dark:ring-indigo-400/15",
+    tableHead: "bg-indigo-500/[0.06] dark:bg-indigo-400/[0.08]",
+  },
+  "Scores": {
+    icon: Award,
+    bar: "bg-gradient-to-r from-amber-500 via-orange-400 to-yellow-400",
+    chip: "bg-amber-500/10 dark:bg-amber-400/15",
+    chipIcon: "text-amber-600 dark:text-amber-300",
+    title: "text-amber-700 dark:text-amber-200",
+    headerBg: "bg-amber-500/[0.05] dark:bg-amber-400/[0.06]",
+    ring: "ring-1 ring-amber-500/10 dark:ring-amber-400/15",
+    tableHead: "bg-amber-500/[0.06] dark:bg-amber-400/[0.08]",
+  },
+  "Discipline": {
+    icon: Gavel,
+    bar: "bg-gradient-to-r from-rose-500 via-red-400 to-pink-400",
+    chip: "bg-rose-500/10 dark:bg-rose-400/15",
+    chipIcon: "text-rose-600 dark:text-rose-300",
+    title: "text-rose-700 dark:text-rose-200",
+    headerBg: "bg-rose-500/[0.05] dark:bg-rose-400/[0.06]",
+    ring: "ring-1 ring-rose-500/10 dark:ring-rose-400/15",
+    tableHead: "bg-rose-500/[0.06] dark:bg-rose-400/[0.08]",
+  },
+  "Ne-waza": {
+    icon: Swords,
+    bar: "bg-gradient-to-r from-violet-500 via-purple-400 to-fuchsia-400",
+    chip: "bg-violet-500/10 dark:bg-violet-400/15",
+    chipIcon: "text-violet-600 dark:text-violet-300",
+    title: "text-violet-700 dark:text-violet-200",
+    headerBg: "bg-violet-500/[0.05] dark:bg-violet-400/[0.06]",
+    ring: "ring-1 ring-violet-500/10 dark:ring-violet-400/15",
+    tableHead: "bg-violet-500/[0.06] dark:bg-violet-400/[0.08]",
+  },
+  "Défense": {
+    icon: Shield,
+    bar: "bg-gradient-to-r from-emerald-500 via-teal-400 to-green-400",
+    chip: "bg-emerald-500/10 dark:bg-emerald-400/15",
+    chipIcon: "text-emerald-600 dark:text-emerald-300",
+    title: "text-emerald-700 dark:text-emerald-200",
+    headerBg: "bg-emerald-500/[0.05] dark:bg-emerald-400/[0.06]",
+    ring: "ring-1 ring-emerald-500/10 dark:ring-emerald-400/15",
+    tableHead: "bg-emerald-500/[0.06] dark:bg-emerald-400/[0.08]",
+  },
+  "Tactique": {
+    icon: Brain,
+    bar: "bg-gradient-to-r from-cyan-500 via-sky-400 to-blue-400",
+    chip: "bg-cyan-500/10 dark:bg-cyan-400/15",
+    chipIcon: "text-cyan-600 dark:text-cyan-300",
+    title: "text-cyan-700 dark:text-cyan-200",
+    headerBg: "bg-cyan-500/[0.05] dark:bg-cyan-400/[0.06]",
+    ring: "ring-1 ring-cyan-500/10 dark:ring-cyan-400/15",
+    tableHead: "bg-cyan-500/[0.06] dark:bg-cyan-400/[0.08]",
+  },
+};
+
+const DEFAULT_THEME: GroupTheme = {
+  icon: Flame,
+  bar: "bg-gradient-to-r from-slate-400 to-slate-300",
+  chip: "bg-slate-500/10",
+  chipIcon: "text-slate-600 dark:text-slate-300",
+  title: "text-foreground",
+  headerBg: "bg-muted/30",
+  ring: "ring-1 ring-border",
+  tableHead: "bg-muted/40",
+};
+
+function themeFor(title: string): GroupTheme {
+  return GROUP_THEMES[title] || DEFAULT_THEME;
+}
+
+function GroupCardHeader({ theme, title, subtitle }: { theme: GroupTheme; title: string; subtitle?: string }) {
+  const Icon = theme.icon;
+  return (
+    <>
+      <div className={`h-1 w-full ${theme.bar}`} />
+      <div className={`flex items-center gap-3 px-6 py-4 ${theme.headerBg}`}>
+        <div className={`h-9 w-9 rounded-xl flex items-center justify-center ${theme.chip}`}>
+          <Icon className={`h-4.5 w-4.5 ${theme.chipIcon}`} />
+        </div>
+        <div className="min-w-0">
+          <div className={`text-sm font-semibold tracking-tight ${theme.title}`}>{title}</div>
+          {subtitle && <div className="text-[11px] text-muted-foreground">{subtitle}</div>}
+        </div>
+      </div>
+    </>
+  );
+}
 import { KpiCard } from "@/components/category/datas/team-sports/shared/KpiCard";
 import { TrendIndicator } from "@/components/ui/trend-indicator";
 import { format } from "date-fns";
