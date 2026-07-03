@@ -99,6 +99,7 @@ export function extractFilledRoundStats(
   // Any extra unknown keys with value > 0 (future-proof)
   for (const [key, raw] of Object.entries(stats)) {
     if (seen.has(key)) continue;
+    if (HIDDEN_KEYS.has(key)) continue;
     const value = typeof raw === "number" ? raw : Number(raw) || 0;
     if (value > 0) {
       out.push({
