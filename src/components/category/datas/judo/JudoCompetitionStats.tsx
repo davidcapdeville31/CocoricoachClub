@@ -682,17 +682,17 @@ function ByLevelView({ tournaments }: { tournaments: JudoMatchRow[] }) {
         return (
           <Card key={group.title} className={`rounded-2xl overflow-hidden border-0 shadow-sm ${theme.ring}`}>
             <GroupCardHeader theme={theme} title={group.title} />
-            <CardContent className="overflow-x-auto pt-4">
+            <CardContent className="overflow-x-auto pt-3">
               <table className="w-full text-sm">
                 <thead>
                   <tr className={theme.tableHead}>
-                    <th className="text-left py-2 pr-3 pl-2 font-medium text-muted-foreground">
+                    <th className="text-left py-1.5 pr-3 pl-2 font-medium text-muted-foreground">
                       Statistique
                     </th>
                     {groups.map((g, i) => (
                       <th
                         key={g.id}
-                        className="text-center py-2 px-2 font-medium min-w-[140px]"
+                        className="text-center py-1.5 px-2 font-medium min-w-[140px]"
                       >
                         <div className="truncate max-w-[180px] mx-auto" title={g.label}>
                           {g.label}
@@ -714,11 +714,11 @@ function ByLevelView({ tournaments }: { tournaments: JudoMatchRow[] }) {
                     const refVal = reference.summary[m.key] as number;
                     return (
                       <tr key={m.key} className={`border-b last:border-0 ${rowIdx % 2 === 1 ? "bg-muted/20" : ""}`}>
-                        <td className="py-2 pr-3 pl-2">{m.label}</td>
+                        <td className="py-1.5 pr-3 pl-2">{m.label}</td>
                         {groups.map((g, i) => {
                           const val = g.summary[m.key] as number;
                           return (
-                            <td key={g.id} className="text-center py-2 px-2">
+                            <td key={g.id} className="text-center py-1.5 px-2">
                               <div className="flex items-center justify-center gap-2">
                                 <span className="font-semibold tabular-nums">
                                   {formatMetric(val, m.format)}
