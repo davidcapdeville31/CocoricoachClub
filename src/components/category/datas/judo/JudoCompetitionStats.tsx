@@ -185,7 +185,7 @@ export function JudoCompetitionStats({ categoryId }: Props) {
       const { data, error } = await supabase
         .from("matches")
         .select(`
-          id, match_date, competition, opponent, tournament_level,
+          id, match_date, competition, opponent, location, tournament_level,
           rounds:competition_rounds(result, player_id, competition_round_stats(stat_data))
         `)
         .eq("category_id", categoryId)
