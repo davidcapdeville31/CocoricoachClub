@@ -158,6 +158,8 @@ export function DatasTab({ categoryId, sportType }: DatasTabProps) {
       <TabsContent value="competition">
         {isBowling ? (
           <BowlingCumulativeStats categoryId={categoryId} />
+        ) : isJudo ? (
+          <JudoCompetitionStats categoryId={categoryId} />
         ) : isRugby ? (
           <TeamSportsAnalytics categoryId={categoryId} sportType={sportType} />
         ) : (
