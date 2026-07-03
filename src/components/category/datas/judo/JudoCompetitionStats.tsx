@@ -337,17 +337,12 @@ export function JudoCompetitionStats({ categoryId }: Props) {
     return <p className="text-sm text-muted-foreground py-8 text-center">Chargement…</p>;
   }
 
-  if (tournaments.length === 0) {
-    return (
-      <div className="rounded-2xl border bg-surface p-12 text-center">
-        <BarChart3 className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
-        <p className="font-medium">Aucun tournoi enregistré</p>
-        <p className="text-sm text-muted-foreground mt-1">
-          Les statistiques apparaîtront ici dès que vous saisirez les combats d'un tournoi.
-        </p>
-      </div>
-    );
-  }
+  const noTournaments = tournaments.length === 0;
+  const emptyMessage =
+    playerId === "all"
+      ? "Aucun tournoi enregistré."
+      : "Pas de donnée pour cet athlète.";
+
 
   return (
     <div className="space-y-4">
