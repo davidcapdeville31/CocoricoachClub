@@ -700,7 +700,7 @@ export function AddPlayerDialogWithInvite({
                 <SelectTrigger className="w-full bg-background">
                   <SelectValue placeholder="Sélectionner un sexe" />
                 </SelectTrigger>
-                <SelectContent className="bg-background border z-50">
+                <SelectContent className="bg-popover border">
                   <SelectItem value="male">Masculin</SelectItem>
                   <SelectItem value="female">Féminin</SelectItem>
                   <SelectItem value="other">Autre</SelectItem>
@@ -877,7 +877,7 @@ export function AddPlayerDialogWithInvite({
                   <SelectTrigger className="w-full bg-background">
                     <SelectValue placeholder="Sélectionner une catégorie" />
                   </SelectTrigger>
-                  <SelectContent className="bg-background border z-50">
+                  <SelectContent className="bg-popover border max-h-[300px]">
                     {JUDO_WEIGHT_CATEGORIES.map((cat) => (
                       <SelectItem key={cat.value} value={cat.value}>
                         {cat.label}
