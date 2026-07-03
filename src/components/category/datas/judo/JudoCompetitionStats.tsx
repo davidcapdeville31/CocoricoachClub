@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { BarChart3, GitCompare, ChevronDown, Check, Trophy } from "lucide-react";
+import { BarChart3, GitCompare, ChevronDown, Check, Trophy, Layers } from "lucide-react";
 import { KpiCard } from "@/components/category/datas/team-sports/shared/KpiCard";
 import { TrendIndicator } from "@/components/ui/trend-indicator";
 import { format } from "date-fns";
@@ -26,6 +26,7 @@ import {
   formatMetric,
   type JudoTournamentSummary,
 } from "@/lib/judo/tournamentStats";
+import { TOURNAMENT_LEVELS, tournamentLevelLabel } from "@/lib/judo/competitionAnalytics";
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 
 interface Props {
@@ -50,6 +51,7 @@ export function JudoCompetitionStats({ categoryId }: Props) {
   const [activeTab, setActiveTab] = useState("general");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [playerId, setPlayerId] = useState<string>("all");
+  const [levelFilter, setLevelFilter] = useState<string>("all");
 
   const { data: players = [] } = useQuery({
     queryKey: ["judo_comp_stats_players", categoryId],
@@ -81,7 +83,7 @@ export function JudoCompetitionStats({ categoryId }: Props) {
     },
   });
 
-  const tournaments = useMemo(() => {
+  const allAthleteTournaments = useMemo(() => {
     return rawMatches
       .filter((m) => isDateInActiveSeason(m.match_date))
       .map((m) => ({
@@ -92,6 +94,13 @@ export function JudoCompetitionStats({ categoryId }: Props) {
       }))
       .filter((m) => m.rounds.length > 0);
   }, [rawMatches, isDateInActiveSeason, playerId]);
+
+  const tournaments = useMemo(() => {
+    if (levelFilter === "all") return allAthleteTournaments;
+    return allAthleteTournaments.filter(
+      (m) => (m.tournament_level || "unknown") === levelFilter,
+    );
+  }, [allAthleteTournaments, levelFilter]);
 
   useEffect(() => {
     if (tournaments.length > 0 && selectedIds.length === 0) {
@@ -156,11 +165,19 @@ export function JudoCompetitionStats({ categoryId }: Props) {
             >
               Comparer les tournois
             </ColoredSubTabsTrigger>
+            <ColoredSubTabsTrigger
+              value="by-level"
+              colorKey="competition"
+              icon={<Layers className="h-4 w-4" />}
+              tooltip="Positionnement de l'athlète par niveau de compétition (local, départemental, régional, national, international)"
+            >
+              Par niveau
+            </ColoredSubTabsTrigger>
           </ColoredSubTabsList>
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-2">
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-2 flex-wrap">
           <div className="w-full sm:w-56">
             <Select value={playerId} onValueChange={setPlayerId}>
               <SelectTrigger className="rounded-2xl">
@@ -177,74 +194,94 @@ export function JudoCompetitionStats({ categoryId }: Props) {
             </Select>
           </div>
 
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="w-full max-w-md rounded-2xl justify-between">
-                <span className="truncate text-left">
-                  {selected.length === 0
-                    ? "Sélectionnez un ou plusieurs tournois"
-                    : selected.length === 1
-                    ? tournamentLabel(selected[0])
-                    : `${selected.length} tournois sélectionnés`}
-                </span>
-                <div className="flex items-center gap-2 shrink-0">
-                  {selected.length > 1 && (
-                    <Badge variant="secondary" className="text-[10px]">
-                      {activeTab === "general" ? "cumul" : "compare"}
-                    </Badge>
-                  )}
-                  <ChevronDown className="h-4 w-4 opacity-60" />
-                </div>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[min(92vw,28rem)] p-0" align="center">
-              <div className="flex items-center justify-between px-3 py-2 border-b">
-                <span className="text-xs text-muted-foreground">
-                  {selectedIds.length} / {tournaments.length} sélectionné(s)
-                </span>
-                <div className="flex gap-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() => setSelectedIds(tournaments.map((t) => t.id))}
-                  >
-                    Tout
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() => setSelectedIds(tournaments[0] ? [tournaments[0].id] : [])}
-                  >
-                    Aucun
-                  </Button>
-                </div>
-              </div>
-              <div className="max-h-72 overflow-y-auto py-1">
-                {tournaments.map((t) => {
-                  const checked = selectedIds.includes(t.id);
-                  return (
-                    <button
-                      key={t.id}
-                      type="button"
-                      onClick={() => toggleId(t.id)}
-                      className="flex w-full items-center gap-3 px-3 py-2 text-sm hover:bg-accent text-left"
+          {activeTab !== "by-level" && (
+            <div className="w-full sm:w-56">
+              <Select value={levelFilter} onValueChange={setLevelFilter}>
+                <SelectTrigger className="rounded-2xl">
+                  <SelectValue placeholder="Niveau" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les niveaux</SelectItem>
+                  {TOURNAMENT_LEVELS.map((l) => (
+                    <SelectItem key={l.value} value={l.value}>
+                      {l.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {activeTab !== "by-level" && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full max-w-md rounded-2xl justify-between">
+                  <span className="truncate text-left">
+                    {selected.length === 0
+                      ? "Sélectionnez un ou plusieurs tournois"
+                      : selected.length === 1
+                      ? tournamentLabel(selected[0])
+                      : `${selected.length} tournois sélectionnés`}
+                  </span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {selected.length > 1 && (
+                      <Badge variant="secondary" className="text-[10px]">
+                        {activeTab === "general" ? "cumul" : "compare"}
+                      </Badge>
+                    )}
+                    <ChevronDown className="h-4 w-4 opacity-60" />
+                  </div>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[min(92vw,28rem)] p-0" align="center">
+                <div className="flex items-center justify-between px-3 py-2 border-b">
+                  <span className="text-xs text-muted-foreground">
+                    {selectedIds.length} / {tournaments.length} sélectionné(s)
+                  </span>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() => setSelectedIds(tournaments.map((t) => t.id))}
                     >
-                      <Checkbox checked={checked} onCheckedChange={() => toggleId(t.id)} />
-                      <div className="flex-1 min-w-0">
-                        <div className="truncate">{tournamentLabel(t)}</div>
-                        <div className="text-[11px] text-muted-foreground">
-                          {t.rounds.length} combat(s)
+                      Tout
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() => setSelectedIds(tournaments[0] ? [tournaments[0].id] : [])}
+                    >
+                      Aucun
+                    </Button>
+                  </div>
+                </div>
+                <div className="max-h-72 overflow-y-auto py-1">
+                  {tournaments.map((t) => {
+                    const checked = selectedIds.includes(t.id);
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => toggleId(t.id)}
+                        className="flex w-full items-center gap-3 px-3 py-2 text-sm hover:bg-accent text-left"
+                      >
+                        <Checkbox checked={checked} onCheckedChange={() => toggleId(t.id)} />
+                        <div className="flex-1 min-w-0">
+                          <div className="truncate">{tournamentLabel(t)}</div>
+                          <div className="text-[11px] text-muted-foreground">
+                            {t.rounds.length} combat(s) · {tournamentLevelLabel(t.tournament_level)}
+                          </div>
                         </div>
-                      </div>
-                      {checked && <Check className="h-4 w-4 text-primary" />}
-                    </button>
-                  );
-                })}
-              </div>
-            </PopoverContent>
-          </Popover>
+                        {checked && <Check className="h-4 w-4 text-primary" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
         </div>
 
         <TabsContent value="general">
@@ -259,6 +296,10 @@ export function JudoCompetitionStats({ categoryId }: Props) {
               summary: summarizeTournamentRounds(t.rounds),
             }))}
           />
+        </TabsContent>
+
+        <TabsContent value="by-level">
+          <ByLevelView tournaments={allAthleteTournaments} />
         </TabsContent>
       </Tabs>
     </div>
@@ -397,6 +438,150 @@ function CompareView({ tournaments }: { tournaments: CompareRow[] }) {
                         const val = t.summary[m.key] as number;
                         return (
                           <td key={t.id} className="text-center py-2 px-2">
+                            <div className="flex items-center justify-center gap-2">
+                              <span className="font-semibold tabular-nums">
+                                {formatMetric(val, m.format)}
+                              </span>
+                              {i > 0 && (
+                                <TrendIndicator
+                                  current={val}
+                                  previous={refVal}
+                                  higherIsBetter={m.higherIsBetter}
+                                  showPercentage
+                                />
+                              )}
+                            </div>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function ByLevelView({ tournaments }: { tournaments: JudoMatchRow[] }) {
+  // Group by tournament_level, ordered from local → international.
+  const groups = useMemo(() => {
+    const map = new Map<string, JudoMatchRow[]>();
+    for (const t of tournaments) {
+      const key = t.tournament_level || "unknown";
+      const list = map.get(key) || [];
+      list.push(t);
+      map.set(key, list);
+    }
+    const order = [
+      ...TOURNAMENT_LEVELS.map((l) => l.value),
+      "unknown",
+    ];
+    return order
+      .filter((lvl) => map.has(lvl))
+      .map((lvl) => {
+        const list = map.get(lvl)!;
+        const rounds = list.flatMap((t) => t.rounds);
+        return {
+          id: lvl,
+          label:
+            lvl === "unknown"
+              ? "Non défini"
+              : tournamentLevelLabel(lvl),
+          tournamentsCount: list.length,
+          combatsCount: rounds.length,
+          summary: summarizeTournamentRounds(rounds),
+        };
+      });
+  }, [tournaments]);
+
+  if (groups.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground text-center py-8">
+        Aucun tournoi disponible.
+      </p>
+    );
+  }
+
+  if (groups.length === 1) {
+    return (
+      <div className="rounded-2xl border bg-surface p-8 text-center">
+        <Layers className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">
+          Un seul niveau ({groups[0].label}) enregistré. Renseignez des tournois d'autres niveaux
+          pour comparer le positionnement de l'athlète.
+        </p>
+      </div>
+    );
+  }
+
+  const reference = groups[0]; // lowest level present = baseline
+
+  return (
+    <div className="space-y-4">
+      <div className="text-sm text-muted-foreground text-center">
+        Référence : <span className="font-semibold text-foreground">{reference.label}</span>
+        {" "}— comment l'athlète se positionne quand le niveau monte
+      </div>
+
+      {/* Volume by level */}
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+        {groups.map((g) => (
+          <KpiCard
+            key={g.id}
+            label={g.label}
+            value={g.tournamentsCount}
+            sub={`${g.combatsCount} combat(s)`}
+            accent="primary"
+          />
+        ))}
+      </div>
+
+      {JUDO_METRIC_GROUPS.map((group) => (
+        <Card key={group.title} className="rounded-2xl">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">{group.title}</CardTitle>
+          </CardHeader>
+          <CardContent className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-2 pr-3 font-medium text-muted-foreground">
+                    Statistique
+                  </th>
+                  {groups.map((g, i) => (
+                    <th
+                      key={g.id}
+                      className="text-center py-2 px-2 font-medium min-w-[140px]"
+                    >
+                      <div className="truncate max-w-[180px] mx-auto" title={g.label}>
+                        {g.label}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground">
+                        {g.tournamentsCount} tournoi(s)
+                      </div>
+                      {i === 0 && (
+                        <Badge variant="secondary" className="mt-1 text-[10px]">
+                          référence
+                        </Badge>
+                      )}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {group.metrics.map((m) => {
+                  const refVal = reference.summary[m.key] as number;
+                  return (
+                    <tr key={m.key} className="border-b last:border-0">
+                      <td className="py-2 pr-3">{m.label}</td>
+                      {groups.map((g, i) => {
+                        const val = g.summary[m.key] as number;
+                        return (
+                          <td key={g.id} className="text-center py-2 px-2">
                             <div className="flex items-center justify-center gap-2">
                               <span className="font-semibold tabular-nums">
                                 {formatMetric(val, m.format)}
