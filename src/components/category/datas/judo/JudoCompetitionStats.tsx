@@ -664,7 +664,7 @@ function ByLevelView({ tournaments }: { tournaments: JudoMatchRow[] }) {
       </div>
 
       {/* Volume by level */}
-      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid gap-2 grid-cols-3 sm:grid-cols-4 lg:grid-cols-5">
         {groups.map((g) => (
           <KpiCard
             key={g.id}
@@ -672,6 +672,7 @@ function ByLevelView({ tournaments }: { tournaments: JudoMatchRow[] }) {
             value={g.tournamentsCount}
             sub={`${g.combatsCount} combat(s)`}
             accent="primary"
+            compact
           />
         ))}
       </div>
