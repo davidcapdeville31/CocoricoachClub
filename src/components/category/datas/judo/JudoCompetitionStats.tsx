@@ -477,27 +477,25 @@ function GeneralView({ tournaments }: { tournaments: JudoMatchRow[] }) {
       </div>
 
       {/* Metric groups */}
-      {JUDO_METRIC_GROUPS.filter((g) => g.title !== "Bilan combats").map((group) => (
-        <Card key={group.title} className="rounded-2xl">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Trophy className="h-4 w-4 text-primary" />
-              {group.title}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
-              {group.metrics.map((m) => (
-                <KpiCard
-                  key={m.key}
-                  label={m.label}
-                  value={formatMetric(summary[m.key] as number, m.format)}
-                />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+      {JUDO_METRIC_GROUPS.filter((g) => g.title !== "Bilan combats").map((group) => {
+        const theme = themeFor(group.title);
+        return (
+          <Card key={group.title} className={`rounded-2xl overflow-hidden border-0 shadow-sm ${theme.ring}`}>
+            <GroupCardHeader theme={theme} title={group.title} />
+            <CardContent className="pt-4">
+              <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+                {group.metrics.map((m) => (
+                  <KpiCard
+                    key={m.key}
+                    label={m.label}
+                    value={formatMetric(summary[m.key] as number, m.format)}
+                  />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 }
