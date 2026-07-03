@@ -518,19 +518,18 @@ export function AddPlayerDialogWithInvite({
           setGeneratedLink(invitationLink);
           toast.warning("Athlète ajouté mais erreur lors de l'envoi. Copiez le lien ci-dessous.");
         } else {
-          setGeneratedLink(invitationLink);
           toast.success("Athlète ajouté et invitation envoyée ! 📧");
+          resetForm();
+          onOpenChange(false);
         }
         
         setIsInviting(false);
       } else {
         toast.success("Athlète ajouté avec succès");
-      }
-      queryClient.invalidateQueries({ queryKey: ["players", categoryId] });
-      if (!sendInvitation) {
         resetForm();
         onOpenChange(false);
       }
+      queryClient.invalidateQueries({ queryKey: ["players", categoryId] });
     } catch (error: any) {
       console.error("Error:", error);
       const msg = String(error?.message || "");
