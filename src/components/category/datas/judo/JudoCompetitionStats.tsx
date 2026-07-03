@@ -146,6 +146,7 @@ interface JudoMatchRow {
   match_date: string;
   competition: string | null;
   opponent: string | null;
+  location: string | null;
   tournament_level: string | null;
   rounds: {
     result: string | null;
@@ -184,7 +185,7 @@ export function JudoCompetitionStats({ categoryId }: Props) {
       const { data, error } = await supabase
         .from("matches")
         .select(`
-          id, match_date, competition, opponent, tournament_level,
+          id, match_date, competition, opponent, location, tournament_level,
           rounds:competition_rounds(result, player_id, competition_round_stats(stat_data))
         `)
         .eq("category_id", categoryId)
@@ -260,8 +261,14 @@ export function JudoCompetitionStats({ categoryId }: Props) {
     );
   };
 
-  const tournamentLabel = (t: JudoMatchRow) =>
-    `${format(new Date(t.match_date), "d MMM yyyy", { locale: fr })} · ${t.competition || t.opponent || "Tournoi"}`;
+  const tournamentLabel = (t: JudoMatchRow) => {
+    const date = format(new Date(t.match_date), "d MMM yyyy", { locale: fr });
+    // For judo individual competitions, opponent usually stores the actual tournament name.
+    const name = t.opponent || t.competition || tournamentLevelLabel(t.tournament_level) || "Tournoi";
+    const parts = [name, date];
+    if (t.location) parts.push(t.location);
+    return parts.join(" · ");
+  };
 
   if (isLoading) {
     return <p className="text-sm text-muted-foreground py-8 text-center">Chargement…</p>;
@@ -405,9 +412,10 @@ export function JudoCompetitionStats({ categoryId }: Props) {
                         <Checkbox checked={checked} onCheckedChange={() => toggleId(t.id)} />
                         <div className="flex-1 min-w-0">
                           <div className="truncate">{tournamentLabel(t)}</div>
-                          <div className="text-[11px] text-muted-foreground">
-                            {t.rounds.length} combat(s) · {tournamentLevelLabel(t.tournament_level)}
-                          </div>
+                        <div className="text-[11px] text-muted-foreground">
+                          {t.competition && t.competition !== t.opponent ? `${t.competition} · ` : ""}
+                          {t.rounds.length} combat(s) · {tournamentLevelLabel(t.tournament_level)}
+                        </div>
                         </div>
                         {checked && <Check className="h-4 w-4 text-primary" />}
                       </button>
