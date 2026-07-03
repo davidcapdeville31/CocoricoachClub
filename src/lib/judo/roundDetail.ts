@@ -52,6 +52,22 @@ const STAT_META: Record<string, StatMeta> = {
   ijf_dominance_standing: { label: "Dominance debout", format: "percent", polarity: "for" },
 };
 
+// Keys that are internal/auto-computed and already reflected by the result badge
+// or other visible stats. Hide them from the "Détails par combat" chips.
+const HIDDEN_KEYS = new Set<string>([
+  "ijf_end_method",
+  "endMethod",
+  "victoryModeIppon",
+  "victoryModeWazaari",
+  "victoryModeWazaAri",
+  "victoryModeDecision",
+  "victoryModeHansoku",
+  "victoryModeYuko",
+  "hansokuMake",
+  "result",
+  "winner",
+]);
+
 export function formatStatValue(value: number, format: StatFormat): string {
   if (format === "percent") return `${Math.round(value)}%`;
   if (format === "duration") {
