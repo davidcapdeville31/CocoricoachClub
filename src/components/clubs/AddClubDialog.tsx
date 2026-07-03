@@ -109,7 +109,8 @@ export function AddClubDialog({ open, onOpenChange }: AddClubDialogProps) {
                 <SelectTrigger className="w-full bg-background">
                   <SelectValue placeholder="Sélectionner un sport" />
                 </SelectTrigger>
-                <SelectContent className="bg-background border z-50">
+                <SelectContent className="bg-background border z-[200]">
+
                   {MAIN_SPORTS.map((s) => (
                     <SelectItem key={s.value} value={s.value}>
                       {s.label}
@@ -125,7 +126,7 @@ export function AddClubDialog({ open, onOpenChange }: AddClubDialogProps) {
                   <SelectTrigger className="w-full bg-background">
                     <SelectValue placeholder="Sélectionner la discipline" />
                   </SelectTrigger>
-                  <SelectContent className="bg-background border z-50">
+                  <SelectContent className="bg-background border z-[200]">
                     {SKI_CLUB_DISCIPLINES.map((d) => (
                       <SelectItem key={d.value} value={d.value}>
                         {d.label}
