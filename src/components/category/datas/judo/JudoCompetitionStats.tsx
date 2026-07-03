@@ -260,8 +260,14 @@ export function JudoCompetitionStats({ categoryId }: Props) {
     );
   };
 
-  const tournamentLabel = (t: JudoMatchRow) =>
-    `${format(new Date(t.match_date), "d MMM yyyy", { locale: fr })} · ${t.competition || t.opponent || "Tournoi"}`;
+  const tournamentLabel = (t: JudoMatchRow) => {
+    const date = format(new Date(t.match_date), "d MMM yyyy", { locale: fr });
+    const name = t.competition || t.opponent || tournamentLevelLabel(t.tournament_level) || "Tournoi";
+    const parts = [name, date];
+    if (t.competition && t.location) parts.push(t.location);
+    else if (!t.competition && !t.opponent && t.location) parts.push(t.location);
+    return parts.join(" · ");
+  };
 
   if (isLoading) {
     return <p className="text-sm text-muted-foreground py-8 text-center">Chargement…</p>;
