@@ -70,10 +70,36 @@ export function useUnreadMessages(categoryId: string) {
     queryFn: async () => {
       if (!user || !categoryId) return { total: 0, byConversation: {} };
 
+      const queryKey = ["unread-messages", categoryId, user.id] as const;
+      const fetchStartedAt = Date.now() - 1;
+      const preserveNewerCache = (computed: UnreadCounts, reason: string): UnreadCounts => {
+        const cacheState = queryClient.getQueryState<UnreadCounts>(queryKey);
+        const cached = cacheState?.data;
+
+        // Si un INSERT Realtime ou un mark-as-read local a modifié le cache pendant
+        // que ce fetch était en vol, ne pas écraser cette valeur plus récente avec
+        // un résultat calculé avant/pendant la course réseau.
+        if (cached && (cacheState?.dataUpdatedAt ?? 0) > fetchStartedAt) {
+          unreadDebug("queryFn preserve newer cache", {
+            categoryId,
+            userId: user.id,
+            queryKey,
+            reason,
+            fetchStartedAt,
+            dataUpdatedAt: cacheState?.dataUpdatedAt,
+            computed,
+            cached,
+          });
+          return cached;
+        }
+
+        return computed;
+      };
+
       unreadDebug("queryFn start", {
         categoryId,
         userId: user.id,
-        queryKey: ["unread-messages", categoryId, user.id],
+        queryKey,
       });
 
       // 1. Fetch conversations IDs for this category (filtered by RLS)
@@ -91,7 +117,7 @@ export function useUnreadMessages(categoryId: string) {
           total: 0,
           byConversation: {},
         });
-        return { total: 0, byConversation: {} };
+        return preserveNewerCache({ total: 0, byConversation: {} }, "no conversations");
       }
 
       // 2. Fetch this user's participations (last_read_at) for those conversations
@@ -110,7 +136,7 @@ export function useUnreadMessages(categoryId: string) {
           total: 0,
           byConversation: {},
         });
-        return { total: 0, byConversation: {} };
+        return preserveNewerCache({ total: 0, byConversation: {} }, "no participations");
       }
 
       // Pré-remplir avec 0 pour TOUTES les conversations connues (participant),
@@ -154,10 +180,10 @@ export function useUnreadMessages(categoryId: string) {
         participationsCount: participations.length,
         total,
         byConversation,
-        queryKey: ["unread-messages", categoryId, user.id],
+        queryKey,
       });
 
-      return { total, byConversation };
+      return preserveNewerCache({ total, byConversation }, "computed counts");
     },
     enabled: !!user && !!categoryId,
     // Pas de refetchInterval: le channel Realtime ci-dessous met à jour le cache localement.
@@ -194,35 +220,34 @@ export function useUnreadMessages(categoryId: string) {
             conversation_id?: string;
             sender_id?: string;
           } | null;
+          const queryKey = ["unread-messages", categoryId, user.id] as const;
           unreadDebug("realtime INSERT received", {
             categoryId,
             userId: user.id,
             conversationId: row?.conversation_id,
             senderId: row?.sender_id,
-            queryKey: ["unread-messages", categoryId, user.id],
+            queryKey,
           });
           if (!row?.conversation_id || !row.sender_id) return;
+          const conversationId = row.conversation_id;
           // Ignorer ses propres messages
           if (row.sender_id === user.id) {
             unreadDebug("realtime INSERT ignored: own message", {
               categoryId,
               userId: user.id,
-              conversationId: row.conversation_id,
+              conversationId,
             });
             return;
           }
 
-          const current = queryClient.getQueryData<UnreadCounts>([
-            "unread-messages",
-            categoryId,
-            user.id,
-          ]);
+          await queryClient.cancelQueries({ queryKey, exact: true });
+          const current = queryClient.getQueryData<UnreadCounts>(queryKey);
 
           unreadDebug("cache before realtime update", {
             categoryId,
             userId: user.id,
-            conversationId: row.conversation_id,
-            queryKey: ["unread-messages", categoryId, user.id],
+            conversationId,
+            queryKey,
             current,
             byConversation: current?.byConversation,
           });
@@ -233,21 +258,21 @@ export function useUnreadMessages(categoryId: string) {
             unreadDebug("realtime INSERT missing cache: validating conversation", {
               categoryId,
               userId: user.id,
-              conversationId: row.conversation_id,
-              queryKey: ["unread-messages", categoryId, user.id],
+              conversationId,
+              queryKey,
             });
 
             const { data: conversation } = await supabase
               .from("conversations")
               .select("id")
-              .eq("id", row.conversation_id)
+              .eq("id", conversationId)
               .eq("category_id", categoryId)
               .maybeSingle();
 
             const { data: participation } = await supabase
               .from("conversation_participants")
               .select("conversation_id")
-              .eq("conversation_id", row.conversation_id)
+              .eq("conversation_id", conversationId)
               .eq("user_id", user.id)
               .maybeSingle();
 
@@ -255,16 +280,34 @@ export function useUnreadMessages(categoryId: string) {
               unreadDebug("realtime INSERT ignored: missing cache invalid conversation", {
                 categoryId,
                 userId: user.id,
-                conversationId: row.conversation_id,
-                queryKey: ["unread-messages", categoryId, user.id],
+                conversationId,
+                queryKey,
               });
               return;
             }
 
-            queryClient.setQueryData<UnreadCounts>(
-              ["unread-messages", categoryId, user.id],
-              { total: 1, byConversation: { [row.conversation_id]: 1 } }
-            );
+            queryClient.setQueryData<UnreadCounts>(queryKey, (previous) => {
+              const safePrevious = previous ?? { total: 0, byConversation: {} };
+              const previousConversationCount = safePrevious.byConversation[conversationId] || 0;
+              const next: UnreadCounts = {
+                total: safePrevious.total + 1,
+                byConversation: {
+                  ...safePrevious.byConversation,
+                  [conversationId]: previousConversationCount + 1,
+                },
+              };
+
+              unreadDebug("setQueryData missing cache validated", {
+                categoryId,
+                userId: user.id,
+                conversationId,
+                queryKey,
+                previous: safePrevious,
+                next,
+              });
+
+              return next;
+            });
             return;
           }
 
@@ -273,71 +316,71 @@ export function useUnreadMessages(categoryId: string) {
           // la conv fait partie du cache participations (byConversation existant ou 0).
           // On applique l'incrément prudemment : seulement si la conv est déjà présente
           // OU on invalide de manière debouncée en cas de doute.
-          const knownConv = row.conversation_id in current.byConversation;
+          const knownConv = conversationId in current.byConversation;
           if (knownConv) {
-            const next: UnreadCounts = {
-              total: current.total + 1,
-              byConversation: {
-                ...current.byConversation,
-                [row.conversation_id]: (current.byConversation[row.conversation_id] || 0) + 1,
-              },
-            };
-            unreadDebug("setQueryData", {
-              categoryId,
-              userId: user.id,
-              conversationId: row.conversation_id,
-              queryKey: ["unread-messages", categoryId, user.id],
-              previous: current,
-              previousByConversation: current.byConversation,
-              next,
-              nextByConversation: next.byConversation,
+            queryClient.setQueryData<UnreadCounts>(queryKey, (previous) => {
+              const safePrevious = previous ?? current;
+              const next: UnreadCounts = {
+                total: safePrevious.total + 1,
+                byConversation: {
+                  ...safePrevious.byConversation,
+                  [conversationId]: (safePrevious.byConversation[conversationId] || 0) + 1,
+                },
+              };
+              unreadDebug("setQueryData", {
+                categoryId,
+                userId: user.id,
+                conversationId,
+                queryKey,
+                previous: safePrevious,
+                previousByConversation: safePrevious.byConversation,
+                next,
+                nextByConversation: next.byConversation,
+              });
+              return next;
             });
-            queryClient.setQueryData<UnreadCounts>(
-              ["unread-messages", categoryId, user.id],
-              next
-            );
           } else {
             unreadDebug("realtime INSERT unknown conversation", {
               categoryId,
               userId: user.id,
-              conversationId: row.conversation_id,
+              conversationId,
               knownConversationIds: Object.keys(current.byConversation),
-              queryKey: ["unread-messages", categoryId, user.id],
+              queryKey,
             });
 
             const { data: conversation } = await supabase
               .from("conversations")
               .select("id")
-              .eq("id", row.conversation_id)
+              .eq("id", conversationId)
               .eq("category_id", categoryId)
               .maybeSingle();
 
             const { data: participation } = await supabase
               .from("conversation_participants")
               .select("conversation_id")
-              .eq("conversation_id", row.conversation_id)
+              .eq("conversation_id", conversationId)
               .eq("user_id", user.id)
               .maybeSingle();
 
             if (conversation && participation) {
               queryClient.setQueryData<UnreadCounts>(
-                ["unread-messages", categoryId, user.id],
+                queryKey,
                 (previous) => {
                   const safePrevious = previous ?? current;
-                  const previousConversationCount = safePrevious.byConversation[row.conversation_id] || 0;
+                  const previousConversationCount = safePrevious.byConversation[conversationId] || 0;
                   const next: UnreadCounts = {
                     total: safePrevious.total + 1,
                     byConversation: {
                       ...safePrevious.byConversation,
-                      [row.conversation_id]: previousConversationCount + 1,
+                      [conversationId]: previousConversationCount + 1,
                     },
                   };
 
                   unreadDebug("setQueryData unknown conversation validated", {
                     categoryId,
                     userId: user.id,
-                    conversationId: row.conversation_id,
-                    queryKey: ["unread-messages", categoryId, user.id],
+                    conversationId,
+                    queryKey,
                     previous: safePrevious,
                     next,
                   });
@@ -355,11 +398,11 @@ export function useUnreadMessages(categoryId: string) {
               unreadDebug("invalidate debounced", {
                 categoryId,
                 userId: user.id,
-                conversationId: row.conversation_id,
-                queryKey: ["unread-messages", categoryId, user.id],
+                conversationId,
+                queryKey,
               });
               queryClient.invalidateQueries({
-                queryKey: ["unread-messages", categoryId, user.id],
+                queryKey,
               });
             }, 2000);
           }
