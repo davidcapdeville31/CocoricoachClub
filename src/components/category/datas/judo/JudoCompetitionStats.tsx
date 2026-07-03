@@ -165,6 +165,14 @@ export function JudoCompetitionStats({ categoryId }: Props) {
             >
               Comparer les tournois
             </ColoredSubTabsTrigger>
+            <ColoredSubTabsTrigger
+              value="by-level"
+              colorKey="competition"
+              icon={<Layers className="h-4 w-4" />}
+              tooltip="Positionnement de l'athlète par niveau de compétition (local, départemental, régional, national, international)"
+            >
+              Par niveau
+            </ColoredSubTabsTrigger>
           </ColoredSubTabsList>
         </div>
 
