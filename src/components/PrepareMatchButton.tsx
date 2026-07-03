@@ -22,6 +22,7 @@ import { toast } from "sonner";
 
 interface Props {
   matchId: string;
+  isJudo?: boolean;
   variant?: "default" | "outline" | "secondary" | "ghost";
   size?: "default" | "sm" | "lg" | "icon";
   className?: string;
@@ -30,11 +31,13 @@ interface Props {
 
 export function PrepareMatchButton({
   matchId,
+  isJudo = false,
   variant = "outline",
   size = "sm",
   className,
   fullWidth = true,
 }: Props) {
+
   const [open, setOpen] = useState(false);
   const [running, setRunning] = useState(false);
   const [steps, setSteps] = useState<Map<PrepareStep, PrepareProgress>>(new Map());
@@ -73,8 +76,9 @@ export function PrepareMatchButton({
       });
       const ts = Date.now();
       setLastPreparedAt(ts);
-      toast.success("Match prêt pour le mode hors-ligne");
+      toast.success(isJudo ? "Compétition prête pour le mode hors-ligne" : "Match prêt pour le mode hors-ligne");
     } catch (e: any) {
+
       toast.error(e?.message ?? "Échec de la préparation");
     } finally {
       setRunning(false);
@@ -83,9 +87,12 @@ export function PrepareMatchButton({
 
   const handleClick = () => {
     if (!isOnline) {
-      toast.error("Vous êtes hors-ligne. Reconnectez-vous pour préparer le match.");
+      toast.error(isJudo
+        ? "Vous êtes hors-ligne. Reconnectez-vous pour préparer la compétition."
+        : "Vous êtes hors-ligne. Reconnectez-vous pour préparer le match.");
       return;
     }
+
     setOpen(true);
     if (!running && steps.size === 0) {
       // Auto-start on open
@@ -107,14 +114,19 @@ export function PrepareMatchButton({
           !isOnline && "opacity-50",
           className,
         )}
-        title={!isOnline ? "Indisponible hors-ligne" : "Préparer le match pour le mode hors-ligne"}
+        title={!isOnline
+          ? "Indisponible hors-ligne"
+          : isJudo
+            ? "Préparer la compétition pour le mode hors-ligne"
+            : "Préparer le match pour le mode hors-ligne"}
       >
         {!isOnline ? (
           <WifiOff className="h-3.5 w-3.5" />
         ) : (
           <Trophy className="h-3.5 w-3.5 text-amber-500" />
         )}
-        <span>Préparer le match</span>
+        <span>{isJudo ? "Préparer la compétition" : "Préparer le match"}</span>
+
         {lastPreparedAt ? (
           <span className="ml-auto inline-flex items-center gap-1 text-[10px] text-muted-foreground">
             <CheckCircle2 className="h-3 w-3 text-emerald-500" />
@@ -130,12 +142,15 @@ export function PrepareMatchButton({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Trophy className="h-5 w-5 text-amber-500" />
-              Préparation du match
+              {isJudo ? "Préparation de la compétition" : "Préparation du match"}
             </DialogTitle>
             <DialogDescription>
-              Téléchargement des données nécessaires pour utiliser ce match hors-ligne.
+              {isJudo
+                ? "Téléchargement des données nécessaires pour utiliser cette compétition hors-ligne."
+                : "Téléchargement des données nécessaires pour utiliser ce match hors-ligne."}
             </DialogDescription>
           </DialogHeader>
+
 
           <div className="space-y-1.5 py-2">
             {allSteps.map((s) => {

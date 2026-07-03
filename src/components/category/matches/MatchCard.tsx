@@ -726,7 +726,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
               {isDoublesMatch ? `Paire (${lineupCount || 0}/2)` : isIndividual ? `Participants (${lineupCount || 0})` : `Composition (${lineupCount || 0})`}
             </Button>
             {(isTeamSport || isJudo) && !isFinalized && (
-              <PrepareMatchButton matchId={match.id} />
+              <PrepareMatchButton matchId={match.id} isJudo={isJudo} />
             )}
             {hasRoundBasedStats && (
               <>
