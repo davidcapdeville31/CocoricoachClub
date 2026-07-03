@@ -464,15 +464,16 @@ function GeneralView({ tournaments }: { tournaments: JudoMatchRow[] }) {
       )}
 
       {/* KPI headline */}
-      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
-        <KpiCard label="Combats" value={summary.combats} accent="primary" />
-        <KpiCard label="Victoires" value={summary.wins} accent="success" />
-        <KpiCard label="Défaites" value={summary.losses} accent="danger" />
-        <KpiCard label="% Victoires" value={`${summary.winRate}%`} accent="primary" />
+      <div className="grid gap-2 grid-cols-3 sm:grid-cols-4 lg:grid-cols-5">
+        <KpiCard label="Combats" value={summary.combats} accent="primary" compact />
+        <KpiCard label="Victoires" value={summary.wins} accent="success" compact />
+        <KpiCard label="Défaites" value={summary.losses} accent="danger" compact />
+        <KpiCard label="% Victoires" value={`${summary.winRate}%`} accent="primary" compact />
         <KpiCard
           label="Golden Score"
           value={summary.goldenScoreCount}
-          sub="combats joués en prolongation"
+          sub="combats en prolongation"
+          compact
         />
       </div>
 
