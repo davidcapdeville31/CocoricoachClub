@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { BarChart3, GitCompare, ChevronDown, Check, Trophy } from "lucide-react";
+import { BarChart3, GitCompare, ChevronDown, Check, Trophy, Layers } from "lucide-react";
 import { KpiCard } from "@/components/category/datas/team-sports/shared/KpiCard";
 import { TrendIndicator } from "@/components/ui/trend-indicator";
 import { format } from "date-fns";
@@ -26,6 +26,7 @@ import {
   formatMetric,
   type JudoTournamentSummary,
 } from "@/lib/judo/tournamentStats";
+import { TOURNAMENT_LEVELS, tournamentLevelLabel } from "@/lib/judo/competitionAnalytics";
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 
 interface Props {
