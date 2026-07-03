@@ -112,9 +112,9 @@ function GroupCardHeader({ theme, title, subtitle }: { theme: GroupTheme; title:
   return (
     <>
       <div className={`h-1 w-full ${theme.bar}`} />
-      <div className={`flex items-center gap-3 px-6 py-4 ${theme.headerBg}`}>
-        <div className={`h-9 w-9 rounded-xl flex items-center justify-center ${theme.chip}`}>
-          <Icon className={`h-4 w-4 ${theme.chipIcon}`} />
+      <div className={`flex items-center gap-3 px-4 py-3 ${theme.headerBg}`}>
+        <div className={`h-8 w-8 rounded-xl flex items-center justify-center ${theme.chip}`}>
+          <Icon className={`h-3.5 w-3.5 ${theme.chipIcon}`} />
         </div>
         <div className="min-w-0">
           <div className={`text-sm font-semibold tracking-tight ${theme.title}`}>{title}</div>
