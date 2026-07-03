@@ -700,7 +700,7 @@ export function AddPlayerDialogWithInvite({
                 <SelectTrigger className="w-full bg-background">
                   <SelectValue placeholder="Sélectionner un sexe" />
                 </SelectTrigger>
-                <SelectContent className="bg-background border z-50">
+                <SelectContent className="bg-popover border">
                   <SelectItem value="male">Masculin</SelectItem>
                   <SelectItem value="female">Féminin</SelectItem>
                   <SelectItem value="other">Autre</SelectItem>
