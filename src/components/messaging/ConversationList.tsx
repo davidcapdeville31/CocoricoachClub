@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -87,6 +87,16 @@ export function ConversationList({ categoryId, selectedId, onSelect, isAthlete =
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { byConversation: unreadByConversation } = useUnreadMessages(categoryId);
+
+  useEffect(() => {
+    console.debug("[ConversationList] unread badge render source", {
+      categoryId,
+      userId: user?.id,
+      queryKey: ["unread-messages", categoryId, user?.id],
+      selectedId,
+      byConversation: unreadByConversation,
+    });
+  }, [categoryId, selectedId, unreadByConversation, user?.id]);
 
   const handleSelect = (convId: string) => {
     onSelect(convId);
