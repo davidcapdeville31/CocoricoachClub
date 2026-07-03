@@ -88,12 +88,10 @@ export function ConversationList({ categoryId, selectedId, onSelect, isAthlete =
   const queryClient = useQueryClient();
   const { byConversation: unreadByConversation } = useUnreadMessages(categoryId);
 
-  const handleSelect = async (convId: string) => {
+  const handleSelect = (convId: string) => {
     onSelect(convId);
-    if (user) {
-      await markConversationAsRead(convId, user.id);
-      queryClient.invalidateQueries({ queryKey: ["unread-messages", categoryId, user.id] });
-    }
+    // Le mark-as-read + mise à jour locale du compteur est géré par ChatWindow
+    // (setQueryData sans invalidate) pour éviter de refetcher toutes les convs.
   };
 
   // Fetch players for private messages
