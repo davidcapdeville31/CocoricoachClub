@@ -273,6 +273,47 @@ export function JudoCompetitionStats({ categoryId }: Props) {
     return parts.join(" · ");
   };
 
+  const handleExportPdf = async () => {
+    const mode = activeTab as JudoPdfMode;
+    if (playerId === "all") {
+      toast.error("Sélectionne un athlète pour exporter le rapport PDF");
+      return;
+    }
+    // For general/compare, use the currently selected tournaments; for by-level use all
+    const source = mode === "by-level" ? allAthleteTournaments : selected;
+    if (source.length === 0) {
+      toast.error("Aucun tournoi disponible pour l'export");
+      return;
+    }
+    if (mode === "compare" && source.length < 2) {
+      toast.error("Sélectionne au moins 2 tournois pour la comparaison");
+      return;
+    }
+    setExporting(true);
+    try {
+      await exportJudoCompetitionPdf({
+        categoryId,
+        playerId,
+        mode,
+        tournaments: source.map((t) => ({
+          id: t.id,
+          label: tournamentLabel(t),
+          matchDate: t.match_date,
+          location: t.location,
+          competition: t.competition,
+          tournamentLevel: t.tournament_level,
+          rounds: t.rounds,
+        })),
+      });
+      toast.success("Rapport PDF généré");
+    } catch (e: any) {
+      console.error(e);
+      toast.error(`Erreur lors de l'export : ${e?.message || "inconnue"}`);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   if (isLoading) {
     return <p className="text-sm text-muted-foreground py-8 text-center">Chargement…</p>;
   }
