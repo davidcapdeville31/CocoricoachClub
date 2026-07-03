@@ -469,6 +469,20 @@ export function JudoCompetitionStats({ categoryId }: Props) {
               </PopoverContent>
             </Popover>
           )}
+
+          <Button
+            onClick={handleExportPdf}
+            disabled={exporting || playerId === "all"}
+            className="rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-sky-500 text-white hover:from-indigo-700 hover:to-sky-600 shadow-sm"
+            title={playerId === "all" ? "Sélectionne un athlète pour exporter" : "Exporter en PDF"}
+          >
+            {exporting ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <FileDown className="h-4 w-4 mr-2" />
+            )}
+            Exporter PDF
+          </Button>
         </div>
 
         <TabsContent value="general">
