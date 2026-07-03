@@ -568,11 +568,11 @@ function CompareView({ tournaments }: { tournaments: CompareRow[] }) {
                     const refVal = reference.summary[m.key] as number;
                     return (
                       <tr key={m.key} className={`border-b last:border-0 ${rowIdx % 2 === 1 ? "bg-muted/20" : ""}`}>
-                        <td className="py-2 pr-3 pl-2">{m.label}</td>
+                        <td className="py-1.5 pr-3 pl-2">{m.label}</td>
                         {ordered.map((t, i) => {
                           const val = t.summary[m.key] as number;
                           return (
-                            <td key={t.id} className="text-center py-2 px-2">
+                            <td key={t.id} className="text-center py-1.5 px-2">
                               <div className="flex items-center justify-center gap-2">
                                 <span className="font-semibold tabular-nums">
                                   {formatMetric(val, m.format)}
