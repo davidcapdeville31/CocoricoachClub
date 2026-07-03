@@ -483,13 +483,14 @@ function GeneralView({ tournaments }: { tournaments: JudoMatchRow[] }) {
         return (
           <Card key={group.title} className={`rounded-2xl overflow-hidden border-0 shadow-sm ${theme.ring}`}>
             <GroupCardHeader theme={theme} title={group.title} />
-            <CardContent className="pt-4">
-              <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+            <CardContent className="pt-3">
+              <div className="grid gap-2 grid-cols-3 sm:grid-cols-4 lg:grid-cols-5">
                 {group.metrics.map((m) => (
                   <KpiCard
                     key={m.key}
                     label={m.label}
                     value={formatMetric(summary[m.key] as number, m.format)}
+                    compact
                   />
                 ))}
               </div>
