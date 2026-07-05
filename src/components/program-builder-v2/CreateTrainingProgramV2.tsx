@@ -964,7 +964,31 @@ export function CreateTrainingProgramV2({
           }}
         />
       )}
+
+      <AlertDialog open={weekToDelete !== null} onOpenChange={(open) => !open && setWeekToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer la semaine {weekToDelete} ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est irréversible. Toutes les séances et exercices de cette semaine seront supprimés.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (weekToDelete !== null) removeWeek(weekToDelete);
+                setWeekToDelete(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
+
   );
 }
 
