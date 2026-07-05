@@ -36,7 +36,7 @@ export const InlineVariablePicker = ({
   heading = "Ajouter une variable",
 }: Props) => {
   const [open, setOpen] = useState(false);
-  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  const [pos, setPos] = useState<{ top: number; left?: number; right?: number } | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -47,17 +47,18 @@ export const InlineVariablePicker = ({
       const menuWidth = menuRef.current?.offsetWidth ?? 192;
       const menuHeight = menuRef.current?.offsetHeight ?? 200;
       const margin = 8;
-      let left =
-        align === "end"
-          ? rect.right - menuWidth
-          : rect.left;
-      // Clamp horizontally within viewport
-      left = Math.max(margin, Math.min(left, window.innerWidth - menuWidth - margin));
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const maxHorizontalOffset = Math.max(margin, viewportWidth - menuWidth - margin);
+      const horizontal = align === "end"
+        ? { right: Math.max(margin, Math.min(viewportWidth - rect.right, maxHorizontalOffset)) }
+        : { left: Math.max(margin, Math.min(rect.left, maxHorizontalOffset)) };
+
       let top = rect.bottom + 4;
-      if (top + menuHeight > window.innerHeight - margin) {
+      if (top + menuHeight > viewportHeight - margin) {
         top = Math.max(margin, rect.top - menuHeight - 4);
       }
-      setPos({ top, left });
+      setPos({ top, ...horizontal });
     };
     update();
     window.addEventListener("scroll", update, true);
@@ -101,12 +102,16 @@ export const InlineVariablePicker = ({
             style={{
               position: "absolute",
               top: pos?.top ?? -9999,
-              left: pos?.left ?? -9999,
+              left: pos?.left,
+              right: pos?.right,
               visibility: pos ? "visible" : "hidden",
               pointerEvents: "auto",
+              maxWidth: "calc(100vw - 16px)",
+              maxHeight: "min(320px, calc(100vh - 16px))",
+              overflowY: "auto",
             }}
             className={cn(
-              "rounded-lg border bg-popover text-popover-foreground shadow-xl p-1 overflow-hidden",
+              "rounded-lg border bg-popover text-popover-foreground shadow-2xl p-1",
               width,
             )}
             onPointerDown={(e) => e.stopPropagation()}
