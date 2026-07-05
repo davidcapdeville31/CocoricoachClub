@@ -491,6 +491,48 @@ export function CreateTrainingProgramV2({
     });
   }, []);
 
+  const duplicateWeek = useCallback((weekNumber: number) => {
+    setDraft((prev) => {
+      const idx = prev.weeks.findIndex((w) => w.weekNumber === weekNumber);
+      if (idx < 0) return prev;
+      const source = prev.weeks[idx];
+      const clone: V2ProgramWeek = {
+        ...source,
+        id: makeId(),
+        weekNumber: 0, // reindex below
+        name: `${source.name} (copie)`,
+        days: source.days.map((d) => ({
+          ...d,
+          id: makeId(),
+          blocks: d.blocks.map((b) => ({
+            ...b,
+            id: makeId(),
+            exercises: b.exercises.map((e) => ({ ...e, id: makeId() })),
+          })),
+        })),
+      };
+      const inserted = [...prev.weeks.slice(0, idx + 1), clone, ...prev.weeks.slice(idx + 1)];
+      const renumbered = inserted.map((w, i) => ({ ...w, weekNumber: i + 1 }));
+      return { ...prev, weeks: renumbered };
+    });
+  }, []);
+
+  const removeWeek = useCallback((weekNumber: number) => {
+    setDraft((prev) => {
+      if (prev.weeks.length <= 1) return prev;
+      const filtered = prev.weeks.filter((w) => w.weekNumber !== weekNumber);
+      const renumbered = filtered.map((w, i) => ({ ...w, weekNumber: i + 1 }));
+      return { ...prev, weeks: renumbered };
+    });
+    setActiveWeek((cur) => {
+      if (cur !== weekNumber) return cur > weekNumber ? cur - 1 : cur;
+      return Math.max(1, weekNumber - 1);
+    });
+  }, []);
+
+  const [weekToDelete, setWeekToDelete] = useState<number | null>(null);
+
+
   const setDayOfWeek = useCallback(
     (weekNumber: number, dayId: string, newDow: string) => {
       setDraft((prev) => ({
