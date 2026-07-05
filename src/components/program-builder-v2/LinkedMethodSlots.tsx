@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import { cn } from "@/lib/utils";
-import { Dumbbell, X, Plus, Clock, MessageSquare } from "lucide-react";
+import { Dumbbell, X, Clock, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MethodExerciseDisplay } from "./MethodExerciseDisplay";
@@ -28,6 +28,7 @@ import { TimeInput } from "@/components/ui/time-input";
 import { MethodActionButtons } from "./shared/MethodActionButtons";
 import { generateMethodNote } from "@/lib/program-builder-v2/athleteNoteGenerator";
 import { AthleteNoteDisplay } from "./AthleteNoteDisplay";
+import { InlineVariablePicker } from "./shared/InlineVariablePicker";
 
 // Map visible variable keys to table column keys
 const PARAM_TO_COLUMN_MAP: Record<string, string> = {
@@ -412,66 +413,19 @@ const AddParamButton = ({
   availableParams: typeof ALL_LINKED_PARAMS;
   onAdd: (key: string) => void;
 }) => {
-  const [open, setOpen] = useState(false);
-
   if (availableParams.length === 0) return null;
 
   return (
-    <div className="relative self-end">
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onPointerDown={(e) => e.stopPropagation()}
-        onMouseDown={(e) => e.stopPropagation()}
-        onClick={(e) => {
-          e.stopPropagation();
-          setOpen((o) => !o);
-        }}
-        className="h-7 px-2 text-[10px] border-dashed hover:border-primary hover:bg-primary/5"
-      >
-        <Plus className="h-3 w-3" />
-      </Button>
-      {open && (
-        <>
-          {/* Backdrop pour fermer au clic extérieur */}
-          <div
-            className="fixed inset-0 z-[998]"
-            onPointerDown={(e) => {
-              e.stopPropagation();
-              setOpen(false);
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              setOpen(false);
-            }}
-          />
-          <div
-            className="absolute left-0 top-full mt-1 w-44 rounded-md border bg-popover text-popover-foreground shadow-md z-[999] p-1"
-            onPointerDown={(e) => e.stopPropagation()}
-            onMouseDown={(e) => e.stopPropagation()}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <p className="px-2 py-1 text-[10px] text-muted-foreground">Ajouter une variable</p>
-            {availableParams.map((param) => (
-              <button
-                key={param.key}
-                type="button"
-                onPointerDown={(e) => e.stopPropagation()}
-                onMouseDown={(e) => e.stopPropagation()}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onAdd(param.key);
-                  setOpen(false);
-                }}
-                className="w-full rounded-sm px-2 py-1.5 text-xs text-left hover:bg-accent"
-              >
-                {param.label}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
+    <div className="self-end">
+      <InlineVariablePicker
+        items={availableParams.map((param) => ({ key: param.key, label: param.label }))}
+        onPick={onAdd}
+        align="end"
+        width="w-56"
+        heading="Ajouter une variable"
+        buttonLabel={null}
+        buttonClassName="h-7 px-2 text-[10px] border-dashed hover:border-primary hover:bg-primary/5"
+      />
     </div>
   );
 };
