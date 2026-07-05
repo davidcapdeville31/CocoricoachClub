@@ -48,7 +48,19 @@ import {
   CalendarPlus,
   Sparkles,
   Settings,
+  Copy,
+  Trash2,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { AssignProgramDialog } from "@/components/category/programs/AssignProgramDialog";
 import { ProgramThemeSelector } from "./ProgramThemeSelector";
 import { cn } from "@/lib/utils";
