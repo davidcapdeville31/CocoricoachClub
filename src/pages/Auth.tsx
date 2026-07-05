@@ -436,20 +436,14 @@ export default function Auth() {
         </CardHeader>
         <CardContent className="pt-2">
           {redirectUrl && !isRecoveryMode && (
-            <div className="mb-4 grid grid-cols-2 gap-2">
+            <div className="mb-4">
               <Button
                 type="button"
-                variant={activeTab === "login" ? "default" : "outline"}
+                variant="default"
                 onClick={() => setActiveTab("login")}
+                className="w-full"
               >
                 J'ai déjà un compte
-              </Button>
-              <Button
-                type="button"
-                variant={activeTab === "signup" ? "default" : "outline"}
-                onClick={() => setActiveTab("signup")}
-              >
-                Première connexion
               </Button>
             </div>
           )}
