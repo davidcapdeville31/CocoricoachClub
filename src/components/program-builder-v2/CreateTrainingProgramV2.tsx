@@ -520,11 +520,14 @@ export function CreateTrainingProgramV2({
       if (prev.weeks.length <= 1) return prev;
       const filtered = prev.weeks.filter((w) => w.weekNumber !== weekNumber);
       const renumbered = filtered.map((w, i) => ({ ...w, weekNumber: i + 1 }));
+      const nextActive = Math.min(
+        Math.max(1, weekNumber > renumbered.length ? renumbered.length : weekNumber),
+        renumbered.length,
+      );
+      const nextWeek = renumbered[nextActive - 1] ?? renumbered[0];
+      setActiveWeek(nextActive);
+      setActiveDayId(nextWeek?.days[0]?.id ?? null);
       return { ...prev, weeks: renumbered };
-    });
-    setActiveWeek((cur) => {
-      if (cur !== weekNumber) return cur > weekNumber ? cur - 1 : cur;
-      return Math.max(1, weekNumber - 1);
     });
   }, []);
 
