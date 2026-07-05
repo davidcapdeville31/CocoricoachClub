@@ -51,16 +51,6 @@ import {
   Copy,
   Trash2,
 } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { AssignProgramDialog } from "@/components/category/programs/AssignProgramDialog";
 import { ProgramThemeSelector } from "./ProgramThemeSelector";
 import { cn } from "@/lib/utils";
@@ -529,9 +519,6 @@ export function CreateTrainingProgramV2({
     setActiveDayId(null);
   }, []);
 
-  const [weekToDelete, setWeekToDelete] = useState<number | null>(null);
-
-
   const setDayOfWeek = useCallback(
     (weekNumber: number, dayId: string, newDow: string) => {
       setDraft((prev) => ({
@@ -679,7 +666,9 @@ export function CreateTrainingProgramV2({
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              setWeekToDelete(w.weekNumber);
+                              if (window.confirm(`Supprimer la semaine ${w.weekNumber} ?`)) {
+                                removeWeek(w.weekNumber);
+                              }
                             }}
                             className="h-8 w-7 flex items-center justify-center hover:bg-destructive/80 rounded-r-2xl"
                             title="Supprimer la semaine"
@@ -966,33 +955,6 @@ export function CreateTrainingProgramV2({
         />
       )}
 
-      <AlertDialog open={weekToDelete !== null} onOpenChange={(open) => !open && setWeekToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer la semaine {weekToDelete} ?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Cette action est irréversible. Toutes les séances et exercices de cette semaine seront supprimés.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                const target = weekToDelete;
-                setWeekToDelete(null);
-                // Defer state update until after dialog unmounts to avoid Radix
-                // focus-return crashing on a trigger element that just disappeared.
-                if (target !== null) {
-                  setTimeout(() => removeWeek(target), 0);
-                }
-              }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Supprimer
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
 
   );
