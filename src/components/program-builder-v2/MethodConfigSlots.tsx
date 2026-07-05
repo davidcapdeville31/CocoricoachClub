@@ -830,7 +830,6 @@ const CircuitExerciseSlot = ({
 
   const isFilled = !!exercise;
   const [showVars, setShowVars] = useState(true);
-  const [inlineSlotVariablePickerOpen, setInlineSlotVariablePickerOpen] = useState(false);
 
   const activeVars = visibleVariables || ['percentage', 'load', 'tempo', 'rpe'];
 
@@ -1274,7 +1273,6 @@ export const MethodConfigSlots = ({
   const [targetRpe, setTargetRpe] = useState<number | undefined>();
   // Drop Set: nombre de séries complètes (combien de fois répéter la séquence de drops)
   const [setsCount, setSetsCount] = useState<number>(method === "drop_set" ? 3 : 1);
-  const [inlineVariablePickerOpen, setInlineVariablePickerOpen] = useState(false);
   
   // Dynamic variables visibility state — ONLY show variables that were actually saved
   const getDefaultVisibleVars = () => {
