@@ -523,9 +523,10 @@ export function CreateTrainingProgramV2({
       return { ...prev, weeks: renumbered };
     });
     setActiveWeek((cur) => {
-      if (cur !== weekNumber) return cur > weekNumber ? cur - 1 : cur;
-      return Math.max(1, weekNumber - 1);
+      const total = Math.max(1, (cur >= weekNumber ? cur - 1 : cur));
+      return Math.max(1, total);
     });
+    setActiveDayId(null);
   }, []);
 
   const [weekToDelete, setWeekToDelete] = useState<number | null>(null);
