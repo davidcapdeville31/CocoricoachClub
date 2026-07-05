@@ -635,23 +635,63 @@ export function CreateTrainingProgramV2({
 
             {/* Week tabs */}
             <div className="flex items-center gap-1 px-4 md:px-6 pb-2 overflow-x-auto">
-              {draft.weeks.map((w) => (
-                <Button
-                  key={w.weekNumber}
-                  size="sm"
-                  variant={activeWeek === w.weekNumber ? "default" : "ghost"}
-                  onClick={() => {
-                    setActiveWeek(w.weekNumber);
-                    setActiveDayId(w.days[0]?.id ?? null);
-                  }}
-                  className={cn(
-                    "rounded-2xl shrink-0 h-8",
-                    activeWeek === w.weekNumber && "shadow-md",
-                  )}
-                >
-                  S{w.weekNumber}
-                </Button>
-              ))}
+              {draft.weeks.map((w) => {
+                const isActive = activeWeek === w.weekNumber;
+                return (
+                  <div
+                    key={w.weekNumber}
+                    className={cn(
+                      "flex items-center rounded-2xl shrink-0 h-8",
+                      isActive && "bg-primary text-primary-foreground shadow-md",
+                    )}
+                  >
+                    <Button
+                      size="sm"
+                      variant={isActive ? "default" : "ghost"}
+                      onClick={() => {
+                        setActiveWeek(w.weekNumber);
+                        setActiveDayId(w.days[0]?.id ?? null);
+                      }}
+                      className={cn(
+                        "rounded-2xl h-8",
+                        isActive && "shadow-none hover:bg-primary/90",
+                      )}
+                    >
+                      S{w.weekNumber}
+                    </Button>
+                    {isActive && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            duplicateWeek(w.weekNumber);
+                          }}
+                          className="h-8 w-7 flex items-center justify-center hover:bg-primary/80 rounded-none"
+                          title="Dupliquer la semaine"
+                          aria-label="Dupliquer la semaine"
+                        >
+                          <Copy className="h-3.5 w-3.5" />
+                        </button>
+                        {draft.weeks.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setWeekToDelete(w.weekNumber);
+                            }}
+                            className="h-8 w-7 flex items-center justify-center hover:bg-destructive/80 rounded-r-2xl"
+                            title="Supprimer la semaine"
+                            aria-label="Supprimer la semaine"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                );
+              })}
               <Button
                 size="sm"
                 variant="outline"
@@ -661,6 +701,7 @@ export function CreateTrainingProgramV2({
                 <Plus className="h-3.5 w-3.5" />
               </Button>
             </div>
+
 
             {/* Day tabs — chaque onglet a un sélecteur de jour de la semaine */}
             {currentWeek && (
