@@ -497,8 +497,6 @@ export function CreateTrainingProgramV2({
       if (idx < 0) return prev;
       const source = prev.weeks[idx];
       const clone: V2ProgramWeek = {
-        ...source,
-        id: makeId(),
         weekNumber: 0, // reindex below
         name: `${source.name} (copie)`,
         days: source.days.map((d) => ({
