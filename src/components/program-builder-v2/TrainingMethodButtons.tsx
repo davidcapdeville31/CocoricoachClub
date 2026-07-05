@@ -590,7 +590,7 @@ export const TrainingMethodButtons = ({
               <TooltipContent 
                 side="top" 
                 align="center"
-                className="p-0 bg-transparent border-0 shadow-none z-[200] max-w-[calc(100vw-16px)]"
+                className="p-0 bg-transparent border-0 shadow-none z-[1000] max-w-[calc(100vw-16px)]"
                 sideOffset={8}
                 collisionPadding={12}
                 avoidCollisions
