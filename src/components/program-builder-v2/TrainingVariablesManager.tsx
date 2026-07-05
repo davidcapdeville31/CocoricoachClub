@@ -298,7 +298,7 @@ const AddVariableButton = ({ availableVariables, onAdd }: AddVariableButtonProps
         label: variable.label,
       }))}
       onPick={onAdd}
-      align="start"
+      align="end"
       width="w-56"
       buttonClassName="h-7 px-2 text-xs border-dashed hover:border-primary hover:bg-primary/5"
       title="Ajouter une variable (Charge, %1RM, RPE, RIR, Repos, Tempo...)"
