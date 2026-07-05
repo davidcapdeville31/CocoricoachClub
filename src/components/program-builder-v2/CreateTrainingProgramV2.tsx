@@ -666,9 +666,7 @@ export function CreateTrainingProgramV2({
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              if (window.confirm(`Supprimer la semaine ${w.weekNumber} ?`)) {
-                                removeWeek(w.weekNumber);
-                              }
+                              removeWeek(w.weekNumber);
                             }}
                             className="h-8 w-7 flex items-center justify-center hover:bg-destructive/80 rounded-r-2xl"
                             title="Supprimer la semaine"
