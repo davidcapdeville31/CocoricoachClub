@@ -151,14 +151,30 @@ export function V2ExerciseBankSidebar({ onClickInsert, mode = "exercises", categ
     return filterExercises(exercises, filters, exerciseFavorites, searchTerm);
   }, [exercises, filters, exerciseFavorites, searchTerm]);
 
+  const queryClient = useQueryClient();
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+
   return (
     <>
       {/* ---------- Header: search + advanced filters ---------- */}
       <div className="p-3 border-b space-y-2 flex-shrink-0 w-full overflow-hidden">
-        <h3 className="font-semibold text-sm flex items-center gap-2">
-          <Dumbbell className="h-4 w-4 text-primary" />
-          <span className="truncate">Bibliothèque d'exercices</span>
-        </h3>
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="font-semibold text-sm flex items-center gap-2 min-w-0">
+            <Dumbbell className="h-4 w-4 text-primary shrink-0" />
+            <span className="truncate">Bibliothèque d'exercices</span>
+          </h3>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="h-7 gap-1 text-xs shrink-0"
+            onClick={() => setShowCreateDialog(true)}
+            title="Créer un exercice personnel (visible uniquement par vous)"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Créer
+          </Button>
+        </div>
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -177,6 +193,15 @@ export function V2ExerciseBankSidebar({ onClickInsert, mode = "exercises", categ
           showCategoryFilter={false}
         />
       </div>
+
+      <QuickAddExerciseDialog
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["v2-bank-sidebar-exercises"] });
+        }}
+      />
+
 
       {/* ---------- Category tabs ---------- */}
       <div className="px-2 py-2 border-b bg-muted/50 flex-shrink-0">
