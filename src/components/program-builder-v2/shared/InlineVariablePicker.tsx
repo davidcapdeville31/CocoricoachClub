@@ -136,7 +136,7 @@ export const InlineVariablePicker = ({
               ))}
             </div>
           </div>
-        </>,
+        </div>,
         document.body,
       )}
     </>
