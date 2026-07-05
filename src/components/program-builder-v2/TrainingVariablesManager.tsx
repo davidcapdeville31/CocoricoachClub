@@ -25,14 +25,6 @@ import {
   CheckCircle,
   FileText
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { 
   ExerciseType, 
   getVariablesForType, 
@@ -40,6 +32,7 @@ import {
   VariableConfig 
 } from "@/lib/program-builder-v2/exerciseTypes";
 import { VariableSetsTable } from "./VariableSetsTable";
+import { InlineVariablePicker } from "./shared/InlineVariablePicker";
 import { SetData, createInitialSets, STRENGTH_SET_COLUMNS, formatTempo, SetsTableColumn } from "@/lib/program-builder-v2/variableSetsTypes";
 import { getSetFieldFromParam, syncFieldToSets, syncSetsCount } from "@/lib/program-builder-v2/variableSetsSync";
 
@@ -300,42 +293,17 @@ const AddVariableButton = ({ availableVariables, onAdd }: AddVariableButtonProps
   if (availableVariables.length === 0) return null;
 
   return (
-    <DropdownMenu modal={false}>
-      <DropdownMenuTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="h-7 px-2 text-xs border-dashed hover:border-primary hover:bg-primary/5"
-          title="Ajouter une variable (Charge, %1RM, RPE, RIR, Repos, Tempo...)"
-        >
-          <Plus className="h-3 w-3 mr-1" />
-          Variable
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="start"
-        className="w-56 z-[60] max-h-[60vh] overflow-y-auto"
-        onPointerDown={(e) => e.stopPropagation()}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <DropdownMenuLabel className="text-xs">Ajouter une variable</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {availableVariables.map((variable) => (
-          <DropdownMenuItem
-            key={variable.key}
-            onSelect={(e) => {
-              e.preventDefault();
-              onAdd(variable.key);
-            }}
-            className="text-xs gap-2 cursor-pointer"
-          >
-            {variable.icon}
-            <span>{variable.label}</span>
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <InlineVariablePicker
+      items={availableVariables.map((variable) => ({
+        key: variable.key,
+        label: variable.label,
+      }))}
+      onPick={onAdd}
+      align="start"
+      width="w-56"
+      buttonClassName="h-7 px-2 text-xs border-dashed hover:border-primary hover:bg-primary/5"
+      title="Ajouter une variable (Charge, %1RM, RPE, RIR, Repos, Tempo...)"
+    />
   );
 };
 
