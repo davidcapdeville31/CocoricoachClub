@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { TimeInput } from "@/components/ui/time-input";
 import { 
   X, 
-  Plus, 
   Dumbbell, 
   Repeat, 
   Percent, 
