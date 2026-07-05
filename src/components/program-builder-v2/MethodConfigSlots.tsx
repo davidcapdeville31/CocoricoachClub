@@ -13,6 +13,7 @@ import { NumericInput } from "@/components/ui/numeric-input";
 import { Label } from "@/components/ui/label";
 import { TimeInput } from "@/components/ui/time-input";
 import { MethodExerciseDisplay } from "./MethodExerciseDisplay";
+import { InlineVariablePicker } from "./shared/InlineVariablePicker";
 import {
   Popover,
   PopoverContent,
@@ -897,50 +898,16 @@ const CircuitExerciseSlot = ({
           <div className="flex items-center justify-between mb-1">
             <span className="text-[10px] text-muted-foreground font-medium">Variables</span>
             {onAddVariable && hiddenVariables && hiddenVariables.length > 0 && (
-              <div className="relative">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setInlineSlotVariablePickerOpen((prev) => !prev);
-                  }}
-                  className="h-5 text-[10px] border-dashed px-1.5 gap-0.5"
-                  title="Ajouter une variable (Charge, %1RM, RPE, RIR, Tempo...)"
-                >
-                  <Plus className="h-2.5 w-2.5" />
-                  Variable
-                </Button>
-                {inlineSlotVariablePickerOpen && (
-                  <div
-                    className="absolute right-0 top-full mt-1 w-44 rounded-md border bg-popover text-popover-foreground shadow-md z-[999] p-1"
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onMouseDown={(e) => e.stopPropagation()}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <p className="px-2 py-1 text-xs text-muted-foreground">Ajouter</p>
-                    {hiddenVariables.map((v) => (
-                      <button
-                        key={v.key}
-                        type="button"
-                        onPointerDown={(e) => e.stopPropagation()}
-                        onMouseDown={(e) => e.stopPropagation()}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onAddVariable(v.key);
-                          setInlineSlotVariablePickerOpen(false);
-                        }}
-                        className="w-full rounded-sm px-2 py-1.5 text-xs text-left hover:bg-accent"
-                      >
-                        {v.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <InlineVariablePicker
+                items={hiddenVariables.map((v) => ({ key: v.key, label: v.label }))}
+                onPick={onAddVariable}
+                align="end"
+                width="w-56"
+                heading="Ajouter une variable"
+                buttonLabel="Variable"
+                buttonClassName="h-5 text-[10px] border-dashed px-1.5 gap-0.5"
+                title="Ajouter une variable (Charge, %1RM, RPE, RIR, Tempo...)"
+              />
             )}
           </div>
           <div className="flex flex-wrap gap-2">
@@ -2915,50 +2882,19 @@ export const MethodConfigSlots = ({
 
                       {/* Add Variable button - show only on first series to avoid duplicates */}
                       {idx === 0 && hiddenVariables.length > 0 && (
-                        <div className="relative">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onPointerDown={(e) => e.stopPropagation()}
-                            onMouseDown={(e) => e.stopPropagation()}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setInlineVariablePickerOpen((prev) => !prev);
-                            }}
-                            className="h-7 px-2 text-xs border-dashed hover:border-primary hover:bg-primary/5"
-                          >
-                            <Plus className="h-3 w-3 mr-1" />
-                            Variable
-                          </Button>
-                          {inlineVariablePickerOpen && (
-                            <div
-                              className="absolute left-0 top-full mt-1 w-48 rounded-md border bg-popover text-popover-foreground shadow-md z-[999] p-1"
-                              onPointerDown={(e) => e.stopPropagation()}
-                              onMouseDown={(e) => e.stopPropagation()}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <p className="px-2 py-1 text-xs text-muted-foreground">Ajouter une variable</p>
-                              {hiddenVariables.map((variable) => (
-                                <button
-                                  key={variable.key}
-                                  type="button"
-                                  onPointerDown={(e) => e.stopPropagation()}
-                                  onMouseDown={(e) => e.stopPropagation()}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    addVariable(variable.key);
-                                    setInlineVariablePickerOpen(false);
-                                  }}
-                                  className="flex w-full items-center justify-between gap-2 rounded-sm px-2 py-1.5 text-xs text-left hover:bg-accent"
-                                >
-                                  <span>{variable.label}</span>
-                                  {variable.unit && <span className="text-muted-foreground">({variable.unit})</span>}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
+                        <InlineVariablePicker
+                          items={hiddenVariables.map((variable) => ({
+                            key: variable.key,
+                            label: variable.unit ? `${variable.label} (${variable.unit})` : variable.label,
+                          }))}
+                          onPick={addVariable}
+                          align="end"
+                          width="w-56"
+                          heading="Ajouter une variable"
+                          buttonLabel="Variable"
+                          buttonClassName="h-7 px-2 text-xs border-dashed hover:border-primary hover:bg-primary/5"
+                          title="Ajouter une variable (Charge, %1RM, RPE, RIR, Tempo...)"
+                        />
                       )}
                     </>
                   ) : (

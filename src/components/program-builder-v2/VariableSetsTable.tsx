@@ -30,6 +30,7 @@ import {
   formatTempo,
 } from "@/lib/program-builder-v2/variableSetsTypes";
 import { TimeInput } from "@/components/ui/time-input";
+import { InlineVariablePicker } from "./shared/InlineVariablePicker";
 
 interface VariableSetsTableProps {
   sets: SetData[];
