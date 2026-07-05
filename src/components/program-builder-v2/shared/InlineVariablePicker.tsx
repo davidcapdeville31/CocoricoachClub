@@ -1,4 +1,5 @@
-import { useState, ReactNode } from "react";
+import { useState, useRef, useLayoutEffect, ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -21,8 +22,8 @@ interface Props {
 
 /**
  * Sélecteur de variable inline robuste (utilisé dans le program builder).
- * Évite les DropdownMenu Radix qui peuvent ne pas s'afficher dans
- * certains contextes (drag-and-drop, dialogs imbriqués, overflow:hidden parents).
+ * Rendu via un Portal pour éviter que le menu soit caché par les cards
+ * frères (stacking contexts, overflow:hidden, transform).
  */
 export const InlineVariablePicker = ({
   items,
@@ -35,12 +36,34 @@ export const InlineVariablePicker = ({
   heading = "Ajouter une variable",
 }: Props) => {
   const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState<{ top: number; left: number; right: number } | null>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  useLayoutEffect(() => {
+    if (!open || !btnRef.current) return;
+    const update = () => {
+      const rect = btnRef.current!.getBoundingClientRect();
+      setPos({
+        top: rect.bottom + 4,
+        left: rect.left,
+        right: window.innerWidth - rect.right,
+      });
+    };
+    update();
+    window.addEventListener("scroll", update, true);
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update, true);
+      window.removeEventListener("resize", update);
+    };
+  }, [open]);
 
   if (items.length === 0) return null;
 
   return (
-    <div className="relative inline-block">
+    <>
       <Button
+        ref={btnRef}
         type="button"
         variant="outline"
         size="sm"
@@ -56,18 +79,22 @@ export const InlineVariablePicker = ({
         <Plus className="h-2.5 w-2.5" />
         {buttonLabel}
       </Button>
-      {open && (
+      {open && pos && createPortal(
         <>
           <div
-            className="fixed inset-0 z-[998]"
+            className="fixed inset-0 z-[9998]"
             onPointerDown={(e) => { e.stopPropagation(); setOpen(false); }}
             onClick={(e) => { e.stopPropagation(); setOpen(false); }}
           />
           <div
+            style={
+              align === "end"
+                ? { position: "fixed", top: pos.top, right: pos.right }
+                : { position: "fixed", top: pos.top, left: pos.left }
+            }
             className={cn(
-              "absolute top-full mt-1 rounded-md border bg-popover text-popover-foreground shadow-md z-[999] p-1",
+              "rounded-md border bg-popover text-popover-foreground shadow-md z-[9999] p-1",
               width,
-              align === "end" ? "right-0" : "left-0",
             )}
             onPointerDown={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
@@ -91,8 +118,9 @@ export const InlineVariablePicker = ({
               </button>
             ))}
           </div>
-        </>
+        </>,
+        document.body,
       )}
-    </div>
+    </>
   );
 };
