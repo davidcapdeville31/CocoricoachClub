@@ -1,4 +1,4 @@
-import { useState, useRef, useLayoutEffect, ReactNode } from "react";
+import { useState, useRef, useLayoutEffect, useEffect, ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -22,8 +22,14 @@ interface Props {
 
 /**
  * Sélecteur de variable inline robuste (utilisé dans le program builder).
- * Rendu via un Portal pour éviter que le menu soit caché par les cards
- * frères (stacking contexts, overflow:hidden, transform).
+ *
+ * Rendu via un Portal directement dans <body> avec `position: fixed` et un
+ * z-index maximal (2147483647) — impossible d'être masqué par une carte,
+ * une méthode ou un stacking context parent (transform, filter, sticky…).
+ *
+ * Aucun overlay plein écran : les clics extérieurs ferment le menu via un
+ * listener document (capture), ce qui évite tout conflit de pointer-events
+ * avec des Dialogs/Sheets Radix modaux.
  */
 export const InlineVariablePicker = ({
   items,
@@ -40,6 +46,7 @@ export const InlineVariablePicker = ({
   const btnRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  // Position calculation
   useLayoutEffect(() => {
     if (!open || !btnRef.current) return;
     const update = () => {
@@ -47,15 +54,15 @@ export const InlineVariablePicker = ({
       const menuWidth = menuRef.current?.offsetWidth ?? 192;
       const menuHeight = menuRef.current?.offsetHeight ?? 200;
       const margin = 8;
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-      const maxHorizontalOffset = Math.max(margin, viewportWidth - menuWidth - margin);
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+
       const horizontal = align === "end"
-        ? { right: Math.max(margin, Math.min(viewportWidth - rect.right, maxHorizontalOffset)) }
-        : { left: Math.max(margin, Math.min(rect.left, maxHorizontalOffset)) };
+        ? { right: Math.max(margin, Math.min(vw - rect.right, vw - menuWidth - margin)) }
+        : { left: Math.max(margin, Math.min(rect.left, vw - menuWidth - margin)) };
 
       let top = rect.bottom + 4;
-      if (top + menuHeight > viewportHeight - margin) {
+      if (top + menuHeight > vh - margin) {
         top = Math.max(margin, rect.top - menuHeight - 4);
       }
       setPos({ top, ...horizontal });
@@ -68,6 +75,27 @@ export const InlineVariablePicker = ({
       window.removeEventListener("resize", update);
     };
   }, [open, align]);
+
+  // Outside click / Escape to close
+  useEffect(() => {
+    if (!open) return;
+    const onDocPointer = (e: PointerEvent) => {
+      const target = e.target as Node | null;
+      if (!target) return;
+      if (menuRef.current?.contains(target)) return;
+      if (btnRef.current?.contains(target)) return;
+      setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", onDocPointer, true);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onDocPointer, true);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
 
   if (items.length === 0) return null;
 
@@ -91,55 +119,48 @@ export const InlineVariablePicker = ({
         {buttonLabel}
       </Button>
       {open && createPortal(
-        <div style={{ position: "fixed", inset: 0, zIndex: 2147483647, pointerEvents: "none" }}>
-          <div
-            style={{ position: "absolute", inset: 0, pointerEvents: "auto" }}
-            onPointerDown={(e) => { e.stopPropagation(); setOpen(false); }}
-            onClick={(e) => { e.stopPropagation(); setOpen(false); }}
-          />
-          <div
-            ref={menuRef}
-            style={{
-              position: "absolute",
-              top: pos?.top ?? -9999,
-              left: pos?.left,
-              right: pos?.right,
-              visibility: pos ? "visible" : "hidden",
-              pointerEvents: "auto",
-              maxWidth: "calc(100vw - 16px)",
-              maxHeight: "min(320px, calc(100vh - 16px))",
-              overflowY: "auto",
-            }}
-            className={cn(
-              "rounded-lg border bg-popover text-popover-foreground shadow-2xl p-1",
-              width,
-            )}
-            onPointerDown={(e) => e.stopPropagation()}
-            onMouseDown={(e) => e.stopPropagation()}
-            onClick={(e) => e.stopPropagation()}
-          >
-
-            <p className="px-2 py-1.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-              {heading}
-            </p>
-            <div className="flex flex-col">
-              {items.map((item) => (
-                <button
-                  key={item.key}
-                  type="button"
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onPick(item.key);
-                    setOpen(false);
-                  }}
-                  className="w-full rounded-md px-2 py-1.5 text-xs text-left text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
+        <div
+          ref={menuRef}
+          style={{
+            position: "fixed",
+            top: pos?.top ?? -9999,
+            left: pos?.left,
+            right: pos?.right,
+            zIndex: 2147483647,
+            visibility: pos ? "visible" : "hidden",
+            pointerEvents: "auto",
+            maxWidth: "calc(100vw - 16px)",
+            maxHeight: "min(320px, calc(100vh - 16px))",
+            overflowY: "auto",
+          }}
+          className={cn(
+            "rounded-lg border bg-popover text-popover-foreground shadow-2xl p-1",
+            width,
+          )}
+          onPointerDown={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <p className="px-2 py-1.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+            {heading}
+          </p>
+          <div className="flex flex-col">
+            {items.map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                onPointerDown={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPick(item.key);
+                  setOpen(false);
+                }}
+                className="w-full rounded-md px-2 py-1.5 text-xs text-left text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+              >
+                {item.label}
+              </button>
+            ))}
           </div>
         </div>,
         document.body,
@@ -147,4 +168,3 @@ export const InlineVariablePicker = ({
     </>
   );
 };
-
