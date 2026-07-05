@@ -25,7 +25,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Dumbbell, Star, Video, Info, ClipboardList } from "lucide-react";
+import { Search, Dumbbell, Star, Video, Info, ClipboardList, Plus } from "lucide-react";
+import { QuickAddExerciseDialog } from "@/components/library/QuickAddExerciseDialog";
+import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import {
   ExerciseFilters,
