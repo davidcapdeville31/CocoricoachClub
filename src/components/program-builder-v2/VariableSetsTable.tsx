@@ -378,58 +378,17 @@ const InlineColumnPicker = ({
   hiddenColumns: SetsTableColumn[];
   onPick: (key: string) => void;
 }) => {
-  const [open, setOpen] = useState(false);
   return (
-    <div className="relative">
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        className="h-5 w-5"
-        onPointerDown={(e) => e.stopPropagation()}
-        onMouseDown={(e) => e.stopPropagation()}
-        onClick={(e) => {
-          e.stopPropagation();
-          setOpen((o) => !o);
-        }}
-        title="Ajouter une variable de série"
-      >
-        <Plus className="h-3 w-3" />
-      </Button>
-      {open && (
-        <>
-          <div
-            className="fixed inset-0 z-[998]"
-            onPointerDown={(e) => { e.stopPropagation(); setOpen(false); }}
-            onClick={(e) => { e.stopPropagation(); setOpen(false); }}
-          />
-          <div
-            className="absolute right-0 top-full mt-1 w-44 rounded-md border bg-popover text-popover-foreground shadow-md z-[999] p-1"
-            onPointerDown={(e) => e.stopPropagation()}
-            onMouseDown={(e) => e.stopPropagation()}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <p className="px-2 py-1 text-[10px] text-muted-foreground">Ajouter une variable</p>
-            {hiddenColumns.map((col) => (
-              <button
-                key={col.key}
-                type="button"
-                onPointerDown={(e) => e.stopPropagation()}
-                onMouseDown={(e) => e.stopPropagation()}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onPick(col.key);
-                  setOpen(false);
-                }}
-                className="w-full rounded-sm px-2 py-1.5 text-xs text-left hover:bg-accent"
-              >
-                {col.label}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
+    <InlineVariablePicker
+      items={hiddenColumns.map((col) => ({ key: col.key, label: col.label }))}
+      onPick={onPick}
+      align="end"
+      width="w-56"
+      heading="Ajouter une variable"
+      buttonLabel={null}
+      buttonClassName="h-5 w-5 p-0 border-0 bg-transparent hover:bg-accent"
+      title="Ajouter une variable de série"
+    />
   );
 };
 
