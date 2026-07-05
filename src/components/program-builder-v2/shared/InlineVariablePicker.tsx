@@ -32,22 +32,32 @@ export const InlineVariablePicker = ({
   buttonClassName = "h-5 text-[10px] border-dashed px-1.5 gap-0.5",
   align = "end",
   title,
-  width = "w-44",
+  width = "w-48",
   heading = "Ajouter une variable",
 }: Props) => {
   const [open, setOpen] = useState(false);
-  const [pos, setPos] = useState<{ top: number; left: number; right: number } | null>(null);
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
     if (!open || !btnRef.current) return;
     const update = () => {
       const rect = btnRef.current!.getBoundingClientRect();
-      setPos({
-        top: rect.bottom + 4,
-        left: rect.left,
-        right: window.innerWidth - rect.right,
-      });
+      const menuWidth = menuRef.current?.offsetWidth ?? 192;
+      const menuHeight = menuRef.current?.offsetHeight ?? 200;
+      const margin = 8;
+      let left =
+        align === "end"
+          ? rect.right - menuWidth
+          : rect.left;
+      // Clamp horizontally within viewport
+      left = Math.max(margin, Math.min(left, window.innerWidth - menuWidth - margin));
+      let top = rect.bottom + 4;
+      if (top + menuHeight > window.innerHeight - margin) {
+        top = Math.max(margin, rect.top - menuHeight - 4);
+      }
+      setPos({ top, left });
     };
     update();
     window.addEventListener("scroll", update, true);
@@ -56,7 +66,7 @@ export const InlineVariablePicker = ({
       window.removeEventListener("scroll", update, true);
       window.removeEventListener("resize", update);
     };
-  }, [open]);
+  }, [open, align]);
 
   if (items.length === 0) return null;
 
@@ -79,7 +89,7 @@ export const InlineVariablePicker = ({
         <Plus className="h-2.5 w-2.5" />
         {buttonLabel}
       </Button>
-      {open && pos && createPortal(
+      {open && createPortal(
         <>
           <div
             className="fixed inset-0 z-[9998]"
@@ -87,36 +97,42 @@ export const InlineVariablePicker = ({
             onClick={(e) => { e.stopPropagation(); setOpen(false); }}
           />
           <div
-            style={
-              align === "end"
-                ? { position: "fixed", top: pos.top, right: pos.right }
-                : { position: "fixed", top: pos.top, left: pos.left }
-            }
+            ref={menuRef}
+            style={{
+              position: "fixed",
+              top: pos?.top ?? -9999,
+              left: pos?.left ?? -9999,
+              visibility: pos ? "visible" : "hidden",
+            }}
             className={cn(
-              "rounded-md border bg-popover text-popover-foreground shadow-md z-[9999] p-1",
+              "rounded-lg border bg-popover text-popover-foreground shadow-lg z-[9999] p-1 overflow-hidden",
               width,
             )}
             onPointerDown={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="px-2 py-1 text-[10px] text-muted-foreground">{heading}</p>
-            {items.map((item) => (
-              <button
-                key={item.key}
-                type="button"
-                onPointerDown={(e) => e.stopPropagation()}
-                onMouseDown={(e) => e.stopPropagation()}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onPick(item.key);
-                  setOpen(false);
-                }}
-                className="w-full rounded-sm px-2 py-1.5 text-xs text-left hover:bg-accent"
-              >
-                {item.label}
-              </button>
-            ))}
+            <p className="px-2 py-1.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+              {heading}
+            </p>
+            <div className="flex flex-col">
+              {items.map((item) => (
+                <button
+                  key={item.key}
+                  type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onPick(item.key);
+                    setOpen(false);
+                  }}
+                  className="w-full rounded-md px-2 py-1.5 text-xs text-left text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
           </div>
         </>,
         document.body,
@@ -124,3 +140,4 @@ export const InlineVariablePicker = ({
     </>
   );
 };
+
