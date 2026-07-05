@@ -978,8 +978,13 @@ export function CreateTrainingProgramV2({
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                if (weekToDelete !== null) removeWeek(weekToDelete);
+                const target = weekToDelete;
                 setWeekToDelete(null);
+                // Defer state update until after dialog unmounts to avoid Radix
+                // focus-return crashing on a trigger element that just disappeared.
+                if (target !== null) {
+                  setTimeout(() => removeWeek(target), 0);
+                }
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
