@@ -462,7 +462,7 @@ export const AddTrainingBlockButton = ({ onAddBlock, variant = "default" }: AddT
   };
 
   return (
-    <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+    <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen} modal={false}>
       <DropdownMenuTrigger asChild>
         <Button 
           variant="destructive"
@@ -473,7 +473,7 @@ export const AddTrainingBlockButton = ({ onAddBlock, variant = "default" }: AddT
           Ajouter un bloc de travail
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="center" className="w-56 z-[90]">
+      <DropdownMenuContent align="center" className="w-56 z-[200]">
         {TRAINING_BLOCK_TYPES.map((blockType) => {
           const Icon = blockType.icon;
           return (
