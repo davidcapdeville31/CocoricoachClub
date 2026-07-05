@@ -90,28 +90,30 @@ export const InlineVariablePicker = ({
         {buttonLabel}
       </Button>
       {open && createPortal(
-        <>
+        <div style={{ position: "fixed", inset: 0, zIndex: 2147483647, pointerEvents: "none" }}>
           <div
-            className="fixed inset-0 z-[9998]"
+            style={{ position: "absolute", inset: 0, pointerEvents: "auto" }}
             onPointerDown={(e) => { e.stopPropagation(); setOpen(false); }}
             onClick={(e) => { e.stopPropagation(); setOpen(false); }}
           />
           <div
             ref={menuRef}
             style={{
-              position: "fixed",
+              position: "absolute",
               top: pos?.top ?? -9999,
               left: pos?.left ?? -9999,
               visibility: pos ? "visible" : "hidden",
+              pointerEvents: "auto",
             }}
             className={cn(
-              "rounded-lg border bg-popover text-popover-foreground shadow-lg z-[9999] p-1 overflow-hidden",
+              "rounded-lg border bg-popover text-popover-foreground shadow-xl p-1 overflow-hidden",
               width,
             )}
             onPointerDown={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
           >
+
             <p className="px-2 py-1.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
               {heading}
             </p>
@@ -134,7 +136,7 @@ export const InlineVariablePicker = ({
               ))}
             </div>
           </div>
-        </>,
+        </div>,
         document.body,
       )}
     </>
