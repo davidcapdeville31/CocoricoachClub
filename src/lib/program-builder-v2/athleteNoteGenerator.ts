@@ -33,7 +33,7 @@ const pl = (n: number, word: string): string => `${n} ${word}${n > 1 ? "s" : ""}
 
 interface SeriesData {
   reps?: string | number; percentage?: number; load?: number; tempo?: string;
-  rpe?: number; angle?: number; timeUnderTension?: number; contractionType?: string;
+  rpe?: number; rir?: number; angle?: number; timeUnderTension?: number; contractionType?: string;
   reductionType?: string; reductionValue?: number; pauseSeconds?: number;
   isActive?: boolean; phaseExerciseId?: string; phaseExerciseName?: string;
   exerciseId?: string; exerciseName?: string;
