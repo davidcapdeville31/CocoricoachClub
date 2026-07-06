@@ -1068,6 +1068,48 @@ const CircuitExerciseSlot = ({
                 )}
               </div>
             )}
+            {activeVars.includes('angle') && (
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-1">
+                  <Label className="text-[10px] text-muted-foreground font-medium">Angle</Label>
+                  {onRemoveVariable && (
+                    <button type="button" onClick={() => onRemoveVariable('angle')} className="h-3 w-3 flex items-center justify-center text-destructive hover:text-destructive/80">
+                      <X className="h-2.5 w-2.5" />
+                    </button>
+                  )}
+                </div>
+                <NumericInput
+                  value={seriesData?.angle}
+                  onChange={(val) => onUpdateSeries("angle", parseInt(val) || undefined)}
+                  className="h-8"
+                  placeholder="90"
+                  minChars={3}
+                  maxChars={5}
+                  suffix="°"
+                />
+              </div>
+            )}
+            {activeVars.includes('timeUnderTension') && (
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-1">
+                  <Label className="text-[10px] text-muted-foreground font-medium">TST</Label>
+                  {onRemoveVariable && (
+                    <button type="button" onClick={() => onRemoveVariable('timeUnderTension')} className="h-3 w-3 flex items-center justify-center text-destructive hover:text-destructive/80">
+                      <X className="h-2.5 w-2.5" />
+                    </button>
+                  )}
+                </div>
+                <NumericInput
+                  value={seriesData?.timeUnderTension}
+                  onChange={(val) => onUpdateSeries("timeUnderTension", parseInt(val) || undefined)}
+                  className="h-8"
+                  placeholder="6"
+                  minChars={2}
+                  maxChars={4}
+                  suffix="s"
+                />
+              </div>
+            )}
           </div>
         </div>
       )}
