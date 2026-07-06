@@ -1958,6 +1958,9 @@ export const MethodConfigSlots = ({
                                       percentage: series[sourceSlotIdx].percentage,
                                       tempo: series[sourceSlotIdx].tempo,
                                       rpe: series[sourceSlotIdx].rpe,
+                                      rir: series[sourceSlotIdx].rir,
+                                      angle: series[sourceSlotIdx].angle,
+                                      timeUnderTension: series[sourceSlotIdx].timeUnderTension,
                                     };
                                   }
                                 }
@@ -1996,6 +1999,9 @@ export const MethodConfigSlots = ({
                                       percentage: series[sourceSlotIdx].percentage,
                                       tempo: series[sourceSlotIdx].tempo,
                                       rpe: series[sourceSlotIdx].rpe,
+                                      rir: series[sourceSlotIdx].rir,
+                                      angle: series[sourceSlotIdx].angle,
+                                      timeUnderTension: series[sourceSlotIdx].timeUnderTension,
                                     };
                                   }
                                 }
@@ -3173,6 +3179,9 @@ export const MethodConfigSlots = ({
                 load: series[parseInt(idx)]?.load,
                 tempo: series[parseInt(idx)]?.tempo,
                 rpe: series[parseInt(idx)]?.rpe,
+                rir: series[parseInt(idx)]?.rir,
+                angle: series[parseInt(idx)]?.angle,
+                timeUnderTension: series[parseInt(idx)]?.timeUnderTension,
               })) : undefined,
           timeCap: ['amrap', 'for_time'].includes(method) ? timeCap : undefined,
           emomConfig: isEmom ? { intervalMinutes: emomConfig.intervalMinutes, totalMinutes: emomConfig.totalMinutes } : undefined,
