@@ -139,6 +139,9 @@ export interface MethodConfigInitialData {
     load?: number;
     tempo?: string;
     rpe?: number;
+    rir?: number;
+    angle?: number;
+    timeUnderTension?: number;
   }>;
   // Rest-Pause dedicated config
   restPauseConfig?: RestPauseConfig;
@@ -1255,6 +1258,9 @@ export const MethodConfigSlots = ({
         if (ex.load !== undefined) s.load = ex.load;
         if (ex.tempo !== undefined) s.tempo = ex.tempo;
         if (ex.rpe !== undefined) s.rpe = ex.rpe;
+        if (ex.rir !== undefined) s.rir = ex.rir;
+        if (ex.angle !== undefined) s.angle = ex.angle;
+        if (ex.timeUnderTension !== undefined) s.timeUnderTension = ex.timeUnderTension;
         s.exerciseId = ex.exerciseId;
         s.exerciseName = ex.exerciseName;
         s.phaseExerciseId = ex.exerciseId;
@@ -1290,6 +1296,9 @@ export const MethodConfigSlots = ({
       if (hasAny('load')) vars.push('load');
       if (hasAny('tempo')) vars.push('tempo');
       if (hasAny('rpe')) vars.push('rpe');
+      if (hasAny('rir')) vars.push('rir');
+      if (hasAny('angle')) vars.push('angle');
+      if (hasAny('timeUnderTension')) vars.push('timeUnderTension');
       return vars;
     }
     // Default for fresh creation
