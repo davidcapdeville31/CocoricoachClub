@@ -86,22 +86,12 @@ serve(async (req) => {
         break;
 
       case "injuries":
-        const { data: injuriesData } = await supabaseAdmin
-          .from("injuries")
-          .select("*, players(name)")
-          .eq("category_id", categoryId);
-        data = injuriesData || [];
-        break;
-
       case "wellness":
-        const { data: wellnessData } = await supabaseAdmin
-          .from("wellness_tracking")
-          .select("*, players(name)")
-          .eq("category_id", categoryId)
-          .order("wellness_date", { ascending: false })
-          .limit(200);
-        data = wellnessData || [];
-        break;
+        // Sensitive medical/health data is intentionally NOT exposed via public share tokens.
+        return new Response(
+          JSON.stringify({ error: "Medical and wellness data are not available via public share links" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
 
       case "awcr":
         const { data: awcrData } = await supabaseAdmin
@@ -133,26 +123,21 @@ serve(async (req) => {
         break;
 
       case "overview":
-        const [players, sessions, injuries] = await Promise.all([
+        const [players, sessions] = await Promise.all([
           supabaseAdmin.from("players").select("id").eq("category_id", categoryId),
           supabaseAdmin.from("training_sessions").select("id").eq("category_id", categoryId),
-          supabaseAdmin.from("injuries").select("id, status").eq("category_id", categoryId),
         ]);
 
         data = {
           totalPlayers: players.data?.length || 0,
           totalSessions: sessions.data?.length || 0,
-          activeInjuries: injuries.data?.filter((i) => i.status === "active").length || 0,
+          activeInjuries: 0, // Medical data not exposed via public tokens
           categoryName: tokenInfo.category_name,
           clubName: tokenInfo.club_name,
         };
         break;
 
       case "all":
-        // Fetch all data at once for efficiency
-        const today = new Date().toISOString().split("T")[0];
-        
-        // First fetch matches to get IDs
         const matchesResult = await supabaseAdmin.from("matches").select("*").eq("category_id", categoryId).order("match_date", { ascending: false });
         const matchIds = (matchesResult.data || []).map((m: any) => m.id);
 
@@ -160,8 +145,6 @@ serve(async (req) => {
           allCategory,
           allPlayers,
           allSessions,
-          allInjuries,
-          allWellness,
           allAwcr,
           allAttendance,
           allPrograms,
@@ -170,27 +153,25 @@ serve(async (req) => {
           supabaseAdmin.from("categories").select("*, clubs(name, id)").eq("id", categoryId).single(),
           supabaseAdmin.from("players").select("id, name, position, date_of_birth, avatar_url, jersey_number, created_at").eq("category_id", categoryId).order("name"),
           supabaseAdmin.from("training_sessions").select("*").eq("category_id", categoryId).order("session_date", { ascending: false }).limit(100),
-          supabaseAdmin.from("injuries").select("*, players(name)").eq("category_id", categoryId),
-          supabaseAdmin.from("wellness_tracking").select("*, players(name)").eq("category_id", categoryId).order("wellness_date", { ascending: false }).limit(200),
           supabaseAdmin.from("awcr_tracking").select("*, players(name)").eq("category_id", categoryId).order("session_date", { ascending: false }).limit(200),
           supabaseAdmin.from("training_attendance").select("*, players(name), training_sessions(session_date, training_type)").eq("category_id", categoryId).order("created_at", { ascending: false }).limit(500),
           supabaseAdmin.from("training_programs").select("*").eq("category_id", categoryId).order("created_at", { ascending: false }),
-          matchIds.length > 0 
+          matchIds.length > 0
             ? supabaseAdmin.from("match_lineups").select("*, players(name), matches(opponent, match_date)").in("match_id", matchIds)
             : Promise.resolve({ data: [] }),
         ]);
 
-        // Calculate today's sessions
-        const todaySessions = (allSessions.data || []).filter((s: any) => s.session_date === today);
+        const todaySessionsAll = (allSessions.data || []).filter((s: any) => s.session_date === new Date().toISOString().split("T")[0]);
 
         data = {
           category: allCategory.data,
           players: allPlayers.data || [],
           matches: matchesResult.data || [],
           sessions: allSessions.data || [],
-          todaySessions,
-          injuries: allInjuries.data || [],
-          wellness: allWellness.data || [],
+          todaySessions: todaySessionsAll,
+          // Medical/wellness data intentionally excluded from public share tokens
+          injuries: [],
+          wellness: [],
           awcr: allAwcr.data || [],
           attendance: allAttendance.data || [],
           programs: allPrograms.data || [],
@@ -198,7 +179,7 @@ serve(async (req) => {
           overview: {
             totalPlayers: allPlayers.data?.length || 0,
             totalSessions: allSessions.data?.length || 0,
-            activeInjuries: allInjuries.data?.filter((i: any) => i.status === "active").length || 0,
+            activeInjuries: 0,
             categoryName: tokenInfo.category_name,
             clubName: tokenInfo.club_name,
           }
