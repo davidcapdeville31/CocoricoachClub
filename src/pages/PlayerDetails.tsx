@@ -161,11 +161,18 @@ function PlayerDetailsContent() {
       // For athletics/judo, update discipline field
       // For aviron/team sports, update position field
       const updateField = (isAthletics || isJudo) ? "discipline" : "position";
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("players")
         .update({ [updateField]: newPosition || null } as any)
-        .eq("id", playerId!);
+        .eq("id", playerId!)
+        .select("id")
+        .maybeSingle();
       if (error) throw error;
+      // RLS may silently filter the update out (0 rows affected) without raising
+      // an error. Detect that case so we don't show a false success toast.
+      if (!data) {
+        throw new Error("Modification refusée : vous n'avez pas les droits pour modifier cet athlète.");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["player", playerId] });
@@ -173,6 +180,8 @@ function PlayerDetailsContent() {
       if (player?.category_id) {
         queryClient.invalidateQueries({ queryKey: ["players", player.category_id] });
       }
+      queryClient.invalidateQueries({ queryKey: ["players"] });
+      queryClient.invalidateQueries({ queryKey: ["player-core-identity", playerId] });
       toast.success("Mis à jour avec succès");
       setIsEditingPosition(false);
       // Reset specialty when discipline changes for athletics
@@ -180,8 +189,8 @@ function PlayerDetailsContent() {
         setEditSpecialty("");
       }
     },
-    onError: () => {
-      toast.error("Erreur lors de la mise à jour");
+    onError: (e: any) => {
+      toast.error(e?.message || "Erreur lors de la mise à jour");
     },
   });
 
