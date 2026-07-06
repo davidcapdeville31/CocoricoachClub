@@ -52,16 +52,57 @@ serve(async (req: Request) => {
     const ONESIGNAL_REST_API_KEY = Deno.env.get("ONESIGNAL_REST_API_KEY");
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
     if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_API_KEY) {
       throw new Error("OneSignal credentials not configured");
     }
+
+    // Require a valid staff JWT
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const authedClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: claimsData, error: claimsError } = await authedClient.auth.getClaims(
+      authHeader.replace("Bearer ", "")
+    );
+    if (claimsError || !claimsData?.claims?.sub) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const callerId = claimsData.claims.sub as string;
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const body: TagRequest = await req.json();
     const { session_id, player_ids, club_id, action = "add" } = body;
 
     if (!session_id) throw new Error("session_id is required");
+
+    // Verify caller has staff access to the session's category
+    const { data: sessionRow } = await supabase
+      .from("training_sessions").select("category_id").eq("id", session_id).maybeSingle();
+    if (!sessionRow?.category_id) {
+      return new Response(JSON.stringify({ error: "Session not found" }), {
+        status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const { data: canAccess } = await supabase.rpc("can_access_category", {
+      _user_id: callerId, _category_id: sessionRow.category_id,
+    });
+    const { data: isSuper } = await supabase
+      .from("super_admin_users").select("id").eq("user_id", callerId).maybeSingle();
+    if (!canAccess && !isSuper) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (!player_ids || player_ids.length === 0) {
       console.log(`[tag-session-participants] No player_ids provided for session ${session_id}`);
       return new Response(

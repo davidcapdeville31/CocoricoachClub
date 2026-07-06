@@ -25,8 +25,6 @@ project_id = "env(SUPABASE_PROJECT_ID)"
     verify_jwt = true
   [functions.push-notifications]
     verify_jwt = false
-  [functions.reset-password]
-    verify_jwt = false
   [functions.send-athlete-invitation]
     verify_jwt = false
   [functions.send-global-notification]
@@ -35,8 +33,6 @@ project_id = "env(SUPABASE_PROJECT_ID)"
     verify_jwt = false
   [functions.voice-assistant]
     verify_jwt = true
-  [functions.seed-system-tests-meta]
-    verify_jwt = false
   [functions.athlete-bowling-training]
     verify_jwt = false
   [functions.accept-athlete-invitation-signup]
