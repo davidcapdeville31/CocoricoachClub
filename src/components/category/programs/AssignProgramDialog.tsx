@@ -246,7 +246,13 @@ export function AssignProgramDialog({
               status: "present" as const,
             }));
 
-            await supabase.from("training_attendance").insert(attendanceRecords);
+            const { error: attendanceError } = await supabase
+              .from("training_attendance")
+              .insert(attendanceRecords);
+
+            if (attendanceError) {
+              throw new Error(`Séance créée, mais assignation athlète impossible : ${attendanceError.message}`);
+            }
           }
         }
       }
@@ -260,6 +266,7 @@ export function AssignProgramDialog({
       queryClient.invalidateQueries({ queryKey: ["training-programs"] });
       queryClient.invalidateQueries({ queryKey: ["program-assignments"] });
       queryClient.invalidateQueries({ queryKey: ["training-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["sessions", categoryId] });
       onOpenChange(false);
     } catch (error: any) {
       console.error("Save error:", error);
