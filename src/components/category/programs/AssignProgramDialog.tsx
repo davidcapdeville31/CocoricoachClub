@@ -363,6 +363,7 @@ export function AssignProgramDialog({
                 showInjuredFilter={true}
               />
             )}
+          </div>
         </div>
 
         <DialogFooter className="pt-4 border-t">
