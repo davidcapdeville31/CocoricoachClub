@@ -952,7 +952,7 @@ export function CreateTrainingProgramV2({
           <Drawer open={mobileLibraryOpen} onOpenChange={setMobileLibraryOpen}>
             <DrawerContent className="lg:hidden h-[92dvh] max-h-[92dvh] rounded-t-2xl p-0 overflow-hidden">
               <DrawerTitle className="sr-only">Bibliothèque d'exercices</DrawerTitle>
-              <div className="flex h-full min-h-0 flex-col overflow-hidden pt-2">
+              <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
                 <V2ExerciseBankSidebar
                   onClickInsert={handleProgramClickInsert}
                   onInserted={() => setMobileLibraryOpen(false)}
