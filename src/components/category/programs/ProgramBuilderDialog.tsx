@@ -662,7 +662,11 @@ export function ProgramBuilderDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] w-full h-[90vh] flex flex-col p-0">
+      <DialogContent
+        className="max-w-[95vw] w-full h-[90vh] flex flex-col p-0"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         {useV2Builder ? (
           <>
             <DialogHeader className="sr-only">
