@@ -134,22 +134,29 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
     const keepPlayer = (pid: string | null | undefined) =>
       !allowedIds || (!!pid && allowedIds.has(pid));
 
-    // Fetch players
-    const { data: allPlayersRaw = [] } = useQuery({
-      queryKey: ["players", categoryId],
+    // Fetch players via `players_safe` (non-sensitive fields only, RLS-friendly
+    // for coach/athlete accounts that cannot read the full `players` table).
+    const {
+      data: allPlayersRaw = [],
+      isLoading: isPlayersLoading,
+      isFetching: isPlayersFetching,
+    } = useQuery({
+      queryKey: ["players-safe-decision", categoryId],
       queryFn: async () => {
         const { data, error } = await supabase
-          .from("players")
-          .select("id, name, first_name, position")
+          .from("players_safe")
+          .select("id, name, first_name, position, category_id")
           .eq("category_id", categoryId);
         if (error) throw error;
-        return data;
+        return data || [];
       },
+      enabled: !!categoryId,
     });
     const players = useMemo(
       () => (allPlayersRaw || []).filter((p: any) => keepPlayer(p.id)),
       [allPlayersRaw, allowedIds]
     );
+    const playersLoading = isPlayersLoading || (isPlayersFetching && (allPlayersRaw?.length ?? 0) === 0);
 
     const getFullName = (player: { first_name?: string | null; name: string }) =>
       [player.first_name, player.name].filter(Boolean).join(" ");
@@ -849,37 +856,47 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Disponibilité</span>
-                  <span className={cn(
-                    "text-2xl font-bold",
-                    availabilityPercent >= 80 ? "text-green-600" : 
-                    availabilityPercent >= 60 ? "text-yellow-600" : "text-red-600"
-                  )}>
-                    {availabilityPercent}%
-                  </span>
+              {playersLoading ? (
+                <div className="py-4 text-sm text-muted-foreground">
+                  Chargement de l’effectif...
                 </div>
-                <Progress 
-                  value={availabilityPercent} 
-                  className={cn(
-                    "h-3",
-                    availabilityPercent >= 80 ? "[&>div]:bg-green-500" : 
-                    availabilityPercent >= 60 ? "[&>div]:bg-yellow-500" : "[&>div]:bg-red-500"
-                  )}
-                />
-                <p className="text-xs text-muted-foreground">
-                  {groupStatus.available} / {groupStatus.total} athlètes disponibles
-                </p>
-                {groupStatus.atRisk === 0 && groupStatus.injured === 0 && groupStatus.uncertain === 0 && (
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-100 dark:bg-green-900/30">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span className="font-semibold text-green-700 dark:text-green-400 text-sm">
-                      Groupe au complet
+              ) : groupStatus.total === 0 ? (
+                <div className="py-4 text-sm text-muted-foreground">
+                  Aucun athlète dans cette catégorie
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Disponibilité</span>
+                    <span className={cn(
+                      "text-2xl font-bold",
+                      availabilityPercent >= 80 ? "text-green-600" :
+                      availabilityPercent >= 60 ? "text-yellow-600" : "text-red-600"
+                    )}>
+                      {availabilityPercent}%
                     </span>
                   </div>
-                )}
-              </div>
+                  <Progress
+                    value={availabilityPercent}
+                    className={cn(
+                      "h-3",
+                      availabilityPercent >= 80 ? "[&>div]:bg-green-500" :
+                      availabilityPercent >= 60 ? "[&>div]:bg-yellow-500" : "[&>div]:bg-red-500"
+                    )}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {groupStatus.available} / {groupStatus.total} athlètes disponibles
+                  </p>
+                  {groupStatus.atRisk === 0 && groupStatus.injured === 0 && groupStatus.uncertain === 0 && (
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-100 dark:bg-green-900/30">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <span className="font-semibold text-green-700 dark:text-green-400 text-sm">
+                        Groupe au complet
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
 
