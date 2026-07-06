@@ -25,11 +25,14 @@ import { useCategoryAttributes } from "@/hooks/useCategoryAttributes";
 import { AthleteIdentityBadges } from "@/components/player/AthleteIdentityBadges";
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
+import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
 
 interface Player {
   id: string;
   name: string;
+  first_name?: string | null;
   position?: string;
+  season_id?: string | null;
 }
 
 interface AdvancedPlayerSelectionProps {
@@ -63,19 +66,11 @@ export function AdvancedPlayerSelection({
 
   // Fetch players if not provided externally
   const { data: fetchedPlayers } = useQuery({
-    queryKey: ["players", categoryId, seasonScope],
+    queryKey: ["players", categoryId, "selection-roster", seasonScope],
     queryFn: async () => {
-      let q = supabase
-        .from("players")
-        .select("id, name, position, season_id")
-        .eq("category_id", categoryId)
-        .order("name");
-      if (activeSeasonOnly && activeSeasonId) {
-        q = q.eq("season_id", activeSeasonId);
-      }
-      const { data, error } = await q;
-      if (error) throw error;
-      return data;
+      const roster = await fetchCategoryRosterPlayers(categoryId);
+      if (!activeSeasonOnly || !activeSeasonId) return roster;
+      return roster.filter((p: any) => p.season_id === activeSeasonId);
     },
     enabled: !externalPlayers,
   });

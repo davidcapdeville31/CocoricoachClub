@@ -18,6 +18,7 @@ import { format, addDays, startOfWeek, addWeeks } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Switch } from "@/components/ui/switch";
 import { AdvancedPlayerSelection } from "../players/AdvancedPlayerSelection";
+import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
 
 interface AssignProgramDialogProps {
   categoryId: string;
@@ -69,15 +70,9 @@ export function AssignProgramDialog({
 
   // Fetch players for "all" mode
   const { data: allPlayers } = useQuery({
-    queryKey: ["players", categoryId],
+    queryKey: ["players", categoryId, "assignable-roster"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("players")
-        .select("id, name, position")
-        .eq("category_id", categoryId)
-        .order("name");
-      if (error) throw error;
-      return data;
+      return fetchCategoryRosterPlayers(categoryId);
     },
     enabled: open,
   });
@@ -359,6 +354,7 @@ export function AssignProgramDialog({
                 onSelectionChange={setSelectedPlayers}
                 selectionMode={selectionMode}
                 onSelectionModeChange={setSelectionMode}
+                players={allPlayers}
                 maxHeight="180px"
                 showInjuredFilter={true}
               />

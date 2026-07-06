@@ -71,7 +71,7 @@ export function useViewerData<T>({
  */
 export function useViewerPlayers(categoryId: string) {
   const result = useViewerData<any[]>({
-    queryKey: ["players", categoryId],
+    queryKey: ["players", categoryId, "roster"],
     queryFn: async () => fetchCategoryRosterPlayers(categoryId),
     publicDataKey: "players",
     enabled: !!categoryId,
