@@ -923,7 +923,7 @@ export function CreateTrainingProgramV2({
                 </div>
               )}
             </div>
-            <aside className="hidden md:flex flex-col w-[340px] border-l border-border/60 bg-muted/20">
+            <aside className="hidden md:flex flex-col w-[340px] border-l border-border/60 bg-muted/20 h-full min-h-0 overflow-hidden">
               <V2ExerciseBankSidebar
                 onClickInsert={handleProgramClickInsert}
                 mode={
