@@ -29,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Select,
@@ -46,6 +47,7 @@ import {
   Plus,
   Calendar,
   CalendarPlus,
+  Dumbbell,
   Sparkles,
   Settings,
   Copy,
@@ -165,6 +167,7 @@ export function CreateTrainingProgramV2({
   const [assignProgramId, setAssignProgramId] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<"save" | "assign" | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [mobileLibraryOpen, setMobileLibraryOpen] = useState(false);
   const saveProgram = useSaveProgramV2();
   const dayEditorRef = useRef<SessionDayEditorHandle | null>(null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
@@ -370,16 +373,17 @@ export function CreateTrainingProgramV2({
     const handle = dayEditorRef.current;
     if (!handle) {
       toast.error("Sélectionne d'abord un jour, puis ajoute un bloc.");
-      return;
+      return false;
     }
     const day = currentDayRef.current;
     const targetId = day?.blocks?.[day.blocks.length - 1]?.id;
     if (!targetId) {
       toast.error("Ajoute d'abord un bloc de travail.");
-      return;
+      return false;
     }
     handle.insertExternalExercise(targetId, { id: picked.id, name: picked.exercise_name });
     toast.success(`« ${picked.exercise_name} » ajouté`);
+    return true;
   }, []);
 
   const currentDayRef = useRef<V2ProgramDay | null>(null);
@@ -744,8 +748,18 @@ export function CreateTrainingProgramV2({
           </div>
 
           {/* Day editor + Library sidebar */}
-          <div className="flex-1 overflow-hidden flex">
-            <div className="flex-1 overflow-auto p-4 md:p-6 space-y-4">
+          <div className="flex-1 min-h-0 overflow-hidden flex">
+            <div className="flex-1 min-h-0 overflow-auto p-4 md:p-6 space-y-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setMobileLibraryOpen(true)}
+                className="md:hidden w-full rounded-2xl gap-2 justify-center sticky top-0 z-10 bg-background/95 backdrop-blur"
+              >
+                <Dumbbell className="h-4 w-4" />
+                Ajouter depuis la bibliothèque
+              </Button>
+
               {/* Inline metadata card (collapsible) */}
               <Collapsible open={infoOpen} onOpenChange={setInfoOpen}>
                 <Card className="rounded-2xl shadow-lg border-border/60 bg-card/95 backdrop-blur">
@@ -923,7 +937,7 @@ export function CreateTrainingProgramV2({
                 </div>
               )}
             </div>
-            <aside className="hidden md:flex flex-col w-[340px] border-l border-border/60 bg-muted/20 h-full min-h-0 overflow-hidden">
+            <aside className="hidden md:flex flex-col w-[340px] border-l border-border/60 bg-muted/20 h-full min-h-0 overflow-hidden overscroll-contain">
               <V2ExerciseBankSidebar
                 onClickInsert={handleProgramClickInsert}
                 mode={
@@ -935,6 +949,22 @@ export function CreateTrainingProgramV2({
               />
             </aside>
           </div>
+          <Drawer open={mobileLibraryOpen} onOpenChange={setMobileLibraryOpen}>
+            <DrawerContent className="md:hidden h-[92dvh] max-h-[92dvh] rounded-t-2xl p-0 overflow-hidden">
+              <div className="flex h-full min-h-0 flex-col overflow-hidden pt-2">
+                <V2ExerciseBankSidebar
+                  onClickInsert={handleProgramClickInsert}
+                  onInserted={() => setMobileLibraryOpen(false)}
+                  mode={
+                    currentDay?.blocks?.[currentDay.blocks.length - 1]?.type === "tests"
+                      ? "tests"
+                      : "exercises"
+                  }
+                  categoryId={categoryId}
+                />
+              </div>
+            </DrawerContent>
+          </Drawer>
         </div>
       </DndContext>
 
