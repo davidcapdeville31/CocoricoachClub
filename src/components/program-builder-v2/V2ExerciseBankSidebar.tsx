@@ -156,9 +156,9 @@ export function V2ExerciseBankSidebar({ onClickInsert, onInserted, mode = "exerc
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   return (
-    <>
+    <ScrollArea className="flex-1 min-h-0 w-full" style={{ width: "100%" }}>
       {/* ---------- Header: search + advanced filters ---------- */}
-      <div className="p-3 border-b space-y-2 flex-shrink-0 w-full overflow-hidden">
+      <div className="p-3 border-b space-y-2 w-full overflow-hidden">
         <div className="flex items-center justify-between gap-2">
           <h3 className="font-semibold text-sm flex items-center gap-2 min-w-0">
             <Dumbbell className="h-4 w-4 text-primary shrink-0" />
@@ -205,7 +205,7 @@ export function V2ExerciseBankSidebar({ onClickInsert, onInserted, mode = "exerc
 
 
       {/* ---------- Category selector (single dropdown with all categories) ---------- */}
-      <div className="px-2 py-1.5 border-b bg-muted/50 flex-shrink-0 space-y-1.5">
+      <div className="px-2 py-1.5 border-b bg-muted/50 space-y-1.5">
         <Select
           value={filters.selectedCategory}
           onValueChange={(value) =>
@@ -260,35 +260,30 @@ export function V2ExerciseBankSidebar({ onClickInsert, onInserted, mode = "exerc
 
 
       {/* ---------- Exercises list ---------- */}
-      <ScrollArea
-        className="flex-1 min-h-0 overflow-hidden"
-        style={{ width: "100%" }}
-      >
-        <div className="p-2 space-y-1.5">
-          {isLoading && (
-            <p className="text-center text-muted-foreground py-8 text-sm">
-              Chargement...
-            </p>
-          )}
-          {!isLoading &&
-            filteredExercises.map((exercise) => (
-              <LibraryExerciseRow
-                key={exercise.id}
-                exercise={exercise}
-                isFavorite={exerciseFavorites.has(exercise.id)}
-                onToggleFavorite={() => toggleExerciseFavorite(exercise.id)}
-                onClickInsert={onClickInsert}
-                onInserted={onInserted}
-              />
-            ))}
-          {!isLoading && filteredExercises.length === 0 && (
-            <p className="text-center text-muted-foreground py-8 text-sm">
-              Aucun exercice trouvé
-            </p>
-          )}
-        </div>
-      </ScrollArea>
-    </>
+      <div className="p-2 space-y-1.5">
+        {isLoading && (
+          <p className="text-center text-muted-foreground py-8 text-sm">
+            Chargement...
+          </p>
+        )}
+        {!isLoading &&
+          filteredExercises.map((exercise) => (
+            <LibraryExerciseRow
+              key={exercise.id}
+              exercise={exercise}
+              isFavorite={exerciseFavorites.has(exercise.id)}
+              onToggleFavorite={() => toggleExerciseFavorite(exercise.id)}
+              onClickInsert={onClickInsert}
+              onInserted={onInserted}
+            />
+          ))}
+        {!isLoading && filteredExercises.length === 0 && (
+          <p className="text-center text-muted-foreground py-8 text-sm">
+            Aucun exercice trouvé
+          </p>
+        )}
+      </div>
+    </ScrollArea>
   );
 }
 
