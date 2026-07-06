@@ -22,9 +22,22 @@ const OPTIMAL_WELLNESS = {
   notes: null,
 };
 
+const validateCronSecret = (req: Request): boolean => {
+  const cronSecret = Deno.env.get("CRON_SECRET");
+  if (!cronSecret) return false;
+  const provided = req.headers.get("x-cron-secret");
+  return !!provided && provided === cronSecret;
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  if (!validateCronSecret(req)) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   try {
