@@ -856,37 +856,47 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Disponibilité</span>
-                  <span className={cn(
-                    "text-2xl font-bold",
-                    availabilityPercent >= 80 ? "text-green-600" : 
-                    availabilityPercent >= 60 ? "text-yellow-600" : "text-red-600"
-                  )}>
-                    {availabilityPercent}%
-                  </span>
+              {playersLoading ? (
+                <div className="py-4 text-sm text-muted-foreground">
+                  Chargement de l’effectif...
                 </div>
-                <Progress 
-                  value={availabilityPercent} 
-                  className={cn(
-                    "h-3",
-                    availabilityPercent >= 80 ? "[&>div]:bg-green-500" : 
-                    availabilityPercent >= 60 ? "[&>div]:bg-yellow-500" : "[&>div]:bg-red-500"
-                  )}
-                />
-                <p className="text-xs text-muted-foreground">
-                  {groupStatus.available} / {groupStatus.total} athlètes disponibles
-                </p>
-                {groupStatus.atRisk === 0 && groupStatus.injured === 0 && groupStatus.uncertain === 0 && (
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-100 dark:bg-green-900/30">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span className="font-semibold text-green-700 dark:text-green-400 text-sm">
-                      Groupe au complet
+              ) : groupStatus.total === 0 ? (
+                <div className="py-4 text-sm text-muted-foreground">
+                  Aucun athlète dans cette catégorie
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Disponibilité</span>
+                    <span className={cn(
+                      "text-2xl font-bold",
+                      availabilityPercent >= 80 ? "text-green-600" :
+                      availabilityPercent >= 60 ? "text-yellow-600" : "text-red-600"
+                    )}>
+                      {availabilityPercent}%
                     </span>
                   </div>
-                )}
-              </div>
+                  <Progress
+                    value={availabilityPercent}
+                    className={cn(
+                      "h-3",
+                      availabilityPercent >= 80 ? "[&>div]:bg-green-500" :
+                      availabilityPercent >= 60 ? "[&>div]:bg-yellow-500" : "[&>div]:bg-red-500"
+                    )}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {groupStatus.available} / {groupStatus.total} athlètes disponibles
+                  </p>
+                  {groupStatus.atRisk === 0 && groupStatus.injured === 0 && groupStatus.uncertain === 0 && (
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-100 dark:bg-green-900/30">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <span className="font-semibold text-green-700 dark:text-green-400 text-sm">
+                        Groupe au complet
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
 
