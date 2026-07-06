@@ -139,6 +139,9 @@ export interface MethodConfigInitialData {
     load?: number;
     tempo?: string;
     rpe?: number;
+    rir?: number;
+    angle?: number;
+    timeUnderTension?: number;
   }>;
   // Rest-Pause dedicated config
   restPauseConfig?: RestPauseConfig;
@@ -1065,6 +1068,48 @@ const CircuitExerciseSlot = ({
                 )}
               </div>
             )}
+            {activeVars.includes('angle') && (
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-1">
+                  <Label className="text-[10px] text-muted-foreground font-medium">Angle</Label>
+                  {onRemoveVariable && (
+                    <button type="button" onClick={() => onRemoveVariable('angle')} className="h-3 w-3 flex items-center justify-center text-destructive hover:text-destructive/80">
+                      <X className="h-2.5 w-2.5" />
+                    </button>
+                  )}
+                </div>
+                <NumericInput
+                  value={seriesData?.angle}
+                  onChange={(val) => onUpdateSeries("angle", parseInt(val) || undefined)}
+                  className="h-8"
+                  placeholder="90"
+                  minChars={3}
+                  maxChars={5}
+                  suffix="°"
+                />
+              </div>
+            )}
+            {activeVars.includes('timeUnderTension') && (
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-1">
+                  <Label className="text-[10px] text-muted-foreground font-medium">TST</Label>
+                  {onRemoveVariable && (
+                    <button type="button" onClick={() => onRemoveVariable('timeUnderTension')} className="h-3 w-3 flex items-center justify-center text-destructive hover:text-destructive/80">
+                      <X className="h-2.5 w-2.5" />
+                    </button>
+                  )}
+                </div>
+                <NumericInput
+                  value={seriesData?.timeUnderTension}
+                  onChange={(val) => onUpdateSeries("timeUnderTension", parseInt(val) || undefined)}
+                  className="h-8"
+                  placeholder="6"
+                  minChars={2}
+                  maxChars={4}
+                  suffix="s"
+                />
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1255,6 +1300,9 @@ export const MethodConfigSlots = ({
         if (ex.load !== undefined) s.load = ex.load;
         if (ex.tempo !== undefined) s.tempo = ex.tempo;
         if (ex.rpe !== undefined) s.rpe = ex.rpe;
+        if (ex.rir !== undefined) s.rir = ex.rir;
+        if (ex.angle !== undefined) s.angle = ex.angle;
+        if (ex.timeUnderTension !== undefined) s.timeUnderTension = ex.timeUnderTension;
         s.exerciseId = ex.exerciseId;
         s.exerciseName = ex.exerciseName;
         s.phaseExerciseId = ex.exerciseId;
@@ -1290,6 +1338,9 @@ export const MethodConfigSlots = ({
       if (hasAny('load')) vars.push('load');
       if (hasAny('tempo')) vars.push('tempo');
       if (hasAny('rpe')) vars.push('rpe');
+      if (hasAny('rir')) vars.push('rir');
+      if (hasAny('angle')) vars.push('angle');
+      if (hasAny('timeUnderTension')) vars.push('timeUnderTension');
       return vars;
     }
     // Default for fresh creation
@@ -1907,6 +1958,9 @@ export const MethodConfigSlots = ({
                                       percentage: series[sourceSlotIdx].percentage,
                                       tempo: series[sourceSlotIdx].tempo,
                                       rpe: series[sourceSlotIdx].rpe,
+                                      rir: series[sourceSlotIdx].rir,
+                                      angle: series[sourceSlotIdx].angle,
+                                      timeUnderTension: series[sourceSlotIdx].timeUnderTension,
                                     };
                                   }
                                 }
@@ -1945,6 +1999,9 @@ export const MethodConfigSlots = ({
                                       percentage: series[sourceSlotIdx].percentage,
                                       tempo: series[sourceSlotIdx].tempo,
                                       rpe: series[sourceSlotIdx].rpe,
+                                      rir: series[sourceSlotIdx].rir,
+                                      angle: series[sourceSlotIdx].angle,
+                                      timeUnderTension: series[sourceSlotIdx].timeUnderTension,
                                     };
                                   }
                                 }
@@ -3122,6 +3179,9 @@ export const MethodConfigSlots = ({
                 load: series[parseInt(idx)]?.load,
                 tempo: series[parseInt(idx)]?.tempo,
                 rpe: series[parseInt(idx)]?.rpe,
+                rir: series[parseInt(idx)]?.rir,
+                angle: series[parseInt(idx)]?.angle,
+                timeUnderTension: series[parseInt(idx)]?.timeUnderTension,
               })) : undefined,
           timeCap: ['amrap', 'for_time'].includes(method) ? timeCap : undefined,
           emomConfig: isEmom ? { intervalMinutes: emomConfig.intervalMinutes, totalMinutes: emomConfig.totalMinutes } : undefined,

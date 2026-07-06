@@ -33,7 +33,7 @@ const pl = (n: number, word: string): string => `${n} ${word}${n > 1 ? "s" : ""}
 
 interface SeriesData {
   reps?: string | number; percentage?: number; load?: number; tempo?: string;
-  rpe?: number; angle?: number; timeUnderTension?: number; contractionType?: string;
+  rpe?: number; rir?: number; angle?: number; timeUnderTension?: number; contractionType?: string;
   reductionType?: string; reductionValue?: number; pauseSeconds?: number;
   isActive?: boolean; phaseExerciseId?: string; phaseExerciseName?: string;
   exerciseId?: string; exerciseName?: string;
@@ -41,7 +41,8 @@ interface SeriesData {
 
 interface CrossFitExercise {
   exerciseName: string; reps?: string | number; percentage?: number;
-  load?: number; tempo?: string; rpe?: number;
+  load?: number; tempo?: string; rpe?: number; rir?: number;
+  angle?: number; timeUnderTension?: number;
 }
 
 interface LinkedExerciseData {
@@ -432,7 +433,8 @@ function buildExList(input: MethodNoteInput): CrossFitExercise[] {
   if (!series) return exerciseName ? [{ exerciseName }] : [];
   const from = series.filter(s => s.phaseExerciseName || s.exerciseName)
     .map(s => ({ exerciseName: s.phaseExerciseName || s.exerciseName || exerciseName || "",
-      reps: s.reps, percentage: s.percentage, load: s.load, tempo: s.tempo, rpe: s.rpe }));
+      reps: s.reps, percentage: s.percentage, load: s.load, tempo: s.tempo, rpe: s.rpe,
+      rir: s.rir, angle: s.angle, timeUnderTension: s.timeUnderTension }));
   if (from.length > 0) return from;
   if (exerciseName) return [{ exerciseName, reps: series[0]?.reps }];
   return [];
