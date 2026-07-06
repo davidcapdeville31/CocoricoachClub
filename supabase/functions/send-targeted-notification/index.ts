@@ -119,10 +119,31 @@ serve(async (req: Request) => {
     const ONESIGNAL_REST_API_KEY = Deno.env.get("ONESIGNAL_REST_API_KEY");
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
     if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_API_KEY) {
       throw new Error("OneSignal credentials not configured");
     }
+
+    // Require a valid staff JWT
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const authedClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: claimsData, error: claimsError } = await authedClient.auth.getClaims(
+      authHeader.replace("Bearer ", "")
+    );
+    if (claimsError || !claimsData?.claims?.sub) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const callerId = claimsData.claims.sub as string;
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const body: TargetedNotificationRequest = await req.json();
@@ -134,6 +155,43 @@ serve(async (req: Request) => {
 
     if (!title || !message) throw new Error("title and message are required");
     if (!channels || channels.length === 0) throw new Error("At least one channel is required");
+
+    // Confirm caller has staff access over the requested scope
+    const { data: isSuper } = await supabase
+      .from("super_admin_users").select("id").eq("user_id", callerId).maybeSingle();
+    if (!isSuper) {
+      let allowed = false;
+      if (club_id) {
+        const { data: canClub } = await supabase.rpc("can_access_club", {
+          _user_id: callerId, _club_id: club_id,
+        });
+        allowed = !!canClub;
+      }
+      if (!allowed && category_ids && category_ids.length > 0) {
+        for (const cid of category_ids) {
+          const { data: canCat } = await supabase.rpc("can_access_category", {
+            _user_id: callerId, _category_id: cid,
+          });
+          if (canCat) { allowed = true; break; }
+        }
+      }
+      if (!allowed && training_session_id) {
+        const { data: sess } = await supabase
+          .from("training_sessions").select("category_id").eq("id", training_session_id).maybeSingle();
+        if (sess?.category_id) {
+          const { data: canCat } = await supabase.rpc("can_access_category", {
+            _user_id: callerId, _category_id: sess.category_id,
+          });
+          allowed = !!canCat;
+        }
+      }
+      if (!allowed) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
 
     const expandedRoles = roles ? expandRoles(roles) : [];
 
