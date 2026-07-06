@@ -92,13 +92,47 @@ export function useViewerSessions(categoryId: string) {
   return useViewerData<any[]>({
     queryKey: ["sessions", categoryId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // 1) Sessions directly attached to this category
+      const { data: directSessions, error } = await supabase
         .from("training_sessions")
         .select("*")
         .eq("category_id", categoryId)
         .order("session_date", { ascending: false });
       if (error) throw error;
-      return data || [];
+
+      // 2) Personal sessions created by athletes who ALSO belong to this
+      // category through another structure (multi-category shared profile).
+      // We fetch the player ids linked to this category and pull any session
+      // they created outside of it, so their calendar stays consistent across
+      // every structure they belong to.
+      const { data: linkedPlayers } = await supabase
+        .from("player_categories")
+        .select("player_id")
+        .eq("category_id", categoryId);
+
+      const playerIds = (linkedPlayers || [])
+        .map((p: any) => p.player_id)
+        .filter(Boolean);
+
+      let sharedSessions: any[] = [];
+      if (playerIds.length > 0) {
+        const { data: shared } = await supabase
+          .from("training_sessions")
+          .select("*")
+          .in("created_by_player_id", playerIds)
+          .neq("category_id", categoryId)
+          .order("session_date", { ascending: false });
+        sharedSessions = shared || [];
+      }
+
+      // Merge & de-duplicate by id (single row per session, shown in both structures)
+      const map = new Map<string, any>();
+      for (const s of [...(directSessions || []), ...sharedSessions]) {
+        map.set(s.id, s);
+      }
+      return Array.from(map.values()).sort((a, b) =>
+        (b.session_date || "").localeCompare(a.session_date || ""),
+      );
     },
     publicDataKey: "sessions",
     enabled: !!categoryId,
