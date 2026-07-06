@@ -49,6 +49,18 @@ export function AddExerciseDialog() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const toDatabaseDifficulty = (value: string): "débutant" | "intermédiaire" | "avancé" => {
+    const labels: Record<string, "débutant" | "intermédiaire" | "avancé"> = {
+      beginner: "débutant",
+      intermediate: "intermédiaire",
+      advanced: "avancé",
+      débutant: "débutant",
+      intermédiaire: "intermédiaire",
+      avancé: "avancé",
+    };
+    return labels[value] ?? "intermédiaire";
+  };
+
   const availableSubcategories = getSubcategoriesForCategory(category);
 
   const groupedCategories = useMemo(() => {
@@ -119,6 +131,7 @@ export function AddExerciseDialog() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Non authentifié");
+      const databaseDifficulty = toDatabaseDifficulty(difficulty);
 
       const { error } = await supabase.from("exercise_library").insert({
         user_id: user.id,
@@ -131,20 +144,23 @@ export function AddExerciseDialog() {
         youtube_url: youtubeUrl || null,
         video_url: youtubeUrl || null,
         description: description || null,
-        difficulty,
-        difficulty_level: difficulty,
+        difficulty: databaseDifficulty,
+        difficulty_level: databaseDifficulty,
         image_url: imageUrl || null,
         is_system: false,
         is_default: false,
       });
       if (error) throw error;
 
-      toast({ title: "Exercice ajouté", description: "L'exercice a été ajouté à votre bibliothèque" });
+      sonnerToast.success("Exercice créé avec succès");
       queryClient.invalidateQueries({ queryKey: ["exercise-library"] });
+      queryClient.invalidateQueries({ queryKey: ["v2-bank-sidebar-exercises"] });
+      queryClient.invalidateQueries({ queryKey: ["exercise-library-picker"] });
+      queryClient.invalidateQueries({ queryKey: ["merged-exercises"] });
       setOpen(false);
       resetForm();
     } catch (error: any) {
-      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      sonnerToast.error(error?.message || "Impossible de créer l'exercice");
     } finally {
       setIsLoading(false);
     }

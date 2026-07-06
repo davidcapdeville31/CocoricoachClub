@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Loader2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -48,6 +49,15 @@ const exerciseSchema = z.object({
   description: z.string().trim().max(2000, "Description trop longue").optional().or(z.literal("")),
 });
 
+const DATABASE_DIFFICULTY_LABELS: Record<string, "débutant" | "intermédiaire" | "avancé"> = {
+  beginner: "débutant",
+  intermediate: "intermédiaire",
+  advanced: "avancé",
+  débutant: "débutant",
+  intermédiaire: "intermédiaire",
+  avancé: "avancé",
+};
+
 export function QuickAddExerciseDialog({
   open,
   onOpenChange,
@@ -62,7 +72,6 @@ export function QuickAddExerciseDialog({
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [description, setDescription] = useState("");
   const [difficulty, setDifficulty] = useState("intermediate");
-  const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const availableSubcategories = getSubcategoriesForCategory(category);
@@ -89,6 +98,7 @@ export function QuickAddExerciseDialog({
 
   const createMutation = useMutation({
     mutationFn: async () => {
+      console.info("[QuickAddExerciseDialog] mutation déclenchée");
       const parsed = exerciseSchema.safeParse({ name, category, youtubeUrl, description });
       if (!parsed.success) {
         throw new Error(parsed.error.issues[0]?.message || "Formulaire invalide");
@@ -98,6 +108,7 @@ export function QuickAddExerciseDialog({
       if (authError) throw new Error(authError.message);
       const user = auth?.user;
       if (!user) throw new Error("Vous devez être connecté pour créer un exercice");
+      const databaseDifficulty = DATABASE_DIFFICULTY_LABELS[difficulty] ?? "intermédiaire";
 
       const payload = {
         user_id: user.id,
@@ -110,11 +121,17 @@ export function QuickAddExerciseDialog({
         youtube_url: parsed.data.youtubeUrl || null,
         video_url: parsed.data.youtubeUrl || null,
         description: parsed.data.description || null,
-        difficulty,
-        difficulty_level: difficulty,
+        difficulty: databaseDifficulty,
+        difficulty_level: databaseDifficulty,
         is_system: false,
         is_default: false,
       };
+
+      console.info("[QuickAddExerciseDialog] insertion exercice", {
+        hasCoachId: Boolean(payload.coach_id),
+        is_default: payload.is_default,
+        difficulty_level: payload.difficulty_level,
+      });
 
       const { data, error } = await supabase
         .from("exercise_library")
@@ -129,12 +146,10 @@ export function QuickAddExerciseDialog({
       return data;
     },
     onSuccess: (data) => {
-      toast({
-        title: "Exercice ajouté",
-        description: "L'exercice a été ajouté à votre bibliothèque",
-      });
+      toast.success("Exercice créé avec succès");
       queryClient.invalidateQueries({ queryKey: ["exercise-library"] });
       queryClient.invalidateQueries({ queryKey: ["v2-bank-sidebar-exercises"] });
+      queryClient.invalidateQueries({ queryKey: ["exercise-library-picker"] });
       queryClient.invalidateQueries({ queryKey: ["merged-exercises"] });
       if (onSuccess && data) {
         onSuccess({ id: data.id, name: data.name, category: data.category });
@@ -142,16 +157,16 @@ export function QuickAddExerciseDialog({
       onOpenChange(false);
     },
     onError: (error: any) => {
-      toast({
-        title: "Erreur",
-        description: error?.message || "Impossible de créer l'exercice",
-        variant: "destructive",
-      });
+      toast.error(error?.message || "Impossible de créer l'exercice");
     },
   });
 
   const handleSubmit = () => {
-    if (createMutation.isPending) return;
+    console.info("[QuickAddExerciseDialog] clic Ajouter capturé");
+    if (createMutation.isPending) {
+      toast("Création de l'exercice en cours...");
+      return;
+    }
     createMutation.mutate();
   };
 
@@ -258,8 +273,9 @@ export function QuickAddExerciseDialog({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Annuler
             </Button>
-            <Button type="button" onClick={handleSubmit}>
-              {createMutation.isPending ? "Ajout..." : "Ajouter"}
+            <Button type="button" onClick={handleSubmit} aria-busy={createMutation.isPending}>
+              {createMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {createMutation.isPending ? "Ajout en cours..." : "Ajouter"}
             </Button>
           </div>
         </div>
