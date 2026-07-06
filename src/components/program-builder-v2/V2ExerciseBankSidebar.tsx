@@ -54,16 +54,17 @@ export interface PickedExerciseRich {
 }
 
 interface Props {
-  onClickInsert: (exercise: PickedExerciseRich) => void;
+  onClickInsert: (exercise: PickedExerciseRich) => void | boolean;
+  onInserted?: () => void;
   /** When set to "tests", lists category custom tests instead of the exercise library. */
   mode?: "exercises" | "tests";
   /** Required when mode === "tests" — the current category id to fetch tests for. */
   categoryId?: string;
 }
 
-export function V2ExerciseBankSidebar({ onClickInsert, mode = "exercises", categoryId }: Props) {
+export function V2ExerciseBankSidebar({ onClickInsert, onInserted, mode = "exercises", categoryId }: Props) {
   if (mode === "tests") {
-    return <TestsBankSidebar onClickInsert={onClickInsert} categoryId={categoryId} />;
+    return <TestsBankSidebar onClickInsert={onClickInsert} onInserted={onInserted} categoryId={categoryId} />;
   }
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<ExerciseFiltersState>({
@@ -277,6 +278,7 @@ export function V2ExerciseBankSidebar({ onClickInsert, mode = "exercises", categ
                 isFavorite={exerciseFavorites.has(exercise.id)}
                 onToggleFavorite={() => toggleExerciseFavorite(exercise.id)}
                 onClickInsert={onClickInsert}
+                onInserted={onInserted}
               />
             ))}
           {!isLoading && filteredExercises.length === 0 && (
@@ -300,7 +302,8 @@ interface RowProps {
   exercise: PickedExerciseRich;
   isFavorite: boolean;
   onToggleFavorite: () => void;
-  onClickInsert: (exercise: PickedExerciseRich) => void;
+  onClickInsert: (exercise: PickedExerciseRich) => void | boolean;
+  onInserted?: () => void;
 }
 
 function LibraryExerciseRow({
@@ -308,6 +311,7 @@ function LibraryExerciseRow({
   isFavorite,
   onToggleFavorite,
   onClickInsert,
+  onInserted,
 }: RowProps) {
   const [showFocusPanel, setShowFocusPanel] = useState(false);
   const [showVideoModal, setShowVideoModal] = useState(false);
@@ -362,14 +366,20 @@ function LibraryExerciseRow({
           role="button"
           tabIndex={0}
           onClick={() => {
-            onClickInsert(exercise);
-            try { window.dispatchEvent(new CustomEvent("v2-exercise-inserted")); } catch {}
+            const result = onClickInsert(exercise);
+            if (result !== false) {
+              onInserted?.();
+              try { window.dispatchEvent(new CustomEvent("v2-exercise-inserted")); } catch {}
+            }
           }}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
-              onClickInsert(exercise);
-              try { window.dispatchEvent(new CustomEvent("v2-exercise-inserted")); } catch {}
+              const result = onClickInsert(exercise);
+              if (result !== false) {
+                onInserted?.();
+                try { window.dispatchEvent(new CustomEvent("v2-exercise-inserted")); } catch {}
+              }
             }
           }}
           className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
@@ -473,11 +483,12 @@ function LibraryExerciseRow({
 // ---------------------------------------------------------------------------
 
 interface TestsBankProps {
-  onClickInsert: (exercise: PickedExerciseRich) => void;
+  onClickInsert: (exercise: PickedExerciseRich) => void | boolean;
+  onInserted?: () => void;
   categoryId?: string;
 }
 
-function TestsBankSidebar({ onClickInsert, categoryId }: TestsBankProps) {
+function TestsBankSidebar({ onClickInsert, onInserted, categoryId }: TestsBankProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTheme, setSelectedTheme] = useState<string>("all");
 
@@ -591,7 +602,7 @@ function TestsBankSidebar({ onClickInsert, categoryId }: TestsBankProps) {
         </div>
       </div>
 
-      <ScrollArea className="flex-1 overflow-hidden min-h-[280px]" style={{ width: "100%" }}>
+      <ScrollArea className="flex-1 min-h-0 overflow-hidden" style={{ width: "100%" }}>
         <div className="p-2 space-y-1.5">
           {!categoryId && (
             <p className="text-center text-muted-foreground py-8 text-sm">
@@ -624,11 +635,15 @@ function TestsBankSidebar({ onClickInsert, categoryId }: TestsBankProps) {
                 key={test.id}
                 role="button"
                 tabIndex={0}
-                onClick={() => onClickInsert(picked)}
+                onClick={() => {
+                  const result = onClickInsert(picked);
+                  if (result !== false) onInserted?.();
+                }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    onClickInsert(picked);
+                    const result = onClickInsert(picked);
+                    if (result !== false) onInserted?.();
                   }
                 }}
                 className={cn(
