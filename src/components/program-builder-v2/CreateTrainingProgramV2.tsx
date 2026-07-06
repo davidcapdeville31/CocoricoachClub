@@ -29,7 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Drawer, DrawerContent } from "@/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Select,
@@ -754,7 +754,7 @@ export function CreateTrainingProgramV2({
                 type="button"
                 variant="outline"
                 onClick={() => setMobileLibraryOpen(true)}
-                className="md:hidden w-full rounded-2xl gap-2 justify-center sticky top-0 z-10 bg-background/95 backdrop-blur"
+                className="lg:hidden w-full rounded-2xl gap-2 justify-center sticky top-0 z-10 bg-background/95 backdrop-blur"
               >
                 <Dumbbell className="h-4 w-4" />
                 Ajouter depuis la bibliothèque
@@ -937,7 +937,7 @@ export function CreateTrainingProgramV2({
                 </div>
               )}
             </div>
-            <aside className="hidden md:flex flex-col w-[340px] border-l border-border/60 bg-muted/20 h-full min-h-0 overflow-hidden overscroll-contain">
+            <aside className="hidden lg:flex flex-col w-[340px] border-l border-border/60 bg-muted/20 h-full min-h-0 overflow-hidden overscroll-contain">
               <V2ExerciseBankSidebar
                 onClickInsert={handleProgramClickInsert}
                 mode={
@@ -950,7 +950,8 @@ export function CreateTrainingProgramV2({
             </aside>
           </div>
           <Drawer open={mobileLibraryOpen} onOpenChange={setMobileLibraryOpen}>
-            <DrawerContent className="md:hidden h-[92dvh] max-h-[92dvh] rounded-t-2xl p-0 overflow-hidden">
+            <DrawerContent className="lg:hidden h-[92dvh] max-h-[92dvh] rounded-t-2xl p-0 overflow-hidden">
+              <DrawerTitle className="sr-only">Bibliothèque d'exercices</DrawerTitle>
               <div className="flex h-full min-h-0 flex-col overflow-hidden pt-2">
                 <V2ExerciseBankSidebar
                   onClickInsert={handleProgramClickInsert}
