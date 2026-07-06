@@ -284,7 +284,6 @@ export function V2ExerciseBankSidebar({ onClickInsert, onInserted, mode = "exerc
         )}
       </div>
     </ScrollArea>
-    </>
   );
 }
 
