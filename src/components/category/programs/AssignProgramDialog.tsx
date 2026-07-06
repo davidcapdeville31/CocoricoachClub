@@ -268,7 +268,7 @@ export function AssignProgramDialog({
       onOpenChange(false);
     } catch (error: any) {
       console.error("Save error:", error);
-      toast.error("Erreur lors de l'assignation");
+      toast.error(error?.message || "Erreur lors de l'assignation");
     } finally {
       setSaving(false);
     }
@@ -347,16 +347,22 @@ export function AssignProgramDialog({
             )}
 
             {/* Advanced Player selection */}
-            <AdvancedPlayerSelection
-              categoryId={categoryId}
-              sportType={category?.rugby_type}
-              selectedPlayers={selectedPlayers}
-              onSelectionChange={setSelectedPlayers}
-              selectionMode={selectionMode}
-              onSelectionModeChange={setSelectionMode}
-              maxHeight="180px"
-              showInjuredFilter={true}
-            />
+            {allPlayers && allPlayers.length === 0 ? (
+              <div className="p-4 border rounded-md text-sm text-muted-foreground text-center">
+                Aucun athlète accessible dans cette catégorie.
+              </div>
+            ) : (
+              <AdvancedPlayerSelection
+                categoryId={categoryId}
+                sportType={category?.rugby_type}
+                selectedPlayers={selectedPlayers}
+                onSelectionChange={setSelectedPlayers}
+                selectionMode={selectionMode}
+                onSelectionModeChange={setSelectionMode}
+                maxHeight="180px"
+                showInjuredFilter={true}
+              />
+            )}
           </div>
         </div>
 
