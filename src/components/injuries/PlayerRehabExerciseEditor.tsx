@@ -131,7 +131,7 @@ export function PlayerRehabExerciseEditor({
     mutationFn: async ({ id, field, value }: { id: string; field: string; value: any }) => {
       const { error } = await supabase
         .from("player_rehab_exercises")
-        .update({ [field]: value })
+        .update({ [field]: value } as any)
         .eq("id", id);
       if (error) throw error;
     },

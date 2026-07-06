@@ -133,7 +133,7 @@ export function AddFisResultDialog({ open, onOpenChange, competition }: AddFisRe
 
       await supabase
         .from("players")
-        .update({ fis_points: totalPoints } as Record<string, unknown>)
+        .update({ fis_points: totalPoints } as any)
         .eq("id", playerId);
     }
 

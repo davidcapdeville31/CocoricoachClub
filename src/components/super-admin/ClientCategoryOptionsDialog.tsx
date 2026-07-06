@@ -128,7 +128,7 @@ export function ClientCategoryOptionsDialog({
     }) => {
       const { error } = await supabase
         .from("categories")
-        .update({ [option]: value })
+        .update({ [option]: value } as any)
         .eq("id", categoryId);
       if (error) throw error;
     },

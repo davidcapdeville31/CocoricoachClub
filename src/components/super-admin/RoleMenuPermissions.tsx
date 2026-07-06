@@ -55,7 +55,7 @@ export function RoleMenuPermissions() {
     }) => {
       const { error } = await supabase
         .from("role_menu_permissions")
-        .update({ [field]: value })
+        .update({ [field]: value } as any)
         .eq("id", id);
       if (error) throw error;
     },

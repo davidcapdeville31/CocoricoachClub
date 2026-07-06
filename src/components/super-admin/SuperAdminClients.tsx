@@ -357,7 +357,7 @@ export function SuperAdminClients() {
      mutationFn: async ({ id, option, value }: { id: string; option: 'video_enabled' | 'gps_data_enabled'; value: boolean }) => {
        const { error } = await supabase
          .from("clients")
-         .update({ [option]: value })
+         .update({ [option]: value } as any)
          .eq("id", id);
        if (error) throw error;
      },

@@ -59,7 +59,7 @@ export function AddMatchDialog({
       const { error } = await supabase.from("tournament_matches").insert({
         tournament_id: tournamentId,
         ...data,
-      });
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {

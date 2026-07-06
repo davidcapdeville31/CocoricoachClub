@@ -163,7 +163,7 @@ function PlayerDetailsContent() {
       const updateField = (isAthletics || isJudo) ? "discipline" : "position";
       const { error } = await supabase
         .from("players")
-        .update({ [updateField]: newPosition || null })
+        .update({ [updateField]: newPosition || null } as any)
         .eq("id", playerId!);
       if (error) throw error;
     },

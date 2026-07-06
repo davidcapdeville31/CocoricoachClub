@@ -255,7 +255,7 @@ export function useMergedExercises() {
 
       const { error } = await supabase
         .from('exercise_library')
-        .update(updateData)
+        .update(updateData as any)
         .eq('id', exerciseId)
         .eq('coach_id', userId)
         .eq('is_default', false);
