@@ -18,6 +18,7 @@ import { format, addDays, startOfWeek, addWeeks } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Switch } from "@/components/ui/switch";
 import { AdvancedPlayerSelection } from "../players/AdvancedPlayerSelection";
+import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
 
 interface AssignProgramDialogProps {
   categoryId: string;
@@ -69,15 +70,9 @@ export function AssignProgramDialog({
 
   // Fetch players for "all" mode
   const { data: allPlayers } = useQuery({
-    queryKey: ["players", categoryId],
+    queryKey: ["players", categoryId, "assignable-roster"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("players")
-        .select("id, name, position")
-        .eq("category_id", categoryId)
-        .order("name");
-      if (error) throw error;
-      return data;
+      return fetchCategoryRosterPlayers(categoryId);
     },
     enabled: open,
   });
@@ -251,7 +246,13 @@ export function AssignProgramDialog({
               status: "present" as const,
             }));
 
-            await supabase.from("training_attendance").insert(attendanceRecords);
+            const { error: attendanceError } = await supabase
+              .from("training_attendance")
+              .insert(attendanceRecords);
+
+            if (attendanceError) {
+              throw new Error(`Séance créée, mais assignation athlète impossible : ${attendanceError.message}`);
+            }
           }
         }
       }
@@ -265,6 +266,7 @@ export function AssignProgramDialog({
       queryClient.invalidateQueries({ queryKey: ["training-programs"] });
       queryClient.invalidateQueries({ queryKey: ["program-assignments"] });
       queryClient.invalidateQueries({ queryKey: ["training-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["sessions", categoryId] });
       onOpenChange(false);
     } catch (error: any) {
       console.error("Save error:", error);
@@ -359,6 +361,7 @@ export function AssignProgramDialog({
                 onSelectionChange={setSelectedPlayers}
                 selectionMode={selectionMode}
                 onSelectionModeChange={setSelectionMode}
+                players={allPlayers}
                 maxHeight="180px"
                 showInjuredFilter={true}
               />

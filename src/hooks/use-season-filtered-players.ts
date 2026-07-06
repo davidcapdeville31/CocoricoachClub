@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
 
 /**
  * Returns the set of player ids in `categoryId` that match the current
@@ -15,13 +15,10 @@ export function useSeasonFilteredPlayerIds(categoryId: string | undefined | null
   const { data } = useQuery({
     queryKey: ["season-filtered-player-ids", categoryId, activeSeasonId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("players")
-        .select("id, season_id")
-        .eq("category_id", categoryId as string)
-        .eq("season_id", activeSeasonId as string);
-      if (error) throw error;
-      return (data || []).map((p: any) => p.id as string);
+      const players = await fetchCategoryRosterPlayers(categoryId as string);
+      return players
+        .filter((p: any) => p.season_id === activeSeasonId)
+        .map((p: any) => p.id as string);
     },
     enabled,
   });
