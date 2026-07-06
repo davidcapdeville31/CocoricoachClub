@@ -389,7 +389,7 @@ export function TeamLoadComparison({
                 dataKey="name" 
                 width={130}
                 className="text-xs"
-                tick={({ x, y, payload }) => {
+                tick={({ x, y, payload }: any) => {
                   const player = chartData.find(p => p.name === payload.value);
                   let dotColor: string | undefined;
                   

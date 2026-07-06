@@ -110,7 +110,7 @@ function PlayerInfoHover({ player, isSki }: { player: any; isSki: boolean }) {
       return;
     }
 
-    const { error } = await supabase.from("players").update(updates).eq("id", player.id);
+    const { error } = await supabase.from("players").update(updates as any).eq("id", player.id);
     if (error) {
       toast.error("Erreur lors de la mise à jour");
       return;

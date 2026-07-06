@@ -252,7 +252,7 @@ export function FisImportDialog({ open, onOpenChange, categoryId }: FisImportDia
         fis_points: best?.pts || null,
         fis_ranking: best?.rk || null,
       };
-      await supabase.from("players").update(updateData).eq("id", m.playerId!);
+      await supabase.from("players").update(updateData as any).eq("id", m.playerId!);
 
       // Store discipline results
       const today = new Date().toISOString().split("T")[0];

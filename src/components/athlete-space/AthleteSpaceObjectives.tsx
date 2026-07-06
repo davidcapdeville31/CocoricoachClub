@@ -163,7 +163,7 @@ export function AthleteSpaceObjectives({ playerId, categoryId }: Props) {
       if (params.status !== undefined) updates.status = params.status;
       if (params.progress !== undefined) updates.progress_percentage = params.progress;
       if (params.current_value !== undefined) updates.current_value = params.current_value;
-      const { error } = await supabase.from("player_objectives").update(updates).eq("id", params.id);
+      const { error } = await supabase.from("player_objectives").update(updates as any).eq("id", params.id);
       if (error) throw error;
     },
     onSuccess: () => {

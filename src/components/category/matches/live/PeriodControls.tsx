@@ -30,7 +30,7 @@ export function PeriodControls({ matchId, period, onPeriodChange, onResetClock, 
   const qc = useQueryClient();
 
   const updateMatch = async (patch: Record<string, any>) => {
-    const { error } = await supabase.from("matches").update(patch).eq("id", matchId);
+    const { error } = await supabase.from("matches").update(patch as any).eq("id", matchId);
     if (error) throw error;
     qc.invalidateQueries({ queryKey: ["match-live", matchId] });
   };
