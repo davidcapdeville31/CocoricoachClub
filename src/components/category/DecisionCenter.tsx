@@ -134,22 +134,29 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
     const keepPlayer = (pid: string | null | undefined) =>
       !allowedIds || (!!pid && allowedIds.has(pid));
 
-    // Fetch players
-    const { data: allPlayersRaw = [] } = useQuery({
-      queryKey: ["players", categoryId],
+    // Fetch players via `players_safe` (non-sensitive fields only, RLS-friendly
+    // for coach/athlete accounts that cannot read the full `players` table).
+    const {
+      data: allPlayersRaw = [],
+      isLoading: isPlayersLoading,
+      isFetching: isPlayersFetching,
+    } = useQuery({
+      queryKey: ["players-safe-decision", categoryId],
       queryFn: async () => {
         const { data, error } = await supabase
-          .from("players")
-          .select("id, name, first_name, position")
+          .from("players_safe")
+          .select("id, name, first_name, position, category_id")
           .eq("category_id", categoryId);
         if (error) throw error;
-        return data;
+        return data || [];
       },
+      enabled: !!categoryId,
     });
     const players = useMemo(
       () => (allPlayersRaw || []).filter((p: any) => keepPlayer(p.id)),
       [allPlayersRaw, allowedIds]
     );
+    const playersLoading = isPlayersLoading || (isPlayersFetching && (allPlayersRaw?.length ?? 0) === 0);
 
     const getFullName = (player: { first_name?: string | null; name: string }) =>
       [player.first_name, player.name].filter(Boolean).join(" ");
