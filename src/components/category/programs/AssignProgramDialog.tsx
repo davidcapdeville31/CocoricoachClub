@@ -268,7 +268,7 @@ export function AssignProgramDialog({
       onOpenChange(false);
     } catch (error: any) {
       console.error("Save error:", error);
-      toast.error("Erreur lors de l'assignation");
+      toast.error(error?.message || "Erreur lors de l'assignation");
     } finally {
       setSaving(false);
     }
