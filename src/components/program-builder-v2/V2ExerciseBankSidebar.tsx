@@ -203,84 +203,37 @@ export function V2ExerciseBankSidebar({ onClickInsert, mode = "exercises", categ
       />
 
 
-      {/* ---------- Category tabs ---------- */}
-      <div className="px-2 py-2 border-b bg-muted/50 flex-shrink-0">
-        <div className="flex flex-wrap gap-1">
-          <Button
-            type="button"
-            size="sm"
-            variant={filters.selectedCategory === "all" ? "default" : "outline"}
-            className={cn(
-              "h-7 text-xs font-medium",
-              filters.selectedCategory === "all" &&
-                "bg-primary text-primary-foreground shadow-sm",
-            )}
-            onClick={() =>
-              setFilters((prev) => ({ ...prev, selectedCategory: "all" }))
-            }
-          >
-            Toutes catégories
-          </Button>
-          {sortedCategories.slice(0, 4).map((cat) => (
-            <Button
-              key={cat}
-              type="button"
-              size="sm"
-              variant={filters.selectedCategory === cat ? "default" : "outline"}
-              className={cn(
-                "h-7 text-xs font-medium gap-1",
-                filters.selectedCategory === cat &&
-                  "bg-primary text-primary-foreground shadow-sm",
-              )}
-              onClick={() =>
-                setFilters((prev) => ({ ...prev, selectedCategory: cat }))
-              }
-            >
-              {favoriteCategories.has(cat) && (
-                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-              )}
-              <span className="truncate max-w-[80px]">{cat}</span>
-            </Button>
-          ))}
-        </div>
-        {sortedCategories.length > 4 && (
-          <div className="mt-1.5">
-            <Select
-              value={
-                sortedCategories.slice(4).includes(filters.selectedCategory)
-                  ? filters.selectedCategory
-                  : ""
-              }
-              onValueChange={(value) =>
-                setFilters((prev) => ({ ...prev, selectedCategory: value }))
-              }
-            >
-              <SelectTrigger className="h-7 text-xs">
-                <SelectValue
-                  placeholder={`+ ${sortedCategories.length - 4} autres catégories`}
-                />
-              </SelectTrigger>
-              <SelectContent>
-                {sortedCategories.slice(4).map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    <div className="flex items-center gap-2">
-                      {favoriteCategories.has(cat) && (
-                        <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                      )}
-                      {cat}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-        {filters.selectedCategory !== "all" ? (
-          <div className="mt-1.5 flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">
-              {filteredExercises.length} exercice
-              {filteredExercises.length > 1 ? "s" : ""}
-            </span>
+      {/* ---------- Category selector (single dropdown with all categories) ---------- */}
+      <div className="px-2 py-1.5 border-b bg-muted/50 flex-shrink-0 space-y-1.5">
+        <Select
+          value={filters.selectedCategory}
+          onValueChange={(value) =>
+            setFilters((prev) => ({ ...prev, selectedCategory: value }))
+          }
+        >
+          <SelectTrigger className="h-8 text-xs">
+            <SelectValue placeholder="Toutes catégories" />
+          </SelectTrigger>
+          <SelectContent className="max-h-[60vh]">
+            <SelectItem value="all">Toutes catégories</SelectItem>
+            {sortedCategories.map((cat) => (
+              <SelectItem key={cat} value={cat}>
+                <div className="flex items-center gap-2">
+                  {favoriteCategories.has(cat) && (
+                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                  )}
+                  {cat}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground">
+            {filteredExercises.length} exercice
+            {filteredExercises.length > 1 ? "s" : ""}
+          </span>
+          {filters.selectedCategory !== "all" && (
             <Button
               type="button"
               variant="ghost"
@@ -300,16 +253,10 @@ export function V2ExerciseBankSidebar({ onClickInsert, mode = "exercises", categ
                 ? "Retirer"
                 : "Favoris"}
             </Button>
-          </div>
-        ) : (
-          <div className="mt-1.5">
-            <span className="text-xs text-muted-foreground">
-              {filteredExercises.length} exercice
-              {filteredExercises.length > 1 ? "s" : ""}
-            </span>
-          </div>
-        )}
+          )}
+        </div>
       </div>
+
 
       {/* ---------- Exercises list ---------- */}
       <ScrollArea
