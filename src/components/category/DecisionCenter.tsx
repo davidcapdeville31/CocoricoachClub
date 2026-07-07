@@ -71,6 +71,7 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
 import { SeasonRosterFilterToggle } from "@/components/category/SeasonRosterFilterToggle";
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
+import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
  
  interface DecisionCenterProps {
    categoryId: string;
@@ -139,28 +140,26 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
     const keepPlayer = (pid: string | null | undefined) =>
       !allowedIds || (!!pid && allowedIds.has(pid));
 
-    // Fetch players via `players_safe` (non-sensitive fields only, RLS-friendly
-    // for coach/athlete accounts that cannot read the full `players` table).
+    // Fetch full roster (direct + multi-structure linked players via player_categories)
+    // so Décisions shows the same global athlete data in every authorized structure.
     const {
       data: allPlayersRaw = [],
       isLoading: isPlayersLoading,
       isFetching: isPlayersFetching,
     } = useQuery({
-      queryKey: ["players-safe-decision", categoryId],
-      queryFn: async () => {
-        const { data, error } = await supabase
-          .from("players_safe")
-          .select("id, name, first_name, position, category_id")
-          .eq("category_id", categoryId);
-        if (error) throw error;
-        return data || [];
-      },
+      queryKey: ["players-safe-decision-roster", categoryId],
+      queryFn: async () => fetchCategoryRosterPlayers(categoryId),
       enabled: !!categoryId,
     });
     const players = useMemo(
       () => (allPlayersRaw || []).filter((p: any) => keepPlayer(p.id)),
       [allPlayersRaw, allowedIds]
     );
+    const rosterIds = useMemo(
+      () => (allPlayersRaw || []).map((p: any) => p.id).filter(Boolean),
+      [allPlayersRaw]
+    );
+    const rosterKey = useMemo(() => rosterIds.slice().sort().join(","), [rosterIds]);
     const playersLoading = isPlayersLoading || (isPlayersFetching && (allPlayersRaw?.length ?? 0) === 0);
 
     const getFullName = (player: { first_name?: string | null; name: string }) =>
@@ -220,18 +219,20 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
       }).filter(Boolean);
     };
  
-   // Fetch active injuries
+   // Fetch active injuries — global per player (multi-structure aware)
    const { data: injuriesRaw = [] } = useQuery({
-     queryKey: ["active_injuries", categoryId],
+     queryKey: ["active_injuries_roster", categoryId, rosterKey],
      queryFn: async () => {
+       if (rosterIds.length === 0) return [];
        const { data, error } = await supabase
          .from("injuries")
          .select("player_id, status, estimated_return_date")
-         .eq("category_id", categoryId)
+         .in("player_id", rosterIds)
          .in("status", ["active", "recovering"]);
        if (error) throw error;
        return data;
      },
+     enabled: rosterIds.length > 0,
    });
    // Active injuries remain visible across seasons (medical safety) — but only for players within active roster
    const injuries = useMemo(
@@ -239,14 +240,15 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
      [injuriesRaw, allowedIds]
    );
 
-   // Fetch active illnesses
+   // Fetch active illnesses — global per player
    const { data: illnessesRaw = [] } = useQuery({
-     queryKey: ["active_illnesses", categoryId],
+     queryKey: ["active_illnesses_roster", categoryId, rosterKey],
      queryFn: async () => {
+       if (rosterIds.length === 0) return [];
        const { data, error } = await (supabase as any)
          .from("illnesses")
          .select("player_id, status, illness_type, estimated_return_date")
-         .eq("category_id", categoryId)
+         .in("player_id", rosterIds)
          .in("status", ["active", "recovering"]);
        if (error) {
          console.warn("Illnesses query error:", error.message);
@@ -254,6 +256,7 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
        }
        return data || [];
      },
+     enabled: rosterIds.length > 0,
    });
    const illnesses = useMemo(
      () => (illnessesRaw || []).filter((i: any) => keepPlayer(i.player_id)),
@@ -263,18 +266,20 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
    // Fetch AWCR data for EWMA calculation (need 90 days for proper chronic load)
    // Sliding 28d/90d kept intact for accuracy; player filter applied
    const { data: awcrDataFullRaw = [] } = useQuery({
-     queryKey: ["awcr_decision_full", categoryId],
+     queryKey: ["awcr_decision_full_roster", categoryId, rosterKey],
      queryFn: async () => {
+       if (rosterIds.length === 0) return [];
        const ninetyDaysAgo = subDays(new Date(), 90).toISOString().split("T")[0];
        const { data, error } = await supabase
          .from("awcr_tracking")
          .select("player_id, training_load, rpe, duration_minutes, session_date")
-         .eq("category_id", categoryId)
+         .in("player_id", rosterIds)
          .gte("session_date", ninetyDaysAgo)
          .order("session_date", { ascending: true });
        if (error) throw error;
        return data;
      },
+     enabled: rosterIds.length > 0,
    });
    const awcrDataFull = useMemo(
      () => (awcrDataFullRaw || []).filter((r: any) => keepPlayer(r.player_id)),
@@ -306,18 +311,20 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
  
   // Fetch wellness data
     const { data: wellnessDataRaw = [], refetch: refetchWellness } = useQuery({
-      queryKey: ["wellness_decision", categoryId],
+      queryKey: ["wellness_decision_roster", categoryId, rosterKey],
       queryFn: async () => {
+        if (rosterIds.length === 0) return [];
         const weekAgo = subDays(new Date(), 7).toISOString().split("T")[0];
         const { data, error } = await supabase
           .from("wellness_tracking")
           .select("*")
-          .eq("category_id", categoryId)
+          .in("player_id", rosterIds)
           .gte("tracking_date", weekAgo)
           .order("tracking_date", { ascending: false });
         if (error) throw error;
         return data;
       },
+      enabled: rosterIds.length > 0,
     });
     const wellnessData = useMemo(
       () =>
@@ -375,7 +382,7 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
             filter: `category_id=eq.${categoryId}`,
           },
           () => {
-            queryClient.invalidateQueries({ queryKey: ["awcr_decision_full", categoryId] });
+            queryClient.invalidateQueries({ queryKey: ["awcr_decision_full_roster", categoryId] });
             queryClient.invalidateQueries({ queryKey: ["priority_alerts_decision", categoryId] });
             queryClient.invalidateQueries({ queryKey: ["ewma_summary", categoryId] });
             queryClient.invalidateQueries({ queryKey: ["awcr-risk", categoryId] });
