@@ -90,6 +90,7 @@ function PlayerDetailsContent() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = searchParams.get("tab") || "charge";
+  const contextCategoryId = searchParams.get("categoryId");
   const queryClient = useQueryClient();
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const [isEditingPosition, setIsEditingPosition] = useState(false);
@@ -111,7 +112,23 @@ function PlayerDetailsContent() {
     },
   });
 
-  const sportType = (player?.categories as { rugby_type?: string })?.rugby_type || "XV";
+  const { data: contextCategory } = useQuery({
+    queryKey: ["player-context-category", contextCategoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("id, name, club_id, rugby_type, academy_enabled, gps_enabled, video_enabled")
+        .eq("id", contextCategoryId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!contextCategoryId && contextCategoryId !== player?.category_id,
+  });
+
+  const effectiveCategory = contextCategory || player?.categories;
+  const effectiveCategoryId = effectiveCategory?.id || player?.category_id;
+  const sportType = (effectiveCategory as { rugby_type?: string })?.rugby_type || "XV";
   const isTeamSport = !isIndividualSport(sportType);
   const isAthletics = isAthletismeCategory(sportType);
   const isJudo = isJudoCategory(sportType);
@@ -277,7 +294,7 @@ function PlayerDetailsContent() {
         <div className="flex justify-between items-center mb-6">
           <Button
             variant="ghost"
-            onClick={() => navigate(`/categories/${player.categories?.id}?tab=effectif`)}
+              onClick={() => navigate(`/categories/${effectiveCategoryId}?tab=effectif`)}
             className="gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -302,7 +319,7 @@ function PlayerDetailsContent() {
           <CardHeader className="flex flex-row items-center justify-between">
             <div className="space-y-2">
               <CardTitle className="text-3xl">{fullName}</CardTitle>
-              <p className="text-muted-foreground">{player.categories?.name}</p>
+              <p className="text-muted-foreground">{effectiveCategory?.name}</p>
               
               {/* Editable position/discipline */}
               {showAttributeEditor && (
@@ -522,10 +539,10 @@ function PlayerDetailsContent() {
             <div className="space-y-6">
               <PlayerTrainingLoadCard 
                 playerId={playerId!} 
-                categoryId={player.category_id} 
+                categoryId={effectiveCategoryId} 
                 playerName={fullName}
               />
-              <PlayerAwcrTab playerId={playerId!} categoryId={player.category_id} readOnly={true} />
+              <PlayerAwcrTab playerId={playerId!} categoryId={effectiveCategoryId} readOnly={true} />
             </div>
           </TabsContent>
 
@@ -533,24 +550,24 @@ function PlayerDetailsContent() {
             <div className="space-y-4">
               <PlayerBiometrics
                 playerId={playerId!}
-                categoryId={player.category_id}
+                categoryId={effectiveCategoryId}
                 birthYear={player.birth_year}
               />
-              <SuggestedBenchmarksCard playerId={playerId!} categoryId={player.category_id} />
+              <SuggestedBenchmarksCard playerId={playerId!} categoryId={effectiveCategoryId} />
               <RecommendedExercisesCard playerId={playerId!} />
-              <PlayerTestsTab playerId={playerId!} categoryId={player.category_id} sportType={sportType} />
+              <PlayerTestsTab playerId={playerId!} categoryId={effectiveCategoryId} sportType={sportType} />
             </div>
           </TabsContent>
 
           <TabsContent value="matches">
             {isBowling ? (
-              <BowlingCumulativeStats categoryId={player.category_id} playerId={playerId!} />
+              <BowlingCumulativeStats categoryId={effectiveCategoryId} playerId={playerId!} />
             ) : (
               <PlayerMatchesTab 
                 playerId={playerId!} 
-                categoryId={player.category_id} 
+                categoryId={effectiveCategoryId} 
                 playerName={fullName}
-                sportType={(player.categories as { rugby_type?: string })?.rugby_type}
+                sportType={(effectiveCategory as { rugby_type?: string })?.rugby_type}
               />
             )}
           </TabsContent>
@@ -577,16 +594,16 @@ function PlayerDetailsContent() {
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="competition">
-                  <BowlingCumulativeStats categoryId={player.category_id} playerId={playerId!} />
+                  <BowlingCumulativeStats categoryId={effectiveCategoryId} playerId={playerId!} />
                 </TabsContent>
                 <TabsContent value="training">
-                  <BowlingTrainingStats categoryId={player.category_id} playerId={playerId!} />
+                  <BowlingTrainingStats categoryId={effectiveCategoryId} playerId={playerId!} />
                 </TabsContent>
               </Tabs>
             ) : (
               <PlayerCumulativeStats
-                categoryId={player.category_id}
-                sportType={(player.categories as { rugby_type?: string })?.rugby_type}
+                categoryId={effectiveCategoryId}
+                sportType={(effectiveCategory as { rugby_type?: string })?.rugby_type}
                 playerId={playerId!}
                 showTeamView={!isSurf && !isSki && !isPadel}
               />
@@ -594,44 +611,44 @@ function PlayerDetailsContent() {
           </TabsContent>
 
           <TabsContent value="calendar">
-            <PlayerCalendarTab playerId={playerId!} categoryId={player.category_id} />
+            <PlayerCalendarTab playerId={playerId!} categoryId={effectiveCategoryId} />
           </TabsContent>
 
 
           <TabsContent value="wellness">
-            <PlayerWellnessTab playerId={playerId!} categoryId={player.category_id} />
+            <PlayerWellnessTab playerId={playerId!} categoryId={effectiveCategoryId} />
           </TabsContent>
 
           <TabsContent value="nutrition">
-            <PlayerNutritionTab playerId={playerId!} categoryId={player.category_id} readOnly={true} />
+            <PlayerNutritionTab playerId={playerId!} categoryId={effectiveCategoryId} readOnly={true} />
           </TabsContent>
 
           <TabsContent value="academy">
-            <PlayerAcademyTab playerId={playerId!} categoryId={player.category_id} playerName={fullName} readOnly={true} />
+            <PlayerAcademyTab playerId={playerId!} categoryId={effectiveCategoryId} playerName={fullName} readOnly={true} />
           </TabsContent>
 
           <TabsContent value="injuries">
-            <PlayerInjuriesTab playerId={playerId!} categoryId={player.category_id} playerName={fullName} readOnly={true} />
+            <PlayerInjuriesTab playerId={playerId!} categoryId={effectiveCategoryId} playerName={fullName} readOnly={true} />
           </TabsContent>
 
           {(isBowling || isSurf || isSki || isPadel) && (
             <TabsContent value="equipment">
               {isBowling && (
-                <PlayerBowlingArsenal playerId={playerId!} categoryId={player.category_id} isViewer={false} />
+                <PlayerBowlingArsenal playerId={playerId!} categoryId={effectiveCategoryId} isViewer={false} />
               )}
               {isSurf && (
-                <PlayerSurfEquipment playerId={playerId!} categoryId={player.category_id} isViewer={true} />
+                <PlayerSurfEquipment playerId={playerId!} categoryId={effectiveCategoryId} isViewer={true} />
               )}
               {isSki && (
-                <PlayerSkiEquipment playerId={playerId!} categoryId={player.category_id} isViewer={true} />
+                <PlayerSkiEquipment playerId={playerId!} categoryId={effectiveCategoryId} isViewer={true} />
               )}
               {isPadel && (
-                <PlayerPadelEquipment playerId={playerId!} categoryId={player.category_id} isViewer={true} />
+                <PlayerPadelEquipment playerId={playerId!} categoryId={effectiveCategoryId} isViewer={true} />
               )}
             </TabsContent>
           )}
           <TabsContent value="documents">
-            <AthleteSpaceDocuments playerId={playerId!} categoryId={player.category_id} viewerMode="staff" />
+            <AthleteSpaceDocuments playerId={playerId!} categoryId={effectiveCategoryId} viewerMode="staff" />
           </TabsContent>
 
         </Tabs>
@@ -640,7 +657,7 @@ function PlayerDetailsContent() {
         <div className="mt-8">
           <PlayerReportSection 
             playerId={playerId!} 
-            categoryId={player.category_id} 
+            categoryId={effectiveCategoryId} 
             playerName={fullName}
             sportType={sportType}
           />
@@ -652,9 +669,9 @@ function PlayerDetailsContent() {
             onOpenChange={setTransferDialogOpen}
             playerId={playerId!}
             playerName={fullName}
-            currentCategoryId={player.category_id}
-            currentCategoryName={player.categories?.name || ""}
-            clubId={player.categories?.club_id || ""}
+            currentCategoryId={effectiveCategoryId}
+            currentCategoryName={effectiveCategory?.name || ""}
+            clubId={effectiveCategory?.club_id || ""}
           />
         )}
       </div>
@@ -664,6 +681,8 @@ function PlayerDetailsContent() {
 
 export default function PlayerDetails() {
   const { playerId } = useParams<{ playerId: string }>();
+  const [searchParams] = useSearchParams();
+  const contextCategoryId = searchParams.get("categoryId");
   
   // Fetch player to get categoryId and clubId for viewer mode
   const { data: player } = useQuery({
@@ -679,11 +698,28 @@ export default function PlayerDetails() {
     },
     enabled: !!playerId,
   });
+
+  const { data: contextCategory } = useQuery({
+    queryKey: ["player-context-category-for-viewer-mode", contextCategoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("id, club_id")
+        .eq("id", contextCategoryId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!contextCategoryId,
+  });
+
+  const effectiveCategoryId = contextCategory?.id || player?.category_id;
+  const effectiveClubId = contextCategory?.club_id || player?.categories?.club_id;
   
   return (
     <ViewerModeProvider 
-      categoryId={player?.category_id} 
-      clubId={player?.categories?.club_id}
+      categoryId={effectiveCategoryId} 
+      clubId={effectiveClubId}
     >
       <PlayerDetailsContent />
     </ViewerModeProvider>
