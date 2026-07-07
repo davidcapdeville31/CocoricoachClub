@@ -15135,6 +15135,10 @@ export type Database = {
         Args: { _player_id: string; _user_id: string }
         Returns: boolean
       }
+      is_staff_for_player_multi: {
+        Args: { _player_id: string }
+        Returns: boolean
+      }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       is_team_sport_category: {
         Args: { _category_id: string }
