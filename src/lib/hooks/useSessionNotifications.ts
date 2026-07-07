@@ -144,20 +144,32 @@ async function fetchSessionParticipants(
       return ids;
     }
 
-    // 2. Fallback: all category players with an account
-    const { data: players } = await supabase
+    // 2. Fallback: all players linked to this category (primary OR via
+    //    player_categories status=accepted) who have a user account.
+    const primaryQ = supabase
       .from("players")
-      .select("id")
+      .select("id, user_id")
       .eq("category_id", categoryId)
       .not("user_id", "is", null);
-
-    if (players && players.length > 0) {
-      const ids = players.map((p) => p.id);
+    const linkedQ = supabase
+      .from("player_categories")
+      .select("player_id, players!inner(id, user_id)")
+      .eq("category_id", categoryId)
+      .eq("status", "accepted");
+    const [primaryRes, linkedRes] = await Promise.all([primaryQ, linkedQ]);
+    const ids = new Set<string>();
+    (primaryRes.data ?? []).forEach((p: any) => ids.add(p.id));
+    (linkedRes.data ?? []).forEach((row: any) => {
+      const pl = row.players;
+      if (pl?.user_id) ids.add(pl.id);
+    });
+    if (ids.size > 0) {
       console.log(
-        `[SessionNotification] Auto-fetched ${ids.length} category players with accounts (fallback)`
+        `[SessionNotification] Auto-fetched ${ids.size} category+linked players with accounts (fallback)`
       );
-      return ids;
+      return Array.from(ids);
     }
+
   } catch (err) {
     console.error("[SessionNotification] Failed to auto-fetch participants:", err);
   }
