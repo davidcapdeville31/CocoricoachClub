@@ -206,6 +206,10 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { isViewer } = useViewerModeContext();
+  const getPlayerProfilePath = useCallback(
+    (playerId: string) => `/players/${playerId}?categoryId=${categoryId}`,
+    [categoryId]
+  );
 
   const { data: players, isLoading } = useViewerPlayers(categoryId);
 
@@ -577,7 +581,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                   <div
                     key={player.id}
                     className="rounded-2xl border bg-card p-3 shadow-sm active:scale-[0.99] transition-transform cursor-pointer"
-                    onClick={() => navigate(`/players/${player.id}`)}
+                    onClick={() => navigate(getPlayerProfilePath(player.id))}
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <Avatar className="h-11 w-11 shrink-0">
@@ -654,7 +658,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                           variant="outline"
                           size="sm"
                           className="gap-1.5 h-8"
-                          onClick={() => navigate(`/players/${player.id}`)}
+                          onClick={() => navigate(getPlayerProfilePath(player.id))}
                         >
                           <Eye className="h-4 w-4" />
                           Profil
@@ -693,7 +697,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                       <TableRow 
                         key={player.id} 
                         className="animate-fade-in cursor-pointer hover:bg-accent/50"
-                        onClick={() => navigate(`/players/${player.id}`)}
+                        onClick={() => navigate(getPlayerProfilePath(player.id))}
                       >
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-3">
@@ -793,7 +797,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                               className="gap-1.5"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                navigate(`/players/${player.id}`);
+                                navigate(getPlayerProfilePath(player.id));
                               }}
                             >
                               <Eye className="h-4 w-4" />
