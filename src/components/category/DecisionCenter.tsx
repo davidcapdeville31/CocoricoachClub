@@ -112,6 +112,11 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
  export function DecisionCenter({ categoryId, categoryName }: DecisionCenterProps) {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
+     const getPlayerProfilePath = (playerId: string, tab?: string) => {
+       const params = new URLSearchParams({ categoryId });
+       if (tab) params.set("tab", tab);
+       return `/players/${playerId}?${params.toString()}`;
+     };
     const today = format(new Date(), "yyyy-MM-dd");
    const tomorrow = format(addDays(new Date(), 1), "yyyy-MM-dd");
    const { data: wellnessQuestionsCfg } = useWellnessQuestions(categoryId);
@@ -926,7 +931,7 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
                       <div
                         key={p.id}
                         className="flex items-center justify-between p-2 rounded-lg bg-orange-50 dark:bg-orange-900/10 cursor-pointer hover:bg-orange-100 dark:hover:bg-orange-900/20 transition-colors"
-                        onClick={() => navigate(`/players/${p.id}`)}
+                        onClick={() => navigate(getPlayerProfilePath(p.id))}
                       >
                         <div className="min-w-0">
                           <p className="text-sm font-medium truncate">{p.name}</p>
@@ -967,7 +972,7 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
                       <div
                         key={`inj-${p.id}`}
                         className="flex items-center justify-between p-2 rounded-lg bg-red-50 dark:bg-red-900/10 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors"
-                        onClick={() => navigate(`/players/${p.id}?tab=injuries`)}
+                        onClick={() => navigate(getPlayerProfilePath(p.id, "injuries"))}
                         title="Voir le détail des blessures"
                       >
                         <div className="flex items-center gap-2 min-w-0">
@@ -988,7 +993,7 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
                       <div
                         key={`unc-${p.id}`}
                         className="flex items-center justify-between p-2 rounded-lg bg-yellow-50 dark:bg-yellow-900/10 cursor-pointer hover:bg-yellow-100 dark:hover:bg-yellow-900/20 transition-colors"
-                        onClick={() => navigate(`/players/${p.id}?tab=injuries`)}
+                        onClick={() => navigate(getPlayerProfilePath(p.id, "injuries"))}
                         title="Voir le détail des blessures"
                       >
                         <div className="flex items-center gap-2 min-w-0">
@@ -1007,7 +1012,7 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
                       <div
                         key={`sick-${p.id}`}
                         className="flex items-center justify-between p-2 rounded-lg bg-orange-50 dark:bg-orange-900/10 cursor-pointer hover:bg-orange-100 dark:hover:bg-orange-900/20 transition-colors"
-                        onClick={() => navigate(`/players/${p.id}`)}
+                        onClick={() => navigate(getPlayerProfilePath(p.id))}
                       >
                         <div className="flex items-center gap-2 min-w-0">
                           <Activity className="h-3.5 w-3.5 text-orange-500 shrink-0" />
@@ -1505,7 +1510,7 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
                        key={p.id} 
                        variant="outline" 
                        className="text-xs cursor-pointer hover:bg-muted"
-                       onClick={() => navigate(`/players/${p.id}`)}
+                       onClick={() => navigate(getPlayerProfilePath(p.id))}
                      >
                        {p.name} • {p.reason}
                      </Badge>
@@ -1714,7 +1719,7 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
                     variant="ghost"
                     className="w-full justify-between h-auto py-3"
                     onClick={() => {
-                      navigate(`/players/${player.id}`);
+                      navigate(getPlayerProfilePath(player.id));
                       setAthleteSelectOpen(false);
                     }}
                   >
@@ -1759,7 +1764,7 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
                     variant="ghost"
                     className="w-full justify-between h-auto py-3"
                     onClick={() => {
-                      navigate(`/players/${player.id}`);
+                      navigate(getPlayerProfilePath(player.id));
                       setAdaptChargeOpen(false);
                     }}
                   >

@@ -83,7 +83,10 @@ export function GlobalPlayerSearch({ categoryId: propCategoryId }: GlobalPlayerS
   }, []);
 
   const handleSelect = (playerId: string) => {
-    navigate(`/players/${playerId}`);
+    const target = activeCategoryId
+      ? `/players/${playerId}?categoryId=${activeCategoryId}`
+      : `/players/${playerId}`;
+    navigate(target);
     setOpen(false);
   };
 

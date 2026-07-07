@@ -90,6 +90,7 @@ function PlayerDetailsContent() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = searchParams.get("tab") || "charge";
+  const contextCategoryId = searchParams.get("categoryId");
   const queryClient = useQueryClient();
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const [isEditingPosition, setIsEditingPosition] = useState(false);
@@ -111,7 +112,64 @@ function PlayerDetailsContent() {
     },
   });
 
-  const sportType = (player?.categories as { rugby_type?: string })?.rugby_type || "XV";
+  const { data: contextCategory, isLoading: isContextCategoryLoading } = useQuery({
+    queryKey: ["player-context-category", contextCategoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("id, name, club_id, rugby_type, academy_enabled, gps_enabled, video_enabled")
+        .eq("id", contextCategoryId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!contextCategoryId && contextCategoryId !== player?.category_id,
+  });
+
+  const { data: contextCategoryLink, isLoading: isContextCategoryLinkLoading } = useQuery({
+    queryKey: ["player-context-category-link", playerId, contextCategoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("player_categories")
+        .select("player_id")
+        .eq("player_id", playerId!)
+        .eq("category_id", contextCategoryId!)
+        .eq("status", "accepted")
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!playerId && !!contextCategoryId && contextCategoryId !== player?.category_id,
+  });
+
+  const { data: accessibleLinkedCategories, isLoading: isAccessibleLinkedCategoriesLoading } = useQuery({
+    queryKey: ["player-accessible-linked-categories", playerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("player_categories")
+        .select("category_id, categories(id, name, club_id, rugby_type, academy_enabled, gps_enabled, video_enabled)")
+        .eq("player_id", playerId!)
+        .eq("status", "accepted");
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!playerId,
+  });
+
+  const needsLinkedCategoryValidation = !!contextCategoryId && contextCategoryId !== player?.category_id;
+  const needsAccessibleCategoryFallback = !!player && !player.categories;
+  const isContextCategoryPending =
+    (needsLinkedCategoryValidation && (isContextCategoryLoading || isContextCategoryLinkLoading)) ||
+    (needsAccessibleCategoryFallback && isAccessibleLinkedCategoriesLoading);
+  const canUseContextCategory =
+    !!contextCategoryId &&
+    (contextCategoryId === player?.category_id || !!contextCategoryLink);
+  const fallbackLinkedCategory = (accessibleLinkedCategories?.[0] as any)?.categories;
+  const effectiveCategory = canUseContextCategory && contextCategory
+    ? contextCategory
+    : player?.categories || fallbackLinkedCategory;
+  const effectiveCategoryId = effectiveCategory?.id || player?.category_id;
+  const sportType = (effectiveCategory as { rugby_type?: string })?.rugby_type || "XV";
   const isTeamSport = !isIndividualSport(sportType);
   const isAthletics = isAthletismeCategory(sportType);
   const isJudo = isJudoCategory(sportType);
@@ -249,7 +307,7 @@ function PlayerDetailsContent() {
     return positions.map(p => ({ value: p.name, label: `${p.id}. ${p.name}` }));
   };
 
-  if (isLoading) {
+  if (isLoading || isContextCategoryPending) {
     return (
       <div className="min-h-screen bg-background p-8">
         <p className="text-muted-foreground">Chargement...</p>
@@ -277,7 +335,7 @@ function PlayerDetailsContent() {
         <div className="flex justify-between items-center mb-6">
           <Button
             variant="ghost"
-            onClick={() => navigate(`/categories/${player.categories?.id}?tab=effectif`)}
+              onClick={() => navigate(`/categories/${effectiveCategoryId}?tab=effectif`)}
             className="gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -293,7 +351,7 @@ function PlayerDetailsContent() {
               <User className="h-4 w-4" />
               <span className="hidden sm:inline">Espace Athlète</span>
             </Button>
-            <GlobalPlayerSearch />
+            <GlobalPlayerSearch categoryId={effectiveCategoryId} />
             <NotificationBell variant="default" />
           </div>
         </div>
@@ -302,7 +360,7 @@ function PlayerDetailsContent() {
           <CardHeader className="flex flex-row items-center justify-between">
             <div className="space-y-2">
               <CardTitle className="text-3xl">{fullName}</CardTitle>
-              <p className="text-muted-foreground">{player.categories?.name}</p>
+              <p className="text-muted-foreground">{effectiveCategory?.name}</p>
               
               {/* Editable position/discipline */}
               {showAttributeEditor && (
@@ -439,11 +497,11 @@ function PlayerDetailsContent() {
         </div>
 
         {/* Athlete Access Section - only for coaches */}
-        {!isViewer && player.category_id && (
+        {!isViewer && effectiveCategoryId && (
           <div className="mb-3">
             <AthleteAccessSection 
               playerId={playerId!} 
-              categoryId={player.category_id}
+              categoryId={effectiveCategoryId}
               playerName={fullName}
             />
           </div>
@@ -451,7 +509,7 @@ function PlayerDetailsContent() {
 
         <div className="mb-3">
           <PlayerReferenceCard 
-            categoryId={player.category_id}
+            categoryId={effectiveCategoryId}
             playerId={playerId!}
             playerName={fullName}
           />
@@ -461,7 +519,7 @@ function PlayerDetailsContent() {
         <div className="mb-3 grid grid-cols-1 lg:grid-cols-2 gap-3">
           <PlayerPersonalInfoSection 
             playerId={playerId!}
-            categoryId={player.category_id}
+            categoryId={effectiveCategoryId}
             isViewer={isViewer}
             sportType={sportType}
           />
@@ -475,7 +533,7 @@ function PlayerDetailsContent() {
         {/* Informations complémentaires + Entraîneurs */}
         <div className="mb-3 grid grid-cols-1 lg:grid-cols-2 gap-3">
           {!isViewer && <PlayerAdditionalInfoSection playerId={playerId!} isViewer={isViewer} />}
-          <PlayerCoachesSection playerId={playerId!} categoryId={player.category_id} isViewer={isViewer} />
+          <PlayerCoachesSection playerId={playerId!} categoryId={effectiveCategoryId} isViewer={isViewer} />
         </div>
 
         {/* Données biométriques déplacées dans l'onglet "Tests" pour centralisation */}
@@ -489,7 +547,7 @@ function PlayerDetailsContent() {
         {isAthletics && (
           <div className="mb-3">
             <AthleticsRecordsManager
-              categoryId={player.category_id}
+              categoryId={effectiveCategoryId}
               playerId={playerId!}
               singlePlayer
               canEdit={!isViewer}
@@ -522,10 +580,10 @@ function PlayerDetailsContent() {
             <div className="space-y-6">
               <PlayerTrainingLoadCard 
                 playerId={playerId!} 
-                categoryId={player.category_id} 
+                categoryId={effectiveCategoryId} 
                 playerName={fullName}
               />
-              <PlayerAwcrTab playerId={playerId!} categoryId={player.category_id} readOnly={true} />
+              <PlayerAwcrTab playerId={playerId!} categoryId={effectiveCategoryId} readOnly={true} />
             </div>
           </TabsContent>
 
@@ -533,24 +591,24 @@ function PlayerDetailsContent() {
             <div className="space-y-4">
               <PlayerBiometrics
                 playerId={playerId!}
-                categoryId={player.category_id}
+                categoryId={effectiveCategoryId}
                 birthYear={player.birth_year}
               />
-              <SuggestedBenchmarksCard playerId={playerId!} categoryId={player.category_id} />
+              <SuggestedBenchmarksCard playerId={playerId!} categoryId={effectiveCategoryId} />
               <RecommendedExercisesCard playerId={playerId!} />
-              <PlayerTestsTab playerId={playerId!} categoryId={player.category_id} sportType={sportType} />
+              <PlayerTestsTab playerId={playerId!} categoryId={effectiveCategoryId} sportType={sportType} />
             </div>
           </TabsContent>
 
           <TabsContent value="matches">
             {isBowling ? (
-              <BowlingCumulativeStats categoryId={player.category_id} playerId={playerId!} />
+              <BowlingCumulativeStats categoryId={effectiveCategoryId} playerId={playerId!} />
             ) : (
               <PlayerMatchesTab 
                 playerId={playerId!} 
-                categoryId={player.category_id} 
+                categoryId={effectiveCategoryId} 
                 playerName={fullName}
-                sportType={(player.categories as { rugby_type?: string })?.rugby_type}
+                sportType={(effectiveCategory as { rugby_type?: string })?.rugby_type}
               />
             )}
           </TabsContent>
@@ -577,16 +635,16 @@ function PlayerDetailsContent() {
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="competition">
-                  <BowlingCumulativeStats categoryId={player.category_id} playerId={playerId!} />
+                  <BowlingCumulativeStats categoryId={effectiveCategoryId} playerId={playerId!} />
                 </TabsContent>
                 <TabsContent value="training">
-                  <BowlingTrainingStats categoryId={player.category_id} playerId={playerId!} />
+                  <BowlingTrainingStats categoryId={effectiveCategoryId} playerId={playerId!} />
                 </TabsContent>
               </Tabs>
             ) : (
               <PlayerCumulativeStats
-                categoryId={player.category_id}
-                sportType={(player.categories as { rugby_type?: string })?.rugby_type}
+                categoryId={effectiveCategoryId}
+                sportType={(effectiveCategory as { rugby_type?: string })?.rugby_type}
                 playerId={playerId!}
                 showTeamView={!isSurf && !isSki && !isPadel}
               />
@@ -594,44 +652,44 @@ function PlayerDetailsContent() {
           </TabsContent>
 
           <TabsContent value="calendar">
-            <PlayerCalendarTab playerId={playerId!} categoryId={player.category_id} />
+            <PlayerCalendarTab playerId={playerId!} categoryId={effectiveCategoryId} />
           </TabsContent>
 
 
           <TabsContent value="wellness">
-            <PlayerWellnessTab playerId={playerId!} categoryId={player.category_id} />
+            <PlayerWellnessTab playerId={playerId!} categoryId={effectiveCategoryId} />
           </TabsContent>
 
           <TabsContent value="nutrition">
-            <PlayerNutritionTab playerId={playerId!} categoryId={player.category_id} readOnly={true} />
+            <PlayerNutritionTab playerId={playerId!} categoryId={effectiveCategoryId} readOnly={true} />
           </TabsContent>
 
           <TabsContent value="academy">
-            <PlayerAcademyTab playerId={playerId!} categoryId={player.category_id} playerName={fullName} readOnly={true} />
+            <PlayerAcademyTab playerId={playerId!} categoryId={effectiveCategoryId} playerName={fullName} readOnly={true} />
           </TabsContent>
 
           <TabsContent value="injuries">
-            <PlayerInjuriesTab playerId={playerId!} categoryId={player.category_id} playerName={fullName} readOnly={true} />
+            <PlayerInjuriesTab playerId={playerId!} categoryId={effectiveCategoryId} playerName={fullName} readOnly={true} />
           </TabsContent>
 
           {(isBowling || isSurf || isSki || isPadel) && (
             <TabsContent value="equipment">
               {isBowling && (
-                <PlayerBowlingArsenal playerId={playerId!} categoryId={player.category_id} isViewer={false} />
+                <PlayerBowlingArsenal playerId={playerId!} categoryId={effectiveCategoryId} isViewer={false} />
               )}
               {isSurf && (
-                <PlayerSurfEquipment playerId={playerId!} categoryId={player.category_id} isViewer={true} />
+                <PlayerSurfEquipment playerId={playerId!} categoryId={effectiveCategoryId} isViewer={true} />
               )}
               {isSki && (
-                <PlayerSkiEquipment playerId={playerId!} categoryId={player.category_id} isViewer={true} />
+                <PlayerSkiEquipment playerId={playerId!} categoryId={effectiveCategoryId} isViewer={true} />
               )}
               {isPadel && (
-                <PlayerPadelEquipment playerId={playerId!} categoryId={player.category_id} isViewer={true} />
+                <PlayerPadelEquipment playerId={playerId!} categoryId={effectiveCategoryId} isViewer={true} />
               )}
             </TabsContent>
           )}
           <TabsContent value="documents">
-            <AthleteSpaceDocuments playerId={playerId!} categoryId={player.category_id} viewerMode="staff" />
+            <AthleteSpaceDocuments playerId={playerId!} categoryId={effectiveCategoryId} viewerMode="staff" />
           </TabsContent>
 
         </Tabs>
@@ -640,7 +698,7 @@ function PlayerDetailsContent() {
         <div className="mt-8">
           <PlayerReportSection 
             playerId={playerId!} 
-            categoryId={player.category_id} 
+            categoryId={effectiveCategoryId} 
             playerName={fullName}
             sportType={sportType}
           />
@@ -652,9 +710,9 @@ function PlayerDetailsContent() {
             onOpenChange={setTransferDialogOpen}
             playerId={playerId!}
             playerName={fullName}
-            currentCategoryId={player.category_id}
-            currentCategoryName={player.categories?.name || ""}
-            clubId={player.categories?.club_id || ""}
+            currentCategoryId={effectiveCategoryId}
+            currentCategoryName={effectiveCategory?.name || ""}
+            clubId={effectiveCategory?.club_id || ""}
           />
         )}
       </div>
@@ -664,6 +722,8 @@ function PlayerDetailsContent() {
 
 export default function PlayerDetails() {
   const { playerId } = useParams<{ playerId: string }>();
+  const [searchParams] = useSearchParams();
+  const contextCategoryId = searchParams.get("categoryId");
   
   // Fetch player to get categoryId and clubId for viewer mode
   const { data: player } = useQuery({
@@ -679,11 +739,66 @@ export default function PlayerDetails() {
     },
     enabled: !!playerId,
   });
+
+  const { data: contextCategory } = useQuery({
+    queryKey: ["player-context-category-for-viewer-mode", contextCategoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("id, club_id")
+        .eq("id", contextCategoryId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!contextCategoryId,
+  });
+
+  const { data: contextCategoryLink } = useQuery({
+    queryKey: ["player-context-category-link-for-viewer-mode", playerId, contextCategoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("player_categories")
+        .select("player_id")
+        .eq("player_id", playerId!)
+        .eq("category_id", contextCategoryId!)
+        .eq("status", "accepted")
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!playerId && !!contextCategoryId && contextCategoryId !== player?.category_id,
+  });
+
+  const { data: accessibleLinkedCategories } = useQuery({
+    queryKey: ["player-accessible-linked-categories-for-viewer-mode", playerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("player_categories")
+        .select("category_id, categories(id, club_id)")
+        .eq("player_id", playerId!)
+        .eq("status", "accepted");
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!playerId,
+  });
+
+  const fallbackLinkedCategory = (accessibleLinkedCategories?.[0] as any)?.categories;
+  const canUseContextCategory =
+    !!contextCategoryId &&
+    (contextCategoryId === player?.category_id || !!contextCategoryLink);
+  const effectiveCategoryId = canUseContextCategory && contextCategory
+    ? contextCategory.id
+    : player?.category_id || fallbackLinkedCategory?.id;
+  const effectiveClubId = canUseContextCategory && contextCategory
+    ? contextCategory.club_id
+    : player?.categories?.club_id || fallbackLinkedCategory?.club_id;
   
   return (
     <ViewerModeProvider 
-      categoryId={player?.category_id} 
-      clubId={player?.categories?.club_id}
+      categoryId={effectiveCategoryId} 
+      clubId={effectiveClubId}
     >
       <PlayerDetailsContent />
     </ViewerModeProvider>
