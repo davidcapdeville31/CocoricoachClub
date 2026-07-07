@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Plus, LogOut, Shield, User, Search, Settings } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
 import { Navigate, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { AddClubDialog } from "@/components/clubs/AddClubDialog";
@@ -309,23 +311,49 @@ export default function Clubs() {
                   <p className="text-muted-foreground">Aucun club trouvé pour cette recherche</p>
                 </CardContent>
               </Card>
-            ) : (
-              <div className="space-y-2">
-                {filteredClientClubs.map((club) => {
-                  const clientData = club.clients as any;
-                  return (
-                    <div key={club.id} className="relative">
-                      <ClubCard club={club} onDelete={(clubId) => deleteClub.mutate(clubId)} />
-                      {clientData?.name && (
-                        <span className="absolute top-1/2 -translate-y-1/2 right-24 text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full hidden sm:inline-block">
-                          {clientData.name}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            ) : (() => {
+              // Group by client
+              const groups = new Map<string, { name: string; clubs: typeof filteredClientClubs }>();
+              filteredClientClubs.forEach((club) => {
+                const clientData = club.clients as any;
+                const key = clientData?.id ?? "__none__";
+                const name = clientData?.name ?? "Sans client";
+                if (!groups.has(key)) groups.set(key, { name, clubs: [] });
+                groups.get(key)!.clubs.push(club);
+              });
+              const groupList = Array.from(groups.entries()).sort((a, b) =>
+                a[1].name.localeCompare(b[1].name)
+              );
+              return (
+                <Accordion type="multiple" className="space-y-2">
+                  {groupList.map(([key, group]) => (
+                    <AccordionItem
+                      key={key}
+                      value={key}
+                      className="border border-border rounded-lg bg-card px-4"
+                    >
+                      <AccordionTrigger className="hover:no-underline py-3">
+                        <div className="flex items-center gap-3">
+                          <span className="font-semibold text-foreground">{group.name}</span>
+                          <Badge variant="secondary">{group.clubs.length}</Badge>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <div className="space-y-2 pt-2 pb-1">
+                          {group.clubs.map((club) => (
+                            <ClubCard
+                              key={club.id}
+                              club={club}
+                              onDelete={(clubId) => deleteClub.mutate(clubId)}
+                            />
+                          ))}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              );
+            })()}
           </div>
         )}
       </div>
