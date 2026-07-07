@@ -126,7 +126,26 @@ function PlayerDetailsContent() {
     enabled: !!contextCategoryId && contextCategoryId !== player?.category_id,
   });
 
-  const effectiveCategory = contextCategory || player?.categories;
+  const { data: contextCategoryLink } = useQuery({
+    queryKey: ["player-context-category-link", playerId, contextCategoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("player_categories")
+        .select("player_id")
+        .eq("player_id", playerId!)
+        .eq("category_id", contextCategoryId!)
+        .eq("status", "accepted")
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!playerId && !!contextCategoryId && contextCategoryId !== player?.category_id,
+  });
+
+  const canUseContextCategory =
+    !!contextCategoryId &&
+    (contextCategoryId === player?.category_id || !!contextCategoryLink);
+  const effectiveCategory = canUseContextCategory && contextCategory ? contextCategory : player?.categories;
   const effectiveCategoryId = effectiveCategory?.id || player?.category_id;
   const sportType = (effectiveCategory as { rugby_type?: string })?.rugby_type || "XV";
   const isTeamSport = !isIndividualSport(sportType);
@@ -310,7 +329,7 @@ function PlayerDetailsContent() {
               <User className="h-4 w-4" />
               <span className="hidden sm:inline">Espace Athlète</span>
             </Button>
-            <GlobalPlayerSearch />
+            <GlobalPlayerSearch categoryId={effectiveCategoryId} />
             <NotificationBell variant="default" />
           </div>
         </div>
@@ -456,11 +475,11 @@ function PlayerDetailsContent() {
         </div>
 
         {/* Athlete Access Section - only for coaches */}
-        {!isViewer && player.category_id && (
+        {!isViewer && effectiveCategoryId && (
           <div className="mb-3">
             <AthleteAccessSection 
               playerId={playerId!} 
-              categoryId={player.category_id}
+              categoryId={effectiveCategoryId}
               playerName={fullName}
             />
           </div>
@@ -468,7 +487,7 @@ function PlayerDetailsContent() {
 
         <div className="mb-3">
           <PlayerReferenceCard 
-            categoryId={player.category_id}
+            categoryId={effectiveCategoryId}
             playerId={playerId!}
             playerName={fullName}
           />
@@ -478,7 +497,7 @@ function PlayerDetailsContent() {
         <div className="mb-3 grid grid-cols-1 lg:grid-cols-2 gap-3">
           <PlayerPersonalInfoSection 
             playerId={playerId!}
-            categoryId={player.category_id}
+            categoryId={effectiveCategoryId}
             isViewer={isViewer}
             sportType={sportType}
           />
@@ -492,7 +511,7 @@ function PlayerDetailsContent() {
         {/* Informations complémentaires + Entraîneurs */}
         <div className="mb-3 grid grid-cols-1 lg:grid-cols-2 gap-3">
           {!isViewer && <PlayerAdditionalInfoSection playerId={playerId!} isViewer={isViewer} />}
-          <PlayerCoachesSection playerId={playerId!} categoryId={player.category_id} isViewer={isViewer} />
+          <PlayerCoachesSection playerId={playerId!} categoryId={effectiveCategoryId} isViewer={isViewer} />
         </div>
 
         {/* Données biométriques déplacées dans l'onglet "Tests" pour centralisation */}
@@ -506,7 +525,7 @@ function PlayerDetailsContent() {
         {isAthletics && (
           <div className="mb-3">
             <AthleticsRecordsManager
-              categoryId={player.category_id}
+              categoryId={effectiveCategoryId}
               playerId={playerId!}
               singlePlayer
               canEdit={!isViewer}
