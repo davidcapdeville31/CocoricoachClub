@@ -71,6 +71,7 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
 import { SeasonRosterFilterToggle } from "@/components/category/SeasonRosterFilterToggle";
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
+import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
  
  interface DecisionCenterProps {
    categoryId: string;
