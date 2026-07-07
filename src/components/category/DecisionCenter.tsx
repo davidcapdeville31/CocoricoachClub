@@ -311,18 +311,20 @@ import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
  
   // Fetch wellness data
     const { data: wellnessDataRaw = [], refetch: refetchWellness } = useQuery({
-      queryKey: ["wellness_decision", categoryId],
+      queryKey: ["wellness_decision_roster", categoryId, rosterKey],
       queryFn: async () => {
+        if (rosterIds.length === 0) return [];
         const weekAgo = subDays(new Date(), 7).toISOString().split("T")[0];
         const { data, error } = await supabase
           .from("wellness_tracking")
           .select("*")
-          .eq("category_id", categoryId)
+          .in("player_id", rosterIds)
           .gte("tracking_date", weekAgo)
           .order("tracking_date", { ascending: false });
         if (error) throw error;
         return data;
       },
+      enabled: rosterIds.length > 0,
     });
     const wellnessData = useMemo(
       () =>
