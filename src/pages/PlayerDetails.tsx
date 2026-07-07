@@ -112,7 +112,7 @@ function PlayerDetailsContent() {
     },
   });
 
-  const { data: contextCategory } = useQuery({
+  const { data: contextCategory, isLoading: isContextCategoryLoading } = useQuery({
     queryKey: ["player-context-category", contextCategoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -126,7 +126,7 @@ function PlayerDetailsContent() {
     enabled: !!contextCategoryId && contextCategoryId !== player?.category_id,
   });
 
-  const { data: contextCategoryLink } = useQuery({
+  const { data: contextCategoryLink, isLoading: isContextCategoryLinkLoading } = useQuery({
     queryKey: ["player-context-category-link", playerId, contextCategoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -142,6 +142,8 @@ function PlayerDetailsContent() {
     enabled: !!playerId && !!contextCategoryId && contextCategoryId !== player?.category_id,
   });
 
+  const needsLinkedCategoryValidation = !!contextCategoryId && contextCategoryId !== player?.category_id;
+  const isContextCategoryPending = needsLinkedCategoryValidation && (isContextCategoryLoading || isContextCategoryLinkLoading);
   const canUseContextCategory =
     !!contextCategoryId &&
     (contextCategoryId === player?.category_id || !!contextCategoryLink);
@@ -285,7 +287,7 @@ function PlayerDetailsContent() {
     return positions.map(p => ({ value: p.name, label: `${p.id}. ${p.name}` }));
   };
 
-  if (isLoading) {
+  if (isLoading || isContextCategoryPending) {
     return (
       <div className="min-h-screen bg-background p-8">
         <p className="text-muted-foreground">Chargement...</p>
