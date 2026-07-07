@@ -219,18 +219,20 @@ import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
       }).filter(Boolean);
     };
  
-   // Fetch active injuries
+   // Fetch active injuries — global per player (multi-structure aware)
    const { data: injuriesRaw = [] } = useQuery({
-     queryKey: ["active_injuries", categoryId],
+     queryKey: ["active_injuries_roster", categoryId, rosterKey],
      queryFn: async () => {
+       if (rosterIds.length === 0) return [];
        const { data, error } = await supabase
          .from("injuries")
          .select("player_id, status, estimated_return_date")
-         .eq("category_id", categoryId)
+         .in("player_id", rosterIds)
          .in("status", ["active", "recovering"]);
        if (error) throw error;
        return data;
      },
+     enabled: rosterIds.length > 0,
    });
    // Active injuries remain visible across seasons (medical safety) — but only for players within active roster
    const injuries = useMemo(
@@ -238,14 +240,15 @@ import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
      [injuriesRaw, allowedIds]
    );
 
-   // Fetch active illnesses
+   // Fetch active illnesses — global per player
    const { data: illnessesRaw = [] } = useQuery({
-     queryKey: ["active_illnesses", categoryId],
+     queryKey: ["active_illnesses_roster", categoryId, rosterKey],
      queryFn: async () => {
+       if (rosterIds.length === 0) return [];
        const { data, error } = await (supabase as any)
          .from("illnesses")
          .select("player_id, status, illness_type, estimated_return_date")
-         .eq("category_id", categoryId)
+         .in("player_id", rosterIds)
          .in("status", ["active", "recovering"]);
        if (error) {
          console.warn("Illnesses query error:", error.message);
@@ -253,6 +256,7 @@ import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
        }
        return data || [];
      },
+     enabled: rosterIds.length > 0,
    });
    const illnesses = useMemo(
      () => (illnessesRaw || []).filter((i: any) => keepPlayer(i.player_id)),
