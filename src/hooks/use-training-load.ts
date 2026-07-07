@@ -142,18 +142,22 @@ export function useTrainingLoad({
   };
 
   // Fetch AWCR/RPE data (sliding window preserved for EWMA accuracy)
+  // For an individual player, training load is global per athlete: do NOT filter
+  // by category_id, so multi-structure athletes show the same load in every
+  // authorized structure. RLS still restricts access.
   const { data: awcrDataRaw, isLoading: awcrLoading } = useQuery({
     queryKey: ["training-load-awcr", categoryId, playerId, periodDays, activeSeasonStart, scopeKey],
     queryFn: async () => {
       let query = supabase
         .from("awcr_tracking")
         .select("*")
-        .eq("category_id", categoryId)
         .gte("session_date", getEffectiveStart(periodDays))
         .order("session_date", { ascending: true });
 
       if (playerId) {
         query = query.eq("player_id", playerId);
+      } else {
+        query = query.eq("category_id", categoryId);
       }
 
       const { data, error } = await query;
@@ -170,12 +174,13 @@ export function useTrainingLoad({
       let query = supabase
         .from("hrv_records")
         .select("*")
-        .eq("category_id", categoryId)
         .gte("record_date", getEffectiveStart(periodDays))
         .order("record_date", { ascending: true });
 
       if (playerId) {
         query = query.eq("player_id", playerId);
+      } else {
+        query = query.eq("category_id", categoryId);
       }
 
       const { data, error } = await query;
@@ -192,12 +197,13 @@ export function useTrainingLoad({
       let query = supabase
         .from("gps_sessions")
         .select("*")
-        .eq("category_id", categoryId)
         .gte("session_date", getEffectiveStart(periodDays))
         .order("session_date", { ascending: true });
 
       if (playerId) {
         query = query.eq("player_id", playerId);
+      } else {
+        query = query.eq("category_id", categoryId);
       }
 
       const { data, error } = await query;
