@@ -142,12 +142,32 @@ function PlayerDetailsContent() {
     enabled: !!playerId && !!contextCategoryId && contextCategoryId !== player?.category_id,
   });
 
+  const { data: accessibleLinkedCategories, isLoading: isAccessibleLinkedCategoriesLoading } = useQuery({
+    queryKey: ["player-accessible-linked-categories", playerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("player_categories")
+        .select("category_id, categories(id, name, club_id, rugby_type, academy_enabled, gps_enabled, video_enabled)")
+        .eq("player_id", playerId!)
+        .eq("status", "accepted");
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!playerId,
+  });
+
   const needsLinkedCategoryValidation = !!contextCategoryId && contextCategoryId !== player?.category_id;
-  const isContextCategoryPending = needsLinkedCategoryValidation && (isContextCategoryLoading || isContextCategoryLinkLoading);
+  const needsAccessibleCategoryFallback = !!player && !player.categories;
+  const isContextCategoryPending =
+    (needsLinkedCategoryValidation && (isContextCategoryLoading || isContextCategoryLinkLoading)) ||
+    (needsAccessibleCategoryFallback && isAccessibleLinkedCategoriesLoading);
   const canUseContextCategory =
     !!contextCategoryId &&
     (contextCategoryId === player?.category_id || !!contextCategoryLink);
-  const effectiveCategory = canUseContextCategory && contextCategory ? contextCategory : player?.categories;
+  const fallbackLinkedCategory = (accessibleLinkedCategories?.[0] as any)?.categories;
+  const effectiveCategory = canUseContextCategory && contextCategory
+    ? contextCategory
+    : player?.categories || fallbackLinkedCategory;
   const effectiveCategoryId = effectiveCategory?.id || player?.category_id;
   const sportType = (effectiveCategory as { rugby_type?: string })?.rugby_type || "XV";
   const isTeamSport = !isIndividualSport(sportType);
@@ -734,8 +754,23 @@ export default function PlayerDetails() {
     enabled: !!contextCategoryId,
   });
 
-  const effectiveCategoryId = contextCategory?.id || player?.category_id;
-  const effectiveClubId = contextCategory?.club_id || player?.categories?.club_id;
+  const { data: accessibleLinkedCategories } = useQuery({
+    queryKey: ["player-accessible-linked-categories-for-viewer-mode", playerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("player_categories")
+        .select("category_id, categories(id, club_id)")
+        .eq("player_id", playerId!)
+        .eq("status", "accepted");
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!playerId,
+  });
+
+  const fallbackLinkedCategory = (accessibleLinkedCategories?.[0] as any)?.categories;
+  const effectiveCategoryId = contextCategory?.id || player?.category_id || fallbackLinkedCategory?.id;
+  const effectiveClubId = contextCategory?.club_id || player?.categories?.club_id || fallbackLinkedCategory?.club_id;
   
   return (
     <ViewerModeProvider 
