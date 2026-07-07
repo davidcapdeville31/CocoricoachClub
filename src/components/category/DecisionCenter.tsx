@@ -140,28 +140,26 @@ import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
     const keepPlayer = (pid: string | null | undefined) =>
       !allowedIds || (!!pid && allowedIds.has(pid));
 
-    // Fetch players via `players_safe` (non-sensitive fields only, RLS-friendly
-    // for coach/athlete accounts that cannot read the full `players` table).
+    // Fetch full roster (direct + multi-structure linked players via player_categories)
+    // so Décisions shows the same global athlete data in every authorized structure.
     const {
       data: allPlayersRaw = [],
       isLoading: isPlayersLoading,
       isFetching: isPlayersFetching,
     } = useQuery({
-      queryKey: ["players-safe-decision", categoryId],
-      queryFn: async () => {
-        const { data, error } = await supabase
-          .from("players_safe")
-          .select("id, name, first_name, position, category_id")
-          .eq("category_id", categoryId);
-        if (error) throw error;
-        return data || [];
-      },
+      queryKey: ["players-safe-decision-roster", categoryId],
+      queryFn: async () => fetchCategoryRosterPlayers(categoryId),
       enabled: !!categoryId,
     });
     const players = useMemo(
       () => (allPlayersRaw || []).filter((p: any) => keepPlayer(p.id)),
       [allPlayersRaw, allowedIds]
     );
+    const rosterIds = useMemo(
+      () => (allPlayersRaw || []).map((p: any) => p.id).filter(Boolean),
+      [allPlayersRaw]
+    );
+    const rosterKey = useMemo(() => rosterIds.slice().sort().join(","), [rosterIds]);
     const playersLoading = isPlayersLoading || (isPlayersFetching && (allPlayersRaw?.length ?? 0) === 0);
 
     const getFullName = (player: { first_name?: string | null; name: string }) =>
