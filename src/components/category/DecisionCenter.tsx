@@ -266,18 +266,20 @@ import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
    // Fetch AWCR data for EWMA calculation (need 90 days for proper chronic load)
    // Sliding 28d/90d kept intact for accuracy; player filter applied
    const { data: awcrDataFullRaw = [] } = useQuery({
-     queryKey: ["awcr_decision_full", categoryId],
+     queryKey: ["awcr_decision_full_roster", categoryId, rosterKey],
      queryFn: async () => {
+       if (rosterIds.length === 0) return [];
        const ninetyDaysAgo = subDays(new Date(), 90).toISOString().split("T")[0];
        const { data, error } = await supabase
          .from("awcr_tracking")
          .select("player_id, training_load, rpe, duration_minutes, session_date")
-         .eq("category_id", categoryId)
+         .in("player_id", rosterIds)
          .gte("session_date", ninetyDaysAgo)
          .order("session_date", { ascending: true });
        if (error) throw error;
        return data;
      },
+     enabled: rosterIds.length > 0,
    });
    const awcrDataFull = useMemo(
      () => (awcrDataFullRaw || []).filter((r: any) => keepPlayer(r.player_id)),
