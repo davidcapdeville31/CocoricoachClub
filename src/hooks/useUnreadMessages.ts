@@ -1,7 +1,7 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 interface UnreadCounts {
   total: number;
@@ -12,10 +12,330 @@ const unreadDebug = (label: string, data: Record<string, unknown>) => {
   console.info(`[UNREAD_RT_DEBUG] ${label}`, data);
 };
 
+interface UnreadRealtimeEntry {
+  channel: ReturnType<typeof supabase.channel>;
+  channelName: string;
+  refCount: number;
+  clearDebounce: () => void;
+}
+
+const unreadRealtimeRegistry = new Map<string, UnreadRealtimeEntry>();
+
+const createUnreadChannelName = (categoryId: string, userId: string) => {
+  const suffix =
+    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : Math.random().toString(36).slice(2, 12);
+
+  return `unread-messages-${categoryId}-${userId}-${suffix}`;
+};
+
+const cleanupStaleUnreadChannels = (categoryId: string, userId: string) => {
+  const getChannels = supabase.getChannels?.bind(supabase);
+  if (!getChannels) return;
+
+  const legacyTopic = `realtime:unread-messages-${categoryId}`;
+  const currentUserPrefix = `realtime:unread-messages-${categoryId}-${userId}-`;
+
+  getChannels().forEach((existingChannel) => {
+    const topic = (existingChannel as { topic?: string }).topic;
+    if (topic === legacyTopic || topic?.startsWith(currentUserPrefix)) {
+      void supabase.removeChannel(existingChannel);
+    }
+  });
+};
+
+const subscribeToUnreadMessagesRealtime = ({
+  categoryId,
+  userId,
+  queryClient,
+}: {
+  categoryId: string;
+  userId: string;
+  queryClient: QueryClient;
+}) => {
+  const registryKey = `${categoryId}:${userId}`;
+  const existingEntry = unreadRealtimeRegistry.get(registryKey);
+
+  if (existingEntry) {
+    existingEntry.refCount += 1;
+    unreadDebug("realtime reuse", {
+      channel: existingEntry.channelName,
+      categoryId,
+      userId,
+      refCount: existingEntry.refCount,
+      queryKey: ["unread-messages", categoryId, userId],
+    });
+
+    return () => {
+      const currentEntry = unreadRealtimeRegistry.get(registryKey);
+      if (!currentEntry) return;
+
+      currentEntry.refCount -= 1;
+      unreadDebug("realtime release shared", {
+        channel: currentEntry.channelName,
+        categoryId,
+        userId,
+        refCount: currentEntry.refCount,
+        queryKey: ["unread-messages", categoryId, userId],
+      });
+
+      if (currentEntry.refCount <= 0) {
+        currentEntry.clearDebounce();
+        unreadRealtimeRegistry.delete(registryKey);
+        void supabase.removeChannel(currentEntry.channel);
+      }
+    };
+  }
+
+  cleanupStaleUnreadChannels(categoryId, userId);
+
+  const channelName = createUnreadChannelName(categoryId, userId);
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+  unreadDebug("realtime subscribe", {
+    channel: channelName,
+    categoryId,
+    userId,
+    queryKey: ["unread-messages", categoryId, userId],
+  });
+
+  const channel = supabase
+    .channel(channelName)
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "messages",
+      },
+      async (payload) => {
+        const row = payload.new as {
+          conversation_id?: string;
+          sender_id?: string;
+        } | null;
+        const queryKey = ["unread-messages", categoryId, userId] as const;
+        unreadDebug("realtime INSERT received", {
+          categoryId,
+          userId,
+          conversationId: row?.conversation_id,
+          senderId: row?.sender_id,
+          queryKey,
+        });
+        if (!row?.conversation_id || !row.sender_id) return;
+        const conversationId = row.conversation_id;
+
+        if (row.sender_id === userId) {
+          unreadDebug("realtime INSERT ignored: own message", {
+            categoryId,
+            userId,
+            conversationId,
+          });
+          return;
+        }
+
+        await queryClient.cancelQueries({ queryKey, exact: true });
+        const current = queryClient.getQueryData<UnreadCounts>(queryKey);
+
+        unreadDebug("cache before realtime update", {
+          categoryId,
+          userId,
+          conversationId,
+          queryKey,
+          current,
+          byConversation: current?.byConversation,
+        });
+
+        if (!current) {
+          unreadDebug("realtime INSERT missing cache: validating conversation", {
+            categoryId,
+            userId,
+            conversationId,
+            queryKey,
+          });
+
+          const { data: conversation } = await supabase
+            .from("conversations")
+            .select("id")
+            .eq("id", conversationId)
+            .eq("category_id", categoryId)
+            .maybeSingle();
+
+          const { data: participation } = await supabase
+            .from("conversation_participants")
+            .select("conversation_id")
+            .eq("conversation_id", conversationId)
+            .eq("user_id", userId)
+            .maybeSingle();
+
+          if (!conversation || !participation) {
+            unreadDebug("realtime INSERT ignored: missing cache invalid conversation", {
+              categoryId,
+              userId,
+              conversationId,
+              queryKey,
+            });
+            return;
+          }
+
+          queryClient.setQueryData<UnreadCounts>(queryKey, (previous) => {
+            const safePrevious = previous ?? { total: 0, byConversation: {} };
+            const previousConversationCount = safePrevious.byConversation[conversationId] || 0;
+            const next: UnreadCounts = {
+              total: safePrevious.total + 1,
+              byConversation: {
+                ...safePrevious.byConversation,
+                [conversationId]: previousConversationCount + 1,
+              },
+            };
+
+            unreadDebug("setQueryData missing cache validated", {
+              categoryId,
+              userId,
+              conversationId,
+              queryKey,
+              previous: safePrevious,
+              next,
+            });
+
+            return next;
+          });
+          return;
+        }
+
+        const knownConv = conversationId in current.byConversation;
+        if (knownConv) {
+          queryClient.setQueryData<UnreadCounts>(queryKey, (previous) => {
+            const safePrevious = previous ?? current;
+            const next: UnreadCounts = {
+              total: safePrevious.total + 1,
+              byConversation: {
+                ...safePrevious.byConversation,
+                [conversationId]: (safePrevious.byConversation[conversationId] || 0) + 1,
+              },
+            };
+            unreadDebug("setQueryData", {
+              categoryId,
+              userId,
+              conversationId,
+              queryKey,
+              previous: safePrevious,
+              previousByConversation: safePrevious.byConversation,
+              next,
+              nextByConversation: next.byConversation,
+            });
+            return next;
+          });
+        } else {
+          unreadDebug("realtime INSERT unknown conversation", {
+            categoryId,
+            userId,
+            conversationId,
+            knownConversationIds: Object.keys(current.byConversation),
+            queryKey,
+          });
+
+          const { data: conversation } = await supabase
+            .from("conversations")
+            .select("id")
+            .eq("id", conversationId)
+            .eq("category_id", categoryId)
+            .maybeSingle();
+
+          const { data: participation } = await supabase
+            .from("conversation_participants")
+            .select("conversation_id")
+            .eq("conversation_id", conversationId)
+            .eq("user_id", userId)
+            .maybeSingle();
+
+          if (conversation && participation) {
+            queryClient.setQueryData<UnreadCounts>(queryKey, (previous) => {
+              const safePrevious = previous ?? current;
+              const previousConversationCount = safePrevious.byConversation[conversationId] || 0;
+              const next: UnreadCounts = {
+                total: safePrevious.total + 1,
+                byConversation: {
+                  ...safePrevious.byConversation,
+                  [conversationId]: previousConversationCount + 1,
+                },
+              };
+
+              unreadDebug("setQueryData unknown conversation validated", {
+                categoryId,
+                userId,
+                conversationId,
+                queryKey,
+                previous: safePrevious,
+                next,
+              });
+
+              return next;
+            });
+            return;
+          }
+
+          if (debounceTimer) clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(() => {
+            unreadDebug("invalidate debounced", {
+              categoryId,
+              userId,
+              conversationId,
+              queryKey,
+            });
+            queryClient.invalidateQueries({ queryKey });
+          }, 2000);
+        }
+      }
+    )
+    .subscribe((status) => {
+      unreadDebug("realtime status", {
+        status,
+        channel: channelName,
+        categoryId,
+        userId,
+        queryKey: ["unread-messages", categoryId, userId],
+      });
+    });
+
+  unreadRealtimeRegistry.set(registryKey, {
+    channel,
+    channelName,
+    refCount: 1,
+    clearDebounce: () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+        debounceTimer = null;
+      }
+    },
+  });
+
+  return () => {
+    const currentEntry = unreadRealtimeRegistry.get(registryKey);
+    if (!currentEntry) return;
+
+    currentEntry.refCount -= 1;
+    unreadDebug("realtime unsubscribe", {
+      channel: currentEntry.channelName,
+      categoryId,
+      userId,
+      refCount: currentEntry.refCount,
+      queryKey: ["unread-messages", categoryId, userId],
+    });
+
+    if (currentEntry.refCount <= 0) {
+      currentEntry.clearDebounce();
+      unreadRealtimeRegistry.delete(registryKey);
+      void supabase.removeChannel(currentEntry.channel);
+    }
+  };
+};
+
 export function useUnreadMessages(categoryId: string) {
   const { user } = useAuth();
+  const userId = user?.id;
   const queryClient = useQueryClient();
-  const debugKey = ["unread-messages", categoryId, user?.id] as const;
+  const debugKey = ["unread-messages", categoryId, userId] as const;
 
   useEffect(() => {
     unreadDebug("mounted", {
