@@ -2990,6 +2990,7 @@ export type Database = {
       }
       conversations: {
         Row: {
+          avatar_url: string | null
           category_id: string | null
           conversation_type: string
           created_at: string
@@ -2999,6 +3000,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          avatar_url?: string | null
           category_id?: string | null
           conversation_type?: string
           created_at?: string
@@ -3008,6 +3010,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          avatar_url?: string | null
           category_id?: string | null
           conversation_type?: string
           created_at?: string
@@ -15073,6 +15076,10 @@ export type Database = {
           video_url: string
         }[]
       }
+      get_or_create_direct_conversation: {
+        Args: { _category_id: string; _other_user_id: string }
+        Returns: string
+      }
       get_player_attributes_by_dimension: {
         Args: {
           _dimension: Database["public"]["Enums"]["athlete_attribute_dimension"]
@@ -15249,6 +15256,10 @@ export type Database = {
           _metadata?: Json
         }
         Returns: string
+      }
+      rename_conversation: {
+        Args: { _conversation_id: string; _new_name: string }
+        Returns: undefined
       }
       renew_invitation: {
         Args: { _invitation_id: string; _table_name: string }
