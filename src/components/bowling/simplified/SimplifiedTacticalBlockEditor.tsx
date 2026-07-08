@@ -220,21 +220,26 @@ export function SimplifiedTacticalBlockEditor({
                 </div>
               )}
               {item.target_type === "single_pin" && (
-                <Select
-                  value={item.single_pin || "10"}
-                  onValueChange={(v) => updateItem(item.id, { single_pin: v as any })}
-                >
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="z-[100]">
-                    {SINGLE_PINS.map((s) => (
-                      <SelectItem key={s.value} value={s.value}>
-                        {s.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="space-y-1">
+                  <Label className="text-[10px] uppercase text-muted-foreground">
+                    Quille travaillée
+                  </Label>
+                  <Select
+                    value={item.single_pin || "10"}
+                    onValueChange={(v) => updateItem(item.id, { single_pin: v as any })}
+                  >
+                    <SelectTrigger className="h-10 text-sm">
+                      <SelectValue placeholder="Choisir une quille" />
+                    </SelectTrigger>
+                    <SelectContent className="z-[100] max-h-[60vh]">
+                      {SINGLE_PINS.map((s) => (
+                        <SelectItem key={s.value} value={s.value} className="text-sm py-2">
+                          {s.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               )}
 
               {/* Attempts + success */}
