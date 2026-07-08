@@ -53,6 +53,7 @@ import { AddMatchCalendarDialog } from "@/components/category/matches/AddMatchCa
 import { AthleteBowlingCompetitionDialog } from "@/components/category/matches/AthleteBowlingCompetitionDialog";
 import { SessionValidationDialog } from "@/components/athlete-space/SessionValidationDialog";
 import { SessionDetailDialog } from "@/components/athlete-space/SessionDetailDialog";
+import { SessionAttendanceResponse } from "@/components/athlete-space/SessionAttendanceResponse";
 import { Eye } from "lucide-react";
 
 
@@ -684,6 +685,16 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                 </div>
                               </div>
                             </button>
+                            {!isAthleteSession && (
+                              <div className="px-3 pb-2">
+                                <SessionAttendanceResponse
+                                  sessionId={session.id}
+                                  playerId={playerId}
+                                  sessionDate={session.session_date}
+                                  sessionStartTime={session.session_start_time}
+                                />
+                              </div>
+                            )}
                             {(isExpanded && (exercises.length > 0 || (session as any).notes || isBowling || isBasket)) && (
                               <div className="px-3 pb-3 border-t border-border/50 pt-2 space-y-2">
                                 {(() => {
