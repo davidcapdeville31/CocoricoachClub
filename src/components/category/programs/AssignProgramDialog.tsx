@@ -257,11 +257,52 @@ export function AssignProgramDialog({
         }
       }
 
+      // Auto-notify assigned athletes (one notification per athlete, not per session)
+      let notifiedCount = 0;
+      if (playersToAssign.length > 0 && programStructure?.program?.name) {
+        try {
+          const { data: playersData } = await supabase
+            .from("players")
+            .select("user_id")
+            .in("id", playersToAssign);
+
+          const recipientUserIds = (playersData ?? [])
+            .map((p: any) => p.user_id)
+            .filter((uid: string | null): uid is string => !!uid);
+
+          if (recipientUserIds.length > 0) {
+            const programName = programStructure.program.name;
+            const notifRows = recipientUserIds.map((uid) => ({
+              user_id: uid,
+              category_id: categoryId,
+              notification_type: "session",
+              notification_subtype: "program_assigned",
+              title: "Nouveau programme ajouté",
+              message: `Le programme « ${programName} » a été ajouté à ton calendrier.`,
+              is_read: false,
+              priority: "normal",
+              metadata: { program_id: programId, program_name: programName },
+            }));
+            const { error: notifError } = await supabase
+              .from("notifications")
+              .insert(notifRows);
+            if (notifError) {
+              console.error("Notification insert error:", notifError);
+            } else {
+              notifiedCount = recipientUserIds.length;
+            }
+          }
+        } catch (e) {
+          console.error("Notify athletes error:", e);
+        }
+      }
+
       toast.success(
         playersToAssign.length > 0
-          ? `Programme assigné à ${playersToAssign.length} athlète(s)${addToCalendar ? " et ajouté au calendrier" : ""}`
+          ? `Programme assigné à ${playersToAssign.length} athlète(s)${addToCalendar ? " et ajouté au calendrier" : ""}${notifiedCount > 0 ? ` — ${notifiedCount} athlète(s) notifié(s)` : ""}`
           : "Assignations supprimées"
       );
+
 
       queryClient.invalidateQueries({ queryKey: ["training-programs"] });
       queryClient.invalidateQueries({ queryKey: ["program-assignments"] });
