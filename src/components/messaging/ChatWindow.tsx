@@ -156,8 +156,9 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
 
   // Subscribe to realtime messages — ne dépend PAS de `messages` pour éviter le churn du channel
   useEffect(() => {
+    const suffix = Math.random().toString(36).slice(2, 8);
     const channel = supabase
-      .channel(`messages-${conversationId}`)
+      .channel(`messages-${conversationId}-${suffix}`)
       .on("postgres_changes", {
         event: "INSERT",
         schema: "public",
