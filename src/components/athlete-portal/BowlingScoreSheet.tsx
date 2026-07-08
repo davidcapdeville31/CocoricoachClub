@@ -743,9 +743,9 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
           </CardTitle>
         </CardHeader>
         <CardContent className="p-2 sm:p-4">
-          <div className="pb-2 w-full">
+          <div className="pb-2 w-full overflow-x-auto -mx-1 px-1">
             {/* Classic scoresheet table */}
-            <table className="w-full table-fixed border-collapse border-2 border-foreground/30">
+            <table className={`table-fixed border-collapse border-2 border-foreground/30 ${compact ? "w-full min-w-[320px]" : "w-full min-w-[560px]"}`}>
               <colgroup>
                 <col style={{ width: compact ? "44px" : "60px" }} />
                 {frames.map((_, frameIndex) => (
