@@ -13,7 +13,7 @@ export function usePresence(categoryId: string | null | undefined) {
   useEffect(() => {
     if (!categoryId || !user?.id) return;
 
-    const channelName = `presence:cat:${categoryId}`;
+    const channelName = `presence:cat:${categoryId}:${user.id}:${Math.random().toString(36).slice(2, 8)}`;
     const channel = supabase.channel(channelName, {
       config: { presence: { key: user.id } },
     });
