@@ -367,7 +367,7 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
                 {participants?.length || 0}
               </Badge>
             )}
-            {canManageMembers && (
+            {canOpenMemberDialog && (
               <Button
                 variant="ghost"
                 size="icon"
