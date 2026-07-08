@@ -3732,21 +3732,30 @@ export type Database = {
       }
       event_participants: {
         Row: {
+          absence_comment: string | null
+          attendance_status: string
           created_at: string
           id: string
           player_id: string
+          responded_at: string | null
           training_session_id: string
         }
         Insert: {
+          absence_comment?: string | null
+          attendance_status?: string
           created_at?: string
           id?: string
           player_id: string
+          responded_at?: string | null
           training_session_id: string
         }
         Update: {
+          absence_comment?: string | null
+          attendance_status?: string
           created_at?: string
           id?: string
           player_id?: string
+          responded_at?: string | null
           training_session_id?: string
         }
         Relationships: [
