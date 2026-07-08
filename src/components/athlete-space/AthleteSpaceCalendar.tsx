@@ -53,6 +53,7 @@ import { AddMatchCalendarDialog } from "@/components/category/matches/AddMatchCa
 import { AthleteBowlingCompetitionDialog } from "@/components/category/matches/AthleteBowlingCompetitionDialog";
 import { SessionValidationDialog } from "@/components/athlete-space/SessionValidationDialog";
 import { SessionDetailDialog } from "@/components/athlete-space/SessionDetailDialog";
+import { SessionAttendanceResponse } from "@/components/athlete-space/SessionAttendanceResponse";
 import { Eye } from "lucide-react";
 
 
