@@ -36,7 +36,7 @@ export function MessagingTab({ categoryId, isAthlete = false }: MessagingTabProp
                 Membres
               </TabsTrigger>
             </TabsList>
-            <TabsContent value="conversations" className="flex-1 mt-0 overflow-hidden">
+            <TabsContent value="conversations" className="flex-1 mt-0 overflow-hidden data-[state=active]:flex flex-col">
               <ConversationList
                 categoryId={categoryId}
                 selectedId={selectedConversationId || undefined}
