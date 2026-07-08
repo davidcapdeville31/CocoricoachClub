@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Target, TrendingUp, Save, X, CheckCircle, ChevronDown } from "lucide-react";
 import { getStatTextColor, getStatColor } from "@/lib/bowling/statColors";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export interface ThrowData {
   value: string; // "X", "/", "0"-"9", "-" (miss)
