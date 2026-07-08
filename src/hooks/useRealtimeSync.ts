@@ -29,7 +29,8 @@ export function useRealtimeSync({ tables, categoryId, queryKeys, channelName }: 
   useEffect(() => {
     if (!categoryId && tables.length === 0) return;
 
-    const channel = supabase.channel(channelName);
+    const suffix = Math.random().toString(36).slice(2, 8);
+    const channel = supabase.channel(`${channelName}-${suffix}`);
 
     tables.forEach((table) => {
       const filter = categoryId ? `category_id=eq.${categoryId}` : undefined;

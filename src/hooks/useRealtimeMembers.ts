@@ -11,8 +11,9 @@ export function useRealtimeMembers(scopeKey: string = "global") {
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    const suffix = Math.random().toString(36).slice(2, 8);
     const channel = supabase
-      .channel(`members-realtime-${scopeKey}`)
+      .channel(`members-realtime-${scopeKey}-${suffix}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "club_members" }, () => {
         queryClient.invalidateQueries({ queryKey: ["club-members"] });
         queryClient.invalidateQueries({ queryKey: ["club-members-full"] });
