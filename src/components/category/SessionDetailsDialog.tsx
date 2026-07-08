@@ -981,7 +981,13 @@ export function SessionDetailsDialog({
             <TabsContent value="exercises" className="h-full m-0 data-[state=active]:flex data-[state=active]:flex-col">
               <ScrollArea className="flex-1 h-[60vh]">
                 {!isTestSession && !isInfoOnlySession && (
-                  <div className="pr-4">
+                  <div className="pr-4 space-y-4">
+                    {(eventParticipants?.length || 0) > 0 && (
+                      <ParticipantsAttendanceList
+                        participants={(eventParticipants || []) as any}
+                        title="Réponses des athlètes"
+                      />
+                    )}
                     <SessionAthleteEntriesPanel
                       sessionId={sessionId}
                       categoryId={categoryId}
