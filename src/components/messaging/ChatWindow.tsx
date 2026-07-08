@@ -404,11 +404,12 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
                 isOwnMessage(message.sender_id) ? "flex-row-reverse" : "flex-row"
               )}
             >
-              <Avatar className="h-8 w-8 shrink-0">
-                <AvatarFallback className="text-xs">
-                  {getSenderInitials(message.sender_id)}
-                </AvatarFallback>
-              </Avatar>
+              <UserAvatar
+                name={getSenderName(message.sender_id)}
+                photoUrl={memberByUserId(message.sender_id)?.photoUrl}
+                size="sm"
+                showDot={false}
+              />
               <div className={cn("max-w-[75%]", isOwnMessage(message.sender_id) ? "items-end" : "items-start")}>
                 {!isOwnMessage(message.sender_id) && (
                   <p className="text-xs text-muted-foreground mb-0.5 px-1">
