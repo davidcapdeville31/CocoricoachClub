@@ -38,6 +38,7 @@ import { RUGBY_PRECISION_EXERCISES, EXERCISE_CATEGORIES } from "@/lib/constants/
 import { isRugbyType } from "@/lib/constants/sportTypes";
 import { LinkedMethodSlots, type LinkedMethodType } from "@/components/program-builder-v2/LinkedMethodSlots";
 import { FartlekCard } from "@/components/program-builder-v2/FartlekCard";
+import { ParticipantsAttendanceList } from "@/components/category/attendance/ParticipantsAttendanceList";
 import { ReadOnlyMethodCard } from "@/components/program-builder-v2/ReadOnlyMethodCard";
 import { parseV2MethodConfig, stripV2MethodTags } from "@/lib/program-builder-v2/parseV2MethodConfig";
 import { SessionAthleteEntriesPanel } from "./SessionAthleteEntriesPanel";
@@ -295,7 +296,7 @@ export function SessionDetailsDialog({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("event_participants")
-        .select("player_id, players(id, name, first_name, avatar_url)")
+        .select("player_id, attendance_status, absence_comment, responded_at, players(id, name, first_name, avatar_url)")
         .eq("training_session_id", sessionId);
       if (error) throw error;
       return data || [];
@@ -1063,36 +1064,11 @@ export function SessionDetailsDialog({
 
                     {/* Participants list */}
                     <div className="space-y-2">
-                      <h4 className="text-sm font-semibold flex items-center gap-2">
-                        <Users className="h-4 w-4 text-primary" />
-                        Athlètes concernés ({eventParticipants?.length || 0})
-                      </h4>
-                      {(eventParticipants?.length || 0) === 0 ? (
-                        <p className="text-xs text-muted-foreground">
-                          Aucun athlète attribué à cette séance.
-                        </p>
-                      ) : (
-                        <div className="grid gap-1.5 sm:grid-cols-2">
-                          {eventParticipants!.map((p: any) => {
-                            const name = p.players?.first_name
-                              ? `${p.players.first_name} ${p.players.name}`
-                              : p.players?.name || "Athlète";
-                            const initials = (p.players?.first_name || p.players?.name || "A").slice(0, 2).toUpperCase();
-                            return (
-                              <div
-                                key={p.player_id}
-                                className="flex items-center gap-2 rounded-lg border bg-background p-2 text-sm"
-                              >
-                                <Avatar className="h-7 w-7">
-                                  <AvatarImage src={p.players?.avatar_url || undefined} />
-                                  <AvatarFallback className="text-xs">{initials}</AvatarFallback>
-                                </Avatar>
-                                <span className="truncate">{name}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
+                      <ParticipantsAttendanceList
+                        participants={(eventParticipants || []) as any}
+                        title="Athlètes concernés"
+                        emptyLabel="Aucun athlète attribué à cette séance."
+                      />
                       <p className="text-xs text-muted-foreground mt-1">
                         Les résultats sont à saisir dans <strong>Programmation → Tests</strong> pour chaque athlète.
                       </p>
@@ -1100,36 +1076,11 @@ export function SessionDetailsDialog({
                   </div>
                 ) : isInfoOnlySession ? (
                   <div className="space-y-2 pr-4">
-                    <h4 className="text-sm font-semibold flex items-center gap-2">
-                      <Users className="h-4 w-4 text-primary" />
-                      Participants ({eventParticipants?.length || 0})
-                    </h4>
-                    {(eventParticipants?.length || 0) === 0 ? (
-                      <p className="text-xs text-muted-foreground">
-                        Aucun participant attribué (séance collective).
-                      </p>
-                    ) : (
-                      <div className="grid gap-1.5 sm:grid-cols-2">
-                        {eventParticipants!.map((p: any) => {
-                          const name = p.players?.first_name
-                            ? `${p.players.first_name} ${p.players.name}`
-                            : p.players?.name || "Athlète";
-                          const initials = (p.players?.first_name || p.players?.name || "A").slice(0, 2).toUpperCase();
-                          return (
-                            <div
-                              key={p.player_id}
-                              className="flex items-center gap-2 rounded-lg border bg-background p-2 text-sm"
-                            >
-                              <Avatar className="h-7 w-7">
-                                <AvatarImage src={p.players?.avatar_url || undefined} />
-                                <AvatarFallback className="text-xs">{initials}</AvatarFallback>
-                              </Avatar>
-                              <span className="truncate">{name}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
+                    <ParticipantsAttendanceList
+                      participants={(eventParticipants || []) as any}
+                      title="Participants"
+                      emptyLabel="Aucun participant attribué (séance collective)."
+                    />
                   </div>
                 ) : !exercises || exercises.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
