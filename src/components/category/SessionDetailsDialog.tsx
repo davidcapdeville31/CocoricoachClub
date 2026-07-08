@@ -38,6 +38,7 @@ import { RUGBY_PRECISION_EXERCISES, EXERCISE_CATEGORIES } from "@/lib/constants/
 import { isRugbyType } from "@/lib/constants/sportTypes";
 import { LinkedMethodSlots, type LinkedMethodType } from "@/components/program-builder-v2/LinkedMethodSlots";
 import { FartlekCard } from "@/components/program-builder-v2/FartlekCard";
+import { ParticipantsAttendanceList } from "@/components/category/attendance/ParticipantsAttendanceList";
 import { ReadOnlyMethodCard } from "@/components/program-builder-v2/ReadOnlyMethodCard";
 import { parseV2MethodConfig, stripV2MethodTags } from "@/lib/program-builder-v2/parseV2MethodConfig";
 import { SessionAthleteEntriesPanel } from "./SessionAthleteEntriesPanel";
