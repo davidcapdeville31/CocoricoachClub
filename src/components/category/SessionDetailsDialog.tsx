@@ -1064,36 +1064,11 @@ export function SessionDetailsDialog({
 
                     {/* Participants list */}
                     <div className="space-y-2">
-                      <h4 className="text-sm font-semibold flex items-center gap-2">
-                        <Users className="h-4 w-4 text-primary" />
-                        Athlètes concernés ({eventParticipants?.length || 0})
-                      </h4>
-                      {(eventParticipants?.length || 0) === 0 ? (
-                        <p className="text-xs text-muted-foreground">
-                          Aucun athlète attribué à cette séance.
-                        </p>
-                      ) : (
-                        <div className="grid gap-1.5 sm:grid-cols-2">
-                          {eventParticipants!.map((p: any) => {
-                            const name = p.players?.first_name
-                              ? `${p.players.first_name} ${p.players.name}`
-                              : p.players?.name || "Athlète";
-                            const initials = (p.players?.first_name || p.players?.name || "A").slice(0, 2).toUpperCase();
-                            return (
-                              <div
-                                key={p.player_id}
-                                className="flex items-center gap-2 rounded-lg border bg-background p-2 text-sm"
-                              >
-                                <Avatar className="h-7 w-7">
-                                  <AvatarImage src={p.players?.avatar_url || undefined} />
-                                  <AvatarFallback className="text-xs">{initials}</AvatarFallback>
-                                </Avatar>
-                                <span className="truncate">{name}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
+                      <ParticipantsAttendanceList
+                        participants={(eventParticipants || []) as any}
+                        title="Athlètes concernés"
+                        emptyLabel="Aucun athlète attribué à cette séance."
+                      />
                       <p className="text-xs text-muted-foreground mt-1">
                         Les résultats sont à saisir dans <strong>Programmation → Tests</strong> pour chaque athlète.
                       </p>
