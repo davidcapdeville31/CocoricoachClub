@@ -75,7 +75,9 @@ const createEmptyThrow = (): ThrowData => ({
   isSinglePinConverted: false,
 });
 
-export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, categoryId, readOnly, trackPockets = true, compact = false }: BowlingScoreSheetProps) {
+export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, categoryId, readOnly, trackPockets = true, compact: compactProp = false }: BowlingScoreSheetProps) {
+  const isMobile = useIsMobile();
+  const compact = compactProp || isMobile;
   const [frames, setFrames] = useState<FrameData[]>(() => 
     initialFrames || Array.from({ length: 10 }, () => createEmptyFrame())
   );
