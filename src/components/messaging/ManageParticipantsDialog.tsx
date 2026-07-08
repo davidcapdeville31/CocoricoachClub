@@ -160,7 +160,7 @@ export function ManageParticipantsDialog({
                       className="flex items-center gap-3 p-2 rounded-lg border border-border/40"
                     >
                       <UserAvatar
-                        userId={p.user_id}
+                        
                         name={p.name}
                         photoUrl={memberInfo?.photoUrl ?? null}
                         size="sm"
@@ -241,7 +241,7 @@ export function ManageParticipantsDialog({
                       className="flex items-center gap-3 p-2 rounded-lg border border-border/40"
                     >
                       <UserAvatar
-                        userId={m.userId}
+                        
                         name={m.name}
                         photoUrl={m.photoUrl}
                         size="sm"
