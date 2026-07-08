@@ -50,9 +50,12 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
   const [pollDialogOpen, setPollDialogOpen] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [manageOpen, setManageOpen] = useState(false);
+  const [renameOpen, setRenameOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const online = usePresence(categoryId);
+  const { data: categoryMembers } = useCategoryMembers(categoryId);
 
   const { data: messages } = useQuery({
     queryKey: ["messages", conversationId],
