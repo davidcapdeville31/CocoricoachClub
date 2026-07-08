@@ -297,42 +297,80 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
 
   const isOwnMessage = (senderId: string) => senderId === user?.id;
   const getSenderName = (senderId: string) => senderProfiles?.[senderId] || senderId.substring(0, 2).toUpperCase();
-  const getSenderInitials = (senderId: string) => {
-    const name = senderProfiles?.[senderId];
-    if (name) {
-      const parts = name.split(" ");
-      return parts.map(p => p[0]).join("").substring(0, 2).toUpperCase();
-    }
-    return senderId.substring(0, 2).toUpperCase();
-  };
+
+  // Header info (avatar + status) for DM vs group
+  const isDirect = conversation?.conversation_type === "direct";
+  const memberByUserId = (userId: string) => categoryMembers?.find((m) => m.userId === userId);
+  const dmPeerId = isDirect
+    ? participants?.find((p) => p.user_id !== user?.id)?.user_id
+    : undefined;
+  const dmPeer = dmPeerId ? memberByUserId(dmPeerId) : undefined;
+  const headerName = isDirect
+    ? dmPeer?.name || "Message privé"
+    : conversation?.name || "Groupe";
+  const headerPhoto = isDirect ? dmPeer?.photoUrl : null;
+  const headerOnline = isDirect && dmPeerId ? online.has(dmPeerId) : undefined;
+  const canRename = !isDirect && isChatManager;
 
   return (
     <Card className="h-[600px] flex flex-col">
       <CardHeader className="pb-3 border-b">
-        <div className="flex items-center justify-between">
-          <div className="flex-1 min-w-0">
-            <CardTitle className="text-base flex items-center gap-2">
-              <MessageCircle className="h-5 w-5" />
-              Chat d'équipe
-            </CardTitle>
-            {participantNames && participantNames.length > 0 && (
-              <p className="text-xs text-muted-foreground truncate mt-0.5">
-                {participantNames.join(", ")}
-              </p>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            {isDirect ? (
+              <UserAvatar
+                name={headerName}
+                photoUrl={headerPhoto}
+                online={headerOnline}
+                size="md"
+              />
+            ) : (
+              <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                {conversation?.conversation_type === "channel" ? (
+                  <Hash className="h-5 w-5" />
+                ) : (
+                  <Users className="h-5 w-5" />
+                )}
+              </div>
             )}
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-base truncate flex items-center gap-2">
+                <span className="truncate">{headerName}</span>
+                {canRename && (
+                  <button
+                    onClick={() => setRenameOpen(true)}
+                    className="text-muted-foreground hover:text-foreground shrink-0"
+                    title="Renommer le groupe"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </CardTitle>
+              <p className="text-xs text-muted-foreground truncate mt-0.5">
+                {isDirect
+                  ? headerOnline
+                    ? "En ligne"
+                    : "Hors ligne"
+                  : participantNames && participantNames.length > 0
+                    ? participantNames.join(", ")
+                    : ""}
+              </p>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="outline">
-              <Users className="h-3 w-3 mr-1" />
-              {participants?.length || 0}
-            </Badge>
+          <div className="flex items-center gap-1 shrink-0">
+            {!isDirect && (
+              <Badge variant="outline" className="hidden sm:inline-flex">
+                <Users className="h-3 w-3 mr-1" />
+                {participants?.length || 0}
+              </Badge>
+            )}
             {canManageMembers && (
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon"
                 onClick={() => setManageOpen(true)}
-                className="text-xs"
                 title="Gérer les membres"
+                className="h-8 w-8"
               >
                 <UserPlus className="h-4 w-4" />
               </Button>
@@ -341,10 +379,10 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
               variant="ghost"
               size="sm"
               onClick={() => setShowSummary(!showSummary)}
-              className="text-xs"
+              className="text-xs h-8"
             >
               {showSummary ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              Résumé
+              <span className="hidden sm:inline ml-1">Résumé</span>
             </Button>
           </div>
         </div>
@@ -354,6 +392,7 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
           </div>
         )}
       </CardHeader>
+
 
       <ScrollArea className="flex-1 p-4" ref={scrollRef}>
         <div className="space-y-3">
