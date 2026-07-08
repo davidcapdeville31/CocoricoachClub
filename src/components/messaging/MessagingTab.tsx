@@ -44,7 +44,7 @@ export function MessagingTab({ categoryId, isAthlete = false }: MessagingTabProp
                 isAthlete={isAthlete}
               />
             </TabsContent>
-            <TabsContent value="members" className="flex-1 mt-0 overflow-hidden">
+            <TabsContent value="members" className="flex-1 mt-0 overflow-hidden data-[state=active]:flex flex-col">
               <MembersPanel categoryId={categoryId} onOpenConversation={handleOpenConversation} />
             </TabsContent>
           </Tabs>
