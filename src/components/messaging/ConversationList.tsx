@@ -434,5 +434,3 @@ export function ConversationList({
   );
 }
 
-// Silence unused-import warning if future refactor removes usage
-useEffect;
