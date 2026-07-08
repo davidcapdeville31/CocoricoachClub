@@ -1,106 +1,83 @@
-# Plan d'optimisation des requêtes répétées
+## Objectif
 
-Objectif : réduire le volume de requêtes en arrière-plan sans dégrader l'UX ni la sécurité. Chaque étape est indépendante et déployable séparément.
+Transformer la messagerie en expérience type WhatsApp :
+- voir qui est en ligne
+- démarrer une conversation 1‑à‑1 en cliquant sur un membre (création automatique si elle n'existe pas)
+- créer/renommer des groupes
+- afficher les photos/avatars de chaque personne partout (liste, conversation, en‑tête, participants)
+- corriger les bugs restants (doublons de conversations, canaux realtime, unread)
 
----
+## Fonctionnalités livrées
 
-## Étape 1 — Stopper les polls OneSignal silencieux ⭐ (gain immédiat, risque nul)
+1. **Présence en ligne (Realtime Presence)**
+   - Nouveau hook `usePresence(categoryId)` qui rejoint un canal Supabase Realtime Presence par catégorie et publie `{ user_id, last_seen }` à l'ouverture de l'app.
+   - Indicateur vert (point) sur chaque avatar quand l'utilisateur est en ligne, gris sinon.
+   - Compteur "X en ligne" en haut de la liste des conversations.
 
-**Problème** : `check-onesignal-subscriptions` et `sync-onesignal-tags` sont rappelés à chaque `onAuthStateChange` (TOKEN_REFRESHED toutes les ~50 min, USER_UPDATED, focus onglet, etc.) + `waitForOneSignalServerSubscription` boucle 5× par login.
+2. **Panneau "Membres" cliquable pour DM**
+   - Nouvel onglet/section "Membres" à côté de "Conversations" listant tous les membres de la catégorie (staff + athlètes) avec avatar + point de présence.
+   - Clic sur un membre → ouvre la DM existante OU la crée automatiquement (RPC `get_or_create_direct_conversation`) puis la sélectionne.
+   - Barre de recherche par nom.
 
-**Actions** :
-- Dans `AuthContext.tsx` : ne déclencher `syncOneSignalUser` que sur les events `SIGNED_IN` et `INITIAL_SESSION`, pas sur `TOKEN_REFRESHED` ni `USER_UPDATED`.
-- Dans `lib/onesignal.ts` : mémoïser `oneSignalLogin` par `userId` pendant la session (flag en mémoire) pour éviter les re-syncs si l'auth listener refire.
-- Réduire `waitForOneSignalServerSubscription` à 2 tentatives (au lieu de 5).
+3. **Groupes : création + renommage + avatar de groupe**
+   - Dialog de création de groupe: nom + sélection multi‑membres avec avatars + recherche.
+   - Renommage du groupe : icône crayon dans l'en‑tête du chat (staff/créateur uniquement) → dialog rapide.
+   - Avatar de groupe généré (initiales colorées) si aucun avatar fourni.
 
-**Impact** : -80 % des appels OneSignal (passe d'environ 1 appel / 50 min à 1 par session réelle).
-**Risque** : faible. Si l'utilisateur révoque la permission navigateur en cours de session, le tag ne se met à jour qu'au prochain login (acceptable).
-**Fichiers** : `src/contexts/AuthContext.tsx`, `src/lib/onesignal.ts`.
-**Test** : ouvrir la page 15 min, vérifier dans l'onglet Réseau qu'il n'y a plus d'appels OneSignal après le login initial. Forcer un `TOKEN_REFRESHED` (await 1 h ou modifier `expires_at`) → aucun nouvel appel OneSignal.
+4. **Avatars partout**
+   - `ConversationList` : avatar de l'interlocuteur (DM) ou avatar groupe (Groupe) + point présence pour DM.
+   - `ChatWindow` en‑tête : avatar de l'interlocuteur/groupe + statut "en ligne" / "vu à HH:MM".
+   - Chaque bulle de message : petit avatar de l'expéditeur à gauche (regroupé si messages consécutifs du même auteur).
+   - `ManageParticipantsDialog` : avatars dans la liste.
 
----
+5. **Bugs corrigés**
+   - Doublon DM impossible : la RPC `get_or_create_direct_conversation` renvoie l'existante si déjà présente entre 2 utilisateurs dans la même catégorie.
+   - Compteur non‑lu figé après lecture : invalidation stricte sur `markConversationAsRead`.
+   - Canaux realtime : suffixe aléatoire déjà appliqué sur `useUnreadMessages` étendu à `ChatWindow` et à la présence pour éviter les conflits multi‑instances.
 
-## Étape 2 — Cacher les requêtes d'identité (is_super_admin, club_members, profil) ⭐
+## Détails techniques
 
-**Problème** : `is_super_admin`, `super_admin_users`, `club_members`, `category_members`, `clubs`, `user_security_settings` sont rejouées à chaque navigation et chaque montage de composant (souvent via des `useEffect` sans cache ou des `useQuery` sans `staleTime`).
+### Base de données (migration)
 
-**Actions** :
-- Ajouter `staleTime: 5 * 60 * 1000` et `gcTime: 10 * 60 * 1000` sur les `useQuery` d'identité (rôle utilisateur, super admin, settings sécurité, branding club).
-- Centraliser `is_super_admin` dans un hook unique `useIsSuperAdmin()` consommé partout, plutôt que des appels directs `supabase.rpc(...)` éparpillés.
-- Idem pour `useClubMembership(clubId)` / `useCategoryMembership(categoryId)`.
+- Colonnes ajoutées sur `conversations` :
+  - `name text` (déjà présent pour groupes) — vérifier
+  - `avatar_url text null` (avatar de groupe optionnel)
+- RPC `public.get_or_create_direct_conversation(_category_id uuid, _other_user_id uuid)` :
+  - vérifie que les 2 utilisateurs sont bien membres/athlètes de la catégorie
+  - cherche une conversation `type='direct'` où les 2 sont les seuls participants
+  - sinon crée la conversation + les 2 rows `conversation_participants`
+  - renvoie l'`id`
+- RPC `public.rename_conversation(_conversation_id uuid, _new_name text)` :
+  - autorisé si créateur OU staff (`is_staff_for_category`) de la catégorie du groupe
+- GRANT EXECUTE aux `authenticated` sur les 2 RPC.
+- RLS `conversations UPDATE` : autoriser mise à jour de `name`/`avatar_url` selon la même règle que la RPC.
 
-**Impact** : -60 à -80 % des requêtes d'identité (1 fois par session au lieu de N fois par navigation).
-**Risque** : faible. Si l'admin change un rôle, le changement met jusqu'à 5 min à se refléter (acceptable, déjà le cas pour `role-menu-permissions-matrix`).
-**Fichiers** : `src/hooks/useMenuPermissions.ts`, `src/lib/onesignal.ts` (buildUserTags), hooks d'identité existants, composants qui appellent directement `supabase.rpc("is_super_admin")` ou `from("super_admin_users")`.
-**Test** : ouvrir l'app, naviguer entre 5 pages, vérifier dans Réseau qu'`is_super_admin` n'apparaît qu'une fois.
+### Frontend
 
----
+- `src/hooks/usePresence.ts` : `supabase.channel(\`presence:cat:${categoryId}\`, { config: { presence: { key: userId } } })` + `.track({ online_at })`, retourne `Set<userId>`.
+- `src/components/messaging/MembersPanel.tsx` : liste membres de la catégorie (via `fetchCategoryRosterPlayers` + `category_members` staff), déclenche `get_or_create_direct_conversation` au clic.
+- `src/components/messaging/CreateGroupDialog.tsx` : refonte multi‑sélect avec avatars.
+- `src/components/messaging/RenameGroupDialog.tsx` : nouveau.
+- `src/components/messaging/UserAvatar.tsx` : composant réutilisable `avatar + point de présence` (props `userId`, `name`, `photoUrl`, `size`).
+- `MessagingTab.tsx` : ajoute onglets `Conversations | Membres`.
+- `ConversationList.tsx` : intègre avatars + présence.
+- `ChatWindow.tsx` : en‑tête avec avatar + statut, bulles avec avatar expéditeur.
 
-## Étape 3 — Cadencer les polls notifications / messages
+### Non touché
 
-**Problème** : `notifications`, `messages`, `matches` sont probablement rejouées via `refetchInterval` court (souvent 10–30 s) sur tous les hooks (`useUnreadMessages`, `useUnreadAthleteSessionsCount`, badges header, etc.). Ces polls tournent même quand l'onglet est en arrière-plan.
+- Structure des messages, réactions, sondages, pièces jointes, notifications push : conservées telles quelles.
 
-**Actions** :
-- Passer `refetchInterval` à 60 s minimum sur les compteurs non critiques.
-- Ajouter `refetchIntervalInBackground: false` partout (déjà le défaut TanStack, mais à confirmer).
-- Pour les notifications et messages, basculer sur **Supabase Realtime** (channel `postgres_changes`) à la place du polling : un seul abonnement, push-based. Le polling reste en filet de sécurité toutes les 5 min.
+## Étapes d'exécution
 
-**Impact** : -90 % des requêtes `notifications`/`messages` (de ~120 / heure à ~12).
-**Risque** : moyen. Realtime peut manquer un event si le socket se déconnecte → garder un refetch de secours sur `window focus`.
-**Fichiers** : `src/hooks/useUnreadMessages.ts`, `src/lib/hooks/useUnreadAthleteSessionsCount.ts`, `src/lib/hooks/usePendingWeightLogsCount.ts`, `src/lib/hooks/usePendingTestResultsCount.ts`, composants de header / badges.
-**Test** : ouvrir 2 onglets, envoyer un message depuis l'un, vérifier que le badge se met à jour dans l'autre en <2 s (via Realtime) sans avoir multiplié les requêtes.
+1. Migration SQL (nouvelles RPC + colonnes + RLS + GRANT).
+2. Hook `usePresence` + composant `UserAvatar`.
+3. `MembersPanel` + intégration onglets dans `MessagingTab`.
+4. `CreateGroupDialog` refondu + `RenameGroupDialog`.
+5. Mise à jour `ConversationList` (avatars/présence) et `ChatWindow` (en‑tête + bulles).
+6. Vérification build + test manuel (démarrer DM depuis Membres, renommer groupe, voir présence).
 
----
+## Ce qui reste hors périmètre
 
-## Étape 4 — Couper le poll permission navigateur OneSignal (2 s)
-
-**Problème** : `lib/onesignal.ts` interroge `Notification.permission` toutes les 2 s via un `setInterval` pour détecter un changement.
-
-**Actions** :
-- Remplacer par un check on-demand : uniquement au focus de l'onglet (`visibilitychange`) et après un clic sur le bouton "activer notifications".
-
-**Impact** : élimine 1 800 vérifications / heure (côté JS, sans requête réseau mais consomme CPU).
-**Risque** : très faible. La permission ne change quasi jamais sans interaction utilisateur.
-**Fichiers** : `src/lib/onesignal.ts`, `src/hooks/use-push-notifications.ts`.
-**Test** : ouvrir DevTools → Performance, enregistrer 30 s, vérifier qu'il n'y a plus de tâches OneSignal récurrentes.
-
----
-
-## Étape 5 — `get_maintenance_status` toutes les 60 s
-
-**Problème** : log réseau montre 1 appel / minute en continu (MaintenanceGate).
-
-**Actions** :
-- Passer l'intervalle à 5 min (300 s). Si maintenance activée, le banner apparaît avec 5 min de retard max — acceptable pour un mode admin.
-- Ajouter `refetchOnWindowFocus: true` pour rattraper l'état au retour de l'utilisateur.
-
-**Impact** : -83 % (60 → 12 requêtes / heure).
-**Risque** : nul.
-**Fichiers** : composant `MaintenanceGate` (à localiser).
-**Test** : activer la maintenance dans Super Admin → vérifier que tous les clients la voient au plus tard 5 min après + immédiatement au retour sur l'onglet.
-
----
-
-## Ordre recommandé
-
-1. **Étape 1** (OneSignal auth) — déploiement rapide, gain immédiat visible dans Network.
-2. **Étape 5** (maintenance) — 2 lignes de code, gain net.
-3. **Étape 4** (poll permission) — purement client, aucun risque RLS.
-4. **Étape 2** (cache identité) — demande plus d'attention (centraliser hooks), tester la navigation multi-pages.
-5. **Étape 3** (Realtime notifications) — la plus impactante mais aussi la plus risquée, à faire en dernier avec tests cross-onglets.
-
----
-
-## Récapitulatif gain attendu
-
-| Étape | Requêtes / heure avant | après | Gain |
-|---|---|---|---|
-| 1 OneSignal | ~30 | ~2 | -93 % |
-| 2 Identité | ~80 | ~10 | -88 % |
-| 3 Notifs/messages | ~120 | ~12 | -90 % |
-| 4 Poll permission | 1 800 (JS) | 0 | -100 % |
-| 5 Maintenance | 60 | 12 | -80 % |
-
-Total estimé : **>80 % de requêtes en moins** sur une session ouverte 1 h.
-
-Souhaitez-vous que j'implémente les étapes 1, 4 et 5 en premier (faible risque, gain immédiat) avant de traiter les étapes 2 et 3 ?
+- Statut "en train d'écrire…" (typing indicator) — peut être ajouté ensuite si souhaité.
+- Dernière connexion persistée en base (`last_seen_at`) — pour l'instant présence uniquement en temps réel via Realtime Presence.
+- Upload d'avatar de groupe personnalisé — colonne prête mais UI d'upload livrée en itération suivante si demandée.
