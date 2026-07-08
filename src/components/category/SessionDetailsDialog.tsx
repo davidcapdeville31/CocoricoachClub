@@ -296,7 +296,7 @@ export function SessionDetailsDialog({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("event_participants")
-        .select("player_id, players(id, name, first_name, avatar_url)")
+        .select("player_id, attendance_status, absence_comment, responded_at, players(id, name, first_name, avatar_url)")
         .eq("training_session_id", sessionId);
       if (error) throw error;
       return data || [];
