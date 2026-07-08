@@ -126,6 +126,9 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
 
   const canManageMembers =
     !!conversation && conversation.conversation_type !== "direct" && !!isChatManager;
+  const currentUserIsParticipant = !!user?.id && !!participants?.some((p) => p.user_id === user.id);
+  const canOpenMemberDialog =
+    !!conversation && conversation.conversation_type !== "direct" && (canManageMembers || currentUserIsParticipant);
 
   // Fetch participant profile names for header display
   const { data: participantNames } = useQuery({
@@ -364,7 +367,7 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
                 {participants?.length || 0}
               </Badge>
             )}
-            {canManageMembers && (
+            {canOpenMemberDialog && (
               <Button
                 variant="ghost"
                 size="icon"
@@ -516,6 +519,7 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
         conversationId={conversationId}
         categoryId={categoryId}
         canManage={canManageMembers}
+        isParticipant={currentUserIsParticipant}
       />
 
       <RenameGroupDialog
