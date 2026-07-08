@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Target, TrendingUp, Save, X, CheckCircle, ChevronDown } from "lucide-react";
 import { getStatTextColor, getStatColor } from "@/lib/bowling/statColors";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export interface ThrowData {
   value: string; // "X", "/", "0"-"9", "-" (miss)
@@ -74,7 +75,9 @@ const createEmptyThrow = (): ThrowData => ({
   isSinglePinConverted: false,
 });
 
-export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, categoryId, readOnly, trackPockets = true, compact = false }: BowlingScoreSheetProps) {
+export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, categoryId, readOnly, trackPockets = true, compact: compactProp = false }: BowlingScoreSheetProps) {
+  const isMobile = useIsMobile();
+  const compact = compactProp || isMobile;
   const [frames, setFrames] = useState<FrameData[]>(() => 
     initialFrames || Array.from({ length: 10 }, () => createEmptyFrame())
   );
@@ -740,9 +743,9 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
           </CardTitle>
         </CardHeader>
         <CardContent className="p-2 sm:p-4">
-          <div className="pb-2 w-full">
+          <div className="pb-2 w-full overflow-x-auto -mx-1 px-1">
             {/* Classic scoresheet table */}
-            <table className="w-full table-fixed border-collapse border-2 border-foreground/30">
+            <table className={`table-fixed border-collapse border-2 border-foreground/30 ${compact ? "w-full min-w-[320px]" : "w-full min-w-[560px]"}`}>
               <colgroup>
                 <col style={{ width: compact ? "44px" : "60px" }} />
                 {frames.map((_, frameIndex) => (

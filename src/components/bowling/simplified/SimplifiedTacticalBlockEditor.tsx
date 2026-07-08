@@ -185,56 +185,66 @@ export function SimplifiedTacticalBlockEditor({
 
               {/* Sous-sélection */}
               {item.target_type === "composed_spare" && (
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <div className="space-y-1">
+                  <Label className="text-[10px] uppercase text-muted-foreground">
+                    Combinaison de quilles
+                  </Label>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <Select
+                      value={item.composed_spare || "6_10"}
+                      onValueChange={(v) =>
+                        updateItem(item.id, { composed_spare: v as any })
+                      }
+                    >
+                      <SelectTrigger className="h-10 text-sm">
+                        <SelectValue placeholder="Choisir un spare" />
+                      </SelectTrigger>
+                      <SelectContent className="z-[100] max-h-[60vh]">
+                        {COMPOSED_SPARES.map((s) => (
+                          <SelectItem key={s.value} value={s.value} className="text-sm py-2">
+                            {s.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {item.composed_spare === "custom" && (
+                      <Input
+                        placeholder="ex. 2-4-10"
+                        className="h-10 text-sm"
+                        value={(item.custom_pins || []).join("-")}
+                        onChange={(e) => {
+                          const pins = e.target.value
+                            .split(/[-,\s]+/)
+                            .map((x) => parseInt(x, 10))
+                            .filter((n) => Number.isFinite(n) && n >= 1 && n <= 10);
+                          updateItem(item.id, { custom_pins: pins });
+                        }}
+                      />
+                    )}
+                  </div>
+                </div>
+              )}
+              {item.target_type === "single_pin" && (
+                <div className="space-y-1">
+                  <Label className="text-[10px] uppercase text-muted-foreground">
+                    Quille travaillée
+                  </Label>
                   <Select
-                    value={item.composed_spare || "6_10"}
-                    onValueChange={(v) =>
-                      updateItem(item.id, { composed_spare: v as any })
-                    }
+                    value={item.single_pin || "10"}
+                    onValueChange={(v) => updateItem(item.id, { single_pin: v as any })}
                   >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue />
+                    <SelectTrigger className="h-10 text-sm">
+                      <SelectValue placeholder="Choisir une quille" />
                     </SelectTrigger>
-                    <SelectContent className="z-[100]">
-                      {COMPOSED_SPARES.map((s) => (
-                        <SelectItem key={s.value} value={s.value}>
+                    <SelectContent className="z-[100] max-h-[60vh]">
+                      {SINGLE_PINS.map((s) => (
+                        <SelectItem key={s.value} value={s.value} className="text-sm py-2">
                           {s.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  {item.composed_spare === "custom" && (
-                    <Input
-                      placeholder="ex. 2-4-10"
-                      className="h-8 text-xs"
-                      value={(item.custom_pins || []).join("-")}
-                      onChange={(e) => {
-                        const pins = e.target.value
-                          .split(/[-,\s]+/)
-                          .map((x) => parseInt(x, 10))
-                          .filter((n) => Number.isFinite(n) && n >= 1 && n <= 10);
-                        updateItem(item.id, { custom_pins: pins });
-                      }}
-                    />
-                  )}
                 </div>
-              )}
-              {item.target_type === "single_pin" && (
-                <Select
-                  value={item.single_pin || "10"}
-                  onValueChange={(v) => updateItem(item.id, { single_pin: v as any })}
-                >
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="z-[100]">
-                    {SINGLE_PINS.map((s) => (
-                      <SelectItem key={s.value} value={s.value}>
-                        {s.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               )}
 
               {/* Attempts + success */}
