@@ -95,7 +95,10 @@ export function MembersPanel({ categoryId, onOpenConversation }: MembersPanelPro
                     size="sm"
                   />
                   <div className="flex-1 min-w-0">
-                    <div className="overflow-x-auto scrollbar-none">
+                    <div
+                      className="overflow-x-auto"
+                      style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+                    >
                       <p className="text-sm font-medium whitespace-nowrap">{m.name}</p>
                     </div>
                     <p className="text-xs text-muted-foreground truncate">
