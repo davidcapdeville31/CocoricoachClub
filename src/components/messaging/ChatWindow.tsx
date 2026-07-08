@@ -517,6 +517,13 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
         categoryId={categoryId}
         canManage={canManageMembers}
       />
+
+      <RenameGroupDialog
+        open={renameOpen}
+        onOpenChange={setRenameOpen}
+        conversationId={conversationId}
+        currentName={conversation?.name ?? null}
+      />
     </Card>
   );
 }
