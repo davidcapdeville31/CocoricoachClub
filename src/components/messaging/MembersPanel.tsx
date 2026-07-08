@@ -95,7 +95,9 @@ export function MembersPanel({ categoryId, onOpenConversation }: MembersPanelPro
                     size="sm"
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{m.name}</p>
+                    <div className="overflow-x-auto scrollbar-none">
+                      <p className="text-sm font-medium whitespace-nowrap">{m.name}</p>
+                    </div>
                     <p className="text-xs text-muted-foreground truncate">
                       {isOnline ? "En ligne" : m.kind === "player" ? "Athlète" : "Staff"}
                     </p>
