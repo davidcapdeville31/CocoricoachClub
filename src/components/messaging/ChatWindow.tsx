@@ -519,6 +519,7 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
         conversationId={conversationId}
         categoryId={categoryId}
         canManage={canManageMembers}
+        isParticipant={currentUserIsParticipant}
       />
 
       <RenameGroupDialog
