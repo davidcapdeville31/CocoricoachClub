@@ -40,16 +40,17 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
     return format(date, "yyyy-MM-dd");
   });
 
-  // Fetch recent sessions
+  // Fetch sessions within selected period (bounded to the period so stats reflect the filter exactly)
   const { data: sessions } = useQuery({
-    queryKey: ["training_sessions_attendance", categoryId],
+    queryKey: ["training_sessions_attendance", categoryId, startDate, endDate],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("training_sessions")
         .select("*")
         .eq("category_id", categoryId)
-        .order("session_date", { ascending: false })
-        .limit(100);
+        .gte("session_date", startDate)
+        .lte("session_date", endDate)
+        .order("session_date", { ascending: false });
       if (error) throw error;
       return data;
     },
