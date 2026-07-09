@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { ClipboardCheck, Calendar, Users, TrendingUp, ChevronRight, Filter, Clock, AlertCircle, CheckCircle, Check, X, HelpCircle } from "lucide-react";
-import { format, startOfMonth, endOfMonth, subMonths, isWithinInterval, parseISO } from "date-fns";
+import { format, startOfMonth, endOfMonth, subMonths, subDays, isWithinInterval, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { SessionAttendanceDialog } from "./SessionAttendanceDialog";
 import { ParticipantsAttendanceList } from "./ParticipantsAttendanceList";
@@ -40,16 +40,17 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
     return format(date, "yyyy-MM-dd");
   });
 
-  // Fetch recent sessions
+  // Fetch sessions within selected period (bounded to the period so stats reflect the filter exactly)
   const { data: sessions } = useQuery({
-    queryKey: ["training_sessions_attendance", categoryId],
+    queryKey: ["training_sessions_attendance", categoryId, startDate, endDate],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("training_sessions")
         .select("*")
         .eq("category_id", categoryId)
-        .order("session_date", { ascending: false })
-        .limit(100);
+        .gte("session_date", startDate)
+        .lte("session_date", endDate)
+        .order("session_date", { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -198,23 +199,27 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
 
   const setDatePreset = (preset: string) => {
     const now = new Date();
+    let start = now;
+    let end = now;
     switch (preset) {
       case "week":
-        setStartDate(format(subMonths(now, 0), "yyyy-MM-dd").replace(/-\d{2}$/, "-" + String(now.getDate() - 7).padStart(2, "0")));
+        start = subDays(now, 7);
         break;
       case "month":
-        setStartDate(format(startOfMonth(now), "yyyy-MM-dd"));
+        start = startOfMonth(now);
+        end = endOfMonth(now);
         break;
       case "3months":
-        setStartDate(format(subMonths(now, 3), "yyyy-MM-dd"));
+        start = subMonths(now, 3);
         break;
-      case "season":
-        // Assume season starts in September
+      case "season": {
         const seasonStart = new Date(now.getMonth() >= 8 ? now.getFullYear() : now.getFullYear() - 1, 8, 1);
-        setStartDate(format(seasonStart, "yyyy-MM-dd"));
+        start = seasonStart;
         break;
+      }
     }
-    setEndDate(format(now, "yyyy-MM-dd"));
+    setStartDate(format(start, "yyyy-MM-dd"));
+    setEndDate(format(end, "yyyy-MM-dd"));
   };
 
   return (
@@ -325,6 +330,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
 
       {/* Global Presence Response Stats (athlete self-responses) */}
       {(() => {
+        const todayStr = format(new Date(), "yyyy-MM-dd");
         const filteredSessionIds = new Set((filteredSessions || []).map((s) => s.id));
         const filteredParticipants = (eventParticipants || []).filter((p) =>
           filteredSessionIds.has(p.training_session_id),
@@ -335,6 +341,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
           (p) => !p.attendance_status || p.attendance_status === "no_response",
         ).length;
         const totalParticipants = filteredParticipants.length;
+        const futureSessionsCount = (filteredSessions || []).filter((s) => s.session_date > todayStr).length;
 
         const sessionOptions = (filteredSessions || [])
           .slice()
@@ -349,6 +356,15 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
 
         return (
           <div className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Calcul basé sur les athlètes assignés à chaque séance de la période
+              (du {format(parseISO(startDate), "dd/MM/yyyy")} au {format(parseISO(endDate), "dd/MM/yyyy")}) :
+              {" "}chaque athlète compte une fois par séance — Présent, Absent ou Pas renseigné.
+              {" "}Total réponses attendues : <strong>{totalParticipants}</strong>.
+              {futureSessionsCount > 0 && (
+                <> Les séances à venir ({futureSessionsCount}) sont incluses : les athlètes n'ayant pas encore répondu sont comptés dans « Pas renseignés ».</>
+              )}
+            </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Card className="border-emerald-500/40">
                 <CardContent className="p-4">
