@@ -199,23 +199,27 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
 
   const setDatePreset = (preset: string) => {
     const now = new Date();
+    let start = now;
+    let end = now;
     switch (preset) {
       case "week":
-        setStartDate(format(subMonths(now, 0), "yyyy-MM-dd").replace(/-\d{2}$/, "-" + String(now.getDate() - 7).padStart(2, "0")));
+        start = subDays(now, 7);
         break;
       case "month":
-        setStartDate(format(startOfMonth(now), "yyyy-MM-dd"));
+        start = startOfMonth(now);
+        end = endOfMonth(now);
         break;
       case "3months":
-        setStartDate(format(subMonths(now, 3), "yyyy-MM-dd"));
+        start = subMonths(now, 3);
         break;
-      case "season":
-        // Assume season starts in September
+      case "season": {
         const seasonStart = new Date(now.getMonth() >= 8 ? now.getFullYear() : now.getFullYear() - 1, 8, 1);
-        setStartDate(format(seasonStart, "yyyy-MM-dd"));
+        start = seasonStart;
         break;
+      }
     }
-    setEndDate(format(now, "yyyy-MM-dd"));
+    setStartDate(format(start, "yyyy-MM-dd"));
+    setEndDate(format(end, "yyyy-MM-dd"));
   };
 
   return (
