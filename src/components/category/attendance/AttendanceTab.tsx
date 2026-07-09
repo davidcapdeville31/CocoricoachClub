@@ -9,13 +9,15 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { ClipboardCheck, Calendar, Users, TrendingUp, ChevronRight, Filter, Clock, AlertCircle, CheckCircle } from "lucide-react";
+import { ClipboardCheck, Calendar, Users, TrendingUp, ChevronRight, Filter, Clock, AlertCircle, CheckCircle, Check, X, HelpCircle } from "lucide-react";
 import { format, startOfMonth, endOfMonth, subMonths, isWithinInterval, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { SessionAttendanceDialog } from "./SessionAttendanceDialog";
+import { ParticipantsAttendanceList } from "./ParticipantsAttendanceList";
 
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface AttendanceTabProps {
   categoryId: string;
@@ -25,6 +27,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
   const { isViewer } = useViewerModeContext();
   const [selectedSession, setSelectedSession] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [detailSessionId, setDetailSessionId] = useState<string | null>(null);
   
   // Date range filter
   const [startDate, setStartDate] = useState(() => {
@@ -77,6 +80,21 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
         .order("attendance_date", { ascending: false });
       if (error) throw error;
       return data;
+    },
+  });
+
+  // Fetch event_participants (athlete self-response) for this category's sessions
+  const sessionIds = (sessions || []).map((s) => s.id);
+  const { data: eventParticipants } = useQuery({
+    queryKey: ["event_participants_attendance", categoryId, sessionIds.join(",")],
+    enabled: sessionIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("event_participants")
+        .select("id, training_session_id, player_id, attendance_status, absence_comment, responded_at, players:player_id(id, name, first_name, avatar_url)")
+        .in("training_session_id", sessionIds);
+      if (error) throw error;
+      return data || [];
     },
   });
 
@@ -305,7 +323,120 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
         </Card>
       </div>
 
-      {/* Categorized Sessions */}
+      {/* Global Presence Response Stats (athlete self-responses) */}
+      {(() => {
+        const filteredSessionIds = new Set((filteredSessions || []).map((s) => s.id));
+        const filteredParticipants = (eventParticipants || []).filter((p) =>
+          filteredSessionIds.has(p.training_session_id),
+        );
+        const presentCount = filteredParticipants.filter((p) => p.attendance_status === "present").length;
+        const absentCount = filteredParticipants.filter((p) => p.attendance_status === "absent").length;
+        const noResponseCount = filteredParticipants.filter(
+          (p) => !p.attendance_status || p.attendance_status === "no_response",
+        ).length;
+        const totalParticipants = filteredParticipants.length;
+
+        const sessionOptions = (filteredSessions || [])
+          .slice()
+          .sort((a, b) => new Date(b.session_date).getTime() - new Date(a.session_date).getTime());
+
+        const detailParticipants = detailSessionId
+          ? filteredParticipants.filter((p) => p.training_session_id === detailSessionId)
+          : [];
+        const detailSession = detailSessionId
+          ? sessionOptions.find((s) => s.id === detailSessionId)
+          : null;
+
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <Card className="border-emerald-500/40">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-emerald-500/15 rounded-lg">
+                      <Check className="h-5 w-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Présents</p>
+                      <p className="text-2xl font-bold text-emerald-600">{presentCount}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-rose-500/40">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-rose-500/15 rounded-lg">
+                      <X className="h-5 w-5 text-rose-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Absents</p>
+                      <p className="text-2xl font-bold text-rose-600">{absentCount}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-muted rounded-lg">
+                      <HelpCircle className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Pas renseignés</p>
+                      <p className="text-2xl font-bold">{noResponseCount}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <ClipboardCheck className="h-5 w-5" />
+                  Détail des réponses par séance
+                </CardTitle>
+                <CardDescription>
+                  Sélectionnez une séance pour voir qui a répondu Présent, Absent ou n'a pas répondu.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {sessionOptions.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    Aucune séance sur cette période.
+                  </p>
+                ) : (
+                  <>
+                    <Select value={detailSessionId ?? ""} onValueChange={(v) => setDetailSessionId(v || null)}>
+                      <SelectTrigger className="w-full sm:w-[420px]">
+                        <SelectValue placeholder="Choisir une séance…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {sessionOptions.map((s) => (
+                          <SelectItem key={s.id} value={s.id}>
+                            {format(parseISO(s.session_date), "dd MMM yyyy", { locale: fr })} — {getSessionLabel(s)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    {detailSession && totalParticipants >= 0 && (
+                      <ParticipantsAttendanceList
+                        participants={detailParticipants as any}
+                        title={`Séance du ${format(parseISO(detailSession.session_date), "dd/MM/yyyy", { locale: fr })}`}
+                        emptyLabel="Aucun athlète attribué à cette séance."
+                      />
+                    )}
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        );
+      })()}
+
+
       {(() => {
         const today = format(new Date(), "yyyy-MM-dd");
         const todaySessions = filteredSessions?.filter(s => s.session_date === today) || [];
