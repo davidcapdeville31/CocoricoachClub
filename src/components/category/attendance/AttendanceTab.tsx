@@ -27,6 +27,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
   const { isViewer } = useViewerModeContext();
   const [selectedSession, setSelectedSession] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [detailSessionId, setDetailSessionId] = useState<string | null>(null);
   
   // Date range filter
   const [startDate, setStartDate] = useState(() => {
