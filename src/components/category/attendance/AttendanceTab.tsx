@@ -83,6 +83,21 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
     },
   });
 
+  // Fetch event_participants (athlete self-response) for this category's sessions
+  const sessionIds = (sessions || []).map((s) => s.id);
+  const { data: eventParticipants } = useQuery({
+    queryKey: ["event_participants_attendance", categoryId, sessionIds.join(",")],
+    enabled: sessionIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("event_participants")
+        .select("id, training_session_id, player_id, attendance_status, absence_comment, responded_at, players:player_id(id, name, first_name, avatar_url)")
+        .in("training_session_id", sessionIds);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   // Filter sessions by date range
   const filteredSessions = sessions?.filter((session) => {
     const sessionDate = parseISO(session.session_date);
