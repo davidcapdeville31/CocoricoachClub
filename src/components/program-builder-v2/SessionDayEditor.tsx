@@ -290,6 +290,15 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
     () => ({
       hasActiveLinkedDraft: (blockId: string) =>
         !!linkedDrafts[blockId] || !!configDrafts[blockId] || !!clusterDrafts[blockId] || !!statoDrafts[blockId],
+      getActiveDraftBlockId: () => {
+        const ids = [
+          ...Object.keys(linkedDrafts),
+          ...Object.keys(configDrafts),
+          ...Object.keys(clusterDrafts),
+          ...Object.keys(statoDrafts),
+        ];
+        return ids[0] ?? null;
+      },
       insertExternalExercise: (blockId, picked) => {
         addExerciseToBlock(blockId, { id: picked.id, name: picked.name } as PickedExercise);
         return true;
