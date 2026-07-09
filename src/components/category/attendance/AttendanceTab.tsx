@@ -323,7 +323,120 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
         </Card>
       </div>
 
-      {/* Categorized Sessions */}
+      {/* Global Presence Response Stats (athlete self-responses) */}
+      {(() => {
+        const filteredSessionIds = new Set((filteredSessions || []).map((s) => s.id));
+        const filteredParticipants = (eventParticipants || []).filter((p) =>
+          filteredSessionIds.has(p.training_session_id),
+        );
+        const presentCount = filteredParticipants.filter((p) => p.attendance_status === "present").length;
+        const absentCount = filteredParticipants.filter((p) => p.attendance_status === "absent").length;
+        const noResponseCount = filteredParticipants.filter(
+          (p) => !p.attendance_status || p.attendance_status === "no_response",
+        ).length;
+        const totalParticipants = filteredParticipants.length;
+
+        const sessionOptions = (filteredSessions || [])
+          .slice()
+          .sort((a, b) => new Date(b.session_date).getTime() - new Date(a.session_date).getTime());
+
+        const detailParticipants = detailSessionId
+          ? filteredParticipants.filter((p) => p.training_session_id === detailSessionId)
+          : [];
+        const detailSession = detailSessionId
+          ? sessionOptions.find((s) => s.id === detailSessionId)
+          : null;
+
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <Card className="border-emerald-500/40">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-emerald-500/15 rounded-lg">
+                      <Check className="h-5 w-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Présents</p>
+                      <p className="text-2xl font-bold text-emerald-600">{presentCount}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-rose-500/40">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-rose-500/15 rounded-lg">
+                      <X className="h-5 w-5 text-rose-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Absents</p>
+                      <p className="text-2xl font-bold text-rose-600">{absentCount}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-muted rounded-lg">
+                      <HelpCircle className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Pas renseignés</p>
+                      <p className="text-2xl font-bold">{noResponseCount}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <ClipboardCheck className="h-5 w-5" />
+                  Détail des réponses par séance
+                </CardTitle>
+                <CardDescription>
+                  Sélectionnez une séance pour voir qui a répondu Présent, Absent ou n'a pas répondu.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {sessionOptions.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    Aucune séance sur cette période.
+                  </p>
+                ) : (
+                  <>
+                    <Select value={detailSessionId ?? ""} onValueChange={(v) => setDetailSessionId(v || null)}>
+                      <SelectTrigger className="w-full sm:w-[420px]">
+                        <SelectValue placeholder="Choisir une séance…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {sessionOptions.map((s) => (
+                          <SelectItem key={s.id} value={s.id}>
+                            {format(parseISO(s.session_date), "dd MMM yyyy", { locale: fr })} — {getSessionLabel(s)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    {detailSession && totalParticipants >= 0 && (
+                      <ParticipantsAttendanceList
+                        participants={detailParticipants as any}
+                        title={`Séance du ${format(parseISO(detailSession.session_date), "dd/MM/yyyy", { locale: fr })}`}
+                        emptyLabel="Aucun athlète attribué à cette séance."
+                      />
+                    )}
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        );
+      })()}
+
+
       {(() => {
         const today = format(new Date(), "yyyy-MM-dd");
         const todaySessions = filteredSessions?.filter(s => s.session_date === today) || [];
