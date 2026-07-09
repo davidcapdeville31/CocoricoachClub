@@ -289,15 +289,15 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
   }, [blocks]);
 
   const handlePickFromBank = (picked: PickedExerciseRich) => {
-    const targetId = activeBlockIdRef.current ?? blocks[blocks.length - 1]?.id;
+    const handle = dayEditorRef.current;
+    // Prioriser un bloc avec un draft de méthode actif (Stato, Cluster, Config, Linked)
+    // sur activeBlockIdRef pour éviter de router l'exercice vers le mauvais bloc.
+    const draftBlockId = handle?.getActiveDraftBlockId?.() ?? null;
+    const targetId = draftBlockId ?? activeBlockIdRef.current ?? blocks[blocks.length - 1]?.id;
     if (!targetId) {
       toast.error("Ajoute d'abord un bloc de travail à gauche.");
       return;
     }
-    // Délègue à SessionDayEditor : si une méthode liée (Biset/Superset/...) est en
-    // cours d'édition sur ce bloc, l'exercice ira dans le prochain slot vide.
-    // Sinon il sera ajouté comme exercice normal au bloc.
-    const handle = dayEditorRef.current;
     if (handle) {
       const isLinked = handle.hasActiveLinkedDraft(targetId);
       handle.insertExternalExercise(targetId, { id: picked.id, name: picked.exercise_name });
