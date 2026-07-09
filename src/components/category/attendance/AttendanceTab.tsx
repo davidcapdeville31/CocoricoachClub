@@ -360,7 +360,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
               Calcul basé sur les athlètes assignés à chaque séance de la période
               (du {format(parseISO(startDate), "dd/MM/yyyy")} au {format(parseISO(endDate), "dd/MM/yyyy")}) :
               {" "}chaque athlète compte une fois par séance — Présent, Absent ou Pas renseigné.
-              {" "}Total réponses attendues : <strong>{totalParticipants}</strong>.
+              {" "}Total attendu : <strong>{totalParticipants} réponses</strong>.
               {futureSessionsCount > 0 && (
                 <> Les séances à venir ({futureSessionsCount}) sont incluses : les athlètes n'ayant pas encore répondu sont comptés dans « Pas renseignés ».</>
               )}
