@@ -68,6 +68,9 @@ export interface SessionDayEditorHandle {
   ) => boolean;
   /** Indique s'il existe un draft de méthode liée actif pour le bloc donné */
   hasActiveLinkedDraft: (blockId: string) => boolean;
+  /** Retourne l'id du premier bloc ayant un draft de méthode acceptant un exercice
+   *  (linked / config / cluster / stato_dynamique). Null sinon. */
+  getActiveDraftBlockId: () => string | null;
 }
 
 type LinkedDraft = {
@@ -287,6 +290,15 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
     () => ({
       hasActiveLinkedDraft: (blockId: string) =>
         !!linkedDrafts[blockId] || !!configDrafts[blockId] || !!clusterDrafts[blockId] || !!statoDrafts[blockId],
+      getActiveDraftBlockId: () => {
+        const ids = [
+          ...Object.keys(linkedDrafts),
+          ...Object.keys(configDrafts),
+          ...Object.keys(clusterDrafts),
+          ...Object.keys(statoDrafts),
+        ];
+        return ids[0] ?? null;
+      },
       insertExternalExercise: (blockId, picked) => {
         addExerciseToBlock(blockId, { id: picked.id, name: picked.name } as PickedExercise);
         return true;
