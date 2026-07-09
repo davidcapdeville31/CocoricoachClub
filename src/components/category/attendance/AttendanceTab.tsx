@@ -330,6 +330,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
 
       {/* Global Presence Response Stats (athlete self-responses) */}
       {(() => {
+        const todayStr = format(new Date(), "yyyy-MM-dd");
         const filteredSessionIds = new Set((filteredSessions || []).map((s) => s.id));
         const filteredParticipants = (eventParticipants || []).filter((p) =>
           filteredSessionIds.has(p.training_session_id),
@@ -340,6 +341,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
           (p) => !p.attendance_status || p.attendance_status === "no_response",
         ).length;
         const totalParticipants = filteredParticipants.length;
+        const futureSessionsCount = (filteredSessions || []).filter((s) => s.session_date > todayStr).length;
 
         const sessionOptions = (filteredSessions || [])
           .slice()
@@ -354,6 +356,15 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
 
         return (
           <div className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Calcul basé sur les athlètes assignés à chaque séance de la période
+              (du {format(parseISO(startDate), "dd/MM/yyyy")} au {format(parseISO(endDate), "dd/MM/yyyy")}) :
+              {" "}chaque athlète compte une fois par séance — Présent, Absent ou Pas renseigné.
+              {" "}Total réponses attendues : <strong>{totalParticipants}</strong>.
+              {futureSessionsCount > 0 && (
+                <> Les séances à venir ({futureSessionsCount}) sont incluses : les athlètes n'ayant pas encore répondu sont comptés dans « Pas renseignés ».</>
+              )}
+            </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Card className="border-emerald-500/40">
                 <CardContent className="p-4">
