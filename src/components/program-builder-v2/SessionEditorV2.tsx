@@ -384,8 +384,9 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
       return;
     }
 
-    // 3) Fallback : on tente le bloc actif
-    const fallbackId = activeBlockIdRef.current ?? blocks[blocks.length - 1]?.id;
+    // 3) Fallback : bloc avec draft actif, sinon bloc actif
+    const draftBlockId = handle.getActiveDraftBlockId?.() ?? null;
+    const fallbackId = draftBlockId ?? activeBlockIdRef.current ?? blocks[blocks.length - 1]?.id;
     if (fallbackId) {
       handle.insertExternalExercise(fallbackId, {
         id: data.exercise.id,
