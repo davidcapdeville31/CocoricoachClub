@@ -186,22 +186,23 @@ export const StatoDynamiqueConfigSlots = ({
         
         {/* Exercise slot */}
         {exerciseName ? (
-          <Badge variant="outline" className="w-fit border-violet-500/50 bg-violet-500/10">
-            <Dumbbell className="h-3 w-3 mr-1" />
-            {exerciseName}
-          </Badge>
-        ) : (
-          <div className="p-3 rounded-lg border-2 border-dashed border-violet-500/30 bg-violet-500/5 text-center">
-            <Dumbbell className="h-5 w-5 mx-auto mb-1 text-violet-500/50" />
-            <p className="text-sm text-muted-foreground">
-              Cliquez sur un exercice de musculation pour le sélectionner
-            </p>
+          <div className="flex items-center gap-2 w-fit">
+            <Badge variant="outline" className="border-violet-500/50 bg-violet-500/10">
+              <Dumbbell className="h-3 w-3 mr-1" />
+              {exerciseName}
+            </Badge>
+            {onExercisePicked && (
+              <ExercisePicker onPick={(ex: PickedExercise) => onExercisePicked({ id: ex.id, name: ex.name })} />
+            )}
           </div>
+        ) : (
+          <StatoExerciseDropSlot blockId={blockId} onPick={onExercisePicked} />
         )}
       </CardHeader>
       
       <CardContent className="space-y-6">
       <div className={cn(!isEditing && "pointer-events-none opacity-70 space-y-6")}>
+
         {/* Static Phases Configuration */}
         <div className="space-y-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
           <div className="flex items-center justify-between">
