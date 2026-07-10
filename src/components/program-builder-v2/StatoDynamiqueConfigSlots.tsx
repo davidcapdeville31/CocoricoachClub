@@ -50,6 +50,8 @@ interface StatoDynamiqueConfigSlotsProps {
   onCancel: () => void;
   initialConfig?: StatoDynamiqueConfig;
   exerciseName?: string;
+  blockId?: string;
+  onExercisePicked?: (ex: { id: string; name: string }) => void;
 }
 
 export const StatoDynamiqueConfigSlots = ({
@@ -57,6 +59,8 @@ export const StatoDynamiqueConfigSlots = ({
   onCancel,
   initialConfig,
   exerciseName,
+  blockId,
+  onExercisePicked,
 }: StatoDynamiqueConfigSlotsProps) => {
   // Hook centralisé pour gérer édition/lecture seule
   const {
