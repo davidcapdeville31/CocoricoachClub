@@ -372,7 +372,17 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
       return;
     }
 
-    // 2) Drop sur un bloc (zone "drop-${blockId}")
+    // 2) Drop sur un bloc (zone "drop-${blockId}") OU sur un slot Stato-Dynamique
+    if (overId.startsWith("stato-slot-")) {
+      const blockId = overId.replace(/^stato-slot-/, "");
+      handle.insertExternalExercise(blockId, {
+        id: data.exercise.id,
+        name: data.exercise.exercise_name,
+      });
+      setActiveBlock(blockId);
+      toast.success(`« ${data.exercise.exercise_name} » ajouté à la Stato-Dynamique`);
+      return;
+    }
     if (overId.startsWith("drop-")) {
       const blockId = overId.replace(/^drop-/, "");
       handle.insertExternalExercise(blockId, {
