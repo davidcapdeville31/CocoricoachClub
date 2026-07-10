@@ -580,3 +580,43 @@ export const StatoDynamiqueConfigSlots = ({
     </Card>
   );
 };
+
+/* ------------------------------------------------------------------
+ * Drop slot for the Stato-Dynamique exercise placeholder.
+ * Accepts drag-and-drop from the exercise library (id `stato-slot-<blockId>`)
+ * and offers a click-to-pick fallback via ExercisePicker.
+ * ------------------------------------------------------------------ */
+function StatoExerciseDropSlot({
+  blockId,
+  onPick,
+}: {
+  blockId?: string;
+  onPick?: (ex: { id: string; name: string }) => void;
+}) {
+  const { isOver, setNodeRef } = useDroppable({
+    id: blockId ? `stato-slot-${blockId}` : "stato-slot-inactive",
+    data: { type: "stato-slot", blockId },
+    disabled: !blockId,
+  });
+  return (
+    <div
+      ref={setNodeRef}
+      className={cn(
+        "p-3 rounded-lg border-2 border-dashed text-center transition-colors",
+        isOver
+          ? "border-violet-500 bg-violet-500/10"
+          : "border-violet-500/30 bg-violet-500/5",
+      )}
+    >
+      <Dumbbell className="h-5 w-5 mx-auto mb-1 text-violet-500/70" />
+      <p className="text-sm text-muted-foreground mb-2">
+        Cliquez sur un exercice de musculation dans la bibliothèque à droite, glissez-le ici, ou :
+      </p>
+      {onPick && (
+        <div className="flex justify-center">
+          <ExercisePicker onPick={(ex: PickedExercise) => onPick({ id: ex.id, name: ex.name })} />
+        </div>
+      )}
+    </div>
+  );
+}
