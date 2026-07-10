@@ -76,8 +76,9 @@ export function AthletePrecisionTracker({ categoryId, playerId, sportType }: Pro
   return (
     <div className="space-y-3">
       <div className="rounded-xl border bg-primary/5 p-3 text-xs text-muted-foreground">
-        🦶 Saisissez vos séances individuelles de jeu au pied. Les données
-        alimentent votre base personnelle de précision et sont uniquement les vôtres.
+        {isBasket
+          ? "🏀 Saisissez vos séances individuelles de shooting. Les données alimentent votre base personnelle de précision et sont uniquement les vôtres."
+          : "🦶 Saisissez vos séances individuelles de jeu au pied. Les données alimentent votre base personnelle de précision et sont uniquement les vôtres."}
       </div>
 
       {!isLoading && !hasSession ? (
@@ -96,6 +97,11 @@ export function AthletePrecisionTracker({ categoryId, playerId, sportType }: Pro
             </Button>
           </CardContent>
         </Card>
+      ) : isBasket ? (
+        <BasketballPrecisionTracker
+          categoryId={categoryId}
+          lockedPlayerId={playerId}
+        />
       ) : (
         <PrecisionFieldTracker
           categoryId={categoryId}
