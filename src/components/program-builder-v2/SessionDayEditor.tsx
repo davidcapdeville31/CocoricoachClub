@@ -96,6 +96,10 @@ function makeBlockId() {
   return `block-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
+function makeStatoDraftId() {
+  return `stato-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
 const LINKED_METHODS: LinkedMethodType[] = [
   "superset",
   "biset",
@@ -114,6 +118,7 @@ type ConfigDraft = {
 
 type StatoDraft = {
   editing: boolean;
+  instanceId?: string;
   initial?: StatoDynamiqueConfig;
   current?: StatoDynamiqueConfig;
   exerciseId?: string;
@@ -270,7 +275,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
           }
           setStatoDrafts((p) => ({
             ...p,
-            [blockId]: { editing: true, exerciseId: picked.id, exerciseName: picked.name },
+            [blockId]: { editing: true, instanceId: makeStatoDraftId(), exerciseId: picked.id, exerciseName: picked.name },
           }));
         } else {
           setStatoDrafts((p) => ({
@@ -479,7 +484,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
         return;
       }
       if (method === "stato_dynamique") {
-        setStatoDrafts((p) => ({ ...p, [blockId]: { editing: true } }));
+        setStatoDrafts((p) => ({ ...p, [blockId]: { editing: true, instanceId: makeStatoDraftId() } }));
         return;
       }
       if (method === "intermittent_cardio") {
@@ -656,7 +661,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
             : b,
         ),
       );
-      setStatoDrafts((p) => ({ ...p, [blockId]: { editing: true } }));
+      setStatoDrafts((p) => ({ ...p, [blockId]: { editing: true, instanceId: makeStatoDraftId() } }));
       toast.success("Configuration ajoutée. Sélectionne le prochain exercice.");
     },
     [blocks, onChange, statoDrafts, createStatoExerciseFromDraft],
@@ -1079,13 +1084,14 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
               {/* Carte Stato-Dynamique */}
               {statoDraft && (
                 <StatoDynamiqueConfigSlots
+                  key={statoDraft.instanceId ?? block.id}
                   initialConfig={statoDraft.initial}
                   exerciseName={statoDraft.exerciseName}
                   blockId={block.id}
                   onExercisePicked={(ex) =>
                     setStatoDrafts((p) => ({
                       ...p,
-                      [block.id]: { ...(p[block.id] ?? { editing: true }), exerciseId: ex.id, exerciseName: ex.name },
+                      [block.id]: { ...(p[block.id] ?? { editing: true, instanceId: makeStatoDraftId() }), exerciseId: ex.id, exerciseName: ex.name },
                     }))
                   }
                   onConfigChange={(config) =>
@@ -1215,7 +1221,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                         } else if (m === "cluster") {
                           setClusterDrafts((p) => ({ ...p, [block.id]: { editing: true, initial: cfg } }));
                         } else if (m === "stato_dynamique") {
-                          setStatoDrafts((p) => ({ ...p, [block.id]: { editing: true, initial: cfg, exerciseId: cfg.exerciseId, exerciseName: cfg.exerciseName } }));
+                          setStatoDrafts((p) => ({ ...p, [block.id]: { editing: true, instanceId: makeStatoDraftId(), initial: cfg, exerciseId: cfg.exerciseId, exerciseName: cfg.exerciseName } }));
                         } else if (m === "intermittent_cardio") {
                           setIntermittentDrafts((p) => ({ ...p, [block.id]: { editing: true, initial: cfg } }));
                         } else {

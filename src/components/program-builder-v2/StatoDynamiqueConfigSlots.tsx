@@ -82,7 +82,7 @@ export const StatoDynamiqueConfigSlots = ({
 
   useEffect(() => {
     onConfigChange?.(config);
-  }, [config]);
+  }, [config, onConfigChange]);
 
   // Apply level preset
   const applyLevelPreset = (level: AthleteLevel) => {
