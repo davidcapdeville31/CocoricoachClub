@@ -1128,7 +1128,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                         } else if (m === "cluster") {
                           setClusterDrafts((p) => ({ ...p, [block.id]: { editing: true, initial: cfg } }));
                         } else if (m === "stato_dynamique") {
-                          setStatoDrafts((p) => ({ ...p, [block.id]: { editing: true, initial: cfg } }));
+                          setStatoDrafts((p) => ({ ...p, [block.id]: { editing: true, initial: cfg, exerciseId: cfg.exerciseId, exerciseName: cfg.exerciseName } }));
                         } else if (m === "intermittent_cardio") {
                           setIntermittentDrafts((p) => ({ ...p, [block.id]: { editing: true, initial: cfg } }));
                         } else {
