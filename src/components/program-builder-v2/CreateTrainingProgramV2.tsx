@@ -231,9 +231,19 @@ export function CreateTrainingProgramV2({
               }
               const block = blocksMap.get(blockKey)!;
               const testMatch = notes.match(/<!-- v2-test:([^>]+?) -->/);
+              let parsedConfig: Record<string, unknown> | undefined;
+              const cfgMatch = notes.match(/<!--\s*v2-(fartlek|cluster|stato|intermittent|drop_set|rest_pause|pyramid_up|pyramid_down|pyramid_full|five_by_five|isometric_overcoming|isometric_yielding|amrap|for_time|death_by|circuit|tabata|emom):(.*?)-->/s);
+              if (cfgMatch) {
+                try {
+                  parsedConfig = JSON.parse(cfgMatch[2]);
+                } catch {
+                  parsedConfig = undefined;
+                }
+              }
               const cleanNotes = notes
                 .replace(/<!-- v2-block:[^>]+ -->/g, "")
                 .replace(/<!-- v2-test:[^>]+ -->/g, "")
+                .replace(/<!--\s*v2-(fartlek|cluster|stato|intermittent|drop_set|rest_pause|pyramid_up|pyramid_down|pyramid_full|five_by_five|isometric_overcoming|isometric_yielding|amrap|for_time|death_by|circuit|tabata|emom):.*?-->/gs, "")
                 .trim();
               block.exercises!.push({
                 id: ex.id,
@@ -247,6 +257,7 @@ export function CreateTrainingProgramV2({
                 method: ex.method ?? "normal",
                 notes: cleanNotes,
                 config:
+                  parsedConfig ? parsedConfig :
                   ex.method === "cluster" ? ex.cluster_sets :
                   ex.method === "drop_set" ? ex.drop_sets : undefined,
               });
