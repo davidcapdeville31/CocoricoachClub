@@ -200,8 +200,15 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit, readOnly }: Pr
       </div>
     );
   }
-  if (method === "stato_dynamique" && (config.phases || config.amplitudeType)) {
-    return <StatoDynamiqueCard config={config as any} exerciseName={dropName} onEdit={onEdit} onRemove={onRemove} />;
+  if (method === "stato_dynamique" && (config.staticPhases || config.dynamicAmplitude || config.phases || config.amplitudeType)) {
+    return (
+      <StatoDynamiqueCard
+        config={config as any}
+        exerciseName={config.exerciseName ?? dropName}
+        onEdit={onEdit}
+        onRemove={onRemove}
+      />
+    );
   }
   if (method === "intermittent_cardio" && config.workSeconds != null) {
     return <IntermittentCardioCard config={config as any} onEdit={onEdit} onRemove={onRemove} />;

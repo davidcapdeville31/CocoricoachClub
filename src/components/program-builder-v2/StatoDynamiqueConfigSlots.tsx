@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,6 +52,7 @@ interface StatoDynamiqueConfigSlotsProps {
   exerciseName?: string;
   blockId?: string;
   onExercisePicked?: (ex: { id: string; name: string }) => void;
+  onConfigChange?: (config: StatoDynamiqueConfig) => void;
 }
 
 export const StatoDynamiqueConfigSlots = ({
@@ -61,6 +62,7 @@ export const StatoDynamiqueConfigSlots = ({
   exerciseName,
   blockId,
   onExercisePicked,
+  onConfigChange,
 }: StatoDynamiqueConfigSlotsProps) => {
   // Hook centralisé pour gérer édition/lecture seule
   const {
@@ -77,6 +79,10 @@ export const StatoDynamiqueConfigSlots = ({
   const [config, setConfig] = useState<StatoDynamiqueConfig>(
     initialConfig || getDefaultStatoDynamiqueConfig()
   );
+
+  useEffect(() => {
+    onConfigChange?.(config);
+  }, [config, onConfigChange]);
 
   // Apply level preset
   const applyLevelPreset = (level: AthleteLevel) => {
