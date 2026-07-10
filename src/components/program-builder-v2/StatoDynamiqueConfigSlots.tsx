@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useDroppable } from "@dnd-kit/core";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { X, Check, Timer, Zap, RotateCcw, Dumbbell, Clock, Target, Plus, Trash2, Percent, Weight, Gauge, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ExercisePicker, type PickedExercise } from "./ExercisePicker";
 import { VariableSetsTable } from "./VariableSetsTable";
 import { createInitialSets, SetData, STRENGTH_SET_COLUMNS } from "@/lib/program-builder-v2/variableSetsTypes";
 import { syncFieldToSets, syncSetsCount } from "@/lib/program-builder-v2/variableSetsSync";
