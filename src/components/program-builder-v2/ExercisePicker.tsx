@@ -13,7 +13,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Plus, Search, Loader2 } from "lucide-react";
+import { Plus, Search, Loader2, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface PickedExercise {
@@ -24,9 +24,11 @@ export interface PickedExercise {
 
 interface Props {
   onPick: (ex: PickedExercise) => void;
+  label?: string;
+  mode?: "add" | "replace";
 }
 
-export function ExercisePicker({ onPick }: Props) {
+export function ExercisePicker({ onPick, label, mode = "add" }: Props) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -46,6 +48,9 @@ export function ExercisePicker({ onPick }: Props) {
     },
   });
 
+  const buttonLabel = label ?? (mode === "replace" ? "Changer l'exercice" : "Ajouter un exercice");
+  const Icon = mode === "replace" ? Pencil : Plus;
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -55,8 +60,8 @@ export function ExercisePicker({ onPick }: Props) {
           variant="outline"
           className="rounded-2xl h-8 gap-1"
         >
-          <Plus className="h-3.5 w-3.5" />
-          Ajouter un exercice
+          <Icon className="h-3.5 w-3.5" />
+          {buttonLabel}
         </Button>
       </PopoverTrigger>
       <PopoverContent
