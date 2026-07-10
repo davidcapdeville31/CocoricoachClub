@@ -37,6 +37,7 @@ import { AthleteSpaceDocuments } from "@/components/athlete-space/AthleteSpaceDo
 import { AthletePrecisionTracker } from "@/components/athlete-space/AthletePrecisionTracker";
 import { AthleticsRecordsManager } from "@/components/category/athletics/AthleticsRecordsManager";
 import { isAthletismeCategory } from "@/lib/constants/sportTypes";
+import { isBasketballPrecisionSport } from "@/lib/constants/basketballPrecisionExercises";
 import { useAthleteRecordNotifications } from "@/hooks/useAthleteRecordNotifications";
 
 interface AthleteInfo {
