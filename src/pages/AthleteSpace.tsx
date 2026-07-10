@@ -957,6 +957,7 @@ export default function AthleteSpace() {
                   <AthletePrecisionTracker
                     categoryId={athleteInfo.category_id}
                     playerId={athleteInfo.player_id}
+                    sportType={athleteInfo.sport_type}
                   />
                 </TabsContent>
               </Tabs>
