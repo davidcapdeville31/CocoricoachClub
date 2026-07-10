@@ -925,7 +925,7 @@ export default function AthleteSpace() {
                   />
                 </TabsContent>
               </Tabs>
-            ) : isRugby && kickingWorkEnabled ? (
+            ) : (isRugby && kickingWorkEnabled) || isBasket ? (
               <Tabs defaultValue="competition" className="space-y-4">
                 <TabsList className="flex flex-wrap h-auto gap-1 w-full bg-muted/40 rounded-xl p-1">
                   <TabsTrigger
