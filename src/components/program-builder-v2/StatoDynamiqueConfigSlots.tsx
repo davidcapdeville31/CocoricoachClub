@@ -192,7 +192,7 @@ export const StatoDynamiqueConfigSlots = ({
               {exerciseName}
             </Badge>
             {onExercisePicked && (
-              <ExercisePicker onPick={(ex: PickedExercise) => onExercisePicked({ id: ex.id, name: ex.name })} />
+              <ExercisePicker mode="replace" onPick={(ex: PickedExercise) => onExercisePicked({ id: ex.id, name: ex.name })} />
             )}
           </div>
         ) : (
