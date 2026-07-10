@@ -7,19 +7,23 @@ import { CalendarPlus, Loader2, Target } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { PrecisionFieldTracker } from "@/components/rugby/PrecisionFieldTracker";
+import { BasketballPrecisionTracker } from "@/components/basketball/BasketballPrecisionTracker";
+import { isBasketballPrecisionSport } from "@/lib/constants/basketballPrecisionExercises";
 
 interface Props {
   categoryId: string;
   playerId: string;
+  sportType?: string;
 }
 
 /**
- * Wrapper de l'interface staff de précision (jeu au pied), verrouillée sur
- * l'athlète connecté. Si aucune séance n'existe aujourd'hui, l'athlète peut
- * en créer une via l'edge function dédiée (athlete-create-session) afin de
- * pouvoir saisir ses stats individuelles.
+ * Wrapper de l'interface staff de précision (jeu au pied / shooting basket),
+ * verrouillée sur l'athlète connecté. Si aucune séance n'existe aujourd'hui,
+ * l'athlète peut en créer une via l'edge function dédiée
+ * (athlete-create-session) afin de pouvoir saisir ses stats individuelles.
  */
-export function AthletePrecisionTracker({ categoryId, playerId }: Props) {
+export function AthletePrecisionTracker({ categoryId, playerId, sportType }: Props) {
+  const isBasket = isBasketballPrecisionSport(sportType);
   const queryClient = useQueryClient();
   const today = format(new Date(), "yyyy-MM-dd");
   const [creating, setCreating] = useState(false);
@@ -72,8 +76,9 @@ export function AthletePrecisionTracker({ categoryId, playerId }: Props) {
   return (
     <div className="space-y-3">
       <div className="rounded-xl border bg-primary/5 p-3 text-xs text-muted-foreground">
-        🦶 Saisissez vos séances individuelles de jeu au pied. Les données
-        alimentent votre base personnelle de précision et sont uniquement les vôtres.
+        {isBasket
+          ? "🏀 Saisissez vos séances individuelles de shooting. Les données alimentent votre base personnelle de précision et sont uniquement les vôtres."
+          : "🦶 Saisissez vos séances individuelles de jeu au pied. Les données alimentent votre base personnelle de précision et sont uniquement les vôtres."}
       </div>
 
       {!isLoading && !hasSession ? (
@@ -92,6 +97,11 @@ export function AthletePrecisionTracker({ categoryId, playerId }: Props) {
             </Button>
           </CardContent>
         </Card>
+      ) : isBasket ? (
+        <BasketballPrecisionTracker
+          categoryId={categoryId}
+          lockedPlayerId={playerId}
+        />
       ) : (
         <PrecisionFieldTracker
           categoryId={categoryId}

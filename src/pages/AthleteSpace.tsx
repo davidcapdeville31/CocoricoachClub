@@ -37,6 +37,7 @@ import { AthleteSpaceDocuments } from "@/components/athlete-space/AthleteSpaceDo
 import { AthletePrecisionTracker } from "@/components/athlete-space/AthletePrecisionTracker";
 import { AthleticsRecordsManager } from "@/components/category/athletics/AthleticsRecordsManager";
 import { isAthletismeCategory } from "@/lib/constants/sportTypes";
+import { isBasketballPrecisionSport } from "@/lib/constants/basketballPrecisionExercises";
 import { useAthleteRecordNotifications } from "@/hooks/useAthleteRecordNotifications";
 
 interface AthleteInfo {
@@ -448,6 +449,7 @@ export default function AthleteSpace() {
   const isPadel = (athleteInfo.sport_type || "").toLowerCase().includes("padel");
   const isRugby = ["XV", "7", "XIII", "touch", "15", "academie", "national_team"].includes(athleteInfo.sport_type || "");
   const isJudo = (athleteInfo.sport_type || "").toLowerCase().startsWith("judo");
+  const isBasket = isBasketballPrecisionSport(athleteInfo.sport_type);
 
   const displayName = athleteInfo.player_first_name
     ? `${athleteInfo.player_first_name} ${athleteInfo.player_name}`
@@ -923,7 +925,7 @@ export default function AthleteSpace() {
                   />
                 </TabsContent>
               </Tabs>
-            ) : isRugby && kickingWorkEnabled ? (
+            ) : (isRugby && kickingWorkEnabled) || isBasket ? (
               <Tabs defaultValue="competition" className="space-y-4">
                 <TabsList className="flex flex-wrap h-auto gap-1 w-full bg-muted/40 rounded-xl p-1">
                   <TabsTrigger
@@ -955,6 +957,7 @@ export default function AthleteSpace() {
                   <AthletePrecisionTracker
                     categoryId={athleteInfo.category_id}
                     playerId={athleteInfo.player_id}
+                    sportType={athleteInfo.sport_type}
                   />
                 </TabsContent>
               </Tabs>
