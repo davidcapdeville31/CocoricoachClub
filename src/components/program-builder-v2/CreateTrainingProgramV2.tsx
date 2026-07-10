@@ -348,6 +348,17 @@ export function CreateTrainingProgramV2({
       }
       return;
     }
+    if (overId.startsWith("stato-slot-")) {
+      const blockId = resolveBlockId(overId.replace(/^stato-slot-/, ""));
+      if (blockId) {
+        handle.insertExternalExercise(blockId, {
+          id: data.exercise.id,
+          name: data.exercise.exercise_name,
+        });
+        toast.success(`« ${data.exercise.exercise_name} » ajouté à la Stato-Dynamique`);
+      }
+      return;
+    }
     if (overId.startsWith("drop-")) {
       const blockId = overId.replace(/^drop-/, "");
       handle.insertExternalExercise(blockId, {
