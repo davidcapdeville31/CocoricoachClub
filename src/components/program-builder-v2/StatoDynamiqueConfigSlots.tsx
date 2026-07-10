@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useDroppable } from "@dnd-kit/core";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { X, Check, Timer, Zap, RotateCcw, Dumbbell, Clock, Target, Plus, Trash2, Percent, Weight, Gauge, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ExercisePicker, type PickedExercise } from "./ExercisePicker";
 import { VariableSetsTable } from "./VariableSetsTable";
 import { createInitialSets, SetData, STRENGTH_SET_COLUMNS } from "@/lib/program-builder-v2/variableSetsTypes";
 import { syncFieldToSets, syncSetsCount } from "@/lib/program-builder-v2/variableSetsSync";
@@ -48,6 +50,8 @@ interface StatoDynamiqueConfigSlotsProps {
   onCancel: () => void;
   initialConfig?: StatoDynamiqueConfig;
   exerciseName?: string;
+  blockId?: string;
+  onExercisePicked?: (ex: { id: string; name: string }) => void;
 }
 
 export const StatoDynamiqueConfigSlots = ({
@@ -55,6 +59,8 @@ export const StatoDynamiqueConfigSlots = ({
   onCancel,
   initialConfig,
   exerciseName,
+  blockId,
+  onExercisePicked,
 }: StatoDynamiqueConfigSlotsProps) => {
   // Hook centralisé pour gérer édition/lecture seule
   const {
@@ -180,22 +186,23 @@ export const StatoDynamiqueConfigSlots = ({
         
         {/* Exercise slot */}
         {exerciseName ? (
-          <Badge variant="outline" className="w-fit border-violet-500/50 bg-violet-500/10">
-            <Dumbbell className="h-3 w-3 mr-1" />
-            {exerciseName}
-          </Badge>
-        ) : (
-          <div className="p-3 rounded-lg border-2 border-dashed border-violet-500/30 bg-violet-500/5 text-center">
-            <Dumbbell className="h-5 w-5 mx-auto mb-1 text-violet-500/50" />
-            <p className="text-sm text-muted-foreground">
-              Cliquez sur un exercice de musculation pour le sélectionner
-            </p>
+          <div className="flex items-center gap-2 w-fit">
+            <Badge variant="outline" className="border-violet-500/50 bg-violet-500/10">
+              <Dumbbell className="h-3 w-3 mr-1" />
+              {exerciseName}
+            </Badge>
+            {onExercisePicked && (
+              <ExercisePicker onPick={(ex: PickedExercise) => onExercisePicked({ id: ex.id, name: ex.name })} />
+            )}
           </div>
+        ) : (
+          <StatoExerciseDropSlot blockId={blockId} onPick={onExercisePicked} />
         )}
       </CardHeader>
       
       <CardContent className="space-y-6">
       <div className={cn(!isEditing && "pointer-events-none opacity-70 space-y-6")}>
+
         {/* Static Phases Configuration */}
         <div className="space-y-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
           <div className="flex items-center justify-between">
@@ -573,3 +580,43 @@ export const StatoDynamiqueConfigSlots = ({
     </Card>
   );
 };
+
+/* ------------------------------------------------------------------
+ * Drop slot for the Stato-Dynamique exercise placeholder.
+ * Accepts drag-and-drop from the exercise library (id `stato-slot-<blockId>`)
+ * and offers a click-to-pick fallback via ExercisePicker.
+ * ------------------------------------------------------------------ */
+function StatoExerciseDropSlot({
+  blockId,
+  onPick,
+}: {
+  blockId?: string;
+  onPick?: (ex: { id: string; name: string }) => void;
+}) {
+  const { isOver, setNodeRef } = useDroppable({
+    id: blockId ? `stato-slot-${blockId}` : "stato-slot-inactive",
+    data: { type: "stato-slot", blockId },
+    disabled: !blockId,
+  });
+  return (
+    <div
+      ref={setNodeRef}
+      className={cn(
+        "p-3 rounded-lg border-2 border-dashed text-center transition-colors",
+        isOver
+          ? "border-violet-500 bg-violet-500/10"
+          : "border-violet-500/30 bg-violet-500/5",
+      )}
+    >
+      <Dumbbell className="h-5 w-5 mx-auto mb-1 text-violet-500/70" />
+      <p className="text-sm text-muted-foreground mb-2">
+        Cliquez sur un exercice de musculation dans la bibliothèque à droite, glissez-le ici, ou :
+      </p>
+      {onPick && (
+        <div className="flex justify-center">
+          <ExercisePicker onPick={(ex: PickedExercise) => onPick({ id: ex.id, name: ex.name })} />
+        </div>
+      )}
+    </div>
+  );
+}

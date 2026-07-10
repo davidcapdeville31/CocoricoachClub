@@ -1001,6 +1001,13 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                 <StatoDynamiqueConfigSlots
                   initialConfig={statoDraft.initial}
                   exerciseName={statoDraft.exerciseName}
+                  blockId={block.id}
+                  onExercisePicked={(ex) =>
+                    setStatoDrafts((p) => ({
+                      ...p,
+                      [block.id]: { ...(p[block.id] ?? { editing: true }), exerciseId: ex.id, exerciseName: ex.name },
+                    }))
+                  }
                   onValidate={(config) => handleStatoValidate(block.id, config)}
                   onCancel={() => handleStatoCancel(block.id)}
                 />
@@ -1121,7 +1128,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                         } else if (m === "cluster") {
                           setClusterDrafts((p) => ({ ...p, [block.id]: { editing: true, initial: cfg } }));
                         } else if (m === "stato_dynamique") {
-                          setStatoDrafts((p) => ({ ...p, [block.id]: { editing: true, initial: cfg } }));
+                          setStatoDrafts((p) => ({ ...p, [block.id]: { editing: true, initial: cfg, exerciseId: cfg.exerciseId, exerciseName: cfg.exerciseName } }));
                         } else if (m === "intermittent_cardio") {
                           setIntermittentDrafts((p) => ({ ...p, [block.id]: { editing: true, initial: cfg } }));
                         } else {
