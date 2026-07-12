@@ -65,8 +65,8 @@ export function BasketballPrecisionTracker({
     y: number;
     zone: string;
   } | null>(null);
-  const [attempts, setAttempts] = useState("10");
-  const [successes, setSuccesses] = useState("0");
+  const [attempts, setAttempts] = useState("");
+  const [successes, setSuccesses] = useState("");
   const today = sessionDate || format(new Date(), "yyyy-MM-dd");
 
   const exercise = getBasketballExerciseByValue(exerciseValue)!;
