@@ -171,10 +171,11 @@ export function BasketballPrecisionTracker({
     onSuccess: () => {
       toast.success("Exercice enregistré");
       setPendingClick(null);
-      setAttempts("10");
-      setSuccesses("0");
+      setAttempts("");
+      setSuccesses("");
       qc.invalidateQueries({ queryKey: ["basket-precision-today"] });
       qc.invalidateQueries({ queryKey: ["precision-training-stats"] });
+    },
     },
     onError: (e: Error) => toast.error(e.message),
   });
