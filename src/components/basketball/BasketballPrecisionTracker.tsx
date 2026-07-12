@@ -176,7 +176,6 @@ export function BasketballPrecisionTracker({
       qc.invalidateQueries({ queryKey: ["basket-precision-today"] });
       qc.invalidateQueries({ queryKey: ["precision-training-stats"] });
     },
-    },
     onError: (e: Error) => toast.error(e.message),
   });
 
