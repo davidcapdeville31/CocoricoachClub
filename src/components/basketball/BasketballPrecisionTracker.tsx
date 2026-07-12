@@ -134,6 +134,27 @@ export function BasketballPrecisionTracker({
       const s = parseInt(successes);
       if (isNaN(a) || a <= 0) throw new Error("Tentatives invalides");
       if (isNaN(s) || s < 0 || s > a) throw new Error("Réussites invalides");
+      if (lockedPlayerId) {
+        // Athlete portal: use edge function (bypass RLS)
+        const { data, error } = await supabase.functions.invoke(
+          "athlete-precision-training",
+          {
+            body: {
+              category_id: categoryId,
+              player_id: selectedPlayerId,
+              session_date: today,
+              exercise_label: exercise.label,
+              zone_x: pendingClick.x,
+              zone_y: pendingClick.y,
+              attempts: a,
+              successes: s,
+            },
+          },
+        );
+        if (error) throw error;
+        if (!data?.success) throw new Error(data?.error || "Enregistrement échoué");
+        return;
+      }
       const { error } = await supabase.from("precision_training").insert({
         category_id: categoryId,
         player_id: selectedPlayerId,
