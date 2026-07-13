@@ -348,18 +348,48 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
     return [];
   }, [players, showDiscipline, showPosition]);
 
+  // Split players by archived state
+  const archivedCount = useMemo(
+    () => (players || []).filter((p: any) => !!p.archived_at).length,
+    [players],
+  );
+
   // Filter players
   const filteredPlayers = useMemo(() => {
     if (!players) return [];
-    if (disciplineFilter === "all") return players;
+    let list = players.filter((p: any) => (showArchived ? true : !p.archived_at));
+    if (disciplineFilter === "all") return list;
     if (showDiscipline) {
-      return players.filter((p: any) => p.discipline === disciplineFilter);
+      return list.filter((p: any) => p.discipline === disciplineFilter);
     }
     if (showPosition) {
-      return players.filter((p: any) => p.position === disciplineFilter);
+      return list.filter((p: any) => p.position === disciplineFilter);
     }
-    return players;
-  }, [players, disciplineFilter, showDiscipline, showPosition]);
+    return list;
+  }, [players, disciplineFilter, showDiscipline, showPosition, showArchived]);
+
+  const archivePlayer = useMutation({
+    mutationFn: async ({ playerId, archive }: { playerId: string; archive: boolean }) => {
+      const { error, count } = await supabase
+        .from("players")
+        .update({ archived_at: archive ? new Date().toISOString() : null } as any, { count: "exact" })
+        .eq("id", playerId);
+      if (error) throw error;
+      if (!count || count === 0) throw new Error("PERMISSION_DENIED");
+    },
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["players"] });
+      queryClient.invalidateQueries({ queryKey: ["players", categoryId, "roster", "with-archived"] });
+      toast.success(vars.archive ? "Athlète archivé" : "Athlète réactivé");
+    },
+    onError: (err: Error) => {
+      if (err?.message === "PERMISSION_DENIED") {
+        toast.error("Vous n'avez pas les droits pour archiver cet athlète.");
+      } else {
+        toast.error("Erreur lors de l'archivage");
+      }
+    },
+  });
 
   const deletePlayer = useMutation({
     mutationFn: async (playerId: string) => {
