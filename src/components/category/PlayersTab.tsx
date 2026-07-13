@@ -860,6 +860,23 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                               <Button
                                 variant="ghost"
                                 size="icon"
+                                title={isArchived ? "Réactiver" : "Archiver"}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  archivePlayer.mutate({ playerId: player.id, archive: !isArchived });
+                                }}
+                              >
+                                {isArchived ? (
+                                  <ArchiveRestore className="h-4 w-4 text-primary" />
+                                ) : (
+                                  <Archive className="h-4 w-4 text-muted-foreground" />
+                                )}
+                              </Button>
+                            )}
+                            {!isViewer && canManageAthletes && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if (confirm(`Êtes-vous sûr de vouloir supprimer l'athlète ${fullName} ?`)) {
