@@ -705,7 +705,9 @@ export function AddPlayerDialogWithInvite({
                   <SelectItem value="other">Autre</SelectItem>
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">Utilisé pour appliquer automatiquement les barèmes spécifiques (filles / garçons) sur les tests.</p>
             </div>
+
 
             {/* Position selector for team sports */}
             {isTeamSport && positions.length > 0 && (
@@ -1104,21 +1106,6 @@ export function AddPlayerDialogWithInvite({
               ))}
             </div>
 
-            {/* Genre */}
-            <div className="space-y-2">
-              <Label htmlFor="gender">Genre</Label>
-              <Select value={gender} onValueChange={(v) => setGender(v as any)}>
-                <SelectTrigger id="gender">
-                  <SelectValue placeholder="Sélectionner un genre (optionnel)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="male">Masculin</SelectItem>
-                  <SelectItem value="female">Féminin</SelectItem>
-                  <SelectItem value="other">Autre / Non précisé</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">Utilisé pour appliquer automatiquement les barèmes spécifiques (filles / garçons) sur les tests.</p>
-            </div>
 
             {/* Send Invitation Checkbox */}
             <div className="flex items-center space-x-2 p-3 rounded-lg bg-primary/5 border border-primary/20">
