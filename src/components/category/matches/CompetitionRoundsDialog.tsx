@@ -2197,11 +2197,9 @@ export function CompetitionRoundsDialog({
                     )}
                     <div className={
                       focusBlockIdx !== null ? "grid grid-cols-1 lg:grid-cols-2 gap-4" :
-                      bowlingSelectedPlayers.length >= 5 ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3" :
-                      bowlingSelectedPlayers.length === 4 ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4" :
-                      bowlingSelectedPlayers.length === 3 ? "grid grid-cols-1 md:grid-cols-3 gap-4" :
-                      bowlingSelectedPlayers.length === 2 ? "grid grid-cols-1 md:grid-cols-2 gap-4" : ""
+                      "flex flex-col gap-4"
                     }>
+
                       {bowlingSelectedPlayers.map((p) => (
                         <div key={p.entryKey} className={hasMultiBowling ? "border border-border/60 rounded-2xl p-3 bg-surface-sunken/40" : ""}>
                           {hasMultiBowling && (
