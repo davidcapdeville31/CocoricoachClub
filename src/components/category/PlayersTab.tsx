@@ -204,6 +204,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
   const [disciplineFilter, setDisciplineFilter] = useState<string>("all");
   const [copiedInviteId, setCopiedInviteId] = useState<string | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { isViewer } = useViewerModeContext();
@@ -212,7 +213,14 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
     [categoryId]
   );
 
-  const { data: players, isLoading } = useViewerPlayers(categoryId);
+  // In the effectif view we want to also see archived athletes (to reactivate them).
+  // Other consumers of useViewerPlayers keep filtering archived out.
+  const { data: allPlayers, isLoading } = useQuery({
+    queryKey: ["players", categoryId, "roster", "with-archived"],
+    queryFn: () => fetchCategoryRosterPlayers(categoryId, { includeArchived: true }),
+    enabled: !!categoryId,
+  });
+  const players = allPlayers;
 
   // Fetch all athlete invitations for this category
   const { data: invitations } = useQuery({
