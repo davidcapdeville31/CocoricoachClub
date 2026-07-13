@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
@@ -11,12 +11,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Dumbbell, Loader2, Sparkles } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Loader2, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { getTrainingTypesForSport } from "@/lib/constants/trainingTypes";
 
 interface Props {
   open: boolean;
@@ -24,24 +32,40 @@ interface Props {
   date: Date;
   categoryId: string;
   athletePlayerId: string;
+  sportType?: string;
+  /** Optionnel — verrouille le type de séance (ex: musculation). */
+  lockedTrainingType?: string;
 }
 
 /**
- * Mode simplifié de création d'une séance musculation côté athlète.
- * Saisie rapide : notes libres, durée (min), RPE (1-10).
- * À la validation, on crée une séance `training_type = "musculation"` via
+ * Mode simplifié générique de création de séance côté athlète.
+ * Saisie rapide : type de séance (filtré par sport), description libre,
+ * durée (min), RPE (1-10). À la validation, crée la séance via
  * l'edge function `athlete-create-session` — la séance apparaît dans le
- * calendrier ET alimente les stats d'entraînement (volume musculation)
- * grâce à la durée renseignée.
+ * calendrier (athlète + staff) ET alimente automatiquement les stats de
+ * charge d'entraînement (workload) grâce à `intensity = RPE` et aux
+ * heures de début/fin calculées depuis la durée.
  */
-export function MusculationSimplifiedDialog({
+export function SimplifiedSessionDialog({
   open,
   onOpenChange,
   date,
   categoryId,
   athletePlayerId,
+  sportType,
+  lockedTrainingType,
 }: Props) {
   const qc = useQueryClient();
+
+  // Types de séance disponibles pour ce sport, hors bowling (flow dédié).
+  const trainingTypes = useMemo(() => {
+    const all = getTrainingTypesForSport(sportType);
+    return all.filter((t) => !t.value.startsWith("bowling_"));
+  }, [sportType]);
+
+  const [trainingType, setTrainingType] = useState<string>(
+    lockedTrainingType || trainingTypes[0]?.value || "musculation",
+  );
   const [notes, setNotes] = useState("");
   const [durationMin, setDurationMin] = useState<number>(60);
   const [rpe, setRpe] = useState<number>(6);
@@ -51,8 +75,9 @@ export function MusculationSimplifiedDialog({
       setNotes("");
       setDurationMin(60);
       setRpe(6);
+      setTrainingType(lockedTrainingType || trainingTypes[0]?.value || "musculation");
     }
-  }, [open]);
+  }, [open, lockedTrainingType, trainingTypes]);
 
   const computeEndTime = (start: string, mins: number) => {
     const [h, m] = start.split(":").map(Number);
@@ -62,8 +87,12 @@ export function MusculationSimplifiedDialog({
     return `${eh}:${em}`;
   };
 
+  const currentTypeLabel =
+    trainingTypes.find((t) => t.value === trainingType)?.label || trainingType;
+
   const submitMutation = useMutation({
     mutationFn: async () => {
+      if (!trainingType) throw new Error("Choisissez un type de séance");
       if (!durationMin || durationMin <= 0) {
         throw new Error("Renseignez une durée > 0");
       }
@@ -78,8 +107,8 @@ export function MusculationSimplifiedDialog({
       const start = "09:00";
       const end = computeEndTime(start, durationMin);
       const notesPayload = [
-        "<!--MUSCU_SIMPLIFIED-->",
-        notes.trim() || "Séance musculation (mode simplifié)",
+        "<!--SIMPLIFIED_SESSION-->",
+        notes.trim() || `Séance ${currentTypeLabel} (mode simplifié)`,
         `Durée : ${durationMin} min · RPE : ${rpe}/10`,
       ].join("\n");
 
@@ -93,7 +122,7 @@ export function MusculationSimplifiedDialog({
             session_date: format(date, "yyyy-MM-dd"),
             session_start_time: start,
             session_end_time: end,
-            training_type: "musculation",
+            training_type: trainingType,
             intensity: rpe,
             notes: notesPayload,
           },
@@ -110,7 +139,8 @@ export function MusculationSimplifiedDialog({
       qc.invalidateQueries({ queryKey: ["sessions", categoryId] });
       qc.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
       qc.invalidateQueries({ queryKey: ["training-stats"] });
-      toast.success("Séance musculation ajoutée");
+      qc.invalidateQueries({ queryKey: ["athlete-calendar-sessions", categoryId] });
+      toast.success("Séance ajoutée");
       onOpenChange(false);
     },
     onError: (e: any) => toast.error(e?.message || "Impossible d'enregistrer"),
@@ -135,8 +165,7 @@ export function MusculationSimplifiedDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-emerald-600" />
-            <Dumbbell className="h-5 w-5 text-emerald-600" />
-            Séance musculation — mode simplifié
+            Séance — mode simplifié
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
             {format(date, "EEEE d MMMM yyyy", { locale: fr })}
@@ -144,11 +173,29 @@ export function MusculationSimplifiedDialog({
         </DialogHeader>
 
         <div className="space-y-4">
+          {!lockedTrainingType && trainingTypes.length > 0 && (
+            <div className="space-y-1.5">
+              <Label>Type de séance</Label>
+              <Select value={trainingType} onValueChange={setTrainingType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choisir le type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {trainingTypes.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>
+                      {t.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div className="space-y-1.5">
-            <Label htmlFor="muscu-notes">Description de la séance</Label>
+            <Label htmlFor="simpl-notes">Description de la séance</Label>
             <Textarea
-              id="muscu-notes"
-              placeholder="Ex : Haut du corps — 4x8 développé couché, tractions, rowing…"
+              id="simpl-notes"
+              placeholder="Ex : contenu, exercices clés, sensations…"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={4}
@@ -157,9 +204,9 @@ export function MusculationSimplifiedDialog({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="muscu-duration">Durée (minutes)</Label>
+              <Label htmlFor="simpl-duration">Durée (minutes)</Label>
               <Input
-                id="muscu-duration"
+                id="simpl-duration"
                 type="number"
                 min={1}
                 max={600}
@@ -168,9 +215,9 @@ export function MusculationSimplifiedDialog({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="muscu-rpe">RPE ressenti (1-10)</Label>
+              <Label htmlFor="simpl-rpe">RPE ressenti (1-10)</Label>
               <Input
-                id="muscu-rpe"
+                id="simpl-rpe"
                 type="number"
                 min={1}
                 max={10}
@@ -204,8 +251,7 @@ export function MusculationSimplifiedDialog({
             })}
           </div>
           <p className="text-xs text-muted-foreground">
-            La durée renseignée sera comptabilisée dans tes stats d'entraînement
-            "Musculation".
+            La durée et le RPE alimentent automatiquement ta charge d'entraînement.
           </p>
         </div>
 
