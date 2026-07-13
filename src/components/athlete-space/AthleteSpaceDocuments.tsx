@@ -401,14 +401,25 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   {doc.file_url && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDownload(doc.file_url, doc.title)}
-                    >
-                      <Download className="h-4 w-4 mr-1" />
-                      <span className="hidden sm:inline">Télécharger</span>
-                    </Button>
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleView(doc.file_url)}
+                        title="Voir"
+                      >
+                        <Eye className="h-4 w-4 sm:mr-1" />
+                        <span className="hidden sm:inline">Voir</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDownload(doc.file_url, doc.title)}
+                      >
+                        <Download className="h-4 w-4 sm:mr-1" />
+                        <span className="hidden sm:inline">Télécharger</span>
+                      </Button>
+                    </>
                   )}
                   {canEdit(doc) && (
                     <Button
