@@ -765,11 +765,14 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                       .join("")
                       .toUpperCase()
                       .slice(0, 2);
+                    const isArchived = !!player.archived_at;
 
                     return (
                       <TableRow 
                         key={player.id} 
-                        className="animate-fade-in cursor-pointer hover:bg-accent/50"
+                        className={`animate-fade-in cursor-pointer hover:bg-accent/50 ${
+                          isArchived ? "opacity-60 grayscale" : ""
+                        }`}
                         onClick={() => navigate(getPlayerProfilePath(player.id))}
                       >
                         <TableCell className="font-medium">
@@ -781,6 +784,9 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                               </AvatarFallback>
                             </Avatar>
                             <span>{fullName}</span>
+                            {isArchived && (
+                              <Badge variant="outline" className="text-xs">Archivé</Badge>
+                            )}
                             <PlayerInfoHover player={player} isSki={isSki} />
                           </div>
                         </TableCell>
