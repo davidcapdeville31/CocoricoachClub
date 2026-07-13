@@ -1009,6 +1009,14 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         defaultDate={selectedDate ? format(selectedDate, "yyyy-MM-dd") : undefined}
       />
 
+      <MusculationSimplifiedDialog
+        open={isMusculationSimplifiedOpen}
+        onOpenChange={setIsMusculationSimplifiedOpen}
+        date={selectedDate || new Date()}
+        categoryId={categoryId}
+        athletePlayerId={playerId}
+      />
+
       <FieldSessionDialog
         open={!!fieldSessionDate}
         onOpenChange={(open) => !open && setFieldSessionDate(null)}
