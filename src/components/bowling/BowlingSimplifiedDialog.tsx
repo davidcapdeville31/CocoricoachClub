@@ -151,6 +151,8 @@ export function BowlingSimplifiedDialog({
   /** "session" : un seul huilage pour toute la séance, appliqué à chaque bloc.
    *  "per_block" : l'utilisateur choisit un huilage différent à l'intérieur de chaque bloc. */
   const [oilScope, setOilScope] = useState<"session" | "per_block">("session");
+  /** RPE ressenti de la séance (athlète) — alimente le workload */
+  const [athleteRpe, setAthleteRpe] = useState<number>(6);
 
 
   // Fetch effectif (coach mode only, et pas en édition)
