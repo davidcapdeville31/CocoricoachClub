@@ -985,17 +985,20 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                           if (!pocketAllowed) return null;
                           const showSplit =
                             throwData.value !== "X" && throwData.value !== "/";
+                          // In read-only (saved) mode, only render active badges to avoid overflow in narrow cells.
+                          const showPocketBadge = trackPockets && (!isSaved || throwData.isPocket);
+                          const showSplitBadge = showSplit && (!isSaved || throwData.isSplit);
                           return (
-                            <div key={throwIndex} className="flex items-center gap-1">
-                              <span className="text-[10px] font-mono w-7 text-muted-foreground shrink-0">
+                            <div key={throwIndex} className="flex flex-wrap items-center gap-1 min-w-0">
+                              <span className="text-[10px] font-mono text-muted-foreground shrink-0">
                                 L{throwIndex + 1}:{throwData.value}
                               </span>
-                              {trackPockets && (
+                              {showPocketBadge && (
                                 <button
                                   type="button"
                                   disabled={isSaved}
                                   onClick={() => handleCheckboxChange(frameIndex, throwIndex, "isPocket")}
-                                  className={`text-[10px] font-semibold rounded px-1.5 py-0.5 border transition-colors disabled:opacity-60 ${
+                                  className={`text-[10px] font-semibold rounded px-1.5 py-0.5 border transition-colors disabled:opacity-60 shrink-0 ${
                                     throwData.isPocket
                                       ? "bg-primary text-primary-foreground border-primary"
                                       : "bg-background border-border hover:bg-muted"
@@ -1005,12 +1008,12 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                                   P
                                 </button>
                               )}
-                              {showSplit && (
+                              {showSplitBadge && (
                                 <button
                                   type="button"
                                   disabled={isSaved}
                                   onClick={() => handleCheckboxChange(frameIndex, throwIndex, "isSplit")}
-                                  className={`text-[10px] font-semibold rounded px-1.5 py-0.5 border transition-colors disabled:opacity-60 ${
+                                  className={`text-[10px] font-semibold rounded px-1.5 py-0.5 border transition-colors disabled:opacity-60 shrink-0 ${
                                     throwData.isSplit
                                       ? "bg-destructive text-destructive-foreground border-destructive"
                                       : "bg-background border-border hover:bg-muted"
