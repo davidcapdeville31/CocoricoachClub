@@ -632,8 +632,11 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                   <div
                     key={player.id}
                     className={`rounded-2xl border bg-card p-3 shadow-sm active:scale-[0.99] transition-transform cursor-pointer ${
-                      isArchived ? "opacity-60 grayscale" : ""
+                      isArchived
+                        ? "border-l-4 border-l-[hsl(var(--warning))] bg-[hsl(var(--warning)/0.08)]"
+                        : ""
                     }`}
+
                     onClick={() => navigate(getPlayerProfilePath(player.id))}
                   >
                     <div className="flex items-center gap-3 min-w-0">
@@ -645,8 +648,9 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                         <div className="flex items-center gap-1 min-w-0 flex-wrap">
                           <p className="font-medium truncate">{fullName}</p>
                           {isArchived && (
-                            <Badge variant="outline" className="text-xs">Archivé</Badge>
+                            <Badge variant="warning" className="text-xs">Archivé</Badge>
                           )}
+
                           <PlayerInfoHover player={player} isSki={isSki} />
                         </div>
                         {hasAttributeColumn && (
@@ -771,8 +775,11 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                       <TableRow 
                         key={player.id} 
                         className={`animate-fade-in cursor-pointer hover:bg-accent/50 ${
-                          isArchived ? "opacity-60 grayscale" : ""
+                          isArchived
+                            ? "border-l-4 border-l-[hsl(var(--warning))] bg-[hsl(var(--warning)/0.06)]"
+                            : ""
                         }`}
+
                         onClick={() => navigate(getPlayerProfilePath(player.id))}
                       >
                         <TableCell className="font-medium">
@@ -785,8 +792,9 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                             </Avatar>
                             <span>{fullName}</span>
                             {isArchived && (
-                              <Badge variant="outline" className="text-xs">Archivé</Badge>
+                              <Badge variant="warning" className="text-xs">Archivé</Badge>
                             )}
+
                             <PlayerInfoHover player={player} isSki={isSki} />
                           </div>
                         </TableCell>
