@@ -635,6 +635,64 @@ export function CreateEventDialog({
                 </CardContent>
               </Card>
             </div>
+          ) : step === "session_mode" ? (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Choisis le mode de création de ta séance musculation.
+              </p>
+              <Card
+                className="cursor-pointer border border-border/70 border-l-4 border-l-emerald-500 bg-card/95 transition-all duration-200 hover:scale-[1.01] hover:bg-accent/50 hover:shadow-md hover:border-emerald-400 dark:bg-card dark:hover:bg-muted/70"
+                onClick={() => {
+                  resetForm();
+                  onSelectMusculationSimplified?.();
+                }}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-md p-2 shrink-0 bg-emerald-100 dark:bg-emerald-500/15">
+                      <Sparkles className="h-5 w-5 text-emerald-700 dark:text-emerald-300" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground">
+                        Mode simplifié
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground dark:text-foreground/80">
+                        Saisie rapide : description libre, durée, RPE. Compte dans tes stats "Musculation".
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card
+                className="cursor-pointer border border-border/70 border-l-4 border-l-violet-500 bg-card/95 transition-all duration-200 hover:scale-[1.01] hover:bg-accent/50 hover:shadow-md hover:border-violet-400 dark:bg-card dark:hover:bg-muted/70"
+                onClick={() => {
+                  resetForm();
+                  if (onSelectExternalType) {
+                    onSelectExternalType("session");
+                  } else {
+                    onOpenChange(false);
+                    onAddSession();
+                  }
+                }}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-md p-2 shrink-0 bg-violet-100 dark:bg-violet-500/15">
+                      <Settings2 className="h-5 w-5 text-violet-700 dark:text-violet-300" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground">
+                        Programme complet
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground dark:text-foreground/80">
+                        Exercices détaillés avec séries, répétitions et charges.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           ) : (
             <div className="space-y-4">
               {/* Event details form */}
