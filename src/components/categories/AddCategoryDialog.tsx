@@ -133,13 +133,17 @@ export function AddCategoryDialog({
     return sport === "rugby" ? RUGBY_SUBTYPES : getOtherSportSubtypes(sport);
   }, [club?.sport]);
 
-  // Reset subtype when club sport changes and reset member selection only on dialog open
+  // Ensure sportSubType is always a value present in the current sport's list.
+  // Only resets when the current value is INVALID for the sport (prevents overriding
+  // the user's choice while they interact with the Select).
   useEffect(() => {
     if (availableSubtypes.length === 0) return;
+    const isValid = availableSubtypes.some((s) => s.value === sportSubType);
+    if (!isValid) {
+      setSportSubType(availableSubtypes[0].value);
+    }
+  }, [availableSubtypes, sportSubType]);
 
-    const defaultSubtype = availableSubtypes[0].value;
-    setSportSubType((prev) => (prev === defaultSubtype ? prev : defaultSubtype));
-  }, [availableSubtypes]);
 
   useEffect(() => {
     if (!open) return;
