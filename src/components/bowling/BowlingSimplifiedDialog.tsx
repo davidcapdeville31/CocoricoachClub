@@ -648,7 +648,16 @@ export function BowlingSimplifiedDialog({
               player_id: athletePlayerId,
               session_date: sessionDate,
               training_type: "bowling_simplified",
-              notes: "Séance bowling — Mode simplifié",
+              session_start_time: "09:00",
+              session_end_time: (() => {
+                const total = Math.max(1, totalDuration || 0);
+                const mins = 9 * 60 + total;
+                const h = String(Math.floor(mins / 60) % 24).padStart(2, "0");
+                const m = String(mins % 60).padStart(2, "0");
+                return `${h}:${m}`;
+              })(),
+              intensity: athleteRpe,
+              notes: `Séance bowling — Mode simplifié\nDurée : ${totalDuration} min · RPE : ${athleteRpe}/10`,
             },
           },
         );
