@@ -83,7 +83,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   const [bowlingSimplifiedSessionId, setBowlingSimplifiedSessionId] = useState<string | null>(null);
   const [isBowlingAdvancedOpen, setIsBowlingAdvancedOpen] = useState(false);
   const [bowlingAdvancedSessionId, setBowlingAdvancedSessionId] = useState<string | null>(null);
-  const [isMusculationSimplifiedOpen, setIsMusculationSimplifiedOpen] = useState(false);
+  const [isSessionSimplifiedOpen, setIsSessionSimplifiedOpen] = useState(false);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
   const [sessionToDelete, setSessionToDelete] = useState<any | null>(null);
   const [matchToDelete, setMatchToDelete] = useState<any | null>(null);
