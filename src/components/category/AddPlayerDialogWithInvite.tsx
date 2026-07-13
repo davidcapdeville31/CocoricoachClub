@@ -705,7 +705,9 @@ export function AddPlayerDialogWithInvite({
                   <SelectItem value="other">Autre</SelectItem>
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">Utilisé pour appliquer automatiquement les barèmes spécifiques (filles / garçons) sur les tests.</p>
             </div>
+
 
             {/* Position selector for team sports */}
             {isTeamSport && positions.length > 0 && (
