@@ -151,6 +151,8 @@ export function BowlingSimplifiedDialog({
   /** "session" : un seul huilage pour toute la séance, appliqué à chaque bloc.
    *  "per_block" : l'utilisateur choisit un huilage différent à l'intérieur de chaque bloc. */
   const [oilScope, setOilScope] = useState<"session" | "per_block">("session");
+  /** RPE ressenti de la séance (athlète) — alimente le workload */
+  const [athleteRpe, setAthleteRpe] = useState<number>(6);
 
 
   // Fetch effectif (coach mode only, et pas en édition)
@@ -646,7 +648,16 @@ export function BowlingSimplifiedDialog({
               player_id: athletePlayerId,
               session_date: sessionDate,
               training_type: "bowling_simplified",
-              notes: "Séance bowling — Mode simplifié",
+              session_start_time: "09:00",
+              session_end_time: (() => {
+                const total = Math.max(1, totalDuration || 0);
+                const mins = 9 * 60 + total;
+                const h = String(Math.floor(mins / 60) % 24).padStart(2, "0");
+                const m = String(mins % 60).padStart(2, "0");
+                return `${h}:${m}`;
+              })(),
+              intensity: athleteRpe,
+              notes: `Séance bowling — Mode simplifié\nDurée : ${totalDuration} min · RPE : ${athleteRpe}/10`,
             },
           },
         );
@@ -1056,6 +1067,42 @@ export function BowlingSimplifiedDialog({
             </Button>
           </div>
         </div>
+
+        {isAthleteMode && !isEditMode && (
+          <div className="mt-4 rounded-lg border bg-muted/30 p-3 space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <Label className="font-medium">RPE ressenti (1-10)</Label>
+              <span className="text-xs text-muted-foreground">
+                Durée totale : {blocks.reduce((s, b) => s + (blockDuration(b) || 0), 0)} min
+              </span>
+            </div>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: 10 }).map((_, i) => {
+                const v = i + 1;
+                const active = v <= athleteRpe;
+                const colors = [
+                  "bg-emerald-500","bg-emerald-500","bg-emerald-500",
+                  "bg-lime-500","bg-lime-500",
+                  "bg-amber-500","bg-amber-500",
+                  "bg-orange-500","bg-orange-500","bg-rose-500",
+                ];
+                return (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => setAthleteRpe(v)}
+                    className={`h-8 flex-1 rounded-md text-xs font-semibold text-white transition-opacity ${colors[i]} ${active ? "opacity-100" : "opacity-25"}`}
+                  >
+                    {v}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Le RPE et la durée alimentent automatiquement ta charge d'entraînement.
+            </p>
+          </div>
+        )}
 
         <DialogFooter>
           <Button variant="outline" onClick={() => handleOpenChange(false)}>
