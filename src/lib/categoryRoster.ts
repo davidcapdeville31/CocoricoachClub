@@ -1,6 +1,16 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export async function fetchCategoryRosterPlayers(categoryId: string) {
+export interface FetchRosterOptions {
+  /** Include archived athletes in the returned list. Default: false. */
+  includeArchived?: boolean;
+}
+
+export async function fetchCategoryRosterPlayers(
+  categoryId: string,
+  options: FetchRosterOptions = {},
+) {
+  const { includeArchived = false } = options;
+
   const { data: directPlayers, error } = await supabase
     .from("players_safe")
     .select("*")
@@ -22,20 +32,22 @@ export async function fetchCategoryRosterPlayers(categoryId: string) {
     .map((entry: any) => entry.player_id)
     .filter((playerId: string) => !!playerId && !directIds.has(playerId));
 
-  if (linkedIds.length === 0) {
-    return directPlayers || [];
+  let linkedPlayers: any[] = [];
+  if (linkedIds.length > 0) {
+    const { data, error: linkedPlayersError } = await supabase
+      .from("players_safe")
+      .select("*")
+      .in("id", linkedIds)
+      .order("name");
+    if (linkedPlayersError) throw linkedPlayersError;
+    linkedPlayers = data || [];
   }
 
-  const { data: linkedPlayers, error: linkedPlayersError } = await supabase
-    .from("players_safe")
-    .select("*")
-    .in("id", linkedIds)
-    .order("name");
-
-  if (linkedPlayersError) throw linkedPlayersError;
-
-  return [
+  const all = [
     ...(directPlayers || []),
-    ...(linkedPlayers || []).map((player: any) => ({ ...player, _linked: true })),
+    ...linkedPlayers.map((player: any) => ({ ...player, _linked: true })),
   ];
+
+  if (includeArchived) return all;
+  return all.filter((p: any) => !p.archived_at);
 }
