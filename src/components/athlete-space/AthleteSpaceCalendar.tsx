@@ -52,6 +52,7 @@ import { FieldSessionDialog } from "@/components/category/calendar/FieldSessionD
 import { AddMatchCalendarDialog } from "@/components/category/matches/AddMatchCalendarDialog";
 import { AthleteBowlingCompetitionDialog } from "@/components/category/matches/AthleteBowlingCompetitionDialog";
 import { SessionValidationDialog } from "@/components/athlete-space/SessionValidationDialog";
+import { MusculationSimplifiedDialog } from "@/components/athlete-space/MusculationSimplifiedDialog";
 import { SessionDetailDialog } from "@/components/athlete-space/SessionDetailDialog";
 import { SessionAttendanceResponse } from "@/components/athlete-space/SessionAttendanceResponse";
 import { Eye } from "lucide-react";
