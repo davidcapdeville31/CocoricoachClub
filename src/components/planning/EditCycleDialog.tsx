@@ -172,6 +172,7 @@ export function EditCycleDialog({ open, onOpenChange, cycle, categoryId, categor
                     onSelect={(d) => d && setEndDate(d)}
                     disabled={(date) => date < startDate}
                     initialFocus
+                    locale={fr}
                     className="p-3 pointer-events-auto"
                   />
                 </PopoverContent>
