@@ -627,10 +627,13 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                 const status = inv ? getInvitationStatus(inv.status, inv.expires_at) : null;
                 const link = inv ? `${getAppBaseUrl()}/accept-athlete-invitation?token=${inv.token}` : "";
 
+                const isArchived = !!player.archived_at;
                 return (
                   <div
                     key={player.id}
-                    className="rounded-2xl border bg-card p-3 shadow-sm active:scale-[0.99] transition-transform cursor-pointer"
+                    className={`rounded-2xl border bg-card p-3 shadow-sm active:scale-[0.99] transition-transform cursor-pointer ${
+                      isArchived ? "opacity-60 grayscale" : ""
+                    }`}
                     onClick={() => navigate(getPlayerProfilePath(player.id))}
                   >
                     <div className="flex items-center gap-3 min-w-0">
