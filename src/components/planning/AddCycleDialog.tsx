@@ -164,7 +164,7 @@ export function AddCycleDialog({ open, onOpenChange, categoryId, categories, pre
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus className="p-3 pointer-events-auto" />
+                  <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus locale={fr} className="p-3 pointer-events-auto" />
                 </PopoverContent>
               </Popover>
             </div>
