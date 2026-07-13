@@ -995,9 +995,9 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
           setIsPickerOpen(false);
           setIsBowlingAdvancedOpen(true);
         }}
-        onSelectMusculationSimplified={() => {
+        onSelectSessionSimplified={() => {
           setIsPickerOpen(false);
-          setIsMusculationSimplifiedOpen(true);
+          setIsSessionSimplifiedOpen(true);
         }}
       />
 
@@ -1009,12 +1009,13 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         defaultDate={selectedDate ? format(selectedDate, "yyyy-MM-dd") : undefined}
       />
 
-      <MusculationSimplifiedDialog
-        open={isMusculationSimplifiedOpen}
-        onOpenChange={setIsMusculationSimplifiedOpen}
+      <SimplifiedSessionDialog
+        open={isSessionSimplifiedOpen}
+        onOpenChange={setIsSessionSimplifiedOpen}
         date={selectedDate || new Date()}
         categoryId={categoryId}
         athletePlayerId={playerId}
+        sportType={sportType}
       />
 
       <FieldSessionDialog
