@@ -307,8 +307,12 @@ export function CreateEventDialog({
       return;
     }
 
-    // Athlete-side musculation: propose Simplifié vs Programme complet
-    if (typeId === "session" && athletePlayerId && onSelectMusculationSimplified) {
+    // Athlete side (all sports): propose Simplifié vs Programme complet
+    if (
+      typeId === "session" &&
+      athletePlayerId &&
+      (onSelectSessionSimplified || onSelectMusculationSimplified)
+    ) {
       setStep("session_mode");
       return;
     }
