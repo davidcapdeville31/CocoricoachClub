@@ -645,13 +645,13 @@ export function CreateEventDialog({
           ) : step === "session_mode" ? (
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Choisis le mode de création de ta séance musculation.
+                Choisis le mode de création de ta séance.
               </p>
               <Card
                 className="cursor-pointer border border-border/70 border-l-4 border-l-emerald-500 bg-card/95 transition-all duration-200 hover:scale-[1.01] hover:bg-accent/50 hover:shadow-md hover:border-emerald-400 dark:bg-card dark:hover:bg-muted/70"
                 onClick={() => {
                   resetForm();
-                  onSelectMusculationSimplified?.();
+                  (onSelectSessionSimplified ?? onSelectMusculationSimplified)?.();
                 }}
               >
                 <CardContent className="p-4">
@@ -664,7 +664,7 @@ export function CreateEventDialog({
                         Mode simplifié
                       </p>
                       <p className="mt-0.5 text-xs text-muted-foreground dark:text-foreground/80">
-                        Saisie rapide : description libre, durée, RPE. Compte dans tes stats "Musculation".
+                        Saisie rapide : type, description, durée et RPE. Alimente automatiquement ta charge d'entraînement.
                       </p>
                     </div>
                   </div>
