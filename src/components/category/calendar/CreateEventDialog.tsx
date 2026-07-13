@@ -52,6 +52,8 @@ interface CreateEventDialogProps {
   onSelectBowlingSimplified?: () => void;
   /** Called when the user picks the advanced bowling creation mode. */
   onSelectBowlingAdvanced?: () => void;
+  /** Called when an athlete picks the simplified musculation creation mode. */
+  onSelectMusculationSimplified?: () => void;
   /** Restrict the event type picker to a subset of EVENT_TYPES (by id). */
   allowedTypeIds?: string[];
   /** When set, this is an athlete creating an event for themselves only. Hides the participants picker. */
@@ -162,12 +164,13 @@ export function CreateEventDialog({
   onSelectExternalType,
   onSelectBowlingSimplified,
   onSelectBowlingAdvanced,
+  onSelectMusculationSimplified,
   allowedTypeIds,
   athletePlayerId,
   editingMentalSession,
 }: CreateEventDialogProps) {
 
-  const [step, setStep] = useState<"type" | "bowling_mode" | "details">("type");
+  const [step, setStep] = useState<"type" | "bowling_mode" | "session_mode" | "details">("type");
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [startTime, setStartTime] = useState("09:00");
@@ -298,6 +301,12 @@ export function CreateEventDialog({
     // Bowling: insert a mode picker (Simplifié / Avancé) before opening the editor
     if (typeId === "field_session" && isBowlingSport) {
       setStep("bowling_mode");
+      return;
+    }
+
+    // Athlete-side musculation: propose Simplifié vs Programme complet
+    if (typeId === "session" && athletePlayerId && onSelectMusculationSimplified) {
+      setStep("session_mode");
       return;
     }
 
@@ -516,7 +525,7 @@ export function CreateEventDialog({
       <DialogContent className="max-w-lg max-h-[85vh] flex flex-col overflow-hidden border-border/70 bg-background/95 p-0 shadow-2xl backdrop-blur-md">
         <DialogHeader className="shrink-0 border-b border-border/60 px-6 pt-6 pb-4">
           <DialogTitle className="flex items-center gap-2 text-xl">
-            {(step === "details" || step === "bowling_mode") && (
+            {(step === "details" || step === "bowling_mode" || step === "session_mode") && (
               <Button variant="ghost" size="icon" className="h-8 w-8 mr-1" onClick={() => setStep("type")}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
@@ -526,7 +535,9 @@ export function CreateEventDialog({
               ? "Ajouter un événement"
               : step === "bowling_mode"
                 ? "Nouvelle séance bowling"
-                : selectedEventType?.label}
+                : step === "session_mode"
+                  ? "Nouvelle séance musculation"
+                  : selectedEventType?.label}
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
             {format(date, "EEEE d MMMM yyyy", { locale: fr })}
@@ -618,6 +629,64 @@ export function CreateEventDialog({
                       </p>
                       <p className="mt-0.5 text-xs text-muted-foreground dark:text-foreground/80">
                         Blocs thématiques, configuration DTN, lancers, objectifs détaillés...
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          ) : step === "session_mode" ? (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Choisis le mode de création de ta séance musculation.
+              </p>
+              <Card
+                className="cursor-pointer border border-border/70 border-l-4 border-l-emerald-500 bg-card/95 transition-all duration-200 hover:scale-[1.01] hover:bg-accent/50 hover:shadow-md hover:border-emerald-400 dark:bg-card dark:hover:bg-muted/70"
+                onClick={() => {
+                  resetForm();
+                  onSelectMusculationSimplified?.();
+                }}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-md p-2 shrink-0 bg-emerald-100 dark:bg-emerald-500/15">
+                      <Sparkles className="h-5 w-5 text-emerald-700 dark:text-emerald-300" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground">
+                        Mode simplifié
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground dark:text-foreground/80">
+                        Saisie rapide : description libre, durée, RPE. Compte dans tes stats "Musculation".
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card
+                className="cursor-pointer border border-border/70 border-l-4 border-l-violet-500 bg-card/95 transition-all duration-200 hover:scale-[1.01] hover:bg-accent/50 hover:shadow-md hover:border-violet-400 dark:bg-card dark:hover:bg-muted/70"
+                onClick={() => {
+                  resetForm();
+                  if (onSelectExternalType) {
+                    onSelectExternalType("session");
+                  } else {
+                    onOpenChange(false);
+                    onAddSession();
+                  }
+                }}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-md p-2 shrink-0 bg-violet-100 dark:bg-violet-500/15">
+                      <Settings2 className="h-5 w-5 text-violet-700 dark:text-violet-300" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground">
+                        Programme complet
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground dark:text-foreground/80">
+                        Exercices détaillés avec séries, répétitions et charges.
                       </p>
                     </div>
                   </div>

@@ -52,6 +52,7 @@ import { FieldSessionDialog } from "@/components/category/calendar/FieldSessionD
 import { AddMatchCalendarDialog } from "@/components/category/matches/AddMatchCalendarDialog";
 import { AthleteBowlingCompetitionDialog } from "@/components/category/matches/AthleteBowlingCompetitionDialog";
 import { SessionValidationDialog } from "@/components/athlete-space/SessionValidationDialog";
+import { MusculationSimplifiedDialog } from "@/components/athlete-space/MusculationSimplifiedDialog";
 import { SessionDetailDialog } from "@/components/athlete-space/SessionDetailDialog";
 import { SessionAttendanceResponse } from "@/components/athlete-space/SessionAttendanceResponse";
 import { Eye } from "lucide-react";
@@ -82,6 +83,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   const [bowlingSimplifiedSessionId, setBowlingSimplifiedSessionId] = useState<string | null>(null);
   const [isBowlingAdvancedOpen, setIsBowlingAdvancedOpen] = useState(false);
   const [bowlingAdvancedSessionId, setBowlingAdvancedSessionId] = useState<string | null>(null);
+  const [isMusculationSimplifiedOpen, setIsMusculationSimplifiedOpen] = useState(false);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
   const [sessionToDelete, setSessionToDelete] = useState<any | null>(null);
   const [matchToDelete, setMatchToDelete] = useState<any | null>(null);
@@ -993,6 +995,10 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
           setIsPickerOpen(false);
           setIsBowlingAdvancedOpen(true);
         }}
+        onSelectMusculationSimplified={() => {
+          setIsPickerOpen(false);
+          setIsMusculationSimplifiedOpen(true);
+        }}
       />
 
       <SessionEditorV2
@@ -1001,6 +1007,14 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         categoryId={categoryId}
         athletePlayerId={playerId}
         defaultDate={selectedDate ? format(selectedDate, "yyyy-MM-dd") : undefined}
+      />
+
+      <MusculationSimplifiedDialog
+        open={isMusculationSimplifiedOpen}
+        onOpenChange={setIsMusculationSimplifiedOpen}
+        date={selectedDate || new Date()}
+        categoryId={categoryId}
+        athletePlayerId={playerId}
       />
 
       <FieldSessionDialog
