@@ -166,6 +166,7 @@ export function CreateEventDialog({
   onSelectExternalType,
   onSelectBowlingSimplified,
   onSelectBowlingAdvanced,
+  onSelectSessionSimplified,
   onSelectMusculationSimplified,
   allowedTypeIds,
   athletePlayerId,
