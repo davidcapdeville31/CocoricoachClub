@@ -291,6 +291,25 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
     }
   };
 
+  const handleView = async (fileUrl: string) => {
+    if (!fileUrl) return;
+    try {
+      let url: string;
+      if (fileUrl.startsWith("http")) {
+        url = fileUrl;
+      } else {
+        const { data, error } = await supabase.storage
+          .from("admin-documents")
+          .createSignedUrl(fileUrl, 60 * 60);
+        if (error) throw error;
+        url = data.signedUrl;
+      }
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch {
+      toast.error("Impossible d'ouvrir le document");
+    }
+  };
+
   const getDocTypeLabel = (docType: string) =>
     DOCUMENT_TYPES.find((t) => t.value === docType)?.label || docType;
 
