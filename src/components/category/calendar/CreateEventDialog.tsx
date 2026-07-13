@@ -525,7 +525,7 @@ export function CreateEventDialog({
       <DialogContent className="max-w-lg max-h-[85vh] flex flex-col overflow-hidden border-border/70 bg-background/95 p-0 shadow-2xl backdrop-blur-md">
         <DialogHeader className="shrink-0 border-b border-border/60 px-6 pt-6 pb-4">
           <DialogTitle className="flex items-center gap-2 text-xl">
-            {(step === "details" || step === "bowling_mode") && (
+            {(step === "details" || step === "bowling_mode" || step === "session_mode") && (
               <Button variant="ghost" size="icon" className="h-8 w-8 mr-1" onClick={() => setStep("type")}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
@@ -535,7 +535,9 @@ export function CreateEventDialog({
               ? "Ajouter un événement"
               : step === "bowling_mode"
                 ? "Nouvelle séance bowling"
-                : selectedEventType?.label}
+                : step === "session_mode"
+                  ? "Nouvelle séance musculation"
+                  : selectedEventType?.label}
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
             {format(date, "EEEE d MMMM yyyy", { locale: fr })}
