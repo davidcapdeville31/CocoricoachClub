@@ -572,6 +572,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                 {showArchived ? "Masquer" : "Afficher"} les archivés ({archivedCount})
               </Button>
             )}
+            {!isViewer && canManageAthletes && (
               <div className="flex items-center gap-2 w-full sm:w-auto">
                 <Button onClick={() => setIsLinkDialogOpen(true)} variant="outline" size="sm" className="gap-1.5 flex-1 sm:flex-none">
                   <Link2 className="h-4 w-4" />
