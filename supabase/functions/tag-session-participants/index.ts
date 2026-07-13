@@ -88,9 +88,22 @@ serve(async (req: Request) => {
     const { data: sessionRow } = await supabase
       .from("training_sessions").select("category_id").eq("id", session_id).maybeSingle();
     if (!sessionRow?.category_id) {
-      return new Response(JSON.stringify({ error: "Session not found" }), {
-        status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      // Session may not exist yet (race with creation) or may live outside
+      // training_sessions (e.g. match). Skip tagging gracefully so the
+      // notification pipeline keeps running instead of surfacing a 404.
+      console.warn(`[tag-session-participants] Session ${session_id} not found in training_sessions — skipping tagging`);
+      return new Response(
+        JSON.stringify({
+          success: true,
+          session_id,
+          tagged: 0,
+          skipped: player_ids?.length ?? 0,
+          errors: [],
+          details: [],
+          reason: "session_not_found",
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
     const { data: canAccess } = await supabase.rpc("can_access_category", {
       _user_id: callerId, _category_id: sessionRow.category_id,
