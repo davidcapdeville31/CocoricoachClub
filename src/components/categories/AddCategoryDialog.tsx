@@ -152,7 +152,9 @@ export function AddCategoryDialog({
     setEditingCategoryId("");
   }, [open]);
 
-  // When user picks a category to edit, prefill the form fields with its values
+  // When user picks a category to edit, prefill the form fields with its values.
+  // Depend only on `editingCategoryId` so a background refetch of `existingCategories`
+  // does not overwrite the user's in-progress edits (including the Type select).
   useEffect(() => {
     if (mode !== "edit" || !editingCategoryId) return;
     const cat = existingCategories.find((c: any) => c.id === editingCategoryId);
@@ -161,7 +163,9 @@ export function AddCategoryDialog({
     setGender((cat.gender as any) || "masculine");
     if (cat.rugby_type) setSportSubType(cat.rugby_type as SportType);
     setValidationError("");
-  }, [mode, editingCategoryId, existingCategories]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, editingCategoryId]);
+
 
   const addCategory = useMutation({
     mutationFn: async (data: { name: string; rugby_type: SportType; gender: "masculine" | "feminine" | "mixed"; memberIds: string[] }) => {
