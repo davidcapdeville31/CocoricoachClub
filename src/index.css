@@ -601,3 +601,11 @@ All colors MUST be HSL.
 
 /* Subtle sheen / overlays bg-white/5..30 stay translucent (they layer over
    colored backdrops and remain visually correct in dark mode). */
+
+/* Ensure Radix Popper-based popups (Select, Popover, DropdownMenu, HoverCard, Tooltip)
+   layer above Dialog/Sheet/Drawer wrappers (z-[121]). The Radix popper wrapper is a
+   separate DOM node that receives inline styles from Radix and does NOT inherit the
+   z-index applied on the inner content, so we set it globally here. */
+[data-radix-popper-content-wrapper] {
+  z-index: 9999 !important;
+}
