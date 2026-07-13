@@ -225,6 +225,42 @@ serve(async (req) => {
       console.warn("[athlete-create-session] participant insert warn:", partErr);
     }
 
+    // ── Alimenter la charge d'entraînement (awcr_tracking) ──
+    // Quand l'athlète a renseigné RPE (intensity) et une durée (via start/end),
+    // on crée immédiatement une entrée awcr_tracking pour que le workload
+    // (EWMA/ACWR) reflète la séance sans attendre le remplissage auto de fin
+    // de journée. Le trigger compute_ewma_loads recalculera les charges.
+    try {
+      let durationMin = 0;
+      if (session_start_time && session_end_time) {
+        const [sh, sm] = String(session_start_time).split(":").map(Number);
+        const [eh, em] = String(session_end_time).split(":").map(Number);
+        if ([sh, sm, eh, em].every((n) => !Number.isNaN(n))) {
+          durationMin = Math.max(0, eh * 60 + em - (sh * 60 + sm));
+        }
+      }
+      const rpe = parsedIntensity ?? 0;
+      if (rpe > 0 && durationMin > 0) {
+        const training_load = rpe * durationMin;
+        const { error: awcrErr } = await supabase
+          .from("awcr_tracking")
+          .insert({
+            player_id,
+            category_id,
+            session_date,
+            training_session_id: session.id,
+            rpe,
+            duration_minutes: durationMin,
+            training_load,
+          });
+        if (awcrErr) {
+          console.warn("[athlete-create-session] awcr insert warn:", awcrErr.message);
+        }
+      }
+    } catch (awcrErr) {
+      console.warn("[athlete-create-session] awcr insert warn:", awcrErr);
+    }
+
     // ── Notifier le staff de la catégorie (in-app + push best-effort) ──
     try {
       const { data: playerInfo } = await supabase
