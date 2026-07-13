@@ -52,6 +52,8 @@ interface CreateEventDialogProps {
   onSelectBowlingSimplified?: () => void;
   /** Called when the user picks the advanced bowling creation mode. */
   onSelectBowlingAdvanced?: () => void;
+  /** Called when an athlete picks the simplified musculation creation mode. */
+  onSelectMusculationSimplified?: () => void;
   /** Restrict the event type picker to a subset of EVENT_TYPES (by id). */
   allowedTypeIds?: string[];
   /** When set, this is an athlete creating an event for themselves only. Hides the participants picker. */
