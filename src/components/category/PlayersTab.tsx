@@ -21,7 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, Filter, Eye, Copy, Check, Mail, RefreshCw, FileSpreadsheet, Link2, Info, ClipboardCopy } from "lucide-react";
+import { Plus, Trash2, Filter, Eye, Copy, Check, Mail, RefreshCw, FileSpreadsheet, Link2, Info, ClipboardCopy, Archive, ArchiveRestore } from "lucide-react";
+import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
@@ -203,6 +204,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
   const [disciplineFilter, setDisciplineFilter] = useState<string>("all");
   const [copiedInviteId, setCopiedInviteId] = useState<string | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { isViewer } = useViewerModeContext();
@@ -211,7 +213,14 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
     [categoryId]
   );
 
-  const { data: players, isLoading } = useViewerPlayers(categoryId);
+  // In the effectif view we want to also see archived athletes (to reactivate them).
+  // Other consumers of useViewerPlayers keep filtering archived out.
+  const { data: allPlayers, isLoading } = useQuery({
+    queryKey: ["players", categoryId, "roster", "with-archived"],
+    queryFn: () => fetchCategoryRosterPlayers(categoryId, { includeArchived: true }),
+    enabled: !!categoryId,
+  });
+  const players = allPlayers;
 
   // Fetch all athlete invitations for this category
   const { data: invitations } = useQuery({
@@ -339,18 +348,48 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
     return [];
   }, [players, showDiscipline, showPosition]);
 
+  // Split players by archived state
+  const archivedCount = useMemo(
+    () => (players || []).filter((p: any) => !!p.archived_at).length,
+    [players],
+  );
+
   // Filter players
   const filteredPlayers = useMemo(() => {
     if (!players) return [];
-    if (disciplineFilter === "all") return players;
+    let list = players.filter((p: any) => (showArchived ? true : !p.archived_at));
+    if (disciplineFilter === "all") return list;
     if (showDiscipline) {
-      return players.filter((p: any) => p.discipline === disciplineFilter);
+      return list.filter((p: any) => p.discipline === disciplineFilter);
     }
     if (showPosition) {
-      return players.filter((p: any) => p.position === disciplineFilter);
+      return list.filter((p: any) => p.position === disciplineFilter);
     }
-    return players;
-  }, [players, disciplineFilter, showDiscipline, showPosition]);
+    return list;
+  }, [players, disciplineFilter, showDiscipline, showPosition, showArchived]);
+
+  const archivePlayer = useMutation({
+    mutationFn: async ({ playerId, archive }: { playerId: string; archive: boolean }) => {
+      const { error, count } = await supabase
+        .from("players")
+        .update({ archived_at: archive ? new Date().toISOString() : null } as any, { count: "exact" })
+        .eq("id", playerId);
+      if (error) throw error;
+      if (!count || count === 0) throw new Error("PERMISSION_DENIED");
+    },
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["players"] });
+      queryClient.invalidateQueries({ queryKey: ["players", categoryId, "roster", "with-archived"] });
+      toast.success(vars.archive ? "Athlète archivé" : "Athlète réactivé");
+    },
+    onError: (err: Error) => {
+      if (err?.message === "PERMISSION_DENIED") {
+        toast.error("Vous n'avez pas les droits pour archiver cet athlète.");
+      } else {
+        toast.error("Erreur lors de l'archivage");
+      }
+    },
+  });
 
   const deletePlayer = useMutation({
     mutationFn: async (playerId: string) => {
@@ -522,6 +561,17 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                 </SelectContent>
               </Select>
             )}
+            {archivedCount > 0 && (
+              <Button
+                onClick={() => setShowArchived((v) => !v)}
+                variant={showArchived ? "secondary" : "outline"}
+                size="sm"
+                className="gap-1.5"
+              >
+                <Archive className="h-4 w-4" />
+                {showArchived ? "Masquer" : "Afficher"} les archivés ({archivedCount})
+              </Button>
+            )}
             {!isViewer && canManageAthletes && (
               <div className="flex items-center gap-2 w-full sm:w-auto">
                 <Button onClick={() => setIsLinkDialogOpen(true)} variant="outline" size="sm" className="gap-1.5 flex-1 sm:flex-none">
@@ -577,10 +627,13 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                 const status = inv ? getInvitationStatus(inv.status, inv.expires_at) : null;
                 const link = inv ? `${getAppBaseUrl()}/accept-athlete-invitation?token=${inv.token}` : "";
 
+                const isArchived = !!player.archived_at;
                 return (
                   <div
                     key={player.id}
-                    className="rounded-2xl border bg-card p-3 shadow-sm active:scale-[0.99] transition-transform cursor-pointer"
+                    className={`rounded-2xl border bg-card p-3 shadow-sm active:scale-[0.99] transition-transform cursor-pointer ${
+                      isArchived ? "opacity-60 grayscale" : ""
+                    }`}
                     onClick={() => navigate(getPlayerProfilePath(player.id))}
                   >
                     <div className="flex items-center gap-3 min-w-0">
@@ -589,8 +642,11 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                         <AvatarFallback className="bg-primary/10 text-primary">{initials}</AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1 min-w-0">
+                        <div className="flex items-center gap-1 min-w-0 flex-wrap">
                           <p className="font-medium truncate">{fullName}</p>
+                          {isArchived && (
+                            <Badge variant="outline" className="text-xs">Archivé</Badge>
+                          )}
                           <PlayerInfoHover player={player} isSki={isSki} />
                         </div>
                         {hasAttributeColumn && (
@@ -645,6 +701,23 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
+                            title={isArchived ? "Réactiver l'athlète" : "Archiver l'athlète"}
+                            onClick={() =>
+                              archivePlayer.mutate({ playerId: player.id, archive: !isArchived })
+                            }
+                          >
+                            {isArchived ? (
+                              <ArchiveRestore className="h-4 w-4 text-primary" />
+                            ) : (
+                              <Archive className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </Button>
+                        )}
+                        {!isViewer && canManageAthletes && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
                             onClick={() => {
                               if (confirm(`Êtes-vous sûr de vouloir supprimer l'athlète ${fullName} ?`)) {
                                 deletePlayer.mutate(player.id);
@@ -692,11 +765,14 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                       .join("")
                       .toUpperCase()
                       .slice(0, 2);
+                    const isArchived = !!player.archived_at;
 
                     return (
                       <TableRow 
                         key={player.id} 
-                        className="animate-fade-in cursor-pointer hover:bg-accent/50"
+                        className={`animate-fade-in cursor-pointer hover:bg-accent/50 ${
+                          isArchived ? "opacity-60 grayscale" : ""
+                        }`}
                         onClick={() => navigate(getPlayerProfilePath(player.id))}
                       >
                         <TableCell className="font-medium">
@@ -708,6 +784,9 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                               </AvatarFallback>
                             </Avatar>
                             <span>{fullName}</span>
+                            {isArchived && (
+                              <Badge variant="outline" className="text-xs">Archivé</Badge>
+                            )}
                             <PlayerInfoHover player={player} isSki={isSki} />
                           </div>
                         </TableCell>
@@ -777,6 +856,23 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                         )}
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
+                            {!isViewer && canManageAthletes && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                title={isArchived ? "Réactiver" : "Archiver"}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  archivePlayer.mutate({ playerId: player.id, archive: !isArchived });
+                                }}
+                              >
+                                {isArchived ? (
+                                  <ArchiveRestore className="h-4 w-4 text-primary" />
+                                ) : (
+                                  <Archive className="h-4 w-4 text-muted-foreground" />
+                                )}
+                              </Button>
+                            )}
                             {!isViewer && canManageAthletes && (
                               <Button
                                 variant="ghost"

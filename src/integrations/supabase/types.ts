@@ -9666,6 +9666,7 @@ export type Database = {
       players: {
         Row: {
           allergies: string | null
+          archived_at: string | null
           avatar_url: string | null
           birth_date: string | null
           birth_year: number | null
@@ -9716,6 +9717,7 @@ export type Database = {
         }
         Insert: {
           allergies?: string | null
+          archived_at?: string | null
           avatar_url?: string | null
           birth_date?: string | null
           birth_year?: number | null
@@ -9766,6 +9768,7 @@ export type Database = {
         }
         Update: {
           allergies?: string | null
+          archived_at?: string | null
           avatar_url?: string | null
           birth_date?: string | null
           birth_year?: number | null
@@ -14714,6 +14717,7 @@ export type Database = {
       players_safe: {
         Row: {
           allergies: string | null
+          archived_at: string | null
           avatar_url: string | null
           birth_date: string | null
           birth_year: number | null
@@ -14746,6 +14750,7 @@ export type Database = {
         }
         Insert: {
           allergies?: never
+          archived_at?: string | null
           avatar_url?: string | null
           birth_date?: string | null
           birth_year?: number | null
@@ -14778,6 +14783,7 @@ export type Database = {
         }
         Update: {
           allergies?: never
+          archived_at?: string | null
           avatar_url?: string | null
           birth_date?: string | null
           birth_year?: number | null
