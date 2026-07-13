@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, File, Image, Download, Users, User, Calendar, Plus, Upload, Trash2, UserCircle, Pencil } from "lucide-react";
+import { FileText, File, Image, Download, Eye, Users, User, Calendar, Plus, Upload, Trash2, UserCircle, Pencil } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
@@ -291,6 +291,25 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
     }
   };
 
+  const handleView = async (fileUrl: string) => {
+    if (!fileUrl) return;
+    try {
+      let url: string;
+      if (fileUrl.startsWith("http")) {
+        url = fileUrl;
+      } else {
+        const { data, error } = await supabase.storage
+          .from("admin-documents")
+          .createSignedUrl(fileUrl, 60 * 60);
+        if (error) throw error;
+        url = data.signedUrl;
+      }
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch {
+      toast.error("Impossible d'ouvrir le document");
+    }
+  };
+
   const getDocTypeLabel = (docType: string) =>
     DOCUMENT_TYPES.find((t) => t.value === docType)?.label || docType;
 
@@ -382,14 +401,25 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   {doc.file_url && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDownload(doc.file_url, doc.title)}
-                    >
-                      <Download className="h-4 w-4 mr-1" />
-                      <span className="hidden sm:inline">Télécharger</span>
-                    </Button>
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleView(doc.file_url)}
+                        title="Voir"
+                      >
+                        <Eye className="h-4 w-4 sm:mr-1" />
+                        <span className="hidden sm:inline">Voir</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDownload(doc.file_url, doc.title)}
+                      >
+                        <Download className="h-4 w-4 sm:mr-1" />
+                        <span className="hidden sm:inline">Télécharger</span>
+                      </Button>
+                    </>
                   )}
                   {canEdit(doc) && (
                     <Button
