@@ -486,7 +486,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
 
   // Duplicate a custom test (creates a copy with " (copie)" suffix and opens it for editing)
   const duplicateTest = useMutation({
-    mutationFn: async (test: any) => {
+    mutationFn: async ({ test, targetCategory }: { test: any; targetCategory?: string }) => {
       const { data: catData, error: catErr } = await supabase
         .from("categories")
         .select("club_id")
@@ -499,7 +499,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
         .insert({
           club_id: (catData as any).club_id,
           name: `${test.name} (copie)`,
-          test_category: test.test_category,
+          test_category: targetCategory || test.test_category,
           unit: test.unit,
           unit_kind: test.unit_kind,
           is_time: test.is_time,
