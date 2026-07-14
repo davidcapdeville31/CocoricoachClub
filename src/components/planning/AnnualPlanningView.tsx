@@ -47,11 +47,12 @@ interface PeriodizationCycle {
   volume: number | null;
 }
 
-type ViewMode = "timeline" | "heatmap";
+type ViewMode = "timeline" | "heatmap" | "chart";
 
 const VIEW_MODES: { value: ViewMode; label: string; shortLabel: string; icon: React.ReactNode }[] = [
   { value: "timeline", label: "Vue planification", shortLabel: "Planification", icon: <Clock className="h-4 w-4" /> },
   { value: "heatmap", label: "Vue charge", shortLabel: "Charge", icon: <BarChart3 className="h-4 w-4" /> },
+  { value: "chart", label: "Volume / Intensité", shortLabel: "Volume / Intensité", icon: <Activity className="h-4 w-4" /> },
 ];
 
 const MONTH_LABELS = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
