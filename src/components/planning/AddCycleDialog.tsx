@@ -41,7 +41,12 @@ export function AddCycleDialog({ open, onOpenChange, categoryId, categories, pre
   const [volume, setVolume] = useState(0);
   const [dominantQuality, setDominantQuality] = useState("");
   const [customColor, setCustomColor] = useState("");
+  const [weeklyDetails, setWeeklyDetails] = useState<WeeklyDetail[]>([]);
   const queryClient = useQueryClient();
+
+  const avg = averageWeekly(weeklyDetails);
+  const effectiveIntensity = avg ? avg.intensity : intensity;
+  const effectiveVolume = avg ? avg.volume : volume;
 
   const selectedCategory = categories.find(c => c.id === periodizationCategoryId);
   const color = customColor || selectedCategory?.color || "#3b82f6";
