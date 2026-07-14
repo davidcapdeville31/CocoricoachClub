@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Plus, Trash2, Filter, ClipboardList, CalendarPlus, FolderPlus, Pencil, Star, Copy, ChevronDown, ChevronRight } from "lucide-react";
+import { Plus, Trash2, Filter, ClipboardList, CalendarPlus, FolderPlus, Pencil, Star, Copy, ChevronDown, ChevronRight, Gauge } from "lucide-react";
 import {
   ResponsiveContainer,
   RadarChart,
