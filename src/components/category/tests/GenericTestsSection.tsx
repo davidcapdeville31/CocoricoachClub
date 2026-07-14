@@ -798,6 +798,36 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
                       tabIndex={0}
                       onClick={(e) => {
                         e.stopPropagation();
+                        setEditingTest({
+                          id: t.is_system ? undefined : t.id,
+                          name: t.name,
+                          test_category: t.test_category,
+                          unit: t.unit,
+                          description: t.description,
+                          objectives: t.objectives,
+                          scoring_scale: t.scoring_scale ?? null,
+                          formula_config: t.formula_config ?? null,
+                          image_url: t.image_url ?? null,
+                          video_url: t.video_url ?? null,
+                          bilateral: (t as any).bilateral ?? false,
+                          source: t.is_system ? "system" : "custom",
+                          systemTestId: t.is_system ? t.id : undefined,
+                        });
+                        setFocusScoringOnOpen(true);
+                        setIsEditDialogOpen(true);
+                      }}
+                      className="inline-flex items-center gap-1 rounded-lg border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 px-2 py-0.5 text-[11px] text-amber-700 dark:text-amber-300 cursor-pointer"
+                      title="Ajouter ou modifier le barème de notation (général / par poste / par genre)"
+                    >
+                      <Gauge className="h-3 w-3" /> Barème
+                    </span>
+                  )}
+                  {!isViewer && (
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => {
+                        e.stopPropagation();
                         duplicateTest.mutate(t);
                       }}
                       className="inline-flex items-center gap-1 rounded-lg border border-muted-foreground/30 bg-muted hover:bg-muted/70 px-2 py-0.5 text-[11px] text-foreground cursor-pointer"
