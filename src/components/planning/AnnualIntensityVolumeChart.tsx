@@ -63,7 +63,8 @@ export function AnnualIntensityVolumeChart({ periodStart, periodEnd, categories,
         let vVal = c.volume ?? 0;
         if (c.weekly_details && c.weekly_details.length > 0) {
           const cs = new Date(c.start_date);
-          const weekIdxInCycle = Math.floor(differenceInCalendarDays(wStart, cs) / 7);
+          const csWeekStart = startOfWeek(cs, { weekStartsOn: 1 });
+          const weekIdxInCycle = Math.floor(differenceInCalendarDays(wStart, csWeekStart) / 7);
           const wd = c.weekly_details[Math.max(0, Math.min(c.weekly_details.length - 1, weekIdxInCycle))];
           if (wd) {
             iVal = wd.intensity ?? iVal;
