@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { CycleFormFields } from "./CycleFormFields";
 import { CycleColorPicker } from "./CycleColorPicker";
+import { WeeklyIntensityVolumeDetails, averageWeekly, type WeeklyDetail } from "./WeeklyIntensityVolumeDetails";
 
 
 interface EditCycleDialogProps {
