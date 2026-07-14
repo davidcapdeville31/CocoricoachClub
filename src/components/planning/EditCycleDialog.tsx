@@ -141,10 +141,10 @@ export function EditCycleDialog({ open, onOpenChange, cycle, categoryId, categor
           <CycleFormFields
             cycleType={cycleType}
             onCycleTypeChange={setCycleType}
-            intensity={intensity}
-            onIntensityChange={setIntensity}
-            volume={volume}
-            onVolumeChange={setVolume}
+            intensity={effectiveIntensity}
+            onIntensityChange={weeklyDetails.length > 0 ? () => {} : setIntensity}
+            volume={effectiveVolume}
+            onVolumeChange={weeklyDetails.length > 0 ? () => {} : setVolume}
             dominantQuality={dominantQuality}
             onDominantQualityChange={setDominantQuality}
             periodizationLineName={selectedCategory?.name}
@@ -188,6 +188,20 @@ export function EditCycleDialog({ open, onOpenChange, cycle, categoryId, categor
               </Popover>
             </div>
           </div>
+
+          {weeklyDetails.length > 0 && (
+            <p className="text-[11px] text-muted-foreground">
+              Intensité et volume du cycle calculés en moyenne à partir du détail hebdomadaire.
+            </p>
+          )}
+
+          <WeeklyIntensityVolumeDetails
+            startDate={startDate}
+            endDate={endDate}
+            value={weeklyDetails}
+            onChange={setWeeklyDetails}
+          />
+
 
           <div>
             <Label>Objectif</Label>
