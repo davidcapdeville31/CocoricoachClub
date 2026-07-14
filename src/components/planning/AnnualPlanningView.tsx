@@ -45,6 +45,7 @@ interface PeriodizationCycle {
   cycle_type: string | null;
   intensity: number | null;
   volume: number | null;
+  weekly_details?: { week: number; intensity: number; volume: number }[] | null;
 }
 
 type ViewMode = "timeline" | "heatmap" | "chart";
@@ -175,7 +176,7 @@ export function AnnualPlanningView({ categoryId, readOnly = false }: AnnualPlann
         .lte("start_date", format(yearEnd, "yyyy-MM-dd"))
         .order("start_date");
       if (error) throw error;
-      return data as PeriodizationCycle[];
+      return data as unknown as PeriodizationCycle[];
     },
   });
 
