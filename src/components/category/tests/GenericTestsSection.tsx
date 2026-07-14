@@ -650,8 +650,21 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
       });
     }
 
+    // Inject theme categories (user-created tabs) even if empty
+    if (themeCategories?.length) {
+      themeCategories.forEach((tc) => {
+        if (!tc.value || tc.value.startsWith("rehab_")) return;
+        if (isRehabMode) return;
+        if (!existingCategoryValues.has(tc.value)) {
+          categories.push({ value: tc.value, label: tc.label || formatCategoryLabel(tc.value), tests: [] });
+          existingCategoryValues.add(tc.value);
+          existingTestsByCategory.set(tc.value, new Set());
+        }
+      });
+    }
+
     return categories;
-  }, [allSportCategories, allTestsForDiscovery, customTestsList, isRehabMode]);
+  }, [allSportCategories, allTestsForDiscovery, customTestsList, themeCategories, isRehabMode]);
 
   const { data: tests, isLoading } = useQuery({
     queryKey: ["generic_tests", categoryId, filterCategory, filterTestType, isRehabMode],
