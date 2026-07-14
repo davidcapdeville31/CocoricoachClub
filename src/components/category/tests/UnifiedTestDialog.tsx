@@ -154,10 +154,33 @@ export function UnifiedTestDialog({
     enabled: open,
   });
 
-  const filteredTestCategories = useMemo(
-    () => mergeCustomTestsIntoCategories(getTestCategoriesForSport(sportType || ""), customTests || []),
-    [sportType, customTests]
-  );
+  // Fetch user-created theme categories (empty tabs like "Test David")
+  const { data: themeCategories } = useQuery({
+    queryKey: ["test-theme-categories", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("test_theme_categories" as any)
+        .select("value, label")
+        .eq("category_id", categoryId);
+      if (error) throw error;
+      return (data || []) as unknown as Array<{ value: string; label: string }>;
+    },
+    enabled: open,
+  });
+
+  const filteredTestCategories = useMemo(() => {
+    const merged = mergeCustomTestsIntoCategories(getTestCategoriesForSport(sportType || ""), customTests || []);
+    const existing = new Set(merged.map((c: any) => c.value));
+    if (themeCategories?.length) {
+      themeCategories.forEach((tc) => {
+        if (tc.value.startsWith("rehab_")) return;
+        if (!existing.has(tc.value)) {
+          merged.push({ value: tc.value, label: tc.label, tests: [] } as any);
+        }
+      });
+    }
+    return merged;
+  }, [sportType, customTests, themeCategories]);
   
   const currentCategoryObj = filteredTestCategories.find(c => c.value === resolvedCategory);
   
