@@ -47,9 +47,11 @@ interface EditCustomTestDialogProps {
   categoryId: string;
   sportType?: string;
   test: EditableTest | null;
+  /** If true and the test has no existing scoring_scale, pre-enables the scoring editor and scrolls to it. */
+  focusScoring?: boolean;
 }
 
-export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType, test }: EditCustomTestDialogProps) {
+export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType, test, focusScoring }: EditCustomTestDialogProps) {
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [testCategory, setTestCategory] = useState("");
@@ -83,13 +85,20 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
     }
     setDescription(test.description || "");
     setObjectives(test.objectives || "");
-    setEnableScoring(!!test.scoring_scale);
+    setEnableScoring(!!test.scoring_scale || !!focusScoring);
     setScoringScale(test.scoring_scale || null);
     setFormulaConfig(test.formula_config?.enabled ? test.formula_config : null);
     setImageUrl(test.image_url || null);
     setVideoUrl(test.video_url || "");
     setBilateral(!!test.bilateral);
-  }, [open, test]);
+    if (focusScoring) {
+      // Attends que le contenu soit rendu puis scroll vers l'éditeur de barème
+      setTimeout(() => {
+        const el = document.getElementById("scoring-scale-anchor");
+        el?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 200);
+    }
+  }, [open, test, focusScoring]);
 
   const handleImageUpload = async (file: File) => {
     if (!file) return;
@@ -446,7 +455,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
             />
           </div>
 
-          <div className="flex items-center justify-between rounded-2xl border bg-muted/40 p-4">
+          <div id="scoring-scale-anchor" className="flex items-center justify-between rounded-2xl border bg-muted/40 p-4">
             <div>
               <Label className="text-sm font-semibold cursor-pointer">Activer un barème de notation</Label>
               <p className="text-xs text-muted-foreground mt-0.5">

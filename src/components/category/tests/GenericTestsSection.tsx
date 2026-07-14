@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Plus, Trash2, Filter, ClipboardList, CalendarPlus, FolderPlus, Pencil, Star, Copy, ChevronDown, ChevronRight } from "lucide-react";
+import { Plus, Trash2, Filter, ClipboardList, CalendarPlus, FolderPlus, Pencil, Star, Copy, ChevronDown, ChevronRight, Gauge } from "lucide-react";
 import {
   ResponsiveContainer,
   RadarChart,
@@ -396,6 +396,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
   const [isCreateCategoryDialogOpen, setIsCreateCategoryDialogOpen] = useState(false);
   const [editingTest, setEditingTest] = useState<EditableTest | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [focusScoringOnOpen, setFocusScoringOnOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const isRehabMode = defaultCategory === "rehab";
   const isSingleCategoryMode = !!defaultCategory && defaultCategory !== "rehab" && defaultCategory !== "all";
@@ -742,6 +743,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
                       source: t.is_system ? "system" : "custom",
                       systemTestId: t.is_system ? t.id : undefined,
                     });
+                    setFocusScoringOnOpen(false);
                     setIsEditDialogOpen(true);
                   }}
                    className={`group inline-flex items-center gap-2 rounded-2xl bg-background border hover:border-primary hover:bg-accent transition-colors text-sm cursor-pointer ${(t.image_url || t.icon) ? "p-1.5 pr-3" : "px-2.5 py-1 text-xs"}`}
@@ -789,6 +791,36 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
                       title="Planifier ce test dans le calendrier"
                     >
                       <CalendarPlus className="h-3 w-3" /> Planifier
+                    </span>
+                  )}
+                  {!isViewer && (
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingTest({
+                          id: t.is_system ? undefined : t.id,
+                          name: t.name,
+                          test_category: t.test_category,
+                          unit: t.unit,
+                          description: t.description,
+                          objectives: t.objectives,
+                          scoring_scale: t.scoring_scale ?? null,
+                          formula_config: t.formula_config ?? null,
+                          image_url: t.image_url ?? null,
+                          video_url: t.video_url ?? null,
+                          bilateral: (t as any).bilateral ?? false,
+                          source: t.is_system ? "system" : "custom",
+                          systemTestId: t.is_system ? t.id : undefined,
+                        });
+                        setFocusScoringOnOpen(true);
+                        setIsEditDialogOpen(true);
+                      }}
+                      className="inline-flex items-center gap-1 rounded-lg border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 px-2 py-0.5 text-[11px] text-amber-700 dark:text-amber-300 cursor-pointer"
+                      title="Ajouter ou modifier le barème de notation (général / par poste / par genre)"
+                    >
+                      <Gauge className="h-3 w-3" /> Barème
                     </span>
                   )}
                   {!isViewer && (
@@ -952,11 +984,12 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
         open={isEditDialogOpen}
         onOpenChange={(o) => {
           setIsEditDialogOpen(o);
-          if (!o) setEditingTest(null);
+          if (!o) { setEditingTest(null); setFocusScoringOnOpen(false); }
         }}
         categoryId={categoryId}
         sportType={sportType}
         test={editingTest}
+        focusScoring={focusScoringOnOpen}
       />
 
       <Dialog open={!!previewImage} onOpenChange={(o) => !o && setPreviewImage(null)}>
