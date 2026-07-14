@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { CycleFormFields } from "./CycleFormFields";
 import { CycleColorPicker } from "./CycleColorPicker";
+import { WeeklyIntensityVolumeDetails, averageWeekly, type WeeklyDetail } from "./WeeklyIntensityVolumeDetails";
 
 
 interface EditCycleDialogProps {
@@ -37,6 +38,7 @@ interface EditCycleDialogProps {
     load_pattern?: string | null;
     fatigue_target?: string | null;
     sessions_per_week?: number | null;
+    weekly_details?: WeeklyDetail[] | null;
   };
   categoryId: string;
   categories: { id: string; name: string; color: string }[];
@@ -58,6 +60,12 @@ export function EditCycleDialog({ open, onOpenChange, cycle, categoryId, categor
   const [intensity, setIntensity] = useState(cycle.intensity || 0);
   const [volume, setVolume] = useState(cycle.volume || 0);
   const [dominantQuality, setDominantQuality] = useState(cycle.dominant_quality || "");
+  const [weeklyDetails, setWeeklyDetails] = useState<WeeklyDetail[]>(
+    Array.isArray(cycle.weekly_details) ? (cycle.weekly_details as WeeklyDetail[]) : []
+  );
+  const avg = averageWeekly(weeklyDetails);
+  const effectiveIntensity = avg ? avg.intensity : intensity;
+  const effectiveVolume = avg ? avg.volume : volume;
   const queryClient = useQueryClient();
 
   const updateCycle = useMutation({
@@ -73,10 +81,11 @@ export function EditCycleDialog({ open, onOpenChange, cycle, categoryId, categor
           objective: objective || null,
           notes: notes || null,
           cycle_type: cycleType || null,
-          intensity: intensity || null,
-          volume: volume || null,
+          intensity: effectiveIntensity || null,
+          volume: effectiveVolume || null,
           dominant_quality: dominantQuality || null,
-        })
+          weekly_details: weeklyDetails.length > 0 ? weeklyDetails : null,
+        } as any)
         .eq("id", cycle.id);
       if (error) throw error;
     },
@@ -92,7 +101,7 @@ export function EditCycleDialog({ open, onOpenChange, cycle, categoryId, categor
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Modifier le cycle</DialogTitle>
         </DialogHeader>
@@ -132,10 +141,10 @@ export function EditCycleDialog({ open, onOpenChange, cycle, categoryId, categor
           <CycleFormFields
             cycleType={cycleType}
             onCycleTypeChange={setCycleType}
-            intensity={intensity}
-            onIntensityChange={setIntensity}
-            volume={volume}
-            onVolumeChange={setVolume}
+            intensity={effectiveIntensity}
+            onIntensityChange={weeklyDetails.length > 0 ? () => {} : setIntensity}
+            volume={effectiveVolume}
+            onVolumeChange={weeklyDetails.length > 0 ? () => {} : setVolume}
             dominantQuality={dominantQuality}
             onDominantQualityChange={setDominantQuality}
             periodizationLineName={selectedCategory?.name}
@@ -179,6 +188,20 @@ export function EditCycleDialog({ open, onOpenChange, cycle, categoryId, categor
               </Popover>
             </div>
           </div>
+
+          {weeklyDetails.length > 0 && (
+            <p className="text-[11px] text-muted-foreground">
+              Intensité et volume du cycle calculés en moyenne à partir du détail hebdomadaire.
+            </p>
+          )}
+
+          <WeeklyIntensityVolumeDetails
+            startDate={startDate}
+            endDate={endDate}
+            value={weeklyDetails}
+            onChange={setWeeklyDetails}
+          />
+
 
           <div>
             <Label>Objectif</Label>
