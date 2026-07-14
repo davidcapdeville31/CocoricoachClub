@@ -60,6 +60,12 @@ export function EditCycleDialog({ open, onOpenChange, cycle, categoryId, categor
   const [intensity, setIntensity] = useState(cycle.intensity || 0);
   const [volume, setVolume] = useState(cycle.volume || 0);
   const [dominantQuality, setDominantQuality] = useState(cycle.dominant_quality || "");
+  const [weeklyDetails, setWeeklyDetails] = useState<WeeklyDetail[]>(
+    Array.isArray(cycle.weekly_details) ? (cycle.weekly_details as WeeklyDetail[]) : []
+  );
+  const avg = averageWeekly(weeklyDetails);
+  const effectiveIntensity = avg ? avg.intensity : intensity;
+  const effectiveVolume = avg ? avg.volume : volume;
   const queryClient = useQueryClient();
 
   const updateCycle = useMutation({
