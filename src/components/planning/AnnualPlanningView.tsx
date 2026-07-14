@@ -176,7 +176,7 @@ export function AnnualPlanningView({ categoryId, readOnly = false }: AnnualPlann
         .lte("start_date", format(yearEnd, "yyyy-MM-dd"))
         .order("start_date");
       if (error) throw error;
-      return data as PeriodizationCycle[];
+      return data as unknown as PeriodizationCycle[];
     },
   });
 
