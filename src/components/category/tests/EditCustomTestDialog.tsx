@@ -85,13 +85,20 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
     }
     setDescription(test.description || "");
     setObjectives(test.objectives || "");
-    setEnableScoring(!!test.scoring_scale);
+    setEnableScoring(!!test.scoring_scale || !!focusScoring);
     setScoringScale(test.scoring_scale || null);
     setFormulaConfig(test.formula_config?.enabled ? test.formula_config : null);
     setImageUrl(test.image_url || null);
     setVideoUrl(test.video_url || "");
     setBilateral(!!test.bilateral);
-  }, [open, test]);
+    if (focusScoring) {
+      // Attends que le contenu soit rendu puis scroll vers l'éditeur de barème
+      setTimeout(() => {
+        const el = document.getElementById("scoring-scale-anchor");
+        el?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 200);
+    }
+  }, [open, test, focusScoring]);
 
   const handleImageUpload = async (file: File) => {
     if (!file) return;
