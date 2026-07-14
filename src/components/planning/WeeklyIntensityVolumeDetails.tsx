@@ -58,7 +58,13 @@ interface Props {
 }
 
 export function WeeklyIntensityVolumeDetails({ startDate, endDate, value, onChange }: Props) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(value.length > 0);
+
+  // Auto-expand when pre-filled data arrives (e.g. edit dialog)
+  useEffect(() => {
+    if (value.length > 0 && !expanded) setExpanded(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value.length > 0]);
 
   const weekCount = useMemo(() => {
     if (!startDate || !endDate) return 0;
@@ -126,7 +132,7 @@ export function WeeklyIntensityVolumeDetails({ startDate, endDate, value, onChan
       )}
 
       {expanded && canOpen && (
-        <div className="rounded-lg border bg-muted/30 p-3 space-y-3 max-h-72 overflow-y-auto">
+        <div className="rounded-lg border bg-muted/30 p-3 space-y-2 max-h-96 overflow-y-auto">
           <p className="text-[11px] text-muted-foreground">
             L'intensité et le volume du cycle seront la moyenne des valeurs hebdomadaires ci-dessous.
           </p>
@@ -134,19 +140,20 @@ export function WeeklyIntensityVolumeDetails({ startDate, endDate, value, onChan
             const wStart = startDate ? addDays(startDate, i * 7) : undefined;
             const wEnd = startDate ? addDays(startDate, Math.min(i * 7 + 6, differenceInCalendarDays(endDate!, startDate))) : undefined;
             return (
-              <div key={i} className="rounded-md border bg-background p-2.5 space-y-2">
-                <div className="flex items-center justify-between">
+              <div
+                key={i}
+                className="grid grid-cols-[110px_1fr_1fr] gap-3 items-center rounded-md border bg-background p-2.5"
+              >
+                <div className="flex flex-col">
                   <span className="text-xs font-semibold">Semaine {w.week}</span>
                   {wStart && wEnd && (
                     <span className="text-[10px] text-muted-foreground">
-                      {format(wStart, "dd/MM", { locale: fr })} — {format(wEnd, "dd/MM", { locale: fr })}
+                      {format(wStart, "dd/MM", { locale: fr })} → {format(wEnd, "dd/MM", { locale: fr })}
                     </span>
                   )}
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <MiniSlider label="Intensité" value={w.intensity} onChange={(v) => updateWeek(i, { intensity: v })} />
-                  <MiniSlider label="Volume" value={w.volume} onChange={(v) => updateWeek(i, { volume: v })} />
-                </div>
+                <MiniSlider label="Intensité" value={w.intensity} onChange={(v) => updateWeek(i, { intensity: v })} />
+                <MiniSlider label="Volume" value={w.volume} onChange={(v) => updateWeek(i, { volume: v })} />
               </div>
             );
           })}
