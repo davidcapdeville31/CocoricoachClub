@@ -453,6 +453,19 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
     },
   });
 
+  // Fetch theme categories (user-created tabs like "Test David") so they appear in "Dupliquer vers"
+  const { data: themeCategories } = useQuery({
+    queryKey: ["test-theme-categories", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("test_theme_categories" as any)
+        .select("value, label")
+        .eq("category_id", categoryId);
+      if (error) throw error;
+      return (data || []) as unknown as Array<{ value: string; label: string }>;
+    },
+  });
+
   // Fetch custom tests defined in this category + global system tests (so they show even without results yet)
   const { data: customTestsList } = useQuery({
     queryKey: ["custom_tests_list", categoryId, defaultCategory],
