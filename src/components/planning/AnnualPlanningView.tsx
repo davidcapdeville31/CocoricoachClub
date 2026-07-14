@@ -45,6 +45,7 @@ interface PeriodizationCycle {
   cycle_type: string | null;
   intensity: number | null;
   volume: number | null;
+  weekly_details?: { week: number; intensity: number; volume: number }[] | null;
 }
 
 type ViewMode = "timeline" | "heatmap" | "chart";
