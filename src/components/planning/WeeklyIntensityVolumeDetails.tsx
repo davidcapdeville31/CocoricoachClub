@@ -168,7 +168,7 @@ export function averageWeekly(details: WeeklyDetail[]): { intensity: number; vol
   const sumI = details.reduce((s, d) => s + (d.intensity || 0), 0);
   const sumV = details.reduce((s, d) => s + (d.volume || 0), 0);
   return {
-    intensity: Math.round((sumI / details.length) * 10) / 10,
-    volume: Math.round((sumV / details.length) * 10) / 10,
+    intensity: Math.round(sumI / details.length),
+    volume: Math.round(sumV / details.length),
   };
 }
