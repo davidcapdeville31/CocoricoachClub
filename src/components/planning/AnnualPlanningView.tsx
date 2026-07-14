@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, Calendar, Settings2, ChevronLeft, ChevronRight, Check, BarChart3, Clock, Trash2, Trophy, Download } from "lucide-react";
+import { Plus, Calendar, Settings2, ChevronLeft, ChevronRight, Check, BarChart3, Clock, Trash2, Trophy, Download, Activity } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { exportAnnualPlanningToPdf } from "@/lib/pdfAnnualPlanning";
 import { format, startOfYear, endOfYear, addYears, subYears, addMonths, addDays } from "date-fns";
@@ -10,6 +10,7 @@ import { fr } from "date-fns/locale";
 import { YearCalendarGrid } from "./YearCalendarGrid";
 import { AnnualTimelineView } from "./AnnualTimelineView";
 import { AnnualLoadHeatmap } from "./AnnualLoadHeatmap";
+import { AnnualIntensityVolumeChart } from "./AnnualIntensityVolumeChart";
 import { AddCycleCategoryDialog } from "./AddCycleCategoryDialog";
 import { AddCycleDialog } from "./AddCycleDialog";
 import { EditCycleDialog } from "./EditCycleDialog";
@@ -46,11 +47,12 @@ interface PeriodizationCycle {
   volume: number | null;
 }
 
-type ViewMode = "timeline" | "heatmap";
+type ViewMode = "timeline" | "heatmap" | "chart";
 
 const VIEW_MODES: { value: ViewMode; label: string; shortLabel: string; icon: React.ReactNode }[] = [
   { value: "timeline", label: "Vue planification", shortLabel: "Planification", icon: <Clock className="h-4 w-4" /> },
   { value: "heatmap", label: "Vue charge", shortLabel: "Charge", icon: <BarChart3 className="h-4 w-4" /> },
+  { value: "chart", label: "Volume / Intensité", shortLabel: "Volume / Intensité", icon: <Activity className="h-4 w-4" /> },
 ];
 
 const MONTH_LABELS = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
@@ -448,6 +450,15 @@ export function AnnualPlanningView({ categoryId, readOnly = false }: AnnualPlann
                   categories={categories}
                   cycles={cycles}
                   sessions={sessions}
+                />
+              )}
+
+              {viewMode === "chart" && (
+                <AnnualIntensityVolumeChart
+                  periodStart={periodStart}
+                  periodEnd={periodEnd}
+                  categories={categories}
+                  cycles={cycles as any}
                 />
               )}
             </>
