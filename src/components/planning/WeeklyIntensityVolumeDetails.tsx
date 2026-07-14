@@ -58,7 +58,13 @@ interface Props {
 }
 
 export function WeeklyIntensityVolumeDetails({ startDate, endDate, value, onChange }: Props) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(value.length > 0);
+
+  // Auto-expand when pre-filled data arrives (e.g. edit dialog)
+  useEffect(() => {
+    if (value.length > 0 && !expanded) setExpanded(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value.length > 0]);
 
   const weekCount = useMemo(() => {
     if (!startDate || !endDate) return 0;
