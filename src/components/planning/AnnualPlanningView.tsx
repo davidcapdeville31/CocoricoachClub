@@ -10,6 +10,7 @@ import { fr } from "date-fns/locale";
 import { YearCalendarGrid } from "./YearCalendarGrid";
 import { AnnualTimelineView } from "./AnnualTimelineView";
 import { AnnualLoadHeatmap } from "./AnnualLoadHeatmap";
+import { AnnualIntensityVolumeChart } from "./AnnualIntensityVolumeChart";
 import { AddCycleCategoryDialog } from "./AddCycleCategoryDialog";
 import { AddCycleDialog } from "./AddCycleDialog";
 import { EditCycleDialog } from "./EditCycleDialog";
