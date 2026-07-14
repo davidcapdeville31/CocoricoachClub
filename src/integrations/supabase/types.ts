@@ -14957,6 +14957,10 @@ export type Database = {
         Args: { _club_id: string; _notes?: string }
         Returns: Json
       }
+      auto_enroll_player_in_future_tests: {
+        Args: { _category_id: string; _player_id: string }
+        Returns: undefined
+      }
       auto_validate_precision_training: { Args: never; Returns: number }
       can_access_category: {
         Args: { _category_id: string; _user_id: string }
