@@ -38,6 +38,7 @@ interface EditCycleDialogProps {
     load_pattern?: string | null;
     fatigue_target?: string | null;
     sessions_per_week?: number | null;
+    weekly_details?: WeeklyDetail[] | null;
   };
   categoryId: string;
   categories: { id: string; name: string; color: string }[];
