@@ -453,6 +453,19 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
     },
   });
 
+  // Fetch theme categories (user-created tabs like "Test David") so they appear in "Dupliquer vers"
+  const { data: themeCategories } = useQuery({
+    queryKey: ["test-theme-categories", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("test_theme_categories" as any)
+        .select("value, label")
+        .eq("category_id", categoryId);
+      if (error) throw error;
+      return (data || []) as unknown as Array<{ value: string; label: string }>;
+    },
+  });
+
   // Fetch custom tests defined in this category + global system tests (so they show even without results yet)
   const { data: customTestsList } = useQuery({
     queryKey: ["custom_tests_list", categoryId, defaultCategory],
@@ -637,8 +650,21 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
       });
     }
 
+    // Inject theme categories (user-created tabs) even if empty
+    if (themeCategories?.length) {
+      themeCategories.forEach((tc) => {
+        if (!tc.value || tc.value.startsWith("rehab_")) return;
+        if (isRehabMode) return;
+        if (!existingCategoryValues.has(tc.value)) {
+          categories.push({ value: tc.value, label: tc.label || formatCategoryLabel(tc.value), tests: [] });
+          existingCategoryValues.add(tc.value);
+          existingTestsByCategory.set(tc.value, new Set());
+        }
+      });
+    }
+
     return categories;
-  }, [allSportCategories, allTestsForDiscovery, customTestsList, isRehabMode]);
+  }, [allSportCategories, allTestsForDiscovery, customTestsList, themeCategories, isRehabMode]);
 
   const { data: tests, isLoading } = useQuery({
     queryKey: ["generic_tests", categoryId, filterCategory, filterTestType, isRehabMode],
