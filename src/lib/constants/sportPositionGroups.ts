@@ -9,22 +9,51 @@ export interface PositionGroup {
 // Rugby XV position groups
 export const RUGBY_XV_POSITION_GROUPS: PositionGroup[] = [
   {
-    id: "avants",
-    label: "Avants",
+    id: "premiere_ligne",
+    label: "Première ligne (1/2/3)",
     positions: [
       "Pilier gauche", "Talonneur", "Pilier droit",
-      "2ème ligne", "Flanker", "N°8",
-      "pilier", "seconde ligne", "troisième ligne"
+      "pilier", "talonneur", "première ligne", "premiere ligne",
     ],
   },
   {
-    id: "trois_quarts",
-    label: "3/4",
+    id: "deuxieme_ligne",
+    label: "Deuxième ligne (4/5)",
     positions: [
-      "Demi de mêlée", "Demi d'ouverture",
-      "Ailier gauche", "1er centre", "2ème centre",
-      "Ailier droit", "Arrière",
-      "demi", "centre", "ailier", "arrière"
+      "2ème ligne", "2eme ligne", "Deuxième ligne", "Deuxieme ligne",
+      "seconde ligne", "deuxième ligne", "deuxieme ligne",
+    ],
+  },
+  {
+    id: "troisieme_ligne",
+    label: "Troisième ligne (6/7/8)",
+    positions: [
+      "Flanker", "N°8", "N8", "Troisième ligne", "Troisieme ligne",
+      "troisième ligne", "troisieme ligne", "flanker", "numéro 8", "numero 8",
+    ],
+  },
+  {
+    id: "charniere",
+    label: "Charnière (9/10)",
+    positions: [
+      "Demi de mêlée", "Demi d'ouverture", "Demi de melee", "Demi d'ouverture",
+      "demi de mêlée", "demi de melee", "demi d'ouverture", "ouvreur", "demi",
+    ],
+  },
+  {
+    id: "centres",
+    label: "Centres (12/13)",
+    positions: [
+      "1er centre", "2ème centre", "2eme centre", "Premier centre", "Deuxième centre",
+      "centre", "premier centre", "deuxième centre", "deuxieme centre",
+    ],
+  },
+  {
+    id: "ailiers_arrieres",
+    label: "Ailiers/Arrières (11/14/15)",
+    positions: [
+      "Ailier gauche", "Ailier droit", "Arrière",
+      "ailier", "arrière", "arriere",
     ],
   },
 ];
