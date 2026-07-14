@@ -7633,6 +7633,7 @@ export type Database = {
           start_date: string
           updated_at: string
           volume: number | null
+          weekly_details: Json | null
         }
         Insert: {
           category_id: string
@@ -7653,6 +7654,7 @@ export type Database = {
           start_date: string
           updated_at?: string
           volume?: number | null
+          weekly_details?: Json | null
         }
         Update: {
           category_id?: string
@@ -7673,6 +7675,7 @@ export type Database = {
           start_date?: string
           updated_at?: string
           volume?: number | null
+          weekly_details?: Json | null
         }
         Relationships: [
           {

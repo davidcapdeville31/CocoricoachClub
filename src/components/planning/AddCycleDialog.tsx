@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { CycleFormFields } from "./CycleFormFields";
 import { CycleColorPicker } from "./CycleColorPicker";
+import { WeeklyIntensityVolumeDetails, averageWeekly, type WeeklyDetail } from "./WeeklyIntensityVolumeDetails";
 
 
 interface AddCycleDialogProps {
@@ -40,7 +41,12 @@ export function AddCycleDialog({ open, onOpenChange, categoryId, categories, pre
   const [volume, setVolume] = useState(0);
   const [dominantQuality, setDominantQuality] = useState("");
   const [customColor, setCustomColor] = useState("");
+  const [weeklyDetails, setWeeklyDetails] = useState<WeeklyDetail[]>([]);
   const queryClient = useQueryClient();
+
+  const avg = averageWeekly(weeklyDetails);
+  const effectiveIntensity = avg ? avg.intensity : intensity;
+  const effectiveVolume = avg ? avg.volume : volume;
 
   const selectedCategory = categories.find(c => c.id === periodizationCategoryId);
   const color = customColor || selectedCategory?.color || "#3b82f6";
@@ -69,10 +75,11 @@ export function AddCycleDialog({ open, onOpenChange, categoryId, categories, pre
         objective: objective || null,
         notes: notes || null,
         cycle_type: cycleType || null,
-        intensity: intensity || null,
-        volume: volume || null,
+        intensity: effectiveIntensity || null,
+        volume: effectiveVolume || null,
         dominant_quality: dominantQuality || null,
-      });
+        weekly_details: weeklyDetails.length > 0 ? weeklyDetails : null,
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -95,13 +102,14 @@ export function AddCycleDialog({ open, onOpenChange, categoryId, categories, pre
     setVolume(0);
     setDominantQuality("");
     setCustomColor("");
+    setWeeklyDetails([]);
   };
 
   const isValid = name.trim() && periodizationCategoryId && startDate && endDate && endDate >= startDate;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Nouveau cycle de travail</DialogTitle>
         </DialogHeader>
@@ -144,14 +152,28 @@ export function AddCycleDialog({ open, onOpenChange, categoryId, categories, pre
           <CycleFormFields
             cycleType={cycleType}
             onCycleTypeChange={setCycleType}
-            intensity={intensity}
-            onIntensityChange={setIntensity}
-            volume={volume}
-            onVolumeChange={setVolume}
+            intensity={effectiveIntensity}
+            onIntensityChange={weeklyDetails.length > 0 ? () => {} : setIntensity}
+            volume={effectiveVolume}
+            onVolumeChange={weeklyDetails.length > 0 ? () => {} : setVolume}
             dominantQuality={dominantQuality}
             onDominantQualityChange={setDominantQuality}
             periodizationLineName={selectedCategory?.name}
           />
+
+          {weeklyDetails.length > 0 && (
+            <p className="text-[11px] text-muted-foreground -mt-2">
+              Intensité et volume calculés en moyenne à partir du détail hebdomadaire.
+            </p>
+          )}
+
+          <WeeklyIntensityVolumeDetails
+            startDate={startDate}
+            endDate={endDate}
+            value={weeklyDetails}
+            onChange={setWeeklyDetails}
+          />
+
 
           <div className="grid grid-cols-2 gap-3">
             <div>

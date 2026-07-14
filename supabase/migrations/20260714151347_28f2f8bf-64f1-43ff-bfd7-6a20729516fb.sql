@@ -1,0 +1,1 @@
+ALTER TABLE public.periodization_cycles ADD COLUMN IF NOT EXISTS weekly_details jsonb;
