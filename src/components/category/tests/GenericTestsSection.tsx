@@ -743,6 +743,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
                       source: t.is_system ? "system" : "custom",
                       systemTestId: t.is_system ? t.id : undefined,
                     });
+                    setFocusScoringOnOpen(false);
                     setIsEditDialogOpen(true);
                   }}
                    className={`group inline-flex items-center gap-2 rounded-2xl bg-background border hover:border-primary hover:bg-accent transition-colors text-sm cursor-pointer ${(t.image_url || t.icon) ? "p-1.5 pr-3" : "px-2.5 py-1 text-xs"}`}
