@@ -47,9 +47,11 @@ interface EditCustomTestDialogProps {
   categoryId: string;
   sportType?: string;
   test: EditableTest | null;
+  /** If true and the test has no existing scoring_scale, pre-enables the scoring editor and scrolls to it. */
+  focusScoring?: boolean;
 }
 
-export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType, test }: EditCustomTestDialogProps) {
+export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType, test, focusScoring }: EditCustomTestDialogProps) {
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [testCategory, setTestCategory] = useState("");
