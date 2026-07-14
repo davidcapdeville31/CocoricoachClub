@@ -830,13 +830,52 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
                       tabIndex={0}
                       onClick={(e) => {
                         e.stopPropagation();
-                        duplicateTest.mutate(t);
+                        duplicateTest.mutate({ test: t });
                       }}
                       className="inline-flex items-center gap-1 rounded-lg border border-muted-foreground/30 bg-muted hover:bg-muted/70 px-2 py-0.5 text-[11px] text-foreground cursor-pointer"
-                      title="Dupliquer ce test"
+                      title="Dupliquer ce test (même catégorie)"
                     >
                       <Copy className="h-3 w-3" /> Dupliquer
                     </span>
+                  )}
+                  {!isViewer && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <span
+                          role="button"
+                          tabIndex={0}
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1 rounded-lg border border-primary/30 bg-primary/10 hover:bg-primary/20 px-2 py-0.5 text-[11px] text-primary cursor-pointer"
+                          title="Dupliquer ce test dans une autre catégorie"
+                        >
+                          <CopyPlus className="h-3 w-3" /> Dupliquer vers
+                        </span>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        align="end"
+                        className="z-[100] max-h-72 overflow-y-auto"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <DropdownMenuLabel className="text-xs">Choisir une catégorie</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {filteredTestCategories.map((cat) => (
+                          <DropdownMenuItem
+                            key={cat.value}
+                            disabled={cat.value === t.test_category}
+                            onSelect={(e) => {
+                              e.preventDefault();
+                              duplicateTest.mutate({ test: t, targetCategory: cat.value });
+                            }}
+                            className="text-xs"
+                          >
+                            {cat.label}
+                            {cat.value === t.test_category && (
+                              <span className="ml-auto text-[10px] text-muted-foreground">actuelle</span>
+                            )}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   )}
                 </button>
               ))}
