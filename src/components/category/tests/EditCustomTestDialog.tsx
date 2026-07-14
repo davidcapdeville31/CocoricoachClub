@@ -455,7 +455,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
             />
           </div>
 
-          <div className="flex items-center justify-between rounded-2xl border bg-muted/40 p-4">
+          <div id="scoring-scale-anchor" className="flex items-center justify-between rounded-2xl border bg-muted/40 p-4">
             <div>
               <Label className="text-sm font-semibold cursor-pointer">Activer un barème de notation</Label>
               <p className="text-xs text-muted-foreground mt-0.5">
