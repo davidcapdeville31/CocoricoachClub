@@ -161,20 +161,6 @@ export function AddCycleDialog({ open, onOpenChange, categoryId, categories, pre
             periodizationLineName={selectedCategory?.name}
           />
 
-          {weeklyDetails.length > 0 && (
-            <p className="text-[11px] text-muted-foreground -mt-2">
-              Intensité et volume calculés en moyenne à partir du détail hebdomadaire.
-            </p>
-          )}
-
-          <WeeklyIntensityVolumeDetails
-            startDate={startDate}
-            endDate={endDate}
-            value={weeklyDetails}
-            onChange={setWeeklyDetails}
-          />
-
-
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Date de début</Label>
@@ -213,6 +199,20 @@ export function AddCycleDialog({ open, onOpenChange, categoryId, categories, pre
               </Popover>
             </div>
           </div>
+
+          {weeklyDetails.length > 0 && (
+            <p className="text-[11px] text-muted-foreground">
+              Intensité et volume du cycle calculés en moyenne à partir du détail hebdomadaire.
+            </p>
+          )}
+
+          <WeeklyIntensityVolumeDetails
+            startDate={startDate}
+            endDate={endDate}
+            value={weeklyDetails}
+            onChange={setWeeklyDetails}
+          />
+
 
           <div>
             <Label>Objectif</Label>
