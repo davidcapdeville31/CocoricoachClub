@@ -294,6 +294,7 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
 
   // Visibility persisted in localStorage per category
   const storageKey = `tests-visible-categories:${categoryId}`;
+  const knownStorageKey = `tests-known-categories:${categoryId}`;
   const [visibleValues, setVisibleValues] = useState<Set<string>>(() => {
     try {
       const raw = localStorage.getItem(storageKey);
@@ -303,17 +304,45 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
   });
   const [initialized, setInitialized] = useState(false);
 
-  // Initialize defaults on first load: show all by default
+  // Initialize defaults on first load, and auto-add newly created categories on later
+  // renders so a freshly created theme category shows up as a tab immediately.
   useEffect(() => {
-    if (initialized) return;
-    const stored = localStorage.getItem(storageKey);
-    if (stored === null) {
-      const all = new Set<string>(testCategories.nonRehab.map(c => c.value));
-      if (testCategories.hasRehab) all.add("rehab");
-      setVisibleValues(all);
+    const allValues = new Set<string>(testCategories.nonRehab.map(c => c.value));
+    if (testCategories.hasRehab) allValues.add("rehab");
+
+    if (!initialized) {
+      const stored = localStorage.getItem(storageKey);
+      if (stored === null) {
+        setVisibleValues(new Set(allValues));
+      }
+      try {
+        localStorage.setItem(knownStorageKey, JSON.stringify(Array.from(allValues)));
+      } catch {}
+      setInitialized(true);
+      return;
     }
-    setInitialized(true);
-  }, [initialized, storageKey, testCategories]);
+
+    // Detect brand-new values (never seen before) and auto-mark them visible
+    let known: Set<string>;
+    try {
+      const raw = localStorage.getItem(knownStorageKey);
+      known = raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+    } catch {
+      known = new Set();
+    }
+    const additions: string[] = [];
+    allValues.forEach((v) => { if (!known.has(v)) additions.push(v); });
+    if (additions.length > 0) {
+      setVisibleValues((prev) => {
+        const next = new Set(prev);
+        additions.forEach((v) => next.add(v));
+        return next;
+      });
+      try {
+        localStorage.setItem(knownStorageKey, JSON.stringify(Array.from(allValues)));
+      } catch {}
+    }
+  }, [initialized, storageKey, knownStorageKey, testCategories]);
 
   useEffect(() => {
     if (!initialized) return;
