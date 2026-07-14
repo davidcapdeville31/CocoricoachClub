@@ -102,6 +102,7 @@ export function AddCycleDialog({ open, onOpenChange, categoryId, categories, pre
     setVolume(0);
     setDominantQuality("");
     setCustomColor("");
+    setWeeklyDetails([]);
   };
 
   const isValid = name.trim() && periodizationCategoryId && startDate && endDate && endDate >= startDate;
