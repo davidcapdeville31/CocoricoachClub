@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, Calendar, Settings2, ChevronLeft, ChevronRight, Check, BarChart3, Clock, Trash2, Trophy, Download } from "lucide-react";
+import { Plus, Calendar, Settings2, ChevronLeft, ChevronRight, Check, BarChart3, Clock, Trash2, Trophy, Download, Activity } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { exportAnnualPlanningToPdf } from "@/lib/pdfAnnualPlanning";
 import { format, startOfYear, endOfYear, addYears, subYears, addMonths, addDays } from "date-fns";
