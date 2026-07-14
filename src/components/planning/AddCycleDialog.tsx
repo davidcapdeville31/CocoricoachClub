@@ -152,14 +152,28 @@ export function AddCycleDialog({ open, onOpenChange, categoryId, categories, pre
           <CycleFormFields
             cycleType={cycleType}
             onCycleTypeChange={setCycleType}
-            intensity={intensity}
-            onIntensityChange={setIntensity}
-            volume={volume}
-            onVolumeChange={setVolume}
+            intensity={effectiveIntensity}
+            onIntensityChange={weeklyDetails.length > 0 ? () => {} : setIntensity}
+            volume={effectiveVolume}
+            onVolumeChange={weeklyDetails.length > 0 ? () => {} : setVolume}
             dominantQuality={dominantQuality}
             onDominantQualityChange={setDominantQuality}
             periodizationLineName={selectedCategory?.name}
           />
+
+          {weeklyDetails.length > 0 && (
+            <p className="text-[11px] text-muted-foreground -mt-2">
+              Intensité et volume calculés en moyenne à partir du détail hebdomadaire.
+            </p>
+          )}
+
+          <WeeklyIntensityVolumeDetails
+            startDate={startDate}
+            endDate={endDate}
+            value={weeklyDetails}
+            onChange={setWeeklyDetails}
+          />
+
 
           <div className="grid grid-cols-2 gap-3">
             <div>
