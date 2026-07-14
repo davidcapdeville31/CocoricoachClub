@@ -984,11 +984,12 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
         open={isEditDialogOpen}
         onOpenChange={(o) => {
           setIsEditDialogOpen(o);
-          if (!o) setEditingTest(null);
+          if (!o) { setEditingTest(null); setFocusScoringOnOpen(false); }
         }}
         categoryId={categoryId}
         sportType={sportType}
         test={editingTest}
+        focusScoring={focusScoringOnOpen}
       />
 
       <Dialog open={!!previewImage} onOpenChange={(o) => !o && setPreviewImage(null)}>
