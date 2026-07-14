@@ -452,6 +452,15 @@ export function AnnualPlanningView({ categoryId, readOnly = false }: AnnualPlann
                   sessions={sessions}
                 />
               )}
+
+              {viewMode === "chart" && (
+                <AnnualIntensityVolumeChart
+                  periodStart={periodStart}
+                  periodEnd={periodEnd}
+                  categories={categories}
+                  cycles={cycles as any}
+                />
+              )}
             </>
           )}
         </div>
