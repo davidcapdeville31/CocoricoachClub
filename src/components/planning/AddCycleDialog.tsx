@@ -75,10 +75,11 @@ export function AddCycleDialog({ open, onOpenChange, categoryId, categories, pre
         objective: objective || null,
         notes: notes || null,
         cycle_type: cycleType || null,
-        intensity: intensity || null,
-        volume: volume || null,
+        intensity: effectiveIntensity || null,
+        volume: effectiveVolume || null,
         dominant_quality: dominantQuality || null,
-      });
+        weekly_details: weeklyDetails.length > 0 ? weeklyDetails : null,
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {
