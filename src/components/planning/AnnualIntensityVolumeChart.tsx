@@ -27,6 +27,7 @@ interface Cycle {
   intensity: number | null;
   volume: number | null;
   objective?: string | null;
+  notes?: string | null;
   weekly_details?: { week: number; intensity: number; volume: number }[] | null;
 }
 
