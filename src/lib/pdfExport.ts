@@ -382,42 +382,47 @@ export const exportElementToPdf = async (
   const margin = 10;
   
   // Header
-  let yPos = drawPdfHeader(pdf, title, subtitle, format(new Date(), "dd/MM/yyyy HH:mm", { locale: fr }));
-  
+  const headerY = drawPdfHeader(pdf, title, subtitle, format(new Date(), "dd/MM/yyyy HH:mm", { locale: fr }));
+
   // Calculate image dimensions
   const imgWidth = pageWidth - margin * 2;
   const imgHeight = (canvas.height * imgWidth) / canvas.width;
-  
-  // Add image (with pagination if needed)
-  let remainingHeight = imgHeight;
-  let sourceY = 0;
-  const availableHeight = pageHeight - yPos - margin;
-  
+  const availableHeight = pageHeight - headerY - margin;
+
   if (imgHeight <= availableHeight) {
-    pdf.addImage(imgData, "PNG", margin, yPos, imgWidth, imgHeight);
+    pdf.addImage(imgData, "PNG", margin, headerY, imgWidth, imgHeight);
   } else {
-    // Multi-page
-    while (remainingHeight > 0) {
-      const sliceHeight = Math.min(remainingHeight, availableHeight);
-      const sliceRatio = sliceHeight / imgHeight;
-      
-      pdf.addImage(
-        imgData,
-        "PNG",
-        margin,
-        yPos,
-        imgWidth,
-        imgHeight,
-        undefined,
-        undefined,
-        0
+    // Slice source canvas by page to avoid cutting content mid-element
+    const pxPerMm = canvas.width / imgWidth;
+    const pageSlicePx = Math.floor(availableHeight * pxPerMm);
+    let sourceY = 0;
+    let firstPage = true;
+
+    while (sourceY < canvas.height) {
+      const sliceHeightPx = Math.min(pageSlicePx, canvas.height - sourceY);
+      const sliceCanvas = document.createElement("canvas");
+      sliceCanvas.width = canvas.width;
+      sliceCanvas.height = sliceHeightPx;
+      const ctx = sliceCanvas.getContext("2d");
+      if (!ctx) break;
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+      ctx.drawImage(
+        canvas,
+        0, sourceY, canvas.width, sliceHeightPx,
+        0, 0, canvas.width, sliceHeightPx,
       );
-      
-      remainingHeight -= availableHeight;
-      if (remainingHeight > 0) {
+      const sliceData = sliceCanvas.toDataURL("image/png");
+      const sliceHeightMm = sliceHeightPx / pxPerMm;
+
+      if (!firstPage) {
         pdf.addPage();
-        yPos = 15;
       }
+      const y = firstPage ? headerY : 15;
+      pdf.addImage(sliceData, "PNG", margin, y, imgWidth, sliceHeightMm);
+
+      sourceY += sliceHeightPx;
+      firstPage = false;
     }
   }
   
