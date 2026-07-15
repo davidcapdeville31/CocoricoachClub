@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Bell, Trash2, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
+import { getCompetitionColor } from "@/lib/constants/competitionColors";
 
 interface Match {
   id: string;
@@ -10,7 +11,9 @@ interface Match {
   opponent: string;
   location: string | null;
   is_home: boolean | null;
+  competition?: string | null;
 }
+
 
 interface MatchVignetteProps {
   match: Match;
