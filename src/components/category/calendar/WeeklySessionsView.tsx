@@ -8,6 +8,7 @@ import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { TRAINING_TYPE_COLORS, getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
+import { getCompetitionColor } from "@/lib/constants/competitionColors";
 import { printElement } from "@/lib/pdfExport";
 
 interface Session {
