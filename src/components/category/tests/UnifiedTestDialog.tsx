@@ -22,6 +22,9 @@ import { mergeCustomTestsIntoCategories, normalizeCustomTestType } from "./custo
 import { ComposedTestInputs } from "./ComposedTestInputs";
 import { isValidFormulaConfig, type FormulaConfig } from "@/lib/tests/formulaEngine";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
+import { computePoints, findMatchingRange, type ScoringScale, type PlayerForScoring } from "@/lib/constants/testUnits";
+import { getPositionGroupsForSport, playerBelongsToGroup } from "@/lib/constants/sportPositionGroups";
+import { Badge } from "@/components/ui/badge";
 
 interface UnifiedTestDialogProps {
   open: boolean;
@@ -144,7 +147,7 @@ export function UnifiedTestDialog({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("custom_test_categories")
-        .select("custom_tests(name, test_category, unit, is_time, formula_config)")
+        .select("custom_tests(name, test_category, unit, is_time, formula_config, scoring_scale, max_points)")
         .eq("category_id", categoryId);
 
       if (error) throw error;
@@ -190,14 +193,48 @@ export function UnifiedTestDialog({
     ? (customTestName && customTestUnit ? { value: `custom_${normalizeCustomTestType(customTestName)}`, label: customTestName, unit: customTestUnit, isTime: ["s", "min.s"].includes(customTestUnit) } as TestOption : null)
     : currentCategoryObj?.tests.find(t => t.value === selectedTest) || null;
 
-  const activeFormulaConfig: FormulaConfig | null = useMemo(() => {
+  const matchedCustomTest = useMemo(() => {
     if (!currentTest) return null;
-    const match = (customTests || []).find((ct: any) =>
+    return (customTests || []).find((ct: any) =>
       `custom_${normalizeCustomTestType(ct.name)}` === currentTest.value
-    );
-    const cfg = (match as any)?.formula_config;
-    return isValidFormulaConfig(cfg) ? cfg : null;
+    ) as any | undefined;
   }, [currentTest, customTests]);
+
+  const activeFormulaConfig: FormulaConfig | null = useMemo(() => {
+    const cfg = matchedCustomTest?.formula_config;
+    return isValidFormulaConfig(cfg) ? cfg : null;
+  }, [matchedCustomTest]);
+
+  const activeScoringScale: ScoringScale | null = useMemo(() => {
+    const s = matchedCustomTest?.scoring_scale;
+    return s && (s.ranges?.length || s.variants?.length) ? (s as ScoringScale) : null;
+  }, [matchedCustomTest]);
+
+  // Category (for gender fallback used by variants)
+  const { data: categoryInfo } = useQuery({
+    queryKey: ["category-info-for-scoring", categoryId],
+    enabled: open && !!activeScoringScale,
+    queryFn: async () => {
+      const { data } = await supabase.from("categories").select("gender, sport_type").eq("id", categoryId).maybeSingle();
+      return data as { gender?: string | null; sport_type?: string | null } | null;
+    },
+  });
+
+  // Resolve each player's PlayerForScoring profile (gender + positionGroup)
+  const playerScoringProfiles = useMemo(() => {
+    const map: Record<string, PlayerForScoring> = {};
+    const groups = getPositionGroupsForSport(sportType);
+    const catGender = (categoryInfo as any)?.gender;
+    (players || []).forEach((p: any) => {
+      const grp = groups.find(g => playerBelongsToGroup(p.position, g));
+      const raw = (p.gender || catGender || "").toString().toLowerCase();
+      let gender: string | null = null;
+      if (raw === "male" || raw === "masculine" || raw === "men") gender = "male";
+      else if (raw === "female" || raw === "feminine" || raw === "women") gender = "female";
+      map[p.id] = { gender, position: p.position || null, positionGroup: grp?.id || null };
+    });
+    return map;
+  }, [players, sportType, categoryInfo]);
 
   // Detect ratio-based tests (unit "× PDC" or legacy "x PDC")
   const currentUnit = (currentTest?.unit || customTestUnit || "").trim();
@@ -479,6 +516,16 @@ export function UnifiedTestDialog({
                         ? Math.round((rawKg / pWeight) * 100) / 100
                         : null;
 
+                      // Live barème note preview (based on athlete's positionGroup + gender)
+                      const rawResult = parseFloat(playerResults[player.id] || "");
+                      const scoredValue = (isRatioTest && ratioInputMode === "kg") ? (ratioPreview ?? NaN) : rawResult;
+                      const noteInfo = (activeScoringScale && !isNaN(scoredValue))
+                        ? {
+                            range: findMatchingRange(scoredValue, activeScoringScale, playerScoringProfiles[player.id]),
+                            pts: computePoints(scoredValue, activeScoringScale, playerScoringProfiles[player.id]),
+                          }
+                        : null;
+
                       return (
                         <div key={player.id} className="space-y-1">
                           <div className="flex items-center gap-2">
@@ -512,6 +559,19 @@ export function UnifiedTestDialog({
                               />
                             )}
                           </div>
+                          {noteInfo && noteInfo.range && (
+                            <div className="flex items-center gap-2 ml-4 text-[11px]">
+                              <Badge variant="secondary" className="font-semibold">
+                                {noteInfo.range.label || `${noteInfo.pts} pt${noteInfo.pts > 1 ? "s" : ""}`}
+                                {noteInfo.range.label && <span className="ml-1 opacity-70">· {noteInfo.pts} pt{noteInfo.pts > 1 ? "s" : ""}</span>}
+                              </Badge>
+                              <span className="text-muted-foreground italic">
+                                {playerScoringProfiles[player.id]?.positionGroup
+                                  ? `barème ${getPositionGroupsForSport(sportType).find(g => g.id === playerScoringProfiles[player.id]?.positionGroup)?.label || "poste"}`
+                                  : "barème par défaut"}
+                              </span>
+                            </div>
+                          )}
                           {/* GPS preview for sprint tests */}
                           {gpsValues && (
                             <div className="flex items-center gap-3 ml-4 text-xs text-muted-foreground">

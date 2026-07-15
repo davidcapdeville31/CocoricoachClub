@@ -15,6 +15,10 @@ import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { cn } from "@/lib/utils";
 import { getTestCategoriesForSport, TestCategory } from "@/lib/constants/testCategories";
 import { BatteryRadarCharts } from "@/components/category/tests/GenericTestsSection";
+import { computePoints, findMatchingRange, type ScoringScale, type PlayerForScoring } from "@/lib/constants/testUnits";
+import { getPositionGroupsForSport, playerBelongsToGroup } from "@/lib/constants/sportPositionGroups";
+import { Badge } from "@/components/ui/badge";
+import { normalizeCustomTestType } from "@/components/category/tests/customTestCatalog";
 
 /** Strip technical metadata (Session ID, HTML comments) from notes for display */
 function cleanNotes(notes: string | null): string {
@@ -115,6 +119,60 @@ export function PlayerTestsTab({ playerId, categoryId, sportType }: PlayerTestsT
     },
   });
 
+  // Fetch this player's profile + category info for barème resolution
+  const { data: playerProfile } = useQuery({
+    queryKey: ["player-profile-for-scoring", playerId, categoryId],
+    queryFn: async () => {
+      const [{ data: p }, { data: c }] = await Promise.all([
+        supabase.from("players").select("position, gender").eq("id", playerId).maybeSingle(),
+        supabase.from("categories").select("gender, sport_type").eq("id", categoryId).maybeSingle(),
+      ]);
+      return { player: p, category: c } as any;
+    },
+  });
+
+  const playerScoring: PlayerForScoring = useMemo(() => {
+    const p = (playerProfile as any)?.player;
+    const c = (playerProfile as any)?.category;
+    const groups = getPositionGroupsForSport(sportType || c?.sport_type);
+    const grp = groups.find(g => playerBelongsToGroup(p?.position, g));
+    const raw = (p?.gender || c?.gender || "").toString().toLowerCase();
+    let gender: string | null = null;
+    if (raw === "male" || raw === "masculine" || raw === "men") gender = "male";
+    else if (raw === "female" || raw === "feminine" || raw === "women") gender = "female";
+    return { gender, position: p?.position || null, positionGroup: grp?.id || null };
+  }, [playerProfile, sportType]);
+
+  // Fetch scoring_scale for custom tests accessible to this category
+  const { data: customTestScales } = useQuery({
+    queryKey: ["custom-tests-scales-for-player", categoryId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("custom_test_categories")
+        .select("custom_tests(name, scoring_scale)")
+        .eq("category_id", categoryId);
+      const map: Record<string, ScoringScale> = {};
+      (data || []).forEach((row: any) => {
+        const ct = row.custom_tests;
+        if (ct?.name && ct?.scoring_scale) {
+          map[`custom_${normalizeCustomTestType(ct.name)}`] = ct.scoring_scale as ScoringScale;
+        }
+      });
+      return map;
+    },
+  });
+
+  const resolveNote = (test: any): { label?: string; pts: number } | null => {
+    const scale = customTestScales?.[test.test_type];
+    if (!scale) return null;
+    const v = Number(test.result_value);
+    if (isNaN(v)) return null;
+    const range = findMatchingRange(v, scale, playerScoring);
+    if (!range) return null;
+    return { label: range.label, pts: computePoints(v, scale, playerScoring) };
+  };
+
+
   // Group tests by category
   const testsByCategory = useMemo(() => {
     const map: Record<string, typeof allGenericTests> = {};
@@ -202,20 +260,34 @@ export function PlayerTestsTab({ playerId, categoryId, sportType }: PlayerTestsT
                       <TableHead>Date</TableHead>
                       <TableHead>Test</TableHead>
                       <TableHead>Résultat</TableHead>
+                      <TableHead>Note (barème)</TableHead>
                       <TableHead>Notes</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {tests.slice().reverse().map((test) => (
-                      <TableRow key={test.id}>
-                        <TableCell>{new Date(test.test_date).toLocaleDateString("fr-FR")}</TableCell>
-                        <TableCell>{getTestLabel(test.test_category, test.test_type)}</TableCell>
-                        <TableCell className="font-semibold text-primary">
-                          {test.result_value} {test.result_unit || ""}
-                        </TableCell>
-                        <TableCell className="max-w-[150px] truncate">{cleanNotes(test.notes)}</TableCell>
-                      </TableRow>
-                    ))}
+                    {tests.slice().reverse().map((test) => {
+                      const note = resolveNote(test);
+                      return (
+                        <TableRow key={test.id}>
+                          <TableCell>{new Date(test.test_date).toLocaleDateString("fr-FR")}</TableCell>
+                          <TableCell>{getTestLabel(test.test_category, test.test_type)}</TableCell>
+                          <TableCell className="font-semibold text-primary">
+                            {test.result_value} {test.result_unit || ""}
+                          </TableCell>
+                          <TableCell>
+                            {note ? (
+                              <Badge variant="secondary" className="font-semibold">
+                                {note.label || `${note.pts} pt${note.pts > 1 ? "s" : ""}`}
+                                {note.label && <span className="ml-1 opacity-70">· {note.pts} pt{note.pts > 1 ? "s" : ""}</span>}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted-foreground text-xs">—</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="max-w-[150px] truncate">{cleanNotes(test.notes)}</TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
