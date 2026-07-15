@@ -29,6 +29,7 @@ interface Match {
   opponent: string;
   location: string | null;
   is_home: boolean | null;
+  competition?: string | null;
 }
 
 interface WeeklySessionsViewProps {
