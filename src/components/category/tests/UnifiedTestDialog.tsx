@@ -193,14 +193,48 @@ export function UnifiedTestDialog({
     ? (customTestName && customTestUnit ? { value: `custom_${normalizeCustomTestType(customTestName)}`, label: customTestName, unit: customTestUnit, isTime: ["s", "min.s"].includes(customTestUnit) } as TestOption : null)
     : currentCategoryObj?.tests.find(t => t.value === selectedTest) || null;
 
-  const activeFormulaConfig: FormulaConfig | null = useMemo(() => {
+  const matchedCustomTest = useMemo(() => {
     if (!currentTest) return null;
-    const match = (customTests || []).find((ct: any) =>
+    return (customTests || []).find((ct: any) =>
       `custom_${normalizeCustomTestType(ct.name)}` === currentTest.value
-    );
-    const cfg = (match as any)?.formula_config;
-    return isValidFormulaConfig(cfg) ? cfg : null;
+    ) as any | undefined;
   }, [currentTest, customTests]);
+
+  const activeFormulaConfig: FormulaConfig | null = useMemo(() => {
+    const cfg = matchedCustomTest?.formula_config;
+    return isValidFormulaConfig(cfg) ? cfg : null;
+  }, [matchedCustomTest]);
+
+  const activeScoringScale: ScoringScale | null = useMemo(() => {
+    const s = matchedCustomTest?.scoring_scale;
+    return s && (s.ranges?.length || s.variants?.length) ? (s as ScoringScale) : null;
+  }, [matchedCustomTest]);
+
+  // Category (for gender fallback used by variants)
+  const { data: categoryInfo } = useQuery({
+    queryKey: ["category-info-for-scoring", categoryId],
+    enabled: open && !!activeScoringScale,
+    queryFn: async () => {
+      const { data } = await supabase.from("categories").select("gender, sport_type").eq("id", categoryId).maybeSingle();
+      return data as { gender?: string | null; sport_type?: string | null } | null;
+    },
+  });
+
+  // Resolve each player's PlayerForScoring profile (gender + positionGroup)
+  const playerScoringProfiles = useMemo(() => {
+    const map: Record<string, PlayerForScoring> = {};
+    const groups = getPositionGroupsForSport(sportType);
+    const catGender = (categoryInfo as any)?.gender;
+    (players || []).forEach((p: any) => {
+      const grp = groups.find(g => playerBelongsToGroup(p.position, g));
+      const raw = (p.gender || catGender || "").toString().toLowerCase();
+      let gender: string | null = null;
+      if (raw === "male" || raw === "masculine" || raw === "men") gender = "male";
+      else if (raw === "female" || raw === "feminine" || raw === "women") gender = "female";
+      map[p.id] = { gender, position: p.position || null, positionGroup: grp?.id || null };
+    });
+    return map;
+  }, [players, sportType, categoryInfo]);
 
   // Detect ratio-based tests (unit "× PDC" or legacy "x PDC")
   const currentUnit = (currentTest?.unit || customTestUnit || "").trim();
