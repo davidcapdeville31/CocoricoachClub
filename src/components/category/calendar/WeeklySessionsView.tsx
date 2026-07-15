@@ -8,6 +8,7 @@ import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { TRAINING_TYPE_COLORS, getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
+import { getCompetitionColor } from "@/lib/constants/competitionColors";
 import { printElement } from "@/lib/pdfExport";
 
 interface Session {
@@ -28,6 +29,7 @@ interface Match {
   opponent: string;
   location: string | null;
   is_home: boolean | null;
+  competition?: string | null;
 }
 
 interface WeeklySessionsViewProps {
@@ -155,25 +157,34 @@ export function WeeklySessionsView({
                 {/* Events */}
                 <div className="space-y-1.5">
                   {/* Matches */}
-                  {dayMatches.map((match) => (
+                  {dayMatches.map((match) => {
+                    const compColor = getCompetitionColor(match.competition);
+                    const compLabel = match.competition?.trim() || null;
+                    return (
                     <div
                       key={match.id}
                       onClick={() => onViewMatch(match)}
-                      className="p-1.5 rounded bg-rose-500/10 border border-rose-500/30 cursor-pointer hover:bg-rose-500/20 transition-colors"
+                      className={cn(
+                        "p-1.5 rounded cursor-pointer transition-colors text-white",
+                        compColor.bg,
+                        compColor.bgHover
+                      )}
+                      title={compLabel ? `${compLabel} · ${match.opponent}` : match.opponent}
                     >
                       <div className="flex items-center gap-1 text-xs">
-                        <Swords className="h-3 w-3 text-rose-500" />
-                        <span className="font-medium text-rose-700 dark:text-rose-300 truncate">
-                          {match.is_home ? "vs" : "@"} {match.opponent.slice(0, 10)}
+                        <Swords className="h-3 w-3 shrink-0" />
+                        <span className="font-medium truncate">
+                          {compLabel ? compLabel : `${match.is_home ? "vs" : "@"} ${match.opponent.slice(0, 10)}`}
                         </span>
                       </div>
                       {match.match_time && (
-                        <p className="text-[10px] text-muted-foreground mt-0.5">
+                        <p className="text-[10px] opacity-90 mt-0.5">
                           {match.match_time.slice(0, 5)}
                         </p>
                       )}
                     </div>
-                  ))}
+                    );
+                  })}
 
                   {/* Sessions */}
                   {daySessions.map((session) => {
