@@ -242,7 +242,8 @@ export function DailySessionsDialog({
                   {/* Arrow */}
                   <ChevronRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-foreground transition-colors shrink-0" />
                 </div>
-              ))}
+                );
+              })}
 
               {/* Sessions */}
               {sortedSessions.map((session) => (
