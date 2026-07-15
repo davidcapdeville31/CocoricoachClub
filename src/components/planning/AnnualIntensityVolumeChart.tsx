@@ -313,6 +313,16 @@ export function AnnualIntensityVolumeChart({ periodStart, periodEnd, categories,
                             {b.objective}
                           </p>
                         )}
+                        {b.notes && (
+                          <div className="mt-1 pt-1 border-t border-border/50">
+                            <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">
+                              Notes
+                            </p>
+                            <p className="text-[10px] text-foreground/80 leading-relaxed break-words whitespace-pre-wrap overflow-visible">
+                              {b.notes}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
