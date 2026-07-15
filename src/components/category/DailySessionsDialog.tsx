@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { TRAINING_TYPE_COLORS } from "@/lib/constants/trainingTypes";
+import { getCompetitionColor } from "@/lib/constants/competitionColors";
 
 interface Session {
   id: string;
