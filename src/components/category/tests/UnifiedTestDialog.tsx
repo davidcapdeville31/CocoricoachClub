@@ -516,6 +516,16 @@ export function UnifiedTestDialog({
                         ? Math.round((rawKg / pWeight) * 100) / 100
                         : null;
 
+                      // Live barème note preview (based on athlete's positionGroup + gender)
+                      const rawResult = parseFloat(playerResults[player.id] || "");
+                      const scoredValue = (isRatioTest && ratioInputMode === "kg") ? (ratioPreview ?? NaN) : rawResult;
+                      const noteInfo = (activeScoringScale && !isNaN(scoredValue))
+                        ? {
+                            range: findMatchingRange(scoredValue, activeScoringScale, playerScoringProfiles[player.id]),
+                            pts: computePoints(scoredValue, activeScoringScale, playerScoringProfiles[player.id]),
+                          }
+                        : null;
+
                       return (
                         <div key={player.id} className="space-y-1">
                           <div className="flex items-center gap-2">
