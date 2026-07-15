@@ -119,6 +119,60 @@ export function PlayerTestsTab({ playerId, categoryId, sportType }: PlayerTestsT
     },
   });
 
+  // Fetch this player's profile + category info for barème resolution
+  const { data: playerProfile } = useQuery({
+    queryKey: ["player-profile-for-scoring", playerId, categoryId],
+    queryFn: async () => {
+      const [{ data: p }, { data: c }] = await Promise.all([
+        supabase.from("players").select("position, gender").eq("id", playerId).maybeSingle(),
+        supabase.from("categories").select("gender, sport_type").eq("id", categoryId).maybeSingle(),
+      ]);
+      return { player: p, category: c } as any;
+    },
+  });
+
+  const playerScoring: PlayerForScoring = useMemo(() => {
+    const p = (playerProfile as any)?.player;
+    const c = (playerProfile as any)?.category;
+    const groups = getPositionGroupsForSport(sportType || c?.sport_type);
+    const grp = groups.find(g => playerBelongsToGroup(p?.position, g));
+    const raw = (p?.gender || c?.gender || "").toString().toLowerCase();
+    let gender: string | null = null;
+    if (raw === "male" || raw === "masculine" || raw === "men") gender = "male";
+    else if (raw === "female" || raw === "feminine" || raw === "women") gender = "female";
+    return { gender, position: p?.position || null, positionGroup: grp?.id || null };
+  }, [playerProfile, sportType]);
+
+  // Fetch scoring_scale for custom tests accessible to this category
+  const { data: customTestScales } = useQuery({
+    queryKey: ["custom-tests-scales-for-player", categoryId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("custom_test_categories")
+        .select("custom_tests(name, scoring_scale)")
+        .eq("category_id", categoryId);
+      const map: Record<string, ScoringScale> = {};
+      (data || []).forEach((row: any) => {
+        const ct = row.custom_tests;
+        if (ct?.name && ct?.scoring_scale) {
+          map[`custom_${normalizeCustomTestType(ct.name)}`] = ct.scoring_scale as ScoringScale;
+        }
+      });
+      return map;
+    },
+  });
+
+  const resolveNote = (test: any): { label?: string; pts: number } | null => {
+    const scale = customTestScales?.[test.test_type];
+    if (!scale) return null;
+    const v = Number(test.result_value);
+    if (isNaN(v)) return null;
+    const range = findMatchingRange(v, scale, playerScoring);
+    if (!range) return null;
+    return { label: range.label, pts: computePoints(v, scale, playerScoring) };
+  };
+
+
   // Group tests by category
   const testsByCategory = useMemo(() => {
     const map: Record<string, typeof allGenericTests> = {};
