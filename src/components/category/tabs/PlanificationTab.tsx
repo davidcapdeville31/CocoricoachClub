@@ -5,7 +5,7 @@ import { FisRankingTab } from "@/components/category/fis/FisRankingTab";
 import { AthleticsRecordsTab } from "@/components/category/athletics/AthleticsRecordsTab";
 import { getMainSportFromType, isAthletismeCategory } from "@/lib/constants/sportTypes";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
-import { SeasonRosterFilterToggle } from "@/components/category/SeasonRosterFilterToggle";
+
 
 
 interface PlanificationTabProps {
