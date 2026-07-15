@@ -386,7 +386,7 @@ export const exportElementToPdf = async (
     useCORS: true,
     allowTaint: true,
     backgroundColor: "#ffffff",
-    windowWidth: Math.max(document.documentElement.scrollWidth, element.scrollWidth),
+    windowWidth: Math.max(1280, document.documentElement.scrollWidth, element.scrollWidth),
   });
 
   const newPage = () => {
