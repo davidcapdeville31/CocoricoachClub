@@ -113,6 +113,7 @@ export function AnnualIntensityVolumeChart({ periodStart, periodEnd, categories,
         end_date: c.end_date,
         objective: c.objective,
         notes: c.notes,
+      };
     }).filter((b) => b.x1 && b.x2);
 
     return { data: rows, bands: bandsArr };
