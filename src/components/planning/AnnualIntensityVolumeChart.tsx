@@ -27,6 +27,7 @@ interface Cycle {
   intensity: number | null;
   volume: number | null;
   objective?: string | null;
+  notes?: string | null;
   weekly_details?: { week: number; intensity: number; volume: number }[] | null;
 }
 
@@ -111,6 +112,7 @@ export function AnnualIntensityVolumeChart({ periodStart, periodEnd, categories,
         start_date: c.start_date,
         end_date: c.end_date,
         objective: c.objective,
+        notes: c.notes,
       };
     }).filter((b) => b.x1 && b.x2);
 
@@ -310,6 +312,16 @@ export function AnnualIntensityVolumeChart({ periodStart, periodEnd, categories,
                           <p className="text-[10px] text-muted-foreground italic leading-relaxed break-words whitespace-normal overflow-visible">
                             {b.objective}
                           </p>
+                        )}
+                        {b.notes && (
+                          <div className="mt-1 pt-1 border-t border-border/50">
+                            <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">
+                              Notes
+                            </p>
+                            <p className="text-[10px] text-foreground/80 leading-relaxed break-words whitespace-pre-wrap overflow-visible">
+                              {b.notes}
+                            </p>
+                          </div>
                         )}
                       </div>
                     </div>
