@@ -3,6 +3,8 @@ import { format, startOfMonth, endOfMonth, getDay, eachDayOfInterval, isToday } 
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { getCompetitionColor } from "@/lib/constants/competitionColors";
+
 
 interface PeriodizationCycle {
   id: string;
@@ -165,9 +167,10 @@ export function YearCalendarGrid({ year, periodStart, periodEnd, cycles, session
                         {matchInfo && (
                           <div
                             className="w-1 h-1 rounded-full"
-                            style={{ backgroundColor: "hsl(45 93% 50%)" }}
+                            style={{ backgroundColor: getCompetitionColor(matchInfo.competition).hex }}
                           />
                         )}
+
                       </div>
                     )}
                     {activeCycles.length > 1 && (

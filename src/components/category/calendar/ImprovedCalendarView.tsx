@@ -13,6 +13,8 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMont
 import { fr } from "date-fns/locale";
 import { TRAINING_TYPE_COLORS, getTrainingTypesForSport, getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
+import { getCompetitionColor } from "@/lib/constants/competitionColors";
+
 import { cn } from "@/lib/utils";
 import { CalendarDayCell } from "./CalendarDayCell";
 import { SessionVignette } from "./SessionVignette";
@@ -57,7 +59,9 @@ interface Match {
   location: string | null;
   is_home: boolean | null;
   end_date?: string | null;
+  competition?: string | null;
 }
+
 
 interface ImprovedCalendarViewProps {
   sessions: Session[];
@@ -677,26 +681,38 @@ export function ImprovedCalendarView({
                       {/* Events */}
                       <div className="space-y-2">
                         {/* Matches */}
-                        {dayMatches.map((match) => (
-                          <div
-                            key={match.id}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onViewMatch?.(match);
-                            }}
-                            className="p-2.5 rounded-lg bg-destructive text-destructive-foreground cursor-pointer hover:bg-destructive/90 transition-colors shadow-sm"
-                          >
-                            <div className="flex items-center gap-2 text-xs font-medium">
-                              <span className="opacity-80">{match.match_time ? formatTime(match.match_time) : ""}</span>
+                        {dayMatches.map((match) => {
+                          const compColor = getCompetitionColor(match.competition);
+                          const compLabel = match.competition?.trim();
+                          return (
+                            <div
+                              key={match.id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onViewMatch?.(match);
+                              }}
+                              className={cn(
+                                "p-2.5 rounded-lg text-white cursor-pointer transition-colors shadow-sm",
+                                compColor.bg,
+                                compColor.bgHover
+                              )}
+                            >
+                              <div className="flex items-center gap-2 text-xs font-medium">
+                                <span className="opacity-80">{match.match_time ? formatTime(match.match_time) : ""}</span>
+                                {compLabel && (
+                                  <span className="opacity-90 truncate">{compLabel}</span>
+                                )}
+                              </div>
+                              <p className="font-semibold text-sm mt-0.5 truncate">
+                                {isIndividualSport(sportType || "") ? "Compétition" : `vs ${match.opponent}`}
+                              </p>
+                              {match.location && (
+                                <p className="text-[10px] opacity-80 mt-0.5 truncate">{match.location}</p>
+                              )}
                             </div>
-                            <p className="font-semibold text-sm mt-0.5 truncate">
-                              {isIndividualSport(sportType || "") ? "Compétition" : `vs ${match.opponent}`}
-                            </p>
-                            {match.location && (
-                              <p className="text-[10px] opacity-80 mt-0.5 truncate">{match.location}</p>
-                            )}
-                          </div>
-                        ))}
+                          );
+                        })}
+
 
                         {/* Sessions */}
                         {daySessions.map((session) => {

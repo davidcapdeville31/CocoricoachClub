@@ -4,6 +4,8 @@ import { Plus, Clock, MapPin, ChevronRight, Zap, Calendar, Users, Trash2 } from 
 import { Button } from "@/components/ui/button";
 import { TRAINING_TYPE_COLORS } from "@/lib/constants/trainingTypes";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
+import { getCompetitionColor } from "@/lib/constants/competitionColors";
+
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,7 +28,9 @@ interface Match {
   opponent: string;
   location: string | null;
   is_home: boolean | null;
+  competition?: string | null;
 }
+
 
 interface SessionBlock {
   id: string;
@@ -195,6 +199,8 @@ export function DailyCalendarView({
             {allEvents.map((event, idx) => {
               if (event.type === 'match') {
                 const match = event.data as Match;
+                const compColor = getCompetitionColor(match.competition);
+                const compLabel = match.competition?.trim();
                 return (
                   <div
                     key={`match-${match.id}`}
@@ -209,17 +215,22 @@ export function DailyCalendarView({
                     </div>
 
                     {/* Color indicator */}
-                    <div className="w-1.5 bg-rose-500 flex-shrink-0" />
+                    <div className={cn("w-1.5 flex-shrink-0", compColor.bg)} />
 
                     {/* Content */}
                     <div className="flex-1 p-4 flex items-center justify-between">
                       <div>
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300 mb-1">
-                          {isIndividualSport(sportType || "") ? "Compétition" : "Match"}
+                        <span className={cn(
+                          "inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold mb-1",
+                          compColor.soft,
+                          compColor.softText
+                        )}>
+                          {compLabel || (isIndividualSport(sportType || "") ? "Compétition" : "Match")}
                         </span>
                         <p className="font-semibold text-foreground">
                           {isIndividualSport(sportType || "") ? "Compétition" : `vs ${match.opponent}`}
                         </p>
+
                         {match.location && (
                           <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1">
                             <MapPin className="h-3.5 w-3.5" />

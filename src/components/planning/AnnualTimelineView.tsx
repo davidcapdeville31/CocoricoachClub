@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Target, Flame, Activity, Trophy, Dumbbell } from "lucide-react";
+import { getCompetitionColor } from "@/lib/constants/competitionColors";
+
 
 interface PeriodizationCategory {
   id: string;
@@ -291,6 +293,7 @@ export function AnnualTimelineView({
                   const md = new Date(m.match_date);
                   if (md < yearStart || md > yearEnd) return null;
                   const offsetPct = (differenceInDays(md, yearStart) / totalDays) * 100;
+                  const compColor = getCompetitionColor(m.competition);
                   return (
                     <TooltipProvider key={m.id} delayDuration={150}>
                       <Tooltip>
@@ -301,7 +304,7 @@ export function AnnualTimelineView({
                               left: `${offsetPct}%`,
                               top: "50%",
                               transform: `translate(-50%, -50%)`,
-                              backgroundColor: cat.color,
+                              backgroundColor: compColor.hex,
                               width: "22px",
                               height: "22px",
                               zIndex: 10,
@@ -319,11 +322,11 @@ export function AnnualTimelineView({
                         <TooltipContent side="top" className="max-w-xs p-2">
                           <div className="space-y-1">
                             <p className="font-bold text-xs flex items-center gap-1">
-                              <Trophy className="h-3 w-3" />
+                              <Trophy className="h-3 w-3" style={{ color: compColor.hex }} />
                               {m.opponent || "Compétition"}
                             </p>
                             {m.competition && (
-                              <p className="text-[11px] text-muted-foreground">{m.competition}</p>
+                              <p className="text-[11px] font-medium" style={{ color: compColor.hex }}>{m.competition}</p>
                             )}
                             <p className="text-[10px] text-muted-foreground">
                               {format(md, "EEEE dd MMMM yyyy", { locale: fr })}
@@ -334,6 +337,7 @@ export function AnnualTimelineView({
                     </TooltipProvider>
                   );
                 })}
+
 
                 {/* Cycle blocks with macrocycle badge */}
                 {sortedCycles.map((cycle) => {
