@@ -362,44 +362,70 @@ export const exportElementToPdf = async (
   options: PdfExportOptions
 ): Promise<void> => {
   const { title, subtitle = "", orientation = "portrait", filename } = options;
-  
-  const canvas = await html2canvas(element, {
-    scale: 2,
-    useCORS: true,
-    allowTaint: true,
-    backgroundColor: "#ffffff",
-  });
-  
-  const imgData = canvas.toDataURL("image/png");
+
   const pdf = new jsPDF({
     orientation,
     unit: "mm",
     format: "a4",
   });
-  
+
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
   const margin = 10;
-  
-  // Header
-  const headerY = drawPdfHeader(pdf, title, subtitle, format(new Date(), "dd/MM/yyyy HH:mm", { locale: fr }));
+  const contentWidth = pageWidth - margin * 2;
+  const pageBottom = pageHeight - margin;
+  const sectionGap = 4;
+  const exportedAt = format(new Date(), "dd/MM/yyyy HH:mm", { locale: fr });
 
-  // Calculate image dimensions
-  const imgWidth = pageWidth - margin * 2;
-  const imgHeight = (canvas.height * imgWidth) / canvas.width;
-  const availableHeight = pageHeight - headerY - margin;
+  const drawHeader = () => drawPdfHeader(pdf, title, subtitle, exportedAt);
+  let yPos = drawHeader();
+  const contentTop = yPos;
 
-  if (imgHeight <= availableHeight) {
-    pdf.addImage(imgData, "PNG", margin, headerY, imgWidth, imgHeight);
-  } else {
-    // Slice source canvas by page to avoid cutting content mid-element
-    const pxPerMm = canvas.width / imgWidth;
-    const pageSlicePx = Math.floor(availableHeight * pxPerMm);
+  const capture = (target: HTMLElement) => html2canvas(target, {
+    scale: 2,
+    useCORS: true,
+    allowTaint: true,
+    backgroundColor: "#ffffff",
+    windowWidth: Math.max(1280, document.documentElement.scrollWidth, element.scrollWidth),
+  });
+
+  const newPage = () => {
+    pdf.addPage();
+    yPos = drawHeader();
+  };
+
+  const addCanvas = (canvas: HTMLCanvasElement) => {
+    const imgHeight = (canvas.height * contentWidth) / canvas.width;
+
+    // Normal case: keep this logical section together on one page.
+    if (imgHeight <= pageBottom - yPos) {
+      pdf.addImage(canvas.toDataURL("image/png"), "PNG", margin, yPos, contentWidth, imgHeight);
+      yPos += imgHeight + sectionGap;
+      return;
+    }
+
+    if (yPos > contentTop && imgHeight <= pageBottom - contentTop) {
+      newPage();
+      pdf.addImage(canvas.toDataURL("image/png"), "PNG", margin, yPos, contentWidth, imgHeight);
+      yPos += imgHeight + sectionGap;
+      return;
+    }
+
+    // Fallback only for sections taller than a page: slice this section, not the whole document.
+    const pxPerMm = canvas.width / contentWidth;
     let sourceY = 0;
-    let firstPage = true;
 
     while (sourceY < canvas.height) {
-      const sliceHeightPx = Math.min(pageSlicePx, canvas.height - sourceY);
+      let availableHeightMm = pageBottom - yPos;
+      if (availableHeightMm < 30) {
+        newPage();
+        availableHeightMm = pageBottom - yPos;
+      }
+
+      const sliceHeightPx = Math.min(
+        Math.floor(availableHeightMm * pxPerMm),
+        canvas.height - sourceY,
+      );
       const sliceCanvas = document.createElement("canvas");
       sliceCanvas.width = canvas.width;
       sliceCanvas.height = sliceHeightPx;
@@ -412,20 +438,28 @@ export const exportElementToPdf = async (
         0, sourceY, canvas.width, sliceHeightPx,
         0, 0, canvas.width, sliceHeightPx,
       );
-      const sliceData = sliceCanvas.toDataURL("image/png");
+
       const sliceHeightMm = sliceHeightPx / pxPerMm;
-
-      if (!firstPage) {
-        pdf.addPage();
-      }
-      const y = firstPage ? headerY : 15;
-      pdf.addImage(sliceData, "PNG", margin, y, imgWidth, sliceHeightMm);
-
+      pdf.addImage(sliceCanvas.toDataURL("image/png"), "PNG", margin, yPos, contentWidth, sliceHeightMm);
+      yPos += sliceHeightMm + sectionGap;
       sourceY += sliceHeightPx;
-      firstPage = false;
+
+      if (sourceY < canvas.height) {
+        newPage();
+      }
     }
+  };
+
+  const sections = Array.from(element.querySelectorAll<HTMLElement>("[data-pdf-section]"))
+    .filter((section) => section.offsetWidth > 0 && section.offsetHeight > 0);
+
+  const targets = sections.length > 0 ? sections : [element];
+
+  for (const target of targets) {
+    const canvas = await capture(target);
+    addCanvas(canvas);
   }
-  
+
   // Save
   const pdfFilename = filename || `${title.toLowerCase().replace(/\s+/g, "-")}-${format(new Date(), "yyyy-MM-dd")}.pdf`;
   pdf.save(pdfFilename);
