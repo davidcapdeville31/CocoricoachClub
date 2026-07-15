@@ -3,6 +3,8 @@ import { format, startOfMonth, endOfMonth, getDay, eachDayOfInterval, isToday } 
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { getCompetitionColor } from "@/lib/constants/competitionColors";
+
 
 interface PeriodizationCycle {
   id: string;
