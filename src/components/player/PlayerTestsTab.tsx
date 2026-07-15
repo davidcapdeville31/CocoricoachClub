@@ -260,20 +260,34 @@ export function PlayerTestsTab({ playerId, categoryId, sportType }: PlayerTestsT
                       <TableHead>Date</TableHead>
                       <TableHead>Test</TableHead>
                       <TableHead>Résultat</TableHead>
+                      <TableHead>Note (barème)</TableHead>
                       <TableHead>Notes</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {tests.slice().reverse().map((test) => (
-                      <TableRow key={test.id}>
-                        <TableCell>{new Date(test.test_date).toLocaleDateString("fr-FR")}</TableCell>
-                        <TableCell>{getTestLabel(test.test_category, test.test_type)}</TableCell>
-                        <TableCell className="font-semibold text-primary">
-                          {test.result_value} {test.result_unit || ""}
-                        </TableCell>
-                        <TableCell className="max-w-[150px] truncate">{cleanNotes(test.notes)}</TableCell>
-                      </TableRow>
-                    ))}
+                    {tests.slice().reverse().map((test) => {
+                      const note = resolveNote(test);
+                      return (
+                        <TableRow key={test.id}>
+                          <TableCell>{new Date(test.test_date).toLocaleDateString("fr-FR")}</TableCell>
+                          <TableCell>{getTestLabel(test.test_category, test.test_type)}</TableCell>
+                          <TableCell className="font-semibold text-primary">
+                            {test.result_value} {test.result_unit || ""}
+                          </TableCell>
+                          <TableCell>
+                            {note ? (
+                              <Badge variant="secondary" className="font-semibold">
+                                {note.label || `${note.pts} pt${note.pts > 1 ? "s" : ""}`}
+                                {note.label && <span className="ml-1 opacity-70">· {note.pts} pt{note.pts > 1 ? "s" : ""}</span>}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted-foreground text-xs">—</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="max-w-[150px] truncate">{cleanNotes(test.notes)}</TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
