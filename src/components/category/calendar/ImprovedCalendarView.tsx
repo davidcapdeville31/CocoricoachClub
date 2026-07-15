@@ -57,7 +57,9 @@ interface Match {
   location: string | null;
   is_home: boolean | null;
   end_date?: string | null;
+  competition?: string | null;
 }
+
 
 interface ImprovedCalendarViewProps {
   sessions: Session[];
