@@ -15,6 +15,10 @@ import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { cn } from "@/lib/utils";
 import { getTestCategoriesForSport, TestCategory } from "@/lib/constants/testCategories";
 import { BatteryRadarCharts } from "@/components/category/tests/GenericTestsSection";
+import { computePoints, findMatchingRange, type ScoringScale, type PlayerForScoring } from "@/lib/constants/testUnits";
+import { getPositionGroupsForSport, playerBelongsToGroup } from "@/lib/constants/sportPositionGroups";
+import { Badge } from "@/components/ui/badge";
+import { normalizeCustomTestType } from "@/components/category/tests/customTestCatalog";
 
 /** Strip technical metadata (Session ID, HTML comments) from notes for display */
 function cleanNotes(notes: string | null): string {
