@@ -50,6 +50,7 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
   const [playerId, setPlayerId] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [notes, setNotes] = useState("");
+  const [weightKg, setWeightKg] = useState("");
   const [hasSpecificPain, setHasSpecificPain] = useState(false);
   const [painEntries, setPainEntries] = useState<BodyPainEntry[]>([]);
   const [hrvData, setHrvData] = useState<HrvData>(emptyHrvData);
@@ -109,6 +110,7 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
     setPlayerId("");
     setDate(new Date().toISOString().split("T")[0]);
     setNotes("");
+    setWeightKg("");
     setHasSpecificPain(false);
     setPainEntries([]);
     setHrvData(emptyHrvData);
@@ -178,6 +180,19 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
           zone5_minutes: hrvData.zone5_minutes ? parseFloat(hrvData.zone5_minutes) : null,
         });
         if (hrvError) console.error("HRV save error:", hrvError);
+      }
+
+      // Save weight into body_composition (single source of truth for anthropo)
+      const w = parseFloat(weightKg);
+      if (!isNaN(w) && w > 0) {
+        const { error: bcError } = await supabase.from("body_composition").insert({
+          player_id: playerId,
+          category_id: categoryId,
+          measurement_date: date,
+          weight_kg: w,
+          notes: "Saisie via wellness",
+        });
+        if (bcError) console.error("Body composition save error:", bcError);
       }
 
       return playerName;
@@ -368,6 +383,27 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
               categoryId={categoryId}
               disabled={!hasSpecificPain}
             />
+          </div>
+
+          {/* Poids du corps (optionnel) — met à jour l'anthropométrie */}
+          <div className="space-y-2 p-4 bg-muted/50 rounded-lg">
+            <Label htmlFor="wellness-weight" className="flex items-center gap-1.5">
+              ⚖️ Poids du corps (kg) — optionnel
+            </Label>
+            <Input
+              id="wellness-weight"
+              type="number"
+              step="0.1"
+              min="20"
+              max="250"
+              placeholder="Ex: 82.5"
+              value={weightKg}
+              onChange={(e) => setWeightKg(e.target.value)}
+              className="max-w-[180px]"
+            />
+            <p className="text-xs text-muted-foreground">
+              Enregistré dans le suivi anthropométrique — utilisé pour les tests en ratio du poids de corps.
+            </p>
           </div>
 
           {/* HRV Section (optional) */}

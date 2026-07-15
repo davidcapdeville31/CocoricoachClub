@@ -62,6 +62,7 @@ export function UnifiedTestDialog({
   const [customTestUnit, setCustomTestUnit] = useState("");
   const [isCustom, setIsCustom] = useState(false);
   const [saveAsGpsVmax, setSaveAsGpsVmax] = useState(false);
+  const [ratioInputMode, setRatioInputMode] = useState<"kg" | "ratio">("kg");
   const queryClient = useQueryClient();
   const guard = useSeasonGuard(categoryId);
 
@@ -103,6 +104,7 @@ export function UnifiedTestDialog({
 
   const AVAILABLE_UNITS = [
     { value: "kg", label: "Kilogrammes (kg)" },
+    { value: "× PDC", label: "Ratio poids du corps (× PDC)" },
     { value: "N", label: "Newton (N)" },
     { value: "cm", label: "Centimètres (cm)" },
     { value: "m", label: "Mètres (m)" },
@@ -197,6 +199,33 @@ export function UnifiedTestDialog({
     return isValidFormulaConfig(cfg) ? cfg : null;
   }, [currentTest, customTests]);
 
+  // Detect ratio-based tests (unit "× PDC" or legacy "x PDC")
+  const currentUnit = (currentTest?.unit || customTestUnit || "").trim();
+  const isRatioTest = currentUnit === "× PDC" || currentUnit === "x PDC" || currentUnit === "×PDC";
+
+  // Fetch latest bodyweight for each effective player (used for ratio auto-compute)
+  const effectivePlayerIds = useMemo(() => effectivePlayers.map(p => p.id), [effectivePlayers]);
+  const { data: latestWeights } = useQuery({
+    queryKey: ["latest-weights", categoryId, effectivePlayerIds.sort().join(",")],
+    enabled: isRatioTest && effectivePlayerIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("body_composition")
+        .select("player_id, weight_kg, measurement_date")
+        .in("player_id", effectivePlayerIds)
+        .not("weight_kg", "is", null)
+        .order("measurement_date", { ascending: false });
+      if (error) throw error;
+      const map: Record<string, number> = {};
+      for (const row of (data || []) as any[]) {
+        if (row.weight_kg != null && map[row.player_id] === undefined) {
+          map[row.player_id] = Number(row.weight_kg);
+        }
+      }
+      return map;
+    },
+  });
+
   // Compute GPS values for sprint tests
   const computeSprintGpsValues = (timeStr: string) => {
     const time = parseFloat(timeStr);
@@ -228,15 +257,28 @@ export function UnifiedTestDialog({
 
       const inserts = effectivePlayers
         .filter(player => playerResults[player.id])
-        .map(player => ({
-          player_id: player.id, category_id: categoryId, test_date: date,
-          test_category: testCategory, test_type: testType,
-          result_value: parseFloat(playerResults[player.id]),
-          result_unit: currentTest?.unit || customTestUnit || "",
-          secondary_value: playerSecondaryResults[player.id] ? parseFloat(playerSecondaryResults[player.id]) : null,
-          secondary_unit: (isStrengthTest && playerSecondaryResults[player.id]) ? "m/s" : null,
-          notes: `Session ID: ${sessionData.id}` + (notes ? `\n${notes}` : ""),
-        }));
+        .map(player => {
+          const rawInput = parseFloat(playerResults[player.id]);
+          let finalValue = rawInput;
+          let ratioNote = "";
+          if (isRatioTest && ratioInputMode === "kg") {
+            const w = latestWeights?.[player.id];
+            if (!w || w <= 0) {
+              throw new Error(`Poids manquant pour ${player.first_name || ""} ${player.name} — saisis un poids anthropo ou passe en mode "Ratio direct".`);
+            }
+            finalValue = Math.round((rawInput / w) * 1000) / 1000;
+            ratioNote = ` [Ratio auto: ${rawInput}kg / ${w}kg = ${finalValue}× PDC]`;
+          }
+          return {
+            player_id: player.id, category_id: categoryId, test_date: date,
+            test_category: testCategory, test_type: testType,
+            result_value: finalValue,
+            result_unit: isRatioTest ? "× PDC" : (currentTest?.unit || customTestUnit || ""),
+            secondary_value: playerSecondaryResults[player.id] ? parseFloat(playerSecondaryResults[player.id]) : null,
+            secondary_unit: (isStrengthTest && playerSecondaryResults[player.id]) ? "m/s" : null,
+            notes: `Session ID: ${sessionData.id}` + (notes ? `\n${notes}` : "") + ratioNote,
+          };
+        });
 
       if (inserts.length === 0) throw new Error("Aucun résultat saisi");
       if (!guard.assertPlayers(inserts.map((i) => i.player_id))) throw new Error("guard:players");
@@ -393,34 +435,79 @@ export function UnifiedTestDialog({
             {effectivePlayers.length > 0 && ((isCustom && customTestName && customTestUnit) || selectedTest) && currentTest && (
               <div className="space-y-2">
                 <Label>
-                  Résultats {currentTest.unit && `(${currentTest.unit})`}
+                  Résultats {currentTest.unit && `(${isRatioTest && ratioInputMode === "kg" ? "kg soulevés → auto × PDC" : currentTest.unit})`}
                   {showSecondaryField && " + Vitesse barre (m/s, optionnel)"}
                   {" "}- {filledResultsCount}/{effectivePlayers.length} saisis
                 </Label>
+
+                {isRatioTest && (
+                  <div className="flex flex-col gap-2 rounded-lg border border-primary/30 bg-primary/5 p-3">
+                    <div className="text-xs font-semibold">⚖️ Test en ratio du poids de corps</div>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button" size="sm"
+                        variant={ratioInputMode === "kg" ? "default" : "outline"}
+                        onClick={() => setRatioInputMode("kg")}
+                      >
+                        Saisir la charge (kg) → ratio auto
+                      </Button>
+                      <Button
+                        type="button" size="sm"
+                        variant={ratioInputMode === "ratio" ? "default" : "outline"}
+                        onClick={() => setRatioInputMode("ratio")}
+                      >
+                        Saisir le ratio directement
+                      </Button>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">
+                      {ratioInputMode === "kg"
+                        ? "La charge est divisée par le dernier poids anthropo enregistré. Le barème s'applique sur le ratio (× PDC)."
+                        : "Saisis directement le ratio (ex: 1.5 = 1.5× le poids de corps)."}
+                    </p>
+                  </div>
+                )}
+
                 <ScrollArea className="max-h-[300px] border rounded-md">
                   <div className="p-3 space-y-2 bg-muted/30">
                     {effectivePlayers.map((player) => {
-                      const gpsValues = showGpsPreview && playerResults[player.id] 
-                        ? computeSprintGpsValues(playerResults[player.id]) 
+                      const gpsValues = showGpsPreview && playerResults[player.id]
+                        ? computeSprintGpsValues(playerResults[player.id])
                         : null;
-                      
+                      const pWeight = isRatioTest ? latestWeights?.[player.id] : undefined;
+                      const rawKg = parseFloat(playerResults[player.id] || "");
+                      const ratioPreview = (isRatioTest && ratioInputMode === "kg" && pWeight && !isNaN(rawKg))
+                        ? Math.round((rawKg / pWeight) * 100) / 100
+                        : null;
+
                       return (
                         <div key={player.id} className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm flex-1 truncate min-w-0">{player.name}</span>
-                            <Input 
-                              type="number" step="0.01" 
-                              value={playerResults[player.id] || ""} 
-                              onChange={(e) => updatePlayerResult(player.id, e.target.value)} 
-                              placeholder={currentTest.unit || "valeur"} 
-                              className="w-24 h-8 text-sm" 
+                            <span className="text-sm flex-1 truncate min-w-0">
+                              {player.name}
+                              {isRatioTest && (
+                                <span className="ml-2 text-[11px] text-muted-foreground">
+                                  {pWeight ? `(${pWeight} kg)` : <span className="text-destructive">⚠ poids manquant</span>}
+                                </span>
+                              )}
+                            </span>
+                            <Input
+                              type="number" step="0.01"
+                              value={playerResults[player.id] || ""}
+                              onChange={(e) => updatePlayerResult(player.id, e.target.value)}
+                              placeholder={isRatioTest ? (ratioInputMode === "kg" ? "kg" : "× PDC") : (currentTest.unit || "valeur")}
+                              className="w-24 h-8 text-sm"
                             />
+                            {ratioPreview !== null && (
+                              <span className="text-[11px] font-semibold text-primary whitespace-nowrap">
+                                = {ratioPreview}× PDC
+                              </span>
+                            )}
                             {showSecondaryField && (
-                              <Input 
-                                type="number" step="0.01" 
-                                value={playerSecondaryResults[player.id] || ""} 
-                                onChange={(e) => updatePlayerSecondaryResult(player.id, e.target.value)} 
-                                placeholder="m/s" 
+                              <Input
+                                type="number" step="0.01"
+                                value={playerSecondaryResults[player.id] || ""}
+                                onChange={(e) => updatePlayerSecondaryResult(player.id, e.target.value)}
+                                placeholder="m/s"
                                 className="w-20 h-8 text-sm" 
                               />
                             )}
