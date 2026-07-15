@@ -107,8 +107,9 @@ export function MatchVignette({
         {isHovered && !isViewer && (onNotify || onStats || onDelete) && (
           <div className={cn(
             "absolute inset-0 flex items-center justify-center gap-2 rounded-lg z-[100] animate-fade-in",
-            color.bgHover.replace("hover:", "")
+            color.bgSolidDark
           )}>
+
             {onNotify && (
               <button
                 onClick={handleNotifyClick}
