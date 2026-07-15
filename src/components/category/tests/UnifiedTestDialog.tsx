@@ -559,6 +559,19 @@ export function UnifiedTestDialog({
                               />
                             )}
                           </div>
+                          {noteInfo && noteInfo.range && (
+                            <div className="flex items-center gap-2 ml-4 text-[11px]">
+                              <Badge variant="secondary" className="font-semibold">
+                                {noteInfo.range.label || `${noteInfo.pts} pt${noteInfo.pts > 1 ? "s" : ""}`}
+                                {noteInfo.range.label && <span className="ml-1 opacity-70">· {noteInfo.pts} pt{noteInfo.pts > 1 ? "s" : ""}</span>}
+                              </Badge>
+                              <span className="text-muted-foreground italic">
+                                {playerScoringProfiles[player.id]?.positionGroup
+                                  ? `barème ${getPositionGroupsForSport(sportType).find(g => g.id === playerScoringProfiles[player.id]?.positionGroup)?.label || "poste"}`
+                                  : "barème par défaut"}
+                              </span>
+                            </div>
+                          )}
                           {/* GPS preview for sprint tests */}
                           {gpsValues && (
                             <div className="flex items-center gap-3 ml-4 text-xs text-muted-foreground">
