@@ -4,6 +4,8 @@ import { Plus, Clock, MapPin, ChevronRight, Zap, Calendar, Users, Trash2 } from 
 import { Button } from "@/components/ui/button";
 import { TRAINING_TYPE_COLORS } from "@/lib/constants/trainingTypes";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
+import { getCompetitionColor } from "@/lib/constants/competitionColors";
+
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
