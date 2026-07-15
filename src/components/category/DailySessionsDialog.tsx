@@ -160,7 +160,9 @@ export function DailySessionsDialog({
           ) : (
             <div className="space-y-2">
               {/* Matches */}
-              {sortedMatches.map((match) => (
+              {sortedMatches.map((match) => {
+                const compColor = getCompetitionColor(match.competition);
+                return (
                 <div
                   key={match.id}
                   className="group flex items-center gap-3 p-3 rounded-xl hover:bg-accent/50 cursor-pointer transition-all"
@@ -178,14 +180,14 @@ export function DailySessionsDialog({
                   </div>
 
                   {/* Indicator */}
-                  <div className="w-1 h-10 rounded-full bg-rose-500 shrink-0" />
+                  <div className={cn("w-1 h-10 rounded-full shrink-0", compColor.bg)} />
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-rose-600 uppercase">Match</span>
+                      <span className={cn("text-xs font-medium uppercase", compColor.softText)}>Match</span>
                       {match.competition && (
-                        <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
+                        <Badge className={cn("text-[10px] h-4 px-1.5 border-0", compColor.bg, "text-white")}>
                           {match.competition}
                         </Badge>
                       )}
