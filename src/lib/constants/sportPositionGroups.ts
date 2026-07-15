@@ -95,100 +95,165 @@ export const RUGBY_XIII_POSITION_GROUPS: PositionGroup[] = [
   },
 ];
 
-// Football position groups
+// Football position groups (granular)
 export const FOOTBALL_POSITION_GROUPS: PositionGroup[] = [
   {
     id: "gardiens",
     label: "Gardiens",
-    positions: ["Gardien", "gardien", "goal", "goalkeeper"],
+    positions: ["Gardien", "gardien", "goal", "goalkeeper", "portier"],
   },
   {
-    id: "defenseurs",
-    label: "Défenseurs",
+    id: "defenseurs_centraux",
+    label: "Défenseurs centraux",
     positions: [
-      "Latéral droit", "Latéral gauche", "Défenseur central",
-      "défenseur", "arrière", "latéral", "central", "libero"
+      "Défenseur central", "défenseur central",
+      "central", "stoppeur", "libero", "libéro",
     ],
   },
   {
-    id: "milieux",
-    label: "Milieux",
+    id: "lateraux",
+    label: "Latéraux (droit/gauche)",
     positions: [
-      "Milieu défensif", "Milieu droit", "Milieu gauche",
-      "milieu", "meneur", "récupérateur", "relayeur"
+      "Latéral droit", "Latéral gauche", "latéral", "lateral",
+      "arrière droit", "arrière gauche", "piston", "arrière latéral",
+    ],
+  },
+  {
+    id: "milieux_defensifs",
+    label: "Milieux défensifs / récupérateurs",
+    positions: [
+      "Milieu défensif", "milieu défensif", "milieu defensif",
+      "récupérateur", "recuperateur", "sentinelle", "n°6", "n6",
+    ],
+  },
+  {
+    id: "milieux_offensifs",
+    label: "Milieux offensifs / relayeurs",
+    positions: [
+      "Milieu offensif", "milieu offensif", "meneur", "meneur de jeu",
+      "relayeur", "n°10", "n10", "milieu axial", "milieu central",
+    ],
+  },
+  {
+    id: "ailiers",
+    label: "Ailiers (droit/gauche)",
+    positions: [
+      "Ailier droit", "Ailier gauche", "ailier", "winger",
+      "milieu droit", "milieu gauche",
     ],
   },
   {
     id: "attaquants",
-    label: "Attaquants",
+    label: "Attaquants / avant-centres",
     positions: [
-      "Attaquant", "Ailier droit", "Ailier gauche",
-      "attaquant", "avant-centre", "buteur", "ailier"
+      "Attaquant", "attaquant", "avant-centre", "avant centre",
+      "buteur", "n°9", "n9", "second attaquant", "seconde pointe",
     ],
   },
 ];
 
-// Handball position groups
+// Handball position groups (granular)
 export const HANDBALL_POSITION_GROUPS: PositionGroup[] = [
   {
     id: "gardiens",
     label: "Gardiens",
-    positions: ["Gardien", "gardien"],
+    positions: ["Gardien", "gardien", "goal"],
   },
   {
-    id: "arrieres",
-    label: "Arrières",
-    positions: ["Arrière gauche", "Arrière droit", "arrière"],
+    id: "ailier_gauche",
+    label: "Ailier gauche",
+    positions: ["Ailier gauche", "ailier gauche", "AG"],
   },
   {
-    id: "ailiers",
-    label: "Ailiers",
-    positions: ["Ailier gauche", "Ailier droit", "ailier"],
+    id: "ailier_droit",
+    label: "Ailier droit",
+    positions: ["Ailier droit", "ailier droit", "AD"],
+  },
+  {
+    id: "arriere_gauche",
+    label: "Arrière gauche",
+    positions: ["Arrière gauche", "arrière gauche", "ARG"],
+  },
+  {
+    id: "arriere_droit",
+    label: "Arrière droit",
+    positions: ["Arrière droit", "arrière droit", "ARD"],
+  },
+  {
+    id: "demi_centre",
+    label: "Demi-centre",
+    positions: ["Demi-centre", "demi-centre", "demi centre", "DC"],
   },
   {
     id: "pivots",
-    label: "Pivots/Centres",
-    positions: ["Pivot", "Demi-centre", "pivot", "demi-centre"],
+    label: "Pivot",
+    positions: ["Pivot", "pivot"],
   },
 ];
 
-// Basketball position groups
+// Basketball position groups (granular by numbered position)
 export const BASKETBALL_POSITION_GROUPS: PositionGroup[] = [
   {
-    id: "guards",
-    label: "Guards",
-    positions: ["Meneur (Point Guard)", "Arrière (Shooting Guard)", "meneur", "arrière", "guard"],
+    id: "meneurs",
+    label: "Meneur (1 - Point Guard)",
+    positions: ["Meneur (Point Guard)", "Meneur", "meneur", "point guard", "PG", "n°1", "n1"],
   },
   {
-    id: "forwards",
-    label: "Ailiers",
-    positions: ["Ailier (Small Forward)", "Ailier fort (Power Forward)", "ailier", "forward"],
+    id: "arrieres",
+    label: "Arrière (2 - Shooting Guard)",
+    positions: ["Arrière (Shooting Guard)", "Arrière", "arrière", "shooting guard", "SG", "n°2", "n2"],
   },
   {
-    id: "centers",
-    label: "Pivots",
-    positions: ["Pivot (Center)", "pivot", "center"],
+    id: "ailiers",
+    label: "Ailier (3 - Small Forward)",
+    positions: ["Ailier (Small Forward)", "Ailier", "ailier", "small forward", "SF", "n°3", "n3"],
+  },
+  {
+    id: "ailiers_forts",
+    label: "Ailier fort (4 - Power Forward)",
+    positions: ["Ailier fort (Power Forward)", "Ailier fort", "ailier fort", "power forward", "PF", "n°4", "n4"],
+  },
+  {
+    id: "pivots",
+    label: "Pivot (5 - Center)",
+    positions: ["Pivot (Center)", "Pivot", "pivot", "center", "n°5", "n5"],
   },
 ];
 
-// Volleyball position groups
+// Volleyball position groups (granular)
 export const VOLLEYBALL_POSITION_GROUPS: PositionGroup[] = [
   {
-    id: "setters",
+    id: "passeurs",
     label: "Passeurs",
-    positions: ["passeur", "setter"],
+    positions: ["Passeur", "passeur", "setter"],
   },
   {
-    id: "hitters",
-    label: "Attaquants",
-    positions: ["Avant droit (P2)", "Avant centre (P3)", "Avant gauche (P4)", "attaquant", "pointu", "réceptionneur"],
+    id: "centraux",
+    label: "Centraux",
+    positions: ["Central", "central", "middle blocker", "contre central"],
+  },
+  {
+    id: "pointus",
+    label: "Pointus / Opposites",
+    positions: ["Pointu", "pointu", "opposite", "opposé", "oppose"],
+  },
+  {
+    id: "receptionneurs",
+    label: "Réceptionneurs-attaquants",
+    positions: [
+      "Réceptionneur", "réceptionneur", "receptionneur",
+      "réceptionneur-attaquant", "receptionneur-attaquant",
+      "attaquant réceptionneur", "outside hitter",
+      "Avant droit (P2)", "Avant centre (P3)", "Avant gauche (P4)",
+    ],
   },
   {
     id: "liberos",
     label: "Liberos",
-    positions: ["libero", "Arrière centre (P6)"],
+    positions: ["Libero", "libero", "libéro", "Arrière centre (P6)"],
   },
 ];
+
 
 // Get position groups for a sport
 export function getPositionGroupsForSport(sportType: string | undefined): PositionGroup[] {
