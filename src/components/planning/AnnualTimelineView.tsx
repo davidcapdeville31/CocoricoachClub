@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Target, Flame, Activity, Trophy, Dumbbell } from "lucide-react";
+import { getCompetitionColor } from "@/lib/constants/competitionColors";
+
 
 interface PeriodizationCategory {
   id: string;
