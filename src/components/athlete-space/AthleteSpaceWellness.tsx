@@ -117,6 +117,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
   const [showHrv, setShowHrv] = useState(false);
   const [hrvMs, setHrvMs] = useState("");
   const [restingHr, setRestingHr] = useState("");
+  const [weightKg, setWeightKg] = useState("");
 
   const [touched, setTouched] = useState<Set<string>>(new Set());
 
@@ -250,6 +251,19 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
           console.error("HRV insert error:", hrvError);
           toast.error("Wellness enregistré mais erreur HRV");
         }
+      }
+
+      // Save weight into body_composition (optional)
+      const w = parseFloat(weightKg);
+      if (!isNaN(w) && w > 0) {
+        const { error: bcError } = await supabase.from("body_composition").insert({
+          player_id: playerId,
+          category_id: categoryId,
+          measurement_date: selectedDateStr,
+          weight_kg: w,
+          notes: "Auto-suivi via portail athlète",
+        });
+        if (bcError) console.error("Body composition save error:", bcError);
       }
     },
     onSuccess: () => {
@@ -663,6 +677,25 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
               </div>
             )}
           </div>
+
+          {/* Poids du corps (optionnel) */}
+          <div className="space-y-1">
+            <Label className="text-xs flex items-center gap-1.5">
+              ⚖️ Mon poids du jour (kg) — optionnel
+            </Label>
+            <Input
+              type="number"
+              step="0.1"
+              min="20"
+              max="250"
+              placeholder="Ex: 82.5"
+              value={weightKg}
+              onChange={(e) => setWeightKg(e.target.value)}
+              className="h-8 text-sm max-w-[140px]"
+            />
+          </div>
+
+
 
           <Button
             onClick={() => {
