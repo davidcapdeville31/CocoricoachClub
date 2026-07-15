@@ -272,29 +272,29 @@ export function AnnualIntensityVolumeChart({ periodStart, periodEnd, categories,
                     Détail des cycles
                   </h4>
                 )}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 items-start">
                   {row.map((b) => (
                     <div
                       key={b.id}
-                      className="flex items-start gap-2 p-2 rounded-lg border bg-background/50"
+                      className="flex items-start gap-2 p-3 rounded-lg border bg-background/50 min-h-fit overflow-visible"
                       style={{ borderLeftColor: b.color, borderLeftWidth: 3 }}
                     >
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-semibold truncate">{b.cycleName}</span>
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <div className="flex flex-wrap items-start gap-1.5">
+                          <span className="text-xs font-semibold leading-snug break-words min-w-0">{b.cycleName}</span>
                           {b.categoryName && (
                             <span
-                              className="text-[10px] px-1.5 py-0.5 rounded"
+                              className="text-[10px] px-1.5 py-0.5 rounded leading-tight shrink-0"
                               style={{ backgroundColor: `${b.color}20`, color: b.color }}
                             >
                               {b.categoryName}
                             </span>
                           )}
                         </div>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">
+                        <p className="text-[10px] text-muted-foreground leading-relaxed">
                           {format(new Date(b.start_date), "dd MMM", { locale: fr })} → {format(new Date(b.end_date), "dd MMM yyyy", { locale: fr })}
                         </p>
-                        <div className="flex gap-3 mt-1 text-[10px]">
+                        <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] leading-relaxed">
                           {b.intensity != null && (
                             <span className="text-foreground/70">
                               Intensité : <span className="font-semibold text-foreground">{b.intensity}/10</span>
@@ -307,7 +307,7 @@ export function AnnualIntensityVolumeChart({ periodStart, periodEnd, categories,
                           )}
                         </div>
                         {b.objective && (
-                          <p className="text-[10px] text-muted-foreground italic mt-1 line-clamp-2">
+                          <p className="text-[10px] text-muted-foreground italic leading-relaxed break-words whitespace-normal overflow-visible">
                             {b.objective}
                           </p>
                         )}
