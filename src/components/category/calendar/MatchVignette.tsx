@@ -61,6 +61,9 @@ export function MatchVignette({
     }
   };
 
+  const color = getCompetitionColor(match.competition);
+  const compLabel = match.competition?.trim() || null;
+
   return (
     <div
       className={cn(
@@ -75,8 +78,12 @@ export function MatchVignette({
       }}
     >
       <div
-        className="bg-rose-500 text-white text-[11px] px-2 py-1.5 rounded-lg truncate font-medium cursor-pointer hover:bg-rose-600 transition-colors relative overflow-hidden"
-        title={`${match.match_time ? formatTime(match.match_time) + " - " : ""}${match.opponent}`}
+        className={cn(
+          "text-white text-[11px] px-2 py-1.5 rounded-lg truncate font-medium cursor-pointer transition-colors relative overflow-hidden",
+          color.bg,
+          color.bgHover
+        )}
+        title={`${match.match_time ? formatTime(match.match_time) + " - " : ""}${compLabel ? compLabel + " · " : ""}${match.opponent}`}
       >
         {/* Match content - hidden when hovered to show action buttons */}
         <div className={cn(
@@ -89,18 +96,23 @@ export function MatchVignette({
               <span className="opacity-70">•</span>
             </>
           )}
-          <span className="ml-1 opacity-90 truncate">
-            {isIndividualSport(sportType || "") ? "Compét." : match.opponent}
+          <span className="ml-1 opacity-95 truncate">
+            {compLabel
+              ? compLabel
+              : isIndividualSport(sportType || "") ? "Compét." : match.opponent}
           </span>
         </div>
 
-        {/* Hover Actions Overlay - Notify + Delete buttons */}
+        {/* Hover Actions Overlay */}
         {isHovered && !isViewer && (onNotify || onStats || onDelete) && (
-          <div className="absolute inset-0 flex items-center justify-center gap-2 bg-rose-600 rounded-lg z-[100] animate-fade-in">
+          <div className={cn(
+            "absolute inset-0 flex items-center justify-center gap-2 rounded-lg z-[100] animate-fade-in",
+            color.bgHover.replace("hover:", "")
+          )}>
             {onNotify && (
               <button
                 onClick={handleNotifyClick}
-                className="p-1.5 rounded-md hover:bg-rose-500 transition-colors"
+                className="p-1.5 rounded-md hover:bg-white/20 transition-colors"
                 title="Notifier les athlètes"
               >
                 <Bell className="h-4 w-4" />
@@ -109,7 +121,7 @@ export function MatchVignette({
             {onStats && (
               <button
                 onClick={handleStatsClick}
-                className="p-1.5 rounded-md hover:bg-rose-500 transition-colors"
+                className="p-1.5 rounded-md hover:bg-white/20 transition-colors"
                 title="Statistiques du match"
               >
                 <BarChart3 className="h-4 w-4" />
@@ -118,7 +130,7 @@ export function MatchVignette({
             {onDelete && (
               <button
                 onClick={handleDeleteClick}
-                className="p-1.5 rounded-md hover:bg-rose-500 transition-colors flex items-center gap-1"
+                className="p-1.5 rounded-md hover:bg-white/20 transition-colors flex items-center gap-1"
                 title="Supprimer le match"
               >
                 <Trash2 className="h-4 w-4" />
@@ -130,3 +142,4 @@ export function MatchVignette({
     </div>
   );
 }
+
