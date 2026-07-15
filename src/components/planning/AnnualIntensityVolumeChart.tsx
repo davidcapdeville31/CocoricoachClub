@@ -129,6 +129,14 @@ export function AnnualIntensityVolumeChart({ periodStart, periodEnd, categories,
     return list;
   }, [bands]);
 
+  const cycleRows = useMemo(() => {
+    const rows: Array<typeof bands> = [];
+    for (let i = 0; i < bands.length; i += 3) {
+      rows.push(bands.slice(i, i + 3));
+    }
+    return rows;
+  }, [bands]);
+
   const handleExport = async () => {
     if (!exportRef.current) return;
     setExporting(true);
@@ -166,6 +174,7 @@ export function AnnualIntensityVolumeChart({ periodStart, periodEnd, categories,
       </div>
 
       <div ref={exportRef} className="rounded-xl border bg-card p-4 space-y-3">
+        <div data-pdf-section className="space-y-3">
         {/* Légende catégories */}
         {legendCats.length > 0 && (
           <div className="flex flex-wrap gap-3 text-xs">
@@ -247,56 +256,70 @@ export function AnnualIntensityVolumeChart({ periodStart, periodEnd, categories,
             </LineChart>
           </ResponsiveContainer>
         </div>
+        </div>
 
         {/* Détail des cycles pour la compréhension du graphique */}
         {bands.length > 0 && (
-          <div className="border-t pt-3">
-            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-              Détail des cycles
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-              {bands.map((b) => (
-                <div
-                  key={b.id}
-                  className="flex items-start gap-2 p-2 rounded-lg border bg-background/50"
-                  style={{ borderLeftColor: b.color, borderLeftWidth: 3 }}
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold truncate">{b.cycleName}</span>
-                      {b.categoryName && (
-                        <span
-                          className="text-[10px] px-1.5 py-0.5 rounded"
-                          style={{ backgroundColor: `${b.color}20`, color: b.color }}
-                        >
-                          {b.categoryName}
-                        </span>
-                      )}
+          <div className="space-y-2">
+            {cycleRows.map((row, rowIndex) => (
+              <div
+                key={row.map((b) => b.id).join("-")}
+                data-pdf-section
+                className={rowIndex === 0 ? "border-t pt-3 space-y-2" : "space-y-2"}
+              >
+                {rowIndex === 0 && (
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Détail des cycles
+                  </h4>
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                  {row.map((b) => (
+                    <div
+                      key={b.id}
+                      className="flex items-start gap-2 p-2 rounded-lg border bg-background/50"
+                      style={{ borderLeftColor: b.color, borderLeftWidth: 3 }}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-semibold truncate">{b.cycleName}</span>
+                          {b.categoryName && (
+                            <span
+                              className="text-[10px] px-1.5 py-0.5 rounded"
+                              style={{ backgroundColor: `${b.color}20`, color: b.color }}
+                            >
+                              {b.categoryName}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">
+                          {format(new Date(b.start_date), "dd MMM", { locale: fr })} → {format(new Date(b.end_date), "dd MMM yyyy", { locale: fr })}
+                        </p>
+                        <div className="flex gap-3 mt-1 text-[10px]">
+                          {b.intensity != null && (
+                            <span className="text-foreground/70">
+                              Intensité : <span className="font-semibold text-foreground">{b.intensity}/10</span>
+                            </span>
+                          )}
+                          {b.volume != null && (
+                            <span className="text-foreground/70">
+                              Volume : <span className="font-semibold text-foreground">{b.volume}/10</span>
+                            </span>
+                          )}
+                        </div>
+                        {b.objective && (
+                          <p className="text-[10px] text-muted-foreground italic mt-1 line-clamp-2">
+                            {b.objective}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">
-                      {format(new Date(b.start_date), "dd MMM", { locale: fr })} → {format(new Date(b.end_date), "dd MMM yyyy", { locale: fr })}
-                    </p>
-                    <div className="flex gap-3 mt-1 text-[10px]">
-                      {b.intensity != null && (
-                        <span className="text-foreground/70">
-                          Intensité : <span className="font-semibold text-foreground">{b.intensity}/10</span>
-                        </span>
-                      )}
-                      {b.volume != null && (
-                        <span className="text-foreground/70">
-                          Volume : <span className="font-semibold text-foreground">{b.volume}/10</span>
-                        </span>
-                      )}
-                    </div>
-                    {b.objective && (
-                      <p className="text-[10px] text-muted-foreground italic mt-1 line-clamp-2">
-                        {b.objective}
-                      </p>
-                    )}
-                  </div>
+                  ))}
+                  {row.length < 3 && Array.from({ length: 3 - row.length }).map((_, i) => (
+                    <div key={`empty-${rowIndex}-${i}`} className="hidden lg:block" aria-hidden="true" />
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         )}
       </div>

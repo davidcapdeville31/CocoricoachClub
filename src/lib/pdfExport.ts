@@ -379,6 +379,7 @@ export const exportElementToPdf = async (
 
   const drawHeader = () => drawPdfHeader(pdf, title, subtitle, exportedAt);
   let yPos = drawHeader();
+  const contentTop = yPos;
 
   const capture = (target: HTMLElement) => html2canvas(target, {
     scale: 2,
@@ -403,7 +404,7 @@ export const exportElementToPdf = async (
       return;
     }
 
-    if (yPos > 50 && imgHeight <= pageBottom - drawPdfHeader(pdf, title, subtitle, exportedAt)) {
+    if (yPos > contentTop && imgHeight <= pageBottom - contentTop) {
       newPage();
       pdf.addImage(canvas.toDataURL("image/png"), "PNG", margin, yPos, contentWidth, imgHeight);
       yPos += imgHeight + sectionGap;
