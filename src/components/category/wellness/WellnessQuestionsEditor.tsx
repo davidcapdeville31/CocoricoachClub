@@ -94,6 +94,12 @@ export function WellnessQuestionsEditor({ categoryId, hideHeader }: Props) {
 
   const addCustomQuestion = () => {
     const id = `custom_${Date.now()}`;
+    const baseScale = cloneScale(DEFAULT_WELLNESS_QUESTIONS[0].scale);
+    // Default to 3 levels; user can add more via "+ Niveau"
+    const initialScale = [0, 1, 2].map((i) => {
+      const src = baseScale[Math.round((i * (baseScale.length - 1)) / 2)] ?? baseScale[i] ?? baseScale[0];
+      return { ...src, value: i, label: `Niveau ${i + 1}` };
+    });
     const q: WellnessQuestion = {
       key: id,
       label: "Nouvelle question",
@@ -101,13 +107,40 @@ export function WellnessQuestionsEditor({ categoryId, hideHeader }: Props) {
       enabled: true,
       inverted: false,
       is_custom: true,
-      scale: cloneScale(DEFAULT_WELLNESS_QUESTIONS[0].scale).map((l, i) => ({
-        ...l,
-        label: `Niveau ${i + 1}`,
-      })),
+      scale: initialScale,
     };
     setQuestions((prev) => [...prev, q]);
     setExpanded((prev) => ({ ...prev, [id]: true }));
+    setDirty(true);
+  };
+
+  const addScaleLevel = (qIdx: number) => {
+    setQuestions((prev) =>
+      prev.map((q, i) => {
+        if (i !== qIdx) return q;
+        const last = q.scale[q.scale.length - 1];
+        const nextLevel: WellnessScaleLevel = {
+          value: q.scale.length,
+          label: `Niveau ${q.scale.length + 1}`,
+          color: last?.color ?? PRESET_COLORS[0],
+        };
+        return { ...q, scale: [...q.scale, nextLevel] };
+      }),
+    );
+    setDirty(true);
+  };
+
+  const removeScaleLevel = (qIdx: number, levelIdx: number) => {
+    setQuestions((prev) =>
+      prev.map((q, i) => {
+        if (i !== qIdx) return q;
+        if (q.scale.length <= 2) return q; // keep at least 2 levels
+        return {
+          ...q,
+          scale: q.scale.filter((_, li) => li !== levelIdx).map((l, li) => ({ ...l, value: li })),
+        };
+      }),
+    );
     setDirty(true);
   };
 
