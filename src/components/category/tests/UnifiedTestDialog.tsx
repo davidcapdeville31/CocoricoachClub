@@ -322,6 +322,40 @@ export function UnifiedTestDialog({
       const { error } = await supabase.from("generic_tests").insert(inserts);
       if (error) throw error;
 
+      // Sync anthropométrie -> body_composition (Biométrie)
+      const nameLc = (testLabel || "").toLowerCase();
+      const unitLc = (currentTest?.unit || customTestUnit || "").toLowerCase();
+      let bcField: "weight_kg" | "height_cm" | "body_fat_percentage" | "muscle_mass_kg" | null = null;
+      if ((nameLc.includes("poids") || nameLc.includes("weight") || nameLc.includes("masse corporelle")) && unitLc === "kg") bcField = "weight_kg";
+      else if ((nameLc.includes("taille") || nameLc.includes("height")) && unitLc === "cm") bcField = "height_cm";
+      else if ((nameLc.includes("masse grasse") || nameLc.includes("body fat") || nameLc.includes("% gras")) && (unitLc === "%" || unitLc === "percent")) bcField = "body_fat_percentage";
+      else if ((nameLc.includes("masse musculaire") || nameLc.includes("muscle mass")) && unitLc === "kg") bcField = "muscle_mass_kg";
+
+      if (bcField) {
+        for (const row of inserts) {
+          const value = Number(row.result_value);
+          if (!isFinite(value) || value <= 0) continue;
+          const { data: existing } = await supabase
+            .from("body_composition")
+            .select("id")
+            .eq("player_id", row.player_id)
+            .eq("category_id", categoryId)
+            .eq("measurement_date", date)
+            .maybeSingle();
+          if (existing?.id) {
+            await supabase.from("body_composition").update({ [bcField]: value } as any).eq("id", existing.id);
+          } else {
+            await supabase.from("body_composition").insert({
+              player_id: row.player_id,
+              category_id: categoryId,
+              measurement_date: date,
+              [bcField]: value,
+              notes: `Auto depuis test: ${testLabel}`,
+            } as any);
+          }
+        }
+      }
+
       // Save Vmax references for GPS if checkbox is checked
       if (saveAsGpsVmax && sprintDistance) {
         const vmaxInserts = inserts
@@ -362,6 +396,9 @@ export function UnifiedTestDialog({
       }
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["body_composition", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["body_composition"] });
+      queryClient.invalidateQueries({ queryKey: ["latest-weights", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["generic_tests", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["custom-tests-catalog", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
