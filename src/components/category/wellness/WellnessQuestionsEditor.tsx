@@ -94,6 +94,12 @@ export function WellnessQuestionsEditor({ categoryId, hideHeader }: Props) {
 
   const addCustomQuestion = () => {
     const id = `custom_${Date.now()}`;
+    const baseScale = cloneScale(DEFAULT_WELLNESS_QUESTIONS[0].scale);
+    // Default to 3 levels; user can add more via "+ Niveau"
+    const initialScale = [0, 1, 2].map((i) => {
+      const src = baseScale[Math.round((i * (baseScale.length - 1)) / 2)] ?? baseScale[i] ?? baseScale[0];
+      return { ...src, value: i, label: `Niveau ${i + 1}` };
+    });
     const q: WellnessQuestion = {
       key: id,
       label: "Nouvelle question",
@@ -101,13 +107,40 @@ export function WellnessQuestionsEditor({ categoryId, hideHeader }: Props) {
       enabled: true,
       inverted: false,
       is_custom: true,
-      scale: cloneScale(DEFAULT_WELLNESS_QUESTIONS[0].scale).map((l, i) => ({
-        ...l,
-        label: `Niveau ${i + 1}`,
-      })),
+      scale: initialScale,
     };
     setQuestions((prev) => [...prev, q]);
     setExpanded((prev) => ({ ...prev, [id]: true }));
+    setDirty(true);
+  };
+
+  const addScaleLevel = (qIdx: number) => {
+    setQuestions((prev) =>
+      prev.map((q, i) => {
+        if (i !== qIdx) return q;
+        const last = q.scale[q.scale.length - 1];
+        const nextLevel: WellnessScaleLevel = {
+          value: q.scale.length,
+          label: `Niveau ${q.scale.length + 1}`,
+          color: last?.color ?? PRESET_COLORS[0],
+        };
+        return { ...q, scale: [...q.scale, nextLevel] };
+      }),
+    );
+    setDirty(true);
+  };
+
+  const removeScaleLevel = (qIdx: number, levelIdx: number) => {
+    setQuestions((prev) =>
+      prev.map((q, i) => {
+        if (i !== qIdx) return q;
+        if (q.scale.length <= 2) return q; // keep at least 2 levels
+        return {
+          ...q,
+          scale: q.scale.filter((_, li) => li !== levelIdx).map((l, li) => ({ ...l, value: li })),
+        };
+      }),
+    );
     setDirty(true);
   };
 
@@ -254,7 +287,9 @@ export function WellnessQuestionsEditor({ categoryId, hideHeader }: Props) {
                         onCheckedChange={(v) => updateQuestion(idx, { inverted: v })}
                       />
                       <span className="text-xs text-muted-foreground">
-                        {q.inverted ? "1 = très bon · 5 = très mauvais" : "1 = très mauvais · 5 = très bon"}
+                        {q.inverted
+                          ? `1 = très bon · ${q.scale.length} = très mauvais`
+                          : `1 = très mauvais · ${q.scale.length} = très bon`}
                       </span>
                     </div>
                   </div>
@@ -265,19 +300,19 @@ export function WellnessQuestionsEditor({ categoryId, hideHeader }: Props) {
                       <div className="flex items-center gap-1.5">
                         <span className="font-bold text-sm">1</span>
                         <span className="text-muted-foreground">:</span>
-                        <span className="font-medium">{q.scale[0].label}</span>
+                        <span className="font-medium">{q.scale[0]?.label}</span>
                       </div>
                       <span className="text-muted-foreground text-lg">→</span>
                       <div className="flex items-center gap-1.5">
-                        <span className="font-bold text-sm">5</span>
+                        <span className="font-bold text-sm">{q.scale.length}</span>
                         <span className="text-muted-foreground">:</span>
-                        <span className="font-medium">{q.scale[4].label}</span>
+                        <span className="font-medium">{q.scale[q.scale.length - 1]?.label}</span>
                       </div>
                     </div>
                     <p className="text-[10px] text-muted-foreground mt-1 italic">
                       {q.inverted
-                        ? "Le score 1 représente l'état le plus favorable, 5 le moins favorable."
-                        : "Le score 1 représente l'état le moins favorable, 5 le plus favorable."}
+                        ? `Le score 1 représente l'état le plus favorable, ${q.scale.length} le moins favorable.`
+                        : `Le score 1 représente l'état le moins favorable, ${q.scale.length} le plus favorable.`}
                     </p>
                   </div>
 
@@ -311,8 +346,31 @@ export function WellnessQuestionsEditor({ categoryId, hideHeader }: Props) {
                             />
                           ))}
                         </div>
+                        {q.is_custom && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 shrink-0"
+                            onClick={() => removeScaleLevel(idx, lIdx)}
+                            disabled={q.scale.length <= 2}
+                            title="Supprimer ce niveau"
+                          >
+                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                          </Button>
+                        )}
                       </div>
                     ))}
+                    {q.is_custom && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full mt-1"
+                        onClick={() => addScaleLevel(idx)}
+                      >
+                        <Plus className="h-3.5 w-3.5 mr-1.5" />
+                        Ajouter un niveau
+                      </Button>
+                    )}
                   </div>
                 </div>
               )}
