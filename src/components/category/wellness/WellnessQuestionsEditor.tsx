@@ -377,11 +377,6 @@ export function WellnessQuestionsEditor({ categoryId, hideHeader }: Props) {
             </div>
           );
         })}
-                </div>
-              )}
-            </div>
-          );
-        })}
 
         <Button variant="outline" className="w-full" onClick={addCustomQuestion}>
           <Plus className="h-4 w-4 mr-1.5" />
