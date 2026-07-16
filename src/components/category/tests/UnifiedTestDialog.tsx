@@ -396,6 +396,9 @@ export function UnifiedTestDialog({
       }
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["body_composition", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["body_composition"] });
+      queryClient.invalidateQueries({ queryKey: ["latest-weights", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["generic_tests", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["custom-tests-catalog", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
