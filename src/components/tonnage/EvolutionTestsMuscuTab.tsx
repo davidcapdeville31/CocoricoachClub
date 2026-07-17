@@ -4,7 +4,7 @@ import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/color
 import { TonnageDashboard } from "./TonnageDashboard";
 import { PendingWeightLogsValidation } from "./PendingWeightLogsValidation";
 import { PendingTestResultsValidation } from "@/components/category/tests/PendingTestResultsValidation";
-import { PerformanceEvolution } from "@/components/analytics/PerformanceEvolution";
+
 import { BenchmarkPositionMatrix } from "./BenchmarkPositionMatrix";
 import { Weight, TrendingUp } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -71,7 +71,6 @@ export function EvolutionTestsMuscuTab({ categoryId }: EvolutionTestsMuscuTabPro
           <TabsContent value="evolution" className="space-y-4">
             <PendingTestResultsValidation categoryId={categoryId} />
             <BenchmarkPositionMatrix categoryId={categoryId} />
-            <PerformanceEvolution categoryId={categoryId} sportType={sportType} />
           </TabsContent>
         </Tabs>
       </CardContent>
