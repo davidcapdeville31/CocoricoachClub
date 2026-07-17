@@ -706,7 +706,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
       <div className="text-xs text-muted-foreground mt-0.5">
         {testNames.map((name, idx) => <div key={idx}>📋 {name}</div>)}
         {results.map((r, idx) => (
-          <div key={`r-${idx}`}>✅ {r.test_type}: {r.result_value} {r.result_unit || ""}</div>
+          <div key={`r-${idx}`}>✅ {labelizeTestType(r.test_type, customTestMap)}: {r.result_value} {r.result_unit || ""}</div>
         ))}
       </div>
     );
