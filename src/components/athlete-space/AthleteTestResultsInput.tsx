@@ -123,10 +123,12 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
           const existing = pending.find(
             (p) => p.test_category === t.test_category && p.test_type === t.test_type,
           );
+          const testLabel = labelizeTestType(t.test_type, customMap);
+          const unit = t.result_unit || (t.test_type?.startsWith("custom:") ? customMap[t.test_type]?.unit || "" : "");
           return (
             <div key={idx} className="flex items-center gap-2 flex-wrap">
               <span className="text-xs flex-1 min-w-[140px] font-medium">
-                {labelize(t.test_type)}
+                {testLabel}
                 <span className="text-muted-foreground ml-1">({labelize(t.test_category)})</span>
               </span>
               {existing ? (
