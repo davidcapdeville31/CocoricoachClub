@@ -102,6 +102,37 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
     },
   });
 
+  // Aggregate latest body weight across sources (body_composition, player_measurements, anthropometry generic_tests)
+  const playerWeight = useMemo(() => {
+    const candidates: { w: number; d: string }[] = [];
+    if (bodyCompWeight != null && (playerInfo as any)?.measurement_date) {
+      const w = Number(bodyCompWeight);
+      if (Number.isFinite(w) && w >= 20 && w <= 200) {
+        candidates.push({ w, d: (playerInfo as any).measurement_date });
+      }
+    }
+    if (measurementWeight && Number.isFinite(measurementWeight.w) && measurementWeight.w >= 20 && measurementWeight.w <= 200) {
+      candidates.push({ w: measurementWeight.w, d: measurementWeight.d });
+    }
+    for (const t of (genericTests as any[]) || []) {
+      const type = (t.test_type || "").toLowerCase();
+      const cat = (t.test_category || "").toLowerCase();
+      const unit = (t.result_unit || "").toLowerCase();
+      const v = Number(t.result_value);
+      if (!Number.isFinite(v) || v < 20 || v > 200) continue;
+      if (unit && unit !== "kg") continue;
+      if (
+        type.includes("weight") || type.includes("poids") ||
+        cat.includes("anthropo") || cat.includes("weight") || cat.includes("poids")
+      ) {
+        candidates.push({ w: v, d: t.test_date });
+      }
+    }
+    if (candidates.length === 0) return null;
+    candidates.sort((a, b) => new Date(b.d).getTime() - new Date(a.d).getTime());
+    return candidates[0].w;
+  }, [bodyCompWeight, playerInfo, measurementWeight, genericTests]);
+
   const { data: matchStats = [] } = useQuery({
     queryKey: ["athlete-space-match-stats", playerId],
     queryFn: async () => {
