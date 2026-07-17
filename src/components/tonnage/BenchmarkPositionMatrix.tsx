@@ -315,7 +315,7 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
       if (covered.has(nameKey) || covered.has(`custom:${ct.id}`)) continue;
       const testType = `custom:${ct.id}`;
       const count = genericTests.filter((t: any) => t.test_type === testType).length;
-      if (count === 0) continue;
+      // On garde le test même sans résultats pour qu'il apparaisse dès sa création
       const isRatio = isRatioUnit(ct.unit);
       const ratioTemplate = benchmarks.find((b) => b.use_body_weight_ratio);
       const levels =
