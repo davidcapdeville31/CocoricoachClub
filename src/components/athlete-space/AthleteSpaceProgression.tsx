@@ -10,6 +10,10 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
 import { BatteryRadarCharts } from "@/components/category/tests/GenericTestsSection";
+import { useCustomTestsMap } from "@/hooks/useCustomTestsMap";
+import { useSuggestedBenchmarks } from "@/hooks/useSuggestedBenchmarks";
+import { computeBenchmarkLevel } from "@/lib/benchmarks/computeLevel";
+import { matchesBenchmark } from "@/lib/benchmarks/matchTestType";
 
 interface Props {
   playerId: string;
@@ -20,6 +24,29 @@ interface Props {
 export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Props) {
   const testCategories = useMemo(() => getTestCategoriesForSport(sportType || ""), [sportType]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const { map: customTestsMap } = useCustomTestsMap();
+  const { suggestions: benchmarkSuggestions } = useSuggestedBenchmarks(playerId, categoryId);
+
+  const { data: playerInfo } = useQuery({
+    queryKey: ["athlete-space-player-weight", playerId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("body_composition")
+        .select("weight_kg, measurement_date")
+        .eq("player_id", playerId)
+        .order("measurement_date", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+  });
+  const playerWeight = playerInfo?.weight_kg ?? null;
+
+  const customTestsList = useMemo(
+    () => Object.values(customTestsMap).map(c => ({ id: c.id, name: c.name })),
+    [customTestsMap],
+  );
+
 
   const { data: speedTests = [] } = useQuery({
     queryKey: ["athlete-space-speed-tests", playerId],
@@ -101,7 +128,8 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
     
     const cat = testCategories.find(c => c.value === t.test_category);
     const testDef = cat?.tests.find(tt => tt.value === t.test_type);
-    const label = testDef?.label || t.test_type?.replace(/_/g, " ") || "Test";
+    const customInfo = t.test_type?.startsWith("custom:") ? customTestsMap[t.test_type] : null;
+    const label = customInfo?.name || testDef?.label || t.test_type?.replace(/_/g, " ") || "Test";
     const categoryLabel = cat?.label || t.test_category?.replace(/_/g, " ") || "";
     
     genericByType[key].push({
@@ -115,14 +143,15 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
   });
 
   // Latest generic test results for summary
-  const latestGenericByType: Record<string, { value: number; unit: string; label: string; categoryLabel: string; categoryValue: string; date: string }> = {};
+  const latestGenericByType: Record<string, { value: number; unit: string; label: string; categoryLabel: string; categoryValue: string; date: string; testType: string }> = {};
   genericTests.forEach(t => {
     const key = `${t.test_category}__${t.test_type}`;
     const cat = testCategories.find(c => c.value === t.test_category);
     const testDef = cat?.tests.find(tt => tt.value === t.test_type);
-    const label = testDef?.label || t.test_type?.replace(/_/g, " ") || "Test";
+    const customInfo = t.test_type?.startsWith("custom:") ? customTestsMap[t.test_type] : null;
+    const label = customInfo?.name || testDef?.label || t.test_type?.replace(/_/g, " ") || "Test";
     const categoryLabel = cat?.label || t.test_category?.replace(/_/g, " ") || "";
-    latestGenericByType[key] = { value: t.result_value, unit: t.result_unit || "", label, categoryLabel, categoryValue: t.test_category, date: t.test_date };
+    latestGenericByType[key] = { value: t.result_value, unit: t.result_unit || "", label, categoryLabel, categoryValue: t.test_category, date: t.test_date, testType: t.test_type };
   });
 
   // Determine which categories actually have data
@@ -318,6 +347,17 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
                           progression = { pct: Math.abs(rawPct), positive };
                         }
                       }
+                      // Best matching benchmark for this test
+                      const bench = benchmarkSuggestions.find(b =>
+                        b.test_category === test.categoryValue &&
+                        matchesBenchmark(test.testType, b.test_type, customTestsList)
+                      );
+                      const level = bench
+                        ? computeBenchmarkLevel(test.value, bench, playerWeight)
+                        : null;
+                      const ratio = bench?.use_body_weight_ratio && playerWeight
+                        ? test.value / playerWeight
+                        : null;
                       return (
                         <div key={key} className="p-3 rounded-lg bg-muted/30 text-center relative min-w-0">
                           {progression && (
@@ -336,6 +376,19 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
                             {test.value}
                             <span className="text-xs font-normal text-muted-foreground ml-1">{test.unit}</span>
                           </p>
+                          {ratio !== null && (
+                            <p className="text-[11px] font-semibold text-primary mt-0.5">
+                              {ratio.toFixed(2)} × PDC
+                            </p>
+                          )}
+                          {level && (
+                            <Badge
+                              className="mt-1 text-[10px] px-1.5 py-0 leading-tight border-0"
+                              style={{ backgroundColor: level.color, color: "#fff" }}
+                            >
+                              {level.label}
+                            </Badge>
+                          )}
                           <p className="text-[10px] text-muted-foreground mt-0.5">
                             {format(new Date(test.date), "dd MMM yy", { locale: fr })}
                           </p>

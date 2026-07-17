@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useCustomTestsMap } from "@/hooks/useCustomTestsMap";
 
 interface PerformanceEvolutionProps {
   categoryId: string;
@@ -44,6 +45,7 @@ const PLAYER_COLORS = [
 ];
 
 const formatTestLabel = (testType: string): string => {
+  if (testType.startsWith("custom:")) return testType; // resolved via map later
   return testType
     .replace(/_/g, " ")
     .replace(/(\d+)m/g, "$1m")
@@ -59,6 +61,7 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
   const { allowedIds, isFiltering } = useSeasonFilteredPlayerIds(categoryId);
   const { isDateInActiveSeason, activeSeasonEnd } = useSeasonRosterFilter();
+  const { map: customTestsMap } = useCustomTestsMap();
   const scopeKey = isFiltering ? `season:${activeSeasonEnd ?? "x"}` : "all";
   const filterRows = useCallback(
     (rows: any[] | undefined | null): any[] => {
@@ -187,8 +190,15 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
         }
       });
     }
-    return tests;
-  }, [speedTests, strengthTests, jumpTests, genericTests]);
+    // Resolve custom test names via map
+    return tests.map(t => {
+      if (t.key.startsWith("custom:")) {
+        const info = customTestsMap[t.key];
+        if (info) return { ...t, label: info.name, unit: t.unit || info.unit || "" };
+      }
+      return t;
+    });
+  }, [speedTests, strengthTests, jumpTests, genericTests, customTestsMap]);
 
   // Auto-select first test
   useMemo(() => {
