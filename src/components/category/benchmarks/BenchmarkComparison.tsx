@@ -195,14 +195,13 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
 
     benchmarks.forEach(bm => {
       genericTests.forEach(t => {
-        // Category can differ if the custom test was created under a different
-        // theme category ; on tolère si le test_type matche (custom UUID or preset).
-        const sameCat = t.test_category === bm.test_category;
-        if (!sameCat && !matchesBenchmark(t.test_type, bm.test_type, customTests as any)) return;
+        // Match by test_type (accepts custom:<uuid> and name-normalized fallback).
+        // Category is ignored : custom tests peuvent vivre sous d'autres catégories thème.
         if (!matchesBenchmark(t.test_type, bm.test_type, customTests as any)) return;
         const pm = getPlayerMap(t.player_id);
         if (!pm.has(bm.id)) pm.set(bm.id, t.result_value);
       });
+
 
       if (bm.test_category === "speed" || bm.test_category === "sprint") {
         speedTests.forEach(t => {
