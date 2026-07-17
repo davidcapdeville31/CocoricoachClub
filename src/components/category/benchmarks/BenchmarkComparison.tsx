@@ -1,10 +1,13 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Target, TrendingUp, Weight } from "lucide-react";
+import { computeBenchmarkLevel } from "@/lib/benchmarks/computeLevel";
+import { matchesBenchmark } from "@/lib/benchmarks/matchTestType";
 
 interface BenchmarkComparisonProps {
   categoryId: string;
@@ -36,39 +39,8 @@ function getPlayerLevel(
   benchmark: Benchmark,
   playerWeight?: number | null
 ): { label: string; color: string } {
-  const levels = benchmark.levels;
-  if (!levels || levels.length === 0) {
-    return { label: "N/A", color: "#94a3b8" };
-  }
-
-  // If body-weight ratio is used, adjust thresholds
-  const adjustedLevels = levels.map(l => {
-    if (benchmark.use_body_weight_ratio && benchmark.body_weight_multiplier && playerWeight && l.threshold != null) {
-      return { ...l, threshold: l.threshold * playerWeight };
-    }
-    return l;
-  });
-
-  // Levels are ordered from worst to best
-  // For lower_is_better: value <= threshold is good (check from best level down)
-  // For higher_is_better: value >= threshold is good (check from best level down)
-  for (let i = adjustedLevels.length - 1; i >= 0; i--) {
-    const level = adjustedLevels[i];
-    if (level.threshold == null) continue;
-
-    if (benchmark.lower_is_better) {
-      if (value <= level.threshold) {
-        return { label: level.label, color: level.color };
-      }
-    } else {
-      if (value >= level.threshold) {
-        return { label: level.label, color: level.color };
-      }
-    }
-  }
-
-  // Didn't match any level, return the worst
-  return { label: adjustedLevels[0]?.label || "N/A", color: adjustedLevels[0]?.color || "#ef4444" };
+  const { label, color } = computeBenchmarkLevel(value, benchmark, playerWeight);
+  return { label, color };
 }
 
 export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparisonProps) {
