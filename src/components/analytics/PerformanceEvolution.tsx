@@ -32,6 +32,8 @@ interface DiscoveredTest {
   label: string;
   unit: string;
   source: "speed" | "strength" | "jump" | "generic";
+  aliasKeys?: string[];
+  isRatio?: boolean;
 }
 
 const PLAYER_COLORS = [
