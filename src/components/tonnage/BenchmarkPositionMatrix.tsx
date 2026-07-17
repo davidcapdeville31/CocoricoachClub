@@ -359,32 +359,66 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     return Array.from(s).sort();
   }, [playerSeries]);
 
-  // Group players by position
-  const playersByPosition = useMemo(() => {
-    const groups = new Map<string, typeof players>();
-    for (const p of players as any[]) {
-      const pos = p.position || UNKNOWN_POS;
-      if (!groups.has(pos)) groups.set(pos, [] as any);
-      groups.get(pos)!.push(p);
+  // Résout le groupe de poste canonique d'un joueur
+  const resolveGroup = (player: any): { id: string; label: string } => {
+    const pos: string | undefined = player?.position;
+    if (!pos) return { id: "__unknown__", label: UNKNOWN_POS };
+    for (const g of positionGroups) {
+      if (playerBelongsToGroup(pos, g)) return { id: g.id, label: g.label };
     }
-    return Array.from(groups.entries()).sort(([a], [b]) => {
-      if (a === UNKNOWN_POS) return 1;
-      if (b === UNKNOWN_POS) return -1;
-      return a.localeCompare(b);
-    });
-  }, [players]);
-
-  // Position-specific benchmark override (if a benchmark exists filtered by position)
-  const getBenchmarkForPosition = (position: string): Benchmark | null => {
-    if (!bm) return null;
-    const perPos = benchmarks.find(
-      (b) =>
-        b.test_type === bm.test_type &&
-        b.filter_type === "position" &&
-        b.filter_value === position,
-    );
-    return perPos || bm;
+    // Fallback : utilise directement la position brute
+    return { id: pos.toLowerCase(), label: pos };
   };
+
+  // Groupe les joueurs par groupe de poste canonique
+  const playersByPosition = useMemo(() => {
+    const groups = new Map<string, { label: string; list: any[] }>();
+    for (const p of players as any[]) {
+      const g = resolveGroup(p);
+      if (!groups.has(g.id)) groups.set(g.id, { label: g.label, list: [] });
+      groups.get(g.id)!.list.push(p);
+    }
+    // Ordre : suivre positionGroups puis inconnus à la fin
+    const orderedIds = [
+      ...positionGroups.map((g) => g.id).filter((id) => groups.has(id)),
+      ...Array.from(groups.keys()).filter(
+        (id) => !positionGroups.some((g) => g.id === id) && id !== "__unknown__",
+      ),
+      "__unknown__",
+    ].filter((id) => groups.has(id));
+    return orderedIds.map((id) => [id, groups.get(id)!] as const);
+  }, [players, positionGroups]);
+
+  // Renvoie le barème le plus spécifique pour (groupe de poste, sexe)
+  const getBenchmarkForPlayer = (groupId: string, gender: string | null): Benchmark | null => {
+    if (!bm) return null;
+    const candidates = benchmarks.filter((b) => b.test_type === bm.test_type);
+    // Priorité : poste + sexe > poste seul > sexe seul > base
+    const posAndGender = candidates.find(
+      (b) => b.filter_value === groupId && b.gender_filter === gender,
+    );
+    if (posAndGender) return posAndGender;
+    const posOnly = candidates.find(
+      (b) => b.filter_value === groupId && !b.gender_filter,
+    );
+    if (posOnly) return posOnly;
+    const genderOnly = candidates.find(
+      (b) => !b.filter_value && b.gender_filter === gender,
+    );
+    if (genderOnly) return genderOnly;
+    return bm;
+  };
+
+  // Compat pour la table barème (affichage) : par groupe uniquement
+  const getBenchmarkForGroup = (groupId: string): Benchmark | null => {
+    if (!bm) return null;
+    return (
+      benchmarks.find(
+        (b) => b.test_type === bm.test_type && b.filter_value === groupId,
+      ) || bm
+    );
+  };
+
 
   const fmtDate = (d: string) => {
     try {
