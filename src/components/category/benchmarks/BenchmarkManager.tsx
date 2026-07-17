@@ -157,6 +157,28 @@ export function BenchmarkManager({ categoryId, sportType }: BenchmarkManagerProp
     },
   });
 
+  // Tests personnalisés de la catégorie, disponibles comme cibles de benchmark.
+  const { data: customTests = [] } = useQuery({
+    queryKey: ["custom_tests_for_benchmark_manager", categoryId],
+    enabled: !!categoryId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("custom_test_categories")
+        .select("custom_tests(id, name, test_category, unit, is_time)")
+        .eq("category_id", categoryId);
+      if (error) throw error;
+      return (data || [])
+        .map((r: any) => r.custom_tests)
+        .filter(Boolean) as { id: string; name: string; test_category: string | null; unit: string | null; is_time: boolean | null }[];
+    },
+  });
+
+  const customTestsForCategory = useMemo(() => {
+    if (!formTestCategory) return [] as typeof customTests;
+    return customTests.filter((ct) => ct.test_category === formTestCategory);
+  }, [customTests, formTestCategory]);
+
+
   const saveBenchmark = useMutation({
     mutationFn: async () => {
       const levelsJson = formLevels.map(l => ({
