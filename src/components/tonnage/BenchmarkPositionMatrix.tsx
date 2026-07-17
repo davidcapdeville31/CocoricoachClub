@@ -146,18 +146,55 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     },
   });
 
-  const { data: customTests = [] } = useQuery({
-    queryKey: ["custom-tests-matrix", categoryId],
-    enabled: !!categoryId,
+  // Récupère tous les résultats de tests génériques (utilisé pour dériver la liste
+  // des custom tests référencés + pour les points de test). Déclaré tôt car
+  // plusieurs queries en dépendent.
+  const { data: genericTests = [] } = useQuery({
+    queryKey: ["generic-tests-matrix", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
+        .from("generic_tests")
+        .select("player_id, test_type, test_category, result_value, result_unit, test_date")
+        .eq("category_id", categoryId)
+        .order("test_date", { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const referencedCustomIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const t of (genericTests as any[]) || []) {
+      if (typeof t.test_type === "string" && t.test_type.startsWith("custom:")) {
+        ids.add(t.test_type.slice("custom:".length));
+      }
+    }
+    return Array.from(ids);
+  }, [genericTests]);
+
+  const { data: customTests = [] } = useQuery({
+    queryKey: ["custom-tests-matrix", categoryId, referencedCustomIds.join(",")],
+    enabled: !!categoryId,
+    queryFn: async () => {
+      const results = new Map<string, CustomTest & { scoring_scale?: any }>();
+      const { data: linked, error } = await supabase
         .from("custom_test_categories")
         .select("custom_tests(id, name, unit, test_category, scoring_scale)")
         .eq("category_id", categoryId);
       if (error) throw error;
-      return (data || [])
-        .map((r: any) => r.custom_tests)
-        .filter(Boolean) as (CustomTest & { scoring_scale?: any })[];
+      for (const r of linked || []) {
+        const ct = (r as any).custom_tests;
+        if (ct) results.set(ct.id, ct);
+      }
+      const missing = referencedCustomIds.filter((id) => !results.has(id));
+      if (missing.length) {
+        const { data: extra } = await supabase
+          .from("custom_tests")
+          .select("id, name, unit, test_category, scoring_scale")
+          .in("id", missing);
+        for (const ct of extra || []) results.set(ct.id, ct as any);
+      }
+      return Array.from(results.values());
     },
   });
 
@@ -226,18 +263,8 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     [bodyComps, playerMeasurements, weightTests, customTests],
   );
 
-  const { data: genericTests = [] } = useQuery({
-    queryKey: ["generic-tests-matrix", categoryId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("generic_tests")
-        .select("player_id, test_type, test_category, result_value, result_unit, test_date")
-        .eq("category_id", categoryId)
-        .order("test_date", { ascending: true });
-      if (error) throw error;
-      return data || [];
-    },
-  });
+
+
 
   const { data: speedTests = [] } = useQuery({
     queryKey: ["speed-tests-matrix", categoryId],
@@ -315,7 +342,7 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
       if (covered.has(nameKey) || covered.has(`custom:${ct.id}`)) continue;
       const testType = `custom:${ct.id}`;
       const count = genericTests.filter((t: any) => t.test_type === testType).length;
-      if (count === 0) continue;
+      // On garde le test même sans résultats pour qu'il apparaisse dès sa création
       const isRatio = isRatioUnit(ct.unit);
       const ratioTemplate = benchmarks.find((b) => b.use_body_weight_ratio);
       const levels =
