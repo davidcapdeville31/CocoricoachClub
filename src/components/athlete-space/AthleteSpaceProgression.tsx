@@ -374,11 +374,16 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
                           <p className="text-xs text-muted-foreground truncate">{test.label}</p>
                           <p className="text-lg font-bold leading-tight mt-1">
                             {test.value}
-                            <span className="text-xs font-normal text-muted-foreground ml-1">{test.unit}</span>
+                            <span className="text-xs font-normal text-muted-foreground ml-1">
+                              {ratio !== null ? "kg" : test.unit}
+                            </span>
                           </p>
                           {ratio !== null && (
                             <p className="text-[11px] font-semibold text-primary mt-0.5">
-                              {ratio.toFixed(2)} × PDC
+                              ratio {ratio.toFixed(2).replace(".", ",")}
+                              <span className="text-muted-foreground font-normal ml-1">
+                                ({test.value}/{playerWeight} kg)
+                              </span>
                             </p>
                           )}
                           {level && (
