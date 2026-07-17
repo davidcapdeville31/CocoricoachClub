@@ -88,7 +88,7 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
       if (error) throw error;
       return data;
     },
-    enabled: dbBenchmarks.some(b => b.use_body_weight_ratio),
+    // toujours activé (poids requis pour ratios synthétiques aussi)
   });
 
   // Identité athlète : récupère TOUS les attributs (positions multiples, etc.)
