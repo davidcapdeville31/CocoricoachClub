@@ -94,7 +94,7 @@ export function synthesizeBenchmarksFromCustomTest(ct: {
   for (const v of scale.variants || []) {
     const ranges = v.ranges || [];
     if (!ranges.length) continue;
-    const lower = !!v.lowerIsBetter;
+    const lower = v.lowerIsBetter ?? scale.lowerIsBetter ?? false;
     const levels = rangesToLevels(ranges, lower);
     const positions = v.filter?.positionGroups || [];
     const genders = v.filter?.genders || [];
@@ -105,7 +105,7 @@ export function synthesizeBenchmarksFromCustomTest(ct: {
       for (const gen of genList) {
         results.push({
           id: `synth-${ct.id}-${v.id || v.label || Math.random().toString(36).slice(2)}-${pos ?? "any"}-${gen ?? "any"}`,
-          name: v.label ? `${ct.name} — ${v.label}` : ct.name,
+          name: ct.name,
           test_category: ct.test_category || "custom",
           test_type: testType,
           unit: ct.unit,
