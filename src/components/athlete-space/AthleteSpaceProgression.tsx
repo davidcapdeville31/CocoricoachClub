@@ -40,7 +40,22 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
       return data;
     },
   });
-  const playerWeight = playerInfo?.weight_kg ?? null;
+  const bodyCompWeight = playerInfo?.weight_kg ?? null;
+
+  const { data: measurementWeight = null } = useQuery({
+    queryKey: ["athlete-space-measurement-weight", playerId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("player_measurements")
+        .select("weight_kg, measurement_date")
+        .eq("player_id", playerId)
+        .not("weight_kg", "is", null)
+        .order("measurement_date", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data ? { w: Number(data.weight_kg), d: (data as any).measurement_date as string } : null;
+    },
+  });
 
   const customTestsList = useMemo(
     () => Object.values(customTestsMap).map(c => ({ id: c.id, name: c.name })),
@@ -86,6 +101,37 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
       return data || [];
     },
   });
+
+  // Aggregate latest body weight across sources (body_composition, player_measurements, anthropometry generic_tests)
+  const playerWeight = useMemo(() => {
+    const candidates: { w: number; d: string }[] = [];
+    if (bodyCompWeight != null && (playerInfo as any)?.measurement_date) {
+      const w = Number(bodyCompWeight);
+      if (Number.isFinite(w) && w >= 20 && w <= 200) {
+        candidates.push({ w, d: (playerInfo as any).measurement_date });
+      }
+    }
+    if (measurementWeight && Number.isFinite(measurementWeight.w) && measurementWeight.w >= 20 && measurementWeight.w <= 200) {
+      candidates.push({ w: measurementWeight.w, d: measurementWeight.d });
+    }
+    for (const t of (genericTests as any[]) || []) {
+      const type = (t.test_type || "").toLowerCase();
+      const cat = (t.test_category || "").toLowerCase();
+      const unit = (t.result_unit || "").toLowerCase();
+      const v = Number(t.result_value);
+      if (!Number.isFinite(v) || v < 20 || v > 200) continue;
+      if (unit && unit !== "kg") continue;
+      if (
+        type.includes("weight") || type.includes("poids") ||
+        cat.includes("anthropo") || cat.includes("weight") || cat.includes("poids")
+      ) {
+        candidates.push({ w: v, d: t.test_date });
+      }
+    }
+    if (candidates.length === 0) return null;
+    candidates.sort((a, b) => new Date(b.d).getTime() - new Date(a.d).getTime());
+    return candidates[0].w;
+  }, [bodyCompWeight, playerInfo, measurementWeight, genericTests]);
 
   const { data: matchStats = [] } = useQuery({
     queryKey: ["athlete-space-match-stats", playerId],
@@ -536,22 +582,40 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
                       </Badge>
                     </div>
                     <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                      <div className="rounded-lg bg-background/60 p-1.5 sm:p-2 text-center">
-                        <p className="text-[9px] sm:text-[10px] text-muted-foreground">
-                          {format(new Date(row.prevDate), "dd MMM yy", { locale: fr })}
-                        </p>
-                        <p className="text-sm sm:text-base font-bold leading-tight">
-                          {row.prevValue} <span className="text-[9px] sm:text-[10px] font-normal text-muted-foreground">{row.unit}</span>
-                        </p>
-                      </div>
-                      <div className="rounded-lg bg-background/60 p-1.5 sm:p-2 text-center ring-1 ring-primary/30">
-                        <p className="text-[9px] sm:text-[10px] text-muted-foreground">
-                          {format(new Date(row.lastDate), "dd MMM yy", { locale: fr })}
-                        </p>
-                        <p className="text-sm sm:text-base font-bold leading-tight">
-                          {row.lastValue} <span className="text-[9px] sm:text-[10px] font-normal text-muted-foreground">{row.unit}</span>
-                        </p>
-                      </div>
+                      {[
+                        { date: row.prevDate, value: row.prevValue, ring: false },
+                        { date: row.lastDate, value: row.lastValue, ring: true },
+                      ].map((cell, i) => {
+                        const isRatio = /pdc/i.test(row.unit || "");
+                        const v = Number(cell.value);
+                        let mainText: string;
+                        let subText: string | null = null;
+                        if (isRatio && Number.isFinite(v)) {
+                          if (playerWeight && playerWeight > 0 && v >= 5) {
+                            mainText = `${v} kg`;
+                            subText = `ratio ${(v / playerWeight).toFixed(2).replace(".", ",")} (${v}/${playerWeight} kg)`;
+                          } else if (playerWeight && playerWeight > 0 && v < 5) {
+                            mainText = `${(v * playerWeight).toFixed(1).replace(".", ",")} kg`;
+                            subText = `ratio ${v.toFixed(2).replace(".", ",")}`;
+                          } else {
+                            mainText = `${cell.value}`;
+                            subText = "ratio charge/poids";
+                          }
+                        } else {
+                          mainText = `${cell.value} ${row.unit}`;
+                        }
+                        return (
+                          <div key={i} className={`rounded-lg bg-background/60 p-1.5 sm:p-2 text-center ${cell.ring ? "ring-1 ring-primary/30" : ""}`}>
+                            <p className="text-[9px] sm:text-[10px] text-muted-foreground">
+                              {format(new Date(cell.date), "dd MMM yy", { locale: fr })}
+                            </p>
+                            <p className="text-sm sm:text-base font-bold leading-tight">{mainText}</p>
+                            {subText && (
+                              <p className="text-[9px] sm:text-[10px] text-primary font-medium mt-0.5">{subText}</p>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 );

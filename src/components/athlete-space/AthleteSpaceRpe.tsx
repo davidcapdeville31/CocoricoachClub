@@ -234,6 +234,50 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
     enabled: testSessionIds.length > 0,
   });
 
+  // Fetch latest player body weight for ratio calculations
+  const { data: playerBodyWeight = null } = useQuery({
+    queryKey: ["athlete-space-body-weight", playerId],
+    queryFn: async () => {
+      // Try player_measurements first
+      const { data: pm } = await supabase
+        .from("player_measurements")
+        .select("weight_kg, measurement_date")
+        .eq("player_id", playerId)
+        .not("weight_kg", "is", null)
+        .order("measurement_date", { ascending: false })
+        .limit(1);
+      const pmWeight = pm?.[0]?.weight_kg ? { w: Number(pm[0].weight_kg), d: pm[0].measurement_date } : null;
+      // Also check generic_tests for anthropometry/weight entries
+      const { data: gt } = await supabase
+        .from("generic_tests")
+        .select("result_value, result_unit, test_type, test_category, test_date")
+        .eq("player_id", playerId)
+        .order("test_date", { ascending: false })
+        .limit(20);
+      let gtWeight: { w: number; d: string } | null = null;
+      for (const t of gt || []) {
+        const type = (t.test_type || "").toLowerCase();
+        const cat = (t.test_category || "").toLowerCase();
+        const unit = (t.result_unit || "").toLowerCase();
+        const v = Number(t.result_value);
+        if (!Number.isFinite(v) || v < 20 || v > 200) continue;
+        if (unit && unit !== "kg") continue;
+        if (
+          type.includes("weight") || type.includes("poids") ||
+          cat.includes("anthropo") || cat.includes("weight") || cat.includes("poids")
+        ) {
+          gtWeight = { w: v, d: t.test_date };
+          break;
+        }
+      }
+      const candidates = [pmWeight, gtWeight].filter(Boolean) as { w: number; d: string }[];
+      if (candidates.length === 0) return null;
+      candidates.sort((a, b) => new Date(b.d).getTime() - new Date(a.d).getTime());
+      return candidates[0].w;
+    },
+    enabled: !!playerId,
+  });
+
   // Collect all custom test_types used, to resolve labels
   const allCustomTestTypes = useMemo(() => {
     const types: string[] = [];
@@ -705,9 +749,26 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
     return (
       <div className="text-xs text-muted-foreground mt-0.5">
         {testNames.map((name, idx) => <div key={idx}>📋 {name}</div>)}
-        {results.map((r, idx) => (
-          <div key={`r-${idx}`}>✅ {labelizeTestType(r.test_type, customTestMap)}: {r.result_value} {r.result_unit || ""}</div>
-        ))}
+        {results.map((r, idx) => {
+          const unit = r.result_unit || "";
+          const isRatio = /pdc/i.test(unit);
+          const value = Number(r.result_value);
+          let display = `${r.result_value} ${unit}`;
+          if (isRatio && Number.isFinite(value)) {
+            // Value stored as charge en kg — afficher kg + ratio calculé
+            if (playerBodyWeight && playerBodyWeight > 0 && value >= 5) {
+              const ratio = value / playerBodyWeight;
+              display = `${value} kg (ratio ${ratio.toFixed(2).replace(".", ",")} = ${value}/${playerBodyWeight} kg)`;
+            } else if (playerBodyWeight && playerBodyWeight > 0 && value < 5) {
+              // Value stored as ratio
+              const kg = value * playerBodyWeight;
+              display = `${kg.toFixed(1).replace(".", ",")} kg (ratio ${value.toFixed(2).replace(".", ",")})`;
+            } else {
+              display = `${r.result_value} (ratio charge/poids)`;
+            }
+          }
+          return <div key={`r-${idx}`}>✅ {labelizeTestType(r.test_type, customTestMap)}: {display}</div>;
+        })}
       </div>
     );
   };
