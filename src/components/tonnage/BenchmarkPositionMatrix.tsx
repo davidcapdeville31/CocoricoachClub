@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -95,6 +95,7 @@ function isRatioUnit(u: string | null | undefined) {
 
 export function BenchmarkPositionMatrix({ categoryId }: Props) {
   const [selectedKey, setSelectedKey] = useState<string>("");
+  const autoSelectedRef = useRef(false);
 
   const { data: category } = useQuery({
     queryKey: ["category-matrix", categoryId],
@@ -345,9 +346,20 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
 
   // Auto-select first option with data
   useEffect(() => {
-    if (!selectedKey && testOptions.length > 0) {
-      const first = testOptions.find((o) => o.count > 0) || testOptions[0];
+    if (testOptions.length === 0) return;
+
+    const current = testOptions.find((o) => o.key === selectedKey) || null;
+    const firstWithData = testOptions.find((o) => o.count > 0) || null;
+
+    if (!selectedKey || !current) {
+      const first = firstWithData || testOptions[0];
       setSelectedKey(first.key);
+      autoSelectedRef.current = true;
+      return;
+    }
+
+    if (autoSelectedRef.current && current.count === 0 && firstWithData && firstWithData.key !== selectedKey) {
+      setSelectedKey(firstWithData.key);
     }
   }, [selectedKey, testOptions]);
 
@@ -564,7 +576,13 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
               </p>
             </div>
             <div className="min-w-[260px]">
-              <Select value={selectedKey} onValueChange={setSelectedKey}>
+              <Select
+                value={selectedKey}
+                onValueChange={(value) => {
+                  autoSelectedRef.current = false;
+                  setSelectedKey(value);
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Choisir un test" />
                 </SelectTrigger>
