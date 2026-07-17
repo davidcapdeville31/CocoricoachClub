@@ -153,7 +153,7 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
                     onChange={(e) => onChange({ ...value, [key]: e.target.value })}
                     className="h-8 w-24 text-sm"
                   />
-                  <span className="text-xs text-muted-foreground w-8">{t.result_unit || ""}</span>
+                  <span className="text-xs text-muted-foreground w-8">{unit}</span>
                   {categoryId && (
                     <Button
                       type="button"
