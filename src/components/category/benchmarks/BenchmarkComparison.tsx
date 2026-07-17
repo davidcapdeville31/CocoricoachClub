@@ -247,20 +247,7 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
     });
   };
 
-  if (benchmarks.length === 0) {
-    return (
-      <Card>
-        <CardContent className="py-12 text-center">
-          <Target className="h-12 w-12 mx-auto text-muted-foreground/40 mb-3" />
-          <p className="text-muted-foreground">
-            Aucun benchmark défini. Configurez des benchmarks ci-dessus pour comparer les performances.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Filtre poste global
+  // Filtre poste global (hooks doivent être appelés avant tout early return)
   const [positionFilter, setPositionFilter] = useState<string>("all");
   const availablePositions = useMemo(() => {
     const s = new Set<string>();
@@ -285,6 +272,20 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
       return !!dims?.get("position")?.has(positionFilter);
     });
   }, [players, positionFilter, playerDimensionValues]);
+
+  if (benchmarks.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <Target className="h-12 w-12 mx-auto text-muted-foreground/40 mb-3" />
+          <p className="text-muted-foreground">
+            Aucun benchmark défini. Configurez des benchmarks ci-dessus pour comparer les performances.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
 
   return (
     <Card>
