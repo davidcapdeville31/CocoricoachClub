@@ -237,7 +237,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
   // Collect all custom test_types used, to resolve labels
   const allCustomTestTypes = useMemo(() => {
     const types: string[] = [];
-    [...todaySessions, ...upcomingSessionsRaw].forEach((s: any) => {
+    todaySessions.forEach((s: any) => {
       const m = s.notes?.match(/<!--TESTS:(.*?)-->/);
       if (m) {
         try {
