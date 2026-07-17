@@ -701,6 +701,17 @@ export function SessionFeedbackDialog({
                 </Badge>
               )}
             </TabsTrigger>
+            {sessionTests.length > 0 && (
+              <TabsTrigger value="tests" className="flex-1 gap-2">
+                <FlaskConical className="h-4 w-4" />
+                Tests
+                {(testResultsCount > 0 || savedTestResultsCount > 0) && (
+                  <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+                    {savedTestResultsCount + testResultsCount}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            )}
             {sessionType === "musculation" && (
               <TabsTrigger value="weights" className="flex-1 gap-2">
                 <Dumbbell className="h-4 w-4" />
