@@ -260,16 +260,61 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
     );
   }
 
+  // Filtre poste global
+  const [positionFilter, setPositionFilter] = useState<string>("all");
+  const availablePositions = useMemo(() => {
+    const s = new Set<string>();
+    for (const bm of benchmarks) {
+      if (bm.filter_type === "position" && bm.filter_value) s.add(bm.filter_value);
+    }
+    return Array.from(s).sort();
+  }, [benchmarks]);
+
+  const displayedBenchmarks = useMemo(() => {
+    if (positionFilter === "all") return benchmarks;
+    return benchmarks.filter((bm) =>
+      bm.filter_type !== "position" || !bm.filter_value || bm.filter_value === positionFilter,
+    );
+  }, [benchmarks, positionFilter]);
+
+  const displayedPlayers = useMemo(() => {
+    if (positionFilter === "all") return players;
+    return players.filter((p: any) => {
+      if (p.position === positionFilter) return true;
+      const dims = playerDimensionValues.get(p.id);
+      return !!dims?.get("position")?.has(positionFilter);
+    });
+  }, [players, positionFilter, playerDimensionValues]);
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <TrendingUp className="h-5 w-5 text-primary" />
-          Comparaison des performances
-        </CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Dernier résultat de chaque joueur comparé aux benchmarks définis
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              Comparaison des performances
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Dernier résultat de chaque joueur comparé aux benchmarks définis
+            </p>
+          </div>
+          {availablePositions.length > 0 && (
+            <div className="min-w-[180px]">
+              <Select value={positionFilter} onValueChange={setPositionFilter}>
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="Filtrer par poste" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les postes</SelectItem>
+                  {availablePositions.map((p) => (
+                    <SelectItem key={p} value={p}>{p}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
@@ -277,7 +322,7 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
             <TableHeader>
               <TableRow>
                 <TableHead className="sticky left-0 bg-background z-10 min-w-[150px]">Joueur</TableHead>
-                {benchmarks.map(bm => (
+                {displayedBenchmarks.map(bm => (
                   <TableHead key={bm.id} className="text-center min-w-[120px]">
                     <div>
                       <p className="font-medium">{bm.name}</p>
@@ -285,8 +330,12 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
                         {bm.unit}
                         {bm.use_body_weight_ratio && (
                           <span className="ml-1">
-                            <Weight className="h-3 w-3 inline" /> {bm.body_weight_multiplier}x PDC
+                            <Weight className="h-3 w-3 inline" />
+                            {bm.body_weight_multiplier ? ` ${bm.body_weight_multiplier}x` : " ×"} PDC
                           </span>
+                        )}
+                        {bm.filter_type === "position" && bm.filter_value && (
+                          <span className="ml-1 italic">· {bm.filter_value}</span>
                         )}
                       </p>
                     </div>
@@ -294,6 +343,7 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
                 ))}
               </TableRow>
             </TableHeader>
+
             <TableBody>
               {players.map(player => (
                 <TableRow key={player.id}>
