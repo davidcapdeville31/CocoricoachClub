@@ -345,20 +345,19 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
             <TableHeader>
               <TableRow>
                 <TableHead className="sticky left-0 bg-background z-10 min-w-[150px]">Joueur</TableHead>
-                {displayedBenchmarks.map(bm => (
-                  <TableHead key={bm.id} className="text-center min-w-[120px]">
+                {benchmarkGroups.map(group => (
+                  <TableHead key={group.key} className="text-center min-w-[140px]">
                     <div>
-                      <p className="font-medium">{bm.name}</p>
+                      <p className="font-medium">{group.label}</p>
                       <p className="text-xs text-muted-foreground font-normal">
-                        {bm.unit}
-                        {bm.use_body_weight_ratio && (
+                        {group.unit}
+                        {group.use_body_weight_ratio && (
                           <span className="ml-1">
-                            <Weight className="h-3 w-3 inline" />
-                            {bm.body_weight_multiplier ? ` ${bm.body_weight_multiplier}x` : " ×"} PDC
+                            <Weight className="h-3 w-3 inline" /> / PDC
                           </span>
                         )}
-                        {bm.filter_type === "position" && bm.filter_value && (
-                          <span className="ml-1 italic">· {bm.filter_value}</span>
+                        {group.variants.some(v => v.filter_type === "position" && v.filter_value) && (
+                          <span className="ml-1 italic">· par poste</span>
                         )}
                       </p>
                     </div>
@@ -373,13 +372,14 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
                   <TableCell className="sticky left-0 bg-background z-10 font-medium">
                     {player.first_name ? `${player.first_name} ${player.name}` : player.name}
                   </TableCell>
-                  {displayedBenchmarks.map(bm => {
-                    const val = playerResults.get(player.id)?.get(bm.id);
+                  {benchmarkGroups.map(group => {
+                    const bm = resolveVariant(group, player);
+                    const val = playerResults.get(player.id)?.get(group.key);
                     const weight = playerWeights.get(player.id);
 
-                    if (val == null) {
+                    if (val == null || !bm) {
                       return (
-                        <TableCell key={bm.id} className="text-center">
+                        <TableCell key={group.key} className="text-center">
                           <span className="text-muted-foreground text-xs">-</span>
                         </TableCell>
                       );
@@ -387,20 +387,28 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
 
                     const { label, color } = getPlayerLevel(val, bm, weight);
 
-                    // Show ratio if body-weight based
-                    let displayValue = val.toString();
+                    // Charge en kg + ratio (charge / PDC) entre parenthèses
+                    let displayValue = String(val);
                     if (bm.use_body_weight_ratio && weight) {
-                      const ratio = (val / weight).toFixed(2);
-                      displayValue = `${val} (${ratio}x)`;
+                      const ratio = (val / weight).toFixed(2).replace(".", ",");
+                      displayValue = `${val} kg (${ratio} / PDC)`;
                     }
 
+                    const variantLabel =
+                      bm.filter_type === "position" && bm.filter_value ? bm.filter_value : null;
+
                     return (
-                      <TableCell key={bm.id} className="text-center">
+                      <TableCell key={group.key} className="text-center">
                         <div className="flex flex-col items-center gap-0.5">
                           <span className="font-mono font-semibold text-sm">{displayValue}</span>
                           <Badge className="text-[10px] px-1.5 py-0 text-white" style={{ backgroundColor: color }}>
                             {label}
                           </Badge>
+                          {variantLabel && (
+                            <span className="text-[10px] text-muted-foreground italic">
+                              barème {variantLabel}
+                            </span>
+                          )}
                         </div>
                       </TableCell>
                     );
@@ -408,6 +416,7 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
                 </TableRow>
               ))}
             </TableBody>
+
 
           </Table>
         </div>
