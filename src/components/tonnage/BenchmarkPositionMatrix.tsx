@@ -184,7 +184,24 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     },
   });
 
-  // Poids le plus récent, tous sources confondues (body_composition + player_measurements)
+  // Récupère aussi les résultats de tests d'anthropométrie qui contiennent un poids
+  // (test personnalisé "Poids", "Anthropométrie", etc. avec unité kg).
+  const { data: weightTests = [] } = useQuery({
+    queryKey: ["weight-tests-matrix", categoryId],
+    enabled: !!categoryId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("generic_tests")
+        .select("player_id, test_type, test_category, result_value, result_unit, test_date")
+        .eq("category_id", categoryId)
+        .order("test_date", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Poids le plus récent, toutes sources confondues
+  // (body_composition + player_measurements + tests anthropométrie)
   const playerWeights = useMemo(() => {
     const latest = new Map<string, { w: number; date: string }>();
     const consider = (pid: string, w: any, date: string | null) => {
@@ -196,10 +213,48 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     };
     for (const bc of bodyComps as any[]) consider(bc.player_id, bc.weight_kg, bc.measurement_date);
     for (const pm of playerMeasurements as any[]) consider(pm.player_id, pm.weight_kg, pm.measurement_date);
+
+    // Identifie les tests personnalisés qui mesurent un poids (nom "poids/weight/masse corporelle")
+    const weightCustomIds = new Set<string>();
+    for (const ct of customTests) {
+      const nameLc = (ct.name || "").toLowerCase();
+      const unitLc = (ct.unit || "").toLowerCase();
+      if (unitLc !== "kg") continue;
+      if (
+        nameLc.includes("poids") ||
+        nameLc.includes("weight") ||
+        nameLc.includes("masse corporelle") ||
+        nameLc.includes("body mass") ||
+        nameLc === "anthropométrie" ||
+        nameLc === "anthropometrie"
+      ) {
+        weightCustomIds.add(ct.id);
+      }
+    }
+
+    for (const t of weightTests as any[]) {
+      const unitLc = (t.result_unit || "").toLowerCase();
+      if (unitLc && unitLc !== "kg") continue;
+      const tt: string = t.test_type || "";
+      const cat: string = (t.test_category || "").toLowerCase();
+      const isCustomWeight =
+        tt.startsWith("custom:") && weightCustomIds.has(tt.slice("custom:".length));
+      const isPresetWeight =
+        tt === "body_weight" ||
+        tt === "weight" ||
+        tt === "poids" ||
+        (cat === "anthropometry" && (unitLc === "kg" || !unitLc));
+      if (!isCustomWeight && !isPresetWeight) continue;
+      const v = Number(t.result_value);
+      // On veut un poids humain plausible (20–200 kg) pour éviter les faux positifs
+      if (!isFinite(v) || v < 20 || v > 200) continue;
+      consider(t.player_id, v, t.test_date);
+    }
+
     const m = new Map<string, number>();
     for (const [pid, v] of latest) m.set(pid, v.w);
     return m;
-  }, [bodyComps, playerMeasurements]);
+  }, [bodyComps, playerMeasurements, weightTests, customTests]);
 
   const { data: genericTests = [] } = useQuery({
     queryKey: ["generic-tests-matrix", categoryId],
