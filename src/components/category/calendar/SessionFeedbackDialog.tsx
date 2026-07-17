@@ -243,6 +243,20 @@ export function SessionFeedbackDialog({
   // Resolve labels for custom tests (`custom:<uuid>`) so staff sees the real name
   const customTestMap = useCustomTestLabels(sessionTests.map((t) => t.test_type));
 
+  // Athlete-submitted pending results (to disable staff input and avoid duplicates)
+  const { data: athleteSubmitted } = useQuery({
+    queryKey: ["session-athlete-submitted", sessionId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("pending_test_results")
+        .select("player_id, test_category, test_type, result_value, result_unit, validation_status")
+        .eq("training_session_id", sessionId);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open && !!sessionId,
+    refetchInterval: 30_000,
+  });
 
 
   // Also check for existing test results in generic_tests (for already saved results)
