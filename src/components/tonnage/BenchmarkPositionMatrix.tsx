@@ -133,7 +133,7 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
-        .select("id, name, first_name, position")
+        .select("id, name, first_name, position, gender")
         .eq("category_id", categoryId)
         .order("name");
       if (error) throw error;
