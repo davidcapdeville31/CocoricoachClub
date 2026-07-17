@@ -190,8 +190,15 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
         }
       });
     }
-    return tests;
-  }, [speedTests, strengthTests, jumpTests, genericTests]);
+    // Resolve custom test names via map
+    return tests.map(t => {
+      if (t.key.startsWith("custom:")) {
+        const info = customTestsMap[t.key];
+        if (info) return { ...t, label: info.name, unit: t.unit || info.unit || "" };
+      }
+      return t;
+    });
+  }, [speedTests, strengthTests, jumpTests, genericTests, customTestsMap]);
 
   // Auto-select first test
   useMemo(() => {
