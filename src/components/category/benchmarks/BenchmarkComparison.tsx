@@ -442,7 +442,7 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
                     const ratio = displayBenchmark.use_body_weight_ratio && weight ? val / weight : null;
 
                     const variantLabel =
-                      bm.filter_type === "position" && bm.filter_value ? bm.filter_value : null;
+                      bm && bm.filter_type === "position" && bm.filter_value ? bm.filter_value : null;
 
                     return (
                       <TableCell key={group.key} className="text-center">
