@@ -263,18 +263,8 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     [bodyComps, playerMeasurements, weightTests, customTests],
   );
 
-  const { data: genericTests = [] } = useQuery({
-    queryKey: ["generic-tests-matrix", categoryId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("generic_tests")
-        .select("player_id, test_type, test_category, result_value, result_unit, test_date")
-        .eq("category_id", categoryId)
-        .order("test_date", { ascending: true });
-      if (error) throw error;
-      return data || [];
-    },
-  });
+
+
 
   const { data: speedTests = [] } = useQuery({
     queryKey: ["speed-tests-matrix", categoryId],
