@@ -152,6 +152,29 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
   });
   const genericTests = useMemo(() => filterRows(genericTestsRaw as any), [genericTestsRaw, filterRows]);
 
+  // Body composition (poids) — nécessaire pour convertir les tests "× PDC"
+  // (ratio = charge kg ÷ poids kg) et afficher le vrai ratio dans les graphs.
+  const { data: bodyComps } = useQuery({
+    queryKey: ["body-comp-evolution", categoryId, scopeKey],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("body_composition")
+        .select("player_id, weight_kg, measurement_date")
+        .eq("category_id", categoryId)
+        .order("measurement_date", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+  const playerWeights = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const bc of (bodyComps as any[]) || []) {
+      if (bc.weight_kg && !m.has(bc.player_id)) m.set(bc.player_id, Number(bc.weight_kg));
+    }
+    return m;
+  }, [bodyComps]);
+
+
   // Discover available tests
   const availableTests = useMemo(() => {
     const tests: DiscoveredTest[] = [];
