@@ -287,8 +287,7 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
     return map;
   }, [benchmarkGroups, genericTests, speedTests, strengthTests, customTests]);
 
-  // Filtre poste global
-  const [positionFilter, setPositionFilter] = useState<string>("all");
+  // Filtre poste global (useState hissé en haut du composant)
   const availablePositions = useMemo(() => {
     const s = new Set<string>();
     for (const bm of benchmarks) {
