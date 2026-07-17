@@ -39,6 +39,7 @@ import {
   buildPendingTestRecords,
   type TestResultsState,
 } from "./AthleteTestResultsInput";
+import { collectLatestPlayerWeights } from "@/lib/benchmarks/playerWeights";
 
 interface Props {
   playerId: string;
@@ -68,6 +69,26 @@ const BOWLING_EXERCISE_LABELS: Record<string, string> = {
   quille_10: "Quille 10",
   spares: "Spares",
   poche: "Poche",
+};
+
+const isBodyWeightRatioUnit = (unit?: string | null) => {
+  const normalized = String(unit || "").toLowerCase();
+  return /pdc|poids\s*de\s*corps|body\s*weight|bodyweight|ratio/.test(normalized);
+};
+
+const formatFrNumber = (value: number, digits = 2) => {
+  if (Number.isInteger(value)) return String(value);
+  return value.toFixed(digits).replace(/\.0+$/, "").replace(".", ",");
+};
+
+const formatBodyWeightRatioResult = (rawValue: unknown, playerWeight?: number | null) => {
+  const value = Number(rawValue);
+  if (!Number.isFinite(value)) return String(rawValue ?? "");
+  if (!playerWeight || playerWeight <= 0) return `ratio ${formatFrNumber(value, 2)} (poids athlète manquant)`;
+
+  const loadKg = value >= 5 ? value : value * playerWeight;
+  const ratio = value >= 5 ? loadKg / playerWeight : value;
+  return `ratio ${formatFrNumber(ratio, 2)} (${formatFrNumber(loadKg, 1)}/${formatFrNumber(playerWeight, 1)} kg)`;
 };
 
 export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
@@ -238,42 +259,40 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
   const { data: playerBodyWeight = null } = useQuery({
     queryKey: ["athlete-space-body-weight", playerId],
     queryFn: async () => {
-      // Try player_measurements first
       const { data: pm } = await supabase
         .from("player_measurements")
-        .select("weight_kg, measurement_date")
+        .select("player_id, weight_kg, measurement_date")
         .eq("player_id", playerId)
         .not("weight_kg", "is", null)
-        .order("measurement_date", { ascending: false })
-        .limit(1);
-      const pmWeight = pm?.[0]?.weight_kg ? { w: Number(pm[0].weight_kg), d: pm[0].measurement_date } : null;
-      // Also check generic_tests for anthropometry/weight entries
+        .order("measurement_date", { ascending: false });
+
+      const { data: bc } = await supabase
+        .from("body_composition")
+        .select("player_id, weight_kg, measurement_date")
+        .eq("player_id", playerId)
+        .not("weight_kg", "is", null)
+        .order("measurement_date", { ascending: false });
+
       const { data: gt } = await supabase
         .from("generic_tests")
-        .select("result_value, result_unit, test_type, test_category, test_date")
+        .select("player_id, result_value, result_unit, test_type, test_category, test_date")
         .eq("player_id", playerId)
         .order("test_date", { ascending: false })
-        .limit(20);
-      let gtWeight: { w: number; d: string } | null = null;
-      for (const t of gt || []) {
-        const type = (t.test_type || "").toLowerCase();
-        const cat = (t.test_category || "").toLowerCase();
-        const unit = (t.result_unit || "").toLowerCase();
-        const v = Number(t.result_value);
-        if (!Number.isFinite(v) || v < 20 || v > 200) continue;
-        if (unit && unit !== "kg") continue;
-        if (
-          type.includes("weight") || type.includes("poids") ||
-          cat.includes("anthropo") || cat.includes("weight") || cat.includes("poids")
-        ) {
-          gtWeight = { w: v, d: t.test_date };
-          break;
-        }
-      }
-      const candidates = [pmWeight, gtWeight].filter(Boolean) as { w: number; d: string }[];
-      if (candidates.length === 0) return null;
-      candidates.sort((a, b) => new Date(b.d).getTime() - new Date(a.d).getTime());
-      return candidates[0].w;
+        .limit(100);
+
+      const customIds = Array.from(new Set((gt || [])
+        .map((t: any) => typeof t.test_type === "string" && t.test_type.startsWith("custom:") ? t.test_type.slice(7) : null)
+        .filter(Boolean) as string[]));
+      const { data: customTests } = customIds.length > 0
+        ? await supabase.from("custom_tests").select("id, name, unit, test_category").in("id", customIds)
+        : { data: [] as any[] };
+
+      return collectLatestPlayerWeights({
+        bodyComps: (bc || []) as any[],
+        playerMeasurements: (pm || []) as any[],
+        weightTests: (gt || []) as any[],
+        customTests: (customTests || []) as any[],
+      }).get(playerId) || null;
     },
     enabled: !!playerId,
   });
@@ -751,21 +770,12 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         {testNames.map((name, idx) => <div key={idx}>📋 {name}</div>)}
         {results.map((r, idx) => {
           const unit = r.result_unit || "";
-          const isRatio = /pdc/i.test(unit);
+          const customUnit = r.test_type?.startsWith("custom:") ? customTestMap[r.test_type]?.unit : null;
+          const isRatio = isBodyWeightRatioUnit(unit) || isBodyWeightRatioUnit(customUnit);
           const value = Number(r.result_value);
           let display = `${r.result_value} ${unit}`;
           if (isRatio && Number.isFinite(value)) {
-            // Value stored as charge en kg — afficher kg + ratio calculé
-            if (playerBodyWeight && playerBodyWeight > 0 && value >= 5) {
-              const ratio = value / playerBodyWeight;
-              display = `${value} kg (ratio ${ratio.toFixed(2).replace(".", ",")} = ${value}/${playerBodyWeight} kg)`;
-            } else if (playerBodyWeight && playerBodyWeight > 0 && value < 5) {
-              // Value stored as ratio
-              const kg = value * playerBodyWeight;
-              display = `${kg.toFixed(1).replace(".", ",")} kg (ratio ${value.toFixed(2).replace(".", ",")})`;
-            } else {
-              display = `${r.result_value} (ratio charge/poids)`;
-            }
+            display = formatBodyWeightRatioResult(value, playerBodyWeight);
           }
           return <div key={`r-${idx}`}>✅ {labelizeTestType(r.test_type, customTestMap)}: {display}</div>;
         })}
