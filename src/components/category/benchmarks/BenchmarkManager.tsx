@@ -14,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Trash2, Edit, Target, Settings2, Weight } from "lucide-react";
 import { toast } from "sonner";
 import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
+import { getPositionGroupsForSport } from "@/lib/constants/sportPositionGroups";
+
 
 interface BenchmarkManagerProps {
   categoryId: string;
