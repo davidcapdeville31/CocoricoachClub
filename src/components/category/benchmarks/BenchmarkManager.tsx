@@ -56,30 +56,6 @@ const DEFAULT_COLORS = [
 ];
 
 const FILTER_TYPES: Record<string, { label: string; options: { value: string; label: string }[] }> = {
-  rugby: {
-    label: "Poste",
-    options: [
-      { value: "pilier", label: "Pilier" },
-      { value: "talonneur", label: "Talonneur" },
-      { value: "deuxieme_ligne", label: "2ème Ligne" },
-      { value: "flanker", label: "Flanker" },
-      { value: "numero_8", label: "Numéro 8" },
-      { value: "demi_melee", label: "Demi de mêlée" },
-      { value: "demi_ouverture", label: "Demi d'ouverture" },
-      { value: "centre", label: "Centre" },
-      { value: "ailier", label: "Ailier" },
-      { value: "arriere", label: "Arrière" },
-    ],
-  },
-  football: {
-    label: "Poste",
-    options: [
-      { value: "gardien", label: "Gardien" },
-      { value: "defenseur", label: "Défenseur" },
-      { value: "milieu", label: "Milieu" },
-      { value: "attaquant", label: "Attaquant" },
-    ],
-  },
   judo: {
     label: "Catégorie de poids",
     options: [
@@ -108,12 +84,19 @@ const FILTER_TYPES: Record<string, { label: string; options: { value: string; la
 
 function getFilterConfig(sportType: string) {
   const key = sportType.toLowerCase().replace(/[_\s]/g, "");
-  if (key.includes("rugby")) return FILTER_TYPES.rugby;
-  if (key.includes("football") || key.includes("foot") || key.includes("soccer")) return FILTER_TYPES.football;
   if (key.includes("judo")) return FILTER_TYPES.judo;
   if (key.includes("athlet") || key.includes("track")) return FILTER_TYPES.athletisme;
+  // Sports d'équipe → utilise les groupes de postes canoniques (premiere_ligne, ...)
+  const groups = getPositionGroupsForSport(sportType);
+  if (groups.length > 0) {
+    return {
+      label: "Poste",
+      options: groups.map((g) => ({ value: g.id, label: g.label })),
+    };
+  }
   return null;
 }
+
 
 export function BenchmarkManager({ categoryId, sportType }: BenchmarkManagerProps) {
   const { user } = useAuth();
