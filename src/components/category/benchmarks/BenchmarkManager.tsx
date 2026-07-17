@@ -416,14 +416,22 @@ export function BenchmarkManager({ categoryId, sportType }: BenchmarkManagerProp
                           </div>
                         </TableCell>
                         <TableCell>
-                          {b.filter_type !== "all" && b.filter_value ? (
-                            <Badge variant="secondary" className="text-xs">
-                              {b.filter_value}
-                            </Badge>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">Tous</span>
-                          )}
+                          <div className="flex flex-wrap gap-1">
+                            {b.filter_type !== "all" && b.filter_value ? (
+                              <Badge variant="secondary" className="text-xs">
+                                {b.filter_value}
+                              </Badge>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">Tous postes</span>
+                            )}
+                            {b.gender_filter && (
+                              <Badge variant="outline" className="text-xs">
+                                {b.gender_filter === "male" ? "♂ Masculin" : "♀ Féminin"}
+                              </Badge>
+                            )}
+                          </div>
                         </TableCell>
+
                         <TableCell className="text-right">
                           <div className="flex gap-1 justify-end">
                             <Button variant="ghost" size="icon" onClick={() => openEdit(b)}>
