@@ -243,6 +243,20 @@ export function SessionFeedbackDialog({
   // Resolve labels for custom tests (`custom:<uuid>`) so staff sees the real name
   const customTestMap = useCustomTestLabels(sessionTests.map((t) => t.test_type));
 
+  // Athlete-submitted pending results (to disable staff input and avoid duplicates)
+  const { data: athleteSubmitted } = useQuery({
+    queryKey: ["session-athlete-submitted", sessionId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("pending_test_results")
+        .select("player_id, test_category, test_type, result_value, result_unit, validation_status")
+        .eq("training_session_id", sessionId);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open && !!sessionId,
+    refetchInterval: 30_000,
+  });
 
 
   // Also check for existing test results in generic_tests (for already saved results)
@@ -909,6 +923,12 @@ export function SessionFeedbackDialog({
                       <div className="space-y-1.5">
                         {playersForTests.map((player) => {
                           const isSaved = test.savedPlayerIds?.has(player.id);
+                          const athleteEntry = (athleteSubmitted || []).find(
+                            (a: any) =>
+                              a.player_id === player.id &&
+                              a.test_category === test.test_category &&
+                              a.test_type === test.test_type,
+                          );
                           const val = test.player_results[player.id] || "";
                           return (
                             <div key={player.id} className="flex items-center gap-2">
@@ -923,6 +943,15 @@ export function SessionFeedbackDialog({
                               </Label>
                               {isSaved ? (
                                 <span className="text-xs text-muted-foreground">✓ {val} {unit}</span>
+                              ) : athleteEntry ? (
+                                <Badge
+                                  variant={athleteEntry.validation_status === "pending" ? "secondary" : "default"}
+                                  className="text-[10px]"
+                                  title="Résultat soumis par l'athlète — à valider dans la liste des résultats en attente"
+                                >
+                                  {athleteEntry.result_value} {athleteEntry.result_unit || unit}
+                                  {athleteEntry.validation_status === "pending" ? " — athlète (à valider)" : " ✓ athlète"}
+                                </Badge>
                               ) : (
                                 <>
                                   <Input
