@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FlaskConical, Clock, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
 
 interface TestRef {
   test_category: string;
