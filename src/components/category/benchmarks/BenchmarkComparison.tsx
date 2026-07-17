@@ -168,6 +168,20 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
     enabled: benchmarks.length > 0,
   });
 
+  // Custom tests de la catégorie pour matching benchmark <-> résultat
+  const { data: customTests = [] } = useQuery({
+    queryKey: ["custom_tests_for_benchmark_match", categoryId],
+    enabled: !!categoryId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("custom_tests")
+        .select("id, name, test_category")
+        .eq("category_id", categoryId);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   // Build player results map
   const playerResults = useMemo(() => {
     const map = new Map<string, Map<string, number>>();
@@ -178,15 +192,18 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
 
     benchmarks.forEach(bm => {
       genericTests.forEach(t => {
-        if (t.test_category === bm.test_category && t.test_type === bm.test_type) {
-          const pm = getPlayerMap(t.player_id);
-          if (!pm.has(bm.id)) pm.set(bm.id, t.result_value);
-        }
+        // Category can differ if the custom test was created under a different
+        // theme category ; on tolère si le test_type matche (custom UUID or preset).
+        const sameCat = t.test_category === bm.test_category;
+        if (!sameCat && !matchesBenchmark(t.test_type, bm.test_type, customTests as any)) return;
+        if (!matchesBenchmark(t.test_type, bm.test_type, customTests as any)) return;
+        const pm = getPlayerMap(t.player_id);
+        if (!pm.has(bm.id)) pm.set(bm.id, t.result_value);
       });
 
       if (bm.test_category === "speed" || bm.test_category === "sprint") {
         speedTests.forEach(t => {
-          if (t.test_type === bm.test_type) {
+          if (matchesBenchmark(t.test_type, bm.test_type, customTests as any)) {
             const pm = getPlayerMap(t.player_id);
             if (!pm.has(bm.id)) {
               const val = t.vma_kmh || t.speed_kmh || t.time_40m_seconds;
@@ -196,9 +213,9 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
         });
       }
 
-      if (bm.test_category === "strength" || bm.test_category === "force") {
+      if (bm.test_category === "strength" || bm.test_category === "force" || bm.test_category === "musculation") {
         strengthTests.forEach(t => {
-          if (t.test_name === bm.test_type) {
+          if (matchesBenchmark(t.test_name, bm.test_type, customTests as any)) {
             const pm = getPlayerMap(t.player_id);
             if (!pm.has(bm.id)) pm.set(bm.id, t.weight_kg);
           }
@@ -207,7 +224,8 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
     });
 
     return map;
-  }, [benchmarks, genericTests, speedTests, strengthTests]);
+  }, [benchmarks, genericTests, speedTests, strengthTests, customTests]);
+
 
   // Filter players based on benchmark filter
   // Désormais : on regarde l'identité athlète (positions multiples)
