@@ -729,11 +729,17 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                                 </TableCell>
                               );
                             }
-                            // Pour un test ratio, on ne calcule le niveau que si le ratio est connu
+                            // Pour un test ratio, on ne calcule le niveau que si le ratio est connu.
+                            // point.value contient déjà le ratio → on ne passe PAS le poids
+                            // (sinon computeBenchmarkLevel multiplierait à nouveau les seuils).
                             const canComputeLevel =
                               !!posBm && (!isRatio || point.ratio != null);
                             const level = canComputeLevel
-                              ? computeBenchmarkLevel(point.value, posBm!, weight)
+                              ? computeBenchmarkLevel(
+                                  point.value,
+                                  posBm!,
+                                  isRatio ? null : weight,
+                                )
                               : null;
 
                             const bgColor = level?.color
