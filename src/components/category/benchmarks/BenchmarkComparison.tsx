@@ -1,10 +1,13 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Target, TrendingUp, Weight } from "lucide-react";
+import { computeBenchmarkLevel } from "@/lib/benchmarks/computeLevel";
+import { matchesBenchmark } from "@/lib/benchmarks/matchTestType";
 
 interface BenchmarkComparisonProps {
   categoryId: string;
@@ -36,39 +39,8 @@ function getPlayerLevel(
   benchmark: Benchmark,
   playerWeight?: number | null
 ): { label: string; color: string } {
-  const levels = benchmark.levels;
-  if (!levels || levels.length === 0) {
-    return { label: "N/A", color: "#94a3b8" };
-  }
-
-  // If body-weight ratio is used, adjust thresholds
-  const adjustedLevels = levels.map(l => {
-    if (benchmark.use_body_weight_ratio && benchmark.body_weight_multiplier && playerWeight && l.threshold != null) {
-      return { ...l, threshold: l.threshold * playerWeight };
-    }
-    return l;
-  });
-
-  // Levels are ordered from worst to best
-  // For lower_is_better: value <= threshold is good (check from best level down)
-  // For higher_is_better: value >= threshold is good (check from best level down)
-  for (let i = adjustedLevels.length - 1; i >= 0; i--) {
-    const level = adjustedLevels[i];
-    if (level.threshold == null) continue;
-
-    if (benchmark.lower_is_better) {
-      if (value <= level.threshold) {
-        return { label: level.label, color: level.color };
-      }
-    } else {
-      if (value >= level.threshold) {
-        return { label: level.label, color: level.color };
-      }
-    }
-  }
-
-  // Didn't match any level, return the worst
-  return { label: adjustedLevels[0]?.label || "N/A", color: adjustedLevels[0]?.color || "#ef4444" };
+  const { label, color } = computeBenchmarkLevel(value, benchmark, playerWeight);
+  return { label, color };
 }
 
 export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparisonProps) {
@@ -196,6 +168,23 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
     enabled: benchmarks.length > 0,
   });
 
+  // Custom tests de la catégorie pour matching benchmark <-> résultat
+  const { data: customTests = [] } = useQuery({
+    queryKey: ["custom_tests_for_benchmark_match", categoryId],
+    enabled: !!categoryId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("custom_test_categories")
+        .select("custom_tests(id, name, test_category)")
+        .eq("category_id", categoryId);
+      if (error) throw error;
+      return (data || [])
+        .map((r: any) => r.custom_tests)
+        .filter(Boolean) as { id: string; name: string; test_category: string | null }[];
+    },
+  });
+
+
   // Build player results map
   const playerResults = useMemo(() => {
     const map = new Map<string, Map<string, number>>();
@@ -206,15 +195,17 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
 
     benchmarks.forEach(bm => {
       genericTests.forEach(t => {
-        if (t.test_category === bm.test_category && t.test_type === bm.test_type) {
-          const pm = getPlayerMap(t.player_id);
-          if (!pm.has(bm.id)) pm.set(bm.id, t.result_value);
-        }
+        // Match by test_type (accepts custom:<uuid> and name-normalized fallback).
+        // Category is ignored : custom tests peuvent vivre sous d'autres catégories thème.
+        if (!matchesBenchmark(t.test_type, bm.test_type, customTests as any)) return;
+        const pm = getPlayerMap(t.player_id);
+        if (!pm.has(bm.id)) pm.set(bm.id, t.result_value);
       });
+
 
       if (bm.test_category === "speed" || bm.test_category === "sprint") {
         speedTests.forEach(t => {
-          if (t.test_type === bm.test_type) {
+          if (matchesBenchmark(t.test_type, bm.test_type, customTests as any)) {
             const pm = getPlayerMap(t.player_id);
             if (!pm.has(bm.id)) {
               const val = t.vma_kmh || t.speed_kmh || t.time_40m_seconds;
@@ -224,9 +215,9 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
         });
       }
 
-      if (bm.test_category === "strength" || bm.test_category === "force") {
+      if (bm.test_category === "strength" || bm.test_category === "force" || bm.test_category === "musculation") {
         strengthTests.forEach(t => {
-          if (t.test_name === bm.test_type) {
+          if (matchesBenchmark(t.test_name, bm.test_type, customTests as any)) {
             const pm = getPlayerMap(t.player_id);
             if (!pm.has(bm.id)) pm.set(bm.id, t.weight_kg);
           }
@@ -235,7 +226,8 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
     });
 
     return map;
-  }, [benchmarks, genericTests, speedTests, strengthTests]);
+  }, [benchmarks, genericTests, speedTests, strengthTests, customTests]);
+
 
   // Filter players based on benchmark filter
   // Désormais : on regarde l'identité athlète (positions multiples)
@@ -268,16 +260,61 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
     );
   }
 
+  // Filtre poste global
+  const [positionFilter, setPositionFilter] = useState<string>("all");
+  const availablePositions = useMemo(() => {
+    const s = new Set<string>();
+    for (const bm of benchmarks) {
+      if (bm.filter_type === "position" && bm.filter_value) s.add(bm.filter_value);
+    }
+    return Array.from(s).sort();
+  }, [benchmarks]);
+
+  const displayedBenchmarks = useMemo(() => {
+    if (positionFilter === "all") return benchmarks;
+    return benchmarks.filter((bm) =>
+      bm.filter_type !== "position" || !bm.filter_value || bm.filter_value === positionFilter,
+    );
+  }, [benchmarks, positionFilter]);
+
+  const displayedPlayers = useMemo(() => {
+    if (positionFilter === "all") return players;
+    return players.filter((p: any) => {
+      if (p.position === positionFilter) return true;
+      const dims = playerDimensionValues.get(p.id);
+      return !!dims?.get("position")?.has(positionFilter);
+    });
+  }, [players, positionFilter, playerDimensionValues]);
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <TrendingUp className="h-5 w-5 text-primary" />
-          Comparaison des performances
-        </CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Dernier résultat de chaque joueur comparé aux benchmarks définis
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              Comparaison des performances
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Dernier résultat de chaque joueur comparé aux benchmarks définis
+            </p>
+          </div>
+          {availablePositions.length > 0 && (
+            <div className="min-w-[180px]">
+              <Select value={positionFilter} onValueChange={setPositionFilter}>
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="Filtrer par poste" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les postes</SelectItem>
+                  {availablePositions.map((p) => (
+                    <SelectItem key={p} value={p}>{p}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
@@ -285,7 +322,7 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
             <TableHeader>
               <TableRow>
                 <TableHead className="sticky left-0 bg-background z-10 min-w-[150px]">Joueur</TableHead>
-                {benchmarks.map(bm => (
+                {displayedBenchmarks.map(bm => (
                   <TableHead key={bm.id} className="text-center min-w-[120px]">
                     <div>
                       <p className="font-medium">{bm.name}</p>
@@ -293,8 +330,12 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
                         {bm.unit}
                         {bm.use_body_weight_ratio && (
                           <span className="ml-1">
-                            <Weight className="h-3 w-3 inline" /> {bm.body_weight_multiplier}x PDC
+                            <Weight className="h-3 w-3 inline" />
+                            {bm.body_weight_multiplier ? ` ${bm.body_weight_multiplier}x` : " ×"} PDC
                           </span>
+                        )}
+                        {bm.filter_type === "position" && bm.filter_value && (
+                          <span className="ml-1 italic">· {bm.filter_value}</span>
                         )}
                       </p>
                     </div>
@@ -302,13 +343,14 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
                 ))}
               </TableRow>
             </TableHeader>
+
             <TableBody>
-              {players.map(player => (
+              {displayedPlayers.map(player => (
                 <TableRow key={player.id}>
                   <TableCell className="sticky left-0 bg-background z-10 font-medium">
                     {player.first_name ? `${player.first_name} ${player.name}` : player.name}
                   </TableCell>
-                  {benchmarks.map(bm => {
+                  {displayedBenchmarks.map(bm => {
                     const val = playerResults.get(player.id)?.get(bm.id);
                     const weight = playerWeights.get(player.id);
 
@@ -343,6 +385,7 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
                 </TableRow>
               ))}
             </TableBody>
+
           </Table>
         </div>
       </CardContent>

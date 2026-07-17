@@ -18,6 +18,7 @@ import { CreateCustomTestDialog } from "./tests/CreateCustomTestDialog";
 import { CreateThemeCategoryDialog } from "./tests/CreateThemeCategoryDialog";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { PlanTestsSection } from "./tests/PlanTestsSection";
+import { BenchmarkTab } from "./benchmarks/BenchmarkTab";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
@@ -499,6 +500,11 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
             hideCreateButton
           />
         </div>
+
+        <div className="mt-8">
+          <BenchmarkTab categoryId={categoryId} sportType={sportType} />
+        </div>
+
 
         {/* PlanTestsSection inline retiré — disponible via le bouton "Planifier un test" en haut */}
       </CardContent>

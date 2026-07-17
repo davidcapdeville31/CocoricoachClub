@@ -157,6 +157,28 @@ export function BenchmarkManager({ categoryId, sportType }: BenchmarkManagerProp
     },
   });
 
+  // Tests personnalisés de la catégorie, disponibles comme cibles de benchmark.
+  const { data: customTests = [] } = useQuery({
+    queryKey: ["custom_tests_for_benchmark_manager", categoryId],
+    enabled: !!categoryId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("custom_test_categories")
+        .select("custom_tests(id, name, test_category, unit, is_time)")
+        .eq("category_id", categoryId);
+      if (error) throw error;
+      return (data || [])
+        .map((r: any) => r.custom_tests)
+        .filter(Boolean) as { id: string; name: string; test_category: string | null; unit: string | null; is_time: boolean | null }[];
+    },
+  });
+
+  const customTestsForCategory = useMemo(() => {
+    if (!formTestCategory) return [] as typeof customTests;
+    return customTests.filter((ct) => ct.test_category === formTestCategory);
+  }, [customTests, formTestCategory]);
+
+
   const saveBenchmark = useMutation({
     mutationFn: async () => {
       const levelsJson = formLevels.map(l => ({
@@ -279,15 +301,27 @@ export function BenchmarkManager({ categoryId, sportType }: BenchmarkManagerProp
   };
 
   const handleTestTypeChange = (val: string) => {
+    setFormTestType(val);
+    // Custom test path : val = "custom:<uuid>"
+    if (val.startsWith("custom:")) {
+      const id = val.slice("custom:".length);
+      const ct = customTests.find((c) => c.id === id);
+      if (ct) {
+        setFormUnit(ct.unit || formUnit);
+        if (!formName) setFormName(ct.name);
+        setFormLowerIsBetter(!!ct.is_time);
+      }
+      return;
+    }
     const cat = testCategories.find(c => c.value === formTestCategory);
     const test = cat?.tests.find(t => t.value === val);
-    setFormTestType(val);
     if (test) {
       setFormUnit(test.unit || formUnit);
       if (!formName) setFormName(test.label);
       setFormLowerIsBetter(test.isTime || false);
     }
   };
+
 
   const addLevel = () => {
     const nextColor = DEFAULT_COLORS[formLevels.length % DEFAULT_COLORS.length];
@@ -305,9 +339,15 @@ export function BenchmarkManager({ categoryId, sportType }: BenchmarkManagerProp
 
   const getTestLabel = (testCategory: string, testType: string) => {
     const cat = testCategories.find(c => c.value === testCategory);
+    if (testType?.startsWith("custom:")) {
+      const id = testType.slice("custom:".length);
+      const ct = customTests.find((c) => c.id === id);
+      return { catLabel: cat?.label || testCategory, testLabel: ct ? `⭐ ${ct.name}` : "Test personnalisé" };
+    }
     const test = cat?.tests.find(t => t.value === testType);
     return { catLabel: cat?.label || testCategory, testLabel: test?.label || testType };
   };
+
 
   return (
     <div className="space-y-4">
@@ -452,7 +492,20 @@ export function BenchmarkManager({ categoryId, sportType }: BenchmarkManagerProp
                         {test.label}
                       </SelectItem>
                     ))}
+                    {customTestsForCategory.length > 0 && (
+                      <>
+                        <div className="px-2 pt-2 pb-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+                          Tests personnalisés
+                        </div>
+                        {customTestsForCategory.map((ct) => (
+                          <SelectItem key={ct.id} value={`custom:${ct.id}`}>
+                            ⭐ {ct.name}
+                          </SelectItem>
+                        ))}
+                      </>
+                    )}
                   </SelectContent>
+
                 </Select>
               </div>
             </div>
