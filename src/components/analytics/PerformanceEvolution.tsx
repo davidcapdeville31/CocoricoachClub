@@ -335,7 +335,7 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
     // Individual mode - one series per selected player
     const activePlayers = selectedPlayerIds.length > 0 
       ? selectedPlayerIds 
-      : playersWithData.slice(0, 3).map(p => p.id);
+      : playersWithData.map(p => p.id);
 
     const allDates = new Set<string>();
     const playerData = new Map<string, Map<string, number>>();
@@ -376,7 +376,7 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
     
     const activePlayers = selectedPlayerIds.length > 0 
       ? selectedPlayerIds 
-      : playersWithData.slice(0, 3).map(p => p.id);
+      : playersWithData.map(p => p.id);
 
     return activePlayers.map((pid, i) => {
       const player = players?.find(p => p.id === pid);
@@ -456,7 +456,7 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
   };
 
   const activePlayers = viewMode === "individual" 
-    ? (selectedPlayerIds.length > 0 ? selectedPlayerIds : playersWithData.slice(0, 3).map(p => p.id))
+    ? (selectedPlayerIds.length > 0 ? selectedPlayerIds : playersWithData.map(p => p.id))
     : [];
 
   const renderChart = () => {
@@ -599,7 +599,7 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
               <div className="flex flex-wrap gap-2">
                 {playersWithData.map((player, i) => {
                   const isSelected = selectedPlayerIds.includes(player.id) || 
-                    (selectedPlayerIds.length === 0 && i < 3);
+                    (selectedPlayerIds.length === 0);
                   const colorIndex = isSelected 
                     ? (selectedPlayerIds.length > 0 ? selectedPlayerIds.indexOf(player.id) : i)
                     : -1;
