@@ -171,13 +171,35 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     },
   });
 
+  const { data: playerMeasurements = [] } = useQuery({
+    queryKey: ["player-measurements-matrix", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("player_measurements")
+        .select("player_id, weight_kg, measurement_date")
+        .eq("category_id", categoryId)
+        .order("measurement_date", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Poids le plus récent, tous sources confondues (body_composition + player_measurements)
   const playerWeights = useMemo(() => {
+    const latest = new Map<string, { w: number; date: string }>();
+    const consider = (pid: string, w: any, date: string | null) => {
+      const n = Number(w);
+      if (!n || !isFinite(n) || n <= 0) return;
+      const cur = latest.get(pid);
+      const d = date || "";
+      if (!cur || d.localeCompare(cur.date) > 0) latest.set(pid, { w: n, date: d });
+    };
+    for (const bc of bodyComps as any[]) consider(bc.player_id, bc.weight_kg, bc.measurement_date);
+    for (const pm of playerMeasurements as any[]) consider(pm.player_id, pm.weight_kg, pm.measurement_date);
     const m = new Map<string, number>();
-    for (const bc of bodyComps as any[]) {
-      if (bc.weight_kg && !m.has(bc.player_id)) m.set(bc.player_id, Number(bc.weight_kg));
-    }
+    for (const [pid, v] of latest) m.set(pid, v.w);
     return m;
-  }, [bodyComps]);
+  }, [bodyComps, playerMeasurements]);
 
   const { data: genericTests = [] } = useQuery({
     queryKey: ["generic-tests-matrix", categoryId],
