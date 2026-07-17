@@ -246,6 +246,8 @@ export function BenchmarkManager({ categoryId, sportType }: BenchmarkManagerProp
     setFormBodyWeightMultiplier("");
     setFormFilterType("all");
     setFormFilterValue("");
+    setFormGenderFilter("all");
+
   };
 
   const openCreate = () => {
