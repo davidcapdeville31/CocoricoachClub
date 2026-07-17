@@ -200,8 +200,8 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
                           <TableCell className="whitespace-nowrap text-xs">
                             {format(new Date(test.test_date), "dd/MM/yyyy", { locale: fr })}
                           </TableCell>
-                          <TableCell className="text-xs whitespace-nowrap">{cat?.label || test.test_category?.replace(/_/g, " ")}</TableCell>
-                          <TableCell className="text-xs whitespace-nowrap">{testDef?.label || test.test_type?.replace(/_/g, " ")}</TableCell>
+                          <TableCell className="text-xs whitespace-nowrap">{cat?.label || resolveLabel(test.test_category)}</TableCell>
+                          <TableCell className="text-xs whitespace-nowrap">{testDef?.label || resolveLabel(test.test_type)}</TableCell>
                           <TableCell className="text-xs font-semibold text-primary text-right whitespace-nowrap">
                             {test.result_value} {test.result_unit || ""}
                           </TableCell>
