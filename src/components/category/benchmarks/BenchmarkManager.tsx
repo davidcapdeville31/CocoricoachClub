@@ -339,9 +339,15 @@ export function BenchmarkManager({ categoryId, sportType }: BenchmarkManagerProp
 
   const getTestLabel = (testCategory: string, testType: string) => {
     const cat = testCategories.find(c => c.value === testCategory);
+    if (testType?.startsWith("custom:")) {
+      const id = testType.slice("custom:".length);
+      const ct = customTests.find((c) => c.id === id);
+      return { catLabel: cat?.label || testCategory, testLabel: ct ? `⭐ ${ct.name}` : "Test personnalisé" };
+    }
     const test = cat?.tests.find(t => t.value === testType);
     return { catLabel: cat?.label || testCategory, testLabel: test?.label || testType };
   };
+
 
   return (
     <div className="space-y-4">
