@@ -300,34 +300,40 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     const map = new Map<string, ResultPoint[]>();
     if (!bm) return map;
 
-    const push = (pid: string, date: string, value: number) => {
-      if (value == null || !isFinite(value)) return;
+    const push = (pid: string, date: string, point: ResultPoint) => {
+      if (point.value == null || !isFinite(point.value)) return;
       if (!map.has(pid)) map.set(pid, []);
-      map.get(pid)!.push({ date, value });
+      map.get(pid)!.push(point);
+    };
+
+    // Reconstitue rawKg + ratio à partir d'une valeur brute (kg ou ratio) selon le benchmark
+    const buildPoint = (pid: string, date: string, raw: number): ResultPoint => {
+      const w = playerWeights.get(pid);
+      if (bm.use_body_weight_ratio) {
+        // Si raw > 5 → c'est du kg, sinon on considère que c'est déjà un ratio
+        if (raw > 5 && w && w > 0) {
+          const ratio = Number((raw / w).toFixed(2));
+          return { date, value: ratio, rawKg: raw, ratio };
+        }
+        // raw est déjà un ratio
+        const rawKg = w && w > 0 ? Number((raw * w).toFixed(1)) : undefined;
+        return { date, value: raw, rawKg, ratio: raw };
+      }
+      return { date, value: raw };
     };
 
     genericTests.forEach((t: any) => {
       if (!matchesBenchmark(t.test_type, bm.test_type, customTests as any)) return;
       const raw = Number(t.result_value);
       if (!isFinite(raw) || raw <= 0) return;
-      // Auto-convert kg → ratio when needed
-      if (bm.use_body_weight_ratio) {
-        const w = playerWeights.get(t.player_id);
-        if (raw > 5 && w && w > 0) {
-          push(t.player_id, t.test_date, Number((raw / w).toFixed(2)));
-        } else {
-          push(t.player_id, t.test_date, raw);
-        }
-      } else {
-        push(t.player_id, t.test_date, raw);
-      }
+      push(t.player_id, t.test_date, buildPoint(t.player_id, t.test_date, raw));
     });
 
     if (bm.test_category === "speed" || bm.test_category === "sprint") {
       speedTests.forEach((t: any) => {
         if (!matchesBenchmark(t.test_type, bm.test_type, customTests as any)) return;
         const v = t.vma_kmh ?? t.speed_kmh ?? t.time_40m_seconds;
-        if (v != null) push(t.player_id, t.test_date, Number(v));
+        if (v != null) push(t.player_id, t.test_date, { date: t.test_date, value: Number(v) });
       });
     }
     if (
@@ -339,11 +345,17 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
         if (!matchesBenchmark(t.test_name, bm.test_type, customTests as any)) return;
         if (t.weight_kg != null) {
           const raw = Number(t.weight_kg);
+          const w = playerWeights.get(t.player_id);
           if (bm.use_body_weight_ratio) {
-            const w = playerWeights.get(t.player_id);
-            push(t.player_id, t.test_date, w && w > 0 ? Number((raw / w).toFixed(2)) : raw);
+            const ratio = w && w > 0 ? Number((raw / w).toFixed(2)) : raw;
+            push(t.player_id, t.test_date, {
+              date: t.test_date,
+              value: ratio,
+              rawKg: raw,
+              ratio: w && w > 0 ? ratio : undefined,
+            });
           } else {
-            push(t.player_id, t.test_date, raw);
+            push(t.player_id, t.test_date, { date: t.test_date, value: raw, rawKg: raw });
           }
         }
       });
