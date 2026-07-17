@@ -45,6 +45,7 @@ const PLAYER_COLORS = [
 ];
 
 const formatTestLabel = (testType: string): string => {
+  if (testType.startsWith("custom:")) return testType; // resolved via map later
   return testType
     .replace(/_/g, " ")
     .replace(/(\d+)m/g, "$1m")
