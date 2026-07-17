@@ -178,14 +178,21 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
     queryFn: async () => {
       const { data, error } = await supabase
         .from("custom_test_categories")
-        .select("custom_tests(id, name, test_category)")
+        .select("custom_tests(id, name, unit, test_category, scoring_scale)")
         .eq("category_id", categoryId);
       if (error) throw error;
       return (data || [])
         .map((r: any) => r.custom_tests)
-        .filter(Boolean) as { id: string; name: string; test_category: string | null }[];
+        .filter(Boolean) as { id: string; name: string; unit: string | null; test_category: string | null; scoring_scale?: any }[];
     },
   });
+
+  // Fusion : benchmarks BDD + variants poste/sexe stockés dans custom_tests.scoring_scale
+  const benchmarks = useMemo<Benchmark[]>(() => {
+    const synth = synthesizeBenchmarks(customTests as any) as unknown as Benchmark[];
+    return [...dbBenchmarks, ...synth];
+  }, [dbBenchmarks, customTests]);
+
 
 
   // Regroupe les benchmarks par test (nom/test_type normalisé) : une seule colonne
