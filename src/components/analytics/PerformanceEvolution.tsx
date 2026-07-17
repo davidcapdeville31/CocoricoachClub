@@ -167,13 +167,32 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
       return data || [];
     },
   });
-  const playerWeights = useMemo(() => {
-    const m = new Map<string, number>();
-    for (const bc of (bodyComps as any[]) || []) {
-      if (bc.weight_kg && !m.has(bc.player_id)) m.set(bc.player_id, Number(bc.weight_kg));
-    }
-    return m;
-  }, [bodyComps]);
+  const { data: playerMeasurements = [] } = useQuery({
+    queryKey: ["player-measurements-evolution", categoryId, scopeKey],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("player_measurements")
+        .select("player_id, weight_kg, measurement_date")
+        .eq("category_id", categoryId)
+        .order("measurement_date", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+  const customTestsList = useMemo(
+    () => Object.values(customTestsMap || {}),
+    [customTestsMap],
+  );
+  const playerWeights = useMemo(
+    () =>
+      collectLatestPlayerWeights({
+        bodyComps: (bodyComps as any) || [],
+        playerMeasurements: playerMeasurements as any,
+        weightTests: (genericTestsRaw as any) || [],
+        customTests: customTestsList as any,
+      }),
+    [bodyComps, playerMeasurements, genericTestsRaw, customTestsList],
+  );
 
 
   // Discover available tests
