@@ -31,9 +31,11 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
     queryKey: ["athlete-space-player-weight", playerId],
     queryFn: async () => {
       const { data } = await supabase
-        .from("players")
-        .select("weight_kg")
-        .eq("id", playerId)
+        .from("body_composition")
+        .select("weight_kg, measurement_date")
+        .eq("player_id", playerId)
+        .order("measurement_date", { ascending: false })
+        .limit(1)
         .maybeSingle();
       return data;
     },
