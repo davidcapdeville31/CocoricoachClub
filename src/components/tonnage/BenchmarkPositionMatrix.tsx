@@ -146,6 +146,22 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     },
   });
 
+  // Récupère tous les résultats de tests génériques (utilisé pour dériver la liste
+  // des custom tests référencés + pour les points de test). Déclaré tôt car
+  // plusieurs queries en dépendent.
+  const { data: genericTests = [] } = useQuery({
+    queryKey: ["generic-tests-matrix", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("generic_tests")
+        .select("player_id, test_type, test_category, result_value, result_unit, test_date")
+        .eq("category_id", categoryId)
+        .order("test_date", { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   const referencedCustomIds = useMemo(() => {
     const ids = new Set<string>();
     for (const t of (genericTests as any[]) || []) {
@@ -161,7 +177,6 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     enabled: !!categoryId,
     queryFn: async () => {
       const results = new Map<string, CustomTest & { scoring_scale?: any }>();
-      // 1) tests liés à la catégorie
       const { data: linked, error } = await supabase
         .from("custom_test_categories")
         .select("custom_tests(id, name, unit, test_category, scoring_scale)")
@@ -171,7 +186,6 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
         const ct = (r as any).custom_tests;
         if (ct) results.set(ct.id, ct);
       }
-      // 2) tests référencés par des résultats existants même si le lien a été retiré
       const missing = referencedCustomIds.filter((id) => !results.has(id));
       if (missing.length) {
         const { data: extra } = await supabase
