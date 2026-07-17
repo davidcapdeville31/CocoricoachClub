@@ -236,13 +236,46 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
       });
     }
     // Resolve custom test names via map
-    return tests.map(t => {
+    const resolved = tests.map(t => {
       if (t.key.startsWith("custom:")) {
         const info = customTestsMap[t.key];
         if (info) return { ...t, label: info.name, unit: t.unit || info.unit || "" };
       }
       return t;
     });
+
+    // Normalise l'unité "× PDC" en "ratio" pour l'affichage et flag isRatio
+    const normUnit = (u: string) => u.toLowerCase().replace(/\s+/g, "");
+    const withRatioFlag = resolved.map(t => {
+      const isRatio = ["×pdc", "xpdc", "/pdc"].includes(normUnit(t.unit || ""));
+      return { ...t, isRatio, unit: isRatio ? "ratio" : t.unit };
+    });
+
+    // Déduplique par label normalisé (ex: "Weight" ≡ "Poids") en fusionnant
+    // les clés dans aliasKeys pour agréger les enregistrements.
+    const normLabel = (s: string) => {
+      const base = (s || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[\s_\-.]+/g, "")
+        .trim();
+      if (["weight", "poids", "bodyweight", "bodymass", "massecorporelle"].includes(base)) return "__weight__";
+      return base;
+    };
+    const grouped = new Map<string, DiscoveredTest>();
+    for (const t of withRatioFlag) {
+      const gkey = `${t.source}:${normLabel(t.label)}`;
+      const existing = grouped.get(gkey);
+      if (!existing) {
+        grouped.set(gkey, { ...t, aliasKeys: [t.key] });
+      } else {
+        existing.aliasKeys = [...(existing.aliasKeys || [existing.key]), t.key];
+        // Préfère le label "Poids" si présent
+        if (/poids/i.test(t.label) && !/poids/i.test(existing.label)) existing.label = t.label;
+      }
+    }
+    return Array.from(grouped.values());
   }, [speedTests, strengthTests, jumpTests, genericTests, customTestsMap]);
 
   // Auto-select first test
