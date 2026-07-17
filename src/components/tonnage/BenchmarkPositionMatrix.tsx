@@ -112,7 +112,7 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     [sportType],
   );
 
-  const { data: benchmarks = [] } = useQuery({
+  const { data: dbBenchmarks = [] } = useQuery({
     queryKey: ["benchmarks-matrix", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -149,14 +149,23 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("custom_test_categories")
-        .select("custom_tests(id, name, unit, test_category)")
+        .select("custom_tests(id, name, unit, test_category, scoring_scale)")
         .eq("category_id", categoryId);
       if (error) throw error;
       return (data || [])
         .map((r: any) => r.custom_tests)
-        .filter(Boolean) as CustomTest[];
+        .filter(Boolean) as (CustomTest & { scoring_scale?: any })[];
     },
   });
+
+  // Fusionne les benchmarks BDD + ceux synthétisés à partir des scoring_scale
+  // (variants poste / sexe) définis directement sur les tests personnalisés.
+  const benchmarks = useMemo<Benchmark[]>(() => {
+    const synth = synthesizeBenchmarks(customTests as any) as unknown as Benchmark[];
+    return [...dbBenchmarks, ...synth];
+  }, [dbBenchmarks, customTests]);
+
+
 
   const { data: bodyComps = [] } = useQuery({
     queryKey: ["body-comp-matrix", categoryId],
