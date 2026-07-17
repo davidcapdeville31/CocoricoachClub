@@ -21,6 +21,11 @@ import {
 import { Target, TrendingUp, TrendingDown, Minus, Weight } from "lucide-react";
 import { computeBenchmarkLevel } from "@/lib/benchmarks/computeLevel";
 import { matchesBenchmark, normalizeTestKey } from "@/lib/benchmarks/matchTestType";
+import {
+  getPositionGroupsForSport,
+  playerBelongsToGroup,
+  type PositionGroup,
+} from "@/lib/constants/sportPositionGroups";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -45,7 +50,9 @@ interface Benchmark {
   body_weight_multiplier: number | null;
   filter_type: string;
   filter_value: string | null;
+  gender_filter: string | null;
 }
+
 
 interface CustomTest {
   id: string;
@@ -85,6 +92,24 @@ function isRatioUnit(u: string | null | undefined) {
 export function BenchmarkPositionMatrix({ categoryId }: Props) {
   const [selectedKey, setSelectedKey] = useState<string>("");
 
+  const { data: category } = useQuery({
+    queryKey: ["category-matrix", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("rugby_type")
+        .eq("id", categoryId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+  const sportType = category?.rugby_type || "XV";
+  const positionGroups = useMemo<PositionGroup[]>(
+    () => getPositionGroupsForSport(sportType),
+    [sportType],
+  );
+
   const { data: benchmarks = [] } = useQuery({
     queryKey: ["benchmarks-matrix", categoryId],
     queryFn: async () => {
@@ -101,12 +126,14 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     },
   });
 
+
+
   const { data: players = [] } = useQuery({
     queryKey: ["players-matrix", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
-        .select("id, name, first_name, position")
+        .select("id, name, first_name, position, gender")
         .eq("category_id", categoryId)
         .order("name");
       if (error) throw error;
@@ -243,6 +270,8 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
         body_weight_multiplier: null,
         filter_type: "all",
         filter_value: null,
+        gender_filter: null,
+
       };
       opts.push({ key: `ct:${ct.id}`, label: ct.name, benchmark: synth, count });
     }
@@ -330,32 +359,66 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     return Array.from(s).sort();
   }, [playerSeries]);
 
-  // Group players by position
-  const playersByPosition = useMemo(() => {
-    const groups = new Map<string, typeof players>();
-    for (const p of players as any[]) {
-      const pos = p.position || UNKNOWN_POS;
-      if (!groups.has(pos)) groups.set(pos, [] as any);
-      groups.get(pos)!.push(p);
+  // Résout le groupe de poste canonique d'un joueur
+  const resolveGroup = (player: any): { id: string; label: string } => {
+    const pos: string | undefined = player?.position;
+    if (!pos) return { id: "__unknown__", label: UNKNOWN_POS };
+    for (const g of positionGroups) {
+      if (playerBelongsToGroup(pos, g)) return { id: g.id, label: g.label };
     }
-    return Array.from(groups.entries()).sort(([a], [b]) => {
-      if (a === UNKNOWN_POS) return 1;
-      if (b === UNKNOWN_POS) return -1;
-      return a.localeCompare(b);
-    });
-  }, [players]);
-
-  // Position-specific benchmark override (if a benchmark exists filtered by position)
-  const getBenchmarkForPosition = (position: string): Benchmark | null => {
-    if (!bm) return null;
-    const perPos = benchmarks.find(
-      (b) =>
-        b.test_type === bm.test_type &&
-        b.filter_type === "position" &&
-        b.filter_value === position,
-    );
-    return perPos || bm;
+    // Fallback : utilise directement la position brute
+    return { id: pos.toLowerCase(), label: pos };
   };
+
+  // Groupe les joueurs par groupe de poste canonique
+  const playersByPosition = useMemo(() => {
+    const groups = new Map<string, { label: string; list: any[] }>();
+    for (const p of players as any[]) {
+      const g = resolveGroup(p);
+      if (!groups.has(g.id)) groups.set(g.id, { label: g.label, list: [] });
+      groups.get(g.id)!.list.push(p);
+    }
+    // Ordre : suivre positionGroups puis inconnus à la fin
+    const orderedIds = [
+      ...positionGroups.map((g) => g.id).filter((id) => groups.has(id)),
+      ...Array.from(groups.keys()).filter(
+        (id) => !positionGroups.some((g) => g.id === id) && id !== "__unknown__",
+      ),
+      "__unknown__",
+    ].filter((id) => groups.has(id));
+    return orderedIds.map((id) => [id, groups.get(id)!] as const);
+  }, [players, positionGroups]);
+
+  // Renvoie le barème le plus spécifique pour (groupe de poste, sexe)
+  const getBenchmarkForPlayer = (groupId: string, gender: string | null): Benchmark | null => {
+    if (!bm) return null;
+    const candidates = benchmarks.filter((b) => b.test_type === bm.test_type);
+    // Priorité : poste + sexe > poste seul > sexe seul > base
+    const posAndGender = candidates.find(
+      (b) => b.filter_value === groupId && b.gender_filter === gender,
+    );
+    if (posAndGender) return posAndGender;
+    const posOnly = candidates.find(
+      (b) => b.filter_value === groupId && !b.gender_filter,
+    );
+    if (posOnly) return posOnly;
+    const genderOnly = candidates.find(
+      (b) => !b.filter_value && b.gender_filter === gender,
+    );
+    if (genderOnly) return genderOnly;
+    return bm;
+  };
+
+  // Compat pour la table barème (affichage) : par groupe uniquement
+  const getBenchmarkForGroup = (groupId: string): Benchmark | null => {
+    if (!bm) return null;
+    return (
+      benchmarks.find(
+        (b) => b.test_type === bm.test_type && b.filter_value === groupId,
+      ) || bm
+    );
+  };
+
 
   const fmtDate = (d: string) => {
     try {
@@ -478,13 +541,13 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {playersByPosition.map(([pos]) => {
-                    const posBm = getBenchmarkForPosition(pos);
+                  {playersByPosition.map(([groupId, info]) => {
+                    const posBm = getBenchmarkForGroup(groupId);
                     const levels = posBm?.levels || bm.levels;
                     return (
-                      <TableRow key={pos}>
+                      <TableRow key={groupId}>
                         <TableCell className="bg-slate-100 dark:bg-slate-800 font-medium text-center">
-                          {pos}
+                          {info.label}
                         </TableCell>
                         {levels.map((l, i) => (
                           <TableCell
@@ -499,6 +562,7 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                     );
                   })}
                 </TableBody>
+
               </Table>
             </div>
           </CardContent>
@@ -546,14 +610,14 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {playersByPosition.map(([pos, list]) => {
-                    const posBm = getBenchmarkForPosition(pos);
+                  {playersByPosition.map(([groupId, info]) => {
                     // Filter list to players who have any data
-                    const listWithData = (list as any[]).filter((p) => playerSeries.has(p.id));
+                    const listWithData = info.list.filter((p) => playerSeries.has(p.id));
                     if (listWithData.length === 0) return null;
                     return listWithData.map((p: any, idx: number) => {
                       const series = playerSeries.get(p.id) || [];
                       const weight = playerWeights.get(p.id);
+                      const posBm = getBenchmarkForPlayer(groupId, p.gender || null);
                       const first = series[0];
                       const last = series[series.length - 1];
                       const evoDelta = first && last ? last.value - first.value : 0;
@@ -570,7 +634,7 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                               rowSpan={listWithData.length}
                               className="align-middle font-semibold text-sm bg-slate-100 dark:bg-slate-800 border-r text-center"
                             >
-                              {pos}
+                              {info.label}
                               <div className="text-[10px] text-muted-foreground font-normal">
                                 {listWithData.length} joueur
                                 {listWithData.length > 1 ? "s" : ""}
@@ -578,7 +642,14 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                             </TableCell>
                           ) : null}
                           <TableCell className="font-medium">
-                            {p.first_name ? `${p.first_name} ${p.name}` : p.name}
+                            <div className="flex items-center gap-1.5">
+                              <span>{p.first_name ? `${p.first_name} ${p.name}` : p.name}</span>
+                              {p.gender && (
+                                <span className="text-[10px] text-muted-foreground">
+                                  {p.gender === "male" ? "♂" : p.gender === "female" ? "♀" : ""}
+                                </span>
+                              )}
+                            </div>
                           </TableCell>
                           {allDates.map((d) => {
                             const point = series.find((s) => s.date === d);
@@ -595,6 +666,7 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                             const level = posBm
                               ? computeBenchmarkLevel(point.value, posBm, weight)
                               : null;
+
                             const bgColor = level?.color
                               ? `${level.color}30`
                               : undefined;

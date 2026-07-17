@@ -14,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Trash2, Edit, Target, Settings2, Weight } from "lucide-react";
 import { toast } from "sonner";
 import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
+import { getPositionGroupsForSport } from "@/lib/constants/sportPositionGroups";
+
 
 interface BenchmarkManagerProps {
   categoryId: string;
@@ -38,8 +40,10 @@ interface Benchmark {
   body_weight_multiplier: number | null;
   filter_type: string;
   filter_value: string | null;
+  gender_filter: string | null;
   applies_to: string | null;
 }
+
 
 interface LevelForm {
   label: string;
@@ -52,30 +56,6 @@ const DEFAULT_COLORS = [
 ];
 
 const FILTER_TYPES: Record<string, { label: string; options: { value: string; label: string }[] }> = {
-  rugby: {
-    label: "Poste",
-    options: [
-      { value: "pilier", label: "Pilier" },
-      { value: "talonneur", label: "Talonneur" },
-      { value: "deuxieme_ligne", label: "2ème Ligne" },
-      { value: "flanker", label: "Flanker" },
-      { value: "numero_8", label: "Numéro 8" },
-      { value: "demi_melee", label: "Demi de mêlée" },
-      { value: "demi_ouverture", label: "Demi d'ouverture" },
-      { value: "centre", label: "Centre" },
-      { value: "ailier", label: "Ailier" },
-      { value: "arriere", label: "Arrière" },
-    ],
-  },
-  football: {
-    label: "Poste",
-    options: [
-      { value: "gardien", label: "Gardien" },
-      { value: "defenseur", label: "Défenseur" },
-      { value: "milieu", label: "Milieu" },
-      { value: "attaquant", label: "Attaquant" },
-    ],
-  },
   judo: {
     label: "Catégorie de poids",
     options: [
@@ -104,12 +84,19 @@ const FILTER_TYPES: Record<string, { label: string; options: { value: string; la
 
 function getFilterConfig(sportType: string) {
   const key = sportType.toLowerCase().replace(/[_\s]/g, "");
-  if (key.includes("rugby")) return FILTER_TYPES.rugby;
-  if (key.includes("football") || key.includes("foot") || key.includes("soccer")) return FILTER_TYPES.football;
   if (key.includes("judo")) return FILTER_TYPES.judo;
   if (key.includes("athlet") || key.includes("track")) return FILTER_TYPES.athletisme;
+  // Sports d'équipe → utilise les groupes de postes canoniques (premiere_ligne, ...)
+  const groups = getPositionGroupsForSport(sportType);
+  if (groups.length > 0) {
+    return {
+      label: "Poste",
+      options: groups.map((g) => ({ value: g.id, label: g.label })),
+    };
+  }
   return null;
 }
+
 
 export function BenchmarkManager({ categoryId, sportType }: BenchmarkManagerProps) {
   const { user } = useAuth();
@@ -133,6 +120,8 @@ export function BenchmarkManager({ categoryId, sportType }: BenchmarkManagerProp
   const [formBodyWeightMultiplier, setFormBodyWeightMultiplier] = useState("");
   const [formFilterType, setFormFilterType] = useState("all");
   const [formFilterValue, setFormFilterValue] = useState("");
+  const [formGenderFilter, setFormGenderFilter] = useState<string>("all");
+
 
   const testCategories = getTestCategoriesForSport(sportType || "");
   const filterConfig = getFilterConfig(sportType || "");
@@ -199,7 +188,9 @@ export function BenchmarkManager({ categoryId, sportType }: BenchmarkManagerProp
         body_weight_multiplier: formBodyWeightMultiplier ? parseFloat(formBodyWeightMultiplier) : null,
         filter_type: formFilterType,
         filter_value: formFilterType !== "all" ? formFilterValue : null,
+        gender_filter: formGenderFilter && formGenderFilter !== "all" ? formGenderFilter : null,
         applies_to: formFilterType !== "all" ? formFilterValue : "all",
+
         // Keep legacy columns for backward compat
         level_1_label: levelsJson[0]?.label || "Niveau 1",
         level_1_max: levelsJson[0]?.threshold,
@@ -255,6 +246,8 @@ export function BenchmarkManager({ categoryId, sportType }: BenchmarkManagerProp
     setFormBodyWeightMultiplier("");
     setFormFilterType("all");
     setFormFilterValue("");
+    setFormGenderFilter("all");
+
   };
 
   const openCreate = () => {
@@ -285,6 +278,8 @@ export function BenchmarkManager({ categoryId, sportType }: BenchmarkManagerProp
     setFormBodyWeightMultiplier(b.body_weight_multiplier?.toString() || "");
     setFormFilterType(b.filter_type || "all");
     setFormFilterValue(b.filter_value || "");
+    setFormGenderFilter(b.gender_filter || "all");
+
     setEditingId(b.id);
     setIsDialogOpen(true);
   };
@@ -421,14 +416,22 @@ export function BenchmarkManager({ categoryId, sportType }: BenchmarkManagerProp
                           </div>
                         </TableCell>
                         <TableCell>
-                          {b.filter_type !== "all" && b.filter_value ? (
-                            <Badge variant="secondary" className="text-xs">
-                              {b.filter_value}
-                            </Badge>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">Tous</span>
-                          )}
+                          <div className="flex flex-wrap gap-1">
+                            {b.filter_type !== "all" && b.filter_value ? (
+                              <Badge variant="secondary" className="text-xs">
+                                {b.filter_value}
+                              </Badge>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">Tous postes</span>
+                            )}
+                            {b.gender_filter && (
+                              <Badge variant="outline" className="text-xs">
+                                {b.gender_filter === "male" ? "♂ Masculin" : "♀ Féminin"}
+                              </Badge>
+                            )}
+                          </div>
                         </TableCell>
+
                         <TableCell className="text-right">
                           <div className="flex gap-1 justify-end">
                             <Button variant="ghost" size="icon" onClick={() => openEdit(b)}>
@@ -597,6 +600,25 @@ export function BenchmarkManager({ categoryId, sportType }: BenchmarkManagerProp
                 )}
               </div>
             )}
+
+            {/* Filter by gender (multi-sport) */}
+            <div className="space-y-1.5">
+              <Label>Filtrer par sexe</Label>
+              <Select value={formGenderFilter} onValueChange={setFormGenderFilter}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les sexes</SelectItem>
+                  <SelectItem value="male">Masculin</SelectItem>
+                  <SelectItem value="female">Féminin</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-muted-foreground">
+                Le barème s'appliquera uniquement aux joueurs de ce sexe.
+              </p>
+            </div>
+
 
             {/* Flexible levels */}
             <div className="space-y-3">

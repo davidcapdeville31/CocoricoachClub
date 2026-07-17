@@ -1251,6 +1251,7 @@ export type Database = {
           created_by: string | null
           filter_type: string | null
           filter_value: string | null
+          gender_filter: string | null
           id: string
           level_1_label: string
           level_1_max: number | null
@@ -1277,6 +1278,7 @@ export type Database = {
           created_by?: string | null
           filter_type?: string | null
           filter_value?: string | null
+          gender_filter?: string | null
           id?: string
           level_1_label?: string
           level_1_max?: number | null
@@ -1303,6 +1305,7 @@ export type Database = {
           created_by?: string | null
           filter_type?: string | null
           filter_value?: string | null
+          gender_filter?: string | null
           id?: string
           level_1_label?: string
           level_1_max?: number | null
