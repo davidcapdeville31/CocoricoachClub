@@ -209,8 +209,8 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
 
   // Auto-sélectionne un barème qui a des résultats
   const benchmarksWithData = useMemo(() => {
-    if (!benchmarks.length) return [] as Benchmark[];
-    const withCount = benchmarks.map((b) => {
+    const list: { b: Benchmark; count: number }[] = [];
+    for (const b of benchmarks) {
       let count = 0;
       genericTests.forEach((t: any) => {
         if (matchesBenchmark(t.test_type, b.test_type, customTests as any)) count++;
@@ -221,10 +221,11 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
       strengthTests.forEach((t: any) => {
         if (matchesBenchmark(t.test_name, b.test_type, customTests as any)) count++;
       });
-      return { b, count };
-    });
-    return withCount;
+      list.push({ b, count });
+    }
+    return list;
   }, [benchmarks, genericTests, speedTests, strengthTests, customTests]);
+
 
   // Sélection automatique du 1er barème qui a des données
   useMemo(() => {
