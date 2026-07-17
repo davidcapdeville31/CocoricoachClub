@@ -128,7 +128,8 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
     
     const cat = testCategories.find(c => c.value === t.test_category);
     const testDef = cat?.tests.find(tt => tt.value === t.test_type);
-    const label = testDef?.label || t.test_type?.replace(/_/g, " ") || "Test";
+    const customInfo = t.test_type?.startsWith("custom:") ? customTestsMap[t.test_type] : null;
+    const label = customInfo?.name || testDef?.label || t.test_type?.replace(/_/g, " ") || "Test";
     const categoryLabel = cat?.label || t.test_category?.replace(/_/g, " ") || "";
     
     genericByType[key].push({
