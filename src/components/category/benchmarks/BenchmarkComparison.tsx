@@ -425,7 +425,9 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
                     const val = playerResults.get(player.id)?.get(group.key);
                     const weight = playerWeights.get(player.id);
 
-                    if (val == null || !bm) {
+                    const displayBenchmark = bm || group.variants[0] || null;
+
+                    if (val == null || !displayBenchmark) {
                       return (
                         <TableCell key={group.key} className="text-center">
                           <span className="text-muted-foreground text-xs">-</span>
@@ -433,11 +435,11 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
                       );
                     }
 
-                    const canComputeLevel = !bm.use_body_weight_ratio || !!weight;
+                    const canComputeLevel = !!bm && (!bm.use_body_weight_ratio || !!weight);
                     const level = canComputeLevel ? getPlayerLevel(val, bm, weight) : null;
 
                     // Charge en kg + ratio (charge / PDC) entre parenthèses
-                    const ratio = bm.use_body_weight_ratio && weight ? val / weight : null;
+                    const ratio = displayBenchmark.use_body_weight_ratio && weight ? val / weight : null;
 
                     const variantLabel =
                       bm.filter_type === "position" && bm.filter_value ? bm.filter_value : null;
@@ -446,7 +448,7 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
                       <TableCell key={group.key} className="text-center">
                         <div className="flex flex-col items-center gap-0.5">
                           <span className="font-mono font-semibold text-sm">
-                            {val} {bm.use_body_weight_ratio || bm.unit === "kg" ? "kg" : bm.unit || ""}
+                            {val} {displayBenchmark.use_body_weight_ratio || displayBenchmark.unit === "kg" ? "kg" : displayBenchmark.unit || ""}
                           </span>
                           {ratio != null && (
                             <>
@@ -458,7 +460,7 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
                               </span>
                             </>
                           )}
-                          {bm.use_body_weight_ratio && ratio == null && (
+                          {displayBenchmark.use_body_weight_ratio && ratio == null && (
                             <span className="text-[10px] italic text-amber-600">
                               poids athlète manquant
                             </span>

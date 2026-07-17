@@ -663,13 +663,13 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                         <TableCell className="bg-slate-100 dark:bg-slate-800 font-medium text-center">
                           {info.label}
                         </TableCell>
-                        {levels.map((l, i) => (
+                        {bm.levels.map((l, i) => (
                           <TableCell
                             key={i}
                             className="text-center font-mono text-sm"
-                            style={{ backgroundColor: `${l.color}20` }}
+                            style={{ backgroundColor: posBm ? `${l.color}20` : undefined }}
                           >
-                            {levelRangeString(levels, i, !!posBm?.lower_is_better)}
+                            {posBm ? levelRangeString(levels, i, !!posBm.lower_is_better) : "—"}
                           </TableCell>
                         ))}
                       </TableRow>
