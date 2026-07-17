@@ -21,6 +21,53 @@ interface Props {
   sportType?: string;
 }
 
+const isBodyWeightRatioUnit = (unit?: string | null) => {
+  const normalized = String(unit || "").toLowerCase();
+  return /pdc|poids\s*de\s*corps|body\s*weight|bodyweight|ratio/.test(normalized);
+};
+
+const isBodyWeightRatioTest = (
+  unit: string | null | undefined,
+  testType: string | null | undefined,
+  customTestsMap: Record<string, { unit?: string | null }>,
+) => {
+  if (isBodyWeightRatioUnit(unit)) return true;
+  const customUnit = testType?.startsWith("custom:") ? customTestsMap[testType]?.unit : null;
+  return isBodyWeightRatioUnit(customUnit);
+};
+
+const formatFrNumber = (value: number, digits = 2) => {
+  if (Number.isInteger(value)) return String(value);
+  return value.toFixed(digits).replace(/\.0+$/, "").replace(".", ",");
+};
+
+const buildRatioDisplay = (rawValue: unknown, playerWeight?: number | null) => {
+  const value = Number(rawValue);
+  if (!Number.isFinite(value)) {
+    return { main: String(rawValue ?? ""), sub: "ratio charge/poids", ratio: null as number | null, loadKg: null as number | null };
+  }
+
+  if (!playerWeight || playerWeight <= 0) {
+    return { main: formatFrNumber(value), sub: "ratio charge/poids", ratio: null as number | null, loadKg: value };
+  }
+
+  const loadKg = value >= 5 ? value : value * playerWeight;
+  const ratio = value >= 5 ? loadKg / playerWeight : value;
+  return {
+    main: `ratio ${formatFrNumber(ratio, 2)}`,
+    sub: `${formatFrNumber(loadKg, 1)}/${formatFrNumber(playerWeight, 1)} kg`,
+    ratio,
+    loadKg,
+  };
+};
+
+const getRatioComparableValue = (rawValue: unknown, playerWeight?: number | null) => {
+  const value = Number(rawValue);
+  if (!Number.isFinite(value)) return null;
+  if (!playerWeight || playerWeight <= 0) return value;
+  return value >= 5 ? value / playerWeight : value;
+};
+
 export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Props) {
   const testCategories = useMemo(() => getTestCategoriesForSport(sportType || ""), [sportType]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -388,7 +435,11 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
                         const previous = series[series.length - 2].value;
                         if (previous !== 0) {
                           const isTimeTest = test.unit === "s" || test.unit === "min";
-                          const rawPct = ((latest - previous) / Math.abs(previous)) * 100;
+                          const isRatioTest = isBodyWeightRatioTest(test.unit, test.testType, customTestsMap);
+                          const latestComparable = isRatioTest ? getRatioComparableValue(latest, playerWeight) : latest;
+                          const previousComparable = isRatioTest ? getRatioComparableValue(previous, playerWeight) : previous;
+                          if (latestComparable == null || previousComparable == null || previousComparable === 0) return null;
+                          const rawPct = ((latestComparable - previousComparable) / Math.abs(previousComparable)) * 100;
                           const positive = isTimeTest ? rawPct < 0 : rawPct > 0;
                           progression = { pct: Math.abs(rawPct), positive };
                         }
@@ -398,11 +449,10 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
                         b.test_category === test.categoryValue &&
                         matchesBenchmark(test.testType, b.test_type, customTestsList)
                       );
+                      const isRatioTest = !!bench?.use_body_weight_ratio || isBodyWeightRatioTest(test.unit, test.testType, customTestsMap);
+                      const ratioDisplay = isRatioTest ? buildRatioDisplay(test.value, playerWeight) : null;
                       const level = bench
-                        ? computeBenchmarkLevel(test.value, bench, playerWeight)
-                        : null;
-                      const ratio = bench?.use_body_weight_ratio && playerWeight
-                        ? test.value / playerWeight
+                        ? computeBenchmarkLevel(ratioDisplay?.loadKg ?? test.value, bench, playerWeight)
                         : null;
                       return (
                         <div key={key} className="p-3 rounded-lg bg-muted/30 text-center relative min-w-0">
@@ -419,17 +469,16 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
                           <p className="text-[10px] text-muted-foreground/70 uppercase tracking-wide truncate">{test.categoryLabel}</p>
                           <p className="text-xs text-muted-foreground truncate">{test.label}</p>
                           <p className="text-lg font-bold leading-tight mt-1">
-                            {test.value}
-                            <span className="text-xs font-normal text-muted-foreground ml-1">
-                              {ratio !== null ? "kg" : test.unit}
-                            </span>
-                          </p>
-                          {ratio !== null && (
-                            <p className="text-[11px] font-semibold text-primary mt-0.5">
-                              ratio {ratio.toFixed(2).replace(".", ",")}
-                              <span className="text-muted-foreground font-normal ml-1">
-                                ({test.value}/{playerWeight} kg)
+                            {ratioDisplay ? ratioDisplay.main : test.value}
+                            {!ratioDisplay && test.unit && (
+                              <span className="text-xs font-normal text-muted-foreground ml-1">
+                                {test.unit}
                               </span>
+                            )}
+                          </p>
+                          {ratioDisplay?.sub && (
+                            <p className="text-[11px] font-semibold text-primary mt-0.5">
+                              <span className="text-muted-foreground font-normal">({ratioDisplay.sub})</span>
                             </p>
                           )}
                           {level && (
@@ -472,6 +521,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
           categoryLabel: string;
           label: string;
           unit: string;
+          testType?: string | null;
           prevDate: string;
           prevValue: number;
           lastDate: string;
@@ -541,6 +591,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
             categoryLabel: data[0].categoryLabel,
             label: data[0].label,
             unit: last.result_unit || "",
+            testType: last.test_type,
             prevDate: prev.test_date,
             prevValue: prev.result_value,
             lastDate: last.test_date,
@@ -561,8 +612,11 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
             </CardHeader>
             <CardContent className="space-y-2">
               {rows.map(row => {
-                const diff = row.lastValue - row.prevValue;
-                const rawPct = row.prevValue !== 0 ? (diff / Math.abs(row.prevValue)) * 100 : 0;
+                const rowIsRatio = isBodyWeightRatioTest(row.unit, row.testType, customTestsMap);
+                const comparableLast = rowIsRatio ? getRatioComparableValue(row.lastValue, playerWeight) ?? row.lastValue : row.lastValue;
+                const comparablePrev = rowIsRatio ? getRatioComparableValue(row.prevValue, playerWeight) ?? row.prevValue : row.prevValue;
+                const diff = comparableLast - comparablePrev;
+                const rawPct = comparablePrev !== 0 ? (diff / Math.abs(comparablePrev)) * 100 : 0;
                 const positive = row.isTimeTest ? rawPct < 0 : rawPct > 0;
                 const pct = Math.abs(rawPct);
                 return (
@@ -586,21 +640,14 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
                         { date: row.prevDate, value: row.prevValue, ring: false },
                         { date: row.lastDate, value: row.lastValue, ring: true },
                       ].map((cell, i) => {
-                        const isRatio = /pdc/i.test(row.unit || "");
+                        const isRatio = rowIsRatio;
                         const v = Number(cell.value);
                         let mainText: string;
                         let subText: string | null = null;
                         if (isRatio && Number.isFinite(v)) {
-                          if (playerWeight && playerWeight > 0 && v >= 5) {
-                            mainText = `${v} kg`;
-                            subText = `ratio ${(v / playerWeight).toFixed(2).replace(".", ",")} (${v}/${playerWeight} kg)`;
-                          } else if (playerWeight && playerWeight > 0 && v < 5) {
-                            mainText = `${(v * playerWeight).toFixed(1).replace(".", ",")} kg`;
-                            subText = `ratio ${v.toFixed(2).replace(".", ",")}`;
-                          } else {
-                            mainText = `${cell.value}`;
-                            subText = "ratio charge/poids";
-                          }
+                          const ratioDisplay = buildRatioDisplay(v, playerWeight);
+                          mainText = ratioDisplay.main;
+                          subText = ratioDisplay.sub ? `(${ratioDisplay.sub})` : null;
                         } else {
                           mainText = `${cell.value} ${row.unit}`;
                         }
