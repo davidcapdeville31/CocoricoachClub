@@ -278,6 +278,8 @@ export function BenchmarkManager({ categoryId, sportType }: BenchmarkManagerProp
     setFormBodyWeightMultiplier(b.body_weight_multiplier?.toString() || "");
     setFormFilterType(b.filter_type || "all");
     setFormFilterValue(b.filter_value || "");
+    setFormGenderFilter(b.gender_filter || "all");
+
     setEditingId(b.id);
     setIsDialogOpen(true);
   };
