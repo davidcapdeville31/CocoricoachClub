@@ -327,6 +327,7 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
         const ct = customTests.find((c) => `custom:${c.id}` === base.test_type);
         if (ct) label = ct.name;
       }
+      if (count === 0) continue;
       opts.push({ key: `bm:${base.id}`, label, benchmark: base, count });
       covered.add(normalizeTestKey(b.test_type));
       for (const ct of customTests) {
