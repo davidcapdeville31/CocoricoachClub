@@ -88,7 +88,7 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
       if (error) throw error;
       return data;
     },
-    enabled: benchmarks.some(b => b.use_body_weight_ratio),
+    enabled: dbBenchmarks.some(b => b.use_body_weight_ratio),
   });
 
   // Identité athlète : récupère TOUS les attributs (positions multiples, etc.)
@@ -140,7 +140,7 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
       if (error) throw error;
       return data;
     },
-    enabled: benchmarks.length > 0,
+    enabled: dbBenchmarks.length > 0 || true,
   });
 
   const { data: speedTests = [] } = useQuery({
@@ -154,7 +154,7 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
       if (error) throw error;
       return data;
     },
-    enabled: benchmarks.length > 0,
+    enabled: dbBenchmarks.length > 0 || true,
   });
 
   const { data: strengthTests = [] } = useQuery({
@@ -168,7 +168,7 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
       if (error) throw error;
       return data;
     },
-    enabled: benchmarks.length > 0,
+    enabled: dbBenchmarks.length > 0 || true,
   });
 
   // Custom tests de la catégorie pour matching benchmark <-> résultat
