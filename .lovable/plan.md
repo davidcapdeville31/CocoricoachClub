@@ -1,51 +1,62 @@
-# Séances simplifiées — toutes disciplines (espace athlète)
+## Contexte
 
-## Objectif
-Aujourd'hui seuls **Bowling** et **Musculation** proposent un "mode simplifié" quand l'athlète crée une séance depuis son calendrier. On étend ce mode à **toutes les disciplines** (rugby, football, judo, ski, snowboard, tennis, padel, surf, athlé, basket, hand, natation, cyclisme, course, etc.) avec le même contrat : saisie rapide → alimente automatiquement le workload.
+Sur M14, le benchmark "Squat - 1RM" a été créé avec `test_type = squat_1rm` (preset) et un ratio 1x/1.5x/2x/2.5x PDC. Mais le résultat saisi a été enregistré sous `test_type = custom:fcf7...b1368` (test personnalisé « Squat 3RM »). Les deux ne se rencontrent jamais → aucun affichage.
 
-## Comportement final
-Dans l'espace athlète → Calendrier → "Ajouter une séance" :
+De plus, l'écran de gestion/comparaison des barèmes (`BenchmarkManager` + `BenchmarkComparison`) existe dans le code mais **n'est monté nulle part** dans l'app. Il est inaccessible aujourd'hui.
 
-1. Bowling → picker "Simplifié / Avancé" (inchangé).
-2. Toute autre discipline → nouveau picker "Mode simplifié / Programme complet".
-3. Le mode simplifié ouvre un dialog générique :
-   - Sélecteur du **type de séance** (filtré par sport de la catégorie).
-   - **Description libre** (textarea).
-   - **Durée** (minutes).
-   - **RPE ressenti** 1-10 (boutons colorés).
-   - Bouton Valider → crée la séance via `athlete-create-session` avec `session_start_time` / `session_end_time` calculés depuis la durée + `intensity = RPE` → alimente automatiquement la charge d'entraînement.
-4. Côté staff, la séance apparaît dans le calendrier (déjà géré via RLS + liseré violet indiquant le créateur).
+## Ce que je vais faire
 
-## Fichiers modifiés / créés
+### 1. Matching benchmark ↔ test (les deux options)
 
-### Nouveau
-- `src/components/athlete-space/SimplifiedSessionDialog.tsx`
-  - Généralisation de `MusculationSimplifiedDialog`.
-  - Props : `open`, `onOpenChange`, `date`, `categoryId`, `athletePlayerId`, `sportType`.
-  - Récupère les training types via `getTrainingTypesForSport(sportType)` en excluant `bowling_*` (couvert par le flux dédié) et propose un `<Select>` de type de séance.
-  - Envoie à `athlete-create-session` : `training_type` choisi, `intensity` = RPE, `session_start_time`/`session_end_time` depuis la durée, notes préfixées `<!--SIMPLIFIED_SESSION-->`.
+**a) Sélecteur direct des tests personnalisés** dans l'éditeur de benchmark (`BenchmarkManager`)  
+Sous chaque catégorie de test, ajouter en fin de liste les tests personnalisés de la catégorie (source : table `custom_tests`), affichés comme `⭐ Nom (personnalisé)` avec la valeur `custom:<uuid>`. Auto-remplit l'unité.
 
-### Édités
-- `src/components/category/calendar/CreateEventDialog.tsx`
-  - Renommer la prop `onSelectMusculationSimplified` en `onSelectSessionSimplified` (générique). Conserver un alias pour compat.
-  - Déclencher `session_mode` pour `typeId === "session"` dès qu'un `athletePlayerId` est fourni (plus seulement musculation).
-  - Adapter les libellés du picker "Mode simplifié / Programme complet" (retirer la mention "Musculation", parler de "séance").
-- `src/components/athlete-space/AthleteSpaceCalendar.tsx`
-  - Remplacer l'usage de `MusculationSimplifiedDialog` par `SimplifiedSessionDialog` avec `sportType` transmis depuis la catégorie.
-  - Renommer les states `isMusculationSimplifiedOpen` → `isSessionSimplifiedOpen`.
-  - Câbler `onSelectSessionSimplified` sur `CreateEventDialog`.
+**b) Fallback par nom** dans `BenchmarkComparison`  
+Si `benchmark.test_type` ne matche aucun résultat, tenter un match par nom :  
+– Si le benchmark cible un preset (`squat_1rm`) → chercher un `custom_tests.name` équivalent (normalisation : minuscules, retrait des espaces/tirets, ex : « squat 3rm » ≈ « squat_3rm »).  
+– Si le benchmark cible `custom:<uuid>` → match direct.
 
-### Conservé
-- `MusculationSimplifiedDialog.tsx` : peut être supprimé une fois le remplacement validé, ou gardé en wrapper qui redirige vers `SimplifiedSessionDialog` avec type verrouillé `musculation` (au choix). Plan par défaut : suppression après migration.
-- Flux Bowling simplifié : inchangé.
+**c) Fix bug ratio PDC**  
+Aujourd'hui `use_body_weight_ratio = true` sans `body_weight_multiplier` n'applique **rien** (ratios stockés dans les seuils sont ignorés). Corriger : quand les seuils sont déjà des ratios (< 10), les multiplier par le poids de l'athlète.
+
+### 2. Rendre l'écran barèmes accessible
+
+Ajouter `BenchmarkTab` dans l'onglet Tests de la catégorie (module transversal, dispo pour toutes disciplines) — sous-onglet « Barèmes ». On y trouve le `BenchmarkManager` (créer/éditer) + `BenchmarkComparison` (vue globale effectif × barèmes).
+
+### 3. Vue globale d'effectif
+
+`BenchmarkComparison` est déjà quasi-complète (tableau joueurs × barèmes avec badge coloré du niveau). Je :
+- l'améliore avec le matching custom (point 1),
+- ajoute filtre par poste pour ne montrer que les benchmarks pertinents,
+- affiche le poids de corps pris pour le calcul quand un ratio PDC est utilisé.
+
+### 4. Vue athlète (espace athlète)
+
+Dans l'espace athlète → Performance → Tests, ajouter un panneau « Ton niveau » qui, pour chaque test réalisé, affiche :
+- la valeur perso, l'évolution (déjà présent),
+- **le badge du niveau atteint** vis-à-vis du meilleur barème matchant son poste (via `useSuggestedBenchmarks` + logique de niveau de `BenchmarkComparison`),
+- le prochain palier à atteindre.
+
+### 5. Barèmes par poste
+
+Déjà supporté (`filter_type=position`, `filter_value=pilier|…`). Aucun changement structurel. Je m'assure que l'éditeur permet bien de dupliquer un barème pour créer une variante par poste (bouton « Dupliquer pour un autre poste » dans `BenchmarkManager`).
 
 ## Détails techniques
 
-- Workload : `athlete-create-session` insère dans `training_sessions` avec `intensity` + heures début/fin ; les hooks EWMA/AWCR/tonnage consomment déjà ces champs, aucun changement backend requis.
-- Visibilité staff : la policy RLS "Users can view training sessions in accessible categories" couvre déjà les séances créées par un athlète — `ImprovedCalendarView` affiche déjà les sessions avec `created_by_player_id` (badge violet + nom du créateur).
-- Types de séance filtrés : on exclut explicitement `bowling_*` du sélecteur générique pour ne pas dupliquer le flux Bowling.
-- Notes stockées : `<!--SIMPLIFIED_SESSION-->\n{description}\nDurée : X min · RPE : Y/10` — même convention que le mode musculation actuel (mémoire "Session Metadata Notes Pattern").
+Fichiers touchés :
+- `src/components/category/benchmarks/BenchmarkManager.tsx` — ajout options custom_tests dans le Select "Test", bouton dupliquer.
+- `src/components/category/benchmarks/BenchmarkComparison.tsx` — matching custom, fallback par nom, fix ratio PDC, filtre poste.
+- `src/hooks/useSuggestedBenchmarks.ts` — même logique de matching custom pour `getBestBenchmarkFor`.
+- Nouveau `src/lib/benchmarks/matchTestType.ts` — helper partagé (normalisation, résolution custom↔preset).
+- Nouveau `src/lib/benchmarks/computeLevel.ts` — logique de niveau extraite (utilisée par comparison + espace athlète).
+- Montage de `BenchmarkTab` dans l'onglet Tests de la catégorie (sous-onglet « Barèmes »).
+- Espace athlète Tests : nouvelle carte « Ton niveau vs barème » utilisant `useSuggestedBenchmarks` + `computeLevel`.
 
-## Hors périmètre
-- Sports strictement individuels de compétition (Compétitions/Datas) restent gérés par leurs flows dédiés — le mode simplifié cible uniquement l'entraînement.
-- Aucune migration DB.
+Aucune migration DB nécessaire (la structure `benchmarks` couvre déjà tous les besoins).
+
+## Résultat attendu
+
+- Le Squat 3RM saisi (50 kg) apparaîtra bien dans la vue globale avec son badge (par ex. « Excellent » car 50/poids ≥ ratio élite).
+- Vue effectif accessible depuis Catégorie → Tests → Barèmes, filtrable par poste.
+- Athlète voit son niveau perso et son prochain palier.
+- Chaque poste peut avoir son propre barème avec ratios différents.
