@@ -186,7 +186,57 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
   });
 
 
-  // Build player results map
+  // Regroupe les benchmarks par test (nom/test_type normalisé) : une seule colonne
+  // par test dans la table, avec toutes les variantes (poste / sexe / base).
+  const benchmarkGroups = useMemo(() => {
+    const groups = new Map<string, { key: string; label: string; unit: string | null; use_body_weight_ratio: boolean; body_weight_multiplier: number | null; variants: Benchmark[] }>();
+    for (const bm of benchmarks) {
+      const k = normalizeTestKey(bm.test_type) || bm.id;
+      if (!groups.has(k)) {
+        groups.set(k, {
+          key: k,
+          label: bm.name,
+          unit: bm.unit,
+          use_body_weight_ratio: bm.use_body_weight_ratio,
+          body_weight_multiplier: bm.body_weight_multiplier,
+          variants: [],
+        });
+      }
+      groups.get(k)!.variants.push(bm);
+    }
+    return Array.from(groups.values());
+  }, [benchmarks]);
+
+  // Résout la meilleure variante d'un groupe pour un joueur donné :
+  // 1) match par poste (legacy `position` ou identité athlète)
+  // 2) fallback : variante générique (filter_type=all / null)
+  const resolveVariant = (
+    group: { variants: Benchmark[] },
+    player: any,
+  ): Benchmark | null => {
+    const dims = playerDimensionValues.get(player.id);
+    const playerPositions = new Set<string>();
+    if (player.position) playerPositions.add(player.position);
+    const dimPos = dims?.get("position");
+    if (dimPos) dimPos.forEach((v) => playerPositions.add(v));
+
+    let positional: Benchmark | null = null;
+    let generic: Benchmark | null = null;
+    for (const bm of group.variants) {
+      if (bm.filter_type === "position" && bm.filter_value) {
+        if (playerPositions.has(bm.filter_value) && !positional) positional = bm;
+      } else if (bm.filter_type === "all" || !bm.filter_value) {
+        if (!generic) generic = bm;
+      } else {
+        // autres filtres (sexe, etc.) : traité comme fallback secondaire
+        const values = dims?.get(bm.filter_type);
+        if (values?.has(bm.filter_value) && !generic) generic = bm;
+      }
+    }
+    return positional || generic || group.variants[0] || null;
+  };
+
+  // Build player results : par groupe (test), une valeur (dernier résultat).
   const playerResults = useMemo(() => {
     const map = new Map<string, Map<string, number>>();
     const getPlayerMap = (pid: string) => {
@@ -194,61 +244,38 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
       return map.get(pid)!;
     };
 
-    benchmarks.forEach(bm => {
-      genericTests.forEach(t => {
-        // Match by test_type (accepts custom:<uuid> and name-normalized fallback).
-        // Category is ignored : custom tests peuvent vivre sous d'autres catégories thème.
-        if (!matchesBenchmark(t.test_type, bm.test_type, customTests as any)) return;
+    for (const group of benchmarkGroups) {
+      const anyBm = group.variants[0];
+      if (!anyBm) continue;
+      genericTests.forEach((t) => {
+        if (!matchesBenchmark(t.test_type, anyBm.test_type, customTests as any)) return;
         const pm = getPlayerMap(t.player_id);
-        if (!pm.has(bm.id)) pm.set(bm.id, t.result_value);
+        if (!pm.has(group.key)) pm.set(group.key, t.result_value);
       });
-
-
-      if (bm.test_category === "speed" || bm.test_category === "sprint") {
-        speedTests.forEach(t => {
-          if (matchesBenchmark(t.test_type, bm.test_type, customTests as any)) {
+      if (anyBm.test_category === "speed" || anyBm.test_category === "sprint") {
+        speedTests.forEach((t) => {
+          if (matchesBenchmark(t.test_type, anyBm.test_type, customTests as any)) {
             const pm = getPlayerMap(t.player_id);
-            if (!pm.has(bm.id)) {
+            if (!pm.has(group.key)) {
               const val = t.vma_kmh || t.speed_kmh || t.time_40m_seconds;
-              if (val != null) pm.set(bm.id, val);
+              if (val != null) pm.set(group.key, val);
             }
           }
         });
       }
-
-      if (bm.test_category === "strength" || bm.test_category === "force" || bm.test_category === "musculation") {
-        strengthTests.forEach(t => {
-          if (matchesBenchmark(t.test_name, bm.test_type, customTests as any)) {
+      if (anyBm.test_category === "strength" || anyBm.test_category === "force" || anyBm.test_category === "musculation") {
+        strengthTests.forEach((t) => {
+          if (matchesBenchmark(t.test_name, anyBm.test_type, customTests as any)) {
             const pm = getPlayerMap(t.player_id);
-            if (!pm.has(bm.id)) pm.set(bm.id, t.weight_kg);
+            if (!pm.has(group.key)) pm.set(group.key, t.weight_kg);
           }
         });
       }
-    });
-
+    }
     return map;
-  }, [benchmarks, genericTests, speedTests, strengthTests, customTests]);
+  }, [benchmarkGroups, genericTests, speedTests, strengthTests, customTests]);
 
-
-  // Filter players based on benchmark filter
-  // Désormais : on regarde l'identité athlète (positions multiples)
-  // en plus du champ legacy `position` pour matcher tout poste joué.
-  const getFilteredPlayers = (bm: Benchmark) => {
-    if (bm.filter_type === "all" || !bm.filter_value) return players;
-    return players.filter((p: any) => {
-      // 1) Champ legacy
-      if (p.position === bm.filter_value) return true;
-      // 2) Identité athlète : positions secondaires
-      const dims = playerDimensionValues.get(p.id);
-      if (!dims) return false;
-      // Le filter_type peut être 'position' ; sinon on tente la dimension homonyme
-      const dim = bm.filter_type === "position" ? "position" : bm.filter_type;
-      const values = dims.get(dim);
-      return !!values && values.has(bm.filter_value);
-    });
-  };
-
-  // Filtre poste global (hooks doivent être appelés avant tout early return)
+  // Filtre poste global
   const [positionFilter, setPositionFilter] = useState<string>("all");
   const availablePositions = useMemo(() => {
     const s = new Set<string>();
@@ -257,13 +284,6 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
     }
     return Array.from(s).sort();
   }, [benchmarks]);
-
-  const displayedBenchmarks = useMemo(() => {
-    if (positionFilter === "all") return benchmarks;
-    return benchmarks.filter((bm) =>
-      bm.filter_type !== "position" || !bm.filter_value || bm.filter_value === positionFilter,
-    );
-  }, [benchmarks, positionFilter]);
 
   const displayedPlayers = useMemo(() => {
     if (positionFilter === "all") return players;
@@ -286,6 +306,7 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
       </Card>
     );
   }
+
 
 
   return (
