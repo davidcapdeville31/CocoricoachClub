@@ -24,6 +24,27 @@ interface Props {
 export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Props) {
   const testCategories = useMemo(() => getTestCategoriesForSport(sportType || ""), [sportType]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const { map: customTestsMap } = useCustomTestsMap();
+  const { suggestions: benchmarkSuggestions } = useSuggestedBenchmarks(playerId, categoryId);
+
+  const { data: playerInfo } = useQuery({
+    queryKey: ["athlete-space-player-weight", playerId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("players")
+        .select("weight_kg")
+        .eq("id", playerId)
+        .maybeSingle();
+      return data;
+    },
+  });
+  const playerWeight = playerInfo?.weight_kg ?? null;
+
+  const customTestsList = useMemo(
+    () => Object.values(customTestsMap).map(c => ({ id: c.id, name: c.name })),
+    [customTestsMap],
+  );
+
 
   const { data: speedTests = [] } = useQuery({
     queryKey: ["athlete-space-speed-tests", playerId],
