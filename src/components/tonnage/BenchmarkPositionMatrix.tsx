@@ -163,7 +163,8 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
   // (variants poste / sexe) définis directement sur les tests personnalisés.
   const benchmarks = useMemo<Benchmark[]>(() => {
     const synth = synthesizeBenchmarks(customTests as any) as unknown as Benchmark[];
-    return [...dbBenchmarks, ...synth];
+    return [...synth, ...dbBenchmarks];
+
   }, [dbBenchmarks, customTests]);
 
 

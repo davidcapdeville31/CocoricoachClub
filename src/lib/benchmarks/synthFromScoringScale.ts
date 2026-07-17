@@ -83,7 +83,12 @@ export function synthesizeBenchmarksFromCustomTest(ct: {
   if (!scale) return [];
   const results: SynthBenchmark[] = [];
   const isRatio = isRatioUnit(ct.unit);
-  const testType = `custom:${ct.id}`;
+  // On utilise le NOM du test comme test_type logique afin de regrouper les
+  // variantes synthétiques avec un éventuel benchmark BDD portant le même nom
+  // (ex. « Squat 3RM » ↔ preset `squat_3rm`) — le regroupement se fait via
+  // `normalizeTestKey`, qui rend « Squat 3RM » ≡ « squat_3rm ».
+  const testType = ct.name;
+
 
   // Variantes (poste / sexe)
   for (const v of scale.variants || []) {
