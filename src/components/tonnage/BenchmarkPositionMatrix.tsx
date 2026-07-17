@@ -63,7 +63,9 @@ interface CustomTest {
 
 interface ResultPoint {
   date: string;
-  value: number;
+  value: number; // valeur utilisée pour le calcul du niveau (ratio si benchmark ratio, sinon kg/valeur brute)
+  rawKg?: number; // charge brute en kg (pour affichage lorsque le test est en musculation)
+  ratio?: number; // ratio charge / poids de corps (si applicable)
 }
 
 interface TestOption {
@@ -298,34 +300,40 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     const map = new Map<string, ResultPoint[]>();
     if (!bm) return map;
 
-    const push = (pid: string, date: string, value: number) => {
-      if (value == null || !isFinite(value)) return;
+    const push = (pid: string, date: string, point: ResultPoint) => {
+      if (point.value == null || !isFinite(point.value)) return;
       if (!map.has(pid)) map.set(pid, []);
-      map.get(pid)!.push({ date, value });
+      map.get(pid)!.push(point);
+    };
+
+    // Reconstitue rawKg + ratio à partir d'une valeur brute (kg ou ratio) selon le benchmark
+    const buildPoint = (pid: string, date: string, raw: number): ResultPoint => {
+      const w = playerWeights.get(pid);
+      if (bm.use_body_weight_ratio) {
+        // Si raw > 5 → c'est du kg, sinon on considère que c'est déjà un ratio
+        if (raw > 5 && w && w > 0) {
+          const ratio = Number((raw / w).toFixed(2));
+          return { date, value: ratio, rawKg: raw, ratio };
+        }
+        // raw est déjà un ratio
+        const rawKg = w && w > 0 ? Number((raw * w).toFixed(1)) : undefined;
+        return { date, value: raw, rawKg, ratio: raw };
+      }
+      return { date, value: raw };
     };
 
     genericTests.forEach((t: any) => {
       if (!matchesBenchmark(t.test_type, bm.test_type, customTests as any)) return;
       const raw = Number(t.result_value);
       if (!isFinite(raw) || raw <= 0) return;
-      // Auto-convert kg → ratio when needed
-      if (bm.use_body_weight_ratio) {
-        const w = playerWeights.get(t.player_id);
-        if (raw > 5 && w && w > 0) {
-          push(t.player_id, t.test_date, Number((raw / w).toFixed(2)));
-        } else {
-          push(t.player_id, t.test_date, raw);
-        }
-      } else {
-        push(t.player_id, t.test_date, raw);
-      }
+      push(t.player_id, t.test_date, buildPoint(t.player_id, t.test_date, raw));
     });
 
     if (bm.test_category === "speed" || bm.test_category === "sprint") {
       speedTests.forEach((t: any) => {
         if (!matchesBenchmark(t.test_type, bm.test_type, customTests as any)) return;
         const v = t.vma_kmh ?? t.speed_kmh ?? t.time_40m_seconds;
-        if (v != null) push(t.player_id, t.test_date, Number(v));
+        if (v != null) push(t.player_id, t.test_date, { date: t.test_date, value: Number(v) });
       });
     }
     if (
@@ -337,11 +345,17 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
         if (!matchesBenchmark(t.test_name, bm.test_type, customTests as any)) return;
         if (t.weight_kg != null) {
           const raw = Number(t.weight_kg);
+          const w = playerWeights.get(t.player_id);
           if (bm.use_body_weight_ratio) {
-            const w = playerWeights.get(t.player_id);
-            push(t.player_id, t.test_date, w && w > 0 ? Number((raw / w).toFixed(2)) : raw);
+            const ratio = w && w > 0 ? Number((raw / w).toFixed(2)) : raw;
+            push(t.player_id, t.test_date, {
+              date: t.test_date,
+              value: ratio,
+              rawKg: raw,
+              ratio: w && w > 0 ? ratio : undefined,
+            });
           } else {
-            push(t.player_id, t.test_date, raw);
+            push(t.player_id, t.test_date, { date: t.test_date, value: raw, rawKg: raw });
           }
         }
       });
@@ -620,7 +634,12 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                       const posBm = getBenchmarkForPlayer(groupId, p.gender || null);
                       const first = series[0];
                       const last = series[series.length - 1];
-                      const evoDelta = first && last ? last.value - first.value : 0;
+                      // Pour un test en ratio, on préfère l'évolution en kg si disponible
+                      const useKgDelta = isRatio && first?.rawKg != null && last?.rawKg != null;
+                      const evoDelta = first && last
+                        ? useKgDelta ? (last.rawKg! - first.rawKg!) : (last.value - first.value)
+                        : 0;
+                      const evoUnit = useKgDelta ? " kg" : isRatio ? " × PDC" : "";
                       const evoImproved: 1 | 0 | -1 = first && last
                         ? posBm?.lower_is_better
                           ? evoDelta < 0 ? 1 : evoDelta > 0 ? -1 : 0
@@ -677,12 +696,44 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                                 style={{ backgroundColor: bgColor }}
                               >
                                 <div className="flex flex-col items-center gap-0.5">
-                                  <span className="font-mono font-bold text-sm">
-                                    {point.value}
-                                    <span className="text-[10px] font-normal text-muted-foreground ml-0.5">
-                                      {unitSuffix}
+                                  {isRatio ? (
+                                    <>
+                                      <span className="font-mono font-bold text-sm">
+                                        {point.rawKg != null ? (
+                                          <>
+                                            {point.rawKg}
+                                            <span className="text-[10px] font-normal text-muted-foreground ml-0.5">
+                                              kg
+                                            </span>
+                                          </>
+                                        ) : (
+                                          <>
+                                            {point.value}
+                                            <span className="text-[10px] font-normal text-muted-foreground ml-0.5">
+                                              × PDC
+                                            </span>
+                                          </>
+                                        )}
+                                      </span>
+                                      {point.ratio != null && point.rawKg != null && (
+                                        <span className="text-[10px] font-normal text-muted-foreground">
+                                          (× {point.ratio.toFixed(2).replace(".", ",")} PDC)
+                                        </span>
+                                      )}
+                                      {point.rawKg != null && point.ratio == null && (
+                                        <span className="text-[9px] italic text-amber-600">
+                                          poids athlète manquant
+                                        </span>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <span className="font-mono font-bold text-sm">
+                                      {point.value}
+                                      <span className="text-[10px] font-normal text-muted-foreground ml-0.5">
+                                        {unitSuffix}
+                                      </span>
                                     </span>
-                                  </span>
+                                  )}
                                   {level && (
                                     <span
                                       className="text-[10px] font-semibold"
@@ -716,7 +767,8 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                                   <Minus className="h-4 w-4" />
                                 )}
                                 {evoDelta > 0 ? "+" : ""}
-                                {evoDelta.toFixed(2)}
+                                {evoDelta.toFixed(useKgDelta ? 1 : 2)}
+                                <span className="text-[10px] font-normal ml-0.5">{evoUnit}</span>
                               </span>
                             )}
                           </TableCell>
