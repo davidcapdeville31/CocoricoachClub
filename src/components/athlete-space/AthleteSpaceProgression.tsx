@@ -347,6 +347,17 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
                           progression = { pct: Math.abs(rawPct), positive };
                         }
                       }
+                      // Best matching benchmark for this test
+                      const bench = benchmarkSuggestions.find(b =>
+                        b.test_category === test.categoryValue &&
+                        matchesBenchmark(test.testType, b.test_type, customTestsList)
+                      );
+                      const level = bench
+                        ? computeBenchmarkLevel(test.value, bench, playerWeight)
+                        : null;
+                      const ratio = bench?.use_body_weight_ratio && playerWeight
+                        ? test.value / playerWeight
+                        : null;
                       return (
                         <div key={key} className="p-3 rounded-lg bg-muted/30 text-center relative min-w-0">
                           {progression && (
@@ -365,6 +376,19 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
                             {test.value}
                             <span className="text-xs font-normal text-muted-foreground ml-1">{test.unit}</span>
                           </p>
+                          {ratio !== null && (
+                            <p className="text-[11px] font-semibold text-primary mt-0.5">
+                              {ratio.toFixed(2)} × PDC
+                            </p>
+                          )}
+                          {level && (
+                            <Badge
+                              className="mt-1 text-[10px] px-1.5 py-0 leading-tight border-0"
+                              style={{ backgroundColor: level.color, color: "#fff" }}
+                            >
+                              {level.label}
+                            </Badge>
+                          )}
                           <p className="text-[10px] text-muted-foreground mt-0.5">
                             {format(new Date(test.date), "dd MMM yy", { locale: fr })}
                           </p>
