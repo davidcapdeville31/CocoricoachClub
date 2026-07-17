@@ -425,7 +425,23 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
       covered.add(normalizeTestKey(name));
     }
 
-    return opts;
+    // Dedupe : fusionne les entrées qui désignent le même test (alias normalisés,
+    // ex. preset "weight" ≡ test personnalisé "Poids"). On garde l'entrée avec
+    // un vrai barème (non synthétique) en priorité, sinon celle qui a le plus
+    // de résultats. Le compteur retenu est le max pour éviter le double-comptage.
+    const merged = new Map<string, TestOption>();
+    for (const o of opts) {
+      const k = normalizeTestKey(o.benchmark.test_type) || normalizeTestKey(o.label) || o.key;
+      const existing = merged.get(k);
+      if (!existing) {
+        merged.set(k, o);
+        continue;
+      }
+      const isSynthetic = (x: TestOption) => x.benchmark.id.startsWith("synthetic");
+      const keep = !isSynthetic(existing) ? existing : !isSynthetic(o) ? o : existing.count >= o.count ? existing : o;
+      merged.set(k, { ...keep, count: Math.max(existing.count, o.count) });
+    }
+    return Array.from(merged.values());
   }, [benchmarks, customTests, genericTests, speedTests, strengthTests]);
 
   // Auto-select first option with data

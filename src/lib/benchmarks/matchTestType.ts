@@ -14,13 +14,25 @@ export interface CustomTestLite {
  * Normalise un identifiant/nom de test pour comparaison souple.
  * "Squat 3RM" ≈ "squat_3rm" ≈ "SQUAT-3RM"
  */
+// Alias : différents libellés qui désignent le même test physiologique
+// doivent être fusionnés dans le menu (ex. "Poids" custom ≡ preset "weight").
+const TEST_KEY_ALIASES: Record<string, string> = {
+  poids: "weight",
+  poidscorporel: "weight",
+  poidsdecorps: "weight",
+  bodyweight: "weight",
+  masse: "weight",
+  massecorporelle: "weight",
+};
+
 export function normalizeTestKey(v: string | null | undefined): string {
   if (!v) return "";
-  return v
+  const base = v
     .toLowerCase()
     .replace(/^custom:/, "")
     .replace(/[\s_\-.]+/g, "")
     .trim();
+  return TEST_KEY_ALIASES[base] ?? base;
 }
 
 /**
