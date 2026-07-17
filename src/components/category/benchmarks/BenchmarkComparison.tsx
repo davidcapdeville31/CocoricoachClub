@@ -46,6 +46,9 @@ function getPlayerLevel(
 }
 
 export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparisonProps) {
+  // Hook d'état hissé tout en haut pour garantir un ordre de hooks stable
+  const [positionFilter, setPositionFilter] = useState<string>("all");
+
   const { data: dbBenchmarks = [] } = useQuery({
     queryKey: ["benchmarks", categoryId],
     queryFn: async () => {
