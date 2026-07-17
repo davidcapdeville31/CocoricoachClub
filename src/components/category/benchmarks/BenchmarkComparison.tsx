@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Target, TrendingUp, Weight } from "lucide-react";
 import { computeBenchmarkLevel } from "@/lib/benchmarks/computeLevel";
 import { matchesBenchmark, normalizeTestKey } from "@/lib/benchmarks/matchTestType";
+import { synthesizeBenchmarks } from "@/lib/benchmarks/synthFromScoringScale";
 
 
 interface BenchmarkComparisonProps {
@@ -45,7 +46,7 @@ function getPlayerLevel(
 }
 
 export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparisonProps) {
-  const { data: benchmarks = [] } = useQuery({
+  const { data: dbBenchmarks = [] } = useQuery({
     queryKey: ["benchmarks", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -60,6 +61,7 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
       })) as Benchmark[];
     },
   });
+
 
   const { data: players = [] } = useQuery({
     queryKey: ["players", categoryId],
@@ -86,7 +88,7 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
       if (error) throw error;
       return data;
     },
-    enabled: benchmarks.some(b => b.use_body_weight_ratio),
+    // toujours activé (poids requis pour ratios synthétiques aussi)
   });
 
   // Identité athlète : récupère TOUS les attributs (positions multiples, etc.)
@@ -138,7 +140,7 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
       if (error) throw error;
       return data;
     },
-    enabled: benchmarks.length > 0,
+    enabled: true,
   });
 
   const { data: speedTests = [] } = useQuery({
@@ -152,7 +154,7 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
       if (error) throw error;
       return data;
     },
-    enabled: benchmarks.length > 0,
+    enabled: true,
   });
 
   const { data: strengthTests = [] } = useQuery({
@@ -166,7 +168,7 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
       if (error) throw error;
       return data;
     },
-    enabled: benchmarks.length > 0,
+    enabled: true,
   });
 
   // Custom tests de la catégorie pour matching benchmark <-> résultat
@@ -176,14 +178,21 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
     queryFn: async () => {
       const { data, error } = await supabase
         .from("custom_test_categories")
-        .select("custom_tests(id, name, test_category)")
+        .select("custom_tests(id, name, unit, test_category, scoring_scale)")
         .eq("category_id", categoryId);
       if (error) throw error;
       return (data || [])
         .map((r: any) => r.custom_tests)
-        .filter(Boolean) as { id: string; name: string; test_category: string | null }[];
+        .filter(Boolean) as { id: string; name: string; unit: string | null; test_category: string | null; scoring_scale?: any }[];
     },
   });
+
+  // Fusion : benchmarks BDD + variants poste/sexe stockés dans custom_tests.scoring_scale
+  const benchmarks = useMemo<Benchmark[]>(() => {
+    const synth = synthesizeBenchmarks(customTests as any) as unknown as Benchmark[];
+    return [...dbBenchmarks, ...synth];
+  }, [dbBenchmarks, customTests]);
+
 
 
   // Regroupe les benchmarks par test (nom/test_type normalisé) : une seule colonne
