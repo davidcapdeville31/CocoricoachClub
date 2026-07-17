@@ -63,7 +63,9 @@ interface CustomTest {
 
 interface ResultPoint {
   date: string;
-  value: number;
+  value: number; // valeur utilisée pour le calcul du niveau (ratio si benchmark ratio, sinon kg/valeur brute)
+  rawKg?: number; // charge brute en kg (pour affichage lorsque le test est en musculation)
+  ratio?: number; // ratio charge / poids de corps (si applicable)
 }
 
 interface TestOption {
