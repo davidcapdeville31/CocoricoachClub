@@ -18,6 +18,7 @@ import { CreateCustomTestDialog } from "./tests/CreateCustomTestDialog";
 import { CreateThemeCategoryDialog } from "./tests/CreateThemeCategoryDialog";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { PlanTestsSection } from "./tests/PlanTestsSection";
+import { BenchmarkTab } from "./benchmarks/BenchmarkTab";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
