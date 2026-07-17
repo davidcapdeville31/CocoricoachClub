@@ -234,6 +234,23 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
     enabled: testSessionIds.length > 0,
   });
 
+  // Collect all custom test_types used, to resolve labels
+  const allCustomTestTypes = useMemo(() => {
+    const types: string[] = [];
+    [...todaySessions, ...upcomingSessionsRaw].forEach((s: any) => {
+      const m = s.notes?.match(/<!--TESTS:(.*?)-->/);
+      if (m) {
+        try {
+          const arr = JSON.parse(m[1]);
+          arr.forEach((t: any) => t?.test_type && types.push(t.test_type));
+        } catch {}
+      }
+    });
+    (testResults || []).forEach((r: any) => r.test_type && types.push(r.test_type));
+    return types;
+  }, [todaySessions, testResults]);
+  const customTestMap = useCustomTestLabels(allCustomTestTypes);
+
   const getTestResultsForSession = (sessionId: string) => {
     return testResults.filter(t => t.notes?.includes(`Session ID: ${sessionId}`));
   };
@@ -244,7 +261,11 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
     if (!match) return [];
     try {
       const tests = JSON.parse(match[1]);
-      return tests.map((t: any) => getTestLabel(t.test_type || t.test_category)).filter(Boolean);
+      return tests.map((t: any) => {
+        const type = t.test_type || t.test_category;
+        if (type?.startsWith("custom:")) return labelizeTestType(type, customTestMap);
+        return getTestLabel(type);
+      }).filter(Boolean);
     } catch {
       return [];
     }
