@@ -207,12 +207,40 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     return map;
   }, [bm, genericTests, speedTests, strengthTests, customTests]);
 
+  // Auto-sélectionne un barème qui a des résultats
+  const benchmarksWithData = useMemo(() => {
+    if (!benchmarks.length) return [] as Benchmark[];
+    const withCount = benchmarks.map((b) => {
+      let count = 0;
+      genericTests.forEach((t: any) => {
+        if (matchesBenchmark(t.test_type, b.test_type, customTests as any)) count++;
+      });
+      speedTests.forEach((t: any) => {
+        if (matchesBenchmark(t.test_type, b.test_type, customTests as any)) count++;
+      });
+      strengthTests.forEach((t: any) => {
+        if (matchesBenchmark(t.test_name, b.test_type, customTests as any)) count++;
+      });
+      return { b, count };
+    });
+    return withCount;
+  }, [benchmarks, genericTests, speedTests, strengthTests, customTests]);
+
+  // Sélection automatique du 1er barème qui a des données
+  useMemo(() => {
+    if (!benchmarkId && benchmarksWithData.length > 0) {
+      const first = benchmarksWithData.find((x) => x.count > 0) || benchmarksWithData[0];
+      if (first) setBenchmarkId(first.b.id);
+    }
+  }, [benchmarkId, benchmarksWithData]);
+
   // All distinct dates across players (ascending)
   const allDates = useMemo(() => {
     const s = new Set<string>();
     for (const arr of playerSeries.values()) arr.forEach((p) => s.add(p.date));
     return Array.from(s).sort();
   }, [playerSeries]);
+
 
   // Group players by position
   const playersByPosition = useMemo(() => {
