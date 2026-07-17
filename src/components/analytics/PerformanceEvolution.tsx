@@ -321,11 +321,12 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
 
   // Get all records for the selected test
   const getRecordsForTest = useCallback((test: DiscoveredTest) => {
+    const keys = new Set(test.aliasKeys && test.aliasKeys.length ? test.aliasKeys : [test.key]);
     switch (test.source) {
-      case "speed": return speedTests?.filter(t => t.test_type === test.key) || [];
-      case "strength": return strengthTests?.filter(t => t.test_name === test.key) || [];
-      case "jump": return jumpTests?.filter(t => t.test_type === test.key) || [];
-      case "generic": return genericTests?.filter(t => t.test_type === test.key) || [];
+      case "speed": return speedTests?.filter(t => keys.has(t.test_type)) || [];
+      case "strength": return strengthTests?.filter(t => keys.has(t.test_name)) || [];
+      case "jump": return jumpTests?.filter(t => keys.has(t.test_type)) || [];
+      case "generic": return genericTests?.filter(t => keys.has(t.test_type)) || [];
     }
   }, [speedTests, strengthTests, jumpTests, genericTests]);
 
