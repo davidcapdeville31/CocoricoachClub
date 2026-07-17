@@ -345,12 +345,12 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
             </TableHeader>
 
             <TableBody>
-              {players.map(player => (
+              {displayedPlayers.map(player => (
                 <TableRow key={player.id}>
                   <TableCell className="sticky left-0 bg-background z-10 font-medium">
                     {player.first_name ? `${player.first_name} ${player.name}` : player.name}
                   </TableCell>
-                  {benchmarks.map(bm => {
+                  {displayedBenchmarks.map(bm => {
                     const val = playerResults.get(player.id)?.get(bm.id);
                     const weight = playerWeights.get(player.id);
 
@@ -385,6 +385,7 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
                 </TableRow>
               ))}
             </TableBody>
+
           </Table>
         </div>
       </CardContent>
