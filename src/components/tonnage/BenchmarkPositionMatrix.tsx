@@ -541,13 +541,13 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {playersByPosition.map(([pos]) => {
-                    const posBm = getBenchmarkForPosition(pos);
+                  {playersByPosition.map(([groupId, info]) => {
+                    const posBm = getBenchmarkForGroup(groupId);
                     const levels = posBm?.levels || bm.levels;
                     return (
-                      <TableRow key={pos}>
+                      <TableRow key={groupId}>
                         <TableCell className="bg-slate-100 dark:bg-slate-800 font-medium text-center">
-                          {pos}
+                          {info.label}
                         </TableCell>
                         {levels.map((l, i) => (
                           <TableCell
@@ -562,6 +562,7 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                     );
                   })}
                 </TableBody>
+
               </Table>
             </div>
           </CardContent>
