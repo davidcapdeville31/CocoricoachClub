@@ -301,15 +301,27 @@ export function BenchmarkManager({ categoryId, sportType }: BenchmarkManagerProp
   };
 
   const handleTestTypeChange = (val: string) => {
+    setFormTestType(val);
+    // Custom test path : val = "custom:<uuid>"
+    if (val.startsWith("custom:")) {
+      const id = val.slice("custom:".length);
+      const ct = customTests.find((c) => c.id === id);
+      if (ct) {
+        setFormUnit(ct.unit || formUnit);
+        if (!formName) setFormName(ct.name);
+        setFormLowerIsBetter(!!ct.is_time);
+      }
+      return;
+    }
     const cat = testCategories.find(c => c.value === formTestCategory);
     const test = cat?.tests.find(t => t.value === val);
-    setFormTestType(val);
     if (test) {
       setFormUnit(test.unit || formUnit);
       if (!formName) setFormName(test.label);
       setFormLowerIsBetter(test.isTime || false);
     }
   };
+
 
   const addLevel = () => {
     const nextColor = DEFAULT_COLORS[formLevels.length % DEFAULT_COLORS.length];
