@@ -61,6 +61,7 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
   const { allowedIds, isFiltering } = useSeasonFilteredPlayerIds(categoryId);
   const { isDateInActiveSeason, activeSeasonEnd } = useSeasonRosterFilter();
+  const { map: customTestsMap } = useCustomTestsMap();
   const scopeKey = isFiltering ? `season:${activeSeasonEnd ?? "x"}` : "all";
   const filterRows = useCallback(
     (rows: any[] | undefined | null): any[] => {
