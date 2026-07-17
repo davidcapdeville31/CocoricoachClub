@@ -58,6 +58,43 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
     },
   });
 
+  const customIds = useMemo(() => {
+    const ids = new Set<string>();
+    genericTests.forEach((t: any) => {
+      const type = t.test_type as string | null;
+      const cat = t.test_category as string | null;
+      if (type?.startsWith("custom:")) ids.add(type.slice(7));
+      if (cat?.startsWith("custom:")) ids.add(cat.slice(7));
+    });
+    return Array.from(ids);
+  }, [genericTests]);
+
+  const { data: customTests = [] } = useQuery({
+    queryKey: ["athlete-space-custom-tests-labels", customIds.sort().join(",")],
+    enabled: customIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("custom_tests")
+        .select("id,name,category")
+        .in("id", customIds);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+  const customById = useMemo(() => {
+    const m = new Map<string, any>();
+    customTests.forEach((c: any) => m.set(c.id, c));
+    return m;
+  }, [customTests]);
+  const resolveLabel = (raw?: string | null) => {
+    if (!raw) return "";
+    if (raw.startsWith("custom:")) {
+      const c = customById.get(raw.slice(7));
+      return c?.name || raw.replace(/_/g, " ");
+    }
+    return raw.replace(/_/g, " ");
+  };
+
   const categoriesWithData = useMemo(() => {
     const catSet = new Set<string>();
     if (speedTests.length > 0) catSet.add("__speed__");
@@ -163,8 +200,8 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
                           <TableCell className="whitespace-nowrap text-xs">
                             {format(new Date(test.test_date), "dd/MM/yyyy", { locale: fr })}
                           </TableCell>
-                          <TableCell className="text-xs whitespace-nowrap">{cat?.label || test.test_category?.replace(/_/g, " ")}</TableCell>
-                          <TableCell className="text-xs whitespace-nowrap">{testDef?.label || test.test_type?.replace(/_/g, " ")}</TableCell>
+                          <TableCell className="text-xs whitespace-nowrap">{cat?.label || resolveLabel(test.test_category)}</TableCell>
+                          <TableCell className="text-xs whitespace-nowrap">{testDef?.label || resolveLabel(test.test_type)}</TableCell>
                           <TableCell className="text-xs font-semibold text-primary text-right whitespace-nowrap">
                             {test.result_value} {test.result_unit || ""}
                           </TableCell>
