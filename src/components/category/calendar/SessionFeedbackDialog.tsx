@@ -240,6 +240,11 @@ export function SessionFeedbackDialog({
     }
   }, [session?.notes]);
 
+  // Resolve labels for custom tests (`custom:<uuid>`) so staff sees the real name
+  const customTestMap = useCustomTestLabels(sessionTests.map((t) => t.test_type));
+
+
+
   // Also check for existing test results in generic_tests (for already saved results)
   const { data: existingTestResults } = useQuery({
     queryKey: ["session-existing-test-results", sessionId],
