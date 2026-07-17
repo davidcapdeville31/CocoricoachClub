@@ -193,8 +193,11 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
   // Fusion : benchmarks BDD + variants poste/sexe stockés dans custom_tests.scoring_scale
   const benchmarks = useMemo<Benchmark[]>(() => {
     const synth = synthesizeBenchmarks(customTests as any) as unknown as Benchmark[];
-    return [...dbBenchmarks, ...synth];
+    // Les barèmes définis dans le menu Tests (synth) prennent le pas sur ceux
+    // de la BDD lorsqu'ils portent le même nom de test.
+    return [...synth, ...dbBenchmarks];
   }, [dbBenchmarks, customTests]);
+
 
 
 
