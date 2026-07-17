@@ -331,7 +331,7 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
         </div>
 
         {bm && bm.levels?.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-3">
+          <div className="flex flex-wrap gap-2 mt-3 items-center">
             {bm.levels.map((lvl, i) => (
               <Badge
                 key={i}
@@ -342,14 +342,14 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                 {lvl.threshold != null && (
                   <span className="ml-1 opacity-90">
                     {bm.lower_is_better ? "≤" : "≥"} {lvl.threshold}
-                    {bm.use_body_weight_ratio ? "× PDC" : bm.unit ? ` ${bm.unit}` : ""}
+                    {bm.use_body_weight_ratio ? " × PDC" : bm.unit ? ` ${bm.unit}` : ""}
                   </span>
                 )}
               </Badge>
             ))}
             {bm.use_body_weight_ratio && (
-              <Badge variant="outline" className="text-[11px]">
-                <Weight className="h-3 w-3 mr-1" /> Ratio × poids de corps
+              <Badge variant="outline" className="text-[11px]" title="Ratio = charge (kg) ÷ poids de corps (kg)">
+                <Weight className="h-3 w-3 mr-1" /> Ratio = charge ÷ poids de corps
               </Badge>
             )}
           </div>
@@ -357,7 +357,12 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
       </CardHeader>
 
       <CardContent>
-        {allDates.length === 0 ? (
+        {!bm ? (
+          <div className="py-10 text-center text-sm text-muted-foreground">
+            Sélectionne un test pour afficher les résultats.
+          </div>
+        ) : allDates.length === 0 ? (
+
           <div className="py-10 text-center text-sm text-muted-foreground">
             Aucun résultat enregistré pour ce test.
           </div>
