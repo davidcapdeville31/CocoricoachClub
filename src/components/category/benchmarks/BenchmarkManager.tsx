@@ -188,7 +188,9 @@ export function BenchmarkManager({ categoryId, sportType }: BenchmarkManagerProp
         body_weight_multiplier: formBodyWeightMultiplier ? parseFloat(formBodyWeightMultiplier) : null,
         filter_type: formFilterType,
         filter_value: formFilterType !== "all" ? formFilterValue : null,
+        gender_filter: formGenderFilter && formGenderFilter !== "all" ? formGenderFilter : null,
         applies_to: formFilterType !== "all" ? formFilterValue : "all",
+
         // Keep legacy columns for backward compat
         level_1_label: levelsJson[0]?.label || "Niveau 1",
         level_1_max: levelsJson[0]?.threshold,
