@@ -889,6 +889,66 @@ export function SessionFeedbackDialog({
             </div>
           </TabsContent>
 
+          {sessionTests.length > 0 && (
+            <TabsContent value="tests" className="flex-1 flex flex-col min-h-0 mt-4">
+              <p className="text-sm text-muted-foreground mb-3">
+                Résultats des tests planifiés pour cette séance. Chaque valeur est enregistrée automatiquement à la sortie du champ.
+              </p>
+              <div className="flex-1 min-h-0 overflow-y-auto pr-2 space-y-4" style={{ maxHeight: "calc(90vh - 240px)" }}>
+                {sessionTests.map((test) => {
+                  const testLabel = labelizeTestType(test.test_type, customTestMap);
+                  const unit = test.result_unit || (test.test_type?.startsWith("custom:") ? customTestMap[test.test_type]?.unit || "" : "");
+                  return (
+                    <div key={test.id} className="rounded-lg border border-border p-3 bg-muted/30 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <FlaskConical className="h-4 w-4 text-primary" />
+                        <span className="font-medium text-sm">{testLabel}</span>
+                        <Badge variant="outline" className="text-[10px]">{test.test_category}</Badge>
+                        {unit && <Badge variant="secondary" className="text-[10px]">{unit}</Badge>}
+                      </div>
+                      <div className="space-y-1.5">
+                        {playersForTests.map((player) => {
+                          const isSaved = test.savedPlayerIds?.has(player.id);
+                          const val = test.player_results[player.id] || "";
+                          return (
+                            <div key={player.id} className="flex items-center gap-2">
+                              <Avatar className="h-7 w-7">
+                                <AvatarImage src={player.avatar_url || undefined} />
+                                <AvatarFallback className="text-xs">
+                                  {(player.first_name || player.name).slice(0, 2).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <Label className="flex-1 min-w-0 text-sm truncate">
+                                {player.first_name ? `${player.first_name} ${player.name}` : player.name}
+                              </Label>
+                              {isSaved ? (
+                                <span className="text-xs text-muted-foreground">✓ {val} {unit}</span>
+                              ) : (
+                                <>
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    placeholder="Résultat"
+                                    className="w-24 h-8 text-sm"
+                                    value={val}
+                                    onChange={(e) => updatePlayerTestResult(test.id, player.id, e.target.value)}
+                                    onBlur={(e) => autosaveTestResult(test.id, player.id, e.target.value)}
+                                  />
+                                  <span className="text-xs text-muted-foreground w-8">{unit}</span>
+                                </>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </TabsContent>
+          )}
+
+
           {sessionType === "musculation" && (
             <TabsContent value="weights" className="flex-1 flex flex-col min-h-0 mt-4">
               <div className="flex-1 min-h-0 overflow-y-auto pr-2" style={{ maxHeight: "calc(90vh - 240px)" }}>
