@@ -40,8 +40,10 @@ interface Benchmark {
   body_weight_multiplier: number | null;
   filter_type: string;
   filter_value: string | null;
+  gender_filter: string | null;
   applies_to: string | null;
 }
+
 
 interface LevelForm {
   label: string;
