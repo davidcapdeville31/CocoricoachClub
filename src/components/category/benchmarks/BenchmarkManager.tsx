@@ -486,7 +486,20 @@ export function BenchmarkManager({ categoryId, sportType }: BenchmarkManagerProp
                         {test.label}
                       </SelectItem>
                     ))}
+                    {customTestsForCategory.length > 0 && (
+                      <>
+                        <div className="px-2 pt-2 pb-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+                          Tests personnalisés
+                        </div>
+                        {customTestsForCategory.map((ct) => (
+                          <SelectItem key={ct.id} value={`custom:${ct.id}`}>
+                            ⭐ {ct.name}
+                          </SelectItem>
+                        ))}
+                      </>
+                    )}
                   </SelectContent>
+
                 </Select>
               </div>
             </div>
