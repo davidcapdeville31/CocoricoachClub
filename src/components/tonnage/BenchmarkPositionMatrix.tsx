@@ -122,11 +122,11 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     return m;
   }, [bodyComps]);
 
-  // Default select first benchmark
   const bm = useMemo(
-    () => benchmarks.find((b) => b.id === benchmarkId) || benchmarks[0] || null,
+    () => benchmarks.find((b) => b.id === benchmarkId) || null,
     [benchmarks, benchmarkId],
   );
+
 
   const { data: genericTests = [] } = useQuery({
     queryKey: ["generic-tests-matrix", categoryId],
