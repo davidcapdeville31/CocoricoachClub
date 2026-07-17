@@ -923,6 +923,12 @@ export function SessionFeedbackDialog({
                       <div className="space-y-1.5">
                         {playersForTests.map((player) => {
                           const isSaved = test.savedPlayerIds?.has(player.id);
+                          const athleteEntry = (athleteSubmitted || []).find(
+                            (a: any) =>
+                              a.player_id === player.id &&
+                              a.test_category === test.test_category &&
+                              a.test_type === test.test_type,
+                          );
                           const val = test.player_results[player.id] || "";
                           return (
                             <div key={player.id} className="flex items-center gap-2">
@@ -937,6 +943,15 @@ export function SessionFeedbackDialog({
                               </Label>
                               {isSaved ? (
                                 <span className="text-xs text-muted-foreground">✓ {val} {unit}</span>
+                              ) : athleteEntry ? (
+                                <Badge
+                                  variant={athleteEntry.validation_status === "pending" ? "secondary" : "default"}
+                                  className="text-[10px]"
+                                  title="Résultat soumis par l'athlète — à valider dans la liste des résultats en attente"
+                                >
+                                  {athleteEntry.result_value} {athleteEntry.result_unit || unit}
+                                  {athleteEntry.validation_status === "pending" ? " — athlète (à valider)" : " ✓ athlète"}
+                                </Badge>
                               ) : (
                                 <>
                                   <Input
