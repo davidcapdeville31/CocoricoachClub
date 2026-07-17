@@ -16,6 +16,7 @@ import { format, parseISO, addDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 import { getTestLabel } from "@/lib/constants/testCategories";
+import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
 import { getDisplayNotes, parsePrecisionExerciseFromNotes } from "@/lib/utils/sessionNotes";
 import { SPARE_EXERCISE_TYPES } from "@/lib/constants/bowlingBallBrands";
 import { cn } from "@/lib/utils";
@@ -233,6 +234,23 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
     enabled: testSessionIds.length > 0,
   });
 
+  // Collect all custom test_types used, to resolve labels
+  const allCustomTestTypes = useMemo(() => {
+    const types: string[] = [];
+    todaySessions.forEach((s: any) => {
+      const m = s.notes?.match(/<!--TESTS:(.*?)-->/);
+      if (m) {
+        try {
+          const arr = JSON.parse(m[1]);
+          arr.forEach((t: any) => t?.test_type && types.push(t.test_type));
+        } catch {}
+      }
+    });
+    (testResults || []).forEach((r: any) => r.test_type && types.push(r.test_type));
+    return types;
+  }, [todaySessions, testResults]);
+  const customTestMap = useCustomTestLabels(allCustomTestTypes);
+
   const getTestResultsForSession = (sessionId: string) => {
     return testResults.filter(t => t.notes?.includes(`Session ID: ${sessionId}`));
   };
@@ -243,7 +261,11 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
     if (!match) return [];
     try {
       const tests = JSON.parse(match[1]);
-      return tests.map((t: any) => getTestLabel(t.test_type || t.test_category)).filter(Boolean);
+      return tests.map((t: any) => {
+        const type = t.test_type || t.test_category;
+        if (type?.startsWith("custom:")) return labelizeTestType(type, customTestMap);
+        return getTestLabel(type);
+      }).filter(Boolean);
     } catch {
       return [];
     }
@@ -684,7 +706,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
       <div className="text-xs text-muted-foreground mt-0.5">
         {testNames.map((name, idx) => <div key={idx}>📋 {name}</div>)}
         {results.map((r, idx) => (
-          <div key={`r-${idx}`}>✅ {r.test_type}: {r.result_value} {r.result_unit || ""}</div>
+          <div key={`r-${idx}`}>✅ {labelizeTestType(r.test_type, customTestMap)}: {r.result_value} {r.result_unit || ""}</div>
         ))}
       </div>
     );
