@@ -536,22 +536,40 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
                       </Badge>
                     </div>
                     <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                      <div className="rounded-lg bg-background/60 p-1.5 sm:p-2 text-center">
-                        <p className="text-[9px] sm:text-[10px] text-muted-foreground">
-                          {format(new Date(row.prevDate), "dd MMM yy", { locale: fr })}
-                        </p>
-                        <p className="text-sm sm:text-base font-bold leading-tight">
-                          {row.prevValue} <span className="text-[9px] sm:text-[10px] font-normal text-muted-foreground">{row.unit}</span>
-                        </p>
-                      </div>
-                      <div className="rounded-lg bg-background/60 p-1.5 sm:p-2 text-center ring-1 ring-primary/30">
-                        <p className="text-[9px] sm:text-[10px] text-muted-foreground">
-                          {format(new Date(row.lastDate), "dd MMM yy", { locale: fr })}
-                        </p>
-                        <p className="text-sm sm:text-base font-bold leading-tight">
-                          {row.lastValue} <span className="text-[9px] sm:text-[10px] font-normal text-muted-foreground">{row.unit}</span>
-                        </p>
-                      </div>
+                      {[
+                        { date: row.prevDate, value: row.prevValue, ring: false },
+                        { date: row.lastDate, value: row.lastValue, ring: true },
+                      ].map((cell, i) => {
+                        const isRatio = /pdc/i.test(row.unit || "");
+                        const v = Number(cell.value);
+                        let mainText: string;
+                        let subText: string | null = null;
+                        if (isRatio && Number.isFinite(v)) {
+                          if (playerWeight && playerWeight > 0 && v >= 5) {
+                            mainText = `${v} kg`;
+                            subText = `ratio ${(v / playerWeight).toFixed(2).replace(".", ",")} (${v}/${playerWeight} kg)`;
+                          } else if (playerWeight && playerWeight > 0 && v < 5) {
+                            mainText = `${(v * playerWeight).toFixed(1).replace(".", ",")} kg`;
+                            subText = `ratio ${v.toFixed(2).replace(".", ",")}`;
+                          } else {
+                            mainText = `${cell.value}`;
+                            subText = "ratio charge/poids";
+                          }
+                        } else {
+                          mainText = `${cell.value} ${row.unit}`;
+                        }
+                        return (
+                          <div key={i} className={`rounded-lg bg-background/60 p-1.5 sm:p-2 text-center ${cell.ring ? "ring-1 ring-primary/30" : ""}`}>
+                            <p className="text-[9px] sm:text-[10px] text-muted-foreground">
+                              {format(new Date(cell.date), "dd MMM yy", { locale: fr })}
+                            </p>
+                            <p className="text-sm sm:text-base font-bold leading-tight">{mainText}</p>
+                            {subText && (
+                              <p className="text-[9px] sm:text-[10px] text-primary font-medium mt-0.5">{subText}</p>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 );
