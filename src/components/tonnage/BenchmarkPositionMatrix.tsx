@@ -21,6 +21,7 @@ import {
 import { Target, TrendingUp, TrendingDown, Minus, Weight } from "lucide-react";
 import { computeBenchmarkLevel } from "@/lib/benchmarks/computeLevel";
 import { matchesBenchmark, normalizeTestKey } from "@/lib/benchmarks/matchTestType";
+import { synthesizeBenchmarks } from "@/lib/benchmarks/synthFromScoringScale";
 import {
   getPositionGroupsForSport,
   playerBelongsToGroup,
