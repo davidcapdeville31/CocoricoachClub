@@ -22,6 +22,7 @@ import { Target, TrendingUp, TrendingDown, Minus, Weight } from "lucide-react";
 import { computeBenchmarkLevel } from "@/lib/benchmarks/computeLevel";
 import { matchesBenchmark, normalizeTestKey } from "@/lib/benchmarks/matchTestType";
 import { synthesizeBenchmarks } from "@/lib/benchmarks/synthFromScoringScale";
+import { collectLatestPlayerWeights } from "@/lib/benchmarks/playerWeights";
 import {
   getPositionGroupsForSport,
   playerBelongsToGroup,
@@ -213,59 +214,16 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
 
   // Poids le plus récent, toutes sources confondues
   // (body_composition + player_measurements + tests anthropométrie)
-  const playerWeights = useMemo(() => {
-    const latest = new Map<string, { w: number; date: string }>();
-    const consider = (pid: string, w: any, date: string | null) => {
-      const n = Number(w);
-      if (!n || !isFinite(n) || n <= 0) return;
-      const cur = latest.get(pid);
-      const d = date || "";
-      if (!cur || d.localeCompare(cur.date) > 0) latest.set(pid, { w: n, date: d });
-    };
-    for (const bc of bodyComps as any[]) consider(bc.player_id, bc.weight_kg, bc.measurement_date);
-    for (const pm of playerMeasurements as any[]) consider(pm.player_id, pm.weight_kg, pm.measurement_date);
-
-    // Identifie les tests personnalisés qui mesurent un poids (nom "poids/weight/masse corporelle")
-    const weightCustomIds = new Set<string>();
-    for (const ct of customTests) {
-      const nameLc = (ct.name || "").toLowerCase();
-      const unitLc = (ct.unit || "").toLowerCase();
-      if (unitLc !== "kg") continue;
-      if (
-        nameLc.includes("poids") ||
-        nameLc.includes("weight") ||
-        nameLc.includes("masse corporelle") ||
-        nameLc.includes("body mass") ||
-        nameLc === "anthropométrie" ||
-        nameLc === "anthropometrie"
-      ) {
-        weightCustomIds.add(ct.id);
-      }
-    }
-
-    for (const t of weightTests as any[]) {
-      const unitLc = (t.result_unit || "").toLowerCase();
-      if (unitLc && unitLc !== "kg") continue;
-      const tt: string = t.test_type || "";
-      const cat: string = (t.test_category || "").toLowerCase();
-      const isCustomWeight =
-        tt.startsWith("custom:") && weightCustomIds.has(tt.slice("custom:".length));
-      const isPresetWeight =
-        tt === "body_weight" ||
-        tt === "weight" ||
-        tt === "poids" ||
-        (cat === "anthropometry" && (unitLc === "kg" || !unitLc));
-      if (!isCustomWeight && !isPresetWeight) continue;
-      const v = Number(t.result_value);
-      // On veut un poids humain plausible (20–200 kg) pour éviter les faux positifs
-      if (!isFinite(v) || v < 20 || v > 200) continue;
-      consider(t.player_id, v, t.test_date);
-    }
-
-    const m = new Map<string, number>();
-    for (const [pid, v] of latest) m.set(pid, v.w);
-    return m;
-  }, [bodyComps, playerMeasurements, weightTests, customTests]);
+  const playerWeights = useMemo(
+    () =>
+      collectLatestPlayerWeights({
+        bodyComps: bodyComps as any,
+        playerMeasurements: playerMeasurements as any,
+        weightTests: weightTests as any,
+        customTests: customTests as any,
+      }),
+    [bodyComps, playerMeasurements, weightTests, customTests],
+  );
 
   const { data: genericTests = [] } = useQuery({
     queryKey: ["generic-tests-matrix", categoryId],
@@ -519,7 +477,8 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
   // Renvoie le barème le plus spécifique pour (groupe de poste, sexe)
   const getBenchmarkForPlayer = (groupId: string, gender: string | null): Benchmark | null => {
     if (!bm) return null;
-    const candidates = benchmarks.filter((b) => b.test_type === bm.test_type);
+      const selectedTestKey = normalizeTestKey(bm.test_type);
+      const candidates = benchmarks.filter((b) => normalizeTestKey(b.test_type) === selectedTestKey);
     // Priorité : poste + sexe > poste seul > sexe seul > base
     const posAndGender = candidates.find(
       (b) => b.filter_value === groupId && b.gender_filter === gender,
@@ -540,9 +499,9 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
   const getBenchmarkForGroup = (groupId: string): Benchmark | null => {
     if (!bm) return null;
     return (
-      benchmarks.find(
-        (b) => b.test_type === bm.test_type && b.filter_value === groupId,
-      ) || bm
+        benchmarks.find(
+          (b) => normalizeTestKey(b.test_type) === normalizeTestKey(bm.test_type) && b.filter_value === groupId,
+        ) || bm
     );
   };
 
@@ -587,7 +546,7 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
   }
 
   const isRatio = !!bm?.use_body_weight_ratio;
-  const unitSuffix = isRatio ? "× PDC" : bm?.unit || "";
+  const unitSuffix = isRatio ? "ratio" : bm?.unit || "";
 
   return (
     <div className="space-y-4">
@@ -752,7 +711,7 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                       const evoDelta = first && last
                         ? useKgDelta ? (last.rawKg! - first.rawKg!) : (last.value - first.value)
                         : 0;
-                      const evoUnit = useKgDelta ? " kg" : isRatio ? " × PDC" : "";
+                      const evoUnit = useKgDelta ? " kg" : isRatio ? " ratio" : "";
                       const evoImproved: 1 | 0 | -1 = first && last
                         ? posBm?.lower_is_better
                           ? evoDelta < 0 ? 1 : evoDelta > 0 ? -1 : 0
@@ -832,15 +791,22 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                                           <>
                                             {point.value}
                                             <span className="text-[10px] font-normal text-muted-foreground ml-0.5">
-                                              × PDC
+                                              ratio
                                             </span>
                                           </>
                                         )}
                                       </span>
                                       {point.ratio != null && point.rawKg != null && (
-                                        <span className="text-[10px] font-normal text-muted-foreground">
-                                          (× {point.ratio.toFixed(2).replace(".", ",")} PDC)
-                                        </span>
+                                        <>
+                                          {weight && (
+                                            <span className="text-[10px] font-normal text-muted-foreground">
+                                              PDC {weight} kg
+                                            </span>
+                                          )}
+                                          <span className="text-[10px] font-normal text-muted-foreground">
+                                            ratio {point.ratio.toFixed(2).replace(".", ",")}
+                                          </span>
+                                        </>
                                       )}
                                       {point.rawKg != null && point.ratio == null && (
                                         <span className="text-[9px] italic text-amber-600">

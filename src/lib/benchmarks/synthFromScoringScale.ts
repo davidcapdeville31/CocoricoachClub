@@ -94,7 +94,7 @@ export function synthesizeBenchmarksFromCustomTest(ct: {
   for (const v of scale.variants || []) {
     const ranges = v.ranges || [];
     if (!ranges.length) continue;
-    const lower = !!v.lowerIsBetter;
+    const lower = v.lowerIsBetter ?? scale.lowerIsBetter ?? false;
     const levels = rangesToLevels(ranges, lower);
     const positions = v.filter?.positionGroups || [];
     const genders = v.filter?.genders || [];
