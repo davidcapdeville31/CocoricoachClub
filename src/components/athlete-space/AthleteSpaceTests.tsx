@@ -120,6 +120,12 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
     }).get(playerId) || null;
   }, [bodyCompositionWeights, measurementWeights, genericTests, customTests, playerId]);
 
+  const customById = useMemo(() => {
+    const m = new Map<string, any>();
+    customTests.forEach((c: any) => m.set(c.id, c));
+    return m;
+  }, [customTests]);
+
   const formatResult = (test: any) => {
     const custom = typeof test.test_type === "string" && test.test_type.startsWith("custom:")
       ? customById.get(test.test_type.slice(7))
@@ -151,11 +157,6 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
     );
   };
 
-  const customById = useMemo(() => {
-    const m = new Map<string, any>();
-    customTests.forEach((c: any) => m.set(c.id, c));
-    return m;
-  }, [customTests]);
   const resolveLabel = (raw?: string | null) => {
     if (!raw) return "";
     if (raw.startsWith("custom:")) {
