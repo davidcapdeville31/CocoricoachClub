@@ -174,13 +174,16 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
     enabled: !!categoryId,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("custom_tests")
-        .select("id, name, test_category")
+        .from("custom_test_categories")
+        .select("custom_tests(id, name, test_category)")
         .eq("category_id", categoryId);
       if (error) throw error;
-      return data || [];
+      return (data || [])
+        .map((r: any) => r.custom_tests)
+        .filter(Boolean) as { id: string; name: string; test_category: string | null }[];
     },
   });
+
 
   // Build player results map
   const playerResults = useMemo(() => {
