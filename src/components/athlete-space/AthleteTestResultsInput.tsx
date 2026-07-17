@@ -143,6 +143,9 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
           const existing = pending.find(
             (p) => p.test_category === t.test_category && p.test_type === t.test_type,
           );
+          const staffRow = staffSaved.find(
+            (p) => p.test_category === t.test_category && p.test_type === t.test_type,
+          );
           const testLabel = labelizeTestType(t.test_type, customMap);
           const unit = t.result_unit || (t.test_type?.startsWith("custom:") ? customMap[t.test_type]?.unit || "" : "");
           return (
@@ -151,7 +154,11 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
                 {testLabel}
                 <span className="text-muted-foreground ml-1">({labelize(t.test_category)})</span>
               </span>
-              {existing ? (
+              {staffRow ? (
+                <Badge variant="default" className="text-[10px] gap-1" title="Résultat déjà saisi par le staff">
+                  {staffRow.result_value} {staffRow.result_unit || unit} ✓ staff
+                </Badge>
+              ) : existing ? (
                 <Badge
                   variant={existing.validation_status === "validated" ? "default" : existing.validation_status === "rejected" ? "destructive" : "secondary"}
                   className="text-[10px] gap-1"
