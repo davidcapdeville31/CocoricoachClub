@@ -348,10 +348,14 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     const buildPoint = (pid: string, date: string, raw: number): ResultPoint => {
       const w = playerWeights.get(pid);
       if (bm.use_body_weight_ratio) {
-        // Si raw > 5 → c'est du kg, sinon on considère que c'est déjà un ratio
-        if (raw > 5 && w && w > 0) {
-          const ratio = Number((raw / w).toFixed(2));
-          return { date, value: ratio, rawKg: raw, ratio };
+        // Heuristique : raw > 5 → c'est très probablement une charge en kg
+        if (raw > 5) {
+          if (w && w > 0) {
+            const ratio = Number((raw / w).toFixed(2));
+            return { date, value: ratio, rawKg: raw, ratio };
+          }
+          // Pas de poids : on garde la charge en kg, ratio inconnu
+          return { date, value: raw, rawKg: raw };
         }
         // raw est déjà un ratio
         const rawKg = w && w > 0 ? Number((raw * w).toFixed(1)) : undefined;
@@ -385,13 +389,18 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
           const raw = Number(t.weight_kg);
           const w = playerWeights.get(t.player_id);
           if (bm.use_body_weight_ratio) {
-            const ratio = w && w > 0 ? Number((raw / w).toFixed(2)) : raw;
-            push(t.player_id, t.test_date, {
-              date: t.test_date,
-              value: ratio,
-              rawKg: raw,
-              ratio: w && w > 0 ? ratio : undefined,
-            });
+            if (w && w > 0) {
+              const ratio = Number((raw / w).toFixed(2));
+              push(t.player_id, t.test_date, {
+                date: t.test_date,
+                value: ratio,
+                rawKg: raw,
+                ratio,
+              });
+            } else {
+              // Sans poids : afficher la charge en kg, ratio inconnu
+              push(t.player_id, t.test_date, { date: t.test_date, value: raw, rawKg: raw });
+            }
           } else {
             push(t.player_id, t.test_date, { date: t.test_date, value: raw, rawKg: raw });
           }
