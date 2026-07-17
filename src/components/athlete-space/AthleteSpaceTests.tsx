@@ -75,7 +75,7 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("custom_tests")
-        .select("id,name,category")
+        .select("id,name")
         .in("id", customIds);
       if (error) throw error;
       return data || [];
