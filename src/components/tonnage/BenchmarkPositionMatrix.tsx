@@ -250,6 +250,8 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
         body_weight_multiplier: null,
         filter_type: "all",
         filter_value: null,
+        gender_filter: null,
+
       };
       opts.push({ key: `ct:${ct.id}`, label: ct.name, benchmark: synth, count });
     }
