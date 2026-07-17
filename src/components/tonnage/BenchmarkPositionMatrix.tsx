@@ -610,14 +610,14 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {playersByPosition.map(([pos, list]) => {
-                    const posBm = getBenchmarkForPosition(pos);
+                  {playersByPosition.map(([groupId, info]) => {
                     // Filter list to players who have any data
-                    const listWithData = (list as any[]).filter((p) => playerSeries.has(p.id));
+                    const listWithData = info.list.filter((p) => playerSeries.has(p.id));
                     if (listWithData.length === 0) return null;
                     return listWithData.map((p: any, idx: number) => {
                       const series = playerSeries.get(p.id) || [];
                       const weight = playerWeights.get(p.id);
+                      const posBm = getBenchmarkForPlayer(groupId, p.gender || null);
                       const first = series[0];
                       const last = series[series.length - 1];
                       const evoDelta = first && last ? last.value - first.value : 0;
@@ -634,7 +634,7 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                               rowSpan={listWithData.length}
                               className="align-middle font-semibold text-sm bg-slate-100 dark:bg-slate-800 border-r text-center"
                             >
-                              {pos}
+                              {info.label}
                               <div className="text-[10px] text-muted-foreground font-normal">
                                 {listWithData.length} joueur
                                 {listWithData.length > 1 ? "s" : ""}
@@ -642,7 +642,14 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                             </TableCell>
                           ) : null}
                           <TableCell className="font-medium">
-                            {p.first_name ? `${p.first_name} ${p.name}` : p.name}
+                            <div className="flex items-center gap-1.5">
+                              <span>{p.first_name ? `${p.first_name} ${p.name}` : p.name}</span>
+                              {p.gender && (
+                                <span className="text-[10px] text-muted-foreground">
+                                  {p.gender === "male" ? "♂" : p.gender === "female" ? "♀" : ""}
+                                </span>
+                              )}
+                            </div>
                           </TableCell>
                           {allDates.map((d) => {
                             const point = series.find((s) => s.date === d);
@@ -659,6 +666,7 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                             const level = posBm
                               ? computeBenchmarkLevel(point.value, posBm, weight)
                               : null;
+
                             const bgColor = level?.color
                               ? `${level.color}30`
                               : undefined;
