@@ -873,8 +873,13 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                           : evoDelta > 0 ? 1 : evoDelta < 0 ? -1 : 0
                         : 0;
 
+                      const isLastInGroup = idx === listWithData.length - 1;
+
                       return (
-                        <TableRow key={p.id}>
+                        <TableRow
+                          key={p.id}
+                          className={isLastInGroup ? "border-b-4 border-slate-300 dark:border-slate-600" : ""}
+                        >
                           {idx === 0 ? (
                             <TableCell
                               rowSpan={listWithData.length}
