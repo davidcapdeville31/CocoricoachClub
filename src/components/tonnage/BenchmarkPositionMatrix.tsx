@@ -510,7 +510,7 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
       (b) => !b.filter_value && b.gender_filter === gender,
     );
     if (genderOnly) return genderOnly;
-    return bm;
+    return candidates.find((b) => !b.filter_value && !b.gender_filter) || null;
   };
 
   // Compat pour la table barème (affichage) : par groupe uniquement
@@ -518,12 +518,12 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     if (!bm) return null;
     const group = positionGroups.find((g) => g.id === groupId) || null;
     return (
-        benchmarks.find(
-          (b) =>
-            normalizeTestKey(b.test_type) === normalizeTestKey(bm.test_type) &&
-            !!b.filter_value &&
-            (b.filter_value === groupId || (group ? playerBelongsToGroup(b.filter_value, group) : false)),
-        ) || bm
+      benchmarks.find(
+        (b) =>
+          normalizeTestKey(b.test_type) === normalizeTestKey(bm.test_type) &&
+          !!b.filter_value &&
+          (b.filter_value === groupId || (group ? playerBelongsToGroup(b.filter_value, group) : false)),
+      ) || benchmarks.find((b) => normalizeTestKey(b.test_type) === normalizeTestKey(bm.test_type) && !b.filter_value) || null
     );
   };
 
@@ -657,7 +657,7 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                 <TableBody>
                   {playersByPosition.map(([groupId, info]) => {
                     const posBm = getBenchmarkForGroup(groupId);
-                    const levels = posBm?.levels || bm.levels;
+                    const levels = posBm?.levels || [];
                     return (
                       <TableRow key={groupId}>
                         <TableCell className="bg-slate-100 dark:bg-slate-800 font-medium text-center">

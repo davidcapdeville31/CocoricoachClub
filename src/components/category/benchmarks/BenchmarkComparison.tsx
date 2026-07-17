@@ -282,7 +282,7 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
         if (values?.has(bm.filter_value) && matchesGender(bm) && !generic) generic = bm;
       }
     }
-    return positionAndGender || positional || genderOnly || generic || group.variants[0] || null;
+    return positionAndGender || positional || genderOnly || generic || null;
   };
 
   // Build player results : par groupe (test), une valeur (dernier résultat).
