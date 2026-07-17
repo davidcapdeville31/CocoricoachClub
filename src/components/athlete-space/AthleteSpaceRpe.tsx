@@ -16,6 +16,7 @@ import { format, parseISO, addDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 import { getTestLabel } from "@/lib/constants/testCategories";
+import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
 import { getDisplayNotes, parsePrecisionExerciseFromNotes } from "@/lib/utils/sessionNotes";
 import { SPARE_EXERCISE_TYPES } from "@/lib/constants/bowlingBallBrands";
 import { cn } from "@/lib/utils";
