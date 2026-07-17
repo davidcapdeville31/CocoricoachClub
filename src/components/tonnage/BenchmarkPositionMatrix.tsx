@@ -21,6 +21,11 @@ import {
 import { Target, TrendingUp, TrendingDown, Minus, Weight } from "lucide-react";
 import { computeBenchmarkLevel } from "@/lib/benchmarks/computeLevel";
 import { matchesBenchmark, normalizeTestKey } from "@/lib/benchmarks/matchTestType";
+import {
+  getPositionGroupsForSport,
+  playerBelongsToGroup,
+  type PositionGroup,
+} from "@/lib/constants/sportPositionGroups";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -45,7 +50,9 @@ interface Benchmark {
   body_weight_multiplier: number | null;
   filter_type: string;
   filter_value: string | null;
+  gender_filter: string | null;
 }
+
 
 interface CustomTest {
   id: string;
