@@ -32,6 +32,8 @@ interface DiscoveredTest {
   label: string;
   unit: string;
   source: "speed" | "strength" | "jump" | "generic";
+  aliasKeys?: string[];
+  isRatio?: boolean;
 }
 
 const PLAYER_COLORS = [
@@ -234,13 +236,46 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
       });
     }
     // Resolve custom test names via map
-    return tests.map(t => {
+    const resolved = tests.map(t => {
       if (t.key.startsWith("custom:")) {
         const info = customTestsMap[t.key];
         if (info) return { ...t, label: info.name, unit: t.unit || info.unit || "" };
       }
       return t;
     });
+
+    // Normalise l'unité "× PDC" en "ratio" pour l'affichage et flag isRatio
+    const normUnit = (u: string) => u.toLowerCase().replace(/\s+/g, "");
+    const withRatioFlag = resolved.map(t => {
+      const isRatio = ["×pdc", "xpdc", "/pdc"].includes(normUnit(t.unit || ""));
+      return { ...t, isRatio, unit: isRatio ? "ratio" : t.unit };
+    });
+
+    // Déduplique par label normalisé (ex: "Weight" ≡ "Poids") en fusionnant
+    // les clés dans aliasKeys pour agréger les enregistrements.
+    const normLabel = (s: string) => {
+      const base = (s || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[\s_\-.]+/g, "")
+        .trim();
+      if (["weight", "poids", "bodyweight", "bodymass", "massecorporelle"].includes(base)) return "__weight__";
+      return base;
+    };
+    const grouped = new Map<string, DiscoveredTest>();
+    for (const t of withRatioFlag) {
+      const gkey = `${t.source}:${normLabel(t.label)}`;
+      const existing = grouped.get(gkey);
+      if (!existing) {
+        grouped.set(gkey, { ...t, aliasKeys: [t.key] });
+      } else {
+        existing.aliasKeys = [...(existing.aliasKeys || [existing.key]), t.key];
+        // Préfère le label "Poids" si présent
+        if (/poids/i.test(t.label) && !/poids/i.test(existing.label)) existing.label = t.label;
+      }
+    }
+    return Array.from(grouped.values());
   }, [speedTests, strengthTests, jumpTests, genericTests, customTestsMap]);
 
   // Auto-select first test
@@ -286,11 +321,12 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
 
   // Get all records for the selected test
   const getRecordsForTest = useCallback((test: DiscoveredTest) => {
+    const keys = new Set(test.aliasKeys && test.aliasKeys.length ? test.aliasKeys : [test.key]);
     switch (test.source) {
-      case "speed": return speedTests?.filter(t => t.test_type === test.key) || [];
-      case "strength": return strengthTests?.filter(t => t.test_name === test.key) || [];
-      case "jump": return jumpTests?.filter(t => t.test_type === test.key) || [];
-      case "generic": return genericTests?.filter(t => t.test_type === test.key) || [];
+      case "speed": return speedTests?.filter(t => keys.has(t.test_type)) || [];
+      case "strength": return strengthTests?.filter(t => keys.has(t.test_name)) || [];
+      case "jump": return jumpTests?.filter(t => keys.has(t.test_type)) || [];
+      case "generic": return genericTests?.filter(t => keys.has(t.test_type)) || [];
     }
   }, [speedTests, strengthTests, jumpTests, genericTests]);
 
@@ -380,15 +416,21 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
 
     return activePlayers.map((pid, i) => {
       const player = players?.find(p => p.id === pid);
+      const bodyWeight = playerWeights.get(pid) || null;
       const pRecords = records
         .filter((r: any) => r.player_id === pid)
-        .map((r: any) => ({ date: r.test_date, value: extractValue(r, test) }))
+        .map((r: any) => {
+          const rawLoad = Number(r.result_value ?? r.weight_kg ?? 0) || null;
+          return { date: r.test_date, value: extractValue(r, test), rawLoad };
+        })
         .filter((r: any) => r.value !== null)
         .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
       if (pRecords.length < 1) return null;
-      const first = pRecords[0].value!;
-      const last = pRecords[pRecords.length - 1].value!;
+      const firstRec = pRecords[0];
+      const lastRec = pRecords[pRecords.length - 1];
+      const first = firstRec.value!;
+      const last = lastRec.value!;
       const diff = last - first;
       const pct = first !== 0 ? ((diff / first) * 100) : 0;
 
@@ -397,13 +439,17 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
         name: player?.fullName || "?",
         first: Number(first.toFixed(2)),
         last: Number(last.toFixed(2)),
+        firstLoad: firstRec.rawLoad,
+        lastLoad: lastRec.rawLoad,
+        bodyWeight,
+        isRatio: !!test.isRatio,
         diff: Number(diff.toFixed(2)),
         pct: Number(pct.toFixed(1)),
         count: pRecords.length,
         color: PLAYER_COLORS[i % PLAYER_COLORS.length],
       };
     }).filter(Boolean);
-  }, [viewMode, selectedTest, availableTests, getRecordsForTest, extractValue, selectedPlayerIds, playersWithData, players]);
+  }, [viewMode, selectedTest, availableTests, getRecordsForTest, extractValue, selectedPlayerIds, playersWithData, players, playerWeights]);
 
   const togglePlayer = (playerId: string) => {
     setSelectedPlayerIds(prev =>
@@ -646,12 +692,19 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
               <div className="h-1" style={{ backgroundColor: stat.color }} />
               <CardContent className="pt-4 pb-3 space-y-2">
                 <p className="font-semibold text-sm truncate">{stat.name}</p>
-                <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center justify-between text-sm gap-2">
                   <span className="text-muted-foreground">Premier → Dernier</span>
-                  <span className="font-mono">
-                    {formatValue(stat.first, currentTest?.unit || "")} → {formatValue(stat.last, currentTest?.unit || "")}
+                  <span className="font-mono text-right">
+                    {stat.isRatio
+                      ? `${stat.first} → ${stat.last}`
+                      : `${formatValue(stat.first, currentTest?.unit || "")} → ${formatValue(stat.last, currentTest?.unit || "")}`}
                   </span>
                 </div>
+                {stat.isRatio && stat.bodyWeight && (stat.firstLoad || stat.lastLoad) && (
+                  <div className="flex items-center justify-end text-[11px] text-muted-foreground font-mono">
+                    {stat.firstLoad ?? "?"}/{stat.bodyWeight} kg → {stat.lastLoad ?? "?"}/{stat.bodyWeight} kg
+                  </div>
+                )}
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground text-sm">{stat.count} mesures</span>
                   <Badge variant={stat.diff === 0 ? "secondary" : stat.diff > 0 ? "default" : "destructive"} className="gap-1">
