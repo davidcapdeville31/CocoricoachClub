@@ -28,6 +28,8 @@ import { BasketballPrecisionTracker } from "@/components/basketball/BasketballPr
 import { isBasketballPrecisionSport } from "@/lib/constants/basketballPrecisionExercises";
 import { BowlingSessionContent } from "@/components/bowling/BowlingSessionContent";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
+import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
+import { FlaskConical } from "lucide-react";
 
 interface SessionFeedbackDialogProps {
   open: boolean;
