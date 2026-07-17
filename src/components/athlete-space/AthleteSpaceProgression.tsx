@@ -10,6 +10,10 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
 import { BatteryRadarCharts } from "@/components/category/tests/GenericTestsSection";
+import { useCustomTestsMap } from "@/hooks/useCustomTestsMap";
+import { useSuggestedBenchmarks } from "@/hooks/useSuggestedBenchmarks";
+import { computeBenchmarkLevel } from "@/lib/benchmarks/computeLevel";
+import { matchesBenchmark } from "@/lib/benchmarks/matchTestType";
 
 interface Props {
   playerId: string;
