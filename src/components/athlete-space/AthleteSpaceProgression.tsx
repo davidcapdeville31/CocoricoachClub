@@ -143,7 +143,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
   });
 
   // Latest generic test results for summary
-  const latestGenericByType: Record<string, { value: number; unit: string; label: string; categoryLabel: string; categoryValue: string; date: string }> = {};
+  const latestGenericByType: Record<string, { value: number; unit: string; label: string; categoryLabel: string; categoryValue: string; date: string; testType: string }> = {};
   genericTests.forEach(t => {
     const key = `${t.test_category}__${t.test_type}`;
     const cat = testCategories.find(c => c.value === t.test_category);
