@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Target, TrendingUp, TrendingDown, Minus, Weight } from "lucide-react";
 import { computeBenchmarkLevel } from "@/lib/benchmarks/computeLevel";
-import { matchesBenchmark } from "@/lib/benchmarks/matchTestType";
+import { matchesBenchmark, normalizeTestKey } from "@/lib/benchmarks/matchTestType";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -47,15 +47,43 @@ interface Benchmark {
   filter_value: string | null;
 }
 
+interface CustomTest {
+  id: string;
+  name: string;
+  unit: string | null;
+  test_category?: string | null;
+}
+
 interface ResultPoint {
   date: string;
   value: number;
 }
 
+interface TestOption {
+  key: string; // "bm:<id>" or "ct:<id>"
+  label: string;
+  benchmark: Benchmark; // real or synthetic
+  count: number;
+}
+
 const UNKNOWN_POS = "Sans poste";
 
+// Default ratio levels used when a custom test has "× PDC" unit but no benchmark
+const DEFAULT_RATIO_LEVELS: BenchmarkLevel[] = [
+  { label: "Insuffisant", threshold: 1, color: "#ef4444" },
+  { label: "Moyen", threshold: 1.5, color: "#f59e0b" },
+  { label: "Bon", threshold: 2, color: "#22c55e" },
+  { label: "Très bon", threshold: 2.5, color: "#10b981" },
+];
+
+function isRatioUnit(u: string | null | undefined) {
+  if (!u) return false;
+  const s = u.toLowerCase().replace(/\s+/g, "");
+  return s === "×pdc" || s === "xpdc";
+}
+
 export function BenchmarkPositionMatrix({ categoryId }: Props) {
-  const [benchmarkId, setBenchmarkId] = useState<string>("");
+  const [selectedKey, setSelectedKey] = useState<string>("");
 
   const { data: benchmarks = [] } = useQuery({
     queryKey: ["benchmarks-matrix", categoryId],
@@ -92,12 +120,12 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("custom_test_categories")
-        .select("custom_tests(id, name, test_category)")
+        .select("custom_tests(id, name, unit, test_category)")
         .eq("category_id", categoryId);
       if (error) throw error;
       return (data || [])
         .map((r: any) => r.custom_tests)
-        .filter(Boolean) as { id: string; name: string }[];
+        .filter(Boolean) as CustomTest[];
     },
   });
 
@@ -117,29 +145,22 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
   const playerWeights = useMemo(() => {
     const m = new Map<string, number>();
     for (const bc of bodyComps as any[]) {
-      if (bc.weight_kg && !m.has(bc.player_id)) m.set(bc.player_id, bc.weight_kg);
+      if (bc.weight_kg && !m.has(bc.player_id)) m.set(bc.player_id, Number(bc.weight_kg));
     }
     return m;
   }, [bodyComps]);
-
-  const bm = useMemo(
-    () => benchmarks.find((b) => b.id === benchmarkId) || null,
-    [benchmarks, benchmarkId],
-  );
-
 
   const { data: genericTests = [] } = useQuery({
     queryKey: ["generic-tests-matrix", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("generic_tests")
-        .select("player_id, test_type, test_category, result_value, test_date")
+        .select("player_id, test_type, test_category, result_value, result_unit, test_date")
         .eq("category_id", categoryId)
         .order("test_date", { ascending: true });
       if (error) throw error;
       return data || [];
     },
-    enabled: benchmarks.length > 0,
   });
 
   const { data: speedTests = [] } = useQuery({
@@ -153,7 +174,6 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
       if (error) throw error;
       return data || [];
     },
-    enabled: benchmarks.length > 0,
   });
 
   const { data: strengthTests = [] } = useQuery({
@@ -167,10 +187,84 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
       if (error) throw error;
       return data || [];
     },
-    enabled: benchmarks.length > 0,
   });
 
-  // Build player -> sorted list of results for the selected benchmark
+  // ---------- Build combined test options (benchmarks + custom tests) ----------
+  const testOptions: TestOption[] = useMemo(() => {
+    const opts: TestOption[] = [];
+    const covered = new Set<string>(); // normalized keys already covered by a benchmark
+
+    for (const b of benchmarks) {
+      let count = 0;
+      genericTests.forEach((t: any) => {
+        if (matchesBenchmark(t.test_type, b.test_type, customTests as any)) count++;
+      });
+      speedTests.forEach((t: any) => {
+        if (matchesBenchmark(t.test_type, b.test_type, customTests as any)) count++;
+      });
+      strengthTests.forEach((t: any) => {
+        if (matchesBenchmark(t.test_name, b.test_type, customTests as any)) count++;
+      });
+      opts.push({ key: `bm:${b.id}`, label: b.name, benchmark: b, count });
+      covered.add(normalizeTestKey(b.test_type));
+      // also add custom-test matches by name
+      for (const ct of customTests) {
+        if (normalizeTestKey(ct.name) === normalizeTestKey(b.test_type)) {
+          covered.add(`custom:${ct.id}`);
+        }
+      }
+    }
+
+    // Custom tests without a matching benchmark → synthesize a benchmark using ratio defaults
+    for (const ct of customTests) {
+      const nameKey = normalizeTestKey(ct.name);
+      if (covered.has(nameKey) || covered.has(`custom:${ct.id}`)) continue;
+      const testType = `custom:${ct.id}`;
+      const count = genericTests.filter((t: any) => t.test_type === testType).length;
+      if (count === 0) continue;
+      const isRatio = isRatioUnit(ct.unit);
+      // Base synthetic on any existing ratio benchmark's levels; fallback to defaults
+      const ratioTemplate = benchmarks.find((b) => b.use_body_weight_ratio);
+      const levels =
+        isRatio
+          ? ratioTemplate?.levels?.length
+            ? ratioTemplate.levels
+            : DEFAULT_RATIO_LEVELS
+          : [];
+      const synth: Benchmark = {
+        id: `synthetic-${ct.id}`,
+        name: ct.name,
+        test_category: ct.test_category || "custom",
+        test_type: testType,
+        unit: ct.unit || null,
+        lower_is_better: false,
+        levels,
+        use_body_weight_ratio: isRatio,
+        body_weight_multiplier: null,
+        filter_type: "all",
+        filter_value: null,
+      };
+      opts.push({ key: `ct:${ct.id}`, label: ct.name, benchmark: synth, count });
+    }
+
+    return opts;
+  }, [benchmarks, customTests, genericTests, speedTests, strengthTests]);
+
+  // Auto-select first option with data
+  useEffect(() => {
+    if (!selectedKey && testOptions.length > 0) {
+      const first = testOptions.find((o) => o.count > 0) || testOptions[0];
+      setSelectedKey(first.key);
+    }
+  }, [selectedKey, testOptions]);
+
+  const selectedOpt = useMemo(
+    () => testOptions.find((o) => o.key === selectedKey) || null,
+    [testOptions, selectedKey],
+  );
+  const bm = selectedOpt?.benchmark || null;
+
+  // ---------- Build results for the selected test ----------
   const playerSeries = useMemo(() => {
     const map = new Map<string, ResultPoint[]>();
     if (!bm) return map;
@@ -183,7 +277,19 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
 
     genericTests.forEach((t: any) => {
       if (!matchesBenchmark(t.test_type, bm.test_type, customTests as any)) return;
-      push(t.player_id, t.test_date, Number(t.result_value));
+      const raw = Number(t.result_value);
+      if (!isFinite(raw) || raw <= 0) return;
+      // Auto-convert kg → ratio when needed
+      if (bm.use_body_weight_ratio) {
+        const w = playerWeights.get(t.player_id);
+        if (raw > 5 && w && w > 0) {
+          push(t.player_id, t.test_date, Number((raw / w).toFixed(2)));
+        } else {
+          push(t.player_id, t.test_date, raw);
+        }
+      } else {
+        push(t.player_id, t.test_date, raw);
+      }
     });
 
     if (bm.test_category === "speed" || bm.test_category === "sprint") {
@@ -193,55 +299,36 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
         if (v != null) push(t.player_id, t.test_date, Number(v));
       });
     }
-    if (bm.test_category === "strength" || bm.test_category === "force" || bm.test_category === "musculation") {
+    if (
+      bm.test_category === "strength" ||
+      bm.test_category === "force" ||
+      bm.test_category === "musculation"
+    ) {
       strengthTests.forEach((t: any) => {
         if (!matchesBenchmark(t.test_name, bm.test_type, customTests as any)) return;
-        if (t.weight_kg != null) push(t.player_id, t.test_date, Number(t.weight_kg));
+        if (t.weight_kg != null) {
+          const raw = Number(t.weight_kg);
+          if (bm.use_body_weight_ratio) {
+            const w = playerWeights.get(t.player_id);
+            push(t.player_id, t.test_date, w && w > 0 ? Number((raw / w).toFixed(2)) : raw);
+          } else {
+            push(t.player_id, t.test_date, raw);
+          }
+        }
       });
     }
 
-    // sort ascending by date
     for (const arr of map.values()) {
       arr.sort((a, b) => a.date.localeCompare(b.date));
     }
     return map;
-  }, [bm, genericTests, speedTests, strengthTests, customTests]);
+  }, [bm, genericTests, speedTests, strengthTests, customTests, playerWeights]);
 
-  // Auto-sélectionne un barème qui a des résultats
-  const benchmarksWithData = useMemo(() => {
-    const list: { b: Benchmark; count: number }[] = [];
-    for (const b of benchmarks) {
-      let count = 0;
-      genericTests.forEach((t: any) => {
-        if (matchesBenchmark(t.test_type, b.test_type, customTests as any)) count++;
-      });
-      speedTests.forEach((t: any) => {
-        if (matchesBenchmark(t.test_type, b.test_type, customTests as any)) count++;
-      });
-      strengthTests.forEach((t: any) => {
-        if (matchesBenchmark(t.test_name, b.test_type, customTests as any)) count++;
-      });
-      list.push({ b, count });
-    }
-    return list;
-  }, [benchmarks, genericTests, speedTests, strengthTests, customTests]);
-
-
-  // Sélection automatique du 1er barème qui a des données
-  useMemo(() => {
-    if (!benchmarkId && benchmarksWithData.length > 0) {
-      const first = benchmarksWithData.find((x) => x.count > 0) || benchmarksWithData[0];
-      if (first) setBenchmarkId(first.b.id);
-    }
-  }, [benchmarkId, benchmarksWithData]);
-
-  // All distinct dates across players (ascending)
   const allDates = useMemo(() => {
     const s = new Set<string>();
     for (const arr of playerSeries.values()) arr.forEach((p) => s.add(p.date));
     return Array.from(s).sort();
   }, [playerSeries]);
-
 
   // Group players by position
   const playersByPosition = useMemo(() => {
@@ -251,7 +338,6 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
       if (!groups.has(pos)) groups.set(pos, [] as any);
       groups.get(pos)!.push(p);
     }
-    // Order positions alphabetically, unknown last
     return Array.from(groups.entries()).sort(([a], [b]) => {
       if (a === UNKNOWN_POS) return 1;
       if (b === UNKNOWN_POS) return -1;
@@ -259,17 +345,14 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     });
   }, [players]);
 
-  // Benchmark ajusté par poste : si le benchmark sélectionné cible tous les postes,
-  // on regarde s'il existe des variantes benchmarks (même test_type) filtrées par poste
-  const benchmarksForTestType = useMemo(() => {
-    if (!bm) return [] as Benchmark[];
-    return benchmarks.filter((b) => b.test_type === bm.test_type);
-  }, [benchmarks, bm]);
-
+  // Position-specific benchmark override (if a benchmark exists filtered by position)
   const getBenchmarkForPosition = (position: string): Benchmark | null => {
     if (!bm) return null;
-    const perPos = benchmarksForTestType.find(
-      (b) => b.filter_type === "position" && b.filter_value === position,
+    const perPos = benchmarks.find(
+      (b) =>
+        b.test_type === bm.test_type &&
+        b.filter_type === "position" &&
+        b.filter_value === position,
     );
     return perPos || bm;
   };
@@ -282,259 +365,299 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     }
   };
 
-  if (benchmarks.length === 0) {
+  // Build level range string (e.g. "1,0 – 1,2" or "< 1,0" or "> 1,4")
+  const levelRangeString = (levels: BenchmarkLevel[], idx: number, lowerIsBetter: boolean) => {
+    const lvl = levels[idx];
+    if (lvl?.threshold == null) return "—";
+    const next = levels[idx + 1];
+    const fmt = (n: number) => n.toString().replace(".", ",");
+    if (lowerIsBetter) {
+      // First (best) = <= threshold ; last (worst) = > previous ; middle range
+      if (idx === 0) return `≤ ${fmt(lvl.threshold)}`;
+      if (!next) return `> ${fmt(levels[idx - 1].threshold ?? lvl.threshold)}`;
+      return `${fmt(levels[idx - 1].threshold ?? lvl.threshold)} – ${fmt(lvl.threshold)}`;
+    }
+    // higher is better: idx 0 (worst) = < threshold ; last (best) = > previous ; middle = t..t+1
+    if (idx === 0) return `< ${fmt(lvl.threshold)}`;
+    if (!next) return `≥ ${fmt(lvl.threshold)}`;
+    return `${fmt(lvl.threshold)} – ${fmt(next.threshold ?? lvl.threshold)}`;
+  };
+
+  if (benchmarks.length === 0 && customTests.length === 0) {
     return (
       <Card>
         <CardContent className="py-10 text-center">
           <Target className="h-10 w-10 mx-auto text-muted-foreground/40 mb-2" />
           <p className="text-sm text-muted-foreground">
-            Aucun barème défini. Va dans <strong>Effectif → Tests</strong> pour en créer.
+            Aucun barème ni test personnalisé. Va dans <strong>Effectif → Tests</strong>.
           </p>
         </CardContent>
       </Card>
     );
   }
 
+  const isRatio = !!bm?.use_body_weight_ratio;
+  const unitSuffix = isRatio ? "× PDC" : bm?.unit || "";
+
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              Vue effectif par poste & barème
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Sélectionne un test — évolution colorée entre chaque date.
-            </p>
-          </div>
-          <div className="min-w-[240px]">
-            <Select
-              value={bm?.id || ""}
-              onValueChange={(v) => setBenchmarkId(v)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Choisir un test / barème" />
-              </SelectTrigger>
-              <SelectContent>
-                {benchmarksWithData.map(({ b, count }) => (
-                  <SelectItem key={b.id} value={b.id}>
-                    {b.name}
-                    {b.filter_type === "position" && b.filter_value
-                      ? ` · ${b.filter_value}`
-                      : ""}
-                    <span className="ml-2 text-[10px] text-muted-foreground">
-                      {count > 0 ? `${count} résultat${count > 1 ? "s" : ""}` : "aucun résultat"}
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-
-            </Select>
-          </div>
-        </div>
-
-        {bm && bm.levels?.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-3 items-center">
-            {bm.levels.map((lvl, i) => (
-              <Badge
-                key={i}
-                className="text-white text-[11px]"
-                style={{ backgroundColor: lvl.color }}
-              >
-                {lvl.label}
-                {lvl.threshold != null && (
-                  <span className="ml-1 opacity-90">
-                    {bm.lower_is_better ? "≤" : "≥"} {lvl.threshold}
-                    {bm.use_body_weight_ratio ? " × PDC" : bm.unit ? ` ${bm.unit}` : ""}
-                  </span>
-                )}
-              </Badge>
-            ))}
-            {bm.use_body_weight_ratio && (
-              <Badge variant="outline" className="text-[11px]" title="Ratio = charge (kg) ÷ poids de corps (kg)">
-                <Weight className="h-3 w-3 mr-1" /> Ratio = charge ÷ poids de corps
-              </Badge>
-            )}
-          </div>
-        )}
-      </CardHeader>
-
-      <CardContent>
-        {!bm ? (
-          <div className="py-10 text-center text-sm text-muted-foreground">
-            Sélectionne un test pour afficher les résultats.
-          </div>
-        ) : allDates.length === 0 ? (
-
-          <div className="py-10 text-center text-sm text-muted-foreground">
-            Aucun résultat enregistré pour ce test.
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="min-w-[110px]">Poste</TableHead>
-                  <TableHead className="min-w-[160px]">Joueur</TableHead>
-                  <TableHead className="min-w-[140px]">Barème du poste</TableHead>
-                  {allDates.map((d) => (
-                    <TableHead key={d} className="text-center min-w-[110px]">
-                      {fmtDate(d)}
-                    </TableHead>
+    <div className="space-y-4">
+      {/* HEADER + selector */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" />
+                Vue effectif par poste & barème
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Sélectionne un test — résultats colorés selon le barème du poste, avec évolution.
+              </p>
+            </div>
+            <div className="min-w-[260px]">
+              <Select value={selectedKey} onValueChange={setSelectedKey}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choisir un test" />
+                </SelectTrigger>
+                <SelectContent>
+                  {testOptions.map((o) => (
+                    <SelectItem key={o.key} value={o.key}>
+                      {o.label}
+                      <span className="ml-2 text-[10px] text-muted-foreground">
+                        {o.count > 0
+                          ? `${o.count} résultat${o.count > 1 ? "s" : ""}`
+                          : "aucun résultat"}
+                      </span>
+                    </SelectItem>
                   ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {playersByPosition.map(([pos, list]) => {
-                  const posBm = getBenchmarkForPosition(pos);
-                  return list.map((p: any, idx: number) => {
-                    const series = playerSeries.get(p.id) || [];
-                    const weight = playerWeights.get(p.id);
-                    return (
-                      <TableRow key={p.id}>
-                        {idx === 0 ? (
-                          <TableCell
-                            rowSpan={list.length}
-                            className="align-top font-semibold text-sm bg-muted/40 border-r"
-                          >
-                            {pos}
-                            <div className="text-[10px] text-muted-foreground font-normal">
-                              {list.length} joueur{list.length > 1 ? "s" : ""}
-                            </div>
-                          </TableCell>
-                        ) : null}
-                        <TableCell className="font-medium">
-                          {p.first_name ? `${p.first_name} ${p.name}` : p.name}
-                        </TableCell>
-                        <TableCell className="text-[11px] text-muted-foreground">
-                          {posBm?.levels?.length ? (
-                            <div className="flex flex-col gap-0.5">
-                              {posBm.levels.slice().reverse().map((l, i) => (
-                                <span key={i} style={{ color: l.color }}>
-                                  ● {l.label}
-                                  {l.threshold != null && (
-                                    <> {posBm.lower_is_better ? "≤" : "≥"} {
-                                      posBm.use_body_weight_ratio && weight
-                                        ? (l.threshold * weight).toFixed(1)
-                                        : l.threshold
-                                    }{posBm.unit ? ` ${posBm.unit}` : ""}</>
-                                  )}
-                                </span>
-                              ))}
-                            </div>
-                          ) : (
-                            <span>—</span>
-                          )}
-                        </TableCell>
-                        {allDates.map((d, di) => {
-                          const point = series.find((s) => s.date === d);
-                          if (!point) {
-                            return (
-                              <TableCell key={d} className="text-center text-muted-foreground">
-                                —
-                              </TableCell>
-                            );
-                          }
-                          const prev = series
-                            .filter((s) => s.date < d)
-                            .slice(-1)[0];
-                          const level = posBm
-                            ? computeBenchmarkLevel(point.value, posBm, weight)
-                            : null;
-                          let delta = 0;
-                          let improved: 1 | 0 | -1 = 0;
-                          if (prev) {
-                            delta = point.value - prev.value;
-                            if (posBm?.lower_is_better) {
-                              improved = delta < 0 ? 1 : delta > 0 ? -1 : 0;
-                            } else {
-                              improved = delta > 0 ? 1 : delta < 0 ? -1 : 0;
-                            }
-                          }
-                          const bg =
-                            improved === 1
-                              ? "bg-emerald-500/15"
-                              : improved === -1
-                              ? "bg-rose-500/15"
-                              : "";
-                          const isRatio = !!posBm?.use_body_weight_ratio;
-                          const ratio = isRatio && weight ? point.value / weight : null;
-                          return (
-                            <TableCell key={d} className={`text-center ${bg}`}>
-                              <div className="flex flex-col items-center gap-0.5">
-                                {isRatio ? (
-                                  ratio != null ? (
-                                    <>
-                                      <span className="font-mono font-bold text-base leading-none">
-                                        {ratio.toFixed(2)}
-                                        <span className="text-[10px] font-normal text-muted-foreground ml-0.5">
-                                          × PDC
-                                        </span>
-                                      </span>
-                                      <span className="text-[10px] text-muted-foreground">
-                                        {point.value} kg / {weight} kg
-                                      </span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <span className="font-mono font-semibold text-sm">
-                                        {point.value} kg
-                                      </span>
-                                      <span className="text-[10px] text-amber-600">
-                                        Poids manquant
-                                      </span>
-                                    </>
-                                  )
-                                ) : (
-                                  <span className="font-mono font-semibold text-sm">
-                                    {point.value}
-                                    {posBm?.unit ? ` ${posBm.unit}` : ""}
-                                  </span>
-                                )}
-                                {level && (
-                                  <Badge
-                                    className="text-[10px] px-1.5 py-0 text-white"
-                                    style={{ backgroundColor: level.color }}
-                                  >
-                                    {level.label}
-                                  </Badge>
-                                )}
-                                {prev && (
-                                  <span
-                                    className={`inline-flex items-center text-[10px] font-medium ${
-                                      improved === 1
-                                        ? "text-emerald-600"
-                                        : improved === -1
-                                        ? "text-rose-600"
-                                        : "text-muted-foreground"
-                                    }`}
-                                  >
-                                    {improved === 1 ? (
-                                      <TrendingUp className="h-3 w-3 mr-0.5" />
-                                    ) : improved === -1 ? (
-                                      <TrendingDown className="h-3 w-3 mr-0.5" />
-                                    ) : (
-                                      <Minus className="h-3 w-3 mr-0.5" />
-                                    )}
-                                    {delta > 0 ? "+" : ""}
-                                    {delta.toFixed(2)}
-                                  </span>
-                                )}
-                              </div>
-                            </TableCell>
-                          );
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          {isRatio && (
+            <div className="mt-2">
+              <Badge variant="outline" className="text-[11px]">
+                <Weight className="h-3 w-3 mr-1" />
+                Ratio = charge (kg) ÷ poids de corps (kg)
+              </Badge>
+            </div>
+          )}
+        </CardHeader>
+      </Card>
 
-                        })}
+      {/* BARÈME PAR POSTE */}
+      {bm && bm.levels?.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">
+              Barème — {selectedOpt?.label}
+              {isRatio && (
+                <span className="text-sm font-normal text-muted-foreground ml-2">
+                  (ratio charge ÷ poids de corps)
+                </span>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="bg-slate-700 text-white font-semibold min-w-[140px]">
+                      Poste
+                    </TableHead>
+                    {bm.levels.map((l, i) => (
+                      <TableHead
+                        key={i}
+                        className="text-white font-semibold text-center"
+                        style={{ backgroundColor: l.color }}
+                      >
+                        {l.label}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {playersByPosition.map(([pos]) => {
+                    const posBm = getBenchmarkForPosition(pos);
+                    const levels = posBm?.levels || bm.levels;
+                    return (
+                      <TableRow key={pos}>
+                        <TableCell className="bg-slate-100 dark:bg-slate-800 font-medium text-center">
+                          {pos}
+                        </TableCell>
+                        {levels.map((l, i) => (
+                          <TableCell
+                            key={i}
+                            className="text-center font-mono text-sm"
+                            style={{ backgroundColor: `${l.color}20` }}
+                          >
+                            {levelRangeString(levels, i, !!posBm?.lower_is_better)}
+                          </TableCell>
+                        ))}
                       </TableRow>
                     );
-                  });
-                })}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* RÉSULTATS PAR JOUEUR */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">
+            Résultats — {selectedOpt?.label}
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Chaque cellule est colorée selon le niveau atteint. Évolution = variation entre le
+            premier et le dernier test.
+          </p>
+        </CardHeader>
+        <CardContent className="pt-0">
+          {!bm ? (
+            <div className="py-10 text-center text-sm text-muted-foreground">
+              Sélectionne un test pour afficher les résultats.
+            </div>
+          ) : allDates.length === 0 ? (
+            <div className="py-10 text-center text-sm text-muted-foreground">
+              Aucun résultat enregistré pour ce test.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="min-w-[110px] bg-slate-700 text-white">Poste</TableHead>
+                    <TableHead className="min-w-[180px] bg-slate-700 text-white">Joueur</TableHead>
+                    {allDates.map((d) => (
+                      <TableHead
+                        key={d}
+                        className="text-center min-w-[110px] bg-slate-700 text-white"
+                      >
+                        {fmtDate(d)}
+                      </TableHead>
+                    ))}
+                    <TableHead className="text-center min-w-[110px] bg-slate-700 text-white">
+                      Évolution
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {playersByPosition.map(([pos, list]) => {
+                    const posBm = getBenchmarkForPosition(pos);
+                    // Filter list to players who have any data
+                    const listWithData = (list as any[]).filter((p) => playerSeries.has(p.id));
+                    if (listWithData.length === 0) return null;
+                    return listWithData.map((p: any, idx: number) => {
+                      const series = playerSeries.get(p.id) || [];
+                      const weight = playerWeights.get(p.id);
+                      const first = series[0];
+                      const last = series[series.length - 1];
+                      const evoDelta = first && last ? last.value - first.value : 0;
+                      const evoImproved: 1 | 0 | -1 = first && last
+                        ? posBm?.lower_is_better
+                          ? evoDelta < 0 ? 1 : evoDelta > 0 ? -1 : 0
+                          : evoDelta > 0 ? 1 : evoDelta < 0 ? -1 : 0
+                        : 0;
+
+                      return (
+                        <TableRow key={p.id}>
+                          {idx === 0 ? (
+                            <TableCell
+                              rowSpan={listWithData.length}
+                              className="align-middle font-semibold text-sm bg-slate-100 dark:bg-slate-800 border-r text-center"
+                            >
+                              {pos}
+                              <div className="text-[10px] text-muted-foreground font-normal">
+                                {listWithData.length} joueur
+                                {listWithData.length > 1 ? "s" : ""}
+                              </div>
+                            </TableCell>
+                          ) : null}
+                          <TableCell className="font-medium">
+                            {p.first_name ? `${p.first_name} ${p.name}` : p.name}
+                          </TableCell>
+                          {allDates.map((d) => {
+                            const point = series.find((s) => s.date === d);
+                            if (!point) {
+                              return (
+                                <TableCell
+                                  key={d}
+                                  className="text-center text-muted-foreground"
+                                >
+                                  —
+                                </TableCell>
+                              );
+                            }
+                            const level = posBm
+                              ? computeBenchmarkLevel(point.value, posBm, weight)
+                              : null;
+                            const bgColor = level?.color
+                              ? `${level.color}30`
+                              : undefined;
+                            return (
+                              <TableCell
+                                key={d}
+                                className="text-center"
+                                style={{ backgroundColor: bgColor }}
+                              >
+                                <div className="flex flex-col items-center gap-0.5">
+                                  <span className="font-mono font-bold text-sm">
+                                    {point.value}
+                                    <span className="text-[10px] font-normal text-muted-foreground ml-0.5">
+                                      {unitSuffix}
+                                    </span>
+                                  </span>
+                                  {level && (
+                                    <span
+                                      className="text-[10px] font-semibold"
+                                      style={{ color: level.color }}
+                                    >
+                                      {level.label}
+                                    </span>
+                                  )}
+                                </div>
+                              </TableCell>
+                            );
+                          })}
+                          <TableCell className="text-center">
+                            {series.length < 2 ? (
+                              <span className="text-muted-foreground text-xs">—</span>
+                            ) : (
+                              <span
+                                className={`inline-flex items-center gap-1 font-semibold text-sm ${
+                                  evoImproved === 1
+                                    ? "text-emerald-600"
+                                    : evoImproved === -1
+                                    ? "text-rose-600"
+                                    : "text-muted-foreground"
+                                }`}
+                              >
+                                {evoImproved === 1 ? (
+                                  <TrendingUp className="h-4 w-4" />
+                                ) : evoImproved === -1 ? (
+                                  <TrendingDown className="h-4 w-4" />
+                                ) : (
+                                  <Minus className="h-4 w-4" />
+                                )}
+                                {evoDelta > 0 ? "+" : ""}
+                                {evoDelta.toFixed(2)}
+                              </span>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    });
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
