@@ -7,7 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Target, TrendingUp, Weight } from "lucide-react";
 import { computeBenchmarkLevel } from "@/lib/benchmarks/computeLevel";
-import { matchesBenchmark } from "@/lib/benchmarks/matchTestType";
+import { matchesBenchmark, normalizeTestKey } from "@/lib/benchmarks/matchTestType";
+
 
 interface BenchmarkComparisonProps {
   categoryId: string;
