@@ -416,15 +416,21 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
 
     return activePlayers.map((pid, i) => {
       const player = players?.find(p => p.id === pid);
+      const bodyWeight = playerWeights.get(pid) || null;
       const pRecords = records
         .filter((r: any) => r.player_id === pid)
-        .map((r: any) => ({ date: r.test_date, value: extractValue(r, test) }))
+        .map((r: any) => {
+          const rawLoad = Number(r.result_value ?? r.weight_kg ?? 0) || null;
+          return { date: r.test_date, value: extractValue(r, test), rawLoad };
+        })
         .filter((r: any) => r.value !== null)
         .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
       if (pRecords.length < 1) return null;
-      const first = pRecords[0].value!;
-      const last = pRecords[pRecords.length - 1].value!;
+      const firstRec = pRecords[0];
+      const lastRec = pRecords[pRecords.length - 1];
+      const first = firstRec.value!;
+      const last = lastRec.value!;
       const diff = last - first;
       const pct = first !== 0 ? ((diff / first) * 100) : 0;
 
@@ -433,13 +439,17 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
         name: player?.fullName || "?",
         first: Number(first.toFixed(2)),
         last: Number(last.toFixed(2)),
+        firstLoad: firstRec.rawLoad,
+        lastLoad: lastRec.rawLoad,
+        bodyWeight,
+        isRatio: !!test.isRatio,
         diff: Number(diff.toFixed(2)),
         pct: Number(pct.toFixed(1)),
         count: pRecords.length,
         color: PLAYER_COLORS[i % PLAYER_COLORS.length],
       };
     }).filter(Boolean);
-  }, [viewMode, selectedTest, availableTests, getRecordsForTest, extractValue, selectedPlayerIds, playersWithData, players]);
+  }, [viewMode, selectedTest, availableTests, getRecordsForTest, extractValue, selectedPlayerIds, playersWithData, players, playerWeights]);
 
   const togglePlayer = (playerId: string) => {
     setSelectedPlayerIds(prev =>
