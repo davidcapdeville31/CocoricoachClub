@@ -48,6 +48,16 @@ function getPlayerLevel(
 }
 
 export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparisonProps) {
+  return (
+    <BenchmarkComparisonContent
+      key={`${categoryId}:${sportType || "default"}`}
+      categoryId={categoryId}
+      sportType={sportType}
+    />
+  );
+}
+
+function BenchmarkComparisonContent({ categoryId, sportType }: BenchmarkComparisonProps) {
   // Hook d'état hissé tout en haut pour garantir un ordre de hooks stable
   const [positionFilter, setPositionFilter] = useState<string>("all");
   const positionGroups = useMemo(() => getPositionGroupsForSport(sportType), [sportType]);
