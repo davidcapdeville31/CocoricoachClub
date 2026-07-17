@@ -40,7 +40,22 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
       return data;
     },
   });
-  const playerWeight = playerInfo?.weight_kg ?? null;
+  const bodyCompWeight = playerInfo?.weight_kg ?? null;
+
+  const { data: measurementWeight = null } = useQuery({
+    queryKey: ["athlete-space-measurement-weight", playerId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("player_measurements")
+        .select("weight_kg, measurement_date")
+        .eq("player_id", playerId)
+        .not("weight_kg", "is", null)
+        .order("measurement_date", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data ? { w: Number(data.weight_kg), d: (data as any).measurement_date as string } : null;
+    },
+  });
 
   const customTestsList = useMemo(
     () => Object.values(customTestsMap).map(c => ({ id: c.id, name: c.name })),
