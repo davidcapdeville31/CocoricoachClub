@@ -749,9 +749,26 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
     return (
       <div className="text-xs text-muted-foreground mt-0.5">
         {testNames.map((name, idx) => <div key={idx}>📋 {name}</div>)}
-        {results.map((r, idx) => (
-          <div key={`r-${idx}`}>✅ {labelizeTestType(r.test_type, customTestMap)}: {r.result_value} {r.result_unit || ""}</div>
-        ))}
+        {results.map((r, idx) => {
+          const unit = r.result_unit || "";
+          const isRatio = /pdc/i.test(unit);
+          const value = Number(r.result_value);
+          let display = `${r.result_value} ${unit}`;
+          if (isRatio && Number.isFinite(value)) {
+            // Value stored as charge en kg — afficher kg + ratio calculé
+            if (playerBodyWeight && playerBodyWeight > 0 && value >= 5) {
+              const ratio = value / playerBodyWeight;
+              display = `${value} kg (ratio ${ratio.toFixed(2).replace(".", ",")} = ${value}/${playerBodyWeight} kg)`;
+            } else if (playerBodyWeight && playerBodyWeight > 0 && value < 5) {
+              // Value stored as ratio
+              const kg = value * playerBodyWeight;
+              display = `${kg.toFixed(1).replace(".", ",")} kg (ratio ${value.toFixed(2).replace(".", ",")})`;
+            } else {
+              display = `${r.result_value} (ratio charge/poids)`;
+            }
+          }
+          return <div key={`r-${idx}`}>✅ {labelizeTestType(r.test_type, customTestMap)}: {display}</div>;
+        })}
       </div>
     );
   };
