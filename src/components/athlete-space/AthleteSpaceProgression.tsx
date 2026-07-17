@@ -148,9 +148,10 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
     const key = `${t.test_category}__${t.test_type}`;
     const cat = testCategories.find(c => c.value === t.test_category);
     const testDef = cat?.tests.find(tt => tt.value === t.test_type);
-    const label = testDef?.label || t.test_type?.replace(/_/g, " ") || "Test";
+    const customInfo = t.test_type?.startsWith("custom:") ? customTestsMap[t.test_type] : null;
+    const label = customInfo?.name || testDef?.label || t.test_type?.replace(/_/g, " ") || "Test";
     const categoryLabel = cat?.label || t.test_category?.replace(/_/g, " ") || "";
-    latestGenericByType[key] = { value: t.result_value, unit: t.result_unit || "", label, categoryLabel, categoryValue: t.test_category, date: t.test_date };
+    latestGenericByType[key] = { value: t.result_value, unit: t.result_unit || "", label, categoryLabel, categoryValue: t.test_category, date: t.test_date, testType: t.test_type };
   });
 
   // Determine which categories actually have data
