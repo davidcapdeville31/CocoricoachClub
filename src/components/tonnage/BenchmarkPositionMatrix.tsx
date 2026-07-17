@@ -634,7 +634,12 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                       const posBm = getBenchmarkForPlayer(groupId, p.gender || null);
                       const first = series[0];
                       const last = series[series.length - 1];
-                      const evoDelta = first && last ? last.value - first.value : 0;
+                      // Pour un test en ratio, on préfère l'évolution en kg si disponible
+                      const useKgDelta = isRatio && first?.rawKg != null && last?.rawKg != null;
+                      const evoDelta = first && last
+                        ? useKgDelta ? (last.rawKg! - first.rawKg!) : (last.value - first.value)
+                        : 0;
+                      const evoUnit = useKgDelta ? " kg" : isRatio ? " × PDC" : "";
                       const evoImproved: 1 | 0 | -1 = first && last
                         ? posBm?.lower_is_better
                           ? evoDelta < 0 ? 1 : evoDelta > 0 ? -1 : 0
