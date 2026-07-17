@@ -46,29 +46,49 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
   const tests = parseTestsFromNotes(notes);
   const customMap = useCustomTestLabels(tests.map((t) => t.test_type));
   const [pending, setPending] = useState<any[]>([]);
+  const [staffSaved, setStaffSaved] = useState<any[]>([]);
   const [submittingKey, setSubmittingKey] = useState<string | null>(null);
 
   const reload = async () => {
-    const { data } = await supabase
-      .from("pending_test_results")
-      .select("test_category, test_type, result_value, result_unit, validation_status")
-      .eq("training_session_id", sessionId)
-      .eq("player_id", playerId);
-    setPending(data || []);
+    const [{ data: pendingData }, { data: savedData }] = await Promise.all([
+      supabase
+        .from("pending_test_results")
+        .select("test_category, test_type, result_value, result_unit, validation_status")
+        .eq("training_session_id", sessionId)
+        .eq("player_id", playerId),
+      supabase
+        .from("generic_tests")
+        .select("test_category, test_type, result_value, result_unit")
+        .eq("player_id", playerId)
+        .ilike("notes", `%Session ID: ${sessionId}%`),
+    ]);
+    setPending(pendingData || []);
+    setStaffSaved(savedData || []);
   };
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const { data } = await supabase
-        .from("pending_test_results")
-        .select("test_category, test_type, result_value, result_unit, validation_status")
-        .eq("training_session_id", sessionId)
-        .eq("player_id", playerId);
-      if (!cancelled) setPending(data || []);
+      const [{ data: pendingData }, { data: savedData }] = await Promise.all([
+        supabase
+          .from("pending_test_results")
+          .select("test_category, test_type, result_value, result_unit, validation_status")
+          .eq("training_session_id", sessionId)
+          .eq("player_id", playerId),
+        supabase
+          .from("generic_tests")
+          .select("test_category, test_type, result_value, result_unit")
+          .eq("player_id", playerId)
+          .ilike("notes", `%Session ID: ${sessionId}%`),
+      ]);
+      if (!cancelled) {
+        setPending(pendingData || []);
+        setStaffSaved(savedData || []);
+      }
     })();
     return () => { cancelled = true; };
   }, [sessionId, playerId]);
+
 
   const handleSendOne = async (t: TestRef) => {
     const key = `${t.test_category}::${t.test_type}`;
