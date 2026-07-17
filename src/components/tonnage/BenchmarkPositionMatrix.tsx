@@ -691,12 +691,44 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                                 style={{ backgroundColor: bgColor }}
                               >
                                 <div className="flex flex-col items-center gap-0.5">
-                                  <span className="font-mono font-bold text-sm">
-                                    {point.value}
-                                    <span className="text-[10px] font-normal text-muted-foreground ml-0.5">
-                                      {unitSuffix}
+                                  {isRatio ? (
+                                    <>
+                                      <span className="font-mono font-bold text-sm">
+                                        {point.rawKg != null ? (
+                                          <>
+                                            {point.rawKg}
+                                            <span className="text-[10px] font-normal text-muted-foreground ml-0.5">
+                                              kg
+                                            </span>
+                                          </>
+                                        ) : (
+                                          <>
+                                            {point.value}
+                                            <span className="text-[10px] font-normal text-muted-foreground ml-0.5">
+                                              × PDC
+                                            </span>
+                                          </>
+                                        )}
+                                      </span>
+                                      {point.ratio != null && point.rawKg != null && (
+                                        <span className="text-[10px] font-normal text-muted-foreground">
+                                          (× {point.ratio.toFixed(2).replace(".", ",")} PDC)
+                                        </span>
+                                      )}
+                                      {point.rawKg != null && point.ratio == null && (
+                                        <span className="text-[9px] italic text-amber-600">
+                                          poids athlète manquant
+                                        </span>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <span className="font-mono font-bold text-sm">
+                                      {point.value}
+                                      <span className="text-[10px] font-normal text-muted-foreground ml-0.5">
+                                        {unitSuffix}
+                                      </span>
                                     </span>
-                                  </span>
+                                  )}
                                   {level && (
                                     <span
                                       className="text-[10px] font-semibold"
