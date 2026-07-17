@@ -70,6 +70,7 @@ export function EvolutionTestsMuscuTab({ categoryId }: EvolutionTestsMuscuTabPro
 
           <TabsContent value="evolution" className="space-y-4">
             <PendingTestResultsValidation categoryId={categoryId} />
+            <BenchmarkPositionMatrix categoryId={categoryId} />
             <PerformanceEvolution categoryId={categoryId} sportType={sportType} />
           </TabsContent>
         </Tabs>
