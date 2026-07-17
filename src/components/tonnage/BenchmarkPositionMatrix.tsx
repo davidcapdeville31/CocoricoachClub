@@ -454,16 +454,40 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                               : improved === -1
                               ? "bg-rose-500/15"
                               : "";
-                          const displayValue =
-                            posBm?.use_body_weight_ratio && weight
-                              ? `${point.value} (${(point.value / weight).toFixed(2)}×)`
-                              : point.value.toString();
+                          const isRatio = !!posBm?.use_body_weight_ratio;
+                          const ratio = isRatio && weight ? point.value / weight : null;
                           return (
                             <TableCell key={d} className={`text-center ${bg}`}>
                               <div className="flex flex-col items-center gap-0.5">
-                                <span className="font-mono font-semibold text-sm">
-                                  {displayValue}
-                                </span>
+                                {isRatio ? (
+                                  ratio != null ? (
+                                    <>
+                                      <span className="font-mono font-bold text-base leading-none">
+                                        {ratio.toFixed(2)}
+                                        <span className="text-[10px] font-normal text-muted-foreground ml-0.5">
+                                          × PDC
+                                        </span>
+                                      </span>
+                                      <span className="text-[10px] text-muted-foreground">
+                                        {point.value} kg / {weight} kg
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span className="font-mono font-semibold text-sm">
+                                        {point.value} kg
+                                      </span>
+                                      <span className="text-[10px] text-amber-600">
+                                        Poids manquant
+                                      </span>
+                                    </>
+                                  )
+                                ) : (
+                                  <span className="font-mono font-semibold text-sm">
+                                    {point.value}
+                                    {posBm?.unit ? ` ${posBm.unit}` : ""}
+                                  </span>
+                                )}
                                 {level && (
                                   <Badge
                                     className="text-[10px] px-1.5 py-0 text-white"
@@ -496,6 +520,7 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                               </div>
                             </TableCell>
                           );
+
                         })}
                       </TableRow>
                     );
