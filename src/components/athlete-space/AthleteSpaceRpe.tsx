@@ -234,6 +234,50 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
     enabled: testSessionIds.length > 0,
   });
 
+  // Fetch latest player body weight for ratio calculations
+  const { data: playerBodyWeight = null } = useQuery({
+    queryKey: ["athlete-space-body-weight", playerId],
+    queryFn: async () => {
+      // Try player_measurements first
+      const { data: pm } = await supabase
+        .from("player_measurements")
+        .select("weight_kg, measurement_date")
+        .eq("player_id", playerId)
+        .not("weight_kg", "is", null)
+        .order("measurement_date", { ascending: false })
+        .limit(1);
+      const pmWeight = pm?.[0]?.weight_kg ? { w: Number(pm[0].weight_kg), d: pm[0].measurement_date } : null;
+      // Also check generic_tests for anthropometry/weight entries
+      const { data: gt } = await supabase
+        .from("generic_tests")
+        .select("result_value, result_unit, test_type, test_category, test_date")
+        .eq("player_id", playerId)
+        .order("test_date", { ascending: false })
+        .limit(20);
+      let gtWeight: { w: number; d: string } | null = null;
+      for (const t of gt || []) {
+        const type = (t.test_type || "").toLowerCase();
+        const cat = (t.test_category || "").toLowerCase();
+        const unit = (t.result_unit || "").toLowerCase();
+        const v = Number(t.result_value);
+        if (!Number.isFinite(v) || v < 20 || v > 200) continue;
+        if (unit && unit !== "kg") continue;
+        if (
+          type.includes("weight") || type.includes("poids") ||
+          cat.includes("anthropo") || cat.includes("weight") || cat.includes("poids")
+        ) {
+          gtWeight = { w: v, d: t.test_date };
+          break;
+        }
+      }
+      const candidates = [pmWeight, gtWeight].filter(Boolean) as { w: number; d: string }[];
+      if (candidates.length === 0) return null;
+      candidates.sort((a, b) => new Date(b.d).getTime() - new Date(a.d).getTime());
+      return candidates[0].w;
+    },
+    enabled: !!playerId,
+  });
+
   // Collect all custom test_types used, to resolve labels
   const allCustomTestTypes = useMemo(() => {
     const types: string[] = [];
