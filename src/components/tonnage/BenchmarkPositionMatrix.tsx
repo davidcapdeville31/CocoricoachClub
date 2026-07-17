@@ -241,11 +241,24 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
   });
 
   // ---------- Build combined test options (benchmarks + custom tests) ----------
+  // Dedupe par test_type : on ne montre qu'une entrée par test, quel que soit
+  // le nombre de barèmes personnalisés (poste / sexe) qui lui sont attachés.
   const testOptions: TestOption[] = useMemo(() => {
     const opts: TestOption[] = [];
-    const covered = new Set<string>(); // normalized keys already covered by a benchmark
+    const seenTestTypes = new Set<string>();
+    const covered = new Set<string>();
 
     for (const b of benchmarks) {
+      if (seenTestTypes.has(b.test_type)) continue;
+      seenTestTypes.add(b.test_type);
+
+      // Choisit un "barème de référence" pour l'affichage : préférer le barème
+      // sans filtre (base) plutôt qu'un poste-spécifique.
+      const base =
+        benchmarks.find(
+          (x) => x.test_type === b.test_type && (!x.filter_value || x.filter_type === "all") && !x.gender_filter,
+        ) || b;
+
       let count = 0;
       genericTests.forEach((t: any) => {
         if (matchesBenchmark(t.test_type, b.test_type, customTests as any)) count++;
@@ -256,9 +269,14 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
       strengthTests.forEach((t: any) => {
         if (matchesBenchmark(t.test_name, b.test_type, customTests as any)) count++;
       });
-      opts.push({ key: `bm:${b.id}`, label: b.name, benchmark: b, count });
+      // Label : nom du test personnalisé si test_type = custom:<id>, sinon nom du barème
+      let label = base.name;
+      if (base.test_type.startsWith("custom:")) {
+        const ct = customTests.find((c) => `custom:${c.id}` === base.test_type);
+        if (ct) label = ct.name;
+      }
+      opts.push({ key: `bm:${base.id}`, label, benchmark: base, count });
       covered.add(normalizeTestKey(b.test_type));
-      // also add custom-test matches by name
       for (const ct of customTests) {
         if (normalizeTestKey(ct.name) === normalizeTestKey(b.test_type)) {
           covered.add(`custom:${ct.id}`);
@@ -266,7 +284,7 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
       }
     }
 
-    // Custom tests without a matching benchmark → synthesize a benchmark using ratio defaults
+    // Custom tests sans barème associé → option synthétique
     for (const ct of customTests) {
       const nameKey = normalizeTestKey(ct.name);
       if (covered.has(nameKey) || covered.has(`custom:${ct.id}`)) continue;
@@ -274,7 +292,6 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
       const count = genericTests.filter((t: any) => t.test_type === testType).length;
       if (count === 0) continue;
       const isRatio = isRatioUnit(ct.unit);
-      // Base synthetic on any existing ratio benchmark's levels; fallback to defaults
       const ratioTemplate = benchmarks.find((b) => b.use_body_weight_ratio);
       const levels =
         isRatio
@@ -295,7 +312,6 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
         filter_type: "all",
         filter_value: null,
         gender_filter: null,
-
       };
       opts.push({ key: `ct:${ct.id}`, label: ct.name, benchmark: synth, count });
     }
