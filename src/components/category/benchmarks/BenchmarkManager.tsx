@@ -593,6 +593,25 @@ export function BenchmarkManager({ categoryId, sportType }: BenchmarkManagerProp
               </div>
             )}
 
+            {/* Filter by gender (multi-sport) */}
+            <div className="space-y-1.5">
+              <Label>Filtrer par sexe</Label>
+              <Select value={formGenderFilter} onValueChange={setFormGenderFilter}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les sexes</SelectItem>
+                  <SelectItem value="male">Masculin</SelectItem>
+                  <SelectItem value="female">Féminin</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-muted-foreground">
+                Le barème s'appliquera uniquement aux joueurs de ce sexe.
+              </p>
+            </div>
+
+
             {/* Flexible levels */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
