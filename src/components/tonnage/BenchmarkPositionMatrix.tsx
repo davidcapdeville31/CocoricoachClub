@@ -341,6 +341,90 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
       opts.push({ key: `ct:${ct.id}`, label: ct.name, benchmark: synth, count });
     }
 
+    // Preset tests (poids, cooper, body_fat, 40m, clean_1rm...) réalisés sans barème
+    const presetLabel = (key: string) =>
+      key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+    // Generic tests presets
+    const genericPresets = new Map<string, { count: number; unit: string | null; category: string | null }>();
+    for (const t of genericTests as any[]) {
+      if (!t.test_type || t.test_type.startsWith("custom:")) continue;
+      if (covered.has(normalizeTestKey(t.test_type))) continue;
+      const entry = genericPresets.get(t.test_type) || { count: 0, unit: t.result_unit, category: t.test_category };
+      entry.count++;
+      genericPresets.set(t.test_type, entry);
+    }
+    for (const [type, info] of genericPresets) {
+      const isRatio = isRatioUnit(info.unit);
+      const synth: Benchmark = {
+        id: `synthetic-generic-${type}`,
+        name: presetLabel(type),
+        test_category: info.category || "generic",
+        test_type: type,
+        unit: info.unit || null,
+        lower_is_better: false,
+        levels: isRatio ? DEFAULT_RATIO_LEVELS : [],
+        use_body_weight_ratio: isRatio,
+        body_weight_multiplier: null,
+        filter_type: "all",
+        filter_value: null,
+        gender_filter: null,
+      };
+      opts.push({ key: `gt:${type}`, label: presetLabel(type), benchmark: synth, count: info.count });
+      covered.add(normalizeTestKey(type));
+    }
+
+    // Speed tests presets
+    const speedPresets = new Map<string, number>();
+    for (const t of speedTests as any[]) {
+      if (!t.test_type || covered.has(normalizeTestKey(t.test_type))) continue;
+      speedPresets.set(t.test_type, (speedPresets.get(t.test_type) || 0) + 1);
+    }
+    for (const [type, count] of speedPresets) {
+      const isTime = /time|40m|1600/.test(type);
+      const synth: Benchmark = {
+        id: `synthetic-speed-${type}`,
+        name: presetLabel(type),
+        test_category: "speed",
+        test_type: type,
+        unit: isTime ? "s" : "km/h",
+        lower_is_better: isTime,
+        levels: [],
+        use_body_weight_ratio: false,
+        body_weight_multiplier: null,
+        filter_type: "all",
+        filter_value: null,
+        gender_filter: null,
+      };
+      opts.push({ key: `sp:${type}`, label: presetLabel(type), benchmark: synth, count });
+      covered.add(normalizeTestKey(type));
+    }
+
+    // Strength tests presets
+    const strengthPresets = new Map<string, number>();
+    for (const t of strengthTests as any[]) {
+      if (!t.test_name || covered.has(normalizeTestKey(t.test_name))) continue;
+      strengthPresets.set(t.test_name, (strengthPresets.get(t.test_name) || 0) + 1);
+    }
+    for (const [name, count] of strengthPresets) {
+      const synth: Benchmark = {
+        id: `synthetic-strength-${name}`,
+        name: presetLabel(name),
+        test_category: "strength",
+        test_type: name,
+        unit: "kg",
+        lower_is_better: false,
+        levels: [],
+        use_body_weight_ratio: false,
+        body_weight_multiplier: null,
+        filter_type: "all",
+        filter_value: null,
+        gender_filter: null,
+      };
+      opts.push({ key: `st:${name}`, label: presetLabel(name), benchmark: synth, count });
+      covered.add(normalizeTestKey(name));
+    }
+
     return opts;
   }, [benchmarks, customTests, genericTests, speedTests, strengthTests]);
 
