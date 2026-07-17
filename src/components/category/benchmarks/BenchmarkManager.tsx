@@ -120,6 +120,8 @@ export function BenchmarkManager({ categoryId, sportType }: BenchmarkManagerProp
   const [formBodyWeightMultiplier, setFormBodyWeightMultiplier] = useState("");
   const [formFilterType, setFormFilterType] = useState("all");
   const [formFilterValue, setFormFilterValue] = useState("");
+  const [formGenderFilter, setFormGenderFilter] = useState<string>("all");
+
 
   const testCategories = getTestCategoriesForSport(sportType || "");
   const filterConfig = getFilterConfig(sportType || "");
