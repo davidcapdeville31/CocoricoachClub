@@ -46,7 +46,7 @@ function getPlayerLevel(
 }
 
 export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparisonProps) {
-  const { data: benchmarks = [] } = useQuery({
+  const { data: dbBenchmarks = [] } = useQuery({
     queryKey: ["benchmarks", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -61,6 +61,7 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
       })) as Benchmark[];
     },
   });
+
 
   const { data: players = [] } = useQuery({
     queryKey: ["players", categoryId],
