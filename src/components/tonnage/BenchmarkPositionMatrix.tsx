@@ -146,18 +146,41 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     },
   });
 
+  const referencedCustomIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const t of (genericTests as any[]) || []) {
+      if (typeof t.test_type === "string" && t.test_type.startsWith("custom:")) {
+        ids.add(t.test_type.slice("custom:".length));
+      }
+    }
+    return Array.from(ids);
+  }, [genericTests]);
+
   const { data: customTests = [] } = useQuery({
-    queryKey: ["custom-tests-matrix", categoryId],
+    queryKey: ["custom-tests-matrix", categoryId, referencedCustomIds.join(",")],
     enabled: !!categoryId,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const results = new Map<string, CustomTest & { scoring_scale?: any }>();
+      // 1) tests liés à la catégorie
+      const { data: linked, error } = await supabase
         .from("custom_test_categories")
         .select("custom_tests(id, name, unit, test_category, scoring_scale)")
         .eq("category_id", categoryId);
       if (error) throw error;
-      return (data || [])
-        .map((r: any) => r.custom_tests)
-        .filter(Boolean) as (CustomTest & { scoring_scale?: any })[];
+      for (const r of linked || []) {
+        const ct = (r as any).custom_tests;
+        if (ct) results.set(ct.id, ct);
+      }
+      // 2) tests référencés par des résultats existants même si le lien a été retiré
+      const missing = referencedCustomIds.filter((id) => !results.has(id));
+      if (missing.length) {
+        const { data: extra } = await supabase
+          .from("custom_tests")
+          .select("id, name, unit, test_category, scoring_scale")
+          .in("id", missing);
+        for (const ct of extra || []) results.set(ct.id, ct as any);
+      }
+      return Array.from(results.values());
     },
   });
 
