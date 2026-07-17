@@ -96,16 +96,34 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
           remindersMap[r.id] = r.test_type;
         });
       }
+      // Collect custom test IDs to resolve labels
+      const customIds = new Set<string>();
+      const collectCustom = (t: string | null | undefined) => {
+        if (t && t.startsWith("custom:")) customIds.add(t.slice("custom:".length));
+      };
+      sameDay.forEach((session: any) => {
+        if (session.test_reminder_id) collectCustom(remindersMap[session.test_reminder_id]);
+        parseTestsFromNotes(session.notes).forEach((t: any) => collectCustom(t.test_type));
+      });
+      const customMap: Record<string, string> = {};
+      if (customIds.size > 0) {
+        const { data: customs } = await supabase
+          .from("custom_tests")
+          .select("id, name")
+          .in("id", Array.from(customIds));
+        (customs || []).forEach((c: any) => { customMap[`custom:${c.id}`] = c.name; });
+      }
+      const resolve = (t: string) => t?.startsWith("custom:") ? (customMap[t] || "Test personnalisé") : (getTestLabel(t) || t);
+
       return sameDay.map((session: any) => {
         let testLabel: string | null = null;
         if (session.test_reminder_id && remindersMap[session.test_reminder_id]) {
-          const t = remindersMap[session.test_reminder_id];
-          testLabel = getTestLabel(t) || t;
+          testLabel = resolve(remindersMap[session.test_reminder_id]);
         }
         if (!testLabel) {
           const tests = parseTestsFromNotes(session.notes);
           if (tests.length > 0) {
-            testLabel = tests.map((t: any) => getTestLabel(t.test_type) || t.test_type).join(", ");
+            testLabel = tests.map((t: any) => resolve(t.test_type)).join(", ");
           }
         }
         if (!testLabel) {
