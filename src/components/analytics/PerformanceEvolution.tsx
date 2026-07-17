@@ -17,6 +17,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 import { useCustomTestsMap } from "@/hooks/useCustomTestsMap";
+import { collectLatestPlayerWeights } from "@/lib/benchmarks/playerWeights";
 
 interface PerformanceEvolutionProps {
   categoryId: string;
