@@ -767,7 +767,8 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                                   <Minus className="h-4 w-4" />
                                 )}
                                 {evoDelta > 0 ? "+" : ""}
-                                {evoDelta.toFixed(2)}
+                                {evoDelta.toFixed(useKgDelta ? 1 : 2)}
+                                <span className="text-[10px] font-normal ml-0.5">{evoUnit}</span>
                               </span>
                             )}
                           </TableCell>
