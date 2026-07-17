@@ -8,6 +8,7 @@ import { FlaskConical, Filter } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
+import { collectLatestPlayerWeights } from "@/lib/benchmarks/playerWeights";
 
 interface Props {
   playerId: string;
@@ -58,6 +59,34 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
     },
   });
 
+  const { data: bodyCompositionWeights = [] } = useQuery({
+    queryKey: ["athlete-space-tests-body-composition-weight", playerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("body_composition")
+        .select("player_id, weight_kg, measurement_date")
+        .eq("player_id", playerId)
+        .not("weight_kg", "is", null)
+        .order("measurement_date", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const { data: measurementWeights = [] } = useQuery({
+    queryKey: ["athlete-space-tests-measurement-weight", playerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("player_measurements")
+        .select("player_id, weight_kg, measurement_date")
+        .eq("player_id", playerId)
+        .not("weight_kg", "is", null)
+        .order("measurement_date", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   const customIds = useMemo(() => {
     const ids = new Set<string>();
     genericTests.forEach((t: any) => {
@@ -70,17 +99,58 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
   }, [genericTests]);
 
   const { data: customTests = [] } = useQuery({
-    queryKey: ["athlete-space-custom-tests-labels", customIds.sort().join(",")],
+    queryKey: ["athlete-space-custom-tests-labels", customIds.slice().sort().join(",")],
     enabled: customIds.length > 0,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("custom_tests")
-        .select("id,name")
+        .select("id,name,unit,test_category")
         .in("id", customIds);
       if (error) throw error;
       return data || [];
     },
   });
+
+  const playerWeight = useMemo(() => {
+    return collectLatestPlayerWeights({
+      bodyComps: bodyCompositionWeights as any[],
+      playerMeasurements: measurementWeights as any[],
+      weightTests: genericTests as any[],
+      customTests: customTests as any[],
+    }).get(playerId) || null;
+  }, [bodyCompositionWeights, measurementWeights, genericTests, customTests, playerId]);
+
+  const formatResult = (test: any) => {
+    const custom = typeof test.test_type === "string" && test.test_type.startsWith("custom:")
+      ? customById.get(test.test_type.slice(7))
+      : null;
+    const rawUnit = String(test.result_unit || custom?.unit || "");
+    const isBodyWeightRatio = /pdc|poids\s*de\s*corps|body\s*weight/i.test(rawUnit);
+    const value = Number(test.result_value);
+
+    if (!isBodyWeightRatio || !Number.isFinite(value)) {
+      return <>{test.result_value} {test.result_unit || ""}</>;
+    }
+
+    if (!playerWeight || playerWeight <= 0) {
+      return <>{test.result_value} kg <span className="block text-[10px] font-normal text-muted-foreground">ratio charge/poids</span></>;
+    }
+
+    const loadKg = value >= 5 ? value : value * playerWeight;
+    const ratio = value >= 5 ? value / playerWeight : value;
+    const loadText = Number.isInteger(loadKg) ? `${loadKg}` : loadKg.toFixed(1).replace(".", ",");
+    const weightText = Number.isInteger(playerWeight) ? `${playerWeight}` : playerWeight.toFixed(1).replace(".", ",");
+
+    return (
+      <>
+        {loadText} kg
+        <span className="block text-[10px] font-normal text-muted-foreground">
+          ratio {ratio.toFixed(2).replace(".", ",")} ({loadText}/{weightText} kg)
+        </span>
+      </>
+    );
+  };
+
   const customById = useMemo(() => {
     const m = new Map<string, any>();
     customTests.forEach((c: any) => m.set(c.id, c));
@@ -203,7 +273,7 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
                           <TableCell className="text-xs whitespace-nowrap">{cat?.label || resolveLabel(test.test_category)}</TableCell>
                           <TableCell className="text-xs whitespace-nowrap">{testDef?.label || resolveLabel(test.test_type)}</TableCell>
                           <TableCell className="text-xs font-semibold text-primary text-right whitespace-nowrap">
-                            {test.result_value} {test.result_unit || ""}
+                            {formatResult(test)}
                           </TableCell>
                         </TableRow>
                       );
