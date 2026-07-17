@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FlaskConical, Clock, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
 
 interface TestRef {
   test_category: string;
@@ -43,6 +44,7 @@ function labelize(v: string) {
 
 export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onChange, categoryId, sessionDate }: Props) {
   const tests = parseTestsFromNotes(notes);
+  const customMap = useCustomTestLabels(tests.map((t) => t.test_type));
   const [pending, setPending] = useState<any[]>([]);
   const [submittingKey, setSubmittingKey] = useState<string | null>(null);
 
@@ -121,10 +123,12 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
           const existing = pending.find(
             (p) => p.test_category === t.test_category && p.test_type === t.test_type,
           );
+          const testLabel = labelizeTestType(t.test_type, customMap);
+          const unit = t.result_unit || (t.test_type?.startsWith("custom:") ? customMap[t.test_type]?.unit || "" : "");
           return (
             <div key={idx} className="flex items-center gap-2 flex-wrap">
               <span className="text-xs flex-1 min-w-[140px] font-medium">
-                {labelize(t.test_type)}
+                {testLabel}
                 <span className="text-muted-foreground ml-1">({labelize(t.test_category)})</span>
               </span>
               {existing ? (
@@ -149,7 +153,7 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
                     onChange={(e) => onChange({ ...value, [key]: e.target.value })}
                     className="h-8 w-24 text-sm"
                   />
-                  <span className="text-xs text-muted-foreground w-8">{t.result_unit || ""}</span>
+                  <span className="text-xs text-muted-foreground w-8">{unit}</span>
                   {categoryId && (
                     <Button
                       type="button"
