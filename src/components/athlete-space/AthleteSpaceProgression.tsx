@@ -14,6 +14,7 @@ import { useCustomTestsMap } from "@/hooks/useCustomTestsMap";
 import { useSuggestedBenchmarks } from "@/hooks/useSuggestedBenchmarks";
 import { computeBenchmarkLevel } from "@/lib/benchmarks/computeLevel";
 import { matchesBenchmark } from "@/lib/benchmarks/matchTestType";
+import { collectLatestPlayerWeights } from "@/lib/benchmarks/playerWeights";
 
 interface Props {
   playerId: string;
@@ -108,6 +109,10 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
     () => Object.values(customTestsMap).map(c => ({ id: c.id, name: c.name })),
     [customTestsMap],
   );
+  const customTestsForWeights = useMemo(
+    () => Object.values(customTestsMap).map(c => ({ id: c.id, name: c.name, unit: c.unit, test_category: c.test_category })),
+    [customTestsMap],
+  );
 
 
   const { data: speedTests = [] } = useQuery({
@@ -149,36 +154,22 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
     },
   });
 
-  // Aggregate latest body weight across sources (body_composition, player_measurements, anthropometry generic_tests)
+  // Aggregate latest body weight across all sources (including custom anthropometry/Poids tests)
   const playerWeight = useMemo(() => {
-    const candidates: { w: number; d: string }[] = [];
-    if (bodyCompWeight != null && (playerInfo as any)?.measurement_date) {
-      const w = Number(bodyCompWeight);
-      if (Number.isFinite(w) && w >= 20 && w <= 200) {
-        candidates.push({ w, d: (playerInfo as any).measurement_date });
-      }
-    }
-    if (measurementWeight && Number.isFinite(measurementWeight.w) && measurementWeight.w >= 20 && measurementWeight.w <= 200) {
-      candidates.push({ w: measurementWeight.w, d: measurementWeight.d });
-    }
-    for (const t of (genericTests as any[]) || []) {
-      const type = (t.test_type || "").toLowerCase();
-      const cat = (t.test_category || "").toLowerCase();
-      const unit = (t.result_unit || "").toLowerCase();
-      const v = Number(t.result_value);
-      if (!Number.isFinite(v) || v < 20 || v > 200) continue;
-      if (unit && unit !== "kg") continue;
-      if (
-        type.includes("weight") || type.includes("poids") ||
-        cat.includes("anthropo") || cat.includes("weight") || cat.includes("poids")
-      ) {
-        candidates.push({ w: v, d: t.test_date });
-      }
-    }
-    if (candidates.length === 0) return null;
-    candidates.sort((a, b) => new Date(b.d).getTime() - new Date(a.d).getTime());
-    return candidates[0].w;
-  }, [bodyCompWeight, playerInfo, measurementWeight, genericTests]);
+    const bodyComps = bodyCompWeight != null && (playerInfo as any)?.measurement_date
+      ? [{ player_id: playerId, weight_kg: bodyCompWeight, measurement_date: (playerInfo as any).measurement_date }]
+      : [];
+    const playerMeasurements = measurementWeight
+      ? [{ player_id: playerId, weight_kg: measurementWeight.w, measurement_date: measurementWeight.d }]
+      : [];
+
+    return collectLatestPlayerWeights({
+      bodyComps,
+      playerMeasurements,
+      weightTests: genericTests as any[],
+      customTests: customTestsForWeights,
+    }).get(playerId) || null;
+  }, [bodyCompWeight, playerInfo, measurementWeight, genericTests, customTestsForWeights, playerId]);
 
   const { data: matchStats = [] } = useQuery({
     queryKey: ["athlete-space-match-stats", playerId],
