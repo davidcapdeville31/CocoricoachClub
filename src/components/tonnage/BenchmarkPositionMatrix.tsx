@@ -92,6 +92,24 @@ function isRatioUnit(u: string | null | undefined) {
 export function BenchmarkPositionMatrix({ categoryId }: Props) {
   const [selectedKey, setSelectedKey] = useState<string>("");
 
+  const { data: category } = useQuery({
+    queryKey: ["category-matrix", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("rugby_type")
+        .eq("id", categoryId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+  const sportType = category?.rugby_type || "XV";
+  const positionGroups = useMemo<PositionGroup[]>(
+    () => getPositionGroupsForSport(sportType),
+    [sportType],
+  );
+
   const { data: benchmarks = [] } = useQuery({
     queryKey: ["benchmarks-matrix", categoryId],
     queryFn: async () => {
@@ -107,6 +125,8 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
       })) as Benchmark[];
     },
   });
+
+
 
   const { data: players = [] } = useQuery({
     queryKey: ["players-matrix", categoryId],
