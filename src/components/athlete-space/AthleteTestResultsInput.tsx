@@ -44,6 +44,7 @@ function labelize(v: string) {
 
 export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onChange, categoryId, sessionDate }: Props) {
   const tests = parseTestsFromNotes(notes);
+  const customMap = useCustomTestLabels(tests.map((t) => t.test_type));
   const [pending, setPending] = useState<any[]>([]);
   const [submittingKey, setSubmittingKey] = useState<string | null>(null);
 
