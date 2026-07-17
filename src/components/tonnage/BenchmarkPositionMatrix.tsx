@@ -729,8 +729,11 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                                 </TableCell>
                               );
                             }
-                            const level = posBm
-                              ? computeBenchmarkLevel(point.value, posBm, weight)
+                            // Pour un test ratio, on ne calcule le niveau que si le ratio est connu
+                            const canComputeLevel =
+                              !!posBm && (!isRatio || point.ratio != null);
+                            const level = canComputeLevel
+                              ? computeBenchmarkLevel(point.value, posBm!, weight)
                               : null;
 
                             const bgColor = level?.color
