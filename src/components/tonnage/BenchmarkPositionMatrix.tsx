@@ -491,13 +491,19 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     if (!bm) return null;
       const selectedTestKey = normalizeTestKey(bm.test_type);
       const candidates = benchmarks.filter((b) => normalizeTestKey(b.test_type) === selectedTestKey);
+    const group = positionGroups.find((g) => g.id === groupId) || null;
+    const matchesGroup = (b: Benchmark) => {
+      if (!b.filter_value) return false;
+      if (b.filter_value === groupId) return true;
+      return group ? playerBelongsToGroup(b.filter_value, group) : false;
+    };
     // Priorité : poste + sexe > poste seul > sexe seul > base
     const posAndGender = candidates.find(
-      (b) => b.filter_value === groupId && b.gender_filter === gender,
+      (b) => matchesGroup(b) && b.gender_filter === gender,
     );
     if (posAndGender) return posAndGender;
     const posOnly = candidates.find(
-      (b) => b.filter_value === groupId && !b.gender_filter,
+      (b) => matchesGroup(b) && !b.gender_filter,
     );
     if (posOnly) return posOnly;
     const genderOnly = candidates.find(
@@ -510,9 +516,13 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
   // Compat pour la table barème (affichage) : par groupe uniquement
   const getBenchmarkForGroup = (groupId: string): Benchmark | null => {
     if (!bm) return null;
+    const group = positionGroups.find((g) => g.id === groupId) || null;
     return (
         benchmarks.find(
-          (b) => normalizeTestKey(b.test_type) === normalizeTestKey(bm.test_type) && b.filter_value === groupId,
+          (b) =>
+            normalizeTestKey(b.test_type) === normalizeTestKey(bm.test_type) &&
+            !!b.filter_value &&
+            (b.filter_value === groupId || (group ? playerBelongsToGroup(b.filter_value, group) : false)),
         ) || bm
     );
   };
