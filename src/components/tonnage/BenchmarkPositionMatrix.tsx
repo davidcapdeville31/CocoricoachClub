@@ -317,15 +317,19 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                 <SelectValue placeholder="Choisir un test / barème" />
               </SelectTrigger>
               <SelectContent>
-                {benchmarks.map((b) => (
+                {benchmarksWithData.map(({ b, count }) => (
                   <SelectItem key={b.id} value={b.id}>
                     {b.name}
                     {b.filter_type === "position" && b.filter_value
                       ? ` · ${b.filter_value}`
                       : ""}
+                    <span className="ml-2 text-[10px] text-muted-foreground">
+                      {count > 0 ? `${count} résultat${count > 1 ? "s" : ""}` : "aucun résultat"}
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>
+
             </Select>
           </div>
         </div>
