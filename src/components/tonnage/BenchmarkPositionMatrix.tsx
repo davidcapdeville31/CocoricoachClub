@@ -171,13 +171,35 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     },
   });
 
+  const { data: playerMeasurements = [] } = useQuery({
+    queryKey: ["player-measurements-matrix", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("player_measurements")
+        .select("player_id, weight_kg, measurement_date")
+        .eq("category_id", categoryId)
+        .order("measurement_date", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Poids le plus récent, tous sources confondues (body_composition + player_measurements)
   const playerWeights = useMemo(() => {
+    const latest = new Map<string, { w: number; date: string }>();
+    const consider = (pid: string, w: any, date: string | null) => {
+      const n = Number(w);
+      if (!n || !isFinite(n) || n <= 0) return;
+      const cur = latest.get(pid);
+      const d = date || "";
+      if (!cur || d.localeCompare(cur.date) > 0) latest.set(pid, { w: n, date: d });
+    };
+    for (const bc of bodyComps as any[]) consider(bc.player_id, bc.weight_kg, bc.measurement_date);
+    for (const pm of playerMeasurements as any[]) consider(pm.player_id, pm.weight_kg, pm.measurement_date);
     const m = new Map<string, number>();
-    for (const bc of bodyComps as any[]) {
-      if (bc.weight_kg && !m.has(bc.player_id)) m.set(bc.player_id, Number(bc.weight_kg));
-    }
+    for (const [pid, v] of latest) m.set(pid, v.w);
     return m;
-  }, [bodyComps]);
+  }, [bodyComps, playerMeasurements]);
 
   const { data: genericTests = [] } = useQuery({
     queryKey: ["generic-tests-matrix", categoryId],
@@ -219,11 +241,24 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
   });
 
   // ---------- Build combined test options (benchmarks + custom tests) ----------
+  // Dedupe par test_type : on ne montre qu'une entrée par test, quel que soit
+  // le nombre de barèmes personnalisés (poste / sexe) qui lui sont attachés.
   const testOptions: TestOption[] = useMemo(() => {
     const opts: TestOption[] = [];
-    const covered = new Set<string>(); // normalized keys already covered by a benchmark
+    const seenTestTypes = new Set<string>();
+    const covered = new Set<string>();
 
     for (const b of benchmarks) {
+      if (seenTestTypes.has(b.test_type)) continue;
+      seenTestTypes.add(b.test_type);
+
+      // Choisit un "barème de référence" pour l'affichage : préférer le barème
+      // sans filtre (base) plutôt qu'un poste-spécifique.
+      const base =
+        benchmarks.find(
+          (x) => x.test_type === b.test_type && (!x.filter_value || x.filter_type === "all") && !x.gender_filter,
+        ) || b;
+
       let count = 0;
       genericTests.forEach((t: any) => {
         if (matchesBenchmark(t.test_type, b.test_type, customTests as any)) count++;
@@ -234,9 +269,14 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
       strengthTests.forEach((t: any) => {
         if (matchesBenchmark(t.test_name, b.test_type, customTests as any)) count++;
       });
-      opts.push({ key: `bm:${b.id}`, label: b.name, benchmark: b, count });
+      // Label : nom du test personnalisé si test_type = custom:<id>, sinon nom du barème
+      let label = base.name;
+      if (base.test_type.startsWith("custom:")) {
+        const ct = customTests.find((c) => `custom:${c.id}` === base.test_type);
+        if (ct) label = ct.name;
+      }
+      opts.push({ key: `bm:${base.id}`, label, benchmark: base, count });
       covered.add(normalizeTestKey(b.test_type));
-      // also add custom-test matches by name
       for (const ct of customTests) {
         if (normalizeTestKey(ct.name) === normalizeTestKey(b.test_type)) {
           covered.add(`custom:${ct.id}`);
@@ -244,7 +284,7 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
       }
     }
 
-    // Custom tests without a matching benchmark → synthesize a benchmark using ratio defaults
+    // Custom tests sans barème associé → option synthétique
     for (const ct of customTests) {
       const nameKey = normalizeTestKey(ct.name);
       if (covered.has(nameKey) || covered.has(`custom:${ct.id}`)) continue;
@@ -252,7 +292,6 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
       const count = genericTests.filter((t: any) => t.test_type === testType).length;
       if (count === 0) continue;
       const isRatio = isRatioUnit(ct.unit);
-      // Base synthetic on any existing ratio benchmark's levels; fallback to defaults
       const ratioTemplate = benchmarks.find((b) => b.use_body_weight_ratio);
       const levels =
         isRatio
@@ -273,7 +312,6 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
         filter_type: "all",
         filter_value: null,
         gender_filter: null,
-
       };
       opts.push({ key: `ct:${ct.id}`, label: ct.name, benchmark: synth, count });
     }
@@ -310,10 +348,14 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     const buildPoint = (pid: string, date: string, raw: number): ResultPoint => {
       const w = playerWeights.get(pid);
       if (bm.use_body_weight_ratio) {
-        // Si raw > 5 → c'est du kg, sinon on considère que c'est déjà un ratio
-        if (raw > 5 && w && w > 0) {
-          const ratio = Number((raw / w).toFixed(2));
-          return { date, value: ratio, rawKg: raw, ratio };
+        // Heuristique : raw > 5 → c'est très probablement une charge en kg
+        if (raw > 5) {
+          if (w && w > 0) {
+            const ratio = Number((raw / w).toFixed(2));
+            return { date, value: ratio, rawKg: raw, ratio };
+          }
+          // Pas de poids : on garde la charge en kg, ratio inconnu
+          return { date, value: raw, rawKg: raw };
         }
         // raw est déjà un ratio
         const rawKg = w && w > 0 ? Number((raw * w).toFixed(1)) : undefined;
@@ -347,13 +389,18 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
           const raw = Number(t.weight_kg);
           const w = playerWeights.get(t.player_id);
           if (bm.use_body_weight_ratio) {
-            const ratio = w && w > 0 ? Number((raw / w).toFixed(2)) : raw;
-            push(t.player_id, t.test_date, {
-              date: t.test_date,
-              value: ratio,
-              rawKg: raw,
-              ratio: w && w > 0 ? ratio : undefined,
-            });
+            if (w && w > 0) {
+              const ratio = Number((raw / w).toFixed(2));
+              push(t.player_id, t.test_date, {
+                date: t.test_date,
+                value: ratio,
+                rawKg: raw,
+                ratio,
+              });
+            } else {
+              // Sans poids : afficher la charge en kg, ratio inconnu
+              push(t.player_id, t.test_date, { date: t.test_date, value: raw, rawKg: raw });
+            }
           } else {
             push(t.player_id, t.test_date, { date: t.test_date, value: raw, rawKg: raw });
           }
@@ -682,8 +729,17 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                                 </TableCell>
                               );
                             }
-                            const level = posBm
-                              ? computeBenchmarkLevel(point.value, posBm, weight)
+                            // Pour un test ratio, on ne calcule le niveau que si le ratio est connu.
+                            // point.value contient déjà le ratio → on ne passe PAS le poids
+                            // (sinon computeBenchmarkLevel multiplierait à nouveau les seuils).
+                            const canComputeLevel =
+                              !!posBm && (!isRatio || point.ratio != null);
+                            const level = canComputeLevel
+                              ? computeBenchmarkLevel(
+                                  point.value,
+                                  posBm!,
+                                  isRatio ? null : weight,
+                                )
                               : null;
 
                             const bgColor = level?.color
