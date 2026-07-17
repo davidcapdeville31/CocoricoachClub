@@ -152,6 +152,29 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
   });
   const genericTests = useMemo(() => filterRows(genericTestsRaw as any), [genericTestsRaw, filterRows]);
 
+  // Body composition (poids) — nécessaire pour convertir les tests "× PDC"
+  // (ratio = charge kg ÷ poids kg) et afficher le vrai ratio dans les graphs.
+  const { data: bodyComps } = useQuery({
+    queryKey: ["body-comp-evolution", categoryId, scopeKey],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("body_composition")
+        .select("player_id, weight_kg, measurement_date")
+        .eq("category_id", categoryId)
+        .order("measurement_date", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+  const playerWeights = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const bc of (bodyComps as any[]) || []) {
+      if (bc.weight_kg && !m.has(bc.player_id)) m.set(bc.player_id, Number(bc.weight_kg));
+    }
+    return m;
+  }, [bodyComps]);
+
+
   // Discover available tests
   const availableTests = useMemo(() => {
     const tests: DiscoveredTest[] = [];
@@ -207,8 +230,19 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
     }
   }, [availableTests, selectedTest]);
 
-  // Extract value from a test record
+  // Extract value from a test record — convertit automatiquement en ratio
+  // (charge kg ÷ poids kg) quand le résultat est stocké avec l'unité "× PDC".
+  const isRatioUnit = (u: string | null | undefined) =>
+    !!u && ["× pdc", "x pdc", "×pdc", "xpdc"].includes(u.toLowerCase());
   const extractValue = useCallback((record: any, test: DiscoveredTest): number | null => {
+    const applyRatio = (raw: number): number | null => {
+      if (!isRatioUnit(record?.result_unit) && !isRatioUnit(test.unit)) return raw;
+      const w = playerWeights.get(record.player_id);
+      if (!w || w <= 0) return null; // pas de poids → on ne peut pas afficher le ratio
+      // Si la valeur ressemble à un ratio déjà normalisé (<= ~5), on la garde telle quelle
+      if (raw > 0 && raw <= 5) return Number(raw.toFixed(2));
+      return Number((raw / w).toFixed(2));
+    };
     switch (test.source) {
       case "speed":
         if (test.key.includes("1600")) {
@@ -225,9 +259,10 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
         return r > 0 ? r : null;
       case "generic":
         const v = Number(record.result_value || 0);
-        return v > 0 ? v : null;
+        return v > 0 ? applyRatio(v) : null;
     }
-  }, []);
+  }, [playerWeights]);
+
 
   // Get all records for the selected test
   const getRecordsForTest = useCallback((test: DiscoveredTest) => {

@@ -122,11 +122,11 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     return m;
   }, [bodyComps]);
 
-  // Default select first benchmark
   const bm = useMemo(
-    () => benchmarks.find((b) => b.id === benchmarkId) || benchmarks[0] || null,
+    () => benchmarks.find((b) => b.id === benchmarkId) || null,
     [benchmarks, benchmarkId],
   );
+
 
   const { data: genericTests = [] } = useQuery({
     queryKey: ["generic-tests-matrix", categoryId],
@@ -207,12 +207,41 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     return map;
   }, [bm, genericTests, speedTests, strengthTests, customTests]);
 
+  // Auto-sélectionne un barème qui a des résultats
+  const benchmarksWithData = useMemo(() => {
+    const list: { b: Benchmark; count: number }[] = [];
+    for (const b of benchmarks) {
+      let count = 0;
+      genericTests.forEach((t: any) => {
+        if (matchesBenchmark(t.test_type, b.test_type, customTests as any)) count++;
+      });
+      speedTests.forEach((t: any) => {
+        if (matchesBenchmark(t.test_type, b.test_type, customTests as any)) count++;
+      });
+      strengthTests.forEach((t: any) => {
+        if (matchesBenchmark(t.test_name, b.test_type, customTests as any)) count++;
+      });
+      list.push({ b, count });
+    }
+    return list;
+  }, [benchmarks, genericTests, speedTests, strengthTests, customTests]);
+
+
+  // Sélection automatique du 1er barème qui a des données
+  useMemo(() => {
+    if (!benchmarkId && benchmarksWithData.length > 0) {
+      const first = benchmarksWithData.find((x) => x.count > 0) || benchmarksWithData[0];
+      if (first) setBenchmarkId(first.b.id);
+    }
+  }, [benchmarkId, benchmarksWithData]);
+
   // All distinct dates across players (ascending)
   const allDates = useMemo(() => {
     const s = new Set<string>();
     for (const arr of playerSeries.values()) arr.forEach((p) => s.add(p.date));
     return Array.from(s).sort();
   }, [playerSeries]);
+
 
   // Group players by position
   const playersByPosition = useMemo(() => {
@@ -288,21 +317,25 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                 <SelectValue placeholder="Choisir un test / barème" />
               </SelectTrigger>
               <SelectContent>
-                {benchmarks.map((b) => (
+                {benchmarksWithData.map(({ b, count }) => (
                   <SelectItem key={b.id} value={b.id}>
                     {b.name}
                     {b.filter_type === "position" && b.filter_value
                       ? ` · ${b.filter_value}`
                       : ""}
+                    <span className="ml-2 text-[10px] text-muted-foreground">
+                      {count > 0 ? `${count} résultat${count > 1 ? "s" : ""}` : "aucun résultat"}
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>
+
             </Select>
           </div>
         </div>
 
         {bm && bm.levels?.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-3">
+          <div className="flex flex-wrap gap-2 mt-3 items-center">
             {bm.levels.map((lvl, i) => (
               <Badge
                 key={i}
@@ -313,14 +346,14 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                 {lvl.threshold != null && (
                   <span className="ml-1 opacity-90">
                     {bm.lower_is_better ? "≤" : "≥"} {lvl.threshold}
-                    {bm.use_body_weight_ratio ? "× PDC" : bm.unit ? ` ${bm.unit}` : ""}
+                    {bm.use_body_weight_ratio ? " × PDC" : bm.unit ? ` ${bm.unit}` : ""}
                   </span>
                 )}
               </Badge>
             ))}
             {bm.use_body_weight_ratio && (
-              <Badge variant="outline" className="text-[11px]">
-                <Weight className="h-3 w-3 mr-1" /> Ratio × poids de corps
+              <Badge variant="outline" className="text-[11px]" title="Ratio = charge (kg) ÷ poids de corps (kg)">
+                <Weight className="h-3 w-3 mr-1" /> Ratio = charge ÷ poids de corps
               </Badge>
             )}
           </div>
@@ -328,7 +361,12 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
       </CardHeader>
 
       <CardContent>
-        {allDates.length === 0 ? (
+        {!bm ? (
+          <div className="py-10 text-center text-sm text-muted-foreground">
+            Sélectionne un test pour afficher les résultats.
+          </div>
+        ) : allDates.length === 0 ? (
+
           <div className="py-10 text-center text-sm text-muted-foreground">
             Aucun résultat enregistré pour ce test.
           </div>
@@ -420,16 +458,40 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                               : improved === -1
                               ? "bg-rose-500/15"
                               : "";
-                          const displayValue =
-                            posBm?.use_body_weight_ratio && weight
-                              ? `${point.value} (${(point.value / weight).toFixed(2)}×)`
-                              : point.value.toString();
+                          const isRatio = !!posBm?.use_body_weight_ratio;
+                          const ratio = isRatio && weight ? point.value / weight : null;
                           return (
                             <TableCell key={d} className={`text-center ${bg}`}>
                               <div className="flex flex-col items-center gap-0.5">
-                                <span className="font-mono font-semibold text-sm">
-                                  {displayValue}
-                                </span>
+                                {isRatio ? (
+                                  ratio != null ? (
+                                    <>
+                                      <span className="font-mono font-bold text-base leading-none">
+                                        {ratio.toFixed(2)}
+                                        <span className="text-[10px] font-normal text-muted-foreground ml-0.5">
+                                          × PDC
+                                        </span>
+                                      </span>
+                                      <span className="text-[10px] text-muted-foreground">
+                                        {point.value} kg / {weight} kg
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span className="font-mono font-semibold text-sm">
+                                        {point.value} kg
+                                      </span>
+                                      <span className="text-[10px] text-amber-600">
+                                        Poids manquant
+                                      </span>
+                                    </>
+                                  )
+                                ) : (
+                                  <span className="font-mono font-semibold text-sm">
+                                    {point.value}
+                                    {posBm?.unit ? ` ${posBm.unit}` : ""}
+                                  </span>
+                                )}
                                 {level && (
                                   <Badge
                                     className="text-[10px] px-1.5 py-0 text-white"
@@ -462,6 +524,7 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
                               </div>
                             </TableCell>
                           );
+
                         })}
                       </TableRow>
                     );
