@@ -752,7 +752,13 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
       </Card>
 
       {/* BARÈME PAR POSTE */}
-      {bm && bm.levels?.length > 0 && (
+      {bm && bm.levels?.length > 0 && (() => {
+        const sameTest = benchmarks.filter(
+          (b) => normalizeTestKey(b.test_type) === normalizeTestKey(bm.test_type),
+        );
+        const hasCustomBenchmark = sameTest.some((b) => !!b.filter_value || !!b.gender_filter);
+        return hasCustomBenchmark;
+      })() && (
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base">
