@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { BenchmarkManager } from "./BenchmarkManager";
-import { BenchmarkComparison } from "./BenchmarkComparison";
 import { IdentityComparisonPanel } from "@/components/analytics/IdentityComparisonPanel";
 
 interface BenchmarkTabProps {
@@ -40,7 +39,6 @@ export function BenchmarkTab({ categoryId, sportType }: BenchmarkTabProps) {
   return (
     <div className="space-y-6">
       <BenchmarkManager categoryId={categoryId} sportType={sportType} />
-      <BenchmarkComparison categoryId={categoryId} sportType={sportType} />
       {vmaByPlayer.size > 0 && (
         <IdentityComparisonPanel
           categoryId={categoryId}
