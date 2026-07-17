@@ -692,12 +692,19 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
               <div className="h-1" style={{ backgroundColor: stat.color }} />
               <CardContent className="pt-4 pb-3 space-y-2">
                 <p className="font-semibold text-sm truncate">{stat.name}</p>
-                <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center justify-between text-sm gap-2">
                   <span className="text-muted-foreground">Premier → Dernier</span>
-                  <span className="font-mono">
-                    {formatValue(stat.first, currentTest?.unit || "")} → {formatValue(stat.last, currentTest?.unit || "")}
+                  <span className="font-mono text-right">
+                    {stat.isRatio
+                      ? `${stat.first} → ${stat.last}`
+                      : `${formatValue(stat.first, currentTest?.unit || "")} → ${formatValue(stat.last, currentTest?.unit || "")}`}
                   </span>
                 </div>
+                {stat.isRatio && stat.bodyWeight && (stat.firstLoad || stat.lastLoad) && (
+                  <div className="flex items-center justify-end text-[11px] text-muted-foreground font-mono">
+                    {stat.firstLoad ?? "?"}/{stat.bodyWeight} kg → {stat.lastLoad ?? "?"}/{stat.bodyWeight} kg
+                  </div>
+                )}
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground text-sm">{stat.count} mesures</span>
                   <Badge variant={stat.diff === 0 ? "secondary" : stat.diff > 0 ? "default" : "destructive"} className="gap-1">
