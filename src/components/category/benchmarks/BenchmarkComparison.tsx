@@ -140,7 +140,7 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
       if (error) throw error;
       return data;
     },
-    enabled: dbBenchmarks.length > 0 || true,
+    enabled: true,
   });
 
   const { data: speedTests = [] } = useQuery({
@@ -154,7 +154,7 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
       if (error) throw error;
       return data;
     },
-    enabled: dbBenchmarks.length > 0 || true,
+    enabled: true,
   });
 
   const { data: strengthTests = [] } = useQuery({
@@ -168,7 +168,7 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
       if (error) throw error;
       return data;
     },
-    enabled: dbBenchmarks.length > 0 || true,
+    enabled: true,
   });
 
   // Custom tests de la catégorie pour matching benchmark <-> résultat
