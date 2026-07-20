@@ -19,6 +19,7 @@ interface Props {
 export function AthleteSpaceTests({ playerId, sportType }: Props) {
   const testCategories = useMemo(() => getTestCategoriesForSport(sportType || ""), [sportType]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedTest, setSelectedTest] = useState<string>("all");
 
   const { data: genericTests = [], isLoading } = useQuery({
     queryKey: ["athlete-space-all-tests", playerId],
