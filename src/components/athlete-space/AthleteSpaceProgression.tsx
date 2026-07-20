@@ -530,7 +530,71 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
         );
       })()}
 
-      {/* Comparatif test précédent → dernier test (format mobile-friendly) */}
+      {/* Barème(s) applicables — affichés uniquement si un test possède un barème avec paliers */}
+      {(() => {
+        const cards: JSX.Element[] = [];
+        Object.entries(filteredLatestGeneric).forEach(([key, test]) => {
+          const bench = benchmarkSuggestions.find(b =>
+            b.test_category === test.categoryValue &&
+            matchesBenchmark(test.testType, b.test_type, customTestsList)
+          );
+          if (!bench || !bench.levels || bench.levels.length === 0) return;
+          const isRatio = !!bench.use_body_weight_ratio || isBodyWeightRatioTest(test.unit, test.testType, customTestsMap);
+          const displayValue = isRatio ? (buildRatioDisplay(test.value, playerWeight).loadKg ?? test.value) : test.value;
+          const level = computeBenchmarkLevel(displayValue, bench, playerWeight);
+          const fmtThreshold = (t: number | null) => {
+            if (t == null) return "—";
+            if (isRatio && playerWeight && playerWeight > 0) {
+              return `${formatFrNumber(t / playerWeight, 2)} (${formatFrNumber(t, 1)} kg)`;
+            }
+            return formatFrNumber(t, 2);
+          };
+          cards.push(
+            <Card key={`bench-${key}`} className="bg-gradient-card shadow-md">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Target className="h-4 w-4 text-primary" />
+                  Barème — {test.label}
+                  {isRatio && (
+                    <span className="text-[11px] font-normal text-muted-foreground">
+                      (ratio charge ÷ poids de corps)
+                    </span>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="flex flex-wrap gap-2">
+                  {level.adjustedLevels.map((l, i) => {
+                    const isCurrent = l.label === level.label;
+                    const nextT = level.adjustedLevels[i + 1]?.threshold ?? null;
+                    const range = bench.lower_is_better
+                      ? (i === 0 ? `≤ ${fmtThreshold(l.threshold)}` : `${fmtThreshold(level.adjustedLevels[i - 1]?.threshold ?? null)} – ${fmtThreshold(l.threshold)}`)
+                      : (nextT == null ? `≥ ${fmtThreshold(l.threshold)}` : `${fmtThreshold(l.threshold)} – ${fmtThreshold(nextT)}`);
+                    return (
+                      <div
+                        key={i}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium ${isCurrent ? "ring-2 ring-primary" : ""}`}
+                        style={{ backgroundColor: `${l.color}20`, color: l.color }}
+                      >
+                        <div className="font-semibold">{l.label}</div>
+                        <div className="text-[10px] font-mono opacity-80">{range}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-2">
+                  Poste : <span className="font-medium">{positionLabel}</span> · Niveau actuel :{" "}
+                  <span className="font-semibold" style={{ color: level.color }}>{level.label}</span>
+                </p>
+              </CardContent>
+            </Card>
+          );
+        });
+        if (cards.length === 0) return null;
+        return <div className="space-y-3">{cards}</div>;
+      })()}
+
+      {/* Table Poste / Test / Date / Évolution */}
       {(() => {
         type Row = {
           key: string;
@@ -538,27 +602,26 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
           label: string;
           unit: string;
           testType?: string | null;
-          prevDate: string;
-          prevValue: number;
+          prevDate?: string;
+          prevValue?: number;
           lastDate: string;
           lastValue: number;
           isTimeTest: boolean;
         };
         const rows: Row[] = [];
 
-        // Speed (40m)
         if (showSpeed) {
           const series = speedTests.filter(t => t.time_40m_seconds);
-          if (series.length >= 2) {
-            const prev = series[series.length - 2];
+          if (series.length >= 1) {
             const last = series[series.length - 1];
+            const prev = series.length >= 2 ? series[series.length - 2] : undefined;
             rows.push({
               key: "speed_40m",
               categoryLabel: "Vitesse",
               label: "40m",
               unit: "s",
-              prevDate: prev.test_date,
-              prevValue: prev.time_40m_seconds!,
+              prevDate: prev?.test_date,
+              prevValue: prev?.time_40m_seconds ?? undefined,
               lastDate: last.test_date,
               lastValue: last.time_40m_seconds!,
               isTimeTest: true,
@@ -566,7 +629,6 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
           }
         }
 
-        // Strength
         if (showStrength) {
           const byEx: Record<string, typeof strengthTests> = {};
           strengthTests.forEach(t => {
@@ -574,33 +636,30 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
             byEx[t.test_name].push(t);
           });
           Object.entries(byEx).forEach(([exercise, list]) => {
-            if (list.length >= 2) {
-              const prev = list[list.length - 2];
-              const last = list[list.length - 1];
-              rows.push({
-                key: `str_${exercise}`,
-                categoryLabel: "Musculation",
-                label: exercise,
-                unit: "kg",
-                prevDate: prev.test_date,
-                prevValue: prev.weight_kg,
-                lastDate: last.test_date,
-                lastValue: last.weight_kg,
-                isTimeTest: false,
-              });
-            }
+            if (list.length < 1) return;
+            const last = list[list.length - 1];
+            const prev = list.length >= 2 ? list[list.length - 2] : undefined;
+            rows.push({
+              key: `str_${exercise}`,
+              categoryLabel: "Musculation",
+              label: exercise,
+              unit: "kg",
+              prevDate: prev?.test_date,
+              prevValue: prev?.weight_kg,
+              lastDate: last.test_date,
+              lastValue: last.weight_kg,
+              isTimeTest: false,
+            });
           });
         }
 
-        // Generic tests
         Object.entries(filteredGenericByType).forEach(([key, data]) => {
-          if (data.length < 2) return;
           const raw = genericTests
             .filter(t => `${t.test_category}__${t.test_type}` === key)
             .sort((a, b) => new Date(a.test_date).getTime() - new Date(b.test_date).getTime());
-          if (raw.length < 2) return;
-          const prev = raw[raw.length - 2];
+          if (raw.length < 1) return;
           const last = raw[raw.length - 1];
+          const prev = raw.length >= 2 ? raw[raw.length - 2] : undefined;
           const isTimeTest = (last.result_unit || "") === "s" || (last.result_unit || "") === "min";
           rows.push({
             key,
@@ -608,8 +667,8 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
             label: data[0].label,
             unit: last.result_unit || "",
             testType: last.test_type,
-            prevDate: prev.test_date,
-            prevValue: prev.result_value,
+            prevDate: prev?.test_date,
+            prevValue: prev?.result_value,
             lastDate: last.test_date,
             lastValue: last.result_value,
             isTimeTest,
@@ -623,70 +682,82 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-accent" />
-                Comparatif tests
+                Progression par test
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
-              {rows.map(row => {
-                const rowIsRatio = isBodyWeightRatioTest(row.unit, row.testType, customTestsMap);
-                const comparableLast = rowIsRatio ? getRatioComparableValue(row.lastValue, playerWeight) ?? row.lastValue : row.lastValue;
-                const comparablePrev = rowIsRatio ? getRatioComparableValue(row.prevValue, playerWeight) ?? row.prevValue : row.prevValue;
-                const diff = comparableLast - comparablePrev;
-                const rawPct = comparablePrev !== 0 ? (diff / Math.abs(comparablePrev)) * 100 : 0;
-                const positive = row.isTimeTest ? rawPct < 0 : rawPct > 0;
-                const pct = Math.abs(rawPct);
-                return (
-                  <div key={row.key} className="rounded-xl bg-muted/40 p-2 sm:p-3">
-                    <div className="flex items-center justify-between mb-1.5 sm:mb-2 gap-2">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[9px] sm:text-[10px] text-muted-foreground/70 uppercase tracking-wide truncate">{row.categoryLabel}</p>
-                        <p className="text-[12px] sm:text-sm font-semibold truncate">{row.label}</p>
-                      </div>
-                      <Badge
-                        variant="secondary"
-                        className={`text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0 sm:py-0.5 shrink-0 ${
-                          positive ? "bg-success/20 text-success" : "bg-destructive/20 text-destructive"
-                        }`}
-                      >
-                        {positive ? "▲" : "▼"} {pct.toFixed(1)}%
-                      </Badge>
-                    </div>
-                    <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                      {[
-                        { date: row.prevDate, value: row.prevValue, ring: false },
-                        { date: row.lastDate, value: row.lastValue, ring: true },
-                      ].map((cell, i) => {
-                        const isRatio = rowIsRatio;
-                        const v = Number(cell.value);
-                        let mainText: string;
-                        let subText: string | null = null;
-                        if (isRatio && Number.isFinite(v)) {
-                          const ratioDisplay = buildRatioDisplay(v, playerWeight);
-                          mainText = ratioDisplay.main;
-                          subText = ratioDisplay.sub ? `(${ratioDisplay.sub})` : null;
-                        } else {
-                          mainText = `${cell.value} ${row.unit}`;
-                        }
-                        return (
-                          <div key={i} className={`rounded-lg bg-background/60 p-1.5 sm:p-2 text-center ${cell.ring ? "ring-1 ring-primary/30" : ""}`}>
-                            <p className="text-[9px] sm:text-[10px] text-muted-foreground">
-                              {format(new Date(cell.date), "dd MMM yy", { locale: fr })}
-                            </p>
-                            <p className="text-sm sm:text-base font-bold leading-tight">{mainText}</p>
-                            {subText && (
-                              <p className="text-[9px] sm:text-[10px] text-primary font-medium mt-0.5">{subText}</p>
-                            )}
+            <CardContent className="p-0 sm:p-4">
+              <div className="overflow-x-auto -mx-1 sm:mx-0 px-1 sm:px-0 [&_th]:px-2 [&_th]:py-2 [&_td]:px-2 [&_td]:py-2 [&_th]:text-[11px] [&_th]:whitespace-nowrap">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Test</TableHead>
+                      <TableHead className="whitespace-nowrap">Poste</TableHead>
+                      <TableHead className="whitespace-nowrap">Date</TableHead>
+                      <TableHead className="text-right whitespace-nowrap">Évolution</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {rows.map(row => {
+                      const rowIsRatio = isBodyWeightRatioTest(row.unit, row.testType, customTestsMap);
+                      const lastVal = Number(row.lastValue);
+                      const lastDisplay = rowIsRatio && Number.isFinite(lastVal)
+                        ? buildRatioDisplay(lastVal, playerWeight)
+                        : null;
+                      let evoNode: JSX.Element = <span className="text-muted-foreground text-xs">—</span>;
+                      if (row.prevValue != null && row.prevDate) {
+                        const comparableLast = rowIsRatio
+                          ? getRatioComparableValue(row.lastValue, playerWeight) ?? row.lastValue
+                          : row.lastValue;
+                        const comparablePrev = rowIsRatio
+                          ? getRatioComparableValue(row.prevValue, playerWeight) ?? row.prevValue
+                          : row.prevValue;
+                        const diff = comparableLast - comparablePrev;
+                        const rawPct = comparablePrev !== 0 ? (diff / Math.abs(comparablePrev)) * 100 : 0;
+                        const positive = row.isTimeTest ? rawPct < 0 : rawPct > 0;
+                        const pct = Math.abs(rawPct);
+                        evoNode = (
+                          <div className="flex flex-col items-end">
+                            <Badge
+                              variant="secondary"
+                              className={`text-[10px] px-1.5 py-0 leading-tight ${
+                                positive ? "bg-success/20 text-success" : "bg-destructive/20 text-destructive"
+                              }`}
+                            >
+                              {positive ? "▲" : "▼"} {pct.toFixed(1)}%
+                            </Badge>
+                            <span className="text-[10px] text-muted-foreground mt-0.5">
+                              vs {format(new Date(row.prevDate), "dd/MM/yy", { locale: fr })}
+                            </span>
                           </div>
                         );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
+                      }
+                      return (
+                        <TableRow key={row.key}>
+                          <TableCell className="text-xs">
+                            <div className="text-[10px] text-muted-foreground/70 uppercase tracking-wide">{row.categoryLabel}</div>
+                            <div className="font-semibold">{row.label}</div>
+                            <div className="text-[11px] text-primary font-medium mt-0.5">
+                              {lastDisplay
+                                ? <>{lastDisplay.main}{lastDisplay.sub && <span className="text-muted-foreground font-normal ml-1">({lastDisplay.sub})</span>}</>
+                                : <>{row.lastValue} {row.unit}</>}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-xs whitespace-nowrap">{positionLabel}</TableCell>
+                          <TableCell className="text-xs whitespace-nowrap">
+                            {format(new Date(row.lastDate), "dd/MM/yyyy", { locale: fr })}
+                          </TableCell>
+                          <TableCell className="text-right">{evoNode}</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         );
       })()}
+
 
     </div>
   );
