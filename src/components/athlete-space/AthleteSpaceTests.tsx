@@ -188,6 +188,35 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
   const showSpeed = selectedCategory === "all" || selectedCategory === "__speed__";
   const showStrength = selectedCategory === "all" || selectedCategory === "__strength__";
 
+  // Tests available inside the selected category
+  const availableTests = useMemo(() => {
+    if (selectedCategory === "all") return [];
+    const map = new Map<string, string>();
+    if (selectedCategory === "__speed__") {
+      if (speedTests.length > 0) map.set("__sprint40__", "Sprint 40m");
+    } else if (selectedCategory === "__strength__") {
+      strengthTests.forEach((t: any) => {
+        if (t.test_name) map.set(t.test_name, t.test_name);
+      });
+    } else {
+      genericTests
+        .filter((t: any) => t.test_category === selectedCategory)
+        .forEach((t: any) => {
+          const cat = testCategories.find(c => c.value === t.test_category);
+          const def = cat?.tests.find(x => x.value === t.test_type);
+          const label = def?.label || resolveLabel(t.test_type);
+          map.set(t.test_type, label);
+        });
+    }
+    return Array.from(map.entries()).map(([value, label]) => ({ value, label }));
+  }, [selectedCategory, speedTests, strengthTests, genericTests, testCategories, customById]);
+
+  const handleSelectCategory = (value: string) => {
+    setSelectedCategory(value);
+    setSelectedTest("all");
+  };
+
+
   if (isLoading) return null;
 
   const noData = genericTests.length === 0 && speedTests.length === 0 && strengthTests.length === 0;
