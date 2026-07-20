@@ -243,7 +243,7 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
           <ScrollArea className="w-full whitespace-nowrap">
             <div className="flex gap-2 pb-2">
               <button
-                onClick={() => setSelectedCategory("all")}
+                onClick={() => handleSelectCategory("all")}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
                   selectedCategory === "all" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
                 }`}
@@ -253,7 +253,7 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
               {availableFilters.map(f => (
                 <button
                   key={f.value}
-                  onClick={() => setSelectedCategory(f.value)}
+                  onClick={() => handleSelectCategory(f.value)}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
                     selectedCategory === f.value ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
                   }`}
@@ -264,6 +264,22 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
             </div>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
+
+          {/* Second-level filter: specific test within the selected category */}
+          {selectedCategory !== "all" && availableTests.length > 1 && (
+            <div className="mt-2">
+              <select
+                value={selectedTest}
+                onChange={(e) => setSelectedTest(e.target.value)}
+                className="w-full sm:w-auto px-3 py-1.5 rounded-lg text-xs font-medium bg-muted text-foreground border border-border focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="all">Tous les tests</option>
+                {availableTests.map(t => (
+                  <option key={t.value} value={t.value}>{t.label}</option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
       )}
 
