@@ -173,6 +173,29 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
     }).get(playerId) || null;
   }, [bodyCompWeight, playerInfo, measurementWeight, genericTests, customTestsForWeights, playerId]);
 
+  // Player position (for "Poste" column and benchmark scale display)
+  const { data: playerRow } = useQuery({
+    queryKey: ["athlete-space-player-position", playerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("players")
+        .select("position, gender")
+        .eq("id", playerId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+  const positionGroups = useMemo(() => getPositionGroupsForSport(sportType || ""), [sportType]);
+  const positionLabel = useMemo(() => {
+    const raw = playerRow?.position;
+    if (!raw) return "—";
+    for (const g of positionGroups) {
+      if (playerBelongsToGroup(raw, g)) return g.label;
+    }
+    return raw;
+  }, [playerRow, positionGroups]);
+
   const { data: matchStats = [] } = useQuery({
     queryKey: ["athlete-space-match-stats", playerId],
     queryFn: async () => {
