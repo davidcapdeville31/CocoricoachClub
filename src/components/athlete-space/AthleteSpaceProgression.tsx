@@ -4,8 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { TrendingUp, Clock, Trophy, FlaskConical, Filter } from "lucide-react";
+import { TrendingUp, Clock, Trophy, FlaskConical, Filter, Target } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
@@ -15,6 +16,7 @@ import { useSuggestedBenchmarks } from "@/hooks/useSuggestedBenchmarks";
 import { computeBenchmarkLevel } from "@/lib/benchmarks/computeLevel";
 import { matchesBenchmark } from "@/lib/benchmarks/matchTestType";
 import { collectLatestPlayerWeights } from "@/lib/benchmarks/playerWeights";
+import { getPositionGroupsForSport, playerBelongsToGroup } from "@/lib/constants/sportPositionGroups";
 
 interface Props {
   playerId: string;
