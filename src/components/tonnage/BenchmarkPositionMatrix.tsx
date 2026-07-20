@@ -96,7 +96,7 @@ function isRatioUnit(u: string | null | undefined) {
   return s === "×pdc" || s === "xpdc";
 }
 
-export function BenchmarkPositionMatrix({ categoryId }: Props) {
+export function BenchmarkPositionMatrix({ categoryId, filterPlayerId }: Props) {
   const [selectedKey, setSelectedKey] = useState<string>("");
   const autoSelectedRef = useRef(false);
 
