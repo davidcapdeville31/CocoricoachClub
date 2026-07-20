@@ -217,12 +217,36 @@ async function handleWebhook(req: Request): Promise<Response> {
     )
   }
 
+  // Force the confirmation URL onto the production domain so recipients
+  // never see a *.lovable.app / *.lovable.dev host in the email link.
+  const rewriteToProduction = (rawUrl: string | undefined): string | undefined => {
+    if (!rawUrl) return rawUrl
+    try {
+      const u = new URL(rawUrl)
+      const host = u.hostname
+      if (
+        host.endsWith('lovable.app') ||
+        host.endsWith('lovable.dev') ||
+        host.endsWith('lovableproject.com') ||
+        host.includes('id-preview--')
+      ) {
+        u.protocol = 'https:'
+        u.hostname = ROOT_DOMAIN
+        u.port = ''
+        return u.toString()
+      }
+      return rawUrl
+    } catch {
+      return rawUrl
+    }
+  }
+
   // Build template props from payload.data (HookData structure)
   const templateProps = {
     siteName: SITE_NAME,
     siteUrl: `https://${ROOT_DOMAIN}`,
     recipient: payload.data.email,
-    confirmationUrl: payload.data.url,
+    confirmationUrl: rewriteToProduction(payload.data.url),
     token: payload.data.token,
     email: payload.data.email,
     newEmail: payload.data.new_email,
