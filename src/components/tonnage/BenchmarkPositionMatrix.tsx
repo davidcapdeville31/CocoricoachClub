@@ -295,6 +295,22 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId }: Props) {
     },
   });
 
+  // Restreint les jeux de données au joueur ciblé lorsque `filterPlayerId` est fourni.
+  const genericTestsScoped = useMemo(
+    () => (filterPlayerId ? (genericTests as any[]).filter((t) => t.player_id === filterPlayerId) : genericTests),
+    [genericTests, filterPlayerId],
+  );
+  const speedTestsScoped = useMemo(
+    () => (filterPlayerId ? (speedTests as any[]).filter((t) => t.player_id === filterPlayerId) : speedTests),
+    [speedTests, filterPlayerId],
+  );
+  const strengthTestsScoped = useMemo(
+    () => (filterPlayerId ? (strengthTests as any[]).filter((t) => t.player_id === filterPlayerId) : strengthTests),
+    [strengthTests, filterPlayerId],
+  );
+
+
+
   // ---------- Build combined test options (benchmarks + custom tests) ----------
   // Dedupe par test_type : on ne montre qu'une entrée par test, quel que soit
   // le nombre de barèmes personnalisés (poste / sexe) qui lui sont attachés.
