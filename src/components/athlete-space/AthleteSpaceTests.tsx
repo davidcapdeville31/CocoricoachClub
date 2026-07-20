@@ -306,6 +306,7 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
                 {(selectedCategory === "all" || (selectedCategory !== "__speed__" && selectedCategory !== "__strength__")) &&
                   genericTests
                     .filter((t: any) => selectedCategory === "all" || t.test_category === selectedCategory)
+                    .filter((t: any) => selectedTest === "all" || t.test_type === selectedTest)
                     .slice()
                     .reverse()
                     .slice(0, 30)
@@ -325,7 +326,7 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
                         </TableRow>
                       );
                     })}
-                {showSpeed && speedTests.slice().reverse().slice(0, 10).map((test: any) => (
+                {showSpeed && (selectedTest === "all" || selectedTest === "__sprint40__") && speedTests.slice().reverse().slice(0, 10).map((test: any) => (
                   <TableRow key={test.id}>
                     <TableCell className="whitespace-nowrap text-xs">
                       {format(new Date(test.test_date), "dd/MM/yyyy", { locale: fr })}
@@ -337,7 +338,9 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
                     </TableCell>
                   </TableRow>
                 ))}
-                {showStrength && strengthTests.slice().reverse().slice(0, 10).map((test: any) => (
+                {showStrength && strengthTests
+                  .filter((t: any) => selectedTest === "all" || t.test_name === selectedTest)
+                  .slice().reverse().slice(0, 10).map((test: any) => (
                   <TableRow key={test.id}>
                     <TableCell className="whitespace-nowrap text-xs">
                       {format(new Date(test.test_date), "dd/MM/yyyy", { locale: fr })}
