@@ -33,7 +33,10 @@ import { fr } from "date-fns/locale";
 
 interface Props {
   categoryId: string;
+  /** Si défini, restreint le tableau de résultats à ce joueur uniquement (vue athlète). */
+  filterPlayerId?: string;
 }
+
 
 interface BenchmarkLevel {
   label: string;
