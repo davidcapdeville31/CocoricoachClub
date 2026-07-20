@@ -33,7 +33,10 @@ import { fr } from "date-fns/locale";
 
 interface Props {
   categoryId: string;
+  /** Si défini, restreint le tableau de résultats à ce joueur uniquement (vue athlète). */
+  filterPlayerId?: string;
 }
+
 
 interface BenchmarkLevel {
   label: string;
@@ -93,7 +96,7 @@ function isRatioUnit(u: string | null | undefined) {
   return s === "×pdc" || s === "xpdc";
 }
 
-export function BenchmarkPositionMatrix({ categoryId }: Props) {
+export function BenchmarkPositionMatrix({ categoryId, filterPlayerId }: Props) {
   const [selectedKey, setSelectedKey] = useState<string>("");
   const autoSelectedRef = useRef(false);
 
@@ -292,6 +295,22 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     },
   });
 
+  // Restreint les jeux de données au joueur ciblé lorsque `filterPlayerId` est fourni.
+  const genericTestsScoped = useMemo(
+    () => (filterPlayerId ? (genericTests as any[]).filter((t) => t.player_id === filterPlayerId) : genericTests),
+    [genericTests, filterPlayerId],
+  );
+  const speedTestsScoped = useMemo(
+    () => (filterPlayerId ? (speedTests as any[]).filter((t) => t.player_id === filterPlayerId) : speedTests),
+    [speedTests, filterPlayerId],
+  );
+  const strengthTestsScoped = useMemo(
+    () => (filterPlayerId ? (strengthTests as any[]).filter((t) => t.player_id === filterPlayerId) : strengthTests),
+    [strengthTests, filterPlayerId],
+  );
+
+
+
   // ---------- Build combined test options (benchmarks + custom tests) ----------
   // Dedupe par test_type : on ne montre qu'une entrée par test, quel que soit
   // le nombre de barèmes personnalisés (poste / sexe) qui lui sont attachés.
@@ -312,13 +331,13 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
         ) || b;
 
       let count = 0;
-      genericTests.forEach((t: any) => {
+      genericTestsScoped.forEach((t: any) => {
         if (matchesBenchmark(t.test_type, b.test_type, customTests as any)) count++;
       });
-      speedTests.forEach((t: any) => {
+      speedTestsScoped.forEach((t: any) => {
         if (matchesBenchmark(t.test_type, b.test_type, customTests as any)) count++;
       });
-      strengthTests.forEach((t: any) => {
+      strengthTestsScoped.forEach((t: any) => {
         if (matchesBenchmark(t.test_name, b.test_type, customTests as any)) count++;
       });
       // Label : nom du test personnalisé si test_type = custom:<id>, sinon nom du barème
@@ -342,7 +361,7 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
       const nameKey = normalizeTestKey(ct.name);
       if (covered.has(nameKey) || covered.has(`custom:${ct.id}`)) continue;
       const testType = `custom:${ct.id}`;
-      const count = genericTests.filter((t: any) => t.test_type === testType).length;
+      const count = genericTestsScoped.filter((t: any) => t.test_type === testType).length;
       // On masque les tests personnalisés sans barème ET sans résultat
       if (count === 0) continue;
       const isRatio = isRatioUnit(ct.unit);
@@ -376,7 +395,7 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
 
     // Generic tests presets
     const genericPresets = new Map<string, { count: number; unit: string | null; category: string | null }>();
-    for (const t of genericTests as any[]) {
+    for (const t of genericTestsScoped as any[]) {
       if (!t.test_type || t.test_type.startsWith("custom:")) continue;
       if (covered.has(normalizeTestKey(t.test_type))) continue;
       const entry = genericPresets.get(t.test_type) || { count: 0, unit: t.result_unit, category: t.test_category };
@@ -405,7 +424,7 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
 
     // Speed tests presets
     const speedPresets = new Map<string, number>();
-    for (const t of speedTests as any[]) {
+    for (const t of speedTestsScoped as any[]) {
       if (!t.test_type || covered.has(normalizeTestKey(t.test_type))) continue;
       speedPresets.set(t.test_type, (speedPresets.get(t.test_type) || 0) + 1);
     }
@@ -431,7 +450,7 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
 
     // Strength tests presets
     const strengthPresets = new Map<string, number>();
-    for (const t of strengthTests as any[]) {
+    for (const t of strengthTestsScoped as any[]) {
       if (!t.test_name || covered.has(normalizeTestKey(t.test_name))) continue;
       strengthPresets.set(t.test_name, (strengthPresets.get(t.test_name) || 0) + 1);
     }
@@ -471,7 +490,7 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
       merged.set(k, { ...keep, count: Math.max(existing.count, o.count) });
     }
     return Array.from(merged.values());
-  }, [benchmarks, customTests, genericTests, speedTests, strengthTests]);
+  }, [benchmarks, customTests, genericTestsScoped, speedTestsScoped, strengthTestsScoped]);
 
   // Auto-select first option with data
   useEffect(() => {
@@ -529,7 +548,7 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
       return { date, value: raw };
     };
 
-    genericTests.forEach((t: any) => {
+    genericTestsScoped.forEach((t: any) => {
       if (!matchesBenchmark(t.test_type, bm.test_type, customTests as any)) return;
       const raw = Number(t.result_value);
       if (!isFinite(raw) || raw <= 0) return;
@@ -537,7 +556,7 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
     });
 
     if (bm.test_category === "speed" || bm.test_category === "sprint") {
-      speedTests.forEach((t: any) => {
+      speedTestsScoped.forEach((t: any) => {
         if (!matchesBenchmark(t.test_type, bm.test_type, customTests as any)) return;
         const v = t.vma_kmh ?? t.speed_kmh ?? t.time_40m_seconds;
         if (v != null) push(t.player_id, t.test_date, { date: t.test_date, value: Number(v) });
@@ -548,7 +567,7 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
       bm.test_category === "force" ||
       bm.test_category === "musculation"
     ) {
-      strengthTests.forEach((t: any) => {
+      strengthTestsScoped.forEach((t: any) => {
         if (!matchesBenchmark(t.test_name, bm.test_type, customTests as any)) return;
         if (t.weight_kg != null) {
           const raw = Number(t.weight_kg);
@@ -577,7 +596,7 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
       arr.sort((a, b) => a.date.localeCompare(b.date));
     }
     return map;
-  }, [bm, genericTests, speedTests, strengthTests, customTests, playerWeights]);
+  }, [bm, genericTestsScoped, speedTestsScoped, strengthTestsScoped, customTests, playerWeights]);
 
   const allDates = useMemo(() => {
     const s = new Set<string>();
@@ -599,7 +618,10 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
   // Groupe les joueurs par groupe de poste canonique
   const playersByPosition = useMemo(() => {
     const groups = new Map<string, { label: string; list: any[] }>();
-    for (const p of players as any[]) {
+    const source = filterPlayerId
+      ? (players as any[]).filter((p) => p.id === filterPlayerId)
+      : (players as any[]);
+    for (const p of source) {
       const g = resolveGroup(p);
       if (!groups.has(g.id)) groups.set(g.id, { label: g.label, list: [] });
       groups.get(g.id)!.list.push(p);
@@ -613,7 +635,8 @@ export function BenchmarkPositionMatrix({ categoryId }: Props) {
       "__unknown__",
     ].filter((id) => groups.has(id));
     return orderedIds.map((id) => [id, groups.get(id)!] as const);
-  }, [players, positionGroups]);
+  }, [players, positionGroups, filterPlayerId]);
+
 
   // Renvoie le barème le plus spécifique pour (groupe de poste, sexe)
   const getBenchmarkForPlayer = (groupId: string, gender: string | null): Benchmark | null => {
