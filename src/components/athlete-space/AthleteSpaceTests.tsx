@@ -19,6 +19,7 @@ interface Props {
 export function AthleteSpaceTests({ playerId, sportType }: Props) {
   const testCategories = useMemo(() => getTestCategoriesForSport(sportType || ""), [sportType]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedTest, setSelectedTest] = useState<string>("all");
 
   const { data: genericTests = [], isLoading } = useQuery({
     queryKey: ["athlete-space-all-tests", playerId],
@@ -187,6 +188,35 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
   const showSpeed = selectedCategory === "all" || selectedCategory === "__speed__";
   const showStrength = selectedCategory === "all" || selectedCategory === "__strength__";
 
+  // Tests available inside the selected category
+  const availableTests = useMemo(() => {
+    if (selectedCategory === "all") return [];
+    const map = new Map<string, string>();
+    if (selectedCategory === "__speed__") {
+      if (speedTests.length > 0) map.set("__sprint40__", "Sprint 40m");
+    } else if (selectedCategory === "__strength__") {
+      strengthTests.forEach((t: any) => {
+        if (t.test_name) map.set(t.test_name, t.test_name);
+      });
+    } else {
+      genericTests
+        .filter((t: any) => t.test_category === selectedCategory)
+        .forEach((t: any) => {
+          const cat = testCategories.find(c => c.value === t.test_category);
+          const def = cat?.tests.find(x => x.value === t.test_type);
+          const label = def?.label || resolveLabel(t.test_type);
+          map.set(t.test_type, label);
+        });
+    }
+    return Array.from(map.entries()).map(([value, label]) => ({ value, label }));
+  }, [selectedCategory, speedTests, strengthTests, genericTests, testCategories, customById]);
+
+  const handleSelectCategory = (value: string) => {
+    setSelectedCategory(value);
+    setSelectedTest("all");
+  };
+
+
   if (isLoading) return null;
 
   const noData = genericTests.length === 0 && speedTests.length === 0 && strengthTests.length === 0;
@@ -213,7 +243,7 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
           <ScrollArea className="w-full whitespace-nowrap">
             <div className="flex gap-2 pb-2">
               <button
-                onClick={() => setSelectedCategory("all")}
+                onClick={() => handleSelectCategory("all")}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
                   selectedCategory === "all" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
                 }`}
@@ -223,7 +253,7 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
               {availableFilters.map(f => (
                 <button
                   key={f.value}
-                  onClick={() => setSelectedCategory(f.value)}
+                  onClick={() => handleSelectCategory(f.value)}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
                     selectedCategory === f.value ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
                   }`}
@@ -234,6 +264,22 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
             </div>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
+
+          {/* Second-level filter: specific test within the selected category */}
+          {selectedCategory !== "all" && availableTests.length > 1 && (
+            <div className="mt-2">
+              <select
+                value={selectedTest}
+                onChange={(e) => setSelectedTest(e.target.value)}
+                className="w-full sm:w-auto px-3 py-1.5 rounded-lg text-xs font-medium bg-muted text-foreground border border-border focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="all">Tous les tests</option>
+                {availableTests.map(t => (
+                  <option key={t.value} value={t.value}>{t.label}</option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
       )}
 
@@ -260,6 +306,7 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
                 {(selectedCategory === "all" || (selectedCategory !== "__speed__" && selectedCategory !== "__strength__")) &&
                   genericTests
                     .filter((t: any) => selectedCategory === "all" || t.test_category === selectedCategory)
+                    .filter((t: any) => selectedTest === "all" || t.test_type === selectedTest)
                     .slice()
                     .reverse()
                     .slice(0, 30)
@@ -279,7 +326,7 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
                         </TableRow>
                       );
                     })}
-                {showSpeed && speedTests.slice().reverse().slice(0, 10).map((test: any) => (
+                {showSpeed && (selectedTest === "all" || selectedTest === "__sprint40__") && speedTests.slice().reverse().slice(0, 10).map((test: any) => (
                   <TableRow key={test.id}>
                     <TableCell className="whitespace-nowrap text-xs">
                       {format(new Date(test.test_date), "dd/MM/yyyy", { locale: fr })}
@@ -291,7 +338,9 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
                     </TableCell>
                   </TableRow>
                 ))}
-                {showStrength && strengthTests.slice().reverse().slice(0, 10).map((test: any) => (
+                {showStrength && strengthTests
+                  .filter((t: any) => selectedTest === "all" || t.test_name === selectedTest)
+                  .slice().reverse().slice(0, 10).map((test: any) => (
                   <TableRow key={test.id}>
                     <TableCell className="whitespace-nowrap text-xs">
                       {format(new Date(test.test_date), "dd/MM/yyyy", { locale: fr })}
