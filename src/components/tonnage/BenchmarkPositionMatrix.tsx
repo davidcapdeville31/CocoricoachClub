@@ -602,7 +602,10 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId }: Props) {
   // Groupe les joueurs par groupe de poste canonique
   const playersByPosition = useMemo(() => {
     const groups = new Map<string, { label: string; list: any[] }>();
-    for (const p of players as any[]) {
+    const source = filterPlayerId
+      ? (players as any[]).filter((p) => p.id === filterPlayerId)
+      : (players as any[]);
+    for (const p of source) {
       const g = resolveGroup(p);
       if (!groups.has(g.id)) groups.set(g.id, { label: g.label, list: [] });
       groups.get(g.id)!.list.push(p);
@@ -616,7 +619,8 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId }: Props) {
       "__unknown__",
     ].filter((id) => groups.has(id));
     return orderedIds.map((id) => [id, groups.get(id)!] as const);
-  }, [players, positionGroups]);
+  }, [players, positionGroups, filterPlayerId]);
+
 
   // Renvoie le barème le plus spécifique pour (groupe de poste, sexe)
   const getBenchmarkForPlayer = (groupId: string, gender: string | null): Benchmark | null => {
