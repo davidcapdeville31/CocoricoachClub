@@ -892,12 +892,15 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId }: Props) {
                       const posBm = getBenchmarkForPlayer(groupId, p.gender || null);
                       const first = series[0];
                       const last = series[series.length - 1];
-                      // Pour un test en ratio, on préfère l'évolution en kg si disponible
+                      // Pour un test en ratio, on affiche l'évolution en kg + ratio
                       const useKgDelta = isRatio && first?.rawKg != null && last?.rawKg != null;
                       const evoDelta = first && last
                         ? useKgDelta ? (last.rawKg! - first.rawKg!) : (last.value - first.value)
                         : 0;
                       const evoUnit = useKgDelta ? " kg" : isRatio ? " ratio" : "";
+                      const ratioDelta = isRatio && first?.ratio != null && last?.ratio != null
+                        ? last.ratio - first.ratio
+                        : null;
                       const evoImproved: 1 | 0 | -1 = first && last
                         ? posBm?.lower_is_better
                           ? evoDelta < 0 ? 1 : evoDelta > 0 ? -1 : 0
@@ -1029,26 +1032,34 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId }: Props) {
                             {series.length < 2 ? (
                               <span className="text-muted-foreground text-xs">—</span>
                             ) : (
-                              <span
-                                className={`inline-flex items-center gap-1 font-semibold text-sm ${
-                                  evoImproved === 1
-                                    ? "text-emerald-600"
-                                    : evoImproved === -1
-                                    ? "text-rose-600"
-                                    : "text-muted-foreground"
-                                }`}
-                              >
-                                {evoImproved === 1 ? (
-                                  <TrendingUp className="h-4 w-4" />
-                                ) : evoImproved === -1 ? (
-                                  <TrendingDown className="h-4 w-4" />
-                                ) : (
-                                  <Minus className="h-4 w-4" />
+                              <div className="flex flex-col items-center gap-0.5">
+                                <span
+                                  className={`inline-flex items-center gap-1 font-semibold text-sm ${
+                                    evoImproved === 1
+                                      ? "text-emerald-600"
+                                      : evoImproved === -1
+                                      ? "text-rose-600"
+                                      : "text-muted-foreground"
+                                  }`}
+                                >
+                                  {evoImproved === 1 ? (
+                                    <TrendingUp className="h-4 w-4" />
+                                  ) : evoImproved === -1 ? (
+                                    <TrendingDown className="h-4 w-4" />
+                                  ) : (
+                                    <Minus className="h-4 w-4" />
+                                  )}
+                                  {evoDelta > 0 ? "+" : ""}
+                                  {evoDelta.toFixed(useKgDelta ? 1 : 2)}
+                                  <span className="text-[10px] font-normal ml-0.5">{evoUnit}</span>
+                                </span>
+                                {ratioDelta != null && (
+                                  <span className="text-[10px] font-normal text-muted-foreground">
+                                    {ratioDelta > 0 ? "+" : ""}
+                                    {ratioDelta.toFixed(2).replace(".", ",")} ratio
+                                  </span>
                                 )}
-                                {evoDelta > 0 ? "+" : ""}
-                                {evoDelta.toFixed(useKgDelta ? 1 : 2)}
-                                <span className="text-[10px] font-normal ml-0.5">{evoUnit}</span>
-                              </span>
+                              </div>
                             )}
                           </TableCell>
                         </TableRow>
