@@ -17,6 +17,8 @@ import { computeBenchmarkLevel } from "@/lib/benchmarks/computeLevel";
 import { matchesBenchmark } from "@/lib/benchmarks/matchTestType";
 import { collectLatestPlayerWeights } from "@/lib/benchmarks/playerWeights";
 import { getPositionGroupsForSport, playerBelongsToGroup } from "@/lib/constants/sportPositionGroups";
+import { BenchmarkPositionMatrix } from "@/components/tonnage/BenchmarkPositionMatrix";
+
 
 interface Props {
   playerId: string;
