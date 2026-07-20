@@ -592,8 +592,21 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId }: Props) {
       });
     }
 
-    for (const arr of map.values()) {
-      arr.sort((a, b) => a.date.localeCompare(b.date));
+    for (const [pid, arr] of map) {
+      // Dédup par date : garder le meilleur/dernier point (préfère celui qui a rawKg + ratio)
+      const byDate = new Map<string, ResultPoint>();
+      for (const p of arr) {
+        const existing = byDate.get(p.date);
+        if (!existing) {
+          byDate.set(p.date, p);
+          continue;
+        }
+        const scoreP = (p.rawKg != null ? 2 : 0) + (p.ratio != null ? 1 : 0);
+        const scoreE = (existing.rawKg != null ? 2 : 0) + (existing.ratio != null ? 1 : 0);
+        if (scoreP >= scoreE) byDate.set(p.date, p);
+      }
+      const deduped = Array.from(byDate.values()).sort((a, b) => a.date.localeCompare(b.date));
+      map.set(pid, deduped);
     }
     return map;
   }, [bm, genericTestsScoped, speedTestsScoped, strengthTestsScoped, customTests, playerWeights]);
