@@ -56,29 +56,37 @@ export function SessionAttendanceResponse({
     return { locked: new Date() >= lockAt, sessionStart: start };
   }, [sessionDate, sessionStartTime]);
 
-  if (!participant && !isLoading) {
-    // Athlete is not a listed participant — don't show the response bar
-    return null;
-  }
+  if (isLoading) return null;
 
   const status: Status = (participant?.attendance_status as Status) || "no_response";
 
   const respond = async (nextStatus: "present" | "absent", nextComment?: string) => {
-    if (!participant) return;
     if (locked) {
       toast.error("La réponse ne peut plus être modifiée moins de 30 minutes avant la séance.");
       return;
     }
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from("event_participants")
-        .update({
-          attendance_status: nextStatus,
-          absence_comment: nextStatus === "absent" ? (nextComment ?? comment) || null : null,
-        })
-        .eq("id", participant.id);
-      if (error) throw error;
+      if (participant) {
+        const { error } = await supabase
+          .from("event_participants")
+          .update({
+            attendance_status: nextStatus,
+            absence_comment: nextStatus === "absent" ? (nextComment ?? comment) || null : null,
+          })
+          .eq("id", participant.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("event_participants")
+          .insert({
+            training_session_id: sessionId,
+            player_id: playerId,
+            attendance_status: nextStatus,
+            absence_comment: nextStatus === "absent" ? (nextComment ?? comment) || null : null,
+          });
+        if (error) throw error;
+      }
       toast.success(nextStatus === "present" ? "Présence confirmée" : "Absence enregistrée");
       qc.invalidateQueries({ queryKey: ["ep-attendance", sessionId, playerId] });
     } catch (e: any) {
