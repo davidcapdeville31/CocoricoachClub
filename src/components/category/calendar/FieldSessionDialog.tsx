@@ -576,13 +576,14 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
         const { error: bErr } = await supabase.from("training_session_blocks").insert(blockRows);
         if (bErr) throw bErr;
 
-        // Participants
-        if (selectedPlayers.length > 0) {
+        // Participants (only on create — edit path already synced above)
+        if (!isEdit && selectedPlayers.length > 0) {
           const { error: pErr } = await supabase.from("event_participants").insert(
             selectedPlayers.map((pid) => ({ training_session_id: sessionId, player_id: pid })),
           );
           if (pErr) console.error(pErr);
         }
+
       }
 
       return sessionId;
