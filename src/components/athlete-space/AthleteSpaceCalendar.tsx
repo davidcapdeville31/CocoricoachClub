@@ -72,7 +72,7 @@ const TEST_COLOR = "#06b6d4"; // Test (cyan)
 const MATCH_COLOR = "#ef4444"; // Match/Compétition (rouge)
 
 export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props) {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isBowlingTrainingOpen, setIsBowlingTrainingOpen] = useState(false);
   const [isBasketTrainingOpen, setIsBasketTrainingOpen] = useState(false);
@@ -454,6 +454,45 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
           </div>
         </CardHeader>
         <CardContent>
+          {(() => {
+            const todayStr = format(new Date(), "yyyy-MM-dd");
+            const upcoming = sessions
+              .filter((s: any) => s.session_date >= todayStr && s.created_by_player_id !== playerId)
+              .sort((a: any, b: any) => a.session_date.localeCompare(b.session_date))
+              .slice(0, 5);
+            if (upcoming.length === 0) return null;
+            return (
+              <div className="mb-4 rounded-lg border border-border/60 bg-muted/20 p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                  Prochaines séances — confirme ta présence
+                </p>
+                <div className="space-y-2">
+                  {upcoming.map((s: any) => (
+                    <div key={s.id} className="rounded-md border border-border/60 bg-background p-2">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <button
+                          type="button"
+                          className="text-left text-sm font-medium hover:underline"
+                          onClick={() => setSelectedDate(parseISO(s.session_date))}
+                        >
+                          {format(parseISO(s.session_date), "EEE d MMM", { locale: fr })}
+                          {s.session_start_time && ` · ${s.session_start_time.slice(0, 5)}`}
+                          {" · "}
+                          {getTrainingTypeLabel(s.training_type)}
+                        </button>
+                      </div>
+                      <SessionAttendanceResponse
+                        sessionId={s.id}
+                        playerId={playerId}
+                        sessionDate={s.session_date}
+                        sessionStartTime={s.session_start_time}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
           <div className="grid md:grid-cols-2 gap-6">
             {/* Calendar */}
             <div className="flex justify-center">
