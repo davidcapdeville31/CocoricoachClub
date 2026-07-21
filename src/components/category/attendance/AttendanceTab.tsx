@@ -653,6 +653,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                             <TableHead className="text-center">Excusé</TableHead>
                             <TableHead className="text-center">Absent</TableHead>
                             <TableHead className="text-center">Taux</TableHead>
+                            <TableHead className="text-center">Détail</TableHead>
                             <TableHead className="w-32"></TableHead>
                           </TableRow>
                         </TableHeader>
@@ -769,6 +770,63 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                               </TableCell>
                               <TableCell className="text-center">
                                 {player.total > 0 ? getRateBadge(player.rate) : "-"}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {(() => {
+                                  const playerSessions = (filteredSessions || [])
+                                    .slice()
+                                    .sort((a, b) => new Date(b.session_date).getTime() - new Date(a.session_date).getTime())
+                                    .map((s) => {
+                                      const coachRow = filteredAttendance?.find(
+                                        (a) => a.player_id === player.id &&
+                                          (a.training_session_id === s.id || (a.attendance_date === s.session_date && !a.training_session_id)),
+                                      );
+                                      const selfRow = (eventParticipants || []).find(
+                                        (p) => p.training_session_id === s.id && p.player_id === player.id,
+                                      );
+                                      return { session: s, coach: coachRow, self: selfRow };
+                                    })
+                                    .filter((row) => row.coach || row.self);
+                                  if (playerSessions.length === 0) {
+                                    return <span className="text-muted-foreground text-xs">—</span>;
+                                  }
+                                  return (
+                                    <Popover>
+                                      <PopoverTrigger asChild>
+                                        <Button variant="ghost" size="sm" className="h-auto p-1 text-xs">
+                                          {playerSessions.length} séance{playerSessions.length > 1 ? "s" : ""}
+                                        </Button>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-96 p-3">
+                                        <h4 className="font-medium mb-2 text-sm">Détail des séances — {player.name}</h4>
+                                        <div className="space-y-1 max-h-72 overflow-y-auto">
+                                          {playerSessions.map(({ session, coach, self }) => {
+                                            const coachStatus = coach?.status as string | undefined;
+                                            const selfStatus = self?.attendance_status as string | undefined;
+                                            const statusLabel =
+                                              coachStatus === "present" ? { label: "Présent", cls: "text-green-600" } :
+                                              coachStatus === "late" ? { label: `Retard${coach?.late_minutes ? ` ${coach.late_minutes}min` : ""}`, cls: "text-orange-600" } :
+                                              coachStatus === "excused" ? { label: "Excusé", cls: "text-amber-600" } :
+                                              coachStatus === "absent" ? { label: "Absent", cls: "text-red-600" } :
+                                              selfStatus === "present" ? { label: "Présent (auto)", cls: "text-green-600" } :
+                                              selfStatus === "absent" ? { label: "Absent (auto)", cls: "text-red-600" } :
+                                              { label: "Pas renseigné", cls: "text-muted-foreground" };
+                                            const comment = coach?.absence_reason || coach?.late_reason || self?.absence_comment;
+                                            return (
+                                              <div key={session.id} className="text-xs flex justify-between gap-2 border-b border-border/40 pb-1 last:border-0">
+                                                <div className="flex flex-col">
+                                                  <span>{format(parseISO(session.session_date), "dd/MM/yyyy", { locale: fr })} — {getSessionLabel(session)}</span>
+                                                  {comment && <span className="italic text-muted-foreground">{comment}</span>}
+                                                </div>
+                                                <span className={`font-medium whitespace-nowrap ${statusLabel.cls}`}>{statusLabel.label}</span>
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      </PopoverContent>
+                                    </Popover>
+                                  );
+                                })()}
                               </TableCell>
                               <TableCell>
                                 {player.total > 0 && (
