@@ -610,9 +610,10 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
 
       if (!sessionId) throw new Error("Impossible d'identifier la séance.");
 
-      // 2b. Persist selected participants without resetting existing attendance responses.
+      // 2b. Persist assigned participants without resetting existing attendance responses.
+      // If no athlete is explicitly selected, the session targets the whole visible category.
       if (editSession?.id) {
-        await syncParticipantsPreservingResponses(sessionId, selectedPlayers);
+        await syncParticipantsPreservingResponses(sessionId, targetPlayers.map((player) => player.id));
       } else if (selectedPlayers.length > 0) {
         const { error: epErr } = await supabase
           .from("event_participants")
