@@ -21,6 +21,7 @@ interface HierarchicalTestSelectorProps {
   onZoneChange: (zone: string) => void;
   onTestChange: (test: string) => void;
   compact?: boolean;
+  categoriesOverride?: TestCategory[];
 }
 
 export function HierarchicalTestSelector({
@@ -32,10 +33,11 @@ export function HierarchicalTestSelector({
   onZoneChange,
   onTestChange,
   compact = false,
+  categoriesOverride,
 }: HierarchicalTestSelectorProps) {
   const filteredTestCategories = useMemo(
-    () => getTestCategoriesForSport(sportType || ""),
-    [sportType]
+    () => categoriesOverride ?? getTestCategoriesForSport(sportType || ""),
+    [sportType, categoriesOverride]
   );
 
   const { standalone, groups } = useMemo(
