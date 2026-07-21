@@ -654,7 +654,6 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                             <TableHead className="text-center">Absent</TableHead>
                             <TableHead className="text-center">Taux</TableHead>
                             <TableHead className="text-center">Détail</TableHead>
-                            <TableHead className="w-32"></TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -769,7 +768,12 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                                 )}
                               </TableCell>
                               <TableCell className="text-center">
-                                {player.total > 0 ? getRateBadge(player.rate) : "-"}
+                                <div className="flex flex-col items-center gap-1">
+                                  {player.total > 0 ? getRateBadge(player.rate) : "-"}
+                                  {player.total > 0 && (
+                                    <Progress value={player.rate} className="h-1.5 w-20" />
+                                  )}
+                                </div>
                               </TableCell>
                               <TableCell className="text-center">
                                 {(() => {
@@ -793,8 +797,8 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                                   return (
                                     <Popover>
                                       <PopoverTrigger asChild>
-                                        <Button variant="ghost" size="sm" className="h-auto p-1 text-xs">
-                                          {playerSessions.length} séance{playerSessions.length > 1 ? "s" : ""}
+                                        <Button variant="outline" size="sm" className="h-7 px-2 text-xs">
+                                          Voir ({playerSessions.length})
                                         </Button>
                                       </PopoverTrigger>
                                       <PopoverContent className="w-96 p-3">
@@ -827,14 +831,6 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                                     </Popover>
                                   );
                                 })()}
-                              </TableCell>
-                              <TableCell>
-                                {player.total > 0 && (
-                                  <Progress 
-                                    value={player.rate} 
-                                    className="h-2"
-                                  />
-                                )}
                               </TableCell>
                             </TableRow>
                           ))}
