@@ -295,13 +295,28 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
   const { data: playersRaw } = useQuery({
     queryKey: ["players-field-session", categoryId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("players")
-        .select("id, name, first_name, position")
-        .eq("category_id", categoryId)
-        .order("name");
-      if (error) throw error;
-      return data;
+      const [primaryRes, sharedRes] = await Promise.all([
+        supabase
+          .from("players")
+          .select("id, name, first_name, position")
+          .eq("category_id", categoryId),
+        supabase
+          .from("player_categories")
+          .select("player:players(id, name, first_name, position)")
+          .eq("category_id", categoryId)
+          .eq("status", "accepted"),
+      ]);
+      if (primaryRes.error) throw primaryRes.error;
+      if (sharedRes.error) throw sharedRes.error;
+      const map = new Map<string, any>();
+      (primaryRes.data || []).forEach((p: any) => map.set(p.id, p));
+      (sharedRes.data || []).forEach((row: any) => {
+        const p = row.player;
+        if (p?.id && !map.has(p.id)) map.set(p.id, p);
+      });
+      return Array.from(map.values()).sort((a: any, b: any) =>
+        String(a.name || "").localeCompare(String(b.name || "")),
+      );
     },
     enabled: open,
   });
