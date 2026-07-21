@@ -472,6 +472,7 @@ export function UnifiedTestDialog({
             {!isCustom && (
               <HierarchicalTestSelector
                 sportType={sportType || ""}
+                categoriesOverride={filteredTestCategories}
                 selectedGroup={selectedGroup}
                 selectedZone={selectedZone}
                 selectedTest={selectedTest}
