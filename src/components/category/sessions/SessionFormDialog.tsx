@@ -966,7 +966,7 @@ export function SessionFormDialog({
         const participantsToSave =
           playerSelectionMode === "specific" && selectedPlayers.length > 0
             ? selectedPlayers
-            : [];
+            : effectivePlayerIds;
 
         const desired = new Set(participantsToSave);
         const existingIds = new Set((existingParts || []).map((p: any) => p.player_id));
