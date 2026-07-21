@@ -768,7 +768,12 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                                 )}
                               </TableCell>
                               <TableCell className="text-center">
-                                {player.total > 0 ? getRateBadge(player.rate) : "-"}
+                                <div className="flex flex-col items-center gap-1">
+                                  {player.total > 0 ? getRateBadge(player.rate) : "-"}
+                                  {player.total > 0 && (
+                                    <Progress value={player.rate} className="h-1.5 w-20" />
+                                  )}
+                                </div>
                               </TableCell>
                               <TableCell className="text-center">
                                 {(() => {
