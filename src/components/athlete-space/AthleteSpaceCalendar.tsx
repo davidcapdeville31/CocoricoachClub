@@ -72,7 +72,7 @@ const TEST_COLOR = "#06b6d4"; // Test (cyan)
 const MATCH_COLOR = "#ef4444"; // Match/Compétition (rouge)
 
 export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props) {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isBowlingTrainingOpen, setIsBowlingTrainingOpen] = useState(false);
   const [isBasketTrainingOpen, setIsBasketTrainingOpen] = useState(false);
