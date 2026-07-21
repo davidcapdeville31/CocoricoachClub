@@ -1,0 +1,1 @@
+UPDATE public.players p SET season_id = s.id FROM public.categories c JOIN public.seasons s ON s.club_id = c.club_id AND s.is_active = true WHERE p.category_id = c.id AND p.season_id IS NULL;
