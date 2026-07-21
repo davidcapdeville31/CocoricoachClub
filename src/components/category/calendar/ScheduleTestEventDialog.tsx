@@ -351,6 +351,56 @@ export function ScheduleTestEventDialog({
 
   const selectedTestsList = Object.values(selectedTests);
 
+  const syncParticipantsPreservingResponses = async (sessionId: string, nextPlayerIds: string[]) => {
+    const { data: currentParticipants, error: readError } = await supabase
+      .from("event_participants")
+      .select("id, player_id, attendance_status, responded_at, created_at")
+      .eq("training_session_id", sessionId);
+    if (readError) throw readError;
+
+    const nextSet = new Set(nextPlayerIds);
+    const keepByPlayer = new Map<string, string>();
+    const idsToRemove: string[] = [];
+
+    const rows = [...(currentParticipants || [])].sort((a: any, b: any) => {
+      const aResponded = a.attendance_status && a.attendance_status !== "no_response" ? 1 : 0;
+      const bResponded = b.attendance_status && b.attendance_status !== "no_response" ? 1 : 0;
+      if (aResponded !== bResponded) return bResponded - aResponded;
+      return new Date(b.responded_at || b.created_at || 0).getTime() - new Date(a.responded_at || a.created_at || 0).getTime();
+    });
+
+    rows.forEach((row: any) => {
+      if (!nextSet.has(row.player_id)) {
+        idsToRemove.push(row.id);
+        return;
+      }
+      if (keepByPlayer.has(row.player_id)) {
+        idsToRemove.push(row.id);
+        return;
+      }
+      keepByPlayer.set(row.player_id, row.id);
+    });
+
+    if (idsToRemove.length > 0) {
+      const { error: deleteError } = await supabase
+        .from("event_participants")
+        .delete()
+        .in("id", idsToRemove);
+      if (deleteError) throw deleteError;
+    }
+
+    const idsToInsert = nextPlayerIds.filter((pid) => !keepByPlayer.has(pid));
+    if (idsToInsert.length > 0) {
+      const { error: insertError } = await supabase.from("event_participants").insert(
+        idsToInsert.map((pid) => ({
+          training_session_id: sessionId,
+          player_id: pid,
+        })),
+      );
+      if (insertError) throw insertError;
+    }
+  };
+
   const schedule = useMutation({
     mutationFn: async () => {
       let testsMeta: Array<{
@@ -404,20 +454,8 @@ export function ScheduleTestEventDialog({
         if (error) throw error;
         savedSessionId = editSessionId;
 
-        // Re-sync participants: delete existing + insert new selection
-        await supabase
-          .from("event_participants")
-          .delete()
-          .eq("training_session_id", editSessionId);
-
-        if (selectedPlayers.length > 0) {
-          await supabase.from("event_participants").insert(
-            selectedPlayers.map((pid) => ({
-              training_session_id: editSessionId,
-              player_id: pid,
-            })),
-          );
-        }
+        // Delta-sync participants so existing Présent/Absent responses are preserved.
+        await syncParticipantsPreservingResponses(editSessionId, selectedPlayers);
       } else {
         // CREATE new test session
         const { data: session, error } = await supabase
