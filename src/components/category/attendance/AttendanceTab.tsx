@@ -832,14 +832,6 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                                   );
                                 })()}
                               </TableCell>
-                              <TableCell>
-                                {player.total > 0 && (
-                                  <Progress 
-                                    value={player.rate} 
-                                    className="h-2"
-                                  />
-                                )}
-                              </TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
