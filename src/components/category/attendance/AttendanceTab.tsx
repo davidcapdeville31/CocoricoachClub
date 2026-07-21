@@ -797,8 +797,8 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                                   return (
                                     <Popover>
                                       <PopoverTrigger asChild>
-                                        <Button variant="ghost" size="sm" className="h-auto p-1 text-xs">
-                                          {playerSessions.length} séance{playerSessions.length > 1 ? "s" : ""}
+                                        <Button variant="outline" size="sm" className="h-7 px-2 text-xs">
+                                          Voir ({playerSessions.length})
                                         </Button>
                                       </PopoverTrigger>
                                       <PopoverContent className="w-96 p-3">
