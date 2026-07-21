@@ -409,6 +409,58 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
   const currentSnapshot = JSON.stringify({ dayName, dayOfWeek, sessionDate, startTime, endTime, sessionKind, targetIntensity, volume, plannedRpe, selectedPlayers, blocks });
   const isSavedUpToDate = savedSnapshot !== null && savedSnapshot === currentSnapshot;
 
+  const syncParticipantsPreservingResponses = async (sessionId: string, nextPlayerIds: string[]) => {
+    const { data: currentParticipants, error: readError } = await supabase
+      .from("event_participants")
+      .select("id, player_id, attendance_status, responded_at, created_at")
+      .eq("training_session_id", sessionId);
+    if (readError) throw readError;
+
+    const nextSet = new Set(nextPlayerIds);
+    const keepByPlayer = new Map<string, string>();
+    const idsToRemove: string[] = [];
+
+    const rows = [...(currentParticipants || [])].sort((a: any, b: any) => {
+      const aResponded = a.attendance_status && a.attendance_status !== "no_response" ? 1 : 0;
+      const bResponded = b.attendance_status && b.attendance_status !== "no_response" ? 1 : 0;
+      if (aResponded !== bResponded) return bResponded - aResponded;
+      return new Date(b.responded_at || b.created_at || 0).getTime() - new Date(a.responded_at || a.created_at || 0).getTime();
+    });
+
+    rows.forEach((row: any) => {
+      if (!nextSet.has(row.player_id)) {
+        idsToRemove.push(row.id);
+        return;
+      }
+      if (keepByPlayer.has(row.player_id)) {
+        idsToRemove.push(row.id);
+        return;
+      }
+      keepByPlayer.set(row.player_id, row.id);
+    });
+
+    if (idsToRemove.length > 0) {
+      const { error: deleteError } = await supabase
+        .from("event_participants")
+        .delete()
+        .in("id", idsToRemove);
+      if (deleteError) throw deleteError;
+    }
+
+    const idsToInsert = nextPlayerIds.filter((pid) => !keepByPlayer.has(pid));
+    if (idsToInsert.length > 0) {
+      const { error: insertError } = await supabase
+        .from("event_participants")
+        .insert(
+          idsToInsert.map((pid) => ({
+            training_session_id: sessionId,
+            player_id: pid,
+          })),
+        );
+      if (insertError) throw insertError;
+    }
+  };
+
   const saveMutation = useMutation({
     mutationFn: async () => {
       // Flatten blocks → ordered exercises with hidden block context in notes
@@ -535,7 +587,6 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
           .eq("id", editSession.id);
         if (updateErr) throw updateErr;
 
-        await supabase.from("event_participants").delete().eq("training_session_id", editSession.id);
         await supabase.from("training_session_blocks").delete().eq("training_session_id", editSession.id);
         await supabase.from("gym_session_exercises").delete().eq("training_session_id", editSession.id);
       } else {
@@ -559,8 +610,10 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
 
       if (!sessionId) throw new Error("Impossible d'identifier la séance.");
 
-      // 2b. If specific participants selected, persist them in event_participants
-      if (selectedPlayers.length > 0) {
+      // 2b. Persist selected participants without resetting existing attendance responses.
+      if (editSession?.id) {
+        await syncParticipantsPreservingResponses(sessionId, selectedPlayers);
+      } else if (selectedPlayers.length > 0) {
         const { error: epErr } = await supabase
           .from("event_participants")
           .insert(
