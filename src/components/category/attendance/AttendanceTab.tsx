@@ -654,7 +654,6 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                             <TableHead className="text-center">Absent</TableHead>
                             <TableHead className="text-center">Taux</TableHead>
                             <TableHead className="text-center">Détail</TableHead>
-                            <TableHead className="w-32"></TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
