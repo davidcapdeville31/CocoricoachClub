@@ -957,26 +957,34 @@ export function SessionFormDialog({
       const customTypes = ["medical", "video_analyse", "reunion"];
       const currentType = mainType || "autre";
       if (customTypes.includes(currentType)) {
-        // Delete existing participants
-        await supabase
+        // Sync participants without wiping existing attendance responses
+        const { data: existingParts } = await supabase
           .from("event_participants")
-          .delete()
+          .select("id, player_id")
           .eq("training_session_id", sessionId!);
 
-        // Insert selected participants
         const participantsToSave =
           playerSelectionMode === "specific" && selectedPlayers.length > 0
             ? selectedPlayers
             : [];
 
-        if (participantsToSave.length > 0) {
+        const desired = new Set(participantsToSave);
+        const existingIds = new Set((existingParts || []).map((p: any) => p.player_id));
+        const toRemove = (existingParts || []).filter((p: any) => !desired.has(p.player_id)).map((p: any) => p.id);
+        const toAdd = participantsToSave.filter((pid) => !existingIds.has(pid));
+
+        if (toRemove.length > 0) {
+          await supabase.from("event_participants").delete().in("id", toRemove);
+        }
+        if (toAdd.length > 0) {
           await supabase.from("event_participants").insert(
-            participantsToSave.map(playerId => ({
+            toAdd.map((playerId) => ({
               training_session_id: sessionId!,
               player_id: playerId,
-            }))
+            })),
           );
         }
+
       }
 
       // If session blocks exist, create them

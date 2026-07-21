@@ -520,11 +520,26 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
           .from("training_session_blocks")
           .delete()
           .eq("training_session_id", sessionId);
-        // Replace participants
-        await supabase
-          .from("event_participants")
-          .delete()
-          .eq("training_session_id", sessionId);
+        // Sync participants without wiping existing attendance responses
+        {
+          const { data: existingParts } = await supabase
+            .from("event_participants")
+            .select("id, player_id")
+            .eq("training_session_id", sessionId);
+          const desired = new Set(selectedPlayers);
+          const toRemove = (existingParts || []).filter((p: any) => !desired.has(p.player_id)).map((p: any) => p.id);
+          const existingIds = new Set((existingParts || []).map((p: any) => p.player_id));
+          const toAdd = selectedPlayers.filter((pid) => !existingIds.has(pid));
+          if (toRemove.length > 0) {
+            await supabase.from("event_participants").delete().in("id", toRemove);
+          }
+          if (toAdd.length > 0) {
+            await supabase.from("event_participants").insert(
+              toAdd.map((pid) => ({ training_session_id: sessionId, player_id: pid })),
+            );
+          }
+        }
+
       } else {
         const { data: session, error: sErr } = await supabase
           .from("training_sessions")
@@ -561,13 +576,14 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
         const { error: bErr } = await supabase.from("training_session_blocks").insert(blockRows);
         if (bErr) throw bErr;
 
-        // Participants
-        if (selectedPlayers.length > 0) {
+        // Participants (only on create — edit path already synced above)
+        if (!isEdit && selectedPlayers.length > 0) {
           const { error: pErr } = await supabase.from("event_participants").insert(
             selectedPlayers.map((pid) => ({ training_session_id: sessionId, player_id: pid })),
           );
           if (pErr) console.error(pErr);
         }
+
       }
 
       return sessionId;
