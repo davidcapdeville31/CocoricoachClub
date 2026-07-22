@@ -47,6 +47,7 @@ interface CalendarDayCellProps {
   onFeedbackSession: (session: Session) => void;
   onDeleteSession: (sessionId: string) => void;
   onNotifySession?: (session: Session) => void;
+  onDuplicateSession?: (session: Session) => void;
   onNotifyMatch?: (match: Match) => void;
   onViewMatch?: (match: Match) => void;
   onStatsMatch?: (match: Match) => void;
@@ -68,6 +69,7 @@ export function CalendarDayCell({
   onFeedbackSession,
   onDeleteSession,
   onNotifySession,
+  onDuplicateSession,
   onNotifyMatch,
   onViewMatch,
   onStatsMatch,
@@ -171,6 +173,7 @@ export function CalendarDayCell({
               onFeedback={() => onFeedbackSession(session)}
               onDelete={() => onDeleteSession(session.id)}
               onNotify={onNotifySession ? () => onNotifySession(session) : undefined}
+              onDuplicate={onDuplicateSession ? () => onDuplicateSession(session) : undefined}
               isViewer={isViewer}
               isDraggable={!isViewer}
               playerName={session.created_by_player_id && playerNamesMap ? playerNamesMap[session.created_by_player_id] : null}

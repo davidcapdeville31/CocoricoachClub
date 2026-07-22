@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { Eye, Pencil, MessageSquare, Trash2, Bell, User } from "lucide-react";
+import { Eye, Pencil, MessageSquare, Trash2, Bell, User, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getTrainingTypeColor, getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 import { useMarkAthleteSessionRead } from "@/lib/hooks/useMarkAthleteSessionRead";
@@ -62,6 +62,7 @@ interface SessionVignetteProps {
   onFeedback: () => void;
   onDelete: () => void;
   onNotify?: () => void;
+  onDuplicate?: () => void;
   isViewer: boolean;
   isDraggable?: boolean;
   playerName?: string | null;
@@ -75,6 +76,7 @@ export function SessionVignette({
   onFeedback,
   onDelete,
   onNotify,
+  onDuplicate,
   isViewer,
   isDraggable = true,
   playerName,
@@ -228,6 +230,17 @@ export function SessionVignette({
                 title="Notifier les athlètes"
               >
                 <Bell className="h-4 w-4 text-muted-foreground group-hover/btn:text-primary" />
+              </button>
+            )}
+
+            {/* Duplicate */}
+            {!isViewer && onDuplicate && (
+              <button
+                onClick={(e) => handleActionClick(e, onDuplicate)}
+                className="p-1.5 rounded-md hover:bg-muted transition-colors group/btn"
+                title="Dupliquer la séance"
+              >
+                <Copy className="h-4 w-4 text-muted-foreground group-hover/btn:text-foreground" />
               </button>
             )}
             

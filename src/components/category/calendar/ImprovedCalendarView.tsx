@@ -18,6 +18,7 @@ import { getCompetitionColor } from "@/lib/constants/competitionColors";
 import { cn } from "@/lib/utils";
 import { CalendarDayCell } from "./CalendarDayCell";
 import { SessionVignette } from "./SessionVignette";
+import { DuplicateSessionDialog } from "./DuplicateSessionDialog";
 import { SessionFeedbackDialog } from "./SessionFeedbackDialog";
 import { SessionNotifyDialog } from "./SessionNotifyDialog";
 import { MatchNotifyDialog } from "./MatchNotifyDialog";
@@ -125,6 +126,7 @@ export function ImprovedCalendarView({
   const addEventDateRef = useRef<Date | null>(null);
   const [notifySession, setNotifySession] = useState<Session | null>(null);
   const [notifyMatch, setNotifyMatch] = useState<Match | null>(null);
+  const [duplicateSession, setDuplicateSession] = useState<Session | null>(null);
   
   // Filter states
   const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
@@ -633,6 +635,7 @@ export function ImprovedCalendarView({
                       onFeedbackSession={(session) => setFeedbackSession(session)}
                       onDeleteSession={(sessionId) => setDeleteSessionId(sessionId)}
                       onNotifySession={(session) => setNotifySession(session)}
+                      onDuplicateSession={(session) => setDuplicateSession(session)}
                       onNotifyMatch={(match) => setNotifyMatch(match)}
                       onViewMatch={(match) => onViewMatch?.(match)}
                       onStatsMatch={(match) => onStatsMatch?.(match)}
@@ -934,6 +937,14 @@ export function ImprovedCalendarView({
           sportType={sportType}
         />
       )}
+
+      {/* Duplicate Session Dialog */}
+      <DuplicateSessionDialog
+        open={!!duplicateSession}
+        onOpenChange={(open) => !open && setDuplicateSession(null)}
+        session={duplicateSession}
+        categoryId={categoryId}
+      />
     </>
   );
 }
