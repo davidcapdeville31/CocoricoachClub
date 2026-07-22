@@ -241,26 +241,52 @@ export function useSessionNotifications() {
       }
 
       // ── Step 0b: Auto-fetch participants if not provided ───────────────────
+      // Only look at explicit event_participants / training_attendance.
+      // If no athlete is convoqué → do NOT broadcast to the whole category.
       if ((!participantPlayerIds || participantPlayerIds.length === 0) && sessionId) {
-        participantPlayerIds = await fetchSessionParticipants(sessionId, categoryId);
+        try {
+          const { data: attendance } = await supabase
+            .from("training_attendance")
+            .select("player_id")
+            .eq("training_session_id", sessionId)
+            .neq("status", "absent");
+          const ids = (attendance ?? []).map((a) => a.player_id).filter(Boolean) as string[];
+          if (ids.length === 0) {
+            const { data: parts } = await supabase
+              .from("event_participants")
+              .select("player_id")
+              .eq("training_session_id", sessionId);
+            participantPlayerIds = (parts ?? []).map((p) => p.player_id).filter(Boolean) as string[];
+          } else {
+            participantPlayerIds = ids;
+          }
+        } catch {
+          participantPlayerIds = [];
+        }
       }
 
-      const hasSpecificPlayers = participantPlayerIds && participantPlayerIds.length > 0;
+      const hasSpecificPlayers = !!participantPlayerIds && participantPlayerIds.length > 0;
 
       console.log(`[SessionNotification] ─── Notification "${action}" ─────────────────────`);
       console.log(`[SessionNotification] Session ID: ${sessionId ?? "N/A"}`);
       console.log(`[SessionNotification] Category ID: ${categoryId}`);
       console.log(`[SessionNotification] Club ID: ${clubId ?? "N/A"}`);
       console.log(
-        `[SessionNotification] Players: ${hasSpecificPlayers ? participantPlayerIds!.length : "none found → broadcast"}`
+        `[SessionNotification] Players: ${hasSpecificPlayers ? participantPlayerIds!.length : "none → skip notification"}`
       );
+
+      if (!hasSpecificPlayers) {
+        console.log("[SessionNotification] ⏭️  Aucun athlète convoqué — notification ignorée.");
+        return;
+      }
+
       console.log(`[SessionNotification] Title: ${title}`);
       console.log(`[SessionNotification] Message: ${message}`);
 
       // ── Step 1: Tag participants ───────────────────────────────────────────
       let tagResult = { tagged: 0, skipped: 0, errors: [] as string[] };
 
-      if (hasSpecificPlayers && sessionId) {
+      if (sessionId) {
         if (action === "cancelled") {
           console.log("[SessionNotification] Step 1 — Removing participation tags (cancellation)");
           tagResult = await tagSessionParticipants(sessionId, participantPlayerIds!, clubId, "remove");
@@ -271,8 +297,6 @@ export function useSessionNotifications() {
         console.log(
           `[SessionNotification] Step 1 done — ${tagResult.tagged} tagged, ${tagResult.skipped} skipped, ${tagResult.errors.length} error(s)`
         );
-      } else {
-        console.log("[SessionNotification] Step 1 — Skipped (no players found)");
       }
 
       // ── Step 2: Build push payload ────────────────────────────────────────

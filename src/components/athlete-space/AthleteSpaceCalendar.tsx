@@ -165,10 +165,11 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         .eq("category_id", categoryId)
         .order("session_date", { ascending: false });
       if (error) throw error;
-      // Si la séance a des participants explicites, ne l'afficher qu'aux joueurs assignés
+      // Un athlète ne voit une séance que si (a) il l'a créée lui-même,
+      // ou (b) il figure explicitement dans les participants convoqués.
       return (data || []).filter((s: any) => {
+        if (s.created_by_player_id && s.created_by_player_id === playerId) return true;
         const parts = (s as any).event_participants || [];
-        if (!parts.length) return true;
         return parts.some((p: any) => p.player_id === playerId);
       });
     },
