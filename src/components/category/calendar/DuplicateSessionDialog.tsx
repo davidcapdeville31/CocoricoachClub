@@ -90,6 +90,8 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
 
   useEffect(() => {
     if (!open || !session) return;
+    // Reset any stale mutation state from a previous run
+    duplicateMutation.reset();
     // Default: next day, same times
     const base = parseISO(session.session_date);
     const next = addDays(base, 1);
@@ -99,6 +101,7 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
     setMode("single");
     setOccurrences(4);
     setWeekdays([next.getDay()]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, session]);
 
   const targetDates = useMemo(() => {
