@@ -163,6 +163,23 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
             .insert(partRows);
           if (pErr) console.error(pErr);
         }
+
+        // 🔔 Notify the convoqués of the new duplicated session
+        if (parts && parts.length > 0) {
+          try {
+            await notify({
+              action: "created",
+              sessionId: newId,
+              categoryId,
+              sessionDate: d,
+              sessionStartTime: startTime || null,
+              sessionType: (src as any).training_type,
+              participantPlayerIds: parts.map((p: any) => p.player_id).filter(Boolean),
+            });
+          } catch (e) {
+            console.error("[Duplicate] notify failed", e);
+          }
+        }
         created++;
       }
       return created;
