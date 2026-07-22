@@ -69,6 +69,7 @@ export function CalendarDayCell({
   onFeedbackSession,
   onDeleteSession,
   onNotifySession,
+  onDuplicateSession,
   onNotifyMatch,
   onViewMatch,
   onStatsMatch,
