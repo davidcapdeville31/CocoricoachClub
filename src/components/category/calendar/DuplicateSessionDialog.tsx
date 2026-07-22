@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format, addDays, addWeeks, parseISO } from "date-fns";
 import { Copy, Loader2 } from "lucide-react";
+import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
 
 interface Session {
   id: string;
@@ -40,6 +41,7 @@ const WEEKDAYS = [
 
 export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId }: Props) {
   const qc = useQueryClient();
+  const { notify } = useSessionNotifications();
   const [mode, setMode] = useState<"single" | "recurring">("single");
   const [targetDate, setTargetDate] = useState("");
   const [startTime, setStartTime] = useState("");
@@ -160,6 +162,23 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
             .from("event_participants")
             .insert(partRows);
           if (pErr) console.error(pErr);
+        }
+
+        // 🔔 Notify the convoqués of the new duplicated session
+        if (parts && parts.length > 0) {
+          try {
+            await notify({
+              action: "created",
+              sessionId: newId,
+              categoryId,
+              sessionDate: d,
+              sessionStartTime: startTime || null,
+              sessionType: (src as any).training_type,
+              participantPlayerIds: parts.map((p: any) => p.player_id).filter(Boolean),
+            });
+          } catch (e) {
+            console.error("[Duplicate] notify failed", e);
+          }
         }
         created++;
       }
