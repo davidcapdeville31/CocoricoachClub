@@ -41,6 +41,7 @@ const WEEKDAYS = [
 
 export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId }: Props) {
   const qc = useQueryClient();
+  const { notify } = useSessionNotifications();
   const [mode, setMode] = useState<"single" | "recurring">("single");
   const [targetDate, setTargetDate] = useState("");
   const [startTime, setStartTime] = useState("");
