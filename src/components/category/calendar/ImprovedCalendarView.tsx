@@ -18,6 +18,7 @@ import { getCompetitionColor } from "@/lib/constants/competitionColors";
 import { cn } from "@/lib/utils";
 import { CalendarDayCell } from "./CalendarDayCell";
 import { SessionVignette } from "./SessionVignette";
+import { DuplicateSessionDialog } from "./DuplicateSessionDialog";
 import { SessionFeedbackDialog } from "./SessionFeedbackDialog";
 import { SessionNotifyDialog } from "./SessionNotifyDialog";
 import { MatchNotifyDialog } from "./MatchNotifyDialog";
