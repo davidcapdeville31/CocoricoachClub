@@ -308,8 +308,9 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-lg">
+
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Copy className="h-5 w-5" /> Dupliquer la séance
