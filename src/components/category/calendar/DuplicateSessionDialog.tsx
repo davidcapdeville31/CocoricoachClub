@@ -134,7 +134,7 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
         };
         const { data: newSession, error: insErr } = await supabase
           .from("training_sessions")
-          .insert(payload)
+          .insert(payload as any)
           .select("id")
           .single();
         if (insErr) throw insErr;
