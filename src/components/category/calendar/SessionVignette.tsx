@@ -232,6 +232,17 @@ export function SessionVignette({
                 <Bell className="h-4 w-4 text-muted-foreground group-hover/btn:text-primary" />
               </button>
             )}
+
+            {/* Duplicate */}
+            {!isViewer && onDuplicate && (
+              <button
+                onClick={(e) => handleActionClick(e, onDuplicate)}
+                className="p-1.5 rounded-md hover:bg-muted transition-colors group/btn"
+                title="Dupliquer la séance"
+              >
+                <Copy className="h-4 w-4 text-muted-foreground group-hover/btn:text-foreground" />
+              </button>
+            )}
             
             {/* Delete */}
             {!isViewer && (
