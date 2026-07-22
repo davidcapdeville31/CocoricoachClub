@@ -290,10 +290,7 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
   };
 
   const handleSubmit = () => {
-    if (duplicateMutation.isPending) {
-      toast.info("Duplication en cours…");
-      return;
-    }
+    if (duplicateMutation.isPending) return;
     if (targetDates.length === 0) {
       toast.error("Sélectionne au moins une date");
       return;
@@ -303,6 +300,11 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
       return;
     }
     duplicateMutation.mutate();
+  };
+
+  const handleOpenChange = (o: boolean) => {
+    if (!o) duplicateMutation.reset();
+    onOpenChange(o);
   };
 
   return (
