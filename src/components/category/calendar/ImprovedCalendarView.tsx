@@ -937,6 +937,14 @@ export function ImprovedCalendarView({
           sportType={sportType}
         />
       )}
+
+      {/* Duplicate Session Dialog */}
+      <DuplicateSessionDialog
+        open={!!duplicateSession}
+        onOpenChange={(open) => !open && setDuplicateSession(null)}
+        session={duplicateSession}
+        categoryId={categoryId}
+      />
     </>
   );
 }
