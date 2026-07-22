@@ -174,6 +174,7 @@ export function CalendarDayCell({
               onDelete={() => onDeleteSession(session.id)}
               onNotify={onNotifySession ? () => onNotifySession(session) : undefined}
               onDuplicate={onDuplicateSession ? () => onDuplicateSession(session) : undefined}
+              isViewer={isViewer}
               isDraggable={!isViewer}
               playerName={session.created_by_player_id && playerNamesMap ? playerNamesMap[session.created_by_player_id] : null}
             />
