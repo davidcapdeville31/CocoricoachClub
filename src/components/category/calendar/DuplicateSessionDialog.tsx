@@ -13,6 +13,45 @@ import { format, addDays, addWeeks, parseISO } from "date-fns";
 import { Copy, Loader2 } from "lucide-react";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
 
+const MAX_DUPLICATED_SESSIONS = 80;
+const DB_TIMEOUT_MS = 25_000;
+const SESSION_INSERT_CHUNK_SIZE = 25;
+const CHILD_INSERT_CHUNK_SIZE = 300;
+
+function chunkArray<T>(items: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < items.length; i += size) chunks.push(items.slice(i, i + size));
+  return chunks;
+}
+
+async function withTimeout<T>(promise: PromiseLike<T>, label: string, timeoutMs = DB_TIMEOUT_MS): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      Promise.resolve(promise),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => {
+          reject(new Error(`${label} prend trop de temps. Réessaie avec moins de récurrences.`));
+        }, timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+async function runWithConcurrency<T>(items: T[], concurrency: number, task: (item: T) => Promise<void>) {
+  const queue = [...items];
+  const workers = Array.from({ length: Math.min(concurrency, queue.length) }, async () => {
+    while (queue.length > 0) {
+      const item = queue.shift();
+      if (!item) continue;
+      await task(item);
+    }
+  });
+  await Promise.all(workers);
+}
+
 interface Session {
   id: string;
   session_date: string;
@@ -90,25 +129,52 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
     mutationFn: async () => {
       if (!session) throw new Error("Séance manquante");
       if (targetDates.length === 0) throw new Error("Aucune date sélectionnée");
+      if (targetDates.length > MAX_DUPLICATED_SESSIONS) {
+        throw new Error(`Limite de ${MAX_DUPLICATED_SESSIONS} séances par duplication. Réduis le nombre de semaines ou de jours.`);
+      }
 
       // 1) Load source session, blocks and participants once
-      const { data: src, error: srcErr } = await supabase
-        .from("training_sessions")
-        .select("*")
-        .eq("id", session.id)
-        .single();
+      const { data: src, error: srcErr } = await withTimeout(
+        supabase
+          .from("training_sessions")
+          .select("*")
+          .eq("id", session.id)
+          .single(),
+        "Chargement de la séance source"
+      );
       if (srcErr) throw srcErr;
 
-      const { data: blocks } = await supabase
-        .from("training_session_blocks")
-        .select("*")
-        .eq("training_session_id", session.id)
-        .order("block_order");
+      const [{ data: blocks, error: blocksErr }, { data: parts, error: partsErr }, { data: cat }] = await Promise.all([
+        withTimeout(
+          supabase
+            .from("training_session_blocks")
+            .select("*")
+            .eq("training_session_id", session.id)
+            .order("block_order"),
+          "Chargement des blocs"
+        ),
+        withTimeout(
+          supabase
+            .from("event_participants")
+            .select("player_id")
+            .eq("training_session_id", session.id),
+          "Chargement des athlètes convoqués"
+        ),
+        withTimeout(
+          supabase
+            .from("categories")
+            .select("club_id")
+            .eq("id", categoryId)
+            .maybeSingle(),
+          "Chargement de la catégorie"
+        ),
+      ]);
+      if (blocksErr) throw blocksErr;
+      if (partsErr) throw partsErr;
 
-      const { data: parts } = await supabase
-        .from("event_participants")
-        .select("player_id")
-        .eq("training_session_id", session.id);
+      const participantIds = Array.from(
+        new Set((parts ?? []).map((p: any) => p.player_id).filter(Boolean))
+      );
 
       const excluded = new Set([
         "id",
@@ -126,18 +192,25 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
       }
       basePayload.category_id = categoryId;
 
-      // 1) Bulk insert all sessions in parallel
+      // 1) Insert sessions by chunks to avoid a huge request on long recurrences
       const sessionPayloads = targetDates.map((d) => ({
         ...basePayload,
         session_date: d,
         session_start_time: startTime || null,
         session_end_time: endTime || null,
       }));
-      const { data: newSessions, error: insErr } = await supabase
-        .from("training_sessions")
-        .insert(sessionPayloads as any)
-        .select("id, session_date");
-      if (insErr) throw insErr;
+      const newSessions: { id: string; session_date: string }[] = [];
+      for (const payloadChunk of chunkArray(sessionPayloads, SESSION_INSERT_CHUNK_SIZE)) {
+        const { data, error } = await withTimeout(
+          supabase
+            .from("training_sessions")
+            .insert(payloadChunk as any)
+            .select("id, session_date"),
+          "Création des séances"
+        );
+        if (error) throw error;
+        if (data) newSessions.push(...data);
+      }
       if (!newSessions || newSessions.length === 0) throw new Error("Aucune séance créée");
 
       // 2) Bulk insert blocks & participants in parallel (single insert each)
@@ -150,41 +223,45 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
             allBlockRows.push({ ...rest, training_session_id: ns.id });
           }
         }
-        if (parts && parts.length > 0) {
-          for (const p of parts as any[]) {
-            allPartRows.push({ training_session_id: ns.id, player_id: p.player_id });
+        if (participantIds.length > 0) {
+          for (const playerId of participantIds) {
+            allPartRows.push({ training_session_id: ns.id, player_id: playerId });
           }
         }
       }
 
-      const [blocksRes, partsRes] = await Promise.all([
-        allBlockRows.length > 0
-          ? supabase.from("training_session_blocks").insert(allBlockRows)
-          : Promise.resolve({ error: null } as any),
-        allPartRows.length > 0
-          ? supabase.from("event_participants").insert(allPartRows)
-          : Promise.resolve({ error: null } as any),
-      ]);
-      if (blocksRes.error) throw blocksRes.error;
-      if (partsRes.error) console.error(partsRes.error);
+      for (const blockChunk of chunkArray(allBlockRows, CHILD_INSERT_CHUNK_SIZE)) {
+        const { error } = await withTimeout(
+          supabase.from("training_session_blocks").insert(blockChunk),
+          "Duplication des blocs"
+        );
+        if (error) throw error;
+      }
+      for (const participantChunk of chunkArray(allPartRows, CHILD_INSERT_CHUNK_SIZE)) {
+        const { error } = await withTimeout(
+          supabase.from("event_participants").insert(participantChunk),
+          "Duplication des athlètes convoqués"
+        );
+        if (error) throw error;
+      }
 
-      // 3) Fire-and-forget notifications (don't block UI)
-      if (parts && parts.length > 0) {
-        const participantIds = parts.map((p: any) => p.player_id).filter(Boolean);
+      // 3) Fire-and-forget notifications with limited concurrency (don't block UI)
+      if (participantIds.length > 0) {
         const sessionType = (src as any).training_type;
-        Promise.all(
-          newSessions.map((ns) =>
+        window.setTimeout(() => {
+          runWithConcurrency(newSessions, 2, (ns) =>
             notify({
               action: "created",
               sessionId: ns.id,
               categoryId,
+              clubId: (cat as any)?.club_id,
               sessionDate: ns.session_date,
               sessionStartTime: startTime || null,
               sessionType,
               participantPlayerIds: participantIds,
             }).catch((e) => console.error("[Duplicate] notify failed", e))
-          )
-        );
+          ).catch((e) => console.error("[Duplicate] notification queue failed", e));
+        }, 0);
       }
 
       return newSessions.length;
@@ -209,7 +286,21 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
     setWeekdays((prev) => (prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]));
   };
 
-  const canSubmit = targetDates.length > 0 && !duplicateMutation.isPending;
+  const handleSubmit = () => {
+    if (duplicateMutation.isPending) {
+      toast.info("Duplication en cours…");
+      return;
+    }
+    if (targetDates.length === 0) {
+      toast.error("Sélectionne au moins une date");
+      return;
+    }
+    if (targetDates.length > MAX_DUPLICATED_SESSIONS) {
+      toast.error(`Maximum ${MAX_DUPLICATED_SESSIONS} séances par duplication`);
+      return;
+    }
+    duplicateMutation.mutate();
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -304,7 +395,7 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
-          <Button onClick={() => duplicateMutation.mutate()} disabled={!canSubmit}>
+          <Button onClick={handleSubmit}>
             {duplicateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Dupliquer
           </Button>
