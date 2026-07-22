@@ -90,6 +90,8 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
 
   useEffect(() => {
     if (!open || !session) return;
+    // Reset any stale mutation state from a previous run
+    duplicateMutation.reset();
     // Default: next day, same times
     const base = parseISO(session.session_date);
     const next = addDays(base, 1);
@@ -99,6 +101,7 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
     setMode("single");
     setOccurrences(4);
     setWeekdays([next.getDay()]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, session]);
 
   const targetDates = useMemo(() => {
@@ -287,10 +290,7 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
   };
 
   const handleSubmit = () => {
-    if (duplicateMutation.isPending) {
-      toast.info("Duplication en cours…");
-      return;
-    }
+    if (duplicateMutation.isPending) return;
     if (targetDates.length === 0) {
       toast.error("Sélectionne au moins une date");
       return;
@@ -302,9 +302,15 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
     duplicateMutation.mutate();
   };
 
+  const handleOpenChange = (o: boolean) => {
+    if (!o) duplicateMutation.reset();
+    onOpenChange(o);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-lg">
+
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Copy className="h-5 w-5" /> Dupliquer la séance
