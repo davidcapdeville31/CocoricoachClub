@@ -62,6 +62,7 @@ interface SessionVignetteProps {
   onFeedback: () => void;
   onDelete: () => void;
   onNotify?: () => void;
+  onDuplicate?: () => void;
   isViewer: boolean;
   isDraggable?: boolean;
   playerName?: string | null;
