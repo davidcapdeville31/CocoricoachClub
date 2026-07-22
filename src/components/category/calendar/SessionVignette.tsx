@@ -76,6 +76,7 @@ export function SessionVignette({
   onFeedback,
   onDelete,
   onNotify,
+  onDuplicate,
   isViewer,
   isDraggable = true,
   playerName,
