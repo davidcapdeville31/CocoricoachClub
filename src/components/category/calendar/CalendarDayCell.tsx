@@ -47,6 +47,7 @@ interface CalendarDayCellProps {
   onFeedbackSession: (session: Session) => void;
   onDeleteSession: (sessionId: string) => void;
   onNotifySession?: (session: Session) => void;
+  onDuplicateSession?: (session: Session) => void;
   onNotifyMatch?: (match: Match) => void;
   onViewMatch?: (match: Match) => void;
   onStatsMatch?: (match: Match) => void;
