@@ -126,63 +126,68 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
       }
       basePayload.category_id = categoryId;
 
-      let created = 0;
-      for (const d of targetDates) {
-        const payload = {
-          ...basePayload,
-          session_date: d,
-          session_start_time: startTime || null,
-          session_end_time: endTime || null,
-        };
-        const { data: newSession, error: insErr } = await supabase
-          .from("training_sessions")
-          .insert(payload as any)
-          .select("id")
-          .single();
-        if (insErr) throw insErr;
-        const newId = newSession.id;
+      // 1) Bulk insert all sessions in parallel
+      const sessionPayloads = targetDates.map((d) => ({
+        ...basePayload,
+        session_date: d,
+        session_start_time: startTime || null,
+        session_end_time: endTime || null,
+      }));
+      const { data: newSessions, error: insErr } = await supabase
+        .from("training_sessions")
+        .insert(sessionPayloads as any)
+        .select("id, session_date");
+      if (insErr) throw insErr;
+      if (!newSessions || newSessions.length === 0) throw new Error("Aucune séance créée");
 
+      // 2) Bulk insert blocks & participants in parallel (single insert each)
+      const allBlockRows: any[] = [];
+      const allPartRows: any[] = [];
+      for (const ns of newSessions) {
         if (blocks && blocks.length > 0) {
-          const blockRows = blocks.map((b: any) => {
+          for (const b of blocks as any[]) {
             const { id, created_at, updated_at, training_session_id, ...rest } = b;
-            return { ...rest, training_session_id: newId };
-          });
-          const { error: bErr } = await supabase
-            .from("training_session_blocks")
-            .insert(blockRows);
-          if (bErr) throw bErr;
-        }
-
-        if (parts && parts.length > 0) {
-          const partRows = parts.map((p: any) => ({
-            training_session_id: newId,
-            player_id: p.player_id,
-          }));
-          const { error: pErr } = await supabase
-            .from("event_participants")
-            .insert(partRows);
-          if (pErr) console.error(pErr);
-        }
-
-        // 🔔 Notify the convoqués of the new duplicated session
-        if (parts && parts.length > 0) {
-          try {
-            await notify({
-              action: "created",
-              sessionId: newId,
-              categoryId,
-              sessionDate: d,
-              sessionStartTime: startTime || null,
-              sessionType: (src as any).training_type,
-              participantPlayerIds: parts.map((p: any) => p.player_id).filter(Boolean),
-            });
-          } catch (e) {
-            console.error("[Duplicate] notify failed", e);
+            allBlockRows.push({ ...rest, training_session_id: ns.id });
           }
         }
-        created++;
+        if (parts && parts.length > 0) {
+          for (const p of parts as any[]) {
+            allPartRows.push({ training_session_id: ns.id, player_id: p.player_id });
+          }
+        }
       }
-      return created;
+
+      const [blocksRes, partsRes] = await Promise.all([
+        allBlockRows.length > 0
+          ? supabase.from("training_session_blocks").insert(allBlockRows)
+          : Promise.resolve({ error: null } as any),
+        allPartRows.length > 0
+          ? supabase.from("event_participants").insert(allPartRows)
+          : Promise.resolve({ error: null } as any),
+      ]);
+      if (blocksRes.error) throw blocksRes.error;
+      if (partsRes.error) console.error(partsRes.error);
+
+      // 3) Fire-and-forget notifications (don't block UI)
+      if (parts && parts.length > 0) {
+        const participantIds = parts.map((p: any) => p.player_id).filter(Boolean);
+        const sessionType = (src as any).training_type;
+        Promise.all(
+          newSessions.map((ns) =>
+            notify({
+              action: "created",
+              sessionId: ns.id,
+              categoryId,
+              sessionDate: ns.session_date,
+              sessionStartTime: startTime || null,
+              sessionType,
+              participantPlayerIds: participantIds,
+            }).catch((e) => console.error("[Duplicate] notify failed", e))
+          )
+        );
+      }
+
+      return newSessions.length;
     },
     onSuccess: (count) => {
       qc.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
