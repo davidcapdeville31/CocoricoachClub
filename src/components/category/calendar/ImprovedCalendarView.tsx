@@ -635,6 +635,7 @@ export function ImprovedCalendarView({
                       onFeedbackSession={(session) => setFeedbackSession(session)}
                       onDeleteSession={(sessionId) => setDeleteSessionId(sessionId)}
                       onNotifySession={(session) => setNotifySession(session)}
+                      onDuplicateSession={(session) => setDuplicateSession(session)}
                       onNotifyMatch={(match) => setNotifyMatch(match)}
                       onViewMatch={(match) => onViewMatch?.(match)}
                       onStatsMatch={(match) => onStatsMatch?.(match)}
