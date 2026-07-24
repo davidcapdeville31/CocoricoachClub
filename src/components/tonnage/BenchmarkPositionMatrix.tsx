@@ -18,7 +18,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Target, TrendingUp, TrendingDown, Minus, Weight } from "lucide-react";
+import { Target, TrendingUp, TrendingDown, Minus, Weight, LineChart as LineChartIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { computeBenchmarkLevel } from "@/lib/benchmarks/computeLevel";
 import { matchesBenchmark, normalizeTestKey } from "@/lib/benchmarks/matchTestType";
 import { synthesizeBenchmarks } from "@/lib/benchmarks/synthFromScoringScale";
@@ -119,6 +121,7 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
   const selectedKey = forcedKey ?? internalSelectedKey;
   const setSelectedKey = setInternalSelectedKey;
   const autoSelectedRef = useRef(false);
+  const [focusPlayer, setFocusPlayer] = useState<{ id: string; name: string } | null>(null);
 
   const { data: category } = useQuery({
     queryKey: ["category-matrix", categoryId],
@@ -978,6 +981,22 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                                   {p.gender === "male" ? "♂" : p.gender === "female" ? "♀" : ""}
                                 </span>
                               )}
+                              {series.length >= 2 && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 ml-auto text-primary hover:text-primary"
+                                  title="Voir la courbe d'évolution du joueur"
+                                  onClick={() =>
+                                    setFocusPlayer({
+                                      id: p.id,
+                                      name: p.first_name ? `${p.first_name} ${p.name}` : p.name,
+                                    })
+                                  }
+                                >
+                                  <LineChartIcon className="h-3.5 w-3.5" />
+                                </Button>
+                              )}
                             </div>
                           </TableCell>
                           {allDates.map((d) => {
@@ -1206,6 +1225,78 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
           )}
         </CardContent>
       </Card>
+
+      {/* DIALOG COURBE INDIVIDUELLE */}
+      <Dialog open={!!focusPlayer} onOpenChange={(o) => !o && setFocusPlayer(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <LineChartIcon className="h-4 w-4 text-primary" />
+              Évolution — {focusPlayer?.name} · {selectedOpt?.label}
+            </DialogTitle>
+          </DialogHeader>
+          {(() => {
+            if (!focusPlayer) return null;
+            const series = playerSeries.get(focusPlayer.id) || [];
+            if (series.length < 2) {
+              return (
+                <p className="py-6 text-center text-sm text-muted-foreground">
+                  Au moins 2 tests sont nécessaires pour tracer une courbe.
+                </p>
+              );
+            }
+            const useRatioAxis = isRatio;
+            const chartData = series.map((pt) => ({
+              date: fmtDate(pt.date),
+              value: useRatioAxis
+                ? pt.ratio != null
+                  ? Number(pt.ratio.toFixed(3))
+                  : null
+                : pt.value,
+              kg: pt.rawKg ?? null,
+            }));
+            return (
+              <div className="h-80 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                    <YAxis
+                      tick={{ fontSize: 11 }}
+                      stroke="hsl(var(--muted-foreground))"
+                      domain={["auto", "auto"]}
+                      reversed={!!bm?.lower_is_better}
+                    />
+                    <RTooltip
+                      contentStyle={{
+                        background: "hsl(var(--popover))",
+                        border: "1px solid hsl(var(--border))",
+                        borderRadius: 8,
+                        fontSize: 12,
+                      }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="value"
+                      name={useRatioAxis ? "Ratio" : `Valeur${unitSuffix ? ` (${unitSuffix})` : ""}`}
+                      stroke="hsl(var(--primary))"
+                      strokeWidth={2.5}
+                      dot={{ r: 5 }}
+                      activeDot={{ r: 7 }}
+                      connectNulls
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+                <p className="mt-2 text-[11px] text-muted-foreground text-center">
+                  {bm?.lower_is_better
+                    ? "Axe inversé : courbe descendante = progression."
+                    : "Courbe montante = progression, descendante = régression."}
+                </p>
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
