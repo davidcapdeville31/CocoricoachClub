@@ -30,6 +30,16 @@ import {
 } from "@/lib/constants/sportPositionGroups";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
+import {
+  LineChart,
+  Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip as RTooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 interface Props {
   categoryId: string;
@@ -1081,6 +1091,96 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId }: Props) {
                   })}
                 </TableBody>
               </Table>
+
+              {/* GRAPHIQUE D'ÉVOLUTION */}
+              {allDates.length >= 2 && (() => {
+                const activePlayers = playersByPosition
+                  .flatMap(([, info]) => info.list)
+                  .filter((p: any) => (playerSeries.get(p.id) || []).length >= 2);
+                if (activePlayers.length === 0) return null;
+
+                const useRatioAxis = isRatio;
+                const chartData = allDates.map((d) => {
+                  const row: Record<string, any> = { date: fmtDate(d) };
+                  activePlayers.forEach((p: any) => {
+                    const pt = (playerSeries.get(p.id) || []).find((s) => s.date === d);
+                    if (pt) {
+                      const key = p.first_name ? `${p.first_name} ${p.name}` : p.name;
+                      row[key] = useRatioAxis
+                        ? pt.ratio != null
+                          ? Number(pt.ratio.toFixed(3))
+                          : null
+                        : pt.value;
+                    }
+                  });
+                  return row;
+                });
+
+                const palette = [
+                  "hsl(var(--primary))",
+                  "hsl(var(--accent))",
+                  "#f59e0b",
+                  "#10b981",
+                  "#ef4444",
+                  "#6366f1",
+                  "#ec4899",
+                  "#14b8a6",
+                ];
+
+                return (
+                  <div className="mt-6">
+                    <div className="mb-2 flex items-center gap-2">
+                      <TrendingUp className="h-4 w-4 text-primary" />
+                      <h4 className="text-sm font-semibold">
+                        Évolution — {useRatioAxis ? "ratio (charge / poids de corps)" : `valeur${unitSuffix ? ` (${unitSuffix})` : ""}`}
+                      </h4>
+                    </div>
+                    <div className="h-72 w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                          <YAxis
+                            tick={{ fontSize: 11 }}
+                            stroke="hsl(var(--muted-foreground))"
+                            domain={["auto", "auto"]}
+                            reversed={!!bm?.lower_is_better}
+                          />
+                          <RTooltip
+                            contentStyle={{
+                              background: "hsl(var(--popover))",
+                              border: "1px solid hsl(var(--border))",
+                              borderRadius: 8,
+                              fontSize: 12,
+                            }}
+                          />
+                          <Legend wrapperStyle={{ fontSize: 12 }} />
+                          {activePlayers.map((p: any, i: number) => {
+                            const key = p.first_name ? `${p.first_name} ${p.name}` : p.name;
+                            return (
+                              <Line
+                                key={p.id}
+                                type="monotone"
+                                dataKey={key}
+                                stroke={palette[i % palette.length]}
+                                strokeWidth={2}
+                                dot={{ r: 4 }}
+                                activeDot={{ r: 6 }}
+                                connectNulls
+                              />
+                            );
+                          })}
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <p className="mt-1 text-[11px] text-muted-foreground">
+                      {bm?.lower_is_better
+                        ? "Axe inversé : une courbe descendante = progression."
+                        : "Courbe montante = progression, descendante = régression."}
+                    </p>
+                  </div>
+                );
+              })()}
             </div>
           )}
         </CardContent>
