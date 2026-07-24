@@ -532,8 +532,8 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
         );
       })()}
 
-      {/* Vue effectif par poste & barème — restreinte à ce joueur */}
-      <BenchmarkPositionMatrix categoryId={categoryId} filterPlayerId={playerId} />
+      {/* Tableau + graphique pour CHAQUE test avec des résultats */}
+      <AllTestsBenchmarkMatrix categoryId={categoryId} filterPlayerId={playerId} />
 
 
 
