@@ -30,6 +30,16 @@ import {
 } from "@/lib/constants/sportPositionGroups";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
+import {
+  LineChart,
+  Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip as RTooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 interface Props {
   categoryId: string;
