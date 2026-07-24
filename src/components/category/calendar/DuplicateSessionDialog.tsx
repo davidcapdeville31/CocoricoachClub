@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format, addDays, addWeeks, parseISO } from "date-fns";
+import { fr } from "date-fns/locale";
 import { Copy, Loader2 } from "lucide-react";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
 
@@ -393,7 +394,7 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
           {targetDates.length > 0 && (
             <div className="max-h-32 overflow-y-auto text-xs text-muted-foreground border rounded p-2">
               {targetDates.map((d) => (
-                <div key={d}>• {format(parseISO(d), "EEEE d MMMM yyyy")}</div>
+                <div key={d}>• {format(parseISO(d), "EEEE d MMMM yyyy", { locale: fr })}</div>
               ))}
             </div>
           )}
