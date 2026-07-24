@@ -459,8 +459,11 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
                           const previousComparable = isRatioTest ? getRatioComparableValue(previous, playerWeight) : previous;
                           if (latestComparable == null || previousComparable == null || previousComparable === 0) return null;
                           const rawPct = ((latestComparable - previousComparable) / Math.abs(previousComparable)) * 100;
-                          const positive = isTimeTest ? rawPct < 0 : rawPct > 0;
-                          progression = { pct: Math.abs(rawPct), positive };
+                          // Ignore les variations non significatives (< 0.5%) pour éviter d'afficher "▼ 0%" en rouge
+                          if (Math.abs(rawPct) >= 0.5) {
+                            const positive = isTimeTest ? rawPct < 0 : rawPct > 0;
+                            progression = { pct: Math.abs(rawPct), positive };
+                          }
                         }
                       }
                       // Best matching benchmark for this test
