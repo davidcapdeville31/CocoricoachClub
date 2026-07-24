@@ -1246,26 +1246,59 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
               );
             }
             const useRatioAxis = isRatio;
-            const chartData = series.map((pt) => ({
-              date: fmtDate(pt.date),
-              value: useRatioAxis
+            const lowerBetter = !!bm?.lower_is_better;
+            const chartData = series.map((pt, i, arr) => {
+              const value = useRatioAxis
                 ? pt.ratio != null
                   ? Number(pt.ratio.toFixed(3))
                   : null
-                : pt.value,
-              kg: pt.rawKg ?? null,
-            }));
+                : pt.value;
+              let pctLabel: { text: string; color: string } | null = null;
+              if (i > 0) {
+                const prev = useRatioAxis
+                  ? arr[i - 1].ratio ?? null
+                  : arr[i - 1].value;
+                if (prev != null && value != null && prev !== 0) {
+                  const pct = ((value - prev) / Math.abs(prev)) * 100;
+                  if (Math.abs(pct) >= 0.5) {
+                    const improved = lowerBetter ? pct < 0 : pct > 0;
+                    pctLabel = {
+                      text: `${pct > 0 ? "+" : ""}${pct.toFixed(1)}%`,
+                      color: improved ? "hsl(142 71% 40%)" : "hsl(0 72% 51%)",
+                    };
+                  }
+                }
+              }
+              return { date: fmtDate(pt.date), value, kg: pt.rawKg ?? null, pctLabel };
+            });
+            const renderPctLabel = (props: any) => {
+              const { x, y, index } = props;
+              const d = chartData[index];
+              if (!d?.pctLabel) return null;
+              return (
+                <text
+                  x={x}
+                  y={y - 14}
+                  textAnchor="middle"
+                  fontSize={11}
+                  fontWeight={700}
+                  fill={d.pctLabel.color}
+                >
+                  {d.pctLabel.text}
+                </text>
+              );
+            };
             return (
               <div className="h-80 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
+                  <LineChart data={chartData} margin={{ top: 20, right: 20, left: 0, bottom: 10 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
                     <YAxis
                       tick={{ fontSize: 11 }}
                       stroke="hsl(var(--muted-foreground))"
                       domain={["auto", "auto"]}
-                      reversed={!!bm?.lower_is_better}
+                      reversed={lowerBetter}
                     />
                     <RTooltip
                       contentStyle={{
@@ -1284,6 +1317,7 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                       dot={{ r: 5 }}
                       activeDot={{ r: 7 }}
                       connectNulls
+                      label={renderPctLabel}
                     />
                   </LineChart>
                 </ResponsiveContainer>
