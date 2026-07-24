@@ -289,12 +289,80 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
 
   const deleteMatch = useMutation({
     mutationFn: async () => {
+      // Capture les athlètes convoqués AVANT suppression (cascade)
+      const [{ data: lineup }, { data: sheetPlayers }] = await Promise.all([
+        supabase.from("match_lineups").select("player_id").eq("match_id", match.id),
+        supabase.from("match_sheet_players").select("player_id, match_sheets!inner(match_id)").eq("match_sheets.match_id", match.id),
+      ]);
+      const participantIds = Array.from(new Set([
+        ...(lineup ?? []).map((l: any) => l.player_id),
+        ...(sheetPlayers ?? []).map((p: any) => p.player_id),
+      ].filter(Boolean))) as string[];
+
       const { error } = await supabase.from("matches").delete().eq("id", match.id);
       if (error) throw error;
+      return { participantIds };
     },
-    onSuccess: () => {
+    onSuccess: async ({ participantIds }) => {
       queryClient.invalidateQueries({ queryKey: ["matches", categoryId] });
       toast.success(isIndividual ? "Compétition supprimée" : "Match supprimé");
+
+      // 🔔 Notifier les athlètes convoqués (bell + email)
+      if (participantIds.length === 0) return;
+      try {
+        const { data: athleteRows } = await supabase
+          .from("players")
+          .select("id, first_name, name, email, user_id")
+          .in("id", participantIds);
+
+        const dateLabel = (() => {
+          try { return format(new Date(match.match_date), "EEEE d MMMM", { locale: fr }); }
+          catch { return match.match_date; }
+        })();
+        const title = isIndividual ? "Compétition annulée" : "Match annulé";
+        const opponentLabel = match.competition || match.opponent || (isIndividual ? "Compétition" : "Match");
+        const message = `${opponentLabel} — ${dateLabel}\nCette ${isIndividual ? "compétition" : "rencontre"} a été annulée.`;
+
+        // Cloche in-app
+        const userIds = Array.from(new Set((athleteRows ?? []).map((r: any) => r.user_id).filter(Boolean))) as string[];
+        if (userIds.length > 0) {
+          await supabase.from("notifications").insert(userIds.map((uid) => ({
+            user_id: uid,
+            category_id: categoryId,
+            title: `❌ ${title}`,
+            message,
+            notification_type: "athlete_session",
+            notification_subtype: "session_cancelled",
+            priority: "high",
+            metadata: { match_id: match.id, match_date: match.match_date },
+          })));
+        }
+
+        // Email
+        const athletes = (athleteRows ?? [])
+          .filter((p: any) => p.email)
+          .map((p: any) => ({
+            name: [p.first_name, p.name].filter(Boolean).join(" ").trim() || "Athlète",
+            email: p.email as string,
+            user_id: p.user_id ?? undefined,
+          }));
+        if (athletes.length > 0) {
+          supabase.functions.invoke("notify-athletes", {
+            body: {
+              athletes,
+              subject: title,
+              message,
+              channels: ["email"],
+              eventType: "match",
+              category_id: categoryId,
+              skipBell: true,
+              eventDetails: { date: dateLabel },
+            },
+          }).catch((e) => console.warn("[MatchCard] cancel email failed:", e));
+        }
+      } catch (e) {
+        console.warn("[MatchCard] cancel notify failed:", e);
+      }
     },
     onError: () => {
       toast.error("Erreur lors de la suppression");
