@@ -5,7 +5,7 @@ import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Target, Flame, Activity, Trophy, Dumbbell } from "lucide-react";
+import { Plus, Target, Flame, Activity, Trophy, Dumbbell, Home, Plane, MapPin } from "lucide-react";
 import { getCompetitionColor } from "@/lib/constants/competitionColors";
 
 
@@ -39,7 +39,7 @@ interface AnnualTimelineViewProps {
   categories: PeriodizationCategory[];
   cycles: PeriodizationCycle[];
   sessions: { id: string; session_date: string }[];
-  matches: { id: string; match_date: string; opponent: string; is_finalized?: boolean | null; competition?: string | null }[];
+  matches: { id: string; match_date: string; opponent: string; is_finalized?: boolean | null; competition?: string | null; is_home?: boolean | null; location?: string | null }[];
   isViewer: boolean;
   onAddCycle: (categoryId: string) => void;
   onEditCycle: (cycle: PeriodizationCycle) => void;
@@ -331,6 +331,27 @@ export function AnnualTimelineView({
                             <p className="text-[10px] text-muted-foreground">
                               {format(md, "EEEE dd MMMM yyyy", { locale: fr })}
                             </p>
+                            {typeof m.is_home === "boolean" && (
+                              <p className="text-[10px] font-medium flex items-center gap-1">
+                                {m.is_home ? (
+                                  <>
+                                    <Home className="h-3 w-3 text-emerald-600" />
+                                    <span className="text-emerald-600">Domicile</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Plane className="h-3 w-3 text-sky-600" />
+                                    <span className="text-sky-600">Extérieur</span>
+                                  </>
+                                )}
+                              </p>
+                            )}
+                            {m.location && (
+                              <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                                <MapPin className="h-3 w-3" />
+                                {m.location}
+                              </p>
+                            )}
                           </div>
                         </TooltipContent>
                       </Tooltip>
