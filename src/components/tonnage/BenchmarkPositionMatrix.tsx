@@ -121,6 +121,7 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
   const selectedKey = forcedKey ?? internalSelectedKey;
   const setSelectedKey = setInternalSelectedKey;
   const autoSelectedRef = useRef(false);
+  const [focusPlayer, setFocusPlayer] = useState<{ id: string; name: string } | null>(null);
 
   const { data: category } = useQuery({
     queryKey: ["category-matrix", categoryId],
