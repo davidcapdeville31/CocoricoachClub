@@ -331,6 +331,27 @@ export function AnnualTimelineView({
                             <p className="text-[10px] text-muted-foreground">
                               {format(md, "EEEE dd MMMM yyyy", { locale: fr })}
                             </p>
+                            {typeof m.is_home === "boolean" && (
+                              <p className="text-[10px] font-medium flex items-center gap-1">
+                                {m.is_home ? (
+                                  <>
+                                    <Home className="h-3 w-3 text-emerald-600" />
+                                    <span className="text-emerald-600">Domicile</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Plane className="h-3 w-3 text-sky-600" />
+                                    <span className="text-sky-600">Extérieur</span>
+                                  </>
+                                )}
+                              </p>
+                            )}
+                            {m.location && (
+                              <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                                <MapPin className="h-3 w-3" />
+                                {m.location}
+                              </p>
+                            )}
                           </div>
                         </TooltipContent>
                       </Tooltip>
