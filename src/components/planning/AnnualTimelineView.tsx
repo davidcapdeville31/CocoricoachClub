@@ -39,7 +39,7 @@ interface AnnualTimelineViewProps {
   categories: PeriodizationCategory[];
   cycles: PeriodizationCycle[];
   sessions: { id: string; session_date: string }[];
-  matches: { id: string; match_date: string; opponent: string; is_finalized?: boolean | null; competition?: string | null }[];
+  matches: { id: string; match_date: string; opponent: string; is_finalized?: boolean | null; competition?: string | null; is_home?: boolean | null; location?: string | null }[];
   isViewer: boolean;
   onAddCycle: (categoryId: string) => void;
   onEditCycle: (cycle: PeriodizationCycle) => void;
