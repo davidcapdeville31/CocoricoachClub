@@ -197,34 +197,47 @@ export function SessionsTab({ categoryId }: SessionsTabProps) {
 
   const deleteSession = useMutation({
     mutationFn: async (sessionId: string) => {
+      // Capture participants BEFORE cascade deletes so we can notify them
+      const [{ data: eventParts }, { data: attendance }] = await Promise.all([
+        supabase.from("event_participants").select("player_id").eq("training_session_id", sessionId),
+        supabase.from("training_attendance").select("player_id").eq("training_session_id", sessionId).neq("status", "absent"),
+      ]);
+      const participantIds = Array.from(new Set([
+        ...(attendance ?? []).map((a: any) => a.player_id),
+        ...(eventParts ?? []).map((p: any) => p.player_id),
+      ].filter(Boolean))) as string[];
+
       // Delete related records first
       await supabase.from("gym_session_exercises").delete().eq("training_session_id", sessionId);
       await supabase.from("training_attendance").delete().eq("training_session_id", sessionId);
       await supabase.from("awcr_tracking").delete().eq("training_session_id", sessionId);
       const { error } = await supabase.from("training_sessions").delete().eq("id", sessionId);
       if (error) throw error;
+      return { participantIds };
     },
-    onSuccess: (_, sessionId) => {
+    onSuccess: ({ participantIds }, sessionId) => {
       queryClient.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["today_session_exercises"] });
       toast.success("Séance supprimée");
 
-      // 🔔 Notify all category members of the cancellation
-      if (sessionToDeleteMeta) {
+      // 🔔 Notify convoked athletes of the cancellation
+      if (sessionToDeleteMeta && participantIds.length > 0) {
         notify({
           action: "cancelled",
           sessionId,
           categoryId,
           sessionDate: sessionToDeleteMeta.date,
           sessionType: sessionToDeleteMeta.type,
-        });
+          participantPlayerIds: participantIds,
+        }).catch((e) => console.warn("[SessionsTab] cancel notify failed:", e));
       }
 
       setDeleteDialogOpen(false);
       setSessionToDelete(null);
       setSessionToDeleteMeta(null);
     },
+
     onError: () => {
       toast.error("Erreur lors de la suppression");
     },

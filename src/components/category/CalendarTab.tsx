@@ -268,19 +268,29 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
 
   const deleteSession = useMutation({
     mutationFn: async (sessionId: string) => {
-      // Fetch session info BEFORE delete so we can notify athletes
+      // Fetch session info + participants BEFORE delete so we can notify athletes
+      // (event_participants / training_attendance are cascade-deleted with the session)
       const { data: sessionInfo } = await supabase
         .from("training_sessions")
         .select("id, category_id, session_date, session_start_time, training_type")
         .eq("id", sessionId)
         .maybeSingle();
 
+      const [{ data: eventParts }, { data: attendance }] = await Promise.all([
+        supabase.from("event_participants").select("player_id").eq("training_session_id", sessionId),
+        supabase.from("training_attendance").select("player_id").eq("training_session_id", sessionId).neq("status", "absent"),
+      ]);
+      const participantIds = Array.from(new Set([
+        ...(attendance ?? []).map((a: any) => a.player_id),
+        ...(eventParts ?? []).map((p: any) => p.player_id),
+      ].filter(Boolean))) as string[];
+
       const { error } = await supabase
         .from("training_sessions")
         .delete()
         .eq("id", sessionId);
       if (error) throw error;
-      return { sessionId, sessionInfo };
+      return { sessionId, sessionInfo, participantIds };
     },
     onMutate: async (sessionId) => {
       await queryClient.cancelQueries({ queryKey: ["sessions", categoryId] });
@@ -291,11 +301,11 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
       });
       return { previousSessions };
     },
-    onSuccess: ({ sessionId, sessionInfo }) => {
+    onSuccess: ({ sessionId, sessionInfo, participantIds }) => {
       toast.success("Séance supprimée avec succès");
 
-      // 🔔 Notify athletes of cancellation
-      if (sessionInfo) {
+      // 🔔 Notify athletes of cancellation (participants captured before delete)
+      if (sessionInfo && participantIds.length > 0) {
         notify({
           action: "cancelled",
           sessionId,
@@ -303,9 +313,11 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
           sessionDate: sessionInfo.session_date,
           sessionStartTime: sessionInfo.session_start_time,
           sessionType: sessionInfo.training_type,
+          participantPlayerIds: participantIds,
         }).catch((e) => console.warn("[CalendarTab] cancel notify failed:", e));
       }
     },
+
     onError: (error, variables, context) => {
       if (context?.previousSessions) {
         queryClient.setQueryData(["sessions", categoryId], context.previousSessions);
