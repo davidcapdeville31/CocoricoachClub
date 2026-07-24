@@ -18,6 +18,7 @@ import { matchesBenchmark } from "@/lib/benchmarks/matchTestType";
 import { collectLatestPlayerWeights } from "@/lib/benchmarks/playerWeights";
 import { getPositionGroupsForSport, playerBelongsToGroup } from "@/lib/constants/sportPositionGroups";
 import { BenchmarkPositionMatrix } from "@/components/tonnage/BenchmarkPositionMatrix";
+import { AllTestsBenchmarkMatrix } from "@/components/tonnage/AllTestsBenchmarkMatrix";
 
 
 interface Props {
@@ -532,8 +533,8 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
         );
       })()}
 
-      {/* Vue effectif par poste & barème — restreinte à ce joueur */}
-      <BenchmarkPositionMatrix categoryId={categoryId} filterPlayerId={playerId} />
+      {/* Tableau + graphique pour CHAQUE test avec des résultats */}
+      <AllTestsBenchmarkMatrix categoryId={categoryId} filterPlayerId={playerId} />
 
 
 

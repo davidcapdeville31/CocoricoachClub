@@ -45,6 +45,14 @@ interface Props {
   categoryId: string;
   /** Si défini, restreint le tableau de résultats à ce joueur uniquement (vue athlète). */
   filterPlayerId?: string;
+  /** Cache la carte header + selecteur (pour rendu multi-tests). */
+  hideSelector?: boolean;
+  /** Force l'affichage d'un test particulier (bypass du dropdown). */
+  forcedKey?: string;
+  /** Callback qui expose la liste des tests disponibles (pour un parent multi-tests). */
+  onTestOptions?: (opts: { key: string; label: string; count: number }[]) => void;
+  /** Si true, n'affiche rien : sert juste à émettre onTestOptions. */
+  renderOnlyOptions?: boolean;
 }
 
 
@@ -106,8 +114,10 @@ function isRatioUnit(u: string | null | undefined) {
   return s === "×pdc" || s === "xpdc";
 }
 
-export function BenchmarkPositionMatrix({ categoryId, filterPlayerId }: Props) {
-  const [selectedKey, setSelectedKey] = useState<string>("");
+export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelector, forcedKey, onTestOptions, renderOnlyOptions }: Props) {
+  const [internalSelectedKey, setInternalSelectedKey] = useState<string>("");
+  const selectedKey = forcedKey ?? internalSelectedKey;
+  const setSelectedKey = setInternalSelectedKey;
   const autoSelectedRef = useRef(false);
 
   const { data: category } = useQuery({
@@ -502,24 +512,31 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId }: Props) {
     return Array.from(merged.values());
   }, [benchmarks, customTests, genericTestsScoped, speedTestsScoped, strengthTestsScoped]);
 
-  // Auto-select first option with data
+  // Emit options to parent (for multi-test rendering)
   useEffect(() => {
+    if (!onTestOptions) return;
+    onTestOptions(testOptions.map((o) => ({ key: o.key, label: o.label, count: o.count })));
+  }, [testOptions, onTestOptions]);
+
+  // Auto-select first option with data (skipped when parent forces a key)
+  useEffect(() => {
+    if (forcedKey) return;
     if (testOptions.length === 0) return;
 
-    const current = testOptions.find((o) => o.key === selectedKey) || null;
+    const current = testOptions.find((o) => o.key === internalSelectedKey) || null;
     const firstWithData = testOptions.find((o) => o.count > 0) || null;
 
-    if (!selectedKey || !current) {
+    if (!internalSelectedKey || !current) {
       const first = firstWithData || testOptions[0];
-      setSelectedKey(first.key);
+      setInternalSelectedKey(first.key);
       autoSelectedRef.current = true;
       return;
     }
 
-    if (autoSelectedRef.current && current.count === 0 && firstWithData && firstWithData.key !== selectedKey) {
-      setSelectedKey(firstWithData.key);
+    if (autoSelectedRef.current && current.count === 0 && firstWithData && firstWithData.key !== internalSelectedKey) {
+      setInternalSelectedKey(firstWithData.key);
     }
-  }, [selectedKey, testOptions]);
+  }, [internalSelectedKey, testOptions, forcedKey]);
 
   const selectedOpt = useMemo(
     () => testOptions.find((o) => o.key === selectedKey) || null,
@@ -729,6 +746,8 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId }: Props) {
     return `${fmt(lvl.threshold)} – ${fmt(next.threshold ?? lvl.threshold)}`;
   };
 
+  if (renderOnlyOptions) return null;
+
   if (benchmarks.length === 0 && customTests.length === 0) {
     return (
       <Card>
@@ -748,6 +767,7 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId }: Props) {
   return (
     <div className="space-y-4">
       {/* HEADER + selector */}
+      {!hideSelector && (
       <Card>
         <CardHeader className="pb-3">
           <div className="flex flex-wrap items-start justify-between gap-3">
@@ -796,6 +816,7 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId }: Props) {
           )}
         </CardHeader>
       </Card>
+      )}
 
       {/* BARÈME PAR POSTE */}
       {bm && bm.levels?.length > 0 && (() => {
