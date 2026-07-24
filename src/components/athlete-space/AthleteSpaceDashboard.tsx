@@ -99,21 +99,42 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
       // Collect custom test IDs to resolve labels
       const customIds = new Set<string>();
       const collectCustom = (t: string | null | undefined) => {
-        if (t && t.startsWith("custom:")) customIds.add(t.slice("custom:".length));
+        if (t && /^custom:/i.test(t)) customIds.add(t.slice("custom:".length).toLowerCase());
       };
       sameDay.forEach((session: any) => {
         if (session.test_reminder_id) collectCustom(remindersMap[session.test_reminder_id]);
         parseTestsFromNotes(session.notes).forEach((t: any) => collectCustom(t.test_type));
+        const noteCustomCodes = String(session.notes || "").match(/custom:[0-9a-f-]{32,36}/gi) || [];
+        noteCustomCodes.forEach((code) => collectCustom(code));
       });
       const customMap: Record<string, string> = {};
       if (customIds.size > 0) {
-        const { data: customs } = await supabase
+        const ids = Array.from(customIds);
+        const direct = await supabase
           .from("custom_tests")
           .select("id, name")
-          .in("id", Array.from(customIds));
-        (customs || []).forEach((c: any) => { customMap[`custom:${c.id}`] = c.name; });
+          .in("id", ids);
+
+        const rows = [...(direct.data || [])];
+        if (direct.error || rows.length < ids.length) {
+          const rpc = await supabase.rpc("get_custom_test_labels", { _ids: ids });
+          if (!rpc.error && rpc.data) {
+            const seen = new Set(rows.map((row: any) => String(row.id).toLowerCase()));
+            (rpc.data || []).forEach((row: any) => {
+              const id = String(row.id).toLowerCase();
+              if (!seen.has(id)) rows.push(row);
+            });
+          }
+        }
+        rows.forEach((c: any) => { customMap[`custom:${String(c.id).toLowerCase()}`] = c.name; });
       }
-      const resolve = (t: string) => t?.startsWith("custom:") ? (customMap[t] || "Test personnalisé") : (getTestLabel(t) || t);
+      const resolve = (t: string) => {
+        if (/^custom:/i.test(t || "")) {
+          const id = t.slice("custom:".length).toLowerCase();
+          return customMap[`custom:${id}`] || "Test personnalisé";
+        }
+        return getTestLabel(t) || t;
+      };
 
       return sameDay.map((session: any) => {
         let testLabel: string | null = null;
@@ -128,7 +149,7 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
         }
         if (!testLabel) {
           const legacy = (session.notes || "").match(/Test auto-planifi[ée]\s*:\s*([^\n<]+)/i);
-          if (legacy) testLabel = legacy[1].trim();
+          if (legacy) testLabel = legacy[1].trim().replace(/custom:[0-9a-f-]{32,36}/gi, (code: string) => resolve(code));
         }
         return { ...session, testLabel: testLabel || "Test" };
       });

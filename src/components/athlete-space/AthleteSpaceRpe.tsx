@@ -760,7 +760,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         {testNames.map((name, idx) => <div key={idx}>📋 {name}</div>)}
         {results.map((r, idx) => {
           const unit = r.result_unit || "";
-          const customUnit = r.test_type?.startsWith("custom:") ? customTestMap[r.test_type]?.unit : null;
+          const customUnit = /^custom:/i.test(r.test_type || "") ? customTestMap[`custom:${r.test_type.slice(7).toLowerCase()}`]?.unit : null;
           const isRatio = isBodyWeightRatioUnit(unit) || isBodyWeightRatioUnit(customUnit);
           const value = Number(r.result_value);
           let display = `${r.result_value} ${unit}`;
