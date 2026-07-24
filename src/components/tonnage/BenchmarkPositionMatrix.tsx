@@ -767,6 +767,7 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
   return (
     <div className="space-y-4">
       {/* HEADER + selector */}
+      {!hideSelector && (
       <Card>
         <CardHeader className="pb-3">
           <div className="flex flex-wrap items-start justify-between gap-3">
@@ -815,6 +816,7 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
           )}
         </CardHeader>
       </Card>
+      )}
 
       {/* BARÈME PAR POSTE */}
       {bm && bm.levels?.length > 0 && (() => {
