@@ -45,6 +45,14 @@ interface Props {
   categoryId: string;
   /** Si défini, restreint le tableau de résultats à ce joueur uniquement (vue athlète). */
   filterPlayerId?: string;
+  /** Cache la carte header + selecteur (pour rendu multi-tests). */
+  hideSelector?: boolean;
+  /** Force l'affichage d'un test particulier (bypass du dropdown). */
+  forcedKey?: string;
+  /** Callback qui expose la liste des tests disponibles (pour un parent multi-tests). */
+  onTestOptions?: (opts: { key: string; label: string; count: number }[]) => void;
+  /** Si true, n'affiche rien : sert juste à émettre onTestOptions. */
+  renderOnlyOptions?: boolean;
 }
 
 
