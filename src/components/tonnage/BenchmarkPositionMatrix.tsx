@@ -1300,9 +1300,9 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
               if (!d?.pctLabel) return null;
               return (
                 <text
-                  x={x}
-                  y={y - 14}
-                  textAnchor="middle"
+                  x={x + 12}
+                  y={y - 8}
+                  textAnchor="start"
                   fontSize={11}
                   fontWeight={700}
                   fill={d.pctLabel.color}
@@ -1314,7 +1314,7 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
             return (
               <div className="h-80 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData} margin={{ top: 20, right: 20, left: 0, bottom: 10 }}>
+                  <LineChart data={chartData} margin={{ top: 30, right: 50, left: 0, bottom: 10 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
                     <YAxis
