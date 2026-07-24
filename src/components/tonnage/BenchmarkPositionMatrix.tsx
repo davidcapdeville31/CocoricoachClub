@@ -746,6 +746,8 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
     return `${fmt(lvl.threshold)} – ${fmt(next.threshold ?? lvl.threshold)}`;
   };
 
+  if (renderOnlyOptions) return null;
+
   if (benchmarks.length === 0 && customTests.length === 0) {
     return (
       <Card>
