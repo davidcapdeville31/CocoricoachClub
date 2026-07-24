@@ -981,6 +981,22 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                                   {p.gender === "male" ? "♂" : p.gender === "female" ? "♀" : ""}
                                 </span>
                               )}
+                              {series.length >= 2 && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 ml-auto text-primary hover:text-primary"
+                                  title="Voir la courbe d'évolution du joueur"
+                                  onClick={() =>
+                                    setFocusPlayer({
+                                      id: p.id,
+                                      name: p.first_name ? `${p.first_name} ${p.name}` : p.name,
+                                    })
+                                  }
+                                >
+                                  <LineChartIcon className="h-3.5 w-3.5" />
+                                </Button>
+                              )}
                             </div>
                           </TableCell>
                           {allDates.map((d) => {
