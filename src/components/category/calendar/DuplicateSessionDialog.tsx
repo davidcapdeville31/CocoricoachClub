@@ -394,7 +394,7 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
           {targetDates.length > 0 && (
             <div className="max-h-32 overflow-y-auto text-xs text-muted-foreground border rounded p-2">
               {targetDates.map((d) => (
-                <div key={d}>• {format(parseISO(d), "EEEE d MMMM yyyy")}</div>
+                <div key={d}>• {format(parseISO(d), "EEEE d MMMM yyyy", { locale: fr })}</div>
               ))}
             </div>
           )}
