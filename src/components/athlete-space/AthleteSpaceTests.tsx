@@ -103,11 +103,23 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
     queryKey: ["athlete-space-custom-tests-labels", customIds.slice().sort().join(",")],
     enabled: customIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Try direct read first (works for staff / club members)
+      const direct = await supabase
         .from("custom_tests")
         .select("id,name,unit,test_category")
         .in("id", customIds);
-      if (error) throw error;
+      if (!direct.error && direct.data && direct.data.length === customIds.length) {
+        return direct.data;
+      }
+      // Fallback via security-definer RPC so athletes (who may lack club_members
+      // access) can still resolve readable names for their own tests.
+      const { data, error } = await supabase.rpc("get_custom_test_labels", {
+        _ids: customIds,
+      });
+      if (error) {
+        // Merge whatever direct returned
+        return direct.data || [];
+      }
       return data || [];
     },
   });

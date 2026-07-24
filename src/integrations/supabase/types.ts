@@ -15068,6 +15068,15 @@ export type Database = {
           granted_at: string
         }[]
       }
+      get_custom_test_labels: {
+        Args: { _ids: string[] }
+        Returns: {
+          id: string
+          name: string
+          test_category: string
+          unit: string
+        }[]
+      }
       get_invitation_info: {
         Args: { _kind: string; _token: string }
         Returns: Json
