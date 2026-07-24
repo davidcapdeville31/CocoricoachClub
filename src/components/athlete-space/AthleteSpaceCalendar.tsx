@@ -39,6 +39,7 @@ import { cn } from "@/lib/utils";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 import { getTestLabel } from "@/lib/constants/testCategories";
 import { parseTestsFromNotes } from "@/lib/utils/sessionNotes";
+import { labelizeTestType, useCustomTestLabels } from "@/hooks/useCustomTestLabels";
 import { GroupedExerciseList } from "@/components/category/GroupedExerciseList";
 import { SessionEditorV2 } from "@/components/program-builder-v2/SessionEditorV2";
 import { resolveSessionExerciseRows } from "@/lib/utils/sessionExercises";
@@ -199,6 +200,18 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
     testReminders.forEach((r: any) => { map[r.id] = r.test_type; });
     return map;
   }, [testReminders]);
+
+  const customTestTypes = useMemo(() => {
+    const types: string[] = [];
+    Object.values(testTypeByReminderId).forEach((type) => type && types.push(type));
+    sessions.forEach((session: any) => {
+      parseTestsFromNotes(session.notes).forEach((test) => test.test_type && types.push(test.test_type));
+      const noteCustomCodes = String(session.notes || "").match(/custom:[0-9a-f-]{32,36}/gi) || [];
+      noteCustomCodes.forEach((code) => types.push(code));
+    });
+    return types;
+  }, [sessions, testTypeByReminderId]);
+  const customTestMap = useCustomTestLabels(customTestTypes);
 
   const { data: matches = [] } = useQuery({
     queryKey: ["athlete-calendar-matches", categoryId, playerId],
@@ -668,12 +681,12 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                           }
                                           const reminderId = (session as any).test_reminder_id;
                                           if (reminderId && testTypeByReminderId[reminderId]) {
-                                            return `Test : ${testTypeByReminderId[reminderId]}`;
+                                            return `Test : ${labelizeTestType(testTypeByReminderId[reminderId], customTestMap)}`;
                                           }
                                           // Fallback: parse <!--TESTS:[...]--> metadata from notes
                                           const tests = parseTestsFromNotes((session as any).notes);
                                           if (tests.length > 0) {
-                                            const labels = tests.map(t => getTestLabel(t.test_type) || t.test_type).join(", ");
+                                            const labels = tests.map(t => /^custom:/i.test(t.test_type || "") ? labelizeTestType(t.test_type, customTestMap) : getTestLabel(t.test_type) || t.test_type).join(", ");
                                             return `Test : ${labels}`;
                                           }
                                           // Fallback 2: legacy "Test auto-planifié: <label>" in notes

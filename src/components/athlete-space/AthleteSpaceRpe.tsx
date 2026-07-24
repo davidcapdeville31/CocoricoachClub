@@ -17,7 +17,7 @@ import { fr } from "date-fns/locale";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 import { getTestLabel } from "@/lib/constants/testCategories";
 import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
-import { getDisplayNotes, parsePrecisionExerciseFromNotes } from "@/lib/utils/sessionNotes";
+import { getDisplayNotes, parsePrecisionExerciseFromNotes, parseTestsFromNotes } from "@/lib/utils/sessionNotes";
 import { SPARE_EXERCISE_TYPES } from "@/lib/constants/bowlingBallBrands";
 import { cn } from "@/lib/utils";
 import { GroupedExerciseList } from "@/components/category/GroupedExerciseList";
@@ -300,18 +300,14 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
   // Collect all custom test_types used, to resolve labels
   const allCustomTestTypes = useMemo(() => {
     const types: string[] = [];
-    todaySessions.forEach((s: any) => {
-      const m = s.notes?.match(/<!--TESTS:(.*?)-->/);
-      if (m) {
-        try {
-          const arr = JSON.parse(m[1]);
-          arr.forEach((t: any) => t?.test_type && types.push(t.test_type));
-        } catch {}
-      }
+    allSessions.forEach((s: any) => {
+      parseTestsFromNotes(s.notes).forEach((t: any) => t?.test_type && types.push(t.test_type));
+      const noteCustomCodes = String(s.notes || "").match(/custom:[0-9a-f-]{32,36}/gi) || [];
+      noteCustomCodes.forEach((code) => types.push(code));
     });
     (testResults || []).forEach((r: any) => r.test_type && types.push(r.test_type));
     return types;
-  }, [todaySessions, testResults]);
+  }, [allSessions, testResults]);
   const customTestMap = useCustomTestLabels(allCustomTestTypes);
 
   const getTestResultsForSession = (sessionId: string) => {
@@ -320,18 +316,12 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
 
   const getTestNamesForSession = (notes: string | null): string[] => {
     if (!notes) return [];
-    const match = notes.match(/<!--TESTS:(.*?)-->/);
-    if (!match) return [];
-    try {
-      const tests = JSON.parse(match[1]);
-      return tests.map((t: any) => {
-        const type = t.test_type || t.test_category;
-        if (type?.startsWith("custom:")) return labelizeTestType(type, customTestMap);
-        return getTestLabel(type);
-      }).filter(Boolean);
-    } catch {
-      return [];
-    }
+    const tests = parseTestsFromNotes(notes);
+    return tests.map((t: any) => {
+      const type = t.test_type || t.test_category;
+      if (/^custom:/i.test(type || "")) return labelizeTestType(type, customTestMap);
+      return getTestLabel(type) || labelizeTestType(type || "", customTestMap);
+    }).filter(Boolean);
   };
 
   // Fetch already submitted RPEs
@@ -770,7 +760,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         {testNames.map((name, idx) => <div key={idx}>📋 {name}</div>)}
         {results.map((r, idx) => {
           const unit = r.result_unit || "";
-          const customUnit = r.test_type?.startsWith("custom:") ? customTestMap[r.test_type]?.unit : null;
+          const customUnit = /^custom:/i.test(r.test_type || "") ? customTestMap[`custom:${r.test_type.slice(7).toLowerCase()}`]?.unit : null;
           const isRatio = isBodyWeightRatioUnit(unit) || isBodyWeightRatioUnit(customUnit);
           const value = Number(r.result_value);
           let display = `${r.result_value} ${unit}`;
@@ -786,7 +776,20 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
   const renderSessionNotes = (notes: string | null) => {
     const display = getDisplayNotes(notes);
     if (!display) return null;
-    return <p className="text-xs text-muted-foreground mt-0.5 italic">{display}</p>;
+    const hasStructuredTestLabel = getTestNamesForSession(notes).length > 0;
+    const cleaned = display
+      .split("\n")
+      .map((line) =>
+        line.replace(/custom:[0-9a-f-]{32,36}/gi, (code) => labelizeTestType(code, customTestMap)),
+      )
+      .filter((line, index) => {
+        const original = display.split("\n")[index]?.trim() || "";
+        return !(hasStructuredTestLabel && /^test\s*:\s*custom:/i.test(original));
+      })
+      .join("\n")
+      .trim();
+    if (!cleaned) return null;
+    return <p className="text-xs text-muted-foreground mt-0.5 italic whitespace-pre-line">{cleaned}</p>;
   };
 
   const renderExerciseToggle = (sessionId: string) => {

@@ -11,8 +11,8 @@ export function useCustomTestLabels(testTypes: (string | null | undefined)[]) {
   const ids = Array.from(
     new Set(
       (testTypes || [])
-        .filter((t): t is string => !!t && t.startsWith("custom:"))
-        .map((t) => t.slice("custom:".length)),
+        .filter((t): t is string => !!t && /^custom:/i.test(t))
+        .map((t) => t.slice("custom:".length).toLowerCase()),
     ),
   );
 
@@ -23,18 +23,32 @@ export function useCustomTestLabels(testTypes: (string | null | undefined)[]) {
     enabled: ids.length > 0,
     staleTime: 5 * 60_000,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const direct = await supabase
         .from("custom_tests")
         .select("id, name, unit")
         .in("id", ids);
-      if (error) throw error;
-      return data || [];
+
+      if (!direct.error && direct.data && direct.data.length === ids.length) {
+        return direct.data || [];
+      }
+
+      const rpc = await supabase.rpc("get_custom_test_labels", { _ids: ids });
+      if (!rpc.error && rpc.data) {
+        const rows = [...(direct.data || [])];
+        const seen = new Set(rows.map((row: any) => row.id));
+        (rpc.data || []).forEach((row: any) => {
+          if (!seen.has(row.id)) rows.push(row);
+        });
+        return rows;
+      }
+
+      return direct.data || [];
     },
   });
 
   const map: Record<string, { name: string; unit: string | null }> = {};
   (data || []).forEach((r: any) => {
-    map[`custom:${r.id}`] = { name: r.name, unit: r.unit };
+    map[`custom:${String(r.id).toLowerCase()}`] = { name: r.name, unit: r.unit };
   });
   return map;
 }
@@ -43,8 +57,9 @@ export function labelizeTestType(
   testType: string,
   customMap: Record<string, { name: string; unit: string | null }>,
 ): string {
-  if (testType?.startsWith("custom:")) {
-    return customMap[testType]?.name || "Test personnalisé";
+  if (/^custom:/i.test(testType || "")) {
+    const id = testType.slice("custom:".length).toLowerCase();
+    return customMap[`custom:${id}`]?.name || "Test personnalisé";
   }
   return (testType || "").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
