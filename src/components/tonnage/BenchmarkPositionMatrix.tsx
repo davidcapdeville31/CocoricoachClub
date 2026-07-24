@@ -512,24 +512,31 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
     return Array.from(merged.values());
   }, [benchmarks, customTests, genericTestsScoped, speedTestsScoped, strengthTestsScoped]);
 
-  // Auto-select first option with data
+  // Emit options to parent (for multi-test rendering)
   useEffect(() => {
+    if (!onTestOptions) return;
+    onTestOptions(testOptions.map((o) => ({ key: o.key, label: o.label, count: o.count })));
+  }, [testOptions, onTestOptions]);
+
+  // Auto-select first option with data (skipped when parent forces a key)
+  useEffect(() => {
+    if (forcedKey) return;
     if (testOptions.length === 0) return;
 
-    const current = testOptions.find((o) => o.key === selectedKey) || null;
+    const current = testOptions.find((o) => o.key === internalSelectedKey) || null;
     const firstWithData = testOptions.find((o) => o.count > 0) || null;
 
-    if (!selectedKey || !current) {
+    if (!internalSelectedKey || !current) {
       const first = firstWithData || testOptions[0];
-      setSelectedKey(first.key);
+      setInternalSelectedKey(first.key);
       autoSelectedRef.current = true;
       return;
     }
 
-    if (autoSelectedRef.current && current.count === 0 && firstWithData && firstWithData.key !== selectedKey) {
-      setSelectedKey(firstWithData.key);
+    if (autoSelectedRef.current && current.count === 0 && firstWithData && firstWithData.key !== internalSelectedKey) {
+      setInternalSelectedKey(firstWithData.key);
     }
-  }, [selectedKey, testOptions]);
+  }, [internalSelectedKey, testOptions, forcedKey]);
 
   const selectedOpt = useMemo(
     () => testOptions.find((o) => o.key === selectedKey) || null,
