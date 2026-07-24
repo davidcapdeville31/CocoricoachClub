@@ -819,19 +819,47 @@ import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
 
    const deleteSessionMutation = useMutation({
      mutationFn: async (sessionId: string) => {
+       // Capture info + participants BEFORE delete for the cancellation notif
+       const { data: sessionInfo } = await supabase
+         .from("training_sessions")
+         .select("id, category_id, session_date, session_start_time, training_type")
+         .eq("id", sessionId)
+         .maybeSingle();
+       const [{ data: eventParts }, { data: attendance }] = await Promise.all([
+         supabase.from("event_participants").select("player_id").eq("training_session_id", sessionId),
+         supabase.from("training_attendance").select("player_id").eq("training_session_id", sessionId).neq("status", "absent"),
+       ]);
+       const participantIds = Array.from(new Set([
+         ...(attendance ?? []).map((a: any) => a.player_id),
+         ...(eventParts ?? []).map((p: any) => p.player_id),
+       ].filter(Boolean))) as string[];
+
        const { error } = await supabase.from("training_sessions").delete().eq("id", sessionId);
        if (error) throw error;
-       return sessionId;
+       return { sessionId, sessionInfo, participantIds };
      },
-     onSuccess: () => {
+     onSuccess: ({ sessionId, sessionInfo, participantIds }) => {
        toast.success("Séance supprimée");
        queryClient.invalidateQueries({ queryKey: ["today_sessions_decision", categoryId] });
        queryClient.invalidateQueries({ queryKey: ["tomorrow_sessions_decision", categoryId] });
        queryClient.invalidateQueries({ queryKey: ["sessions", categoryId] });
        queryClient.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
+
+       if (sessionInfo && participantIds.length > 0) {
+         notifySessions({
+           action: "cancelled",
+           sessionId,
+           categoryId: sessionInfo.category_id,
+           sessionDate: sessionInfo.session_date,
+           sessionStartTime: sessionInfo.session_start_time,
+           sessionType: sessionInfo.training_type,
+           participantPlayerIds: participantIds,
+         }).catch((e) => console.warn("[DecisionCenter] cancel notify failed:", e));
+       }
      },
      onError: () => toast.error("Erreur lors de la suppression"),
    });
+
 
    const handleNotifySession = async (session: any) => {
      // Fetch participants to know who to notify
