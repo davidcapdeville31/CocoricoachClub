@@ -1167,6 +1167,28 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                   "#14b8a6",
                 ];
 
+                const lowerBetter = !!bm?.lower_is_better;
+                const makePctRenderer = (key: string) => (props: any) => {
+                  const { x, y, index } = props;
+                  if (index === 0 || x == null || y == null) return null;
+                  const curr = chartData[index]?.[key];
+                  // Find previous non-null value for this player
+                  let prev: any = null;
+                  for (let j = index - 1; j >= 0; j--) {
+                    if (chartData[j]?.[key] != null) { prev = chartData[j][key]; break; }
+                  }
+                  if (prev == null || curr == null || prev === 0) return null;
+                  const pct = ((curr - prev) / Math.abs(prev)) * 100;
+                  if (Math.abs(pct) < 0.5) return null;
+                  const improved = lowerBetter ? pct < 0 : pct > 0;
+                  const color = improved ? "hsl(142 71% 40%)" : "hsl(0 72% 51%)";
+                  return (
+                    <text x={x + 12} y={y - 8} textAnchor="start" fontSize={10} fontWeight={700} fill={color}>
+                      {pct > 0 ? "+" : ""}{pct.toFixed(1)}%
+                    </text>
+                  );
+                };
+
                 return (
                   <div className="mt-6">
                     <div className="mb-2 flex items-center gap-2">
@@ -1175,16 +1197,16 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                         Évolution — {useRatioAxis ? "ratio (charge / poids de corps)" : `valeur${unitSuffix ? ` (${unitSuffix})` : ""}`}
                       </h4>
                     </div>
-                    <div className="h-72 w-full">
+                    <div className="h-80 w-full">
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
+                        <LineChart data={chartData} margin={{ top: 30, right: 40, left: 0, bottom: 10 }}>
                           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                           <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
                           <YAxis
                             tick={{ fontSize: 11 }}
                             stroke="hsl(var(--muted-foreground))"
                             domain={["auto", "auto"]}
-                            reversed={!!bm?.lower_is_better}
+                            reversed={lowerBetter}
                           />
                           <RTooltip
                             contentStyle={{
@@ -1207,6 +1229,7 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                                 dot={{ r: 4 }}
                                 activeDot={{ r: 6 }}
                                 connectNulls
+                                label={makePctRenderer(key)}
                               />
                             );
                           })}
