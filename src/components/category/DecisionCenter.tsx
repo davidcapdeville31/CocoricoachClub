@@ -115,6 +115,8 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
  export function DecisionCenter({ categoryId, categoryName }: DecisionCenterProps) {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
+    const { notify: notifySessions } = useSessionNotifications();
+
      const getPlayerProfilePath = (playerId: string, tab?: string) => {
        const params = new URLSearchParams({ categoryId });
        if (tab) params.set("tab", tab);
