@@ -94,7 +94,7 @@ export function CalendarDayCell({
       if (sessionIds.length === 0) return {};
       const { data, error } = await supabase
         .from("training_session_blocks")
-        .select("id, training_session_id, training_type, block_order")
+        .select("id, training_session_id, training_type, block_order, theme")
         .in("training_session_id", sessionIds)
         .order("block_order");
       if (error) throw error;
@@ -109,8 +109,10 @@ export function CalendarDayCell({
           id: block.id,
           training_type: block.training_type,
           block_order: block.block_order,
+          theme: (block as any).theme ?? null,
         });
       });
+
       return blocksMap;
     },
     enabled: sessionIds.length > 0,
