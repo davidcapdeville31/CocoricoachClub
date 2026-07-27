@@ -80,6 +80,7 @@ export function BulkAddPlayersDialog({
     links: [],
   });
   const [linksCopied, setLinksCopied] = useState(false);
+  const [progress, setProgress] = useState<{ current: number; total: number }>({ current: 0, total: 0 });
 
   const { data: categoryData } = useQuery({
     queryKey: ["category-with-club", categoryId],
@@ -253,11 +254,13 @@ export function BulkAddPlayersDialog({
     }
 
     setStep("creating");
+    setProgress({ current: 0, total: validAthletes.length });
     let success = 0;
     let failed = 0;
     const links: string[] = [];
 
-    for (const athlete of validAthletes) {
+    for (let i = 0; i < validAthletes.length; i++) {
+      const athlete = validAthletes[i];
       try {
         // Extract birth_year from date
         const birthYear = athlete.dateNaissance
@@ -332,6 +335,11 @@ export function BulkAddPlayersDialog({
         console.error("Error creating athlete:", athlete.nom, err);
         failed++;
       }
+      setProgress({ current: i + 1, total: validAthletes.length });
+      // Throttle to protect email provider rate limits (Resend ~2 req/s)
+      if (i < validAthletes.length - 1 && athlete.email) {
+        await new Promise((r) => setTimeout(r, 350));
+      }
     }
 
     setResults({ success, failed, links });
@@ -342,10 +350,13 @@ export function BulkAddPlayersDialog({
   };
 
   const handleClose = () => {
+    // Block closing while creating to avoid partial state
+    if (step === "creating") return;
     setStep("upload");
     setAthletes([]);
     setResults({ success: 0, failed: 0, links: [] });
     setLinksCopied(false);
+    setProgress({ current: 0, total: 0 });
     onOpenChange(false);
   };
 
@@ -652,9 +663,19 @@ export function BulkAddPlayersDialog({
         {step === "creating" && (
           <div className="py-12 text-center space-y-4">
             <Loader2 className="h-12 w-12 mx-auto animate-spin text-primary" />
-            <p className="font-medium">Création des athlètes en cours...</p>
+            <p className="font-medium">
+              Création en cours… {progress.current} / {progress.total}
+            </p>
+            <div className="w-full max-w-md mx-auto h-2 rounded-full bg-muted overflow-hidden">
+              <div
+                className="h-full bg-primary transition-all duration-300"
+                style={{
+                  width: `${progress.total ? (progress.current / progress.total) * 100 : 0}%`,
+                }}
+              />
+            </div>
             <p className="text-sm text-muted-foreground">
-              Envoi des invitations personnalisées à chaque athlète
+              Envoi des invitations personnalisées — merci de ne pas fermer cette fenêtre
             </p>
           </div>
         )}
