@@ -44,6 +44,7 @@ interface SessionBlock {
   id: string;
   training_type: string;
   block_order: number;
+  theme?: string | null;
 }
 
 interface SessionVignetteProps {
@@ -106,6 +107,15 @@ export function SessionVignette({
   const label = getTrainingTypeLabel(session.training_type);
   const startTime = formatTime(session.session_start_time);
   const hasBlocks = blocks && blocks.length > 0;
+  const blocksLabel = hasBlocks
+    ? Array.from(
+        new Set(
+          blocks.map(
+            (b) => (b.theme && b.theme.trim()) || getTrainingTypeLabel(b.training_type),
+          ),
+        ),
+      ).join(" · ")
+    : "";
   const isAthleteCreated = !!session.created_by_player_id;
   const isAdminEvent = ["medical", "video_analyse", "reunion"].includes(session.training_type);
 
@@ -184,7 +194,7 @@ export function SessionVignette({
           )}
           <span className="truncate opacity-90">
             {isAthleteCreated && playerName ? `${playerName} · ` : ""}
-            {hasBlocks ? `${blocks.length} ${blocks.length > 1 ? "blocs" : "bloc"}` : label}
+            {hasBlocks ? blocksLabel : label}
           </span>
         </div>
 
