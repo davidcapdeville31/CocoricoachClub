@@ -648,6 +648,11 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
               setIsDailyDialogOpen(false);
               return;
             }
+            if (session.training_type === "mental") {
+              openMentalEditor(session as any);
+              setIsDailyDialogOpen(false);
+              return;
+            }
             setEditingSession(session);
             setIsEditDialogOpen(true);
             setIsDailyDialogOpen(false);
