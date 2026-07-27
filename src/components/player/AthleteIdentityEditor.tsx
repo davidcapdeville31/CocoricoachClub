@@ -266,11 +266,15 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
   });
   const updateJudoWeight = useMutation({
     mutationFn: async (val: string | null) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("players")
         .update({ discipline: val } as any)
-        .eq("id", playerId);
+        .eq("id", playerId)
+        .select("id");
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error("Modification refusée : droits insuffisants sur cette fiche.");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["player-judo-weight", playerId] });
