@@ -610,6 +610,23 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
         />
       )}
 
+      {/* Edit Mental Session Dialog (same form as creation) */}
+      {editingMentalSession && (
+        <CreateEventDialog
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) setEditingMentalSession(null);
+          }}
+          date={editingMentalSession.date}
+          categoryId={categoryId}
+          onAddSession={() => {}}
+          onAddMatch={() => {}}
+          editingMentalSession={editingMentalSession}
+        />
+      )}
+
+
+
       {selectedSession && (
         <SessionDetailsDialog
           open={true}
