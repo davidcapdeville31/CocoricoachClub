@@ -489,7 +489,9 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
                 .single()
                 .then(({ data }) => {
                   if (!data) return;
-                  if (ADMIN_EVENT_TYPES.includes(data.training_type)) {
+                  if (data.training_type === "mental") {
+                    openMentalEditor(data);
+                  } else if (ADMIN_EVENT_TYPES.includes(data.training_type)) {
                     setEditingAdminEvent(data);
                   } else {
                     setEditingSession(data);
