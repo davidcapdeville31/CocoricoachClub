@@ -663,9 +663,19 @@ export function BulkAddPlayersDialog({
         {step === "creating" && (
           <div className="py-12 text-center space-y-4">
             <Loader2 className="h-12 w-12 mx-auto animate-spin text-primary" />
-            <p className="font-medium">Création des athlètes en cours...</p>
+            <p className="font-medium">
+              Création en cours… {progress.current} / {progress.total}
+            </p>
+            <div className="w-full max-w-md mx-auto h-2 rounded-full bg-muted overflow-hidden">
+              <div
+                className="h-full bg-primary transition-all duration-300"
+                style={{
+                  width: `${progress.total ? (progress.current / progress.total) * 100 : 0}%`,
+                }}
+              />
+            </div>
             <p className="text-sm text-muted-foreground">
-              Envoi des invitations personnalisées à chaque athlète
+              Envoi des invitations personnalisées — merci de ne pas fermer cette fenêtre
             </p>
           </div>
         )}
