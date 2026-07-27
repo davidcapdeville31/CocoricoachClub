@@ -87,6 +87,31 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
     return false;
   };
 
+  // Mental sessions are created with a dedicated form (titre, temps de travail,
+  // thématique, notes, participants) — reopen that same form when editing.
+  const openMentalEditor = (row: { id: string; session_date: string; notes?: string | null }) => {
+    const rawNotes = row.notes || "";
+    const meta = parseMentalFromNotes(rawNotes);
+    const durationMin = Number(meta?.duration_min) || 30;
+    const theme = meta?.theme || "";
+    const cleaned = rawNotes.replace(/<!--[\s\S]*?-->\n?/g, "");
+    const lines = cleaned.split("\n");
+    const firstLine = (lines[0] || "Séance mental").trim();
+    const title = theme && firstLine.endsWith(` - ${theme}`)
+      ? firstLine.slice(0, -(` - ${theme}`).length)
+      : firstLine;
+    setEditingMentalSession({
+      id: row.id,
+      title,
+      durationMin,
+      theme,
+      notes: lines.slice(1).join("\n").trim(),
+      date: new Date(row.session_date),
+    });
+  };
+
+
+
   const handleExportPdf = async () => {
     if (sessions && matches) {
       await exportCalendarToPdf(
