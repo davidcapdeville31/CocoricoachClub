@@ -233,11 +233,17 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
       bowling_perso_num_center?: number | null;
       bowling_perso_num_right?: number | null;
     }) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("players")
         .update(patch as any)
-        .eq("id", playerId);
+        .eq("id", playerId)
+        .select("id");
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error(
+          "Modification refusée : ton compte n'est pas autorisé à mettre à jour cette fiche. Contacte ton staff.",
+        );
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["player-bowling-tech", playerId] });
