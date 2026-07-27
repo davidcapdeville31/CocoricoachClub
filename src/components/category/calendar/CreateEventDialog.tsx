@@ -200,6 +200,26 @@ export function CreateEventDialog({
     }
   }, [open, editingMentalSession]);
 
+  // In edit mode, load existing participants so they stay selected.
+  const { data: existingParticipants } = useQuery({
+    queryKey: ["event_participants", editingMentalSession?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("event_participants")
+        .select("player_id")
+        .eq("training_session_id", editingMentalSession!.id);
+      if (error) throw error;
+      return (data || []).map((p) => p.player_id as string);
+    },
+    enabled: open && !!editingMentalSession?.id,
+  });
+
+  useEffect(() => {
+    if (open && editingMentalSession && existingParticipants) {
+      setSelectedPlayers(existingParticipants);
+    }
+  }, [open, editingMentalSession, existingParticipants]);
+
   // Fetch players
   const { data: players } = useQuery({
     queryKey: ["players", categoryId],
