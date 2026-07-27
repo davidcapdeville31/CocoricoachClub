@@ -451,7 +451,7 @@ export function BulkAddPlayersDialog({
 
         {/* Step 2: Review & assign positions */}
         {step === "review" && (
-          <div className="flex-1 min-h-0 space-y-4">
+          <div className="flex-1 min-h-0 flex flex-col gap-4">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <p className="text-sm">
                 <Badge variant="secondary">{validCount}</Badge> athlète(s) valide(s) —{" "}
@@ -514,7 +514,7 @@ export function BulkAddPlayersDialog({
               )}
             </div>
 
-            <ScrollArea className="flex-1 max-h-[50vh] border rounded-lg">
+            <ScrollArea className="flex-1 min-h-[200px] h-[55vh] border rounded-lg">
               <div className="space-y-1 p-2">
                 {athletes.map((athlete, idx) => (
                   <div
