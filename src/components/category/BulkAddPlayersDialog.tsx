@@ -254,11 +254,13 @@ export function BulkAddPlayersDialog({
     }
 
     setStep("creating");
+    setProgress({ current: 0, total: validAthletes.length });
     let success = 0;
     let failed = 0;
     const links: string[] = [];
 
-    for (const athlete of validAthletes) {
+    for (let i = 0; i < validAthletes.length; i++) {
+      const athlete = validAthletes[i];
       try {
         // Extract birth_year from date
         const birthYear = athlete.dateNaissance
