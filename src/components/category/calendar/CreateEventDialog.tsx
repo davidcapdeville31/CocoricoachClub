@@ -423,6 +423,26 @@ export function CreateEventDialog({
           .select("id")
           .single();
         if (upErr) throw upErr;
+
+        // Delta-sync participants (keeps existing attendance answers untouched).
+        const previous = existingParticipants || [];
+        const toAdd = selectedPlayers.filter((id) => !previous.includes(id));
+        const toRemove = previous.filter((id) => !selectedPlayers.includes(id));
+        if (toAdd.length > 0) {
+          await supabase.from("event_participants").insert(
+            toAdd.map((playerId) => ({
+              training_session_id: editingMentalSession.id,
+              player_id: playerId,
+            })),
+          );
+        }
+        if (toRemove.length > 0) {
+          await supabase
+            .from("event_participants")
+            .delete()
+            .eq("training_session_id", editingMentalSession.id)
+            .in("player_id", toRemove);
+        }
         return updated;
       }
 
