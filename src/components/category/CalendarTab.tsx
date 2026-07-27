@@ -34,6 +34,8 @@ import { useUnreadAthleteSessionsCount } from "@/lib/hooks/useUnreadAthleteSessi
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 import { SeasonRosterFilterToggle } from "./SeasonRosterFilterToggle";
+import { CreateEventDialog } from "./calendar/CreateEventDialog";
+import { parseMentalFromNotes } from "@/lib/utils/sessionNotes";
 
 interface CalendarTabProps {
   categoryId: string;
