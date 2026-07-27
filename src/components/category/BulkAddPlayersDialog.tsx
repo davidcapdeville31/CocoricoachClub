@@ -514,7 +514,7 @@ export function BulkAddPlayersDialog({
               )}
             </div>
 
-            <ScrollArea className="flex-1 max-h-[50vh] border rounded-lg">
+            <ScrollArea className="flex-1 min-h-[200px] h-[55vh] border rounded-lg">
               <div className="space-y-1 p-2">
                 {athletes.map((athlete, idx) => (
                   <div
