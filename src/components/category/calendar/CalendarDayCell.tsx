@@ -32,6 +32,8 @@ interface SessionBlock {
   id: string;
   training_type: string;
   block_order: number;
+  theme?: string | null;
+
 }
 
 interface CalendarDayCellProps {
