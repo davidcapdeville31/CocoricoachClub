@@ -335,6 +335,11 @@ export function BulkAddPlayersDialog({
         console.error("Error creating athlete:", athlete.nom, err);
         failed++;
       }
+      setProgress({ current: i + 1, total: validAthletes.length });
+      // Throttle to protect email provider rate limits (Resend ~2 req/s)
+      if (i < validAthletes.length - 1 && athlete.email) {
+        await new Promise((r) => setTimeout(r, 350));
+      }
     }
 
     setResults({ success, failed, links });
@@ -345,10 +350,13 @@ export function BulkAddPlayersDialog({
   };
 
   const handleClose = () => {
+    // Block closing while creating to avoid partial state
+    if (step === "creating") return;
     setStep("upload");
     setAthletes([]);
     setResults({ success: 0, failed: 0, links: [] });
     setLinksCopied(false);
+    setProgress({ current: 0, total: 0 });
     onOpenChange(false);
   };
 
