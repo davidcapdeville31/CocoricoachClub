@@ -80,6 +80,7 @@ export function BulkAddPlayersDialog({
     links: [],
   });
   const [linksCopied, setLinksCopied] = useState(false);
+  const [progress, setProgress] = useState<{ current: number; total: number }>({ current: 0, total: 0 });
 
   const { data: categoryData } = useQuery({
     queryKey: ["category-with-club", categoryId],
