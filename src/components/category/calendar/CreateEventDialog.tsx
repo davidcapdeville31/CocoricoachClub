@@ -200,6 +200,26 @@ export function CreateEventDialog({
     }
   }, [open, editingMentalSession]);
 
+  // In edit mode, load existing participants so they stay selected.
+  const { data: existingParticipants } = useQuery({
+    queryKey: ["event_participants", editingMentalSession?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("event_participants")
+        .select("player_id")
+        .eq("training_session_id", editingMentalSession!.id);
+      if (error) throw error;
+      return (data || []).map((p) => p.player_id as string);
+    },
+    enabled: open && !!editingMentalSession?.id,
+  });
+
+  useEffect(() => {
+    if (open && editingMentalSession && existingParticipants) {
+      setSelectedPlayers(existingParticipants);
+    }
+  }, [open, editingMentalSession, existingParticipants]);
+
   // Fetch players
   const { data: players } = useQuery({
     queryKey: ["players", categoryId],
@@ -403,6 +423,26 @@ export function CreateEventDialog({
           .select("id")
           .single();
         if (upErr) throw upErr;
+
+        // Delta-sync participants (keeps existing attendance answers untouched).
+        const previous = existingParticipants || [];
+        const toAdd = selectedPlayers.filter((id) => !previous.includes(id));
+        const toRemove = previous.filter((id) => !selectedPlayers.includes(id));
+        if (toAdd.length > 0) {
+          await supabase.from("event_participants").insert(
+            toAdd.map((playerId) => ({
+              training_session_id: editingMentalSession.id,
+              player_id: playerId,
+            })),
+          );
+        }
+        if (toRemove.length > 0) {
+          await supabase
+            .from("event_participants")
+            .delete()
+            .eq("training_session_id", editingMentalSession.id)
+            .in("player_id", toRemove);
+        }
         return updated;
       }
 

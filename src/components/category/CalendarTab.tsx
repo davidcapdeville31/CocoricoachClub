@@ -34,6 +34,8 @@ import { useUnreadAthleteSessionsCount } from "@/lib/hooks/useUnreadAthleteSessi
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 import { SeasonRosterFilterToggle } from "./SeasonRosterFilterToggle";
+import { CreateEventDialog } from "./calendar/CreateEventDialog";
+import { parseMentalFromNotes } from "@/lib/utils/sessionNotes";
 
 interface CalendarTabProps {
   categoryId: string;
@@ -49,6 +51,14 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
   const [editingSession, setEditingSession] = useState<any | null>(null);
   const [editingAdminEvent, setEditingAdminEvent] = useState<any | null>(null);
   const [editingTestSession, setEditingTestSession] = useState<{ id: string; date: Date } | null>(null);
+  const [editingMentalSession, setEditingMentalSession] = useState<{
+    id: string;
+    title: string;
+    durationMin: number;
+    theme: string;
+    notes: string;
+    date: Date;
+  } | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [isDailyDialogOpen, setIsDailyDialogOpen] = useState(false);
   const [currentWeek, setCurrentWeek] = useState(new Date());
@@ -78,6 +88,31 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
     if (/<!--\s*v2-(meta|fartlek|cluster|stato|intermittent)/i.test(notes)) return true;
     return false;
   };
+
+  // Mental sessions are created with a dedicated form (titre, temps de travail,
+  // thématique, notes, participants) — reopen that same form when editing.
+  const openMentalEditor = (row: { id: string; session_date: string; notes?: string | null }) => {
+    const rawNotes = row.notes || "";
+    const meta = parseMentalFromNotes(rawNotes);
+    const durationMin = Number(meta?.duration_min) || 30;
+    const theme = meta?.theme || "";
+    const cleaned = rawNotes.replace(/<!--[\s\S]*?-->\n?/g, "");
+    const lines = cleaned.split("\n");
+    const firstLine = (lines[0] || "Séance mental").trim();
+    const title = theme && firstLine.endsWith(` - ${theme}`)
+      ? firstLine.slice(0, -(` - ${theme}`).length)
+      : firstLine;
+    setEditingMentalSession({
+      id: row.id,
+      title,
+      durationMin,
+      theme,
+      notes: lines.slice(1).join("\n").trim(),
+      date: new Date(row.session_date),
+    });
+  };
+
+
 
   const handleExportPdf = async () => {
     if (sessions && matches) {
@@ -454,7 +489,9 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
                 .single()
                 .then(({ data }) => {
                   if (!data) return;
-                  if (ADMIN_EVENT_TYPES.includes(data.training_type)) {
+                  if (data.training_type === "mental") {
+                    openMentalEditor(data);
+                  } else if (ADMIN_EVENT_TYPES.includes(data.training_type)) {
                     setEditingAdminEvent(data);
                   } else {
                     setEditingSession(data);
@@ -573,6 +610,23 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
         />
       )}
 
+      {/* Edit Mental Session Dialog (same form as creation) */}
+      {editingMentalSession && (
+        <CreateEventDialog
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) setEditingMentalSession(null);
+          }}
+          date={editingMentalSession.date}
+          categoryId={categoryId}
+          onAddSession={() => {}}
+          onAddMatch={() => {}}
+          editingMentalSession={editingMentalSession}
+        />
+      )}
+
+
+
       {selectedSession && (
         <SessionDetailsDialog
           open={true}
@@ -608,6 +662,11 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
                 id: session.id,
                 date: new Date(session.session_date),
               });
+              setIsDailyDialogOpen(false);
+              return;
+            }
+            if (session.training_type === "mental") {
+              openMentalEditor(session as any);
               setIsDailyDialogOpen(false);
               return;
             }
