@@ -52,16 +52,22 @@ export function useAddAthleteAttribute(playerId: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (attr: NewAthleteAttribute) => {
-      const { error } = await supabase.from("athlete_attributes").insert({
-        player_id: playerId,
-        dimension: attr.dimension,
-        value: attr.value,
-        is_primary: attr.is_primary ?? false,
-        weight: attr.weight ?? null,
-        sport_context: attr.sport_context ?? null,
-        metadata: attr.metadata ?? {},
-      });
+      const { data, error } = await supabase
+        .from("athlete_attributes")
+        .insert({
+          player_id: playerId,
+          dimension: attr.dimension,
+          value: attr.value,
+          is_primary: attr.is_primary ?? false,
+          weight: attr.weight ?? null,
+          sport_context: attr.sport_context ?? null,
+          metadata: attr.metadata ?? {},
+        })
+        .select("id");
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error("Ajout refusé : droits insuffisants sur cette fiche athlète.");
+      }
     },
     onSuccess: () => {
       toast.success("Attribut ajouté");
@@ -82,11 +88,15 @@ export function useUpdateAthleteAttribute(playerId: string) {
       id: string;
       patch: Partial<Pick<AthleteAttribute, "value" | "is_primary" | "weight" | "sport_context" | "metadata">>;
     }) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("athlete_attributes")
         .update(patch)
-        .eq("id", id);
+        .eq("id", id)
+        .select("id");
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error("Modification refusée : droits insuffisants sur cette fiche athlète.");
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["athlete_attributes", playerId] });
@@ -100,8 +110,15 @@ export function useDeleteAthleteAttribute(playerId: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("athlete_attributes").delete().eq("id", id);
+      const { data, error } = await supabase
+        .from("athlete_attributes")
+        .delete()
+        .eq("id", id)
+        .select("id");
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error("Suppression refusée : droits insuffisants sur cette fiche athlète.");
+      }
     },
     onSuccess: () => {
       toast.success("Attribut supprimé");
