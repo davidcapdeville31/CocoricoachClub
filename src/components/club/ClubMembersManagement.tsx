@@ -288,94 +288,181 @@ export function ClubMembersManagement({ clubId, categories, canManage }: ClubMem
             </div>
           )}
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Utilisateur</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Rôle</TableHead>
-                <TableHead>Catégories</TableHead>
-                <TableHead>Depuis</TableHead>
-                {canManage && <TableHead className="w-[100px]">Actions</TableHead>}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {/* Propriétaire */}
-              {club && (
-                <TableRow>
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
-                      <Crown className="h-4 w-4 text-yellow-500" />
-                      {club.profile?.full_name || "Propriétaire"}
+          {/* Vue mobile : cartes */}
+          <div className="space-y-3 md:hidden">
+            {club && (
+              <div className="rounded-xl border p-3 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 font-medium">
+                      <Crown className="h-4 w-4 text-yellow-500 shrink-0" />
+                      <span className="truncate">{club.profile?.full_name || "Propriétaire"}</span>
                     </div>
-                  </TableCell>
-                  <TableCell>{club.profile?.email || "-"}</TableCell>
-                  <TableCell>
-                    <Badge className="bg-yellow-500 hover:bg-yellow-600">Propriétaire</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Toutes</Badge>
-                  </TableCell>
-                  <TableCell>—</TableCell>
-                  {canManage && <TableCell>—</TableCell>}
-                </TableRow>
-              )}
+                    <p className="text-xs text-muted-foreground break-all">
+                      {club.profile?.email || "-"}
+                    </p>
+                  </div>
+                  <Badge className="bg-yellow-500 hover:bg-yellow-600 shrink-0">Propriétaire</Badge>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <span className="text-muted-foreground">Catégories :</span>
+                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Toutes</Badge>
+                </div>
+              </div>
+            )}
 
-              {/* Membres */}
-              {members.map((member: any) => (
-                <TableRow key={member.id}>
-                  <TableCell className="font-medium">
-                    {member.profile?.full_name || "Utilisateur"}
-                  </TableCell>
-                  <TableCell>{member.profile?.email || "-"}</TableCell>
-                  <TableCell>{getRoleBadge(member.role)}</TableCell>
-                  <TableCell>{getCategoryNames(member.assigned_categories)}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {format(new Date(member.created_at), "dd/MM/yy", { locale: fr })}
-                  </TableCell>
+            {members.map((member: any) => (
+              <div key={member.id} className="rounded-xl border p-3 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-medium truncate">{member.profile?.full_name || "Utilisateur"}</p>
+                    <p className="text-xs text-muted-foreground break-all">
+                      {member.profile?.email || "-"}
+                    </p>
+                  </div>
+                  <div className="shrink-0">{getRoleBadge(member.role)}</div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-1 text-xs">
+                  <span className="text-muted-foreground">Catégories :</span>
+                  {getCategoryNames(member.assigned_categories)}
+                </div>
+
+                <div className="flex items-center justify-between gap-2 pt-1">
+                  <span className="text-xs text-muted-foreground">
+                    Depuis le {format(new Date(member.created_at), "dd/MM/yy", { locale: fr })}
+                  </span>
                   {canManage && (
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEditMember(member)}
-                          title="Modifier les accès"
-                        >
-                          <Settings2 className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => resendAccessEmail.mutate(member)}
-                          disabled={resendAccessEmail.isPending || !member.profile?.email}
-                          title="Renvoyer un email de rappel d'accès (sans réinitialiser le mot de passe)"
-                        >
-                          <Mail className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeMember.mutate(member.id)}
-                          disabled={removeMember.isPending}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEditMember(member)}
+                        title="Modifier les accès"
+                      >
+                        <Settings2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => resendAccessEmail.mutate(member)}
+                        disabled={resendAccessEmail.isPending || !member.profile?.email}
+                        title="Renvoyer un email de rappel d'accès"
+                      >
+                        <Mail className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeMember.mutate(member.id)}
+                        disabled={removeMember.isPending}
+                        title="Retirer du club"
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {members.length === 0 && (
+              <p className="text-center text-muted-foreground py-6 text-sm">Aucun membre invité</p>
+            )}
+          </div>
+
+          {/* Vue desktop : tableau */}
+          <div className="hidden md:block overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Utilisateur</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Rôle</TableHead>
+                  <TableHead>Catégories</TableHead>
+                  <TableHead>Depuis</TableHead>
+                  {canManage && <TableHead className="w-[100px]">Actions</TableHead>}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {/* Propriétaire */}
+                {club && (
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        <Crown className="h-4 w-4 text-yellow-500" />
+                        {club.profile?.full_name || "Propriétaire"}
                       </div>
                     </TableCell>
-                  )}
-                </TableRow>
-              ))}
+                    <TableCell>{club.profile?.email || "-"}</TableCell>
+                    <TableCell>
+                      <Badge className="bg-yellow-500 hover:bg-yellow-600">Propriétaire</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Toutes</Badge>
+                    </TableCell>
+                    <TableCell>—</TableCell>
+                    {canManage && <TableCell>—</TableCell>}
+                  </TableRow>
+                )}
 
-              {members.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={canManage ? 6 : 5} className="text-center text-muted-foreground py-8">
-                    Aucun membre invité
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                {/* Membres */}
+                {members.map((member: any) => (
+                  <TableRow key={member.id}>
+                    <TableCell className="font-medium">
+                      {member.profile?.full_name || "Utilisateur"}
+                    </TableCell>
+                    <TableCell>{member.profile?.email || "-"}</TableCell>
+                    <TableCell>{getRoleBadge(member.role)}</TableCell>
+                    <TableCell>{getCategoryNames(member.assigned_categories)}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {format(new Date(member.created_at), "dd/MM/yy", { locale: fr })}
+                    </TableCell>
+                    {canManage && (
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditMember(member)}
+                            title="Modifier les accès"
+                          >
+                            <Settings2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => resendAccessEmail.mutate(member)}
+                            disabled={resendAccessEmail.isPending || !member.profile?.email}
+                            title="Renvoyer un email de rappel d'accès (sans réinitialiser le mot de passe)"
+                          >
+                            <Mail className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeMember.mutate(member.id)}
+                            disabled={removeMember.isPending}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))}
+
+                {members.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={canManage ? 6 : 5} className="text-center text-muted-foreground py-8">
+                      Aucun membre invité
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
         </CardContent>
       </Card>
 
