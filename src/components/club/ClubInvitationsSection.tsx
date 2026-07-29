@@ -230,83 +230,124 @@ export function ClubInvitationsSection({ clubId }: ClubInvitationsSectionProps) 
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Email</TableHead>
-              <TableHead>Portée</TableHead>
-              <TableHead>Rôle</TableHead>
-              <TableHead>Envoyée le</TableHead>
-              <TableHead>Statut</TableHead>
-              <TableHead className="w-[150px]">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {invitations.map((invitation: any) => {
-              const displayStatus = getDisplayStatus(invitation);
-              const isCategory = invitation._scope === "category";
-              return (
-                <TableRow key={`${invitation._scope}-${invitation.id}`}>
-                  <TableCell className="font-medium">{invitation.email}</TableCell>
-                  <TableCell>
-                    <Badge variant={isCategory ? "secondary" : "default"}>
-                      {invitation._scopeLabel}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{getRoleBadge(invitation.role)}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {format(new Date(invitation.created_at), "dd/MM/yy HH:mm", { locale: fr })}
-                  </TableCell>
-                  <TableCell>{getStatusBadge(invitation)}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      {displayStatus === "pending" && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => copyInviteLink(invitation)}
-                          title="Copier le lien"
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                      )}
-                      {displayStatus !== "accepted" && !isCategory && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => resendMutation.mutate({
-                            tableName: "club_invitations",
-                            invitationId: invitation.id,
-                            invitationType: "collaborator",
-                            clubName: club?.name,
-                            role: invitation.role,
-                            invalidateKeys: [["club-invitations", clubId]],
-                          })}
-                          disabled={resendMutation.isPending}
-                          title={displayStatus === "expired" || displayStatus === "incomplete" ? "Renvoyer (nouveau lien)" : "Renvoyer l'email"}
-                        >
-                          <RefreshCw className={`h-4 w-4 ${resendMutation.isPending ? "animate-spin" : ""}`} />
-                        </Button>
-                      )}
-                      {displayStatus !== "accepted" && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => deleteInvitation.mutate(invitation)}
-                          disabled={deleteInvitation.isPending}
-                          title="Annuler"
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      )}
+        {(() => {
+          const renderActions = (invitation: any, displayStatus: string, isCategory: boolean) => (
+            <div className="flex items-center gap-1">
+              {displayStatus === "pending" && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => copyInviteLink(invitation)}
+                  title="Copier le lien"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              )}
+              {displayStatus !== "accepted" && !isCategory && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => resendMutation.mutate({
+                    tableName: "club_invitations",
+                    invitationId: invitation.id,
+                    invitationType: "collaborator",
+                    clubName: club?.name,
+                    role: invitation.role,
+                    invalidateKeys: [["club-invitations", clubId]],
+                  })}
+                  disabled={resendMutation.isPending}
+                  title={displayStatus === "expired" || displayStatus === "incomplete" ? "Renvoyer (nouveau lien)" : "Renvoyer l'email"}
+                >
+                  <RefreshCw className={`h-4 w-4 ${resendMutation.isPending ? "animate-spin" : ""}`} />
+                </Button>
+              )}
+              {displayStatus !== "accepted" && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => deleteInvitation.mutate(invitation)}
+                  disabled={deleteInvitation.isPending}
+                  title="Annuler"
+                >
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              )}
+            </div>
+          );
+
+          return (
+            <>
+              {/* Vue mobile : cartes */}
+              <div className="space-y-3 md:hidden">
+                {invitations.map((invitation: any) => {
+                  const displayStatus = getDisplayStatus(invitation);
+                  const isCategory = invitation._scope === "category";
+                  return (
+                    <div
+                      key={`m-${invitation._scope}-${invitation.id}`}
+                      className="rounded-xl border p-3 space-y-2"
+                    >
+                      <p className="font-medium text-sm break-all">{invitation.email}</p>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <Badge variant={isCategory ? "secondary" : "default"}>
+                          {invitation._scopeLabel}
+                        </Badge>
+                        {getRoleBadge(invitation.role)}
+                        {getStatusBadge(invitation)}
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs text-muted-foreground">
+                          {format(new Date(invitation.created_at), "dd/MM/yy HH:mm", { locale: fr })}
+                        </span>
+                        {renderActions(invitation, displayStatus, isCategory)}
+                      </div>
                     </div>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+                  );
+                })}
+              </div>
+
+              {/* Vue desktop : tableau */}
+              <div className="hidden md:block overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Portée</TableHead>
+                      <TableHead>Rôle</TableHead>
+                      <TableHead>Envoyée le</TableHead>
+                      <TableHead>Statut</TableHead>
+                      <TableHead className="w-[150px]">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {invitations.map((invitation: any) => {
+                      const displayStatus = getDisplayStatus(invitation);
+                      const isCategory = invitation._scope === "category";
+                      return (
+                        <TableRow key={`${invitation._scope}-${invitation.id}`}>
+                          <TableCell className="font-medium">{invitation.email}</TableCell>
+                          <TableCell>
+                            <Badge variant={isCategory ? "secondary" : "default"}>
+                              {invitation._scopeLabel}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{getRoleBadge(invitation.role)}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {format(new Date(invitation.created_at), "dd/MM/yy HH:mm", { locale: fr })}
+                          </TableCell>
+                          <TableCell>{getStatusBadge(invitation)}</TableCell>
+                          <TableCell>{renderActions(invitation, displayStatus, isCategory)}</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
+          );
+        })()}
       </CardContent>
+
     </Card>
   );
 }
