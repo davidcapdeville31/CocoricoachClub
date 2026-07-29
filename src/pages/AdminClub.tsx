@@ -330,7 +330,7 @@ import { SeasonManager } from "@/components/club/SeasonManager";
  
        <div className="container mx-auto max-w-6xl px-4 py-6">
          {/* 📊 2. SYNTHÈSE RAPIDE */}
-         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4 mb-6">
            <Card 
              className="cursor-pointer hover:shadow-md transition-shadow"
              onClick={() => setActiveTab("categories")}
@@ -441,9 +441,9 @@ import { SeasonManager } from "@/components/club/SeasonManager";
            {/* 🧭 3. ACCÈS AUX CATÉGORIES */}
            <TabsContent value="overview" className="space-y-6">
              <Card>
-               <CardHeader className="flex flex-row items-center justify-between">
-                 <CardTitle className="flex items-center gap-2">
-                   <Shield className="h-5 w-5 text-primary" />
+               <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
+                 <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                   <Shield className="h-5 w-5 text-primary shrink-0" />
                    Catégories
                  </CardTitle>
                  {isAdmin && (
@@ -498,12 +498,13 @@ import { SeasonManager } from "@/components/club/SeasonManager";
            </TabsContent>
  
            <TabsContent value="categories" className="space-y-4">
-             <div className="flex items-center justify-between">
-               <h2 className="text-xl font-bold">Toutes les catégories</h2>
+             <div className="flex flex-wrap items-center justify-between gap-2">
+               <h2 className="text-lg sm:text-xl font-bold">Toutes les catégories</h2>
                {isAdmin && (
-                  <Button onClick={() => setIsAddCategoryOpen(true)} className="gap-1">
+                  <Button onClick={() => setIsAddCategoryOpen(true)} size="sm" className="gap-1">
                     <Plus className="h-4 w-4" />
-                    Créer / Modifier une catégorie
+                    <span className="hidden sm:inline">Créer / Modifier une catégorie</span>
+                    <span className="sm:hidden">Créer</span>
                   </Button>
                )}
              </div>
@@ -537,15 +538,16 @@ import { SeasonManager } from "@/components/club/SeasonManager";
  
            {/* 👥 4. GESTION DES UTILISATEURS */}
             <TabsContent value="users" className="space-y-6">
-             <div className="flex items-center justify-between">
-               <h2 className="text-xl font-bold">Utilisateurs du club</h2>
+             <div className="flex flex-wrap items-center justify-between gap-2">
+               <h2 className="text-lg sm:text-xl font-bold">Utilisateurs du club</h2>
                {isAdmin && (
-                 <Button onClick={() => setIsInviteOpen(true)} className="gap-1">
+                 <Button onClick={() => setIsInviteOpen(true)} size="sm" className="gap-1">
                    <UserPlus className="h-4 w-4" />
-                    Inviter un membre
+                   Inviter un membre
                  </Button>
                )}
              </div>
+
  
               {/* Section des membres actuels */}
               <ClubMembersManagement 
@@ -563,7 +565,7 @@ import { SeasonManager } from "@/components/club/SeasonManager";
            {/* 💳 5. ABONNEMENT & FACTURATION */}
            {isAdmin && (
              <TabsContent value="subscription" className="space-y-4">
-               <h2 className="text-xl font-bold">Abonnement & Facturation</h2>
+               <h2 className="text-lg sm:text-xl font-bold">Abonnement & Facturation</h2>
  
                {!club?.client_id && (
                  <Card className="bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800">
@@ -660,8 +662,9 @@ import { SeasonManager } from "@/components/club/SeasonManager";
                    <CardHeader>
                      <CardTitle>Historique des paiements</CardTitle>
                    </CardHeader>
-                   <CardContent>
-                     <Table>
+                   <CardContent className="overflow-x-auto">
+                     <Table className="min-w-[560px]">
+
                        <TableHeader>
                          <TableRow>
                            <TableHead>Date</TableHead>
@@ -706,14 +709,14 @@ import { SeasonManager } from "@/components/club/SeasonManager";
 
             {/* 🎥 6. VIDÉOS & TUTORIELS */}
             <TabsContent value="videos" className="space-y-4">
-             <h2 className="text-xl font-bold">Vidéos & Tutoriels</h2>
+             <h2 className="text-lg sm:text-xl font-bold">Vidéos & Tutoriels</h2>
              <TutorialVideosSection />
            </TabsContent>
  
            {/* ⚙️ 8. PARAMÈTRES DU CLUB */}
             {isAdmin && (
               <TabsContent value="settings" className="space-y-4">
-                <h2 className="text-xl font-bold">Paramètres du club</h2>
+                <h2 className="text-lg sm:text-xl font-bold">Paramètres du club</h2>
                 
                 <Card>
                   <CardHeader>
