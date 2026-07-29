@@ -662,8 +662,9 @@ import { SeasonManager } from "@/components/club/SeasonManager";
                    <CardHeader>
                      <CardTitle>Historique des paiements</CardTitle>
                    </CardHeader>
-                   <CardContent>
-                     <Table>
+                   <CardContent className="overflow-x-auto">
+                     <Table className="min-w-[560px]">
+
                        <TableHeader>
                          <TableRow>
                            <TableHead>Date</TableHead>
