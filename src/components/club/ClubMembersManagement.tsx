@@ -256,15 +256,16 @@ export function ClubMembersManagement({ clubId, categories, canManage }: ClubMem
     <>
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Users className="h-5 w-5 shrink-0" />
               Membres du Club
             </CardTitle>
             <Badge variant="secondary" className="text-sm">
               {members.length + 1} membre{members.length > 0 ? "s" : ""}
             </Badge>
           </div>
+
         </CardHeader>
         <CardContent>
           {/* Résumé staff par catégorie */}
