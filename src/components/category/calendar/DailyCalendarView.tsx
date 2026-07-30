@@ -1,6 +1,6 @@
 import { format, isToday as checkIsToday, isTomorrow, isYesterday } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Plus, Clock, MapPin, ChevronRight, Zap, Calendar, Users, Trash2 } from "lucide-react";
+import { Plus, Clock, MapPin, ChevronRight, Zap, Calendar, Users, Trash2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TRAINING_TYPE_COLORS } from "@/lib/constants/trainingTypes";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
