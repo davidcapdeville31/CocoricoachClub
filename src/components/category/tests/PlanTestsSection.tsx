@@ -474,6 +474,112 @@ export function PlanTestsSection({ categoryId, sportType }: PlanTestsSectionProp
     onError: () => toast.error("Suppression impossible"),
   });
 
+  // ---- Edit an existing reminder (without deleting/recreating it) ----
+  const [editing, setEditing] = useState<TestReminder | null>(null);
+  const [editForm, setEditForm] = useState({
+    start_date: "",
+    end_date: "",
+    no_end: false,
+    frequency_weeks: 4,
+    session_start_time: "",
+    session_end_time: "",
+    location: "",
+    auto_assign_athletes: true,
+  });
+
+  const openEdit = (r: TestReminder) => {
+    setEditing(r);
+    setEditForm({
+      start_date: r.start_date || format(new Date(), "yyyy-MM-dd"),
+      end_date: r.end_date || format(addWeeks(new Date(), 8), "yyyy-MM-dd"),
+      no_end: !r.end_date,
+      frequency_weeks: r.frequency_weeks || 1,
+      session_start_time: r.session_start_time?.slice(0, 5) || "",
+      session_end_time: r.session_end_time?.slice(0, 5) || "",
+      location: r.location || "",
+      auto_assign_athletes: r.auto_assign_athletes ?? true,
+    });
+  };
+
+  const updateReminder = useMutation({
+    mutationFn: async () => {
+      if (!editing) throw new Error("Aucun rappel sélectionné");
+      if (!editForm.start_date) throw new Error("Choisis une date de départ");
+      if (!editForm.frequency_weeks || editForm.frequency_weeks < 1)
+        throw new Error("Fréquence invalide");
+
+      const endDate = editForm.no_end ? null : editForm.end_date || null;
+
+      const { error } = await supabase
+        .from("test_reminders")
+        .update({
+          start_date: editForm.start_date,
+          end_date: endDate,
+          frequency_weeks: editForm.frequency_weeks,
+          session_start_time: editForm.session_start_time || null,
+          session_end_time: editForm.session_end_time || null,
+          location: editForm.location || null,
+          auto_assign_athletes: editForm.auto_assign_athletes,
+        } as any)
+        .eq("id", editing.id);
+      if (error) throw error;
+
+      // Regenerate only future sessions linked to this reminder (past ones are kept)
+      const today = format(new Date(), "yyyy-MM-dd");
+      const { error: dErr } = await supabase
+        .from("training_sessions")
+        .delete()
+        .eq("test_reminder_id", editing.id)
+        .gte("session_date", today);
+      if (dErr) throw dErr;
+
+      if (editing.is_active) {
+        const tests: TestRef[] = (editing.test_metadata && editing.test_metadata.length > 0
+          ? editing.test_metadata
+          : [
+              {
+                test_category: "custom",
+                test_type: editing.test_type || "",
+                label: formatTestTypeLabel(editing.test_type || ""),
+                category_label: "Tests",
+              },
+            ]) as TestRef[];
+        const dates = generateSessionDates(
+          editForm.start_date,
+          editForm.frequency_weeks,
+          endDate,
+        ).filter((d) => d >= today);
+        if (dates.length > 0) {
+          await createSessionsForTests(
+            tests,
+            dates,
+            {
+              ...DEFAULT_FORM,
+              start_date: editForm.start_date,
+              session_start_time: editForm.session_start_time || "",
+              session_end_time: editForm.session_end_time || "",
+              location: editForm.location || "",
+              auto_assign_athletes: editForm.auto_assign_athletes,
+              recurring: true,
+              frequency_weeks: editForm.frequency_weeks,
+            },
+            editing.id,
+          );
+        }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["plan-tests-reminders", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["test-reminders", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["training_sessions_annual", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
+      toast.success("Rappel modifié — séances à venir mises à jour");
+      setEditing(null);
+    },
+    onError: (e: any) => toast.error(e?.message || "Modification impossible"),
+  });
+
   const computedEndDatePreview = form.recurring
     ? form.end_mode === "never"
       ? null
