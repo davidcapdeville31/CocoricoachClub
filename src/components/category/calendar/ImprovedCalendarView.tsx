@@ -80,6 +80,7 @@ interface ImprovedCalendarViewProps {
   onEditSession?: (session: Session) => void;
   onViewSession?: (session: Session) => void;
   onViewMatch?: (match: Match) => void;
+  onEditMatch?: (match: Match) => void;
   onStatsMatch?: (match: Match) => void;
   onDeleteSession?: (sessionId: string) => void;
   onRescheduleSession?: (sessionId: string, newDate: Date) => void;
@@ -106,6 +107,7 @@ export function ImprovedCalendarView({
   onEditSession,
   onViewSession,
   onViewMatch,
+  onEditMatch,
   onStatsMatch,
   onDeleteSession,
   onRescheduleSession,
@@ -638,6 +640,7 @@ export function ImprovedCalendarView({
                       onDuplicateSession={(session) => setDuplicateSession(session)}
                       onNotifyMatch={(match) => setNotifyMatch(match)}
                       onViewMatch={(match) => onViewMatch?.(match)}
+                      onEditMatch={onEditMatch ? (match) => onEditMatch(match) : undefined}
                       onStatsMatch={(match) => onStatsMatch?.(match)}
                       onDeleteMatch={(matchId) => onDeleteMatch?.(matchId)}
                       playerNamesMap={playerNamesMap}
@@ -791,6 +794,7 @@ export function ImprovedCalendarView({
                   isViewer={isViewer}
                   onViewSession={onViewSession}
                   onViewMatch={onViewMatch}
+                  onEditMatch={onEditMatch}
                   onAddEvent={handleDayClickWithAdd}
                   onDeleteMatch={onDeleteMatch}
                   onLineupMatch={onLineupMatch}

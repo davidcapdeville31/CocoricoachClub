@@ -53,6 +53,7 @@ interface CalendarDayCellProps {
   onNotifyMatch?: (match: Match) => void;
   onViewMatch?: (match: Match) => void;
   onStatsMatch?: (match: Match) => void;
+  onEditMatch?: (match: Match) => void;
   onDeleteMatch?: (matchId: string) => void;
   onShowAllEvents?: (day: Date) => void;
   playerNamesMap?: Record<string, string>;
@@ -75,6 +76,7 @@ export function CalendarDayCell({
   onNotifyMatch,
   onViewMatch,
   onStatsMatch,
+  onEditMatch,
   onDeleteMatch,
   onShowAllEvents,
   playerNamesMap,
@@ -162,6 +164,7 @@ export function CalendarDayCell({
             onClick={() => onViewMatch ? onViewMatch(match) : onDayClick(day)}
             onNotify={onNotifyMatch ? () => onNotifyMatch(match) : undefined}
             onStats={onStatsMatch ? () => onStatsMatch(match) : undefined}
+            onEdit={onEditMatch ? () => onEditMatch(match) : undefined}
             onDelete={onDeleteMatch ? () => onDeleteMatch(match.id) : undefined}
           />
         ))}

@@ -47,6 +47,7 @@ interface DailyCalendarViewProps {
   isViewer: boolean;
   onViewSession?: (session: Session) => void;
   onViewMatch?: (match: Match) => void;
+  onEditMatch?: (match: Match) => void;
   onAddEvent?: (day: Date) => void;
   onDeleteMatch?: (matchId: string) => void;
   onLineupMatch?: (matchId: string) => void;
@@ -61,6 +62,7 @@ export function DailyCalendarView({
   isViewer,
   onViewSession,
   onViewMatch,
+  onEditMatch,
   onAddEvent,
   onDeleteMatch,
   onLineupMatch,
@@ -240,6 +242,20 @@ export function DailyCalendarView({
                       </div>
                       {!isViewer && (
                         <div className="flex items-center gap-1 shrink-0">
+                          {onEditMatch && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-primary"
+                              title="Modifier / convoquer les athlètes"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onEditMatch(match);
+                              }}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          )}
                           {onLineupMatch && (
                             <Button
                               variant="ghost"

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, Trash2, BarChart3 } from "lucide-react";
+import { Bell, Trash2, BarChart3, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
 import { getCompetitionColor } from "@/lib/constants/competitionColors";
@@ -23,6 +23,7 @@ interface MatchVignetteProps {
   onNotify?: () => void;
   onStats?: () => void;
   onDelete?: () => void;
+  onEdit?: () => void;
 }
 
 export function MatchVignette({
@@ -33,6 +34,7 @@ export function MatchVignette({
   onNotify,
   onStats,
   onDelete,
+  onEdit,
 }: MatchVignetteProps) {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -51,6 +53,12 @@ export function MatchVignette({
     e.stopPropagation();
     e.preventDefault();
     onStats?.();
+  };
+
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    onEdit?.();
   };
 
   const handleDeleteClick = (e: React.MouseEvent) => {
@@ -88,7 +96,7 @@ export function MatchVignette({
         {/* Match content - hidden when hovered to show action buttons */}
         <div className={cn(
           "flex items-center gap-1 transition-opacity",
-          isHovered && !isViewer && (onNotify || onStats || onDelete) && "opacity-0"
+          isHovered && !isViewer && (onEdit || onNotify || onStats || onDelete) && "opacity-0"
         )}>
           {match.match_time && (
             <>
@@ -104,12 +112,21 @@ export function MatchVignette({
         </div>
 
         {/* Hover Actions Overlay */}
-        {isHovered && !isViewer && (onNotify || onStats || onDelete) && (
+        {isHovered && !isViewer && (onEdit || onNotify || onStats || onDelete) && (
           <div className={cn(
             "absolute inset-0 flex items-center justify-center gap-2 rounded-lg z-[100] animate-fade-in",
             color.bgSolidDark
           )}>
 
+            {onEdit && (
+              <button
+                onClick={handleEditClick}
+                className="p-1.5 rounded-md hover:bg-white/20 transition-colors"
+                title="Modifier / convoquer les athlètes"
+              >
+                <Pencil className="h-4 w-4" />
+              </button>
+            )}
             {onNotify && (
               <button
                 onClick={handleNotifyClick}
