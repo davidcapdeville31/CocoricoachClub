@@ -211,7 +211,8 @@ export function AnnualTimelineView({
 
         {/* ACTIVITY ROW */}
         <div className="flex border-b border-border/30 bg-muted/20">
-          <div style={{ width: labelWidth, minWidth: labelWidth }} className="shrink-0 flex items-center px-3">
+          <div style={{ width: labelWidth, minWidth: labelWidth }} className="shrink-0 sticky left-0 z-20 bg-card flex items-center px-2 sm:px-3">
+
             <Activity className="h-3.5 w-3.5 text-muted-foreground mr-1.5" />
             <span className="text-[11px] font-medium text-muted-foreground">Activité</span>
           </div>
