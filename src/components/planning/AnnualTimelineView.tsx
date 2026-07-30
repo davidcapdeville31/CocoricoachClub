@@ -589,7 +589,7 @@ function LoadBar({ categories, cycles, yearStart, totalDays, labelWidth }: LoadB
     icon: React.ReactNode,
   ) => (
     <div className="flex">
-      <div style={{ width: labelWidth, minWidth: labelWidth }} className="shrink-0 flex items-center px-3">
+      <div style={{ width: labelWidth, minWidth: labelWidth }} className="shrink-0 sticky left-0 z-20 bg-card flex items-center px-2 sm:px-3">
         {icon}
         <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
           {label}
