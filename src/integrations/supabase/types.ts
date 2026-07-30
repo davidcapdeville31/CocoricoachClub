@@ -5869,6 +5869,65 @@ export type Database = {
           },
         ]
       }
+      match_participants: {
+        Row: {
+          absence_comment: string | null
+          attendance_status: string
+          created_at: string
+          id: string
+          match_id: string
+          player_id: string
+          responded_at: string | null
+        }
+        Insert: {
+          absence_comment?: string | null
+          attendance_status?: string
+          created_at?: string
+          id?: string
+          match_id: string
+          player_id: string
+          responded_at?: string | null
+        }
+        Update: {
+          absence_comment?: string | null
+          attendance_status?: string
+          created_at?: string
+          id?: string
+          match_id?: string
+          player_id?: string
+          responded_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_participants_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_participants_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "player_tags"
+            referencedColumns: ["player_id"]
+          },
+          {
+            foreignKeyName: "match_participants_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_participants_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       match_sheet_players: {
         Row: {
           created_at: string

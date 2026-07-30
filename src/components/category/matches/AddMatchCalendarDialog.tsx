@@ -28,6 +28,7 @@ import { isIndividualSport, isBasket3x3 } from "@/lib/constants/sportTypes";
 import { Info } from "lucide-react";
 import { TOURNAMENT_LEVELS, SELECTION_TYPES } from "@/lib/judo/competitionAnalytics";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
+import { MatchParticipantsSelector, syncMatchParticipants } from "./MatchParticipantsSelector";
 
 interface AddMatchCalendarDialogProps {
   open: boolean;
@@ -134,7 +135,9 @@ export function AddMatchCalendarDialog({
   
   // Basketball 3x3 (FIBA): format unique = 1ère équipe à 21 pts OU 10 min max (selon ce qui arrive en premier)
   const format3x3 = "fiba_standard";
-  
+
+  const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
+
   const queryClient = useQueryClient();
   const guard = useSeasonGuard(categoryId);
 
@@ -183,11 +186,21 @@ export function AddMatchCalendarDialog({
         return;
       }
 
-      const { error } = await supabase.from("matches").insert(payload);
+      const { data: created, error } = await supabase
+        .from("matches")
+        .insert(payload)
+        .select("id")
+        .single();
       if (error) throw error;
+
+      // Convoke selected athletes → they get a notification and answer present/absent
+      if (created?.id && selectedParticipants.length > 0) {
+        await syncMatchParticipants(supabase, created.id, selectedParticipants, []);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["matches", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["match_participants"] });
       toast.success(hasTournamentBracket ? "Tournoi ajouté avec succès" : (isIndividual ? "Compétition ajoutée avec succès" : "Match ajouté avec succès"));
       resetForm();
       onOpenChange(false);
@@ -222,6 +235,7 @@ export function AddMatchCalendarDialog({
     setMatchFormat("simple");
     setTournamentLevel("");
     setSelectionType("club");
+    setSelectedParticipants([]);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -535,6 +549,14 @@ export function AddMatchCalendarDialog({
                 onCheckedChange={setIsHome}
               />
             </div>
+          )}
+
+          {!athletePlayerId && (
+            <MatchParticipantsSelector
+              categoryId={categoryId}
+              value={selectedParticipants}
+              onChange={setSelectedParticipants}
+            />
           )}
 
           <div className="space-y-2">
