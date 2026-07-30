@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getPositionsForSport } from "@/lib/constants/sportPositions";
@@ -357,6 +357,10 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
   });
 
   const togglePlayer = (playerId: string) => {
+    if (attendanceByPlayer[playerId] === "absent") {
+      toast({ title: "Athlète absente", description: "Cette athlète s'est déclarée absente pour cette compétition.", variant: "destructive" });
+      return;
+    }
     setSelectedPlayers({
       ...selectedPlayers,
       [playerId]: {
