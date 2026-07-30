@@ -111,6 +111,7 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
       case "category_link_request": return "🔗";
       case "athlete_session": return "🏋️";
       case "session_feedback": return "✅";
+      case "athlete_document": return "📄";
       case "global": return "📣";
       default: return "ℹ️";
     }
