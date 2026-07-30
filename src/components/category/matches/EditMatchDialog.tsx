@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
@@ -26,6 +26,7 @@ import { getCompetitionsBySport, getCompetitionStagesBySport } from "@/lib/const
 import { isIndividualSport } from "@/lib/constants/sportTypes";
 import { TOURNAMENT_LEVELS, SELECTION_TYPES } from "@/lib/judo/competitionAnalytics";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
+import { MatchParticipantsSelector, syncMatchParticipants } from "./MatchParticipantsSelector";
 
 interface Match {
   id: string;
@@ -101,8 +102,34 @@ export function EditMatchDialog({
   const [tournamentLevel, setTournamentLevel] = useState<string>(match.tournament_level || "");
   const [selectionType, setSelectionType] = useState<string>(match.selection_type || "club");
   
+  const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
+
   const queryClient = useQueryClient();
   const guard = useSeasonGuard(match.category_id);
+
+  // Existing convoked athletes (with their attendance answers)
+  const { data: existingParticipants } = useQuery({
+    queryKey: ["match_participants", match.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("match_participants")
+        .select("player_id, attendance_status")
+        .eq("match_id", match.id);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open && !!match.id,
+  });
+
+  useEffect(() => {
+    if (open && existingParticipants) {
+      setSelectedParticipants(existingParticipants.map((p: any) => p.player_id));
+    }
+  }, [open, existingParticipants]);
+
+  const participantStatuses: Record<string, string> = Object.fromEntries(
+    (existingParticipants || []).map((p: any) => [p.player_id, p.attendance_status]),
+  );
 
   // Initialize competition value
   useEffect(() => {
@@ -144,9 +171,18 @@ export function EditMatchDialog({
         } as any)
         .eq("id", match.id);
       if (error) throw error;
+
+      // Delta-sync convocations (keeps already-given answers untouched)
+      await syncMatchParticipants(
+        supabase,
+        match.id,
+        selectedParticipants,
+        (existingParticipants || []).map((p: any) => p.player_id),
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["matches", match.category_id] });
+      queryClient.invalidateQueries({ queryKey: ["match_participants", match.id] });
       toast.success(isIndividual ? "Compétition mise à jour" : "Match mis à jour");
       onOpenChange(false);
     },
@@ -423,6 +459,13 @@ export function EditMatchDialog({
               />
             </div>
           )}
+
+          <MatchParticipantsSelector
+            categoryId={match.category_id}
+            value={selectedParticipants}
+            onChange={setSelectedParticipants}
+            statuses={participantStatuses}
+          />
 
           <div className="space-y-2">
             <Label htmlFor="notes">Notes</Label>
