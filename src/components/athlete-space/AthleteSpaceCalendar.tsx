@@ -56,6 +56,7 @@ import { SessionValidationDialog } from "@/components/athlete-space/SessionValid
 import { SimplifiedSessionDialog } from "@/components/athlete-space/SimplifiedSessionDialog";
 import { SessionDetailDialog } from "@/components/athlete-space/SessionDetailDialog";
 import { SessionAttendanceResponse } from "@/components/athlete-space/SessionAttendanceResponse";
+import { MatchAttendanceResponse } from "@/components/athlete-space/MatchAttendanceResponse";
 import { Eye } from "lucide-react";
 
 
