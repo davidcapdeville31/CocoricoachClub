@@ -14,6 +14,7 @@ import { ScheduleTestEventDialog } from "./calendar/ScheduleTestEventDialog";
 import { SessionDetailsDialog } from "./SessionDetailsDialog";
 import { MatchRpeDialog } from "./MatchRpeDialog";
 import { MatchLineupDialog } from "./matches/MatchLineupDialog";
+import { EditMatchDialog } from "./matches/EditMatchDialog";
 import { DailySessionsDialog } from "./DailySessionsDialog";
 import { format, isSameDay, startOfWeek, addDays } from "date-fns";
 import { useNavigate } from "react-router-dom";
@@ -73,6 +74,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
     opponent: string;
   } | null>(null);
   const [lineupMatchId, setLineupMatchId] = useState<string | null>(null);
+  const [editingMatch, setEditingMatch] = useState<any | null>(null);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { isViewer } = useViewerModeContext();
@@ -522,6 +524,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
               navigate(`/categories/${categoryId}?tab=competition`);
             }}
             onLineupMatch={(matchId) => setLineupMatchId(matchId)}
+            onEditMatch={(match) => setEditingMatch(match)}
           />
         </TabsContent>
 
@@ -701,6 +704,15 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
           trainingTypeLabels={trainingTypeLabels}
           trainingTypeColors={TRAINING_TYPE_COLORS}
           isViewer={isViewer}
+        />
+      )}
+
+      {editingMatch && (
+        <EditMatchDialog
+          open={true}
+          onOpenChange={(open) => !open && setEditingMatch(null)}
+          match={editingMatch}
+          sportType={sportType}
         />
       )}
 
