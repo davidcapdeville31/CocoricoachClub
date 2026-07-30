@@ -235,6 +235,7 @@ export function AddMatchCalendarDialog({
     setMatchFormat("simple");
     setTournamentLevel("");
     setSelectionType("club");
+    setSelectedParticipants([]);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
