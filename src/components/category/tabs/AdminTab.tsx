@@ -87,6 +87,12 @@ export function AdminTab({ categoryId }: AdminTabProps) {
         <AttendanceTab categoryId={categoryId} />
       </TabsContent>
 
+      <TabsContent value="match_attendance">
+        <MatchAttendanceTab categoryId={categoryId} />
+      </TabsContent>
+
+
+
       <TabsContent value="recruitment">
         <RecruitmentSection categoryId={categoryId} />
       </TabsContent>
