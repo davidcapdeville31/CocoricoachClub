@@ -647,6 +647,14 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                 </Button>
                               )}
                             </div>
+                            {!isPersonalMine && (
+                              <MatchAttendanceResponse
+                                matchId={match.id}
+                                playerId={playerId}
+                                matchDate={match.match_date}
+                                matchTime={match.match_time}
+                              />
+                            )}
                           </div>
                         );
                       })}
