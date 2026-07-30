@@ -1,7 +1,9 @@
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { ClipboardCheck, Users, UserSearch, FolderOpen, BarChart3 } from "lucide-react";
+import { ClipboardCheck, Users, UserSearch, FolderOpen, BarChart3, Trophy } from "lucide-react";
 import { AttendanceTab } from "@/components/category/attendance/AttendanceTab";
+import { MatchAttendanceTab } from "@/components/category/attendance/MatchAttendanceTab";
 import { CategoryCollaborationTab } from "@/components/category/CategoryCollaborationTab";
+
 
 import { RecruitmentSection } from "@/components/category/admin/RecruitmentSection";
 import { DocumentsSection } from "@/components/category/admin/DocumentsSection";
