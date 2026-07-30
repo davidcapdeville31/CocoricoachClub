@@ -114,7 +114,9 @@ export function AnnualTimelineView({
   onEditCycle,
   zoomLevel,
 }: AnnualTimelineViewProps) {
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
+
   const params = useParams();
   const routeCategoryId = params.id || params.categoryId;
   const yearStart = periodStart ?? startOfYear(new Date(year, 0, 1));
