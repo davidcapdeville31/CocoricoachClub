@@ -135,7 +135,9 @@ export function AddMatchCalendarDialog({
   
   // Basketball 3x3 (FIBA): format unique = 1ère équipe à 21 pts OU 10 min max (selon ce qui arrive en premier)
   const format3x3 = "fiba_standard";
-  
+
+  const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
+
   const queryClient = useQueryClient();
   const guard = useSeasonGuard(categoryId);
 
