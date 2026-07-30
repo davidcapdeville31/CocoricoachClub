@@ -106,6 +106,43 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
     (matchAttendance || []).map((p: any) => [p.player_id, p.attendance_status]),
   );
 
+  // Live sync: an athlete switching present ↔ absent updates the sheet instantly
+  useEffect(() => {
+    if (!matchId) return;
+    const channel = supabase
+      .channel(`match-sheet-attendance-${matchId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "match_participants", filter: `match_id=eq.${matchId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["match_participants", matchId] });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [matchId, queryClient]);
+
+  // An athlete who declared absent can no longer be part of the composition
+  useEffect(() => {
+    const absentIds = Object.entries(attendanceByPlayer)
+      .filter(([, status]) => status === "absent")
+      .map(([id]) => id);
+    if (absentIds.length === 0) return;
+    setSelectedPlayers((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      absentIds.forEach((id) => {
+        if (next[id]?.selected) {
+          next[id] = { ...next[id], selected: false, isCaptain: false };
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, [JSON.stringify(attendanceByPlayer)]);
+
   // Fetch players
   const { data: players } = useQuery({
     queryKey: ["players", categoryId],
@@ -631,11 +668,12 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
                           jerseyNumber: 0,
                           position: player.position || "",
                         };
-                        
+                        const isAbsent = attendanceByPlayer[player.id] === "absent";
+
                         return (
                           <TableRow 
                             key={player.id}
-                            className={`transition-colors duration-150 border-b border-border/20 ${
+                            className={`transition-colors duration-150 border-b border-border/20 ${isAbsent ? "opacity-50" : ""} ${
                               playerData.selected 
                                 ? "bg-primary/5 hover:bg-primary/10" 
                                 : index % 2 === 0 ? "bg-transparent hover:bg-muted/30" : "bg-muted/15 hover:bg-muted/30"
@@ -643,7 +681,8 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
                           >
                             <TableCell className="py-2.5">
                               <Checkbox
-                                checked={playerData.selected}
+                                checked={playerData.selected && !isAbsent}
+                                disabled={isAbsent}
                                 onCheckedChange={() => togglePlayer(player.id)}
                                 className="transition-all duration-150"
                               />
