@@ -39,6 +39,7 @@ import { AthleticsRecordsManager } from "@/components/category/athletics/Athleti
 import { isAthletismeCategory } from "@/lib/constants/sportTypes";
 import { isBasketballPrecisionSport } from "@/lib/constants/basketballPrecisionExercises";
 import { useAthleteRecordNotifications } from "@/hooks/useAthleteRecordNotifications";
+import { useAthleteDocumentNotifications } from "@/hooks/useAthleteDocumentNotifications";
 
 interface AthleteInfo {
   player_id: string;
@@ -68,6 +69,7 @@ export default function AthleteSpace() {
   const [playerSearch, setPlayerSearch] = useState("");
   const { total: unreadCount } = useUnreadMessages(athleteInfo?.category_id || "");
   const { count: recordNotifCount, markAsRead: markRecordNotifsRead } = useAthleteRecordNotifications(athleteInfo?.player_id);
+  const { count: docNotifCount, markAsRead: markDocNotifsRead } = useAthleteDocumentNotifications(athleteInfo?.player_id);
 
   const queryPlayerId = searchParams.get("playerId");
 
@@ -536,7 +538,11 @@ export default function AthleteSpace() {
       )}
 
       <main className="max-w-5xl mx-auto px-4 py-6">
-       <Tabs defaultValue={searchParams.get("tab") || "dashboard"} className="w-full">
+       <Tabs
+         defaultValue={searchParams.get("tab") || "dashboard"}
+         className="w-full"
+         onValueChange={(v) => { if (v === "documents") markDocNotifsRead(); }}
+       >
              <TabsList className="w-full flex overflow-x-auto gap-1 h-auto flex-nowrap justify-start bg-transparent p-0 mb-6 pb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
               <TabsTrigger 
                  value="dashboard" 
@@ -697,7 +703,7 @@ export default function AthleteSpace() {
                )}
                <TabsTrigger 
                   value="documents"
-                  className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
+                  className="athlete-tab shrink-0 relative gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
                   style={{
                     color: NAV_COLORS.admin.base,
                     backgroundColor: `${NAV_COLORS.admin.base}15`,
@@ -707,7 +713,13 @@ export default function AthleteSpace() {
                 >
                   <FileText className="h-3.5 w-3.5" />
                   Documents
+                  {docNotifCount > 0 && (
+                    <span className="absolute -top-1 -right-1 h-4 min-w-[16px] flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1">
+                      {docNotifCount > 9 ? "9+" : docNotifCount}
+                    </span>
+                  )}
                 </TabsTrigger>
+
                {(
                   <TabsTrigger 
                     value="messaging"
