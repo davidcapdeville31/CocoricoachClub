@@ -39,6 +39,7 @@ import { AthleticsRecordsManager } from "@/components/category/athletics/Athleti
 import { isAthletismeCategory } from "@/lib/constants/sportTypes";
 import { isBasketballPrecisionSport } from "@/lib/constants/basketballPrecisionExercises";
 import { useAthleteRecordNotifications } from "@/hooks/useAthleteRecordNotifications";
+import { useAthleteDocumentNotifications } from "@/hooks/useAthleteDocumentNotifications";
 
 interface AthleteInfo {
   player_id: string;
