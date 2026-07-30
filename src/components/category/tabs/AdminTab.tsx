@@ -34,7 +34,17 @@ export function AdminTab({ categoryId }: AdminTabProps) {
             <span className="hidden sm:inline">Présences</span>
             <span className="sm:hidden">Prés</span>
           </ColoredSubTabsTrigger>
+          <ColoredSubTabsTrigger
+            value="match_attendance"
+            colorKey="admin"
+            icon={<Trophy className="h-4 w-4" />}
+            tooltip="Présences aux compétitions : réponses présent/absent des athlètes convoqués"
+          >
+            <span className="hidden sm:inline">Présences compétitions</span>
+            <span className="sm:hidden">Compét</span>
+          </ColoredSubTabsTrigger>
           <ColoredSubTabsTrigger 
+
             value="recruitment" 
             colorKey="admin"
             icon={<UserSearch className="h-4 w-4" />}
