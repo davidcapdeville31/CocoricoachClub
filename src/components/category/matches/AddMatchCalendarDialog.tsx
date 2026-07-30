@@ -186,11 +186,21 @@ export function AddMatchCalendarDialog({
         return;
       }
 
-      const { error } = await supabase.from("matches").insert(payload);
+      const { data: created, error } = await supabase
+        .from("matches")
+        .insert(payload)
+        .select("id")
+        .single();
       if (error) throw error;
+
+      // Convoke selected athletes → they get a notification and answer present/absent
+      if (created?.id && selectedParticipants.length > 0) {
+        await syncMatchParticipants(supabase, created.id, selectedParticipants, []);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["matches", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["match_participants"] });
       toast.success(hasTournamentBracket ? "Tournoi ajouté avec succès" : (isIndividual ? "Compétition ajoutée avec succès" : "Match ajouté avec succès"));
       resetForm();
       onOpenChange(false);
