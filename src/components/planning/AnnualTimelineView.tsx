@@ -181,7 +181,7 @@ export function AnnualTimelineView({
       <div className="w-full" style={{ minWidth: timelineMinWidth }}>
         {/* MONTH HEADER */}
         <div className="flex border-b-2 border-border/60">
-          <div style={{ width: labelWidth, minWidth: labelWidth }} className="shrink-0" />
+          <div style={{ width: labelWidth, minWidth: labelWidth }} className="shrink-0 sticky left-0 z-20 bg-card" />
           <div className="flex-1 flex">
 
             {months.map((month, i) => {
