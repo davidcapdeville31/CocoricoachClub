@@ -1027,6 +1027,119 @@ export function PlanTestsSection({ categoryId, sportType }: PlanTestsSectionProp
           )}
         </CardContent>
       </Card>
+
+      {/* === Edit reminder dialog === */}
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Modifier le rappel récurrent</DialogTitle>
+            <DialogDescription>
+              Les séances passées sont conservées ; les séances à venir sont régénérées avec les
+              nouveaux paramètres.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-4 py-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Date de départ</Label>
+                <Input
+                  type="date"
+                  value={editForm.start_date}
+                  onChange={(e) => setEditForm((f) => ({ ...f, start_date: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Fréquence (semaines)</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  value={editForm.frequency_weeks}
+                  onChange={(e) =>
+                    setEditForm((f) => ({ ...f, frequency_weeks: Number(e.target.value) }))
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Heure de début</Label>
+                <Input
+                  type="time"
+                  value={editForm.session_start_time}
+                  onChange={(e) =>
+                    setEditForm((f) => ({ ...f, session_start_time: e.target.value }))
+                  }
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Heure de fin</Label>
+                <Input
+                  type="time"
+                  value={editForm.session_end_time}
+                  onChange={(e) =>
+                    setEditForm((f) => ({ ...f, session_end_time: e.target.value }))
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Lieu</Label>
+              <Input
+                value={editForm.location}
+                placeholder="Salle de musculation…"
+                onChange={(e) => setEditForm((f) => ({ ...f, location: e.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label>Date de fin</Label>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Sans fin</span>
+                  <Switch
+                    checked={editForm.no_end}
+                    onCheckedChange={(c) => setEditForm((f) => ({ ...f, no_end: c }))}
+                  />
+                </div>
+              </div>
+              {!editForm.no_end && (
+                <Input
+                  type="date"
+                  value={editForm.end_date}
+                  onChange={(e) => setEditForm((f) => ({ ...f, end_date: e.target.value }))}
+                />
+              )}
+            </div>
+
+            <div className="flex items-center justify-between rounded-xl border border-border p-3">
+              <div>
+                <p className="text-sm font-medium">Assigner automatiquement les athlètes</p>
+                <p className="text-xs text-muted-foreground">
+                  Les athlètes non blessés sont convoqués aux séances.
+                </p>
+              </div>
+              <Switch
+                checked={editForm.auto_assign_athletes}
+                onCheckedChange={(c) =>
+                  setEditForm((f) => ({ ...f, auto_assign_athletes: c }))
+                }
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditing(null)}>
+              Annuler
+            </Button>
+            <Button onClick={() => updateReminder.mutate()}>
+              {updateReminder.isPending ? "Enregistrement..." : "Enregistrer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
