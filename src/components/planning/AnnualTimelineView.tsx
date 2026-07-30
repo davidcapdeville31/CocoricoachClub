@@ -619,7 +619,7 @@ function LoadBar({ categories, cycles, yearStart, totalDays, labelWidth }: LoadB
   return (
     <div className="mt-1 space-y-1.5">
       {/* Filter chips */}
-      <div className="flex items-center gap-1.5 flex-wrap pl-3">
+      <div className="flex items-center gap-1.5 flex-wrap pl-2 sm:pl-3 sticky left-0 max-w-[90vw] sm:max-w-none">
         <span className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/70 mr-1">
           Filtre :
         </span>
