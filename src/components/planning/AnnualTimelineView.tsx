@@ -261,7 +261,7 @@ export function AnnualTimelineView({
               {/* Row label */}
               <div
                 style={{ width: labelWidth, minWidth: labelWidth }}
-                className="shrink-0 flex items-center px-3 py-3 gap-2.5"
+                className="shrink-0 sticky left-0 z-20 bg-card flex items-center px-2 sm:px-3 py-3 gap-1.5 sm:gap-2.5"
               >
                 <div
                   className="w-3 h-3 rounded-md shrink-0 shadow-sm"
