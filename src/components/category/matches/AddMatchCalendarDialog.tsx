@@ -551,6 +551,14 @@ export function AddMatchCalendarDialog({
             </div>
           )}
 
+          {!athletePlayerId && (
+            <MatchParticipantsSelector
+              categoryId={categoryId}
+              value={selectedParticipants}
+              onChange={setSelectedParticipants}
+            />
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="notes">Notes</Label>
             <Textarea
