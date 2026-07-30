@@ -88,6 +88,24 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
     },
   });
 
+  // Attendance answers of athletes convoked to the linked competition
+  const { data: matchAttendance } = useQuery({
+    queryKey: ["match_participants", matchId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("match_participants")
+        .select("player_id, attendance_status")
+        .eq("match_id", matchId);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!matchId,
+  });
+
+  const attendanceByPlayer: Record<string, string> = Object.fromEntries(
+    (matchAttendance || []).map((p: any) => [p.player_id, p.attendance_status]),
+  );
+
   // Fetch players
   const { data: players } = useQuery({
     queryKey: ["players", categoryId],
@@ -632,10 +650,19 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
                             </TableCell>
                             <TableCell className="font-medium py-2.5">
                               <div className="flex flex-col gap-0.5">
-                                <span className="flex items-center gap-1.5">
+                                <span className="flex items-center gap-1.5 flex-wrap">
                                   {player.name}
                                   {playerData.isCaptain && (
                                     <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500 drop-shadow-sm" />
+                                  )}
+                                  {attendanceByPlayer[player.id] === "present" && (
+                                    <Badge className="h-5 px-1.5 text-[10px] bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/40">Présent</Badge>
+                                  )}
+                                  {attendanceByPlayer[player.id] === "absent" && (
+                                    <Badge className="h-5 px-1.5 text-[10px] bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/40">Absent</Badge>
+                                  )}
+                                  {attendanceByPlayer[player.id] === "no_response" && (
+                                    <Badge variant="outline" className="h-5 px-1.5 text-[10px]">Sans réponse</Badge>
                                   )}
                                 </span>
                                 <AthleteIdentityBadges
