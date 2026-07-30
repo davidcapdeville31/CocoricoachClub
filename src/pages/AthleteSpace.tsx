@@ -703,7 +703,7 @@ export default function AthleteSpace() {
                )}
                <TabsTrigger 
                   value="documents"
-                  className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
+                  className="athlete-tab shrink-0 relative gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
                   style={{
                     color: NAV_COLORS.admin.base,
                     backgroundColor: `${NAV_COLORS.admin.base}15`,
@@ -713,7 +713,13 @@ export default function AthleteSpace() {
                 >
                   <FileText className="h-3.5 w-3.5" />
                   Documents
+                  {docNotifCount > 0 && (
+                    <span className="absolute -top-1 -right-1 h-4 min-w-[16px] flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1">
+                      {docNotifCount > 9 ? "9+" : docNotifCount}
+                    </span>
+                  )}
                 </TabsTrigger>
+
                {(
                   <TabsTrigger 
                     value="messaging"
