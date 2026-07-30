@@ -15,6 +15,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { CalendarPlus, Search, Star, Bell, Trash2, Pencil, RefreshCw, X, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { format, addWeeks, isBefore, startOfDay } from "date-fns";
