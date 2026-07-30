@@ -28,6 +28,7 @@ import { isIndividualSport, isBasket3x3 } from "@/lib/constants/sportTypes";
 import { Info } from "lucide-react";
 import { TOURNAMENT_LEVELS, SELECTION_TYPES } from "@/lib/judo/competitionAnalytics";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
+import { MatchParticipantsSelector, syncMatchParticipants } from "./MatchParticipantsSelector";
 
 interface AddMatchCalendarDialogProps {
   open: boolean;
