@@ -1001,6 +1001,14 @@ export function PlanTestsSection({ categoryId, sportType }: PlanTestsSectionProp
                         <Button
                           variant="ghost"
                           size="icon"
+                          title="Modifier (heure, jour, fréquence…)"
+                          onClick={() => openEdit(r)}
+                        >
+                          <Pencil className="h-4 w-4 text-primary" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           title="Supprimer"
                           onClick={() => deleteReminder.mutate(r.id)}
                         >
