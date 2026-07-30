@@ -7,6 +7,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Badge } from "@/components/ui/badge";
 import { Plus, Target, Flame, Activity, Trophy, Dumbbell, Home, Plane, MapPin } from "lucide-react";
 import { getCompetitionColor } from "@/lib/constants/competitionColors";
+import { useIsMobile } from "@/hooks/use-mobile";
+
 
 
 interface PeriodizationCategory {
@@ -114,7 +116,9 @@ export function AnnualTimelineView({
   onEditCycle,
   zoomLevel,
 }: AnnualTimelineViewProps) {
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
+
   const params = useParams();
   const routeCategoryId = params.id || params.categoryId;
   const yearStart = periodStart ?? startOfYear(new Date(year, 0, 1));
@@ -168,15 +172,18 @@ export function AnnualTimelineView({
     return eachWeekOfInterval({ start: yearStart, end: yearEnd }, { weekStartsOn: 1 });
   }, [year]);
 
-  const labelWidth = "200px";
+  const labelWidth = isMobile ? "96px" : "200px";
+  // Sur mobile, on garde ~64px par mois et on scrolle horizontalement pour rester lisible
+  const timelineMinWidth = isMobile ? `${96 + months.length * 64}px` : undefined;
 
   return (
-    <div className="relative w-full">
-      <div className="w-full">
+    <div className="relative w-full overflow-x-auto">
+      <div className="w-full" style={{ minWidth: timelineMinWidth }}>
         {/* MONTH HEADER */}
         <div className="flex border-b-2 border-border/60">
-          <div style={{ width: labelWidth, minWidth: labelWidth }} className="shrink-0" />
+          <div style={{ width: labelWidth, minWidth: labelWidth }} className="shrink-0 sticky left-0 z-20 bg-card" />
           <div className="flex-1 flex">
+
             {months.map((month, i) => {
               const monthDays = differenceInDays(endOfMonth(month), startOfMonth(month)) + 1;
               const widthPct = (monthDays / totalDays) * 100;
@@ -204,7 +211,8 @@ export function AnnualTimelineView({
 
         {/* ACTIVITY ROW */}
         <div className="flex border-b border-border/30 bg-muted/20">
-          <div style={{ width: labelWidth, minWidth: labelWidth }} className="shrink-0 flex items-center px-3">
+          <div style={{ width: labelWidth, minWidth: labelWidth }} className="shrink-0 sticky left-0 z-20 bg-card flex items-center px-2 sm:px-3">
+
             <Activity className="h-3.5 w-3.5 text-muted-foreground mr-1.5" />
             <span className="text-[11px] font-medium text-muted-foreground">Activité</span>
           </div>
@@ -253,7 +261,7 @@ export function AnnualTimelineView({
               {/* Row label */}
               <div
                 style={{ width: labelWidth, minWidth: labelWidth }}
-                className="shrink-0 flex items-center px-3 py-3 gap-2.5"
+                className="shrink-0 sticky left-0 z-20 bg-card flex items-center px-2 sm:px-3 py-3 gap-1.5 sm:gap-2.5"
               >
                 <div
                   className="w-3 h-3 rounded-md shrink-0 shadow-sm"
@@ -581,15 +589,16 @@ function LoadBar({ categories, cycles, yearStart, totalDays, labelWidth }: LoadB
     icon: React.ReactNode,
   ) => (
     <div className="flex">
-      <div style={{ width: labelWidth, minWidth: labelWidth }} className="shrink-0 flex items-center px-3">
+      <div style={{ width: labelWidth, minWidth: labelWidth }} className="shrink-0 sticky left-0 z-20 bg-card flex items-center flex-wrap px-2 sm:px-3">
         {icon}
         <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
           {label}
         </span>
-        <span className="ml-2 text-[10px] text-muted-foreground">
+        <span className="ml-1 sm:ml-2 text-[10px] text-muted-foreground whitespace-nowrap">
           ⌀ {avg.toFixed(1)}/10
         </span>
       </div>
+
       <div className="flex-1 relative h-6 rounded-md overflow-hidden border border-border/30">
         {segments.map((seg, i) => (
           <div
@@ -610,7 +619,7 @@ function LoadBar({ categories, cycles, yearStart, totalDays, labelWidth }: LoadB
   return (
     <div className="mt-1 space-y-1.5">
       {/* Filter chips */}
-      <div className="flex items-center gap-1.5 flex-wrap pl-3">
+      <div className="flex items-center gap-1.5 flex-wrap pl-2 sm:pl-3 sticky left-0 max-w-[90vw] sm:max-w-none">
         <span className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/70 mr-1">
           Filtre :
         </span>
