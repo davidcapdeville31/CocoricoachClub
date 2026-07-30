@@ -358,7 +358,7 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
 
   const togglePlayer = (playerId: string) => {
     if (attendanceByPlayer[playerId] === "absent") {
-      toast({ title: "Athlète absente", description: "Cette athlète s'est déclarée absente pour cette compétition.", variant: "destructive" });
+      toast.error("Athlète déclarée absente pour cette compétition");
       return;
     }
     setSelectedPlayers({
