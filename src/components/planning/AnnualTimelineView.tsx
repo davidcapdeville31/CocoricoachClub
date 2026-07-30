@@ -7,6 +7,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Badge } from "@/components/ui/badge";
 import { Plus, Target, Flame, Activity, Trophy, Dumbbell, Home, Plane, MapPin } from "lucide-react";
 import { getCompetitionColor } from "@/lib/constants/competitionColors";
+import { useIsMobile } from "@/hooks/use-mobile";
+
 
 
 interface PeriodizationCategory {
