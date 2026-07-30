@@ -589,15 +589,16 @@ function LoadBar({ categories, cycles, yearStart, totalDays, labelWidth }: LoadB
     icon: React.ReactNode,
   ) => (
     <div className="flex">
-      <div style={{ width: labelWidth, minWidth: labelWidth }} className="shrink-0 sticky left-0 z-20 bg-card flex items-center px-2 sm:px-3">
+      <div style={{ width: labelWidth, minWidth: labelWidth }} className="shrink-0 sticky left-0 z-20 bg-card flex items-center flex-wrap px-2 sm:px-3">
         {icon}
         <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
           {label}
         </span>
-        <span className="ml-2 text-[10px] text-muted-foreground">
+        <span className="ml-1 sm:ml-2 text-[10px] text-muted-foreground whitespace-nowrap">
           ⌀ {avg.toFixed(1)}/10
         </span>
       </div>
+
       <div className="flex-1 relative h-6 rounded-md overflow-hidden border border-border/30">
         {segments.map((seg, i) => (
           <div
