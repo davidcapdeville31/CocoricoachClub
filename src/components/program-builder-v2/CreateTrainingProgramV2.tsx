@@ -476,6 +476,10 @@ export function CreateTrainingProgramV2({
     () => currentWeek?.days.find((d) => d.id === activeDayId) ?? currentWeek?.days[0] ?? null,
     [currentWeek, activeDayId],
   );
+  const dayIndex = useMemo(
+    () => (currentDay ? (currentWeek?.days.findIndex((d) => d.id === currentDay.id) ?? 0) : 0),
+    [currentWeek, currentDay],
+  );
   currentDayRef.current = currentDay;
 
   // -- Metadata mutations ------------------------------------------------------
