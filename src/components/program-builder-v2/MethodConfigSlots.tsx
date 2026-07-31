@@ -1544,6 +1544,17 @@ export const MethodConfigSlots = ({
   }, [isEmom, emomConfig.totalMinutes, emomConfig.intervalMinutes, emomConfig.mode, emomConfig.exercisesPerInterval]);
 
   const updateSeries = (idx: number, field: keyof DropSetSeries, value: string | number | boolean | undefined) => {
+    // MAX reps auto-locks RPE=10 / RIR=0 → ces variables doivent être visibles
+    // dans l'éditeur (sinon elles apparaissent sur la carte validée sans être
+    // modifiables/consultables lors de la modification de l'exercice).
+    if (field === 'reps' && value === 'MAX') {
+      setVisibleVariables(prev => {
+        const next = [...prev];
+        if (!next.includes('rpe')) next.push('rpe');
+        if (!next.includes('rir')) next.push('rir');
+        return next;
+      });
+    }
     setSeries(prev => {
       const newSeries = [...prev];
       newSeries[idx] = { ...newSeries[idx], [field]: value } as DropSetSeries;
