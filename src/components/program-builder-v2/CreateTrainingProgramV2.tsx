@@ -572,6 +572,42 @@ export function CreateTrainingProgramV2({
     [],
   );
 
+  const setDayTime = useCallback(
+    (weekNumber: number, dayId: string, field: "startTime" | "endTime", value: string) => {
+      setDraft((prev) => ({
+        ...prev,
+        weeks: prev.weeks.map((w) =>
+          w.weekNumber !== weekNumber
+            ? w
+            : {
+                ...w,
+                days: w.days.map((d) =>
+                  d.id === dayId ? { ...d, [field]: value || null } : d,
+                ),
+              },
+        ),
+      }));
+    },
+    [],
+  );
+
+  const applyTimeToAllWeeks = useCallback(
+    (dayIndex: number, startTime?: string | null, endTime?: string | null) => {
+      setDraft((prev) => ({
+        ...prev,
+        weeks: prev.weeks.map((w) => ({
+          ...w,
+          days: w.days.map((d, i) =>
+            i === dayIndex ? { ...d, startTime, endTime } : d,
+          ),
+        })),
+      }));
+    },
+    [],
+  );
+
+
+
   const setDayBlocks = useCallback(
     (weekNumber: number, dayId: string, blocks: V2BlockWithExercises[]) => {
       setDraft((prev) => ({
