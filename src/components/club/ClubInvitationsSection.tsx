@@ -27,6 +27,7 @@ export function ClubInvitationsSection({ clubId }: ClubInvitationsSectionProps) 
   const resendMutation = useResendInvitation();
 
   const getDisplayStatus = (invitation: any): "pending" | "accepted" | "expired" | "incomplete" => {
+    if (invitation._isMember) return "accepted";
     const effectiveStatus = getInvitationStatus(invitation.status, invitation.expires_at);
     if (effectiveStatus === "accepted" && !invitation._isResolvedAcceptance) {
       return "incomplete";
