@@ -1399,9 +1399,20 @@ export const MethodConfigSlots = ({
   
   // Dynamic variables visibility state — ONLY show variables that were actually saved
   const getDefaultVisibleVars = () => {
+    // Si au moins une série est en MAX, RPE/RIR sont forcés → toujours visibles
+    const hasMax = (initialData?.series || initialData?.methodExercises || []).some(
+      (s: any) => s?.reps === 'MAX'
+    );
+    const withMax = (vars: string[]) => {
+      if (!hasMax) return vars;
+      const next = [...vars];
+      if (!next.includes('rpe')) next.push('rpe');
+      if (!next.includes('rir')) next.push('rir');
+      return next;
+    };
     // If restoring from saved data, use ONLY the saved visible variables
     if (initialData?.visibleVariables) {
-      return initialData.visibleVariables;
+      return withMax(initialData.visibleVariables);
     }
     // For CrossFit methods with methodExercises, infer from actual data (no phantom vars)
     if (initialData?.methodExercises && initialData.methodExercises.length > 0) {
@@ -1416,7 +1427,7 @@ export const MethodConfigSlots = ({
       if (hasAny('rir')) vars.push('rir');
       if (hasAny('angle')) vars.push('angle');
       if (hasAny('timeUnderTension')) vars.push('timeUnderTension');
-      return vars;
+      return withMax(vars);
     }
     // Default for fresh creation
     const vars: string[] = [];
@@ -1426,9 +1437,10 @@ export const MethodConfigSlots = ({
     if (config.showRpe) vars.push('rpe');
     if (config.showAngle) vars.push('angle');
     if (config.showTimeUnderTension) vars.push('timeUnderTension');
-    return vars;
+    return withMax(vars);
   };
   const [visibleVariables, setVisibleVariables] = useState<string[]>(getDefaultVisibleVars);
+
   
   // CrossFit specific states — restore from initialData if available
   const [timeCap, setTimeCap] = useState<number>(initialData?.timeCap ?? 10);
@@ -1544,6 +1556,17 @@ export const MethodConfigSlots = ({
   }, [isEmom, emomConfig.totalMinutes, emomConfig.intervalMinutes, emomConfig.mode, emomConfig.exercisesPerInterval]);
 
   const updateSeries = (idx: number, field: keyof DropSetSeries, value: string | number | boolean | undefined) => {
+    // MAX reps auto-locks RPE=10 / RIR=0 → ces variables doivent être visibles
+    // dans l'éditeur (sinon elles apparaissent sur la carte validée sans être
+    // modifiables/consultables lors de la modification de l'exercice).
+    if (field === 'reps' && value === 'MAX') {
+      setVisibleVariables(prev => {
+        const next = [...prev];
+        if (!next.includes('rpe')) next.push('rpe');
+        if (!next.includes('rir')) next.push('rir');
+        return next;
+      });
+    }
     setSeries(prev => {
       const newSeries = [...prev];
       newSeries[idx] = { ...newSeries[idx], [field]: value } as DropSetSeries;
