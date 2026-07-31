@@ -269,8 +269,8 @@ export function CreateTrainingProgramV2({
             return {
               id: makeId(),
               dayOfWeek: DAY_INDEX_TO_ID[s.scheduled_day ?? (idx + 1)] ?? "monday",
-              startTime: "18:00",
-              endTime: "19:30",
+              startTime: (s.start_time ?? "18:00").slice(0, 5),
+              endTime: (s.end_time ?? "19:30").slice(0, 5),
               name: s.name || `Jour ${idx + 1}`,
               exercises: [],
               blocks: Array.from(blocksMap.values()),
