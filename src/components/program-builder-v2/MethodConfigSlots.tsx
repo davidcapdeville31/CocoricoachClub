@@ -4,13 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useDroppable } from "@dnd-kit/core";
 import { cn } from "@/lib/utils";
-import { Dumbbell, X, Plus, SlidersHorizontal, Copy, CheckCheck, Trash2, Pencil, Hash, Clock, Search, Library } from "lucide-react";
+import { Dumbbell, X, Plus, SlidersHorizontal, Copy, CheckCheck, Trash2, Pencil, Hash, Clock, Search, Library, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MethodActionButtons } from "./shared/MethodActionButtons";
 import { Input } from "@/components/ui/input";
 import { NumericInput } from "@/components/ui/numeric-input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { TimeInput } from "@/components/ui/time-input";
 import { MethodExerciseDisplay } from "./MethodExerciseDisplay";
 import { InlineVariablePicker } from "./shared/InlineVariablePicker";
@@ -66,6 +67,8 @@ interface DropSetSeries {
   // For CrossFit methods
   exerciseId?: string;
   exerciseName?: string;
+  // Consignes spécifiques (coach notes) pour cet exercice
+  notes?: string;
 }
 
 // Death By configuration
@@ -142,6 +145,7 @@ export interface MethodConfigInitialData {
     rir?: number;
     angle?: number;
     timeUnderTension?: number;
+    notes?: string;
   }>;
   // Rest-Pause dedicated config
   restPauseConfig?: RestPauseConfig;
@@ -788,6 +792,66 @@ const InlineSlotPicker = ({
 };
 
 
+// Consignes spécifiques (coach notes) éditables pour un exercice de méthode
+const SlotNotesEditor = ({
+  value,
+  onChange,
+}: {
+  value?: string;
+  onChange: (val: string) => void;
+}) => {
+  const [open, setOpen] = useState(Boolean(value && value.length > 0));
+
+  if (!open) {
+    return (
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => setOpen(true)}
+        onPointerDown={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+        className="h-6 px-2 text-[11px] text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 gap-1"
+      >
+        <MessageSquare className="h-3 w-3" />
+        + Consignes spécifiques
+      </Button>
+    );
+  }
+
+  return (
+    <div className="p-2 rounded-md bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900">
+      <div className="flex items-center justify-between mb-1">
+        <Label className="text-[10px] uppercase tracking-wide text-blue-700 dark:text-blue-400 font-semibold flex items-center gap-1">
+          <MessageSquare className="h-3 w-3" /> Consignes spécifiques
+        </Label>
+        <button
+          type="button"
+          onClick={() => {
+            onChange("");
+            setOpen(false);
+          }}
+          onPointerDown={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+          className="p-0.5 hover:bg-destructive/20 rounded"
+          title="Retirer la consigne"
+        >
+          <X className="h-3 w-3 text-destructive" />
+        </button>
+      </div>
+      <Textarea
+        value={value ?? ""}
+        onChange={(e) => onChange(e.target.value)}
+        onPointerDown={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+        placeholder="Ex: Garde le dos bien droit, contrôle la descente..."
+        rows={2}
+        className="text-xs resize-y min-h-[44px] bg-background/70"
+      />
+    </div>
+  );
+};
+
 // Circuit exercise slot for AMRAP, For Time, etc. - with training variables
 const CircuitExerciseSlot = ({
   slotId,
@@ -1114,6 +1178,16 @@ const CircuitExerciseSlot = ({
         </div>
       )}
 
+      {/* Consignes spécifiques pour cet exercice */}
+      {isFilled && onUpdateSeries && (
+        <div className="ml-4">
+          <SlotNotesEditor
+            value={seriesData?.notes}
+            onChange={(val) => onUpdateSeries("notes", val)}
+          />
+        </div>
+      )}
+
       {/* Per-exercise rest (circuit "between_exercises" strategy) */}
       {isFilled && showPerExerciseRest && onRestChange && (
         <div className={cn("ml-4 flex items-center gap-2 p-2 rounded-lg border", config.bgActive, config.borderColor)}>
@@ -1303,6 +1377,7 @@ export const MethodConfigSlots = ({
         if (ex.rir !== undefined) s.rir = ex.rir;
         if (ex.angle !== undefined) s.angle = ex.angle;
         if (ex.timeUnderTension !== undefined) s.timeUnderTension = ex.timeUnderTension;
+        if ((ex as any).notes !== undefined) s.notes = (ex as any).notes;
         s.exerciseId = ex.exerciseId;
         s.exerciseName = ex.exerciseName;
         s.phaseExerciseId = ex.exerciseId;
@@ -1961,6 +2036,7 @@ export const MethodConfigSlots = ({
                                       rir: series[sourceSlotIdx].rir,
                                       angle: series[sourceSlotIdx].angle,
                                       timeUnderTension: series[sourceSlotIdx].timeUnderTension,
+                                      notes: series[sourceSlotIdx].notes,
                                     };
                                   }
                                 }
@@ -2002,6 +2078,7 @@ export const MethodConfigSlots = ({
                                       rir: series[sourceSlotIdx].rir,
                                       angle: series[sourceSlotIdx].angle,
                                       timeUnderTension: series[sourceSlotIdx].timeUnderTension,
+                                      notes: series[sourceSlotIdx].notes,
                                     };
                                   }
                                 }
