@@ -27,6 +27,7 @@ export function ClubInvitationsSection({ clubId }: ClubInvitationsSectionProps) 
   const resendMutation = useResendInvitation();
 
   const getDisplayStatus = (invitation: any): "pending" | "accepted" | "expired" | "incomplete" => {
+    if (invitation._isMember) return "accepted";
     const effectiveStatus = getInvitationStatus(invitation.status, invitation.expires_at);
     if (effectiveStatus === "accepted" && !invitation._isResolvedAcceptance) {
       return "incomplete";
@@ -126,13 +127,26 @@ export function ClubInvitationsSection({ clubId }: ClubInvitationsSectionProps) 
           .filter(Boolean)
       );
 
-      const clubInvitations = (clubRes.data || []).map((inv: any) => ({
-        ...inv,
-        _scope: "club" as const,
-        _scopeLabel: "Club entier",
-        _isResolvedAcceptance:
-          inv.status === "accepted" && activeClubEmails.has((inv.email || "").toLowerCase()),
-      }));
+      const clubInvitations = (clubRes.data || []).map((inv: any) => {
+        const assigned: string[] = Array.isArray(inv.assigned_categories) ? inv.assigned_categories : [];
+        const assignedNames = assigned
+          .map((id: string) => catMap.get(id))
+          .filter(Boolean) as string[];
+        const isMember = activeClubEmails.has((inv.email || "").toLowerCase());
+        return {
+          ...inv,
+          _scope: "club" as const,
+          _scopeLabel:
+            assignedNames.length === 0
+              ? "Club entier"
+              : assignedNames.length <= 2
+                ? assignedNames.join(", ")
+                : `${assignedNames.length} catégories`,
+          _isRestrictedScope: assignedNames.length > 0,
+          _isMember: isMember,
+          _isResolvedAcceptance: isMember,
+        };
+      });
 
       const resolvedCategoryInvitations = categoryInvitations.map((inv: any) => ({
         ...inv,
@@ -289,7 +303,7 @@ export function ClubInvitationsSection({ clubId }: ClubInvitationsSectionProps) 
                     >
                       <p className="font-medium text-sm break-all">{invitation.email}</p>
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <Badge variant={isCategory ? "secondary" : "default"}>
+                        <Badge variant={isCategory || invitation._isRestrictedScope ? "secondary" : "default"}>
                           {invitation._scopeLabel}
                         </Badge>
                         {getRoleBadge(invitation.role)}
@@ -327,7 +341,7 @@ export function ClubInvitationsSection({ clubId }: ClubInvitationsSectionProps) 
                         <TableRow key={`${invitation._scope}-${invitation.id}`}>
                           <TableCell className="font-medium">{invitation.email}</TableCell>
                           <TableCell>
-                            <Badge variant={isCategory ? "secondary" : "default"}>
+                            <Badge variant={isCategory || invitation._isRestrictedScope ? "secondary" : "default"}>
                               {invitation._scopeLabel}
                             </Badge>
                           </TableCell>
