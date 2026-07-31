@@ -85,6 +85,8 @@ export interface V2ProgramDay {
   id: string;
   dayOfWeek: string;
   name: string;
+  startTime?: string | null;
+  endTime?: string | null;
   exercises: V2ProgramExercise[];
   blocks: V2BlockWithExercises[];
   unifiedOrder: UnifiedOrderItem[];
@@ -127,6 +129,8 @@ function buildEmptyWeek(weekNumber: number, daysPerWeek: number): V2ProgramWeek 
   const days = DAYS_OF_WEEK.slice(0, daysPerWeek).map((d, idx) => ({
     id: makeId(),
     dayOfWeek: d.id,
+    startTime: "18:00",
+    endTime: "19:30",
     name: `Jour ${idx + 1}`,
     exercises: [],
     blocks: [],
@@ -265,6 +269,8 @@ export function CreateTrainingProgramV2({
             return {
               id: makeId(),
               dayOfWeek: DAY_INDEX_TO_ID[s.scheduled_day ?? (idx + 1)] ?? "monday",
+              startTime: (s.start_time ?? "18:00").slice(0, 5),
+              endTime: (s.end_time ?? "19:30").slice(0, 5),
               name: s.name || `Jour ${idx + 1}`,
               exercises: [],
               blocks: Array.from(blocksMap.values()),
@@ -488,6 +494,8 @@ export function CreateTrainingProgramV2({
           const extra = DAYS_OF_WEEK.slice(w.days.length, n).map((d, i) => ({
             id: makeId(),
             dayOfWeek: d.id,
+            startTime: "18:00",
+            endTime: "19:30",
             name: `Jour ${w.days.length + i + 1}`,
             exercises: [],
             blocks: [],
@@ -563,6 +571,42 @@ export function CreateTrainingProgramV2({
     },
     [],
   );
+
+  const setDayTime = useCallback(
+    (weekNumber: number, dayId: string, field: "startTime" | "endTime", value: string) => {
+      setDraft((prev) => ({
+        ...prev,
+        weeks: prev.weeks.map((w) =>
+          w.weekNumber !== weekNumber
+            ? w
+            : {
+                ...w,
+                days: w.days.map((d) =>
+                  d.id === dayId ? { ...d, [field]: value || null } : d,
+                ),
+              },
+        ),
+      }));
+    },
+    [],
+  );
+
+  const applyTimeToAllWeeks = useCallback(
+    (dayIndex: number, startTime?: string | null, endTime?: string | null) => {
+      setDraft((prev) => ({
+        ...prev,
+        weeks: prev.weeks.map((w) => ({
+          ...w,
+          days: w.days.map((d, i) =>
+            i === dayIndex ? { ...d, startTime, endTime } : d,
+          ),
+        })),
+      }));
+    },
+    [],
+  );
+
+
 
   const setDayBlocks = useCallback(
     (weekNumber: number, dayId: string, blocks: V2BlockWithExercises[]) => {
@@ -935,6 +979,37 @@ export function CreateTrainingProgramV2({
                         </Select>
                       </div>
                       <CardTitle className="text-base mt-0.5">{currentDay.name}</CardTitle>
+                      <div className="flex flex-wrap items-center gap-2 pt-1">
+                        <span className="text-xs text-muted-foreground">Horaire</span>
+                        <Input
+                          type="time"
+                          value={currentDay.startTime ?? ""}
+                          onChange={(e) => setDayTime(activeWeek, currentDay.id, "startTime", e.target.value)}
+                          className="h-7 w-[110px] rounded-xl text-xs"
+                        />
+                        <span className="text-xs text-muted-foreground">→</span>
+                        <Input
+                          type="time"
+                          value={currentDay.endTime ?? ""}
+                          onChange={(e) => setDayTime(activeWeek, currentDay.id, "endTime", e.target.value)}
+                          className="h-7 w-[110px] rounded-xl text-xs"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 rounded-xl text-xs"
+                          onClick={() => {
+                            const idx = currentWeek?.days.findIndex((d) => d.id === currentDay.id) ?? -1;
+                            if (idx >= 0) {
+                              applyTimeToAllWeeks(idx, currentDay.startTime, currentDay.endTime);
+                              toast.success("Horaire appliqué à toutes les semaines");
+                            }
+                          }}
+                        >
+                          Appliquer à toutes les semaines
+                        </Button>
+                      </div>
                     </div>
                     <div className="flex items-center gap-1">
                       <Button variant="ghost" size="icon" className="rounded-2xl h-8 w-8">
