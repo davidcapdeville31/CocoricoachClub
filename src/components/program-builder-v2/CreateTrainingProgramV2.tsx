@@ -85,6 +85,8 @@ export interface V2ProgramDay {
   id: string;
   dayOfWeek: string;
   name: string;
+  startTime?: string | null;
+  endTime?: string | null;
   exercises: V2ProgramExercise[];
   blocks: V2BlockWithExercises[];
   unifiedOrder: UnifiedOrderItem[];
