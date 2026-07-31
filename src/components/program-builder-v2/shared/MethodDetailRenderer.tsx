@@ -297,20 +297,28 @@ const CrossFitConfigDetail = ({ exercise }: { exercise: any }) => {
         <div className="space-y-0.5 pt-1">
           <span className="text-[10px] font-medium text-muted-foreground">Exercices du bloc :</span>
           {methodExercises.map((ex: any, idx: number) => (
-            <div key={idx} className="flex items-center gap-1.5 flex-wrap p-1 rounded bg-secondary/30">
-              <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 min-w-[24px] justify-center">
-                {idx + 1}
-              </Badge>
-              <span className="text-xs font-medium">{ex.exerciseName}</span>
-              {ex.reps && (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                  {ex.reps} reps
+            <div key={idx} className="p-1 rounded bg-secondary/30">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 min-w-[24px] justify-center">
+                  {idx + 1}
                 </Badge>
+                <span className="text-xs font-medium">{ex.exerciseName}</span>
+                {ex.reps && (
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                    {ex.reps} reps
+                  </Badge>
+                )}
+                {ex.percentage && <VarBadge label="%" value={ex.percentage} unit="%" />}
+                {ex.load && <VarBadge label="" value={`${ex.load}kg`} />}
+              </div>
+              {ex.notes && String(ex.notes).trim() !== "" && (
+                <p className="text-[11px] italic text-muted-foreground whitespace-pre-line mt-0.5 ml-[30px]">
+                  💬 {String(ex.notes)}
+                </p>
               )}
-              {ex.percentage && <VarBadge label="%" value={ex.percentage} unit="%" />}
-              {ex.load && <VarBadge label="" value={`${ex.load}kg`} />}
             </div>
           ))}
+
         </div>
       )}
     </div>
