@@ -796,7 +796,7 @@ export function CreateTrainingProgramV2({
                       >
                         <SelectTrigger
                           className={cn(
-                            "h-6 min-h-6 w-[68px] rounded-xl border-0 bg-transparent px-1.5 text-[10px] uppercase opacity-80 hover:opacity-100 focus:ring-0",
+                            "h-6 min-h-6 w-[96px] rounded-xl border-0 bg-transparent px-1.5 text-[10px] uppercase opacity-80 hover:opacity-100 focus:ring-0",
                             isActive && "text-primary-foreground",
                           )}
                         >
