@@ -1011,11 +1011,36 @@ export function CreateTrainingProgramV2({
                         </Button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="icon" className="rounded-2xl h-8 w-8">
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="rounded-2xl h-8 w-8"
+                        title="Jour précédent"
+                        disabled={dayIndex <= 0}
+                        onClick={() => {
+                          const prev = currentWeek?.days[dayIndex - 1];
+                          if (prev) setActiveDayId(prev.id);
+                        }}
+                      >
                         <ChevronLeft className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="rounded-2xl h-8 w-8">
+                      <span className="text-xs text-muted-foreground tabular-nums">
+                        J{dayIndex + 1}/{currentWeek?.days.length ?? 0}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="rounded-2xl h-8 w-8"
+                        title="Jour suivant"
+                        disabled={dayIndex >= (currentWeek?.days.length ?? 1) - 1}
+                        onClick={() => {
+                          const next = currentWeek?.days[dayIndex + 1];
+                          if (next) setActiveDayId(next.id);
+                        }}
+                      >
                         <ChevronRight className="h-4 w-4" />
                       </Button>
                     </div>
