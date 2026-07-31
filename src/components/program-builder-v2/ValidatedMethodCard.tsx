@@ -169,6 +169,7 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit, readOnly }: Pr
         load: ex.load,
         tempo: ex.tempo,
         rpe: ex.rpe,
+        notes: ex.notes ?? rawSeries[0]?.notes,
         exerciseName: ex.exerciseName,
       }))
     : rawSeries;
@@ -392,11 +393,14 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit, readOnly }: Pr
                 : undefined);
             const exName: string | undefined =
               s.exerciseName || s.phaseExerciseName || fallbackPhase;
+            const seriesNote: string | undefined =
+              (s.notes && String(s.notes).trim()) || undefined;
             return (
               <div
                 key={idx}
-                className="flex flex-wrap items-center gap-1.5 px-2 py-1 rounded-md bg-background/70 border border-border/40"
+                className="flex flex-col gap-1 px-2 py-1 rounded-md bg-background/70 border border-border/40"
               >
+                <div className="flex flex-wrap items-center gap-1.5">
                 <Badge
                   variant="outline"
                   className={cn(
