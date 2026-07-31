@@ -10471,28 +10471,34 @@ export type Database = {
         Row: {
           created_at: string
           day_of_week: number | null
+          end_time: string | null
           id: string
           name: string | null
           scheduled_day: number | null
           session_number: number
+          start_time: string | null
           week_id: string
         }
         Insert: {
           created_at?: string
           day_of_week?: number | null
+          end_time?: string | null
           id?: string
           name?: string | null
           scheduled_day?: number | null
           session_number?: number
+          start_time?: string | null
           week_id: string
         }
         Update: {
           created_at?: string
           day_of_week?: number | null
+          end_time?: string | null
           id?: string
           name?: string | null
           scheduled_day?: number | null
           session_number?: number
+          start_time?: string | null
           week_id?: string
         }
         Relationships: [
