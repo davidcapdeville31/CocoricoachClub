@@ -979,6 +979,37 @@ export function CreateTrainingProgramV2({
                         </Select>
                       </div>
                       <CardTitle className="text-base mt-0.5">{currentDay.name}</CardTitle>
+                      <div className="flex flex-wrap items-center gap-2 pt-1">
+                        <span className="text-xs text-muted-foreground">Horaire</span>
+                        <Input
+                          type="time"
+                          value={currentDay.startTime ?? ""}
+                          onChange={(e) => setDayTime(activeWeek, currentDay.id, "startTime", e.target.value)}
+                          className="h-7 w-[110px] rounded-xl text-xs"
+                        />
+                        <span className="text-xs text-muted-foreground">→</span>
+                        <Input
+                          type="time"
+                          value={currentDay.endTime ?? ""}
+                          onChange={(e) => setDayTime(activeWeek, currentDay.id, "endTime", e.target.value)}
+                          className="h-7 w-[110px] rounded-xl text-xs"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 rounded-xl text-xs"
+                          onClick={() => {
+                            const idx = currentWeek?.days.findIndex((d) => d.id === currentDay.id) ?? -1;
+                            if (idx >= 0) {
+                              applyTimeToAllWeeks(idx, currentDay.startTime, currentDay.endTime);
+                              toast.success("Horaire appliqué à toutes les semaines");
+                            }
+                          }}
+                        >
+                          Appliquer à toutes les semaines
+                        </Button>
+                      </div>
                     </div>
                     <div className="flex items-center gap-1">
                       <Button variant="ghost" size="icon" className="rounded-2xl h-8 w-8">
