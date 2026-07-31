@@ -1178,6 +1178,16 @@ const CircuitExerciseSlot = ({
         </div>
       )}
 
+      {/* Consignes spécifiques pour cet exercice */}
+      {isFilled && onUpdateSeries && (
+        <div className="ml-4">
+          <SlotNotesEditor
+            value={seriesData?.notes}
+            onChange={(val) => onUpdateSeries("notes", val)}
+          />
+        </div>
+      )}
+
       {/* Per-exercise rest (circuit "between_exercises" strategy) */}
       {isFilled && showPerExerciseRest && onRestChange && (
         <div className={cn("ml-4 flex items-center gap-2 p-2 rounded-lg border", config.bgActive, config.borderColor)}>
