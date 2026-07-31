@@ -22,6 +22,7 @@ export interface MethodExercise {
   load?: number;
   tempo?: string;
   rpe?: number;
+  notes?: string;
 }
 
 interface CrossFitMethodCardProps {
@@ -160,6 +161,11 @@ export const CrossFitMethodCard = ({
                 {ex.load && <Badge variant="secondary" className="text-xs">{ex.load}kg</Badge>}
                 {ex.rpe && <Badge variant="secondary" className="text-xs">RPE {ex.rpe}</Badge>}
               </div>
+              {ex.notes && String(ex.notes).trim() !== '' && (
+                <div className="px-4 pb-2 ml-8">
+                  <p className="text-xs italic text-muted-foreground whitespace-pre-line">💬 {ex.notes}</p>
+                </div>
+              )}
               {circuitRecovery?.strategy === 'between_exercises' && circuitRecovery.perExerciseRestSeconds?.[idx] != null && (
                 <div className="px-4 pb-2 ml-8">
                   <span className="text-xs text-muted-foreground italic">↳ Repos : {formatRestSeconds(circuitRecovery.perExerciseRestSeconds[idx])}</span>
