@@ -733,7 +733,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
       let summary = label;
       const setsCount = payload.setsCount ?? payload.series?.length ?? 1;
       if (method === "drop_set") summary = `Drop Set — ${setsCount}× ${(payload.series ?? []).length} drops`;
-      else if (method === "tabata") summary = `Tabata 20/10 × ${payload.tabataConfig?.rounds ?? 8}`;
+      else if (method === "tabata") summary = `Tabata ${payload.tabataConfig?.workSeconds ?? 20}/${payload.tabataConfig?.restSeconds ?? 10} × ${payload.tabataConfig?.rounds ?? 8}`;
       else if (method === "emom") {
         const im = payload.emomConfig?.intervalMinutes ?? 1;
         const tm = payload.emomConfig?.totalMinutes ?? 10;

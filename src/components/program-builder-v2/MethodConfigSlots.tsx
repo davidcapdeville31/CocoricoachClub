@@ -1624,7 +1624,7 @@ export const MethodConfigSlots = ({
       setsCount: method === "drop_set" ? setsCount : undefined,
       // CrossFit specific
       timeCap: ['amrap', 'for_time'].includes(method) ? timeCap : undefined,
-      tabataConfig: isTabata ? { workSeconds: 20, restSeconds: 10, rounds: 8 } : undefined,
+      tabataConfig: isTabata ? tabataConfig : undefined,
       totalMinutes: isEmom ? emomConfig.totalMinutes : undefined,
       repsPerRound: method === 'circuit' ? rounds : undefined,
       // EMOM specific
@@ -2469,31 +2469,60 @@ export const MethodConfigSlots = ({
               )}
             </div>
             
-            {/* Tabata timing — fixed protocol: 20s work / 10s rest / 8 rounds */}
-            <div className="flex flex-wrap gap-2 pt-2 border-t border-border/30">
-              <div className="flex items-center gap-2">
+            {/* Tabata timing — configurable */}
+            <div className="flex flex-wrap items-end gap-3 pt-2 border-t border-border/30">
+              <div className="flex flex-col gap-1">
                 <Label className="text-xs text-muted-foreground whitespace-nowrap">Travail</Label>
-                <Badge variant="secondary" className="h-8 px-3 text-sm font-bold bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-400 border border-green-300 dark:border-green-800">
-                  0:20
-                </Badge>
+                <TimeInput
+                  value={tabataConfig.workSeconds}
+                  onChange={(sec) => setTabataConfig({ ...tabataConfig, workSeconds: Math.max(1, sec) })}
+                />
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col gap-1">
                 <Label className="text-xs text-muted-foreground whitespace-nowrap">Repos</Label>
-                <Badge variant="secondary" className="h-8 px-3 text-sm font-bold bg-blue-100 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 border border-blue-300 dark:border-blue-800">
-                  0:10
-                </Badge>
+                <TimeInput
+                  value={tabataConfig.restSeconds}
+                  onChange={(sec) => setTabataConfig({ ...tabataConfig, restSeconds: Math.max(0, sec) })}
+                />
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col gap-1">
                 <Label className="text-xs text-muted-foreground whitespace-nowrap">Rounds</Label>
-                <Badge variant="secondary" className="h-8 px-3 text-sm font-bold">
-                  8
-                </Badge>
+                <NumericInput
+                  value={tabataConfig.rounds}
+                  onChange={(val) => setTabataConfig({ ...tabataConfig, rounds: Math.max(1, parseInt(val) || 1) })}
+                  className="h-8"
+                  placeholder="8"
+                  minChars={2}
+                  maxChars={3}
+                />
               </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-8 text-xs"
+                onClick={() => setTabataConfig({ workSeconds: 20, restSeconds: 10, rounds: 8 })}
+                title="Revenir au protocole Tabata standard (20/10 × 8)"
+              >
+                Protocole standard 20/10 × 8
+              </Button>
             </div>
-            <div className={cn("text-xs p-2 rounded", config.bgActive, config.textColor)}>
-              Protocole Tabata standard : 20s effort / 10s repos × 8 rounds = 4min
-              {series.length > 1 && ` • ${series.length} exercices en alternance`}
-            </div>
+            {(() => {
+              const cycle = tabataConfig.workSeconds + tabataConfig.restSeconds;
+              const total = cycle * tabataConfig.rounds;
+              const fmt = (sec: number) => {
+                const m = Math.floor(sec / 60);
+                const r = sec % 60;
+                return m > 0 ? `${m}min${r > 0 ? ` ${r}s` : ""}` : `${r}s`;
+              };
+              return (
+                <div className={cn("text-xs p-2 rounded", config.bgActive, config.textColor)}>
+                  {tabataConfig.workSeconds}s effort / {tabataConfig.restSeconds}s repos × {tabataConfig.rounds} rounds
+                  {" = "}<span className="font-bold">{fmt(total)}</span> au total ({fmt(cycle)} par round)
+                  {series.length > 1 && ` • ${series.length} exercices en alternance`}
+                </div>
+              );
+            })()}
           </>
         ) : isDeathBy ? (
           <>
@@ -3262,7 +3291,7 @@ export const MethodConfigSlots = ({
               })) : undefined,
           timeCap: ['amrap', 'for_time'].includes(method) ? timeCap : undefined,
           emomConfig: isEmom ? { intervalMinutes: emomConfig.intervalMinutes, totalMinutes: emomConfig.totalMinutes } : undefined,
-          tabataConfig: isTabata ? { workSeconds: 20, restSeconds: 10, rounds: 8 } : undefined,
+          tabataConfig: isTabata ? tabataConfig : undefined,
           deathByConfig: isDeathBy ? deathByConfig : undefined,
           repsPerRound: method === 'circuit' ? rounds : undefined,
           circuitRecovery: method === 'circuit' ? {
