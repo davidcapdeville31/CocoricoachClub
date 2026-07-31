@@ -126,13 +126,26 @@ export function ClubInvitationsSection({ clubId }: ClubInvitationsSectionProps) 
           .filter(Boolean)
       );
 
-      const clubInvitations = (clubRes.data || []).map((inv: any) => ({
-        ...inv,
-        _scope: "club" as const,
-        _scopeLabel: "Club entier",
-        _isResolvedAcceptance:
-          inv.status === "accepted" && activeClubEmails.has((inv.email || "").toLowerCase()),
-      }));
+      const clubInvitations = (clubRes.data || []).map((inv: any) => {
+        const assigned: string[] = Array.isArray(inv.assigned_categories) ? inv.assigned_categories : [];
+        const assignedNames = assigned
+          .map((id: string) => catMap.get(id))
+          .filter(Boolean) as string[];
+        const isMember = activeClubEmails.has((inv.email || "").toLowerCase());
+        return {
+          ...inv,
+          _scope: "club" as const,
+          _scopeLabel:
+            assignedNames.length === 0
+              ? "Club entier"
+              : assignedNames.length <= 2
+                ? assignedNames.join(", ")
+                : `${assignedNames.length} catégories`,
+          _isRestrictedScope: assignedNames.length > 0,
+          _isMember: isMember,
+          _isResolvedAcceptance: isMember,
+        };
+      });
 
       const resolvedCategoryInvitations = categoryInvitations.map((inv: any) => ({
         ...inv,
