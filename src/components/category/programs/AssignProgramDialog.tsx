@@ -382,6 +382,8 @@ export function AssignProgramDialog({
                         </span>
                         <span className="text-muted-foreground">
                           {format(date, "EEEE d MMM", { locale: fr })}
+                          {session.start_time ? ` · ${session.start_time.slice(0, 5)}` : ""}
+                          {session.end_time ? `-${session.end_time.slice(0, 5)}` : ""}
                         </span>
                       </div>
                     ))}
