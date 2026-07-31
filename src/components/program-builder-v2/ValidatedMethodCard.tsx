@@ -475,6 +475,12 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit, readOnly }: Pr
                     Pause {s.pauseSeconds}s
                   </Badge>
                 )}
+                </div>
+                {seriesNote && (
+                  <p className="text-[10px] italic text-muted-foreground whitespace-pre-line pl-1">
+                    💬 {seriesNote}
+                  </p>
+                )}
               </div>
             );
           })}
