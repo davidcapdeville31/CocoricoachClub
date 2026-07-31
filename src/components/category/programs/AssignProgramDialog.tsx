@@ -32,6 +32,8 @@ interface ProgramSession {
   session_number: number;
   name: string;
   scheduled_day?: number;
+  start_time?: string | null;
+  end_time?: string | null;
 }
 
 interface ProgramWeek {
@@ -98,7 +100,9 @@ export function AssignProgramDialog({
             id,
             session_number,
             name,
-            scheduled_day
+            scheduled_day,
+            start_time,
+            end_time
           )
         `)
         .eq("program_id", programId)
@@ -226,6 +230,8 @@ export function AssignProgramDialog({
               .insert({
                 category_id: categoryId,
                 session_date: sessionDate,
+                session_start_time: session.start_time ?? null,
+                session_end_time: session.end_time ?? null,
                 training_type: trainingType,
                 notes: `Programme: ${programStructure.program?.name} - ${session.name}`,
               })
