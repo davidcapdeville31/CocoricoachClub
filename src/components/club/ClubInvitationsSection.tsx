@@ -303,7 +303,7 @@ export function ClubInvitationsSection({ clubId }: ClubInvitationsSectionProps) 
                     >
                       <p className="font-medium text-sm break-all">{invitation.email}</p>
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <Badge variant={isCategory ? "secondary" : "default"}>
+                        <Badge variant={isCategory || invitation._isRestrictedScope ? "secondary" : "default"}>
                           {invitation._scopeLabel}
                         </Badge>
                         {getRoleBadge(invitation.role)}
@@ -341,7 +341,7 @@ export function ClubInvitationsSection({ clubId }: ClubInvitationsSectionProps) 
                         <TableRow key={`${invitation._scope}-${invitation.id}`}>
                           <TableCell className="font-medium">{invitation.email}</TableCell>
                           <TableCell>
-                            <Badge variant={isCategory ? "secondary" : "default"}>
+                            <Badge variant={isCategory || invitation._isRestrictedScope ? "secondary" : "default"}>
                               {invitation._scopeLabel}
                             </Badge>
                           </TableCell>
