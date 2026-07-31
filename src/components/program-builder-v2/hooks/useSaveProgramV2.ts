@@ -119,6 +119,8 @@ export function useSaveProgramV2() {
         session_number: number;
         name: string;
         scheduled_day: number | null;
+        start_time: string | null;
+        end_time: string | null;
         _draftDayId: string;
         _blocks: V2BlockWithExercises[];
       }> = [];
@@ -132,6 +134,8 @@ export function useSaveProgramV2() {
             session_number: idx + 1,
             name: d.name,
             scheduled_day: dayOfWeekIndex(d.dayOfWeek),
+            start_time: (d as any).startTime || null,
+            end_time: (d as any).endTime || null,
             _draftDayId: d.id,
             _blocks: (d.blocks as V2BlockWithExercises[]) ?? [],
           });
