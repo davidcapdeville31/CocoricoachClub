@@ -1605,7 +1605,8 @@ export const MethodConfigSlots = ({
         newItem = { reps: "", isActive: true };
         break;
       case "five_by_five":
-        newItem = { reps: "5", percentage: 80, isActive: true };
+        newItem = { reps: "5", isActive: true };
+        if (visibleVariables.includes('percentage')) newItem.percentage = 80;
         break;
       case "isometric_overcoming":
         newItem = { reps: "1", angle: 90, timeUnderTension: 6, rpe: 10, isActive: true };
@@ -1623,7 +1624,9 @@ export const MethodConfigSlots = ({
         newItem = { reps: "10", isActive: true };
         break;
       default:
-        newItem = { reps: "5", percentage: 75, isActive: true };
+        // Ne jamais injecter de %1RM si la variable n'est pas affichée/souhaitée
+        newItem = { reps: "5", isActive: true };
+        if (visibleVariables.includes('percentage')) newItem.percentage = 75;
     }
     setSeries([...series, newItem]);
   };
@@ -1634,8 +1637,24 @@ export const MethodConfigSlots = ({
     }
   };
 
+  // Supprime des séries toute variable non visible dans l'éditeur, afin que la
+  // carte validée n'affiche jamais une variable que le coach n'a pas voulue.
+  const sanitizeSeries = (list: DropSetSeries[]): DropSetSeries[] => {
+    const optionalKeys: Array<keyof DropSetSeries> = [
+      'percentage', 'load', 'tempo', 'rpe', 'rir', 'angle', 'timeUnderTension',
+    ] as Array<keyof DropSetSeries>;
+    return list.map((s) => {
+      const copy: any = { ...s };
+      for (const key of optionalKeys) {
+        if (!visibleVariables.includes(key as string)) delete copy[key];
+      }
+      return copy as DropSetSeries;
+    });
+  };
+
   const handleConfirm = () => {
-    const activeSeries = series;
+    const activeSeries = sanitizeSeries(series);
+
     
     // CRITICAL: Preserve ALL variables exactly as configured in the UI
     // The series already contain: reps, percentage, load, tempo, rpe, pauseSeconds, etc.
