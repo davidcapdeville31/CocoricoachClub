@@ -129,6 +129,8 @@ function buildEmptyWeek(weekNumber: number, daysPerWeek: number): V2ProgramWeek 
   const days = DAYS_OF_WEEK.slice(0, daysPerWeek).map((d, idx) => ({
     id: makeId(),
     dayOfWeek: d.id,
+    startTime: "18:00",
+    endTime: "19:30",
     name: `Jour ${idx + 1}`,
     exercises: [],
     blocks: [],
@@ -267,6 +269,8 @@ export function CreateTrainingProgramV2({
             return {
               id: makeId(),
               dayOfWeek: DAY_INDEX_TO_ID[s.scheduled_day ?? (idx + 1)] ?? "monday",
+              startTime: "18:00",
+              endTime: "19:30",
               name: s.name || `Jour ${idx + 1}`,
               exercises: [],
               blocks: Array.from(blocksMap.values()),
@@ -490,6 +494,8 @@ export function CreateTrainingProgramV2({
           const extra = DAYS_OF_WEEK.slice(w.days.length, n).map((d, i) => ({
             id: makeId(),
             dayOfWeek: d.id,
+            startTime: "18:00",
+            endTime: "19:30",
             name: `Jour ${w.days.length + i + 1}`,
             exercises: [],
             blocks: [],
