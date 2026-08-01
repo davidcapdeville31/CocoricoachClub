@@ -856,7 +856,7 @@ export default function AthleteSpace() {
                     className="gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
                   >
                     <Trophy className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">Datas de compétition</span>
+                    <span className="hidden sm:inline">Stats de compétition</span>
                     <span className="sm:hidden">Compét.</span>
                   </TabsTrigger>
                   <TabsTrigger
@@ -865,7 +865,7 @@ export default function AthleteSpace() {
                     className="gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
                   >
                     <Target className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">Datas d'entraînement</span>
+                    <span className="hidden sm:inline">Stats d'entraînement</span>
                     <span className="sm:hidden">Entr.</span>
                   </TabsTrigger>
                 </TabsList>
@@ -891,7 +891,7 @@ export default function AthleteSpace() {
                     className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
                   >
                     <Trophy className="h-3.5 w-3.5" />
-                    Datas de compétition
+                    Stats de compétition
                   </TabsTrigger>
                   <TabsTrigger
                     value="training"
@@ -899,7 +899,7 @@ export default function AthleteSpace() {
                     className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
                   >
                     <Target className="h-3.5 w-3.5" />
-                    Datas d'entraînement
+                    Stats d'entraînement
                   </TabsTrigger>
                   <TabsTrigger
                     value="records"
@@ -946,7 +946,7 @@ export default function AthleteSpace() {
                     className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
                   >
                     <Trophy className="h-3.5 w-3.5" />
-                    Datas de compétition
+                    Stats de compétition
                   </TabsTrigger>
                   <TabsTrigger
                     value="training"
@@ -954,7 +954,7 @@ export default function AthleteSpace() {
                     className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
                   >
                     <Target className="h-3.5 w-3.5" />
-                    Datas d'entraînement
+                    Stats d'entraînement
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="competition">
