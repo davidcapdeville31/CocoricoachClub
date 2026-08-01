@@ -34,17 +34,24 @@ function average(values: (number | null | undefined)[]): number | null {
   return round1(valid.reduce((s, v) => s + v, 0) / valid.length);
 }
 
+/** Clamp any answer to the valid 1..5 scale (0 / null / out-of-range = not filled → 3). */
+const scale = (v: number | null | undefined): number => {
+  if (typeof v !== "number" || !Number.isFinite(v) || v <= 0) return 3;
+  return Math.max(1, Math.min(5, v));
+};
+
 function computeRecovery(p: Omit<AggregatedPoint, "date" | "fullDate" | "recovery_score" | "count">): number {
-  return Math.round(
-    (((p.sleep_quality ?? 3)) +
-      (6 - (p.general_fatigue ?? 3)) +
-      (6 - (p.soreness_lower_body ?? 3)) +
-      (6 - (p.soreness_upper_body ?? 3)) +
-      (6 - (p.stress_level ?? 3))) /
-      5 *
-      20
-  );
+  const raw =
+    (scale(p.sleep_quality) +
+      (6 - scale(p.general_fatigue)) +
+      (6 - scale(p.soreness_lower_body)) +
+      (6 - scale(p.soreness_upper_body)) +
+      (6 - scale(p.stress_level))) /
+    5 *
+    20;
+  return Math.max(0, Math.min(100, Math.round(raw)));
 }
+
 
 export function aggregateWellnessByPeriod(
   rows: WellnessRow[],
