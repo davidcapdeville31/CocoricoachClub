@@ -1,0 +1,1 @@
+ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS cover_image_scale NUMERIC NOT NULL DEFAULT 1 CHECK (cover_image_scale >= 0.2 AND cover_image_scale <= 3);

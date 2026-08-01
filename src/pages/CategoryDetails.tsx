@@ -266,14 +266,15 @@ function CategoryDetailsContent() {
               <img
                 src={category.cover_image_url}
                 alt="Logo du club"
-                className="h-full w-full object-cover"
-                style={{ objectPosition: (category as any)?.cover_image_position || "center" }}
+                className="h-full w-full object-contain"
+                style={{ objectPosition: (category as any)?.cover_image_position || "center", transform: `scale(${(category as any)?.cover_image_scale || 1})` }}
               />
               {categoryId && !isViewer && (
                 <LogoHoverActions
                   categoryId={categoryId}
                   currentCoverUrl={category.cover_image_url}
                   currentCoverPosition={(category as any)?.cover_image_position}
+                  currentCoverScale={(category as any)?.cover_image_scale}
                 />
               )}
             </div>
@@ -320,8 +321,8 @@ function CategoryDetailsContent() {
                   <img
                     src={category.cover_image_url}
                     alt="Logo du club"
-                    className="h-full w-full object-cover"
-                    style={{ objectPosition: (category as any)?.cover_image_position || "center" }}
+                    className="h-full w-full object-contain"
+                    style={{ objectPosition: (category as any)?.cover_image_position || "center", transform: `scale(${(category as any)?.cover_image_scale || 1})` }}
                   />
                 ) : (
                   <span className="text-[10px] text-white/70 px-2 text-center">Ajouter un logo</span>
@@ -330,6 +331,7 @@ function CategoryDetailsContent() {
                   categoryId={categoryId}
                   currentCoverUrl={category?.cover_image_url ?? null}
                   currentCoverPosition={(category as any)?.cover_image_position}
+                  currentCoverScale={(category as any)?.cover_image_scale}
                 />
               </div>
             </div>
@@ -340,8 +342,8 @@ function CategoryDetailsContent() {
                 <img
                   src={category.cover_image_url}
                   alt="Logo du club"
-                  className="h-full w-full object-cover"
-                  style={{ objectPosition: (category as any)?.cover_image_position || "center" }}
+                  className="h-full w-full object-contain"
+                  style={{ objectPosition: (category as any)?.cover_image_position || "center", transform: `scale(${(category as any)?.cover_image_scale || 1})` }}
                 />
               </div>
             </div>
