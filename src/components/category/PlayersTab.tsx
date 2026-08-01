@@ -55,6 +55,8 @@ function PlayerInfoHover({ player, isSki }: { player: any; isSki: boolean }) {
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editData, setEditData] = useState({
+    first_name: player.first_name || "",
+    name: player.name || "",
     birth_date: player.birth_date || "",
     email: player.email || "",
     phone: player.phone || "",
