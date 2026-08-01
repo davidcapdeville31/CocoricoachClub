@@ -90,11 +90,11 @@ export function LogoCropModal({ isOpen, onClose, imageUrl, initialCrop, onSave }
           </div>
           <div className="flex items-center gap-4 px-4">
             <ZoomOut className="h-4 w-4 text-muted-foreground" />
-            <Slider value={[crop.scale]} onValueChange={handleScale} min={1} max={3} step={0.05} className="flex-1" />
+            <Slider value={[crop.scale]} onValueChange={handleScale} min={0.3} max={3} step={0.05} className="flex-1" />
             <ZoomIn className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm text-muted-foreground w-12 text-right">{Math.round(crop.scale * 100)}%</span>
           </div>
-          <p className="text-sm text-muted-foreground text-center">Faites glisser pour repositionner • Slider pour zoomer</p>
+          <p className="text-sm text-muted-foreground text-center">Faites glisser pour repositionner • Slider pour zoomer / dézoomer</p>
         </div>
         <DialogFooter className="gap-2 sm:gap-0">
           <Button variant="outline" onClick={() => setCrop(defaultCrop)}>
