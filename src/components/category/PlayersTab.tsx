@@ -166,6 +166,14 @@ function PlayerInfoHover({ player, isSki }: { player: any; isSki: boolean }) {
           {editing ? (
             <div className="space-y-2">
               <div>
+                <Label className="text-xs">Prénom</Label>
+                <Input value={editData.first_name} onChange={(e) => setEditData({...editData, first_name: e.target.value})} className="h-8 text-xs" placeholder="Prénom" />
+              </div>
+              <div>
+                <Label className="text-xs">Nom</Label>
+                <Input value={editData.name} onChange={(e) => setEditData({...editData, name: e.target.value})} className="h-8 text-xs" placeholder="Nom" />
+              </div>
+              <div>
                 <Label className="text-xs">Date de naissance</Label>
                 <Input type="date" value={editData.birth_date} onChange={(e) => setEditData({...editData, birth_date: e.target.value})} className="h-8 text-xs" />
               </div>
