@@ -204,6 +204,7 @@ export function PlayerBowlingArsenal({ playerId, categoryId, isViewer }: PlayerB
     setDrillingAngle(parts[0] && parts[0] !== "?" ? parts[0] : "");
     setPinPapDistance(parts[1] && parts[1] !== "?" ? parts[1] : "");
     setValAngle(parts[2] && parts[2] !== "?" ? parts[2] : "");
+    setNotes(item.notes || "");
     setIsAddOpen(true);
   };
 
