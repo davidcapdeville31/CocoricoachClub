@@ -388,7 +388,12 @@ export function MatchLineupDialog({
       ? (convokedIds?.length ?? 0)
       : (lineupData?.filter((p) => p.isSelected).length ?? 0);
   const participantIds = new Set(convokedIds || []);
-  const participantPlayers = lineupData.filter((player) => participantIds.has(player.playerId));
+  const participantPlayers = (players || [])
+    .filter((player: any) => participantIds.has(player.id))
+    .map((player: any) => ({
+      playerId: player.id as string,
+      playerName: [player.first_name, player.name].filter(Boolean).join(" ") || "Athlète inconnu",
+    }));
   const starterCount = lineupData?.filter((p) => p.isSelected && p.isStarter).length ?? 0;
   const substituteCount = lineupData?.filter((p) => p.isSelected && !p.isStarter).length ?? 0;
   
