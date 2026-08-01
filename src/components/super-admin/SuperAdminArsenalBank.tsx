@@ -431,7 +431,7 @@ export function SuperAdminArsenalBank() {
                 />
               </div>
               <div>
-                <Label>Surface usine</Label>
+                <Label>Surface actuelle</Label>
                 <Input
                   value={form.factory_surface}
                   onChange={(e) =>
