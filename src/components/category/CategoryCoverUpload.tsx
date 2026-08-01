@@ -91,10 +91,10 @@ function useCoverMutations(
   });
 
   const updatePosition = useMutation({
-    mutationFn: async (position: string) => {
+    mutationFn: async ({ position, scale }: { position: string; scale: number }) => {
       const { error } = await supabase
         .from("categories")
-        .update({ cover_image_position: position } as any)
+        .update({ cover_image_position: position, cover_image_scale: scale } as any)
         .eq("id", categoryId);
       if (error) throw error;
     },
@@ -219,14 +219,14 @@ export function LogoHoverActions({
             imageUrl={currentCoverUrl ?? null}
             initialPosition={currentPos}
             initialScale={currentCoverScale ?? 1}
-            onCommit={(pos, scale) => updatePosition.mutate(JSON.stringify({ position: pos, scale }))}
+            onCommit={(position, scale) => updatePosition.mutate({ position, scale })}
             saving={updatePosition.isPending}
           />
           <DialogFooter>
             <Button onClick={() => setRecenterOpen(false)}>Enregistrer et fermer</Button>
             <Button
               variant="outline"
-              onClick={() => updatePosition.mutate(JSON.stringify({ position: "50% 50%", scale: 1 }))}
+              onClick={() => updatePosition.mutate({ position: "50% 50%", scale: 1 })}
               disabled={updatePosition.isPending}
             >
               Réinitialiser
