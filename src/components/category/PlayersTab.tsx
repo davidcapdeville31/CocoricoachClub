@@ -55,6 +55,8 @@ function PlayerInfoHover({ player, isSki }: { player: any; isSki: boolean }) {
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editData, setEditData] = useState({
+    first_name: player.first_name || "",
+    name: player.name || "",
     birth_date: player.birth_date || "",
     email: player.email || "",
     phone: player.phone || "",
@@ -102,6 +104,8 @@ function PlayerInfoHover({ player, isSki }: { player: any; isSki: boolean }) {
 
   const handleSaveEdit = async () => {
     const updates: Record<string, unknown> = {};
+    if (editData.name.trim() && editData.name !== player.name) updates.name = editData.name.trim();
+    if (editData.first_name !== (player.first_name || "")) updates.first_name = editData.first_name.trim() || null;
     if (editData.birth_date) updates.birth_date = editData.birth_date;
     if (editData.email !== player.email) updates.email = editData.email || null;
     if (editData.phone !== player.phone) updates.phone = editData.phone || null;
@@ -141,6 +145,8 @@ function PlayerInfoHover({ player, isSki }: { player: any; isSki: boolean }) {
             <div className="flex gap-1">
               <Button variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={() => {
                 setEditData({
+                  first_name: player.first_name || "",
+                  name: player.name || "",
                   birth_date: player.birth_date || "",
                   email: player.email || "",
                   phone: player.phone || "",
@@ -159,6 +165,14 @@ function PlayerInfoHover({ player, isSki }: { player: any; isSki: boolean }) {
           
           {editing ? (
             <div className="space-y-2">
+              <div>
+                <Label className="text-xs">Prénom</Label>
+                <Input value={editData.first_name} onChange={(e) => setEditData({...editData, first_name: e.target.value})} className="h-8 text-xs" placeholder="Prénom" />
+              </div>
+              <div>
+                <Label className="text-xs">Nom</Label>
+                <Input value={editData.name} onChange={(e) => setEditData({...editData, name: e.target.value})} className="h-8 text-xs" placeholder="Nom" />
+              </div>
               <div>
                 <Label className="text-xs">Date de naissance</Label>
                 <Input type="date" value={editData.birth_date} onChange={(e) => setEditData({...editData, birth_date: e.target.value})} className="h-8 text-xs" />
