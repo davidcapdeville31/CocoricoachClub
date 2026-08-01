@@ -484,7 +484,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
 
   return (
     <>
-      <div className={`${compact ? 'p-2.5' : 'p-4'} rounded-lg border transition-colors ${isTrainingMatch ? 'bg-muted/50 border-muted opacity-75' : resultClass ? resultClass : isFinalized ? 'border-primary/50 bg-primary/5' : 'bg-card hover:bg-accent/5'}`}>
+      <div className={`${compact ? 'p-2.5' : 'p-4'} rounded-lg border transition-colors ${isTrainingMatch ? 'bg-muted/50 border-muted opacity-75' : resultClass ? resultClass : compTag ? compTag.card : isFinalized ? 'border-primary/50 bg-primary/5' : 'bg-card hover:bg-accent/5'}`}>
         {compact && (
           <div
             role="button"
