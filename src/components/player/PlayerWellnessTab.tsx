@@ -386,53 +386,58 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
                       fontSize: 13,
                     }}
                   />
-                  <Legend wrapperStyle={{ paddingTop: 12, fontSize: 13 }} iconType="circle" />
-                  {visibleSeries.wellness && (
+                  <Legend
+                    wrapperStyle={{ paddingTop: 12, fontSize: 13, cursor: "pointer" }}
+                    iconType="circle"
+                    onClick={(e: any) => {
+                      const meta = SERIES_META.find((s) => s.label === e?.value);
+                      if (meta) toggleSeries(meta.key);
+                    }}
+                  />
+
                   <Line
                     type="monotone"
                     dataKey="wellness"
                     name="Score Global"
+                    hide={!visibleSeries.wellness}
                     stroke="#1e3a8a"
                     strokeWidth={4}
                     dot={{ r: 5, fill: "#1e3a8a", strokeWidth: 2, stroke: "#fff" }}
                     activeDot={{ r: 7 }}
                   />
-                  )}
-                  {visibleSeries.fatigue && (
                   <Line
                     type="monotone"
                     dataKey="fatigue"
                     name="Fatigue"
+                    hide={!visibleSeries.fatigue}
                     stroke="#dc2626"
                     strokeWidth={3}
                     dot={{ r: 4, fill: "#dc2626", strokeWidth: 2, stroke: "#fff" }}
                     activeDot={{ r: 6 }}
                   />
-                  )}
-                  {visibleSeries.soreness && (
                   <Line
                     type="monotone"
                     dataKey="soreness"
                     name="Douleurs"
+                    hide={!visibleSeries.soreness}
                     stroke="#f59e0b"
                     strokeWidth={3}
                     strokeDasharray="6 3"
                     dot={{ r: 4, fill: "#f59e0b", strokeWidth: 2, stroke: "#fff" }}
                     activeDot={{ r: 6 }}
                   />
-                  )}
-                  {visibleSeries.stress && (
                   <Line
                     type="monotone"
                     dataKey="stress"
                     name="Stress"
+                    hide={!visibleSeries.stress}
                     stroke="#7c3aed"
                     strokeWidth={3}
                     strokeDasharray="2 3"
                     dot={{ r: 4, fill: "#7c3aed", strokeWidth: 2, stroke: "#fff" }}
                     activeDot={{ r: 6 }}
                   />
-                  )}
+
                 </LineChart>
               </ResponsiveContainer>
             </div>
