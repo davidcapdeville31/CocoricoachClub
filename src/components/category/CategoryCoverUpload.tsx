@@ -428,6 +428,12 @@ function DragPositionPicker({
     onCommit(`${x.toFixed(1)}% ${y.toFixed(1)}%`, scale);
   };
 
+  const commitScale = (nextScale: number) => {
+    setScale(nextScale);
+    const { x, y } = stateRef.current.pos;
+    onCommit(`${x.toFixed(1)}% ${y.toFixed(1)}%`, nextScale);
+  };
+
   return (
     <div className="space-y-3">
       <div className="flex justify-center">
@@ -467,15 +473,15 @@ function DragPositionPicker({
           <span className="text-sm font-semibold text-primary">{Math.round(scale * 100)} %</span>
         </div>
         <div className="flex items-center gap-3">
-          <Button type="button" variant="outline" size="icon" className="shrink-0" aria-label="Dézoomer" onClick={() => setScale((value) => Math.max(0.2, value - 0.1))}>
+          <Button type="button" variant="outline" size="icon" className="shrink-0" aria-label="Dézoomer" onClick={() => commitScale(Math.max(0.2, scale - 0.1))}>
             <ZoomOut className="h-4 w-4" />
           </Button>
-          <Slider value={[scale]} min={0.2} max={3} step={0.05} onValueChange={(value) => setScale(value[0])} />
-          <Button type="button" variant="outline" size="icon" className="shrink-0" aria-label="Zoomer" onClick={() => setScale((value) => Math.min(3, value + 0.1))}>
+          <Slider value={[scale]} min={0.2} max={3} step={0.05} onValueChange={(value) => setScale(value[0])} onValueCommit={(value) => commitScale(value[0])} />
+          <Button type="button" variant="outline" size="icon" className="shrink-0" aria-label="Zoomer" onClick={() => commitScale(Math.min(3, scale + 0.1))}>
             <ZoomIn className="h-4 w-4" />
           </Button>
         </div>
-        <Button type="button" variant="secondary" className="w-full" onClick={() => setScale(0.5)}>
+        <Button type="button" variant="secondary" className="w-full" onClick={() => commitScale(0.5)}>
           Voir la photo entière
         </Button>
       </div>
