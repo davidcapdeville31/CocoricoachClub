@@ -174,6 +174,18 @@ export function SeasonObjectivesSection({ categoryId }: SeasonObjectivesSectionP
     onError: () => toast.error("Erreur lors de la suppression"),
   });
 
+  const deleteMilestoneMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("season_milestones").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["season-milestones", categoryId] });
+      toast.success("Étape supprimée");
+    },
+    onError: () => toast.error("Erreur lors de la suppression"),
+  });
+
   const toggleMilestoneMutation = useMutation({
     mutationFn: async ({ id, completed }: { id: string; completed: boolean }) => {
       const { error } = await supabase
@@ -540,6 +552,27 @@ export function SeasonObjectivesSection({ categoryId }: SeasonObjectivesSectionP
                       <p className="text-xs text-muted-foreground mt-1">{milestone.description}</p>
                     )}
                   </div>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Supprimer cette étape ?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          « {milestone.title} » sera définitivement supprimée.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => deleteMilestoneMutation.mutate(milestone.id)}>
+                          Supprimer
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               ))
             )}
