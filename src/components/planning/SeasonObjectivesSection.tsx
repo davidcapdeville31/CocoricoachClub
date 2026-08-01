@@ -244,33 +244,7 @@ export function SeasonObjectivesSection({ categoryId }: SeasonObjectivesSectionP
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card>
-          <CardContent className="pt-4 pb-4">
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-primary/10 rounded-lg">
-                <Target className="h-4 w-4 text-primary" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Objectifs</p>
-                <p className="text-lg font-bold">{goals.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4 pb-4">
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-green-500/10 rounded-lg">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Complétés</p>
-                <p className="text-lg font-bold">{completedGoals}/{goals.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <Card>
           <CardContent className="pt-4 pb-4">
             <div className="flex items-center gap-2">
@@ -284,20 +258,8 @@ export function SeasonObjectivesSection({ categoryId }: SeasonObjectivesSectionP
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="pt-4 pb-4">
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-purple-500/10 rounded-lg">
-                <TrendingUp className="h-4 w-4 text-purple-500" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Progression</p>
-                <p className="text-lg font-bold">{overallProgress}%</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
+
 
       <div className="grid grid-cols-1 gap-6">
 
