@@ -104,6 +104,8 @@ function PlayerInfoHover({ player, isSki }: { player: any; isSki: boolean }) {
 
   const handleSaveEdit = async () => {
     const updates: Record<string, unknown> = {};
+    if (editData.name.trim() && editData.name !== player.name) updates.name = editData.name.trim();
+    if (editData.first_name !== (player.first_name || "")) updates.first_name = editData.first_name.trim() || null;
     if (editData.birth_date) updates.birth_date = editData.birth_date;
     if (editData.email !== player.email) updates.email = editData.email || null;
     if (editData.phone !== player.phone) updates.phone = editData.phone || null;
