@@ -292,7 +292,11 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
     [sessionsRaw, isDateInActiveSeason],
   );
   const matches = useMemo(
-    () => (matchesRaw || []).filter((m: any) => isDateInActiveSeason(m.match_date)),
+    () =>
+      (matchesRaw || [])
+        // Exclure les conteneurs techniques d'entraînement (scores frame par frame)
+        .filter((m: any) => m.event_type !== "training")
+        .filter((m: any) => isDateInActiveSeason(m.match_date)),
     [matchesRaw, isDateInActiveSeason],
   );
   const weeklyPlanning = useMemo(() => {
