@@ -167,9 +167,17 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
         .eq("match_id", match.id);
       if (error) throw error;
       const uniquePlayerIds = new Set((data || []).map((r: any) => r.player_id));
-      return uniquePlayerIds.size;
+      if (uniquePlayerIds.size > 0) return uniquePlayerIds.size;
+      // Fallback: convoked participants (competition creation/edit)
+      const { data: conv, error: convError } = await supabase
+        .from("match_participants")
+        .select("player_id")
+        .eq("match_id", match.id);
+      if (convError) throw convError;
+      return new Set((conv || []).map((r: any) => r.player_id)).size;
     },
   });
+
 
   // Fetch lineup player names for pair display (Padel/Tennis doubles)
   const { data: lineupPlayers } = useQuery({
