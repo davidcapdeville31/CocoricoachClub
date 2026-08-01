@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, Filter, Eye, Copy, Check, Mail, RefreshCw, FileSpreadsheet, Link2, Info, ClipboardCopy, Archive, ArchiveRestore } from "lucide-react";
+import { Plus, Trash2, Filter, Eye, Copy, Check, Mail, RefreshCw, FileSpreadsheet, Link2, Info, ClipboardCopy, Archive, ArchiveRestore, CopyPlus } from "lucide-react";
 import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -29,6 +29,7 @@ import { toast } from "sonner";
 import { AddPlayerDialogWithInvite } from "./AddPlayerDialogWithInvite";
 import { BulkAddPlayersDialog } from "./BulkAddPlayersDialog";
 import { LinkExistingPlayerDialog } from "./LinkExistingPlayerDialog";
+import { DuplicatePlayerToCategoryDialog } from "./DuplicatePlayerToCategoryDialog";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -202,6 +203,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
+  const [duplicatePlayer, setDuplicatePlayer] = useState<any | null>(null);
   const [disciplineFilter, setDisciplineFilter] = useState<string>("all");
   const [copiedInviteId, setCopiedInviteId] = useState<string | null>(null);
   const [showArchived, setShowArchived] = useState(false);
@@ -705,6 +707,17 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
+                            title="Dupliquer dans une autre catégorie"
+                            onClick={() => setDuplicatePlayer(player)}
+                          >
+                            <CopyPlus className="h-4 w-4 text-muted-foreground" />
+                          </Button>
+                        )}
+                        {!isViewer && canManageAthletes && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
                             title={isArchived ? "Réactiver l'athlète" : "Archiver l'athlète"}
                             onClick={() =>
                               archivePlayer.mutate({ playerId: player.id, archive: !isArchived })
@@ -868,6 +881,19 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                               <Button
                                 variant="ghost"
                                 size="icon"
+                                title="Dupliquer dans une autre catégorie"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDuplicatePlayer(player);
+                                }}
+                              >
+                                <CopyPlus className="h-4 w-4 text-muted-foreground" />
+                              </Button>
+                            )}
+                            {!isViewer && canManageAthletes && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 title={isArchived ? "Réactiver" : "Archiver"}
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -934,6 +960,12 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
         open={isLinkDialogOpen}
         onOpenChange={setIsLinkDialogOpen}
         categoryId={categoryId}
+      />
+      <DuplicatePlayerToCategoryDialog
+        open={!!duplicatePlayer}
+        onOpenChange={(o) => !o && setDuplicatePlayer(null)}
+        categoryId={categoryId}
+        player={duplicatePlayer}
       />
     </Card>
   );
