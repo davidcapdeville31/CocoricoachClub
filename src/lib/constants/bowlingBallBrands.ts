@@ -13,7 +13,7 @@ export const BOWLING_BALL_BRANDS = [
 ] as const;
 
 export const COVER_TYPES = [
-  { value: "reactive", label: "Reactive" },
+  { value: "reactive", label: "Polyester" },
   { value: "urethane", label: "Uréthane" },
   { value: "hybrid", label: "Hybrid" },
   { value: "pearl", label: "Pearl" },
