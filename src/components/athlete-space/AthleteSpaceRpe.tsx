@@ -1172,7 +1172,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                           />
                         )}
                         <p className="text-[11px] text-muted-foreground italic">
-                          Tu peux ajouter plusieurs parties. Elles alimentent <b>Datas → Datas d'entraînement</b>.
+                          Tu peux ajouter plusieurs parties. Elles alimentent <b>Stats → Stats d'entraînement</b>.
                         </p>
                       </div>
                     )}
