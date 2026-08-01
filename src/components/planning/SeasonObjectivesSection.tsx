@@ -174,6 +174,18 @@ export function SeasonObjectivesSection({ categoryId }: SeasonObjectivesSectionP
     onError: () => toast.error("Erreur lors de la suppression"),
   });
 
+  const deleteMilestoneMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("season_milestones").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["season-milestones", categoryId] });
+      toast.success("Étape supprimée");
+    },
+    onError: () => toast.error("Erreur lors de la suppression"),
+  });
+
   const toggleMilestoneMutation = useMutation({
     mutationFn: async ({ id, completed }: { id: string; completed: boolean }) => {
       const { error } = await supabase
