@@ -11,12 +11,15 @@ interface PlayerAvatarUploadProps {
   playerId: string;
   playerName: string;
   currentAvatarUrl?: string | null;
+  /** Affiche le bouton "Changer la photo" (mode édition uniquement) */
+  editable?: boolean;
 }
 
 export function PlayerAvatarUpload({
   playerId,
   playerName,
   currentAvatarUrl,
+  editable = true,
 }: PlayerAvatarUploadProps) {
   const { isViewer } = useViewerModeContext();
   const [uploading, setUploading] = useState(false);
