@@ -803,7 +803,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
             </div>
             <Button variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start" onPointerDown={stopCardAction} onClick={(e) => { stopCardAction(e); setIsLineupOpen(true); }}>
               <Users className="h-3.5 w-3.5" />
-              {isDoublesMatch ? `Paire (${lineupCount || 0}/2)` : isIndividual ? `Participants (${lineupCount || 0})` : `Composition (${lineupCount || 0})`}
+              {isIndividual ? `Participants (${lineupCount || 0})` : `Composition (${lineupCount || 0})`}
             </Button>
             {(isTeamSport || isJudo) && !isFinalized && (
               <PrepareMatchButton matchId={match.id} isJudo={isJudo} />
