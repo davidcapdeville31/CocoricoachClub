@@ -85,6 +85,8 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
   const [ballMode, setBallMode] = useState<"simple" | "advanced">("simple");
   const [selectedBallId, setSelectedBallId] = useState<string | null>(null);
   const [frameBalls, setFrameBalls] = useState<(string | null)[]>(Array(10).fill(null));
+  const [frameLines, setFrameLines] = useState<(string | null)[]>(Array(10).fill(null));
+  const [frameSurfaces, setFrameSurfaces] = useState<(string | null)[]>(Array(10).fill(null));
   const [detailsOpen, setDetailsOpen] = useState(!compact);
   const inputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
 
@@ -155,6 +157,15 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
     setFrameBalls(prev => {
       const next = [...prev];
       next[frameIndex] = ballId;
+      return next;
+    });
+  };
+
+  const handleFrameDetailChange = (frameIndex: number, field: "line" | "surface", value: string) => {
+    const setter = field === "line" ? setFrameLines : setFrameSurfaces;
+    setter(prev => {
+      const next = [...prev];
+      next[frameIndex] = value;
       return next;
     });
   };
