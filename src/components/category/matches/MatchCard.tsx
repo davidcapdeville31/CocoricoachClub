@@ -159,22 +159,14 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
   const { data: lineupCount } = useQuery({
     queryKey: ["match_lineup_count", match.id],
     queryFn: async () => {
-      // Athletics: a single athlete can be registered on multiple events
-      // (= multiple rows). We must count DISTINCT athletes, not rows.
+      // The card counter must mirror exactly the athletes selected in the
+      // competition creation/edit form, independently from the lineup.
       const { data, error } = await supabase
-        .from("match_lineups")
-        .select("player_id")
-        .eq("match_id", match.id);
-      if (error) throw error;
-      const uniquePlayerIds = new Set((data || []).map((r: any) => r.player_id));
-      if (uniquePlayerIds.size > 0) return uniquePlayerIds.size;
-      // Fallback: convoked participants (competition creation/edit)
-      const { data: conv, error: convError } = await supabase
         .from("match_participants")
         .select("player_id")
         .eq("match_id", match.id);
-      if (convError) throw convError;
-      return new Set((conv || []).map((r: any) => r.player_id)).size;
+      if (error) throw error;
+      return new Set((data || []).map((row: any) => row.player_id)).size;
     },
   });
 
