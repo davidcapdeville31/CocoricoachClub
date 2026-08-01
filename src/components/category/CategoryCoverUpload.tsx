@@ -2,13 +2,14 @@ import React, { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Upload, Trash2, Loader2, Image as ImageIcon, Crosshair, Check } from "lucide-react";
+import { Upload, Trash2, Loader2, Image as ImageIcon, Crosshair, Check, ZoomIn, ZoomOut } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
 import { HEADER_BACKGROUND_PRESETS, resolveHeaderBackgroundUrl } from "@/lib/constants/headerBackgrounds";
 import { cn } from "@/lib/utils";
+import { Slider } from "@/components/ui/slider";
 
 interface CategoryCoverUploadProps {
   categoryId: string;
@@ -130,10 +131,12 @@ export function LogoHoverActions({
   categoryId,
   currentCoverUrl,
   currentCoverPosition,
+  currentCoverScale,
 }: {
   categoryId: string;
   currentCoverUrl?: string | null;
   currentCoverPosition?: string | null;
+  currentCoverScale?: number | null;
 }) {
   const inputId = `cover-upload-${categoryId}`;
   const [recenterOpen, setRecenterOpen] = useState(false);
@@ -215,14 +218,15 @@ export function LogoHoverActions({
           <DragPositionPicker
             imageUrl={currentCoverUrl ?? null}
             initialPosition={currentPos}
-            onCommit={(pos) => updatePosition.mutate(pos)}
+            initialScale={currentCoverScale ?? 1}
+            onCommit={(pos, scale) => updatePosition.mutate(JSON.stringify({ position: pos, scale }))}
             saving={updatePosition.isPending}
           />
           <DialogFooter>
             <Button onClick={() => setRecenterOpen(false)}>Enregistrer et fermer</Button>
             <Button
               variant="outline"
-              onClick={() => updatePosition.mutate("50% 50%")}
+              onClick={() => updatePosition.mutate(JSON.stringify({ position: "50% 50%", scale: 1 }))}
               disabled={updatePosition.isPending}
             >
               Réinitialiser
@@ -360,16 +364,19 @@ function parsePosition(value: string): { x: number; y: number } {
 function DragPositionPicker({
   imageUrl,
   initialPosition,
+  initialScale,
   onCommit,
   saving,
 }: {
   imageUrl: string | null;
   initialPosition: string;
-  onCommit: (pos: string) => void;
+  initialScale: number;
+  onCommit: (pos: string, scale: number) => void;
   saving?: boolean;
 }) {
   const initial = parsePosition(initialPosition);
   const [pos, setPos] = useState<{ x: number; y: number }>(initial);
+  const [scale, setScale] = useState(initialScale);
   const [dragging, setDragging] = useState(false);
   const startRef = useState<{
     pointerX: number; pointerY: number; baseX: number; baseY: number;
@@ -418,7 +425,7 @@ function DragPositionPicker({
     stateRef.current.start = null;
     setDragging(false);
     const { x, y } = stateRef.current.pos;
-    onCommit(`${x.toFixed(1)}% ${y.toFixed(1)}%`);
+    onCommit(`${x.toFixed(1)}% ${y.toFixed(1)}%`, scale);
   };
 
   return (
@@ -439,8 +446,8 @@ function DragPositionPicker({
               src={imageUrl}
               alt="Aperçu"
               draggable={false}
-              className="h-full w-full object-cover pointer-events-none"
-              style={{ objectPosition: `${pos.x}% ${pos.y}%` }}
+              className="h-full w-full object-contain pointer-events-none"
+              style={{ objectPosition: `${pos.x}% ${pos.y}%`, transform: `scale(${scale})` }}
             />
           ) : (
             <div className="h-full w-full flex items-center justify-center text-xs text-muted-foreground px-3 text-center">
@@ -453,6 +460,24 @@ function DragPositionPicker({
             <div className="absolute h-6 w-px bg-white/40" />
           </div>
         </div>
+      </div>
+      <div className="rounded-xl border bg-muted/60 p-3 space-y-2">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-sm font-semibold">Dézoomer la photo</span>
+          <span className="text-sm font-semibold text-primary">{Math.round(scale * 100)} %</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button type="button" variant="outline" size="icon" className="shrink-0" aria-label="Dézoomer" onClick={() => setScale((value) => Math.max(0.2, value - 0.1))}>
+            <ZoomOut className="h-4 w-4" />
+          </Button>
+          <Slider value={[scale]} min={0.2} max={3} step={0.05} onValueChange={(value) => setScale(value[0])} />
+          <Button type="button" variant="outline" size="icon" className="shrink-0" aria-label="Zoomer" onClick={() => setScale((value) => Math.min(3, value + 0.1))}>
+            <ZoomIn className="h-4 w-4" />
+          </Button>
+        </div>
+        <Button type="button" variant="secondary" className="w-full" onClick={() => setScale(0.5)}>
+          Voir la photo entière
+        </Button>
       </div>
       <p className="text-center text-xs text-muted-foreground">
         {saving
