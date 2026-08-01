@@ -35,9 +35,7 @@ export function LogoCropModal({ isOpen, onClose, imageUrl, initialCrop, onSave }
     const rect = containerRef.current.getBoundingClientRect();
     const dx = ((e.clientX - dragStart.x) / rect.width) * 100;
     const dy = ((e.clientY - dragStart.y) / rect.height) * 100;
-    const baseOffset = 50;
-    const zoomOffset = crop.scale > 1 ? ((crop.scale - 1) / crop.scale) * 50 : 0;
-    const max = baseOffset + zoomOffset;
+    const max = getMaxOffset(crop.scale);
     setCrop(prev => ({
       ...prev,
       positionX: Math.max(-max, Math.min(max, prev.positionX + dx)),
@@ -48,9 +46,7 @@ export function LogoCropModal({ isOpen, onClose, imageUrl, initialCrop, onSave }
 
   const handleScale = (v: number[]) => {
     const newScale = v[0];
-    const baseOffset = 50;
-    const zoomOffset = newScale > 1 ? ((newScale - 1) / newScale) * 50 : 0;
-    const max = baseOffset + zoomOffset;
+    const max = getMaxOffset(newScale);
     setCrop(prev => ({
       ...prev,
       scale: newScale,
