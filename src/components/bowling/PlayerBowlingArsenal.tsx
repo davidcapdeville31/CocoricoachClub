@@ -323,20 +323,31 @@ export function PlayerBowlingArsenal({ playerId, categoryId, isViewer }: PlayerB
         <p className="text-[10px] text-muted-foreground mt-1">Angle perçage × Pin-PAP × Angle VAL</p>
       </div>
 
-      <div className="grid grid-cols-3 gap-2">
-        <div>
-          <Label className="text-xs">RG</Label>
-          <Input type="number" step="0.001" value={customRg} onChange={e => setCustomRg(e.target.value)} placeholder="2.540" />
-        </div>
-        <div>
-          <Label className="text-xs">Différentiel</Label>
-          <Input type="number" step="0.001" value={customDifferential} onChange={e => setCustomDifferential(e.target.value)} placeholder="0.050" />
-        </div>
-        <div>
-          <Label className="text-xs">Diff. Int.</Label>
-          <Input type="number" step="0.001" value={customIntermediateDiff} onChange={e => setCustomIntermediateDiff(e.target.value)} placeholder="0.012" />
-        </div>
-      </div>
+      {(() => {
+        const isFactory = !!(selectedCatalogBall || editingBall?.catalogBall);
+        return (
+          <div>
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <Label className="text-xs">RG</Label>
+                <Input type="number" step="0.001" value={customRg} onChange={e => setCustomRg(e.target.value)} placeholder="2.540" readOnly={isFactory} disabled={isFactory} className={isFactory ? "bg-muted cursor-not-allowed" : undefined} />
+              </div>
+              <div>
+                <Label className="text-xs">Différentiel</Label>
+                <Input type="number" step="0.001" value={customDifferential} onChange={e => setCustomDifferential(e.target.value)} placeholder="0.050" readOnly={isFactory} disabled={isFactory} className={isFactory ? "bg-muted cursor-not-allowed" : undefined} />
+              </div>
+              <div>
+                <Label className="text-xs">Diff. Int.</Label>
+                <Input type="number" step="0.001" value={customIntermediateDiff} onChange={e => setCustomIntermediateDiff(e.target.value)} placeholder="0.012" readOnly={isFactory} disabled={isFactory} className={isFactory ? "bg-muted cursor-not-allowed" : undefined} />
+              </div>
+            </div>
+            {isFactory && (
+              <p className="text-[10px] text-muted-foreground mt-1">Valeurs d'usine — modifiables uniquement par le Super Admin dans la banque Arsenal.</p>
+            )}
+          </div>
+        );
+      })()}
+
 
       <div className="grid grid-cols-2 gap-3">
         <div>
