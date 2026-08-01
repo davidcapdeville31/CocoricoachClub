@@ -35,6 +35,20 @@ const getScoreBadge = (score: number) => {
 
 export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabProps) {
   const [chartPeriod, setChartPeriod] = useState<"day" | "week" | "month">("day");
+  const [visibleSeries, setVisibleSeries] = useState<Record<"wellness" | "fatigue" | "soreness" | "stress", boolean>>({
+    wellness: true,
+    fatigue: true,
+    soreness: true,
+    stress: true,
+  });
+  const SERIES_META: { key: "wellness" | "fatigue" | "soreness" | "stress"; label: string; color: string }[] = [
+    { key: "soreness", label: "Douleurs", color: "#f59e0b" },
+    { key: "fatigue", label: "Fatigue", color: "#dc2626" },
+    { key: "wellness", label: "Score Global", color: "#1e3a8a" },
+    { key: "stress", label: "Stress", color: "#7c3aed" },
+  ];
+  const toggleSeries = (key: "wellness" | "fatigue" | "soreness" | "stress") =>
+    setVisibleSeries((p) => ({ ...p, [key]: !p[key] }));
   const { data: wellnessQuestionsCfg } = useWellnessQuestions(categoryId);
   const { data: category } = useQuery({
     queryKey: ["category_gender", categoryId],
