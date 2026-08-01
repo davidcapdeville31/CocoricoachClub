@@ -35,6 +35,20 @@ const getScoreBadge = (score: number) => {
 
 export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabProps) {
   const [chartPeriod, setChartPeriod] = useState<"day" | "week" | "month">("day");
+  const [visibleSeries, setVisibleSeries] = useState<Record<"wellness" | "fatigue" | "soreness" | "stress", boolean>>({
+    wellness: true,
+    fatigue: true,
+    soreness: true,
+    stress: true,
+  });
+  const SERIES_META: { key: "wellness" | "fatigue" | "soreness" | "stress"; label: string; color: string }[] = [
+    { key: "soreness", label: "Douleurs", color: "#f59e0b" },
+    { key: "fatigue", label: "Fatigue", color: "#dc2626" },
+    { key: "wellness", label: "Score Global", color: "#1e3a8a" },
+    { key: "stress", label: "Stress", color: "#7c3aed" },
+  ];
+  const toggleSeries = (key: "wellness" | "fatigue" | "soreness" | "stress") =>
+    setVisibleSeries((p) => ({ ...p, [key]: !p[key] }));
   const { data: wellnessQuestionsCfg } = useWellnessQuestions(categoryId);
   const { data: category } = useQuery({
     queryKey: ["category_gender", categoryId],
@@ -324,7 +338,30 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
             </div>
           </CardHeader>
           <CardContent>
+            <div className="flex flex-wrap items-center gap-2 mb-4">
+              {SERIES_META.map((s) => {
+                const on = visibleSeries[s.key];
+                return (
+                  <button
+                    key={s.key}
+                    type="button"
+                    onClick={() => toggleSeries(s.key)}
+                    className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-all active:scale-95 ${
+                      on ? "border-transparent bg-surface-sunken text-foreground" : "border-border text-muted-foreground opacity-60"
+                    }`}
+                    aria-pressed={on}
+                  >
+                    <span
+                      className="h-2.5 w-2.5 rounded-full"
+                      style={{ backgroundColor: on ? s.color : "transparent", border: `2px solid ${s.color}` }}
+                    />
+                    {s.label}
+                  </button>
+                );
+              })}
+            </div>
             <div className="h-96">
+
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData} margin={{ top: 20, right: 20, left: 0, bottom: 10 }}>
                   <defs>
@@ -350,6 +387,7 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
                     }}
                   />
                   <Legend wrapperStyle={{ paddingTop: 12, fontSize: 13 }} iconType="circle" />
+                  {visibleSeries.wellness && (
                   <Line
                     type="monotone"
                     dataKey="wellness"
@@ -359,6 +397,8 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
                     dot={{ r: 5, fill: "#1e3a8a", strokeWidth: 2, stroke: "#fff" }}
                     activeDot={{ r: 7 }}
                   />
+                  )}
+                  {visibleSeries.fatigue && (
                   <Line
                     type="monotone"
                     dataKey="fatigue"
@@ -368,6 +408,8 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
                     dot={{ r: 4, fill: "#dc2626", strokeWidth: 2, stroke: "#fff" }}
                     activeDot={{ r: 6 }}
                   />
+                  )}
+                  {visibleSeries.soreness && (
                   <Line
                     type="monotone"
                     dataKey="soreness"
@@ -378,6 +420,8 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
                     dot={{ r: 4, fill: "#f59e0b", strokeWidth: 2, stroke: "#fff" }}
                     activeDot={{ r: 6 }}
                   />
+                  )}
+                  {visibleSeries.stress && (
                   <Line
                     type="monotone"
                     dataKey="stress"
@@ -388,6 +432,7 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
                     dot={{ r: 4, fill: "#7c3aed", strokeWidth: 2, stroke: "#fff" }}
                     activeDot={{ r: 6 }}
                   />
+                  )}
                 </LineChart>
               </ResponsiveContainer>
             </div>
