@@ -124,7 +124,7 @@ export function PlayerAvatarUpload({
         </AvatarFallback>
       </Avatar>
 
-      {!isViewer && (
+      {!isViewer && editable && (
         <div>
           <input
             type="file"
