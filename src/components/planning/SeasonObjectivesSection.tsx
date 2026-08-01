@@ -400,6 +400,27 @@ export function SeasonObjectivesSection({ categoryId }: SeasonObjectivesSectionP
                       className="w-16 h-8 text-xs"
                     />
                     <span className="text-xs self-center">%</span>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 ml-auto text-destructive hover:text-destructive">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Supprimer cet objectif ?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            « {goal.title} » sera définitivement supprimé. Cette action est irréversible.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Annuler</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => deleteGoalMutation.mutate(goal.id)}>
+                            Supprimer
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
               ))
