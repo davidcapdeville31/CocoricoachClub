@@ -38,13 +38,10 @@ function useCoverMutations(
       if (!file.type.startsWith("image/")) throw new Error("Le fichier doit être une image");
       if (file.size > 5 * 1024 * 1024) throw new Error("L'image ne doit pas dépasser 5MB");
 
-      const fileExt = file.name.split(".").pop();
-      const filePath = `${categoryId}/cover.${fileExt}`;
-
-      if (currentCoverUrl) {
-        const oldPath = currentCoverUrl.split("/").slice(-2).join("/");
-        await supabase.storage.from("category-covers").remove([oldPath]);
-      }
+      const fileExt = file.name.split(".").pop() || "png";
+      // A unique path prevents browsers and the storage CDN from serving a
+      // previously cached logo to other members after an image replacement.
+      const filePath = `${categoryId}/cover-${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from("category-covers")
@@ -58,6 +55,11 @@ function useCoverMutations(
         .update({ cover_image_url: data.publicUrl })
         .eq("id", categoryId);
       if (updateError) throw updateError;
+
+      if (currentCoverUrl) {
+        const oldPath = currentCoverUrl.split("?")[0].split("/").slice(-2).join("/");
+        await supabase.storage.from("category-covers").remove([oldPath]);
+      }
 
       return data.publicUrl;
     },
