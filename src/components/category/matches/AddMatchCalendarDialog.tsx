@@ -206,6 +206,7 @@ export function AddMatchCalendarDialog({
       queryClient.invalidateQueries({ queryKey: ["matches", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["match_participants"] });
       queryClient.invalidateQueries({ queryKey: ["match_participants_ids"] });
+      queryClient.invalidateQueries({ queryKey: ["match_lineup_count"] });
 
       toast.success(hasTournamentBracket ? "Tournoi ajouté avec succès" : (isIndividual ? "Compétition ajoutée avec succès" : "Match ajouté avec succès"));
       resetForm();

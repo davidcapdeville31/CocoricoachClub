@@ -189,6 +189,7 @@ export function EditMatchDialog({
       queryClient.invalidateQueries({ queryKey: ["matches", match.category_id] });
       queryClient.invalidateQueries({ queryKey: ["match_participants", match.id] });
       queryClient.invalidateQueries({ queryKey: ["match_participants_ids", match.id] });
+      queryClient.invalidateQueries({ queryKey: ["match_lineup_count", match.id] });
 
       toast.success(isIndividual ? "Compétition mise à jour" : "Match mis à jour");
       onOpenChange(false);
