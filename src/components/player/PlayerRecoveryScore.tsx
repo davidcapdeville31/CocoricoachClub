@@ -13,7 +13,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 import { sleepScoreToHours } from "@/lib/sleepConversion";
-import { aggregateWellnessByPeriod, type WellnessPeriod } from "@/lib/wellness/aggregatePeriod";
+import { aggregateWellnessByPeriod, computeRecoveryScore, type WellnessPeriod } from "@/lib/wellness/aggregatePeriod";
 
 interface Props {
   playerId: string;
