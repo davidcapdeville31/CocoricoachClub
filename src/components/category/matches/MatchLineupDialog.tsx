@@ -169,6 +169,8 @@ export function MatchLineupDialog({
 
   useEffect(() => {
     if (!players || players.length === 0) return;
+    const convoked = new Set(convokedIds || []);
+    const hasLineup = (existingLineup?.length ?? 0) > 0;
 
     if (isAthletics) {
       // Build entries: one per (player × pair); pre-check those already saved in the lineup
@@ -186,7 +188,7 @@ export function MatchLineupDialog({
             playerId: p.id,
             discipline: pair.discipline,
             specialty: pair.specialty,
-            isSelected: !!existing,
+            isSelected: !!existing || (!hasLineup && pairs.length === 1 && convoked.has(p.id)),
             startOrder: (existing as any)?.start_order ?? null,
           });
         });
@@ -204,11 +206,12 @@ export function MatchLineupDialog({
         isStarter: existing?.is_starter ?? false,
         position: existing?.position ?? "",
         minutesPlayed: existing?.minutes_played ?? 0,
-        isSelected: !!existing,
+        isSelected: !!existing || (!hasLineup && convoked.has(player.id)),
       };
     });
     setLineupData(lineup);
-  }, [players, existingLineup, isAthletics]);
+  }, [players, existingLineup, isAthletics, convokedIds]);
+
 
   const saveLineup = useMutation({
     mutationFn: async () => {
