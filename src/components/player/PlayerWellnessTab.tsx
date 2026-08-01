@@ -393,13 +393,8 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
                       const meta = SERIES_META.find((s) => s.label === e?.value);
                       if (meta) toggleSeries(meta.key);
                     }}
-                    payload={SERIES_META.map((s) => ({
-                      value: s.label,
-                      type: "circle" as const,
-                      id: s.key,
-                      color: visibleSeries[s.key] ? s.color : "hsl(var(--muted-foreground))",
-                    }))}
                   />
+
                   <Line
                     type="monotone"
                     dataKey="wellness"
