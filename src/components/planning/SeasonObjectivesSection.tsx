@@ -261,6 +261,9 @@ export function SeasonObjectivesSection({ categoryId }: SeasonObjectivesSectionP
       </div>
 
 
+      {/* Individual / group player objectives */}
+      <PlayerObjectivesSection categoryId={categoryId} />
+
       <div className="grid grid-cols-1 gap-6">
 
 
@@ -392,9 +395,6 @@ export function SeasonObjectivesSection({ categoryId }: SeasonObjectivesSectionP
           </CardContent>
         </Card>
       </div>
-
-      {/* Individual player objectives */}
-      <PlayerObjectivesSection categoryId={categoryId} />
     </div>
   );
 }
