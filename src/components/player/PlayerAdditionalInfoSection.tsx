@@ -137,7 +137,7 @@ export function PlayerAdditionalInfoSection({ playerId, isViewer = false }: Play
             </CardTitle>
           </CollapsibleTrigger>
           {!isViewer && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap shrink-0">
               {isEditing ? (
                 <>
                   <Button size="sm" variant="ghost" onClick={handleCancel}>
