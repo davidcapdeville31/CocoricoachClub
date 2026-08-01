@@ -88,13 +88,34 @@ export function LogoCropModal({ isOpen, onClose, imageUrl, initialCrop, onSave }
               draggable={false}
             />
           </div>
-          <div className="flex items-center gap-4 px-4">
-            <ZoomOut className="h-4 w-4 text-muted-foreground" />
-            <Slider value={[crop.scale]} onValueChange={handleScale} min={0.3} max={3} step={0.05} className="flex-1" />
-            <ZoomIn className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground w-12 text-right">{Math.round(crop.scale * 100)}%</span>
+          <div className="bg-muted/50 rounded-xl p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Zoom / Dézoom</span>
+              <span className="text-sm font-semibold text-primary w-16 text-right">{Math.round(crop.scale * 100)}%</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="h-9 w-9 shrink-0"
+                onClick={() => handleScale([Math.max(0.3, crop.scale - 0.1)])}
+              >
+                <ZoomOut className="h-4 w-4" />
+              </Button>
+              <Slider value={[crop.scale]} onValueChange={handleScale} min={0.3} max={3} step={0.05} className="flex-1" />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="h-9 w-9 shrink-0"
+                onClick={() => handleScale([Math.min(3, crop.scale + 0.1)])}
+              >
+                <ZoomIn className="h-4 w-4" />
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground text-center">Utilisez les boutons ou le slider pour zoomer / dézoomer, puis glissez l’image pour la repositionner.</p>
           </div>
-          <p className="text-sm text-muted-foreground text-center">Faites glisser pour repositionner • Slider pour zoomer / dézoomer</p>
         </div>
         <DialogFooter className="gap-2 sm:gap-0">
           <Button variant="outline" onClick={() => setCrop(defaultCrop)}>
