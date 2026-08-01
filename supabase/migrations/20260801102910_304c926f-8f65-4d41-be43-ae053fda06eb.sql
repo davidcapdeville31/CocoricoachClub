@@ -1,0 +1,1 @@
+ALTER TABLE public.matches ADD COLUMN IF NOT EXISTS competition_tag text CHECK (competition_tag IN ('mandatory','national_team','free_tournament'));

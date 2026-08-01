@@ -6095,6 +6095,7 @@ export type Database = {
           category_id: string
           competition: string | null
           competition_stage: string | null
+          competition_tag: string | null
           created_at: string
           created_by_player_id: string | null
           distance_meters: number | null
@@ -6132,6 +6133,7 @@ export type Database = {
           category_id: string
           competition?: string | null
           competition_stage?: string | null
+          competition_tag?: string | null
           created_at?: string
           created_by_player_id?: string | null
           distance_meters?: number | null
@@ -6169,6 +6171,7 @@ export type Database = {
           category_id?: string
           competition?: string | null
           competition_stage?: string | null
+          competition_tag?: string | null
           created_at?: string
           created_by_player_id?: string | null
           distance_meters?: number | null
