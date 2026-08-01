@@ -12,7 +12,18 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Plus, Target, User, TrendingUp, Trash2 } from "lucide-react";
+import { Plus, Target, User, TrendingUp, Trash2, Users } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -25,7 +36,6 @@ const goalTypeLabels: Record<string, string> = {
   tactical: "Tactique",
   technical: "Technique",
   mental: "Mental",
-  team: "Équipe",
 };
 
 const goalTypeColors: Record<string, string> = {
@@ -33,7 +43,6 @@ const goalTypeColors: Record<string, string> = {
   tactical: "bg-purple-500",
   technical: "bg-orange-500",
   mental: "bg-sky-500",
-  team: "bg-blue-500",
 };
 
 const statusLabels: Record<string, string> = {
@@ -51,7 +60,8 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
   const [selectedSeason, setSelectedSeason] = useState(currentYear);
 
   // Form
-  const [formPlayerId, setFormPlayerId] = useState("");
+  const [formPlayerIds, setFormPlayerIds] = useState<string[]>([]);
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const [formGoalType, setFormGoalType] = useState("physical");
   const [formTitle, setFormTitle] = useState("");
   const [formDescription, setFormDescription] = useState("");
@@ -96,10 +106,16 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
 
   const addMutation = useMutation({
     mutationFn: async () => {
+      if (formPlayerIds.length === 0) {
+        throw new Error("Sélectionnez au moins un athlète");
+      }
+      if (!formTitle.trim()) {
+        throw new Error("Le titre est obligatoire");
+      }
       const { data: { user } } = await supabase.auth.getUser();
-      const { error } = await supabase.from("player_objectives").insert({
+      const rows = formPlayerIds.map((pid) => ({
         category_id: categoryId,
-        player_id: formPlayerId,
+        player_id: pid,
         season_year: selectedSeason,
         objective_type: formIsMeasurable ? "measurable" : "text",
         goal_type: formGoalType,
@@ -110,16 +126,18 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
         metric_unit: formIsMeasurable ? formMetricUnit : null,
         target_value: formIsMeasurable && formTargetValue ? parseFloat(formTargetValue) : null,
         created_by: user?.id || null,
-      });
+      }));
+      const { error } = await supabase.from("player_objectives").insert(rows);
       if (error) throw error;
+      return rows.length;
     },
-    onSuccess: () => {
+    onSuccess: (count) => {
       queryClient.invalidateQueries({ queryKey: ["player-objectives"] });
-      toast.success("Objectif individuel ajouté");
+      toast.success(count && count > 1 ? `Objectif de groupe ajouté pour ${count} athlètes` : "Objectif ajouté");
       setDialogOpen(false);
       resetForm();
     },
-    onError: () => toast.error("Erreur lors de l'ajout"),
+    onError: (e: any) => toast.error(e?.message || "Erreur lors de l'ajout"),
   });
 
   const updateMutation = useMutation({
@@ -149,7 +167,7 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
   });
 
   const resetForm = () => {
-    setFormPlayerId("");
+    setFormPlayerIds([]);
     setFormGoalType("physical");
     setFormTitle("");
     setFormDescription("");
@@ -174,9 +192,9 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
         <div>
           <h3 className="text-lg font-bold flex items-center gap-2">
             <User className="h-5 w-5 text-primary" />
-            Objectifs Individuels
+            Objectifs
           </h3>
-          <p className="text-sm text-muted-foreground">Objectifs personnalisés par joueur</p>
+          <p className="text-sm text-muted-foreground">Objectifs individuels ou de groupe</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId}>
@@ -201,23 +219,60 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
             </DialogTrigger>
             <DialogContent className="max-h-[85vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Nouvel Objectif Individuel</DialogTitle>
+                <DialogTitle>Nouvel Objectif</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label>Joueur</Label>
-                  <Select value={formPlayerId} onValueChange={setFormPlayerId}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Sélectionner un joueur" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {players.map(p => (
-                        <SelectItem key={p.id} value={p.id}>
-                          {p.first_name ? `${p.first_name} ${p.name}` : p.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center justify-between">
+                    <Label className="flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Athlètes concernés
+                      {formPlayerIds.length > 1 && (
+                        <Badge variant="secondary" className="text-[10px]">
+                          Objectif de groupe · {formPlayerIds.length}
+                        </Badge>
+                      )}
+                    </Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() =>
+                        setFormPlayerIds(
+                          formPlayerIds.length === players.length ? [] : players.map((p) => p.id),
+                        )
+                      }
+                    >
+                      {formPlayerIds.length === players.length ? "Tout décocher" : "Tout cocher"}
+                    </Button>
+                  </div>
+                  <div className="mt-1 max-h-48 overflow-y-auto rounded-lg border p-2 space-y-1">
+                    {players.length === 0 && (
+                      <p className="text-xs text-muted-foreground p-2">Aucun athlète dans cette catégorie</p>
+                    )}
+                    {players.map((p) => {
+                      const checked = formPlayerIds.includes(p.id);
+                      return (
+                        <label
+                          key={p.id}
+                          className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-muted/60 cursor-pointer"
+                        >
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={(v) =>
+                              setFormPlayerIds((prev) =>
+                                v ? [...prev, p.id] : prev.filter((id) => id !== p.id),
+                              )
+                            }
+                          />
+                          <span className="text-sm">
+                            {p.first_name ? `${p.first_name} ${p.name}` : p.name}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
                 </div>
                 <div>
                   <Label>Type</Label>
@@ -272,8 +327,10 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
                   </div>
                 )}
 
-                <Button onClick={() => addMutation.mutate()} disabled={!formPlayerId || !formTitle} className="w-full">
-                  Ajouter l'objectif
+                <Button onClick={() => addMutation.mutate()} className="w-full">
+                  {formPlayerIds.length > 1
+                    ? `Ajouter l'objectif pour ${formPlayerIds.length} athlètes`
+                    : "Ajouter l'objectif"}
                 </Button>
               </div>
             </DialogContent>
@@ -296,7 +353,7 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
         <Card>
           <CardContent className="py-8">
             <p className="text-muted-foreground text-center text-sm">
-              Aucun objectif individuel défini. Cliquez sur "Objectif" pour en créer un.
+              Aucun objectif défini. Cliquez sur "Objectif" pour en créer un.
             </p>
           </CardContent>
         </Card>
@@ -315,7 +372,13 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
                     <Badge variant={obj.status === "completed" ? "default" : "secondary"} className="text-xs">
                       {statusLabels[obj.status]}
                     </Badge>
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => deleteMutation.mutate(obj.id)}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      title="Supprimer l'objectif"
+                      onClick={() => setDeleteTarget(obj)}
+                    >
                       <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive" />
                     </Button>
                   </div>
@@ -391,6 +454,29 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
           ))}
         </div>
       )}
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer cet objectif ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              « {deleteTarget?.title} » sera définitivement supprimé. Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (deleteTarget) deleteMutation.mutate(deleteTarget.id);
+                setDeleteTarget(null);
+              }}
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
