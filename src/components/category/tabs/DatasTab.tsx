@@ -140,7 +140,7 @@ export function DatasTab({ categoryId, sportType }: DatasTabProps) {
             icon={<Trophy className="h-4 w-4" />}
             tooltip="Statistiques cumulées issues des compétitions"
           >
-            <span className="hidden sm:inline">Datas de compétition</span>
+            <span className="hidden sm:inline">Stats de compétition</span>
             <span className="sm:hidden">Compét.</span>
           </ColoredSubTabsTrigger>
           <ColoredSubTabsTrigger
@@ -149,7 +149,7 @@ export function DatasTab({ categoryId, sportType }: DatasTabProps) {
             icon={<Target className="h-4 w-4" />}
             tooltip="Statistiques détaillées des entraînements : précision, drills et exercices spécifiques au sport"
           >
-            <span className="hidden sm:inline">Datas d'entraînement</span>
+            <span className="hidden sm:inline">Stats d'entraînement</span>
             <span className="sm:hidden">Entr.</span>
           </ColoredSubTabsTrigger>
         </ColoredSubTabsList>

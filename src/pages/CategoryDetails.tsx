@@ -527,8 +527,8 @@ function CategoryDetailsContent() {
                   value="stats" 
                   colorKey="competition"
                   icon={<BarChart3 className="h-5 w-5" />}
-                  label="Datas"
-                  shortLabel="Datas"
+                  label="Stats"
+                  shortLabel="Stats"
                   tooltip="Statistiques individuelles et collectives cumulées"
                 />
               )}

@@ -776,7 +776,7 @@ export function SessionFeedbackDialog({
                   sessionDate={session.session_date}
                 />
                 <p className="text-xs text-muted-foreground mt-3 italic">
-                  ✅ Les données bowling sont enregistrées immédiatement et alimentent <b>Datas → Datas d'entraînement</b>.
+                  ✅ Les données bowling sont enregistrées immédiatement et alimentent <b>Stats → Stats d'entraînement</b>.
                 </p>
               </div>
             </TabsContent>
@@ -793,7 +793,7 @@ export function SessionFeedbackDialog({
                   sessionDate={session.session_date}
                 />
                 <p className="text-xs text-muted-foreground mt-3 italic">
-                  ✅ Les données bowling sont enregistrées immédiatement et alimentent <b>Datas → Datas d'entraînement</b>.
+                  ✅ Les données bowling sont enregistrées immédiatement et alimentent <b>Stats → Stats d'entraînement</b>.
                 </p>
               </div>
             </TabsContent>
@@ -808,7 +808,7 @@ export function SessionFeedbackDialog({
                   sessionDate={session.session_date}
                 />
                 <p className="text-xs text-muted-foreground mt-3 italic">
-                  ✅ Saisies enregistrées immédiatement et visibles dans <b>Datas → Datas d'entraînement</b>.
+                  ✅ Saisies enregistrées immédiatement et visibles dans <b>Stats → Stats d'entraînement</b>.
                 </p>
               </div>
             </TabsContent>
