@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Trash2, CircleDot, Edit2 } from "lucide-react";
 import { toast } from "sonner";
@@ -40,6 +41,7 @@ export function PlayerBowlingArsenal({ playerId, categoryId, isViewer }: PlayerB
   const [drillingAngle, setDrillingAngle] = useState("");
   const [pinPapDistance, setPinPapDistance] = useState("");
   const [valAngle, setValAngle] = useState("");
+  const [notes, setNotes] = useState("");
   const queryClient = useQueryClient();
 
   const { data: arsenal, isLoading } = useQuery({
@@ -84,6 +86,7 @@ export function PlayerBowlingArsenal({ playerId, categoryId, isViewer }: PlayerB
         purchase_date: purchaseDate || null,
         current_surface: currentSurface || null,
         games_played: parseInt(gamesPlayed) || 0,
+        notes: notes.trim() || null,
         custom_rg: customRg ? parseFloat(customRg) : null,
         custom_differential: customDifferential ? parseFloat(customDifferential) : null,
         custom_intermediate_diff: customIntermediateDiff ? parseFloat(customIntermediateDiff) : null,
@@ -118,6 +121,7 @@ export function PlayerBowlingArsenal({ playerId, categoryId, isViewer }: PlayerB
         purchase_date: purchaseDate || null,
         current_surface: currentSurface || null,
         games_played: parseInt(gamesPlayed) || 0,
+        notes: notes.trim() || null,
         custom_rg: customRg ? parseFloat(customRg) : null,
         custom_differential: customDifferential ? parseFloat(customDifferential) : null,
         custom_intermediate_diff: customIntermediateDiff ? parseFloat(customIntermediateDiff) : null,
@@ -165,6 +169,7 @@ export function PlayerBowlingArsenal({ playerId, categoryId, isViewer }: PlayerB
     setDrillingAngle("");
     setPinPapDistance("");
     setValAngle("");
+    setNotes("");
   };
 
   const resetForm = () => {
@@ -199,6 +204,7 @@ export function PlayerBowlingArsenal({ playerId, categoryId, isViewer }: PlayerB
     setDrillingAngle(parts[0] && parts[0] !== "?" ? parts[0] : "");
     setPinPapDistance(parts[1] && parts[1] !== "?" ? parts[1] : "");
     setValAngle(parts[2] && parts[2] !== "?" ? parts[2] : "");
+    setNotes(item.notes || "");
     setIsAddOpen(true);
   };
 
@@ -360,6 +366,17 @@ export function PlayerBowlingArsenal({ playerId, categoryId, isViewer }: PlayerB
         </div>
       </div>
 
+      <div>
+        <Label className="text-xs">Commentaire</Label>
+        <Textarea
+          value={notes}
+          onChange={e => setNotes(e.target.value)}
+          placeholder="Ex : Boule de confiance, bonne sur huilage court..."
+          rows={3}
+        />
+      </div>
+
+
 
       <Button
         className="w-full"
@@ -438,6 +455,10 @@ export function PlayerBowlingArsenal({ playerId, categoryId, isViewer }: PlayerB
                     {item.games_played > 0 && <span>{item.games_played} parties</span>}
                     {item.purchase_date && <span>Achat: {format(new Date(item.purchase_date), "dd/MM/yyyy")}</span>}
                   </div>
+                  {item.notes && (
+                    <p className="mt-1 text-xs italic text-muted-foreground break-words">💬 {item.notes}</p>
+                  )}
+
                 </div>
                 {!isViewer && (
                   <div className="flex flex-col gap-1">
