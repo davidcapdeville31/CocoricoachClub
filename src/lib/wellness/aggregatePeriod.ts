@@ -40,7 +40,13 @@ const scale = (v: number | null | undefined): number => {
   return Math.max(1, Math.min(5, v));
 };
 
-export function computeRecoveryScore(p: Omit<AggregatedPoint, "date" | "fullDate" | "recovery_score" | "count">): number {
+export function computeRecoveryScore(p: {
+  sleep_quality?: number | null;
+  general_fatigue?: number | null;
+  soreness_lower_body?: number | null;
+  soreness_upper_body?: number | null;
+  stress_level?: number | null;
+}): number {
   const raw =
     (scale(p.sleep_quality) +
       (6 - scale(p.general_fatigue)) +
