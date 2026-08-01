@@ -40,7 +40,7 @@ const scale = (v: number | null | undefined): number => {
   return Math.max(1, Math.min(5, v));
 };
 
-function computeRecovery(p: Omit<AggregatedPoint, "date" | "fullDate" | "recovery_score" | "count">): number {
+export function computeRecoveryScore(p: Omit<AggregatedPoint, "date" | "fullDate" | "recovery_score" | "count">): number {
   const raw =
     (scale(p.sleep_quality) +
       (6 - scale(p.general_fatigue)) +
@@ -72,7 +72,7 @@ export function aggregateWellnessByPeriod(
         date: format(d, "dd/MM", { locale: fr }),
         fullDate: format(d, "dd MMM yyyy", { locale: fr }),
         ...point,
-        recovery_score: computeRecovery(point),
+        recovery_score: computeRecoveryScore(point),
         count: 1,
       };
     });
@@ -113,7 +113,7 @@ export function aggregateWellnessByPeriod(
           ? `Semaine du ${format(d, "dd MMM yyyy", { locale: fr })}`
           : format(d, "MMMM yyyy", { locale: fr }),
       ...point,
-      recovery_score: computeRecovery(point),
+      recovery_score: computeRecoveryScore(point),
       count: group.length,
     };
   });
