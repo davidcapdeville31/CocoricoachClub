@@ -707,6 +707,17 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
+                            title="Dupliquer dans une autre catégorie"
+                            onClick={() => setDuplicatePlayer(player)}
+                          >
+                            <CopyPlus className="h-4 w-4 text-muted-foreground" />
+                          </Button>
+                        )}
+                        {!isViewer && canManageAthletes && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
                             title={isArchived ? "Réactiver l'athlète" : "Archiver l'athlète"}
                             onClick={() =>
                               archivePlayer.mutate({ playerId: player.id, archive: !isArchived })
@@ -870,6 +881,19 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                               <Button
                                 variant="ghost"
                                 size="icon"
+                                title="Dupliquer dans une autre catégorie"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDuplicatePlayer(player);
+                                }}
+                              >
+                                <CopyPlus className="h-4 w-4 text-muted-foreground" />
+                              </Button>
+                            )}
+                            {!isViewer && canManageAthletes && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 title={isArchived ? "Réactiver" : "Archiver"}
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -936,6 +960,12 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
         open={isLinkDialogOpen}
         onOpenChange={setIsLinkDialogOpen}
         categoryId={categoryId}
+      />
+      <DuplicatePlayerToCategoryDialog
+        open={!!duplicatePlayer}
+        onOpenChange={(o) => !o && setDuplicatePlayer(null)}
+        categoryId={categoryId}
+        player={duplicatePlayer}
       />
     </Card>
   );
