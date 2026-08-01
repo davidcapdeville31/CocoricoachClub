@@ -78,9 +78,9 @@ export function PlayerAvatarUpload({
       toast.success("Photo mise à jour");
       setUploading(false);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Upload error:", error);
-      toast.error("Erreur lors de l'upload");
+      toast.error(error?.message || "Erreur lors de l'upload");
       setUploading(false);
     },
   });
