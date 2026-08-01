@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { CircleDot } from "lucide-react";
 
@@ -17,6 +18,9 @@ interface BowlingBallSelectorProps {
   onBallChange: (ballId: string | null) => void;
   frameBalls?: (string | null)[];
   onFrameBallChange?: (frameIndex: number, ballId: string | null) => void;
+  frameLines?: (string | null)[];
+  frameSurfaces?: (string | null)[];
+  onFrameDetailChange?: (frameIndex: number, field: "line" | "surface", value: string) => void;
 }
 
 export function BowlingBallSelector({
@@ -28,6 +32,9 @@ export function BowlingBallSelector({
   onBallChange,
   frameBalls,
   onFrameBallChange,
+  frameLines,
+  frameSurfaces,
+  onFrameDetailChange,
 }: BowlingBallSelectorProps) {
   const { data: arsenal } = useQuery({
     queryKey: ["bowling_arsenal_selector", playerId],
@@ -89,10 +96,10 @@ export function BowlingBallSelector({
           </SelectContent>
         </Select>
       ) : (
-        <div className="grid grid-cols-5 gap-1.5">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
           {Array.from({ length: 10 }, (_, i) => (
-            <div key={i} className="text-center">
-              <p className="text-[10px] text-muted-foreground mb-0.5">F{i + 1}</p>
+            <div key={i} className="space-y-1 rounded-lg border bg-surface-sunken/50 p-1.5">
+              <p className="text-[10px] font-medium text-muted-foreground text-center">F{i + 1}</p>
               <Select
                 value={frameBalls?.[i] || "none"}
                 onValueChange={(v) => onFrameBallChange?.(i, v === "none" ? null : v)}
@@ -109,6 +116,18 @@ export function BowlingBallSelector({
                   ))}
                 </SelectContent>
               </Select>
+              <Input
+                className="h-7 text-[10px] px-1"
+                placeholder="Ligne (ex. 10-8)"
+                value={frameLines?.[i] || ""}
+                onChange={(e) => onFrameDetailChange?.(i, "line", e.target.value)}
+              />
+              <Input
+                className="h-7 text-[10px] px-1"
+                placeholder="Surface (ex. 2000)"
+                value={frameSurfaces?.[i] || ""}
+                onChange={(e) => onFrameDetailChange?.(i, "surface", e.target.value)}
+              />
             </div>
           ))}
         </div>

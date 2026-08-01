@@ -50,7 +50,7 @@ export interface BowlingStats {
 }
 
 interface BowlingScoreSheetProps {
-  onSave?: (stats: BowlingStats, frames: FrameData[], ballData?: { mode: string; ballId?: string | null; frameBalls?: (string | null)[] }) => void;
+  onSave?: (stats: BowlingStats, frames: FrameData[], ballData?: { mode: string; ballId?: string | null; frameBalls?: (string | null)[]; frameLines?: (string | null)[]; frameSurfaces?: (string | null)[] }) => void;
   onCancel?: () => void;
   initialFrames?: FrameData[];
   playerId?: string;
@@ -85,6 +85,8 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
   const [ballMode, setBallMode] = useState<"simple" | "advanced">("simple");
   const [selectedBallId, setSelectedBallId] = useState<string | null>(null);
   const [frameBalls, setFrameBalls] = useState<(string | null)[]>(Array(10).fill(null));
+  const [frameLines, setFrameLines] = useState<(string | null)[]>(Array(10).fill(null));
+  const [frameSurfaces, setFrameSurfaces] = useState<(string | null)[]>(Array(10).fill(null));
   const [detailsOpen, setDetailsOpen] = useState(!compact);
   const inputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
 
@@ -155,6 +157,15 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
     setFrameBalls(prev => {
       const next = [...prev];
       next[frameIndex] = ballId;
+      return next;
+    });
+  };
+
+  const handleFrameDetailChange = (frameIndex: number, field: "line" | "surface", value: string) => {
+    const setter = field === "line" ? setFrameLines : setFrameSurfaces;
+    setter(prev => {
+      const next = [...prev];
+      next[frameIndex] = value;
       return next;
     });
   };
@@ -681,6 +692,8 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
       mode: ballMode,
       ballId: ballMode === "simple" ? selectedBallId : null,
       frameBalls: ballMode === "advanced" ? frameBalls : undefined,
+      frameLines: ballMode === "advanced" ? frameLines : undefined,
+      frameSurfaces: ballMode === "advanced" ? frameSurfaces : undefined,
     } : undefined;
     onSave?.(stats, frames, ballData);
   };
@@ -718,6 +731,9 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
           onBallChange={setSelectedBallId}
           frameBalls={frameBalls}
           onFrameBallChange={handleFrameBallChange}
+          frameLines={frameLines}
+          frameSurfaces={frameSurfaces}
+          onFrameDetailChange={handleFrameDetailChange}
         />
       )}
 
