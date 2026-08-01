@@ -19,6 +19,7 @@ interface MatchVignetteProps {
   match: Match;
   sportType: string | undefined;
   isViewer: boolean;
+  creatorName?: string | null;
   onClick: () => void;
   onNotify?: () => void;
   onStats?: () => void;
@@ -30,6 +31,7 @@ export function MatchVignette({
   match,
   sportType,
   isViewer,
+  creatorName,
   onClick,
   onNotify,
   onStats,
@@ -91,7 +93,7 @@ export function MatchVignette({
           color.bg,
           color.bgHover
         )}
-        title={`${match.match_time ? formatTime(match.match_time) + " - " : ""}${compLabel ? compLabel + " · " : ""}${match.opponent}`}
+        title={`${match.match_time ? formatTime(match.match_time) + " - " : ""}${compLabel ? compLabel + " · " : ""}${match.opponent}${creatorName ? " · créé par " + creatorName : ""}`}
       >
         {/* Match content - hidden when hovered to show action buttons */}
         <div className={cn(
@@ -107,7 +109,9 @@ export function MatchVignette({
           <span className="ml-1 opacity-95 truncate">
             {compLabel
               ? compLabel
-              : isIndividualSport(sportType || "") ? "Compét." : match.opponent}
+              : isIndividualSport(sportType || "")
+                ? (creatorName || match.opponent || "Compét.")
+                : match.opponent}
           </span>
         </div>
 

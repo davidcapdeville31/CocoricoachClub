@@ -160,6 +160,11 @@ export function CalendarDayCell({
             key={match.id}
             match={match}
             sportType={sportType}
+            creatorName={
+              (match as any).created_by_player_id && playerNamesMap
+                ? playerNamesMap[(match as any).created_by_player_id] ?? null
+                : null
+            }
             isViewer={isViewer}
             onClick={() => onViewMatch ? onViewMatch(match) : onDayClick(day)}
             onNotify={onNotifyMatch ? () => onNotifyMatch(match) : undefined}
