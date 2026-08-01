@@ -412,9 +412,45 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
       // Récupère le user_id lié (s'il existe) AVANT suppression pour purger OneSignal
       const { data: playerRow } = await supabase
         .from("players")
-        .select("user_id")
+        .select("user_id, category_id")
         .eq("id", playerId)
         .maybeSingle();
+
+      // Athlète multi-catégories ? On ne retire que le rattachement à CETTE catégorie
+      const { data: links } = await supabase
+        .from("player_categories")
+        .select("id, category_id")
+        .eq("player_id", playerId);
+
+      const allCategoryIds = new Set<string>(
+        [
+          ...(links || []).map((l: any) => l.category_id as string),
+          playerRow?.category_id as string | undefined,
+        ].filter(Boolean) as string[]
+      );
+
+      if (allCategoryIds.size > 1 && allCategoryIds.has(categoryId)) {
+        // Supprime uniquement le lien vers la catégorie courante
+        const { error: linkError } = await supabase
+          .from("player_categories")
+          .delete()
+          .eq("player_id", playerId)
+          .eq("category_id", categoryId);
+        if (linkError) throw linkError;
+
+        // Si la catégorie courante était la catégorie principale, on bascule sur une autre
+        if (playerRow?.category_id === categoryId) {
+          const fallback = Array.from(allCategoryIds).find((c) => c !== categoryId);
+          if (fallback) {
+            const { error: updError } = await supabase
+              .from("players")
+              .update({ category_id: fallback })
+              .eq("id", playerId);
+            if (updError) throw updError;
+          }
+        }
+        return { partial: true };
+      }
 
       const { error, count } = await supabase
         .from("players")
@@ -435,10 +471,21 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
           console.warn("[deletePlayer] OneSignal cleanup failed:", err);
         }
       }
+      return { partial: false };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["players", categoryId] });
-      toast.success("Athlète supprimé avec succès");
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({
+        predicate: (q) => {
+          const k = q.queryKey?.[0];
+          return typeof k === "string" && k.startsWith("players");
+        },
+      });
+      queryClient.invalidateQueries({ queryKey: ["player-categories"] });
+      toast.success(
+        res?.partial
+          ? "Athlète retiré de cette catégorie (toujours présent dans ses autres catégories)"
+          : "Athlète supprimé avec succès"
+      );
     },
     onError: (err: Error) => {
       if (err?.message === "PERMISSION_DENIED") {
