@@ -455,6 +455,10 @@ export function PlayerBowlingArsenal({ playerId, categoryId, isViewer }: PlayerB
                     {item.games_played > 0 && <span>{item.games_played} parties</span>}
                     {item.purchase_date && <span>Achat: {format(new Date(item.purchase_date), "dd/MM/yyyy")}</span>}
                   </div>
+                  {item.notes && (
+                    <p className="mt-1 text-xs italic text-muted-foreground break-words">💬 {item.notes}</p>
+                  )}
+
                 </div>
                 {!isViewer && (
                   <div className="flex flex-col gap-1">
