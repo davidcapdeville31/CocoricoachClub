@@ -86,6 +86,7 @@ export function PlayerBowlingArsenal({ playerId, categoryId, isViewer }: PlayerB
         purchase_date: purchaseDate || null,
         current_surface: currentSurface || null,
         games_played: parseInt(gamesPlayed) || 0,
+        notes: notes.trim() || null,
         custom_rg: customRg ? parseFloat(customRg) : null,
         custom_differential: customDifferential ? parseFloat(customDifferential) : null,
         custom_intermediate_diff: customIntermediateDiff ? parseFloat(customIntermediateDiff) : null,
