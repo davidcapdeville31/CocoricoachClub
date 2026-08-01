@@ -95,10 +95,10 @@ export function BowlingBallSelector({
           </SelectContent>
         </Select>
       ) : (
-        <div className="grid grid-cols-5 gap-1.5">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
           {Array.from({ length: 10 }, (_, i) => (
-            <div key={i} className="text-center">
-              <p className="text-[10px] text-muted-foreground mb-0.5">F{i + 1}</p>
+            <div key={i} className="space-y-1 rounded-lg border bg-surface-sunken/50 p-1.5">
+              <p className="text-[10px] font-medium text-muted-foreground text-center">F{i + 1}</p>
               <Select
                 value={frameBalls?.[i] || "none"}
                 onValueChange={(v) => onFrameBallChange?.(i, v === "none" ? null : v)}
@@ -115,6 +115,18 @@ export function BowlingBallSelector({
                   ))}
                 </SelectContent>
               </Select>
+              <Input
+                className="h-7 text-[10px] px-1"
+                placeholder="Ligne (ex. 10-8)"
+                value={frameLines?.[i] || ""}
+                onChange={(e) => onFrameDetailChange?.(i, "line", e.target.value)}
+              />
+              <Input
+                className="h-7 text-[10px] px-1"
+                placeholder="Surface (ex. 2000)"
+                value={frameSurfaces?.[i] || ""}
+                onChange={(e) => onFrameDetailChange?.(i, "surface", e.target.value)}
+              />
             </div>
           ))}
         </div>
