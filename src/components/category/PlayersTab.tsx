@@ -145,6 +145,8 @@ function PlayerInfoHover({ player, isSki }: { player: any; isSki: boolean }) {
             <div className="flex gap-1">
               <Button variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={() => {
                 setEditData({
+                  first_name: player.first_name || "",
+                  name: player.name || "",
                   birth_date: player.birth_date || "",
                   email: player.email || "",
                   phone: player.phone || "",
