@@ -128,7 +128,7 @@ export interface Round {
   bowlingFrames?: FrameData[];
   roundDate?: string;
   blockId?: string;
-  ballData?: { mode: string; ballId?: string | null; frameBalls?: (string | null)[] };
+  ballData?: { mode: string; ballId?: string | null; frameBalls?: (string | null)[]; frameLines?: (string | null)[]; frameSurfaces?: (string | null)[] };
   oilPatternId?: string;
 }
 

@@ -50,7 +50,7 @@ export interface BowlingStats {
 }
 
 interface BowlingScoreSheetProps {
-  onSave?: (stats: BowlingStats, frames: FrameData[], ballData?: { mode: string; ballId?: string | null; frameBalls?: (string | null)[] }) => void;
+  onSave?: (stats: BowlingStats, frames: FrameData[], ballData?: { mode: string; ballId?: string | null; frameBalls?: (string | null)[]; frameLines?: (string | null)[]; frameSurfaces?: (string | null)[] }) => void;
   onCancel?: () => void;
   initialFrames?: FrameData[];
   playerId?: string;

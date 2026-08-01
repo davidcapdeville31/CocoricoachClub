@@ -332,7 +332,7 @@ export function AthleteBowlingCompetitionDialog({
     roundNumber: number,
     sheetStats: BowlingStats,
     frames: FrameData[],
-    ballData?: { mode: string; ballId?: string | null; frameBalls?: (string | null)[] },
+    ballData?: { mode: string; ballId?: string | null; frameBalls?: (string | null)[]; frameLines?: (string | null)[]; frameSurfaces?: (string | null)[] },
   ) => {
     let updatedRound: Round | undefined;
     setRounds((prev) => {
