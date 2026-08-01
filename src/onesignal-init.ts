@@ -1,10 +1,5 @@
 // OneSignal SDK v16 initialization (moved out of index.html to avoid Vite html-proxy issues)
-declare global {
-  interface Window {
-    OneSignalDeferred?: unknown[];
-    OneSignal?: unknown;
-  }
-}
+
 
 window.OneSignalDeferred = window.OneSignalDeferred || [];
 
