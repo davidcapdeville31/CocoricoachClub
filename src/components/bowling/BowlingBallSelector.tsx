@@ -17,6 +17,9 @@ interface BowlingBallSelectorProps {
   onBallChange: (ballId: string | null) => void;
   frameBalls?: (string | null)[];
   onFrameBallChange?: (frameIndex: number, ballId: string | null) => void;
+  frameLines?: (string | null)[];
+  frameSurfaces?: (string | null)[];
+  onFrameDetailChange?: (frameIndex: number, field: "line" | "surface", value: string) => void;
 }
 
 export function BowlingBallSelector({
@@ -28,6 +31,9 @@ export function BowlingBallSelector({
   onBallChange,
   frameBalls,
   onFrameBallChange,
+  frameLines,
+  frameSurfaces,
+  onFrameDetailChange,
 }: BowlingBallSelectorProps) {
   const { data: arsenal } = useQuery({
     queryKey: ["bowling_arsenal_selector", playerId],
