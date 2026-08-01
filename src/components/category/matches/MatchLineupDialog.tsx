@@ -127,6 +127,22 @@ export function MatchLineupDialog({
     enabled: !!matchId,
   });
 
+  // Athletes already convoked when creating/editing the competition
+  const { data: convokedIds } = useQuery({
+    queryKey: ["match_participants_ids", matchId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("match_participants")
+        .select("player_id")
+        .eq("match_id", matchId);
+      if (error) throw error;
+      return (data || []).map((r: any) => r.player_id as string);
+    },
+    enabled: !!matchId,
+  });
+
+
+
   // Build athletics players (with their pairs) from the players query
   const buildAthleticsPairs = (p: any): { discipline: string; specialty: string | null }[] => {
     const pairs: { discipline: string; specialty: string | null }[] = [];
