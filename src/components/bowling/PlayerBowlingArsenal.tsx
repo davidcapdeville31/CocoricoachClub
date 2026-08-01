@@ -169,6 +169,7 @@ export function PlayerBowlingArsenal({ playerId, categoryId, isViewer }: PlayerB
     setDrillingAngle("");
     setPinPapDistance("");
     setValAngle("");
+    setNotes("");
   };
 
   const resetForm = () => {
