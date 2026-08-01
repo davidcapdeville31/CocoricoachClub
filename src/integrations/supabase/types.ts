@@ -2083,6 +2083,7 @@ export type Database = {
           archived_by: string | null
           club_id: string
           cover_image_position: string
+          cover_image_scale: number
           cover_image_url: string | null
           created_at: string
           deleted_at: string | null
@@ -2101,6 +2102,7 @@ export type Database = {
           archived_by?: string | null
           club_id: string
           cover_image_position?: string
+          cover_image_scale?: number
           cover_image_url?: string | null
           created_at?: string
           deleted_at?: string | null
@@ -2119,6 +2121,7 @@ export type Database = {
           archived_by?: string | null
           club_id?: string
           cover_image_position?: string
+          cover_image_scale?: number
           cover_image_url?: string | null
           created_at?: string
           deleted_at?: string | null
