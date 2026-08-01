@@ -151,6 +151,18 @@ export function SeasonObjectivesSection({ categoryId }: SeasonObjectivesSectionP
     },
   });
 
+  const deleteGoalMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("season_goals").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["season-goals", categoryId] });
+      toast.success("Objectif supprimé");
+    },
+    onError: () => toast.error("Erreur lors de la suppression"),
+  });
+
   const toggleMilestoneMutation = useMutation({
     mutationFn: async ({ id, completed }: { id: string; completed: boolean }) => {
       const { error } = await supabase
