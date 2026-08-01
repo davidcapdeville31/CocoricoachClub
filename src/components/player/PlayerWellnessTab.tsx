@@ -387,6 +387,7 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
                     }}
                   />
                   <Legend wrapperStyle={{ paddingTop: 12, fontSize: 13 }} iconType="circle" />
+                  {visibleSeries.wellness && (
                   <Line
                     type="monotone"
                     dataKey="wellness"
@@ -396,6 +397,8 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
                     dot={{ r: 5, fill: "#1e3a8a", strokeWidth: 2, stroke: "#fff" }}
                     activeDot={{ r: 7 }}
                   />
+                  )}
+                  {visibleSeries.fatigue && (
                   <Line
                     type="monotone"
                     dataKey="fatigue"
@@ -405,6 +408,8 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
                     dot={{ r: 4, fill: "#dc2626", strokeWidth: 2, stroke: "#fff" }}
                     activeDot={{ r: 6 }}
                   />
+                  )}
+                  {visibleSeries.soreness && (
                   <Line
                     type="monotone"
                     dataKey="soreness"
@@ -415,6 +420,8 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
                     dot={{ r: 4, fill: "#f59e0b", strokeWidth: 2, stroke: "#fff" }}
                     activeDot={{ r: 6 }}
                   />
+                  )}
+                  {visibleSeries.stress && (
                   <Line
                     type="monotone"
                     dataKey="stress"
@@ -425,6 +432,7 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
                     dot={{ r: 4, fill: "#7c3aed", strokeWidth: 2, stroke: "#fff" }}
                     activeDot={{ r: 6 }}
                   />
+                  )}
                 </LineChart>
               </ResponsiveContainer>
             </div>
