@@ -24,6 +24,13 @@ export function LogoCropModal({ isOpen, onClose, imageUrl, initialCrop, onSave }
 
   useEffect(() => { if (isOpen) setCrop(initialCrop || defaultCrop); }, [isOpen, initialCrop]);
 
+  const getMaxOffset = (scale: number) => {
+    if (scale >= 1) return 50 + ((scale - 1) / scale) * 50;
+    // When the image is shrunk it already fits entirely in the frame,
+    // so panning is not needed.
+    return 0;
+  };
+
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     setIsDragging(true);
