@@ -13,7 +13,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 import { sleepScoreToHours } from "@/lib/sleepConversion";
-import { aggregateWellnessByPeriod, type WellnessPeriod } from "@/lib/wellness/aggregatePeriod";
+import { aggregateWellnessByPeriod, computeRecoveryScore, type WellnessPeriod } from "@/lib/wellness/aggregatePeriod";
 
 interface Props {
   playerId: string;
@@ -42,13 +42,7 @@ export function PlayerRecoveryScore({ playerId }: Props) {
   const latestRecovery = (() => {
     const w: any = recentHistory[recentHistory.length - 1];
     if (!w) return 0;
-    return Math.round(
-      ((w.sleep_quality || 3) +
-        (6 - (w.general_fatigue || 3)) +
-        (6 - (w.soreness_lower_body || 3)) +
-        (6 - (w.soreness_upper_body || 3)) +
-        (6 - (w.stress_level || 3))) / 5 * 20
-    );
+    return computeRecoveryScore(w);
   })();
 
   const sleepEntries = wellnessHistory.filter((w: any) => w.sleep_duration != null && w.sleep_duration > 0);

@@ -1,3 +1,4 @@
+import { computeRecoveryScore } from "@/lib/wellness/aggregatePeriod";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -77,13 +78,7 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
   const recentHistory = wellnessHistory.slice(-30);
 
   const chartData = recentHistory.map((w: any) => {
-    const recoveryScore = Math.round(
-      ((w.sleep_quality || 3) +
-        (6 - (w.general_fatigue || 3)) +
-        (6 - (w.soreness_lower_body || 3)) +
-        (6 - (w.soreness_upper_body || 3)) +
-        (6 - (w.stress_level || 3))) / 5 * 20
-    );
+    const recoveryScore = computeRecoveryScore(w);
 
     return {
       date: format(new Date(w.tracking_date), "dd/MM", { locale: fr }),
