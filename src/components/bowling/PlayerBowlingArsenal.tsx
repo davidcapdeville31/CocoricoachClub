@@ -360,6 +360,17 @@ export function PlayerBowlingArsenal({ playerId, categoryId, isViewer }: PlayerB
         </div>
       </div>
 
+      <div>
+        <Label className="text-xs">Commentaire</Label>
+        <Textarea
+          value={notes}
+          onChange={e => setNotes(e.target.value)}
+          placeholder="Ex : Boule de confiance, bonne sur huilage court..."
+          rows={3}
+        />
+      </div>
+
+
 
       <Button
         className="w-full"
