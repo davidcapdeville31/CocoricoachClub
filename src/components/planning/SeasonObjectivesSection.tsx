@@ -11,7 +11,18 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Plus, Target, Flag, CheckCircle2, TrendingUp } from "lucide-react";
+import { Plus, Target, Flag, CheckCircle2, TrendingUp, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { PlayerObjectivesSection } from "./PlayerObjectivesSection";
@@ -149,6 +160,18 @@ export function SeasonObjectivesSection({ categoryId }: SeasonObjectivesSectionP
       queryClient.invalidateQueries({ queryKey: ["season-goals", categoryId] });
       toast.success("Objectif mis à jour");
     },
+  });
+
+  const deleteGoalMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("season_goals").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["season-goals", categoryId] });
+      toast.success("Objectif supprimé");
+    },
+    onError: () => toast.error("Erreur lors de la suppression"),
   });
 
   const toggleMilestoneMutation = useMutation({
@@ -388,6 +411,27 @@ export function SeasonObjectivesSection({ categoryId }: SeasonObjectivesSectionP
                       className="w-16 h-8 text-xs"
                     />
                     <span className="text-xs self-center">%</span>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 ml-auto text-destructive hover:text-destructive">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Supprimer cet objectif ?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            « {goal.title} » sera définitivement supprimé. Cette action est irréversible.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Annuler</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => deleteGoalMutation.mutate(goal.id)}>
+                            Supprimer
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
               ))
