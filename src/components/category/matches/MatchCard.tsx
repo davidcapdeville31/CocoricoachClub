@@ -70,6 +70,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
 import { getCompetitionStageLabel as getCompetitionStageLabelUtil } from "@/lib/constants/competitions";
+import { getCompetitionTag } from "@/lib/constants/competitionTags";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -96,6 +97,7 @@ interface Match {
   category_id: string;
   competition: string | null;
   competition_stage: string | null;
+  competition_tag?: string | null;
   is_finalized?: boolean;
   event_type?: string | null;
   age_category?: string | null;
@@ -269,6 +271,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
   // Sub-matches/parents are kept consistent so the menu always appears.
   const canExport = (isTeamSport || isJudo || isAthletics) && !isSubMatch;
   const competitionLabel = match.competition || match.opponent || "Compétition";
+  const compTag = getCompetitionTag(match.competition_tag);
   // Check if match is within 3 days (for pre-competition form)
   const fisMatchDate = new Date(match.match_date);
   const now = new Date();
@@ -496,6 +499,9 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
             className="w-full flex items-center justify-between gap-3 text-left cursor-pointer"
           >
             <div className="flex items-center gap-2 min-w-0 flex-1">
+              {compTag && (
+                <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${compTag.dot}`} title={compTag.label} />
+              )}
               {isFinalized && <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />}
               {!isIndividual && (
                 match.is_home
@@ -527,6 +533,12 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
+              {compTag && (
+                <Badge variant="outline" className={`text-xs ${compTag.badge}`}>
+                  <span className={`h-2 w-2 rounded-full mr-1.5 ${compTag.dot}`} />
+                  {compTag.label}
+                </Badge>
+              )}
               {isTrainingMatch && (
                 <Badge variant="outline" className="text-xs border-muted-foreground/50 text-muted-foreground">
                   🎳 Entraînement — Scores via Planification

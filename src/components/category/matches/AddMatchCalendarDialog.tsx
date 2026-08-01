@@ -24,6 +24,8 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { getCompetitionsBySport, getCompetitionStagesBySport } from "@/lib/constants/competitions";
+import { CompetitionTagSelector } from "./CompetitionTagSelector";
+import type { CompetitionTag } from "@/lib/constants/competitionTags";
 import { isIndividualSport, isBasket3x3 } from "@/lib/constants/sportTypes";
 import { Info } from "lucide-react";
 import { TOURNAMENT_LEVELS, SELECTION_TYPES } from "@/lib/judo/competitionAnalytics";
@@ -116,6 +118,7 @@ export function AddMatchCalendarDialog({
   const [competition, setCompetition] = useState("");
   const [customCompetition, setCustomCompetition] = useState("");
   const [competitionStage, setCompetitionStage] = useState("");
+  const [competitionTag, setCompetitionTag] = useState<CompetitionTag | null>(null);
   const [matchDate, setMatchDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [matchTime, setMatchTime] = useState("");
@@ -156,6 +159,7 @@ export function AddMatchCalendarDialog({
         opponent: isIndividual ? (opponent || (hasTournamentBracket ? "Tournoi" : "Compétition")) : opponent,
         competition: finalCompetition || null,
         competition_stage: competitionStage === "none" ? null : (competitionStage || null),
+        competition_tag: competitionTag,
         match_date: matchDate,
         end_date: endDate || null,
         match_time: matchTime || null,
@@ -223,6 +227,7 @@ export function AddMatchCalendarDialog({
     setCompetition("");
     setCustomCompetition("");
     setCompetitionStage("");
+    setCompetitionTag(null);
     setMatchDate(defaultDate ? format(defaultDate, "yyyy-MM-dd") : "");
     setEndDate("");
     setMatchTime("");
@@ -421,6 +426,8 @@ export function AddMatchCalendarDialog({
               </SelectContent>
             </Select>
           </div>
+
+          <CompetitionTagSelector value={competitionTag} onChange={setCompetitionTag} />
 
           {isCustomSelected && (
             <div className="space-y-2">

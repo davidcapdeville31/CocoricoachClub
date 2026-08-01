@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { getCompetitionsBySport, getCompetitionStagesBySport } from "@/lib/constants/competitions";
+import { CompetitionTagSelector } from "./CompetitionTagSelector";
+import type { CompetitionTag } from "@/lib/constants/competitionTags";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
 import { TOURNAMENT_LEVELS, SELECTION_TYPES } from "@/lib/judo/competitionAnalytics";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
@@ -40,6 +42,7 @@ interface Match {
   category_id: string;
   competition: string | null;
   competition_stage: string | null;
+  competition_tag?: string | null;
   event_type?: string | null;
   age_category?: string | null;
   distance_meters?: number | null;
@@ -90,6 +93,7 @@ export function EditMatchDialog({
   const [competition, setCompetition] = useState("");
   const [customCompetition, setCustomCompetition] = useState("");
   const [competitionStage, setCompetitionStage] = useState(match.competition_stage || "");
+  const [competitionTag, setCompetitionTag] = useState<CompetitionTag | null>((match.competition_tag as CompetitionTag) || null);
   const [matchDate, setMatchDate] = useState(match.match_date || "");
   const [endDate, setEndDate] = useState(match.end_date || "");
   const [matchTime, setMatchTime] = useState(match.match_time?.slice(0, 5) || "");
@@ -157,6 +161,7 @@ export function EditMatchDialog({
           opponent: isIndividual ? (opponent || "Compétition") : opponent,
           competition: finalCompetition || null,
           competition_stage: competitionStage === "none" ? null : (competitionStage || null),
+          competition_tag: competitionTag,
           match_date: matchDate,
           end_date: endDate || null,
           match_time: matchTime || null,
@@ -345,6 +350,8 @@ export function EditMatchDialog({
               />
             </div>
           )}
+
+          <CompetitionTagSelector value={competitionTag} onChange={setCompetitionTag} />
 
           {/* Phase de compétition — masquée pour les sports individuels (saisie par épreuve/tour) */}
           {!isIndividual && (
