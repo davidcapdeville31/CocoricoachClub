@@ -227,6 +227,14 @@ function CategoryDetailsContent() {
   // In public mode, use the context values as fallback
   const displayCategoryName = category?.name || publicCategoryName || "Catégorie";
   const displayClubName = category?.clubs?.name || publicClubName || "Club";
+  const displayedCoverUrl = React.useMemo(() => {
+    if (!category?.cover_image_url) return null;
+    const version = encodeURIComponent(
+      `${(category as any)?.cover_image_scale || 1}-${(category as any)?.cover_image_position || "center"}`
+    );
+    const separator = category.cover_image_url.includes("?") ? "&" : "?";
+    return `${category.cover_image_url}${separator}v=${version}`;
+  }, [category?.cover_image_url, (category as any)?.cover_image_scale, (category as any)?.cover_image_position]);
 
   const handleBack = () => {
     if (isPublicAccess && token) {
@@ -264,7 +272,7 @@ function CategoryDetailsContent() {
           <div className="hidden lg:flex pointer-events-none absolute inset-0 items-center justify-center z-20">
             <div className="group pointer-events-auto relative h-36 w-36 xl:h-48 xl:w-48 rounded-full overflow-hidden ring-4 ring-white/20 shadow-2xl bg-background/30 backdrop-blur-sm">
               <img
-                src={category.cover_image_url}
+                src={displayedCoverUrl || category.cover_image_url}
                 alt="Logo du club"
                 className="h-full w-full object-contain"
                 style={{ objectPosition: (category as any)?.cover_image_position || "center", transform: `scale(${(category as any)?.cover_image_scale || 1})` }}
@@ -319,7 +327,7 @@ function CategoryDetailsContent() {
               <div className="group relative h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 rounded-full overflow-hidden ring-4 ring-white/20 shadow-2xl bg-background/30 backdrop-blur-sm flex items-center justify-center">
                 {category?.cover_image_url ? (
                   <img
-                    src={category.cover_image_url}
+                    src={displayedCoverUrl || category.cover_image_url}
                     alt="Logo du club"
                     className="h-full w-full object-contain"
                     style={{ objectPosition: (category as any)?.cover_image_position || "center", transform: `scale(${(category as any)?.cover_image_scale || 1})` }}
@@ -340,7 +348,7 @@ function CategoryDetailsContent() {
             <div className="flex lg:hidden justify-center mb-4">
               <div className="relative h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 rounded-full overflow-hidden ring-4 ring-white/20 shadow-2xl bg-background/30 backdrop-blur-sm">
                 <img
-                  src={category.cover_image_url}
+                  src={displayedCoverUrl || category.cover_image_url}
                   alt="Logo du club"
                   className="h-full w-full object-contain"
                   style={{ objectPosition: (category as any)?.cover_image_position || "center", transform: `scale(${(category as any)?.cover_image_scale || 1})` }}
