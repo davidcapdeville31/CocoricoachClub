@@ -129,11 +129,15 @@ export function PlayerBowlingArsenal({ playerId, categoryId, isViewer }: PlayerB
           ? `${drillingAngle || "?"}x${pinPapDistance || "?"}x${valAngle || "?"}`
           : null,
       };
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("player_bowling_arsenal" as any)
         .update(updateData)
-        .eq("id", editingBall.id);
+        .eq("id", editingBall.id)
+        .select("id");
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error("Modification non enregistrée (droits insuffisants)");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["bowling_arsenal", playerId] });
