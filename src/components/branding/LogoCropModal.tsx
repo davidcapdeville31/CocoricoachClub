@@ -24,6 +24,13 @@ export function LogoCropModal({ isOpen, onClose, imageUrl, initialCrop, onSave }
 
   useEffect(() => { if (isOpen) setCrop(initialCrop || defaultCrop); }, [isOpen, initialCrop]);
 
+  const getMaxOffset = (scale: number) => {
+    if (scale >= 1) return 50 + ((scale - 1) / scale) * 50;
+    // When the image is shrunk it already fits entirely in the frame,
+    // so panning is not needed.
+    return 0;
+  };
+
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     setIsDragging(true);
@@ -35,9 +42,7 @@ export function LogoCropModal({ isOpen, onClose, imageUrl, initialCrop, onSave }
     const rect = containerRef.current.getBoundingClientRect();
     const dx = ((e.clientX - dragStart.x) / rect.width) * 100;
     const dy = ((e.clientY - dragStart.y) / rect.height) * 100;
-    const baseOffset = 50;
-    const zoomOffset = crop.scale > 1 ? ((crop.scale - 1) / crop.scale) * 50 : 0;
-    const max = baseOffset + zoomOffset;
+    const max = getMaxOffset(crop.scale);
     setCrop(prev => ({
       ...prev,
       positionX: Math.max(-max, Math.min(max, prev.positionX + dx)),
@@ -48,9 +53,7 @@ export function LogoCropModal({ isOpen, onClose, imageUrl, initialCrop, onSave }
 
   const handleScale = (v: number[]) => {
     const newScale = v[0];
-    const baseOffset = 50;
-    const zoomOffset = newScale > 1 ? ((newScale - 1) / newScale) * 50 : 0;
-    const max = baseOffset + zoomOffset;
+    const max = getMaxOffset(newScale);
     setCrop(prev => ({
       ...prev,
       scale: newScale,
@@ -87,11 +90,11 @@ export function LogoCropModal({ isOpen, onClose, imageUrl, initialCrop, onSave }
           </div>
           <div className="flex items-center gap-4 px-4">
             <ZoomOut className="h-4 w-4 text-muted-foreground" />
-            <Slider value={[crop.scale]} onValueChange={handleScale} min={1} max={3} step={0.05} className="flex-1" />
+            <Slider value={[crop.scale]} onValueChange={handleScale} min={0.3} max={3} step={0.05} className="flex-1" />
             <ZoomIn className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm text-muted-foreground w-12 text-right">{Math.round(crop.scale * 100)}%</span>
           </div>
-          <p className="text-sm text-muted-foreground text-center">Faites glisser pour repositionner • Slider pour zoomer</p>
+          <p className="text-sm text-muted-foreground text-center">Faites glisser pour repositionner • Slider pour zoomer / dézoomer</p>
         </div>
         <DialogFooter className="gap-2 sm:gap-0">
           <Button variant="outline" onClick={() => setCrop(defaultCrop)}>
