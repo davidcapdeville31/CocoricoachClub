@@ -129,7 +129,7 @@ export function PlayerAdditionalInfoSection({ playerId, isViewer = false }: Play
   return (
     <Card className="bg-gradient-card shadow-md">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <CardTitle className="flex items-center gap-2 text-lg">
               <Users className="h-5 w-5" />
@@ -137,7 +137,7 @@ export function PlayerAdditionalInfoSection({ playerId, isViewer = false }: Play
             </CardTitle>
           </CollapsibleTrigger>
           {!isViewer && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap shrink-0">
               {isEditing ? (
                 <>
                   <Button size="sm" variant="ghost" onClick={handleCancel}>
