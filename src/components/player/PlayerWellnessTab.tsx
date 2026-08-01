@@ -338,7 +338,30 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
             </div>
           </CardHeader>
           <CardContent>
+            <div className="flex flex-wrap items-center gap-2 mb-4">
+              {SERIES_META.map((s) => {
+                const on = visibleSeries[s.key];
+                return (
+                  <button
+                    key={s.key}
+                    type="button"
+                    onClick={() => toggleSeries(s.key)}
+                    className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-all active:scale-95 ${
+                      on ? "border-transparent bg-surface-sunken text-foreground" : "border-border text-muted-foreground opacity-60"
+                    }`}
+                    aria-pressed={on}
+                  >
+                    <span
+                      className="h-2.5 w-2.5 rounded-full"
+                      style={{ backgroundColor: on ? s.color : "transparent", border: `2px solid ${s.color}` }}
+                    />
+                    {s.label}
+                  </button>
+                );
+              })}
+            </div>
             <div className="h-96">
+
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData} margin={{ top: 20, right: 20, left: 0, bottom: 10 }}>
                   <defs>
