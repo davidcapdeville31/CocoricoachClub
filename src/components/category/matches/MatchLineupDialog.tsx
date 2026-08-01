@@ -383,8 +383,12 @@ export function MatchLineupDialog({
     athleticsEntries.filter((e) => e.isSelected).map((e) => e.playerId),
   ).size;
   const selectedCount = isAthletics
-    ? athleticsAthleteCount
-    : (lineupData?.filter((p) => p.isSelected).length ?? 0);
+    ? (convokedIds?.length ?? athleticsAthleteCount)
+    : isIndividual
+      ? (convokedIds?.length ?? 0)
+      : (lineupData?.filter((p) => p.isSelected).length ?? 0);
+  const participantIds = new Set(convokedIds || []);
+  const participantPlayers = lineupData.filter((player) => participantIds.has(player.playerId));
   const starterCount = lineupData?.filter((p) => p.isSelected && p.isStarter).length ?? 0;
   const substituteCount = lineupData?.filter((p) => p.isSelected && !p.isStarter).length ?? 0;
   
@@ -411,9 +415,7 @@ export function MatchLineupDialog({
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Users className="h-5 w-5" />
-              {isDoublesMatch 
-                ? `Paire${isPadel ? " de Padel" : " de Double"}`
-                : isAthletics ? "Inscriptions par épreuve" : isIndividual ? "Participants" : `Composition - ${fieldConfig.label}`}
+              {isIndividual ? "Participants" : `Composition - ${fieldConfig.label}`}
             </div>
             {hasFieldLayout && !isIndividual && !isDoublesMatch && !isAthletics && (
               <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "list" | "field")}>
@@ -433,11 +435,11 @@ export function MatchLineupDialog({
         <div className="flex gap-4 text-sm text-muted-foreground mb-2 flex-shrink-0 flex-wrap">
           <span className="flex items-center gap-1">
             <UserCheck className="h-4 w-4" />
-            {isAthletics
-              ? `${selectedCount} athlète${selectedCount > 1 ? "s" : ""} • ${athleticsSelectedCount} épreuve${athleticsSelectedCount > 1 ? "s" : ""}`
+            {isIndividual
+              ? `${selectedCount} participant${selectedCount > 1 ? "s" : ""}`
               : isDoublesMatch
                 ? `${selectedCount}/2 joueurs sélectionnés`
-                : `${selectedCount} ${isIndividual ? "participants" : "athlètes"}`}
+                : `${selectedCount} athlètes`}
           </span>
           {!isIndividual && !isDoublesMatch && !isAthletics && (
             <>
@@ -449,8 +451,24 @@ export function MatchLineupDialog({
 
         <div className="flex-1 min-h-0 overflow-y-auto">
           <div className="pr-2">
-            {/* Athletics: per-event selection */}
-            {isAthletics ? (
+            {/* Individual competitions: participants are managed only in creation/edit. */}
+            {isIndividual ? (
+              <div className="space-y-2">
+                {participantPlayers.length > 0 ? participantPlayers.map((player) => (
+                  <div
+                    key={player.playerId}
+                    className="flex items-center gap-3 rounded-lg border border-border bg-card p-3"
+                  >
+                    <UserCheck className="h-4 w-4 text-primary" />
+                    <span className="font-medium">{player.playerName}</span>
+                  </div>
+                )) : (
+                  <p className="py-4 text-center text-muted-foreground">
+                    Aucun participant sélectionné dans la compétition
+                  </p>
+                )}
+              </div>
+            ) : isAthletics ? (
               <AthleticsLineupSection
                 players={athleticsPlayers}
                 entries={athleticsEntries}
@@ -501,39 +519,6 @@ export function MatchLineupDialog({
                     </div>
                   );
                 }) : (
-                  <p className="text-center text-muted-foreground py-4">Aucun athlète dans cette catégorie</p>
-                )}
-              </div>
-            ) : isIndividual ? (
-              <div className="space-y-2">
-                {lineupData && lineupData.length > 0 ? lineupData.map((player) => (
-                  <div
-                    key={player.playerId}
-                    className={`p-3 rounded-lg border transition-colors ${
-                      player.isSelected
-                        ? "bg-primary/5 border-primary/20"
-                        : "bg-card"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Checkbox
-                        id={player.playerId}
-                        checked={player.isSelected}
-                        onCheckedChange={(checked) =>
-                          updatePlayer(player.playerId, {
-                            isSelected: !!checked,
-                          })
-                        }
-                      />
-                      <label
-                        htmlFor={player.playerId}
-                        className="font-medium cursor-pointer flex-1"
-                      >
-                        {player.playerName}
-                      </label>
-                    </div>
-                  </div>
-                )) : (
                   <p className="text-center text-muted-foreground py-4">Aucun athlète dans cette catégorie</p>
                 )}
               </div>
@@ -626,12 +611,18 @@ export function MatchLineupDialog({
         </div>
 
         <div className="flex justify-end gap-2 pt-4 border-t flex-shrink-0">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Annuler
-          </Button>
-          <Button onClick={() => saveLineup.mutate()} disabled={saveLineup.isPending}>
-            {saveLineup.isPending ? "Enregistrement..." : "Enregistrer"}
-          </Button>
+          {isIndividual ? (
+            <Button onClick={() => onOpenChange(false)}>Fermer</Button>
+          ) : (
+            <>
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
+                Annuler
+              </Button>
+              <Button onClick={() => saveLineup.mutate()} disabled={saveLineup.isPending}>
+                {saveLineup.isPending ? "Enregistrement..." : "Enregistrer"}
+              </Button>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>
