@@ -692,6 +692,8 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
       mode: ballMode,
       ballId: ballMode === "simple" ? selectedBallId : null,
       frameBalls: ballMode === "advanced" ? frameBalls : undefined,
+      frameLines: ballMode === "advanced" ? frameLines : undefined,
+      frameSurfaces: ballMode === "advanced" ? frameSurfaces : undefined,
     } : undefined;
     onSave?.(stats, frames, ballData);
   };
@@ -729,6 +731,9 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
           onBallChange={setSelectedBallId}
           frameBalls={frameBalls}
           onFrameBallChange={handleFrameBallChange}
+          frameLines={frameLines}
+          frameSurfaces={frameSurfaces}
+          onFrameDetailChange={handleFrameDetailChange}
         />
       )}
 
