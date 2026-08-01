@@ -11,12 +11,15 @@ interface PlayerAvatarUploadProps {
   playerId: string;
   playerName: string;
   currentAvatarUrl?: string | null;
+  /** Affiche le bouton "Changer la photo" (mode édition uniquement) */
+  editable?: boolean;
 }
 
 export function PlayerAvatarUpload({
   playerId,
   playerName,
   currentAvatarUrl,
+  editable = true,
 }: PlayerAvatarUploadProps) {
   const { isViewer } = useViewerModeContext();
   const [uploading, setUploading] = useState(false);
@@ -62,16 +65,15 @@ export function PlayerAvatarUpload({
       return publicUrl;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["player", playerId] });
-      // Invalider toutes les listes d'effectifs / vues qui affichent les avatars
+      // Invalider toutes les vues affichant l'avatar de l'athlète
       queryClient.invalidateQueries({
         predicate: (q) => {
           const k = q.queryKey?.[0];
-          return typeof k === "string" && (
-            k === "players" ||
-            k === "category-players" ||
-            k === "players_safe" ||
-            k.startsWith("players")
+          return (
+            typeof k === "string" &&
+            (k.startsWith("player") ||
+              k === "category-players" ||
+              k === "players_safe")
           );
         },
       });
@@ -122,7 +124,7 @@ export function PlayerAvatarUpload({
         </AvatarFallback>
       </Avatar>
 
-      {!isViewer && (
+      {!isViewer && editable && (
         <div>
           <input
             type="file"

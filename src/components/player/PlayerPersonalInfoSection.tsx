@@ -214,6 +214,7 @@ export function PlayerPersonalInfoSection({ playerId, categoryId, isViewer = fal
             playerId={playerId}
             playerName={playerInfo?.name || ""}
             currentAvatarUrl={playerInfo?.avatar_url}
+            editable={isEditing}
           />
         </div>
         {isEditing ? (
