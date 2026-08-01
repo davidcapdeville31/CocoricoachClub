@@ -420,7 +420,7 @@ export function SuperAdminArsenalBank() {
                 />
               </div>
               <div>
-                <Label>Diff. intermédiaire</Label>
+                <Label>Diff. intermédiaire (Mass Bias)</Label>
                 <Input
                   type="number"
                   step="0.001"
