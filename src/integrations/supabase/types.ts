@@ -15366,10 +15366,15 @@ export type Database = {
         Args: { _conversation_id: string; _new_name: string }
         Returns: undefined
       }
-      renew_invitation: {
-        Args: { _invitation_id: string; _table_name: string }
-        Returns: Json
-      }
+      renew_invitation:
+        | {
+            Args: { _invitation_id: string; _table_name: string }
+            Returns: Json
+          }
+        | {
+            Args: { _invitation_id: string; _table_name: string }
+            Returns: Json
+          }
       respond_to_category_link: {
         Args: { _player_category_id: string; _response: string }
         Returns: Json
