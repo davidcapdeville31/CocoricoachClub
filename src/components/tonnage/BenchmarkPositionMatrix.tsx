@@ -692,7 +692,8 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
       if (b.filter_value === groupId) return true;
       return group ? playerBelongsToGroup(b.filter_value, group) : false;
     };
-    // Priorité : poste + sexe > poste seul > sexe seul > base
+    // Priorité : poste + sexe > poste seul > poste (sexe non renseigné côté athlète)
+    // > sexe seul > base
     const posAndGender = candidates.find(
       (b) => matchesGroup(b) && b.gender_filter === gender,
     );
@@ -701,11 +702,21 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
       (b) => matchesGroup(b) && !b.gender_filter,
     );
     if (posOnly) return posOnly;
+    // Athlète sans sexe renseigné : on applique quand même le barème de son poste
+    if (!gender) {
+      const posAnyGender = candidates.find((b) => matchesGroup(b));
+      if (posAnyGender) return posAnyGender;
+    }
     const genderOnly = candidates.find(
       (b) => !b.filter_value && b.gender_filter === gender,
     );
     if (genderOnly) return genderOnly;
+    if (!gender) {
+      const anyGenderOnly = candidates.find((b) => !b.filter_value && !!b.gender_filter);
+      if (anyGenderOnly) return anyGenderOnly;
+    }
     return candidates.find((b) => !b.filter_value && !b.gender_filter) || null;
+
   };
 
   // Compat pour la table barème (affichage) : par groupe uniquement
