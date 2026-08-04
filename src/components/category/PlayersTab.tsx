@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, Filter, Eye, Copy, Check, Mail, RefreshCw, FileSpreadsheet, Link2, Info, ClipboardCopy, Archive, ArchiveRestore, CopyPlus } from "lucide-react";
+import { Plus, Trash2, Filter, Eye, Copy, Check, Mail, RefreshCw, FileSpreadsheet, Link2, Info, ClipboardCopy, Archive, ArchiveRestore, CopyPlus, Search, ArrowDownAZ } from "lucide-react";
 import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -219,6 +219,9 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
   const [duplicatePlayer, setDuplicatePlayer] = useState<any | null>(null);
   const [disciplineFilter, setDisciplineFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "connected" | "pending">("all");
+  const [sortOrder, setSortOrder] = useState<"az" | "za">("az");
   const [copiedInviteId, setCopiedInviteId] = useState<string | null>(null);
   const [showArchived, setShowArchived] = useState(false);
   const queryClient = useQueryClient();
@@ -374,15 +377,35 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
   const filteredPlayers = useMemo(() => {
     if (!players) return [];
     let list = players.filter((p: any) => (showArchived ? true : !p.archived_at));
-    if (disciplineFilter === "all") return list;
-    if (showDiscipline) {
-      return list.filter((p: any) => p.discipline === disciplineFilter);
+
+    if (disciplineFilter !== "all") {
+      if (showDiscipline) list = list.filter((p: any) => p.discipline === disciplineFilter);
+      else if (showPosition) list = list.filter((p: any) => p.position === disciplineFilter);
     }
-    if (showPosition) {
-      return list.filter((p: any) => p.position === disciplineFilter);
+
+    const q = searchQuery.trim().toLowerCase();
+    if (q) {
+      list = list.filter((p: any) => {
+        const full = `${p.first_name || ""} ${p.name || ""} ${p.name || ""} ${p.first_name || ""}`.toLowerCase();
+        return full.includes(q);
+      });
     }
-    return list;
-  }, [players, disciplineFilter, showDiscipline, showPosition, showArchived]);
+
+    if (statusFilter !== "all") {
+      list = list.filter((p: any) =>
+        statusFilter === "connected" ? !!p.user_id : !p.user_id,
+      );
+    }
+
+    const collator = new Intl.Collator("fr", { sensitivity: "base" });
+    const sorted = [...list].sort((a: any, b: any) => {
+      const an = `${a.first_name || ""} ${a.name || ""}`.trim();
+      const bn = `${b.first_name || ""} ${b.name || ""}`.trim();
+      return collator.compare(an, bn);
+    });
+    return sortOrder === "az" ? sorted : sorted.reverse();
+  }, [players, disciplineFilter, showDiscipline, showPosition, showArchived, searchQuery, statusFilter, sortOrder]);
+
 
   const archivePlayer = useMutation({
     mutationFn: async ({ playerId, archive }: { playerId: string; archive: boolean }) => {
@@ -604,6 +627,36 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <CardTitle className="text-lg sm:text-xl">Liste des athlètes</CardTitle>
           <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <div className="relative w-full sm:w-[220px]">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Rechercher nom / prénom"
+                className="pl-8"
+              />
+            </div>
+            <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as any)}>
+              <SelectTrigger className="w-full sm:w-[150px]">
+                <ArrowDownAZ className="h-4 w-4 mr-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="az">A → Z</SelectItem>
+                <SelectItem value="za">Z → A</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
+              <SelectTrigger className="w-full sm:w-[170px]">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les statuts</SelectItem>
+                <SelectItem value="connected">Connectés</SelectItem>
+                <SelectItem value="pending">En attente</SelectItem>
+              </SelectContent>
+            </Select>
             {hasAttributeColumn && availableFilters.length > 0 && (
               <Select value={disciplineFilter} onValueChange={setDisciplineFilter}>
                 <SelectTrigger className="w-full sm:w-[200px]">
