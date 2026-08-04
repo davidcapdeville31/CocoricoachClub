@@ -377,15 +377,35 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
   const filteredPlayers = useMemo(() => {
     if (!players) return [];
     let list = players.filter((p: any) => (showArchived ? true : !p.archived_at));
-    if (disciplineFilter === "all") return list;
-    if (showDiscipline) {
-      return list.filter((p: any) => p.discipline === disciplineFilter);
+
+    if (disciplineFilter !== "all") {
+      if (showDiscipline) list = list.filter((p: any) => p.discipline === disciplineFilter);
+      else if (showPosition) list = list.filter((p: any) => p.position === disciplineFilter);
     }
-    if (showPosition) {
-      return list.filter((p: any) => p.position === disciplineFilter);
+
+    const q = searchQuery.trim().toLowerCase();
+    if (q) {
+      list = list.filter((p: any) => {
+        const full = `${p.first_name || ""} ${p.name || ""} ${p.name || ""} ${p.first_name || ""}`.toLowerCase();
+        return full.includes(q);
+      });
     }
-    return list;
-  }, [players, disciplineFilter, showDiscipline, showPosition, showArchived]);
+
+    if (statusFilter !== "all") {
+      list = list.filter((p: any) =>
+        statusFilter === "connected" ? !!p.user_id : !p.user_id,
+      );
+    }
+
+    const collator = new Intl.Collator("fr", { sensitivity: "base" });
+    const sorted = [...list].sort((a: any, b: any) => {
+      const an = `${a.first_name || ""} ${a.name || ""}`.trim();
+      const bn = `${b.first_name || ""} ${b.name || ""}`.trim();
+      return collator.compare(an, bn);
+    });
+    return sortOrder === "az" ? sorted : sorted.reverse();
+  }, [players, disciplineFilter, showDiscipline, showPosition, showArchived, searchQuery, statusFilter, sortOrder]);
+
 
   const archivePlayer = useMutation({
     mutationFn: async ({ playerId, archive }: { playerId: string; archive: boolean }) => {
