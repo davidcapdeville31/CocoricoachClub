@@ -105,9 +105,9 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
         isDateInActiveSeason(m.match_date),
     ) || [];
   const today = startOfDay(new Date());
-  const upcomingMatches = parentMatches.filter(
-    (m) => startOfDay(new Date(m.match_date)).getTime() >= today.getTime()
-  );
+  const upcomingMatches = parentMatches
+    .filter((m) => startOfDay(new Date(m.match_date)).getTime() >= today.getTime())
+    .sort((a, b) => new Date(a.match_date).getTime() - new Date(b.match_date).getTime());
   const pastMatches = parentMatches.filter(
     (m) => startOfDay(new Date(m.match_date)).getTime() < today.getTime()
   );

@@ -47,7 +47,7 @@ export function useCategoryMatches(categoryId: string) {
         .select("id, match_date, match_time, opponent, is_home, location, competition, competition_stage, age_category, score_home, score_away, is_finalized, event_type")
         .eq("category_id", categoryId)
         .eq("is_personal", false)
-        .order("match_date", { ascending: false });
+        .order("match_date", { ascending: true });
       if (error) throw error;
       return (data ?? []) as MatchRow[];
     },
