@@ -68,7 +68,7 @@ export function AddIllnessDialog({ open, onOpenChange, categoryId, playerId }: A
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
-        .select("id, name")
+        .select("id, name, first_name")
         .eq("category_id", categoryId)
         .order("name");
       if (error) throw error;
@@ -139,8 +139,10 @@ export function AddIllnessDialog({ open, onOpenChange, categoryId, playerId }: A
                 <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId}>
                   <SelectTrigger><SelectValue placeholder="Sélectionner un athlète" /></SelectTrigger>
                   <SelectContent>
-                    {players?.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                    {players?.map((p: any) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name?.toUpperCase()}{p.first_name ? ` ${p.first_name}` : ""}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

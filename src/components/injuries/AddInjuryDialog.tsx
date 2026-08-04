@@ -61,7 +61,7 @@ export function AddInjuryDialog({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
-        .select("*")
+        .select("id, name, first_name")
         .eq("category_id", categoryId)
         .order("name");
       if (error) throw error;
@@ -148,9 +148,9 @@ export function AddInjuryDialog({
                     <SelectValue placeholder="Sélectionner un joueur" />
                   </SelectTrigger>
                   <SelectContent>
-                    {players?.map((player) => (
+                    {players?.map((player: any) => (
                       <SelectItem key={player.id} value={player.id}>
-                        {player.name}
+                        {player.name?.toUpperCase()}{player.first_name ? ` ${player.first_name}` : ""}
                       </SelectItem>
                     ))}
                   </SelectContent>
