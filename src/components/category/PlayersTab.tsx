@@ -219,6 +219,9 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
   const [duplicatePlayer, setDuplicatePlayer] = useState<any | null>(null);
   const [disciplineFilter, setDisciplineFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "connected" | "pending">("all");
+  const [sortOrder, setSortOrder] = useState<"az" | "za">("az");
   const [copiedInviteId, setCopiedInviteId] = useState<string | null>(null);
   const [showArchived, setShowArchived] = useState(false);
   const queryClient = useQueryClient();
