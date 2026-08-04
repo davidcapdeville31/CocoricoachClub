@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, Filter, Eye, Copy, Check, Mail, RefreshCw, FileSpreadsheet, Link2, Info, ClipboardCopy, Archive, ArchiveRestore, CopyPlus } from "lucide-react";
+import { Plus, Trash2, Filter, Eye, Copy, Check, Mail, RefreshCw, FileSpreadsheet, Link2, Info, ClipboardCopy, Archive, ArchiveRestore, CopyPlus, Search, ArrowDownAZ } from "lucide-react";
 import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
