@@ -217,18 +217,24 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
       const customAnswers: Record<string, number> = {};
 
       for (const q of activeQuestions) {
+        // Une valeur non initialisée (undefined) serait supprimée par la
+        // sérialisation JSON : on retombe systématiquement sur la valeur par défaut.
+        const rawValue = values[q.key];
+        const fallback = q.is_sleep_duration ? 7.5 : (q.scale[0]?.value ?? 1);
+        const safeValue = Number.isFinite(rawValue) ? Number(rawValue) : fallback;
         if (q.is_custom) {
-          customAnswers[q.key] = values[q.key];
+          customAnswers[q.key] = safeValue;
         } else if (q.is_sleep_duration) {
-          insertData[q.key] = sleepHoursToScore(values[q.key]);
+          insertData[q.key] = sleepHoursToScore(safeValue);
         } else {
-          insertData[q.key] = values[q.key];
+          insertData[q.key] = safeValue;
         }
       }
 
       if (Object.keys(customAnswers).length > 0) {
         insertData.custom_answers = customAnswers;
       }
+
 
       // Upsert pour permettre la mise à jour d'un wellness existant
       // (notamment pour rattraper / corriger un jour passé).
