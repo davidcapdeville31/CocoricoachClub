@@ -29,7 +29,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { sleepScoreLabel } from "@/lib/sleepConversion";
-import { usePainConfig, DEFAULT_PAIN_CONFIG } from "@/lib/wellness/questionConfig";
+import { usePainConfig, DEFAULT_PAIN_CONFIG, useWellnessQuestions, DEFAULT_WELLNESS_QUESTIONS, type WellnessQuestion } from "@/lib/wellness/questionConfig";
 
 interface WellnessTabProps {
   categoryId: string;
@@ -120,6 +120,15 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
   const isFeminine = category?.gender === "feminine";
 
   const { data: painConfig } = usePainConfig(categoryId);
+  const { data: wellnessQuestions } = useWellnessQuestions(categoryId);
+  const activeQuestions = (wellnessQuestions ?? DEFAULT_WELLNESS_QUESTIONS).filter((q) => q.enabled);
+
+  /** Read the answer for a question: standard columns or custom_answers JSON. */
+  const getAnswer = (entry: any, q: WellnessQuestion): number | null => {
+    const raw = q.is_custom ? entry?.custom_answers?.[q.key] : entry?.[q.key];
+    return raw == null ? null : Number(raw);
+  };
+
   const scale = (painConfig ?? DEFAULT_PAIN_CONFIG).scale;
   /** Look up the configured color for an integer score 1..5 (lower = better, e.g. fatigue, stress, soreness, pain). */
   const styleFor = (value: number | null | undefined) => {
@@ -161,20 +170,17 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
     return <div className="text-muted-foreground">Chargement...</div>;
   }
 
-  const calculateWellnessScore = (entry: NonNullable<typeof wellnessData>[0]) => {
-    // Normalise sleep_quality / sleep_duration (positive scales: higher = better)
-    // to the inverted convention used by all other metrics (1 = best, 5 = worst).
-    const invSleepQuality = entry.sleep_quality != null ? 6 - entry.sleep_quality : 0;
-    const invSleepDuration = entry.sleep_duration != null ? 6 - entry.sleep_duration : 0;
-    const avg = (
-      invSleepQuality +
-      invSleepDuration +
-      entry.general_fatigue +
-      entry.stress_level +
-      entry.soreness_upper_body +
-      entry.soreness_lower_body
-    ) / 6;
-    return avg.toFixed(1);
+  const calculateWellnessScore = (entry: any) => {
+    // Average over all active questions, normalised to the inverted convention
+    // (1 = best, 5 = worst) so positive scales are flipped.
+    const vals: number[] = [];
+    for (const q of activeQuestions) {
+      const v = getAnswer(entry, q);
+      if (v == null) continue;
+      vals.push(q.inverted ? v : 6 - v);
+    }
+    if (vals.length === 0) return "0.0";
+    return (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1);
   };
 
   // Filter wellness data by date range
@@ -345,12 +351,11 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                   <TableRow>
                     <TableHead>Joueur</TableHead>
                     <TableHead>Date</TableHead>
-                    <TableHead className="text-center whitespace-nowrap">Sommeil Qualité</TableHead>
-                    <TableHead className="text-center whitespace-nowrap">Sommeil Durée</TableHead>
-                    <TableHead className="text-center whitespace-nowrap">Fatigue</TableHead>
-                    <TableHead className="text-center whitespace-nowrap">Stress</TableHead>
-                    <TableHead className="text-center whitespace-nowrap">Soreness Haut</TableHead>
-                    <TableHead className="text-center whitespace-nowrap">Soreness Bas</TableHead>
+                    {activeQuestions.map((q) => (
+                      <TableHead key={q.key} className="text-center whitespace-nowrap">
+                        {q.emoji ? `${q.emoji} ` : ""}{q.label}
+                      </TableHead>
+                    ))}
                     <TableHead className="text-center whitespace-nowrap">Score Moyen</TableHead>
                     <TableHead>Douleur Spécifique</TableHead>
                   </TableRow>
@@ -364,36 +369,23 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                       <TableCell>
                         {format(new Date(entry.tracking_date), "dd MMM yyyy", { locale: fr })}
                       </TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="outline" style={styleForPositive(entry.sleep_quality)}>
-                          {entry.sleep_quality}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="outline" style={styleForPositive(entry.sleep_duration)}>
-                          {sleepScoreLabel(entry.sleep_duration)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="outline" style={styleFor(entry.general_fatigue)}>
-                          {entry.general_fatigue}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="outline" style={styleFor(entry.stress_level)}>
-                          {entry.stress_level}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="outline" style={styleFor(entry.soreness_upper_body)}>
-                          {entry.soreness_upper_body}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="outline" style={styleFor(entry.soreness_lower_body)}>
-                          {entry.soreness_lower_body}
-                        </Badge>
-                      </TableCell>
+                      {activeQuestions.map((q) => {
+                        const raw = getAnswer(entry, q);
+                        return (
+                          <TableCell key={q.key} className="text-center">
+                            {raw == null ? (
+                              <span className="text-muted-foreground text-sm">—</span>
+                            ) : (
+                              <Badge
+                                variant="outline"
+                                style={q.inverted ? styleFor(raw) : styleForPositive(raw)}
+                              >
+                                {q.is_sleep_duration ? sleepScoreLabel(raw) : raw}
+                              </Badge>
+                            )}
+                          </TableCell>
+                        );
+                      })}
                       <TableCell className="text-center">
                         <Badge variant="outline" style={styleFor(parseFloat(calculateWellnessScore(entry)))}>
                           {calculateWellnessScore(entry)}

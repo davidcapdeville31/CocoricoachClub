@@ -154,7 +154,7 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
         }
       }
 
-      if (Object.keys(customAnswers).length > 1) {
+      if (Object.keys(customAnswers).length > 0) {
         insertData.custom_answers = customAnswers;
       }
 
