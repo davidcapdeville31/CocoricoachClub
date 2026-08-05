@@ -345,12 +345,11 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                   <TableRow>
                     <TableHead>Joueur</TableHead>
                     <TableHead>Date</TableHead>
-                    <TableHead className="text-center whitespace-nowrap">Sommeil Qualité</TableHead>
-                    <TableHead className="text-center whitespace-nowrap">Sommeil Durée</TableHead>
-                    <TableHead className="text-center whitespace-nowrap">Fatigue</TableHead>
-                    <TableHead className="text-center whitespace-nowrap">Stress</TableHead>
-                    <TableHead className="text-center whitespace-nowrap">Soreness Haut</TableHead>
-                    <TableHead className="text-center whitespace-nowrap">Soreness Bas</TableHead>
+                    {activeQuestions.map((q) => (
+                      <TableHead key={q.key} className="text-center whitespace-nowrap">
+                        {q.emoji ? `${q.emoji} ` : ""}{q.label}
+                      </TableHead>
+                    ))}
                     <TableHead className="text-center whitespace-nowrap">Score Moyen</TableHead>
                     <TableHead>Douleur Spécifique</TableHead>
                   </TableRow>
@@ -364,36 +363,23 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                       <TableCell>
                         {format(new Date(entry.tracking_date), "dd MMM yyyy", { locale: fr })}
                       </TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="outline" style={styleForPositive(entry.sleep_quality)}>
-                          {entry.sleep_quality}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="outline" style={styleForPositive(entry.sleep_duration)}>
-                          {sleepScoreLabel(entry.sleep_duration)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="outline" style={styleFor(entry.general_fatigue)}>
-                          {entry.general_fatigue}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="outline" style={styleFor(entry.stress_level)}>
-                          {entry.stress_level}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="outline" style={styleFor(entry.soreness_upper_body)}>
-                          {entry.soreness_upper_body}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="outline" style={styleFor(entry.soreness_lower_body)}>
-                          {entry.soreness_lower_body}
-                        </Badge>
-                      </TableCell>
+                      {activeQuestions.map((q) => {
+                        const raw = getAnswer(entry, q);
+                        return (
+                          <TableCell key={q.key} className="text-center">
+                            {raw == null ? (
+                              <span className="text-muted-foreground text-sm">—</span>
+                            ) : (
+                              <Badge
+                                variant="outline"
+                                style={q.inverted ? styleFor(raw) : styleForPositive(raw)}
+                              >
+                                {q.is_sleep_duration ? sleepScoreLabel(raw) : raw}
+                              </Badge>
+                            )}
+                          </TableCell>
+                        );
+                      })}
                       <TableCell className="text-center">
                         <Badge variant="outline" style={styleFor(parseFloat(calculateWellnessScore(entry)))}>
                           {calculateWellnessScore(entry)}
