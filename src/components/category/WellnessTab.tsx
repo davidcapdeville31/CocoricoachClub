@@ -120,6 +120,15 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
   const isFeminine = category?.gender === "feminine";
 
   const { data: painConfig } = usePainConfig(categoryId);
+  const { data: wellnessQuestions } = useWellnessQuestions(categoryId);
+  const activeQuestions = (wellnessQuestions ?? DEFAULT_WELLNESS_QUESTIONS).filter((q) => q.enabled);
+
+  /** Read the answer for a question: standard columns or custom_answers JSON. */
+  const getAnswer = (entry: any, q: WellnessQuestion): number | null => {
+    const raw = q.is_custom ? entry?.custom_answers?.[q.key] : entry?.[q.key];
+    return raw == null ? null : Number(raw);
+  };
+
   const scale = (painConfig ?? DEFAULT_PAIN_CONFIG).scale;
   /** Look up the configured color for an integer score 1..5 (lower = better, e.g. fatigue, stress, soreness, pain). */
   const styleFor = (value: number | null | undefined) => {
