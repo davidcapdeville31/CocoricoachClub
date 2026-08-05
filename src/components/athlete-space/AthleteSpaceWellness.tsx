@@ -554,7 +554,12 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
             const firstOpt = q.scale[0];
             const lastOpt = q.scale[q.scale.length - 1];
             const scaleHint = `${firstOpt.value} = ${firstOpt.label} · ${lastOpt.value} = ${lastOpt.label}`;
-            const gridColsClass = q.scale.length === 6 ? "grid-cols-6" : "grid-cols-5";
+            const gridColsClass =
+              q.scale.length === 6 ? "grid-cols-6"
+              : q.scale.length === 4 ? "grid-cols-4"
+              : q.scale.length === 3 ? "grid-cols-3"
+              : "grid-cols-5";
+
 
             return (
               <div key={q.key}>
