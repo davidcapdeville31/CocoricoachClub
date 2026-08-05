@@ -346,29 +346,30 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
         ) : (
           <>
             <div className="rounded-md border overflow-x-auto">
-              <Table>
+              <Table className="min-w-max">
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Joueur</TableHead>
-                    <TableHead>Date</TableHead>
+                    <TableHead className="whitespace-nowrap">Joueur</TableHead>
+                    <TableHead className="whitespace-nowrap">Date</TableHead>
                     {activeQuestions.map((q) => (
                       <TableHead key={q.key} className="text-center whitespace-nowrap">
                         {q.emoji ? `${q.emoji} ` : ""}{q.label}
                       </TableHead>
                     ))}
                     <TableHead className="text-center whitespace-nowrap">Score Moyen</TableHead>
-                    <TableHead>Douleur Spécifique</TableHead>
+                    <TableHead className="whitespace-nowrap">Douleur Spécifique</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredWellnessData.map((entry) => (
                     <TableRow key={entry.id}>
-                      <TableCell className="font-medium">
+                      <TableCell className="font-medium whitespace-nowrap">
                         {[entry.players?.first_name, entry.players?.name].filter(Boolean).join(" ")}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="whitespace-nowrap">
                         {format(new Date(entry.tracking_date), "dd MMM yyyy", { locale: fr })}
                       </TableCell>
+
                       {activeQuestions.map((q) => {
                         const raw = getAnswer(entry, q);
                         return (

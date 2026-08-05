@@ -145,14 +145,19 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
       const customAnswers: Record<string, number> = {};
 
       for (const q of activeQuestions) {
+        // Éviter les valeurs undefined (supprimées par la sérialisation JSON).
+        const rawValue = values[q.key];
+        const fallback = q.is_sleep_duration ? 7.5 : (q.scale[0]?.value ?? 1);
+        const safeValue = Number.isFinite(rawValue) ? Number(rawValue) : fallback;
         if (q.is_custom) {
-          customAnswers[q.key] = values[q.key];
+          customAnswers[q.key] = safeValue;
         } else if (q.is_sleep_duration) {
-          insertData[q.key] = sleepHoursToScore(values[q.key]);
+          insertData[q.key] = sleepHoursToScore(safeValue);
         } else {
-          insertData[q.key] = values[q.key];
+          insertData[q.key] = safeValue;
         }
       }
+
 
       if (Object.keys(customAnswers).length > 0) {
         insertData.custom_answers = customAnswers;
