@@ -29,7 +29,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { sleepScoreLabel } from "@/lib/sleepConversion";
-import { usePainConfig, DEFAULT_PAIN_CONFIG } from "@/lib/wellness/questionConfig";
+import { usePainConfig, DEFAULT_PAIN_CONFIG, useWellnessQuestions, DEFAULT_WELLNESS_QUESTIONS, type WellnessQuestion } from "@/lib/wellness/questionConfig";
 
 interface WellnessTabProps {
   categoryId: string;
@@ -170,20 +170,17 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
     return <div className="text-muted-foreground">Chargement...</div>;
   }
 
-  const calculateWellnessScore = (entry: NonNullable<typeof wellnessData>[0]) => {
-    // Normalise sleep_quality / sleep_duration (positive scales: higher = better)
-    // to the inverted convention used by all other metrics (1 = best, 5 = worst).
-    const invSleepQuality = entry.sleep_quality != null ? 6 - entry.sleep_quality : 0;
-    const invSleepDuration = entry.sleep_duration != null ? 6 - entry.sleep_duration : 0;
-    const avg = (
-      invSleepQuality +
-      invSleepDuration +
-      entry.general_fatigue +
-      entry.stress_level +
-      entry.soreness_upper_body +
-      entry.soreness_lower_body
-    ) / 6;
-    return avg.toFixed(1);
+  const calculateWellnessScore = (entry: any) => {
+    // Average over all active questions, normalised to the inverted convention
+    // (1 = best, 5 = worst) so positive scales are flipped.
+    const vals: number[] = [];
+    for (const q of activeQuestions) {
+      const v = getAnswer(entry, q);
+      if (v == null) continue;
+      vals.push(q.inverted ? v : 6 - v);
+    }
+    if (vals.length === 0) return "0.0";
+    return (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1);
   };
 
   // Filter wellness data by date range
