@@ -115,7 +115,7 @@ export function InjuryLibraryDialog({ categoryId, open, onOpenChange }: InjuryLi
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) reset(); onOpenChange(o); }}>
-      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col gap-0 p-0">
+      <DialogContent className="max-w-3xl h-[90vh] flex flex-col gap-0 p-0">
         <DialogHeader className="p-6 pb-3">
           <DialogTitle className="flex items-center gap-2">
             <Heart className="h-5 w-5 text-rose-500" />
