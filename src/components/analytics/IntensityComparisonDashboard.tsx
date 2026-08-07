@@ -36,10 +36,23 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
   const [selectedPlayer, setSelectedPlayer] = useState<string>("all");
   const [selectedPosition, setSelectedPosition] = useState<string>("all");
   const [dateRange, setDateRange] = useState<string>("30");
+  const [dateMode, setDateMode] = useState<"preset" | "custom">("preset");
+  const [customFrom, setCustomFrom] = useState<string>("");
+  const [customTo, setCustomTo] = useState<string>("");
+  const [selectedSession, setSelectedSession] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const { activeSeasonOnly, activeSeasonId, activeSeasonStart, activeSeasonEnd, isDateInActiveSeason } = useSeasonRosterFilter();
   const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
   const scopeKey = activeSeasonOnly && activeSeasonId ? `season:${activeSeasonId}` : "all";
   const allowedIdsKey = allowedIds ? Array.from(allowedIds).sort().join(",") : "all";
+
+  const useCustom = dateMode === "custom" && !!customFrom;
+  const rangeFrom = useCustom
+    ? customFrom
+    : subDays(new Date(), parseInt(dateRange)).toISOString().split("T")[0];
+  const rangeTo = useCustom && customTo ? customTo : null;
+  const rangeKey = `${rangeFrom}|${rangeTo || ""}`;
+
 
   // Fetch players
   const { data: players } = useQuery({
