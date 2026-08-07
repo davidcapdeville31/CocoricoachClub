@@ -420,10 +420,16 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="space-y-2">
               <Label>Période</Label>
-              <Select value={dateRange} onValueChange={setDateRange}>
+              <Select
+                value={dateMode === "custom" ? "custom" : dateRange}
+                onValueChange={(v) => {
+                  if (v === "custom") setDateMode("custom");
+                  else { setDateMode("preset"); setDateRange(v); }
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -435,6 +441,56 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
                   <SelectItem value="30">30 derniers jours</SelectItem>
                   <SelectItem value="60">60 derniers jours</SelectItem>
                   <SelectItem value="90">90 derniers jours</SelectItem>
+                  <SelectItem value="custom">Période personnalisée…</SelectItem>
+                </SelectContent>
+              </Select>
+              {dateMode === "custom" && (
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="date"
+                    value={customFrom}
+                    onChange={(e) => setCustomFrom(e.target.value)}
+                    className="h-9"
+                  />
+                  <span className="text-xs text-muted-foreground">au</span>
+                  <Input
+                    type="date"
+                    value={customTo}
+                    onChange={(e) => setCustomTo(e.target.value)}
+                    className="h-9"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label>Entraînement</Label>
+              <Select value={selectedSession} onValueChange={setSelectedSession}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tous les entraînements" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les entraînements</SelectItem>
+                  {sessionOptions.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {format(new Date(s.session_date), "dd/MM/yyyy", { locale: fr })} · {s.training_type || "Séance"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Statut athlète</Label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tous les statuts" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les statuts</SelectItem>
+                  <SelectItem value="over">Hors cible · sur-entraînement</SelectItem>
+                  <SelectItem value="under">Hors cible · sous-entraînement</SelectItem>
+                  <SelectItem value="optimal">Optimal</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -469,6 +525,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
               </Select>
             </div>
           </div>
+
         </CardContent>
       </Card>
 
