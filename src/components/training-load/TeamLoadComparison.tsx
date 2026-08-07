@@ -83,11 +83,46 @@ export function TeamLoadComparison({
   const isRugby = isRugbySport(sportType);
   const isIndividual = isIndividualSport(sportType || "");
 
-  // Get unique positions
-  const positions = useMemo(() => 
-    [...new Set(players.filter(p => p.position).map(p => p.position!))],
-    [players]
-  );
+  // Get unique positions, sorted by rugby order when applicable
+  const positions = useMemo(() => {
+    const raw = [...new Set(players.filter(p => p.position).map(p => p.position!))];
+    if (!isRugby) return raw.sort((a, b) => a.localeCompare(b));
+
+    const normalize = (s: string) =>
+      s
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+
+    const rugbyOrder = [
+      "pilier gauche",
+      "talonneur",
+      "pilier droit",
+      "2eme ligne",
+      "flanker",
+      "demi de melee",
+      "demi d ouverture",
+      "1er centre",
+      "2eme centre",
+      "ailier gauche",
+      "ailier droit",
+      "arriere",
+    ];
+
+    const orderMap = new Map(rugbyOrder.map((p, i) => [p, i]));
+
+    return raw.sort((a, b) => {
+      const normA = normalize(a);
+      const normB = normalize(b);
+      const idxA = orderMap.get(normA) ?? Infinity;
+      const idxB = orderMap.get(normB) ?? Infinity;
+      if (idxA !== idxB) return idxA - idxB;
+      return a.localeCompare(b);
+    });
+  }, [players, isRugby]);
+
 
   // Get unique disciplines for individual sports
   const disciplines = useMemo(() => {
