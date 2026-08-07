@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   BarChart, 
@@ -316,6 +317,11 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
     }).filter(p => p.sessionsCount > 0)
       .sort((a, b) => Math.abs(b.avgDiff) - Math.abs(a.avgDiff));
   }, [scopedSessions, awcrData, players, selectedPosition, blocksBySession]);
+
+  const displayedPlayerStats = useMemo(
+    () => (statusFilter === "all" ? playerStats : playerStats.filter((p) => p.status === statusFilter)),
+    [playerStats, statusFilter]
+  );
 
   // Check for team-wide RPE alert (>5 athletes with +2 gap)
   const teamAlert = useMemo(() => {
@@ -642,12 +648,12 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {playerStats.length === 0 ? (
+          {displayedPlayerStats.length === 0 ? (
             <p className="text-center py-4 text-muted-foreground">Aucune donnée</p>
           ) : (
             <ScrollArea className="h-[300px]">
               <div className="space-y-2">
-                {playerStats.map(player => (
+                {displayedPlayerStats.map(player => (
                   <div 
                     key={player.id}
                     className={cn(
