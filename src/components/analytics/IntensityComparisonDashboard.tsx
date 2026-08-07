@@ -200,7 +200,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
 
   // Calculate comparison data with weighted RPE
   const comparisonData = useMemo(() => {
-    if (!sessions || !awcrData || !players) return [];
+    if (!scopedSessions || !awcrData || !players) return [];
 
     const playersToAnalyze = selectedPlayer === "all" 
       ? filteredPlayers 
@@ -216,7 +216,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       sessionType: string;
     }>();
 
-    sessions.forEach(session => {
+    scopedSessions.forEach(session => {
       // Calculate weighted RPE from blocks if available
       const blocks = blocksBySession.get(session.id) || [];
       const weightedResult = calculateWeightedRpe(blocks as SessionBlock[]);
@@ -268,11 +268,11 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
         };
       })
       .sort((a, b) => a.fullDate.localeCompare(b.fullDate));
-  }, [sessions, awcrData, players, selectedPlayer, filteredPlayers, blocksBySession]);
+  }, [scopedSessions, awcrData, players, selectedPlayer, filteredPlayers, blocksBySession]);
 
   // Calculate per-player stats with weighted RPE
   const playerStats = useMemo(() => {
-    if (!sessions || !awcrData || !players) return [];
+    if (!scopedSessions || !awcrData || !players) return [];
 
     const playersToAnalyze = selectedPosition === "all" 
       ? players 
@@ -286,7 +286,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       
       playerAwcr.forEach(awcr => {
         if (awcr.training_session_id) {
-          const session = sessions.find(s => s.id === awcr.training_session_id);
+          const session = scopedSessions.find(s => s.id === awcr.training_session_id);
           if (session) {
             // Calculate weighted RPE for this session
             const blocks = blocksBySession.get(session.id) || [];
@@ -315,7 +315,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       };
     }).filter(p => p.sessionsCount > 0)
       .sort((a, b) => Math.abs(b.avgDiff) - Math.abs(a.avgDiff));
-  }, [sessions, awcrData, players, selectedPosition, blocksBySession]);
+  }, [scopedSessions, awcrData, players, selectedPosition, blocksBySession]);
 
   // Check for team-wide RPE alert (>5 athletes with +2 gap)
   const teamAlert = useMemo(() => {
