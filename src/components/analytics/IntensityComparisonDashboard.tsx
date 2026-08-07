@@ -178,6 +178,26 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
     return map;
   }, [sessionBlocks]);
 
+  // Options de séances (entraînements) de la période
+  const sessionOptions = useMemo(() => {
+    if (!sessions) return [];
+    return [...sessions].sort((a, b) => b.session_date.localeCompare(a.session_date));
+  }, [sessions]);
+
+  useEffect(() => {
+    if (selectedSession !== "all" && !sessionOptions.some((s) => s.id === selectedSession)) {
+      setSelectedSession("all");
+    }
+  }, [sessionOptions, selectedSession]);
+
+  // Séances retenues après filtre "entraînement"
+  const scopedSessions = useMemo(() => {
+    if (!sessions) return sessions;
+    if (selectedSession === "all") return sessions;
+    return sessions.filter((s) => s.id === selectedSession);
+  }, [sessions, selectedSession]);
+
+
   // Calculate comparison data with weighted RPE
   const comparisonData = useMemo(() => {
     if (!sessions || !awcrData || !players) return [];
