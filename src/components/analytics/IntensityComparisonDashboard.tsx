@@ -76,18 +76,19 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
 
   // Fetch sessions with planned intensity
   const { data: sessions } = useQuery({
-    queryKey: ["sessions-intensity", categoryId, dateRange, scopeKey, activeSeasonStart, activeSeasonEnd],
+    queryKey: ["sessions-intensity", categoryId, rangeKey, scopeKey, activeSeasonStart, activeSeasonEnd],
     queryFn: async () => {
-      const fromDate = subDays(new Date(), parseInt(dateRange)).toISOString().split("T")[0];
+      const fromDate = rangeFrom;
       let query = supabase
         .from("training_sessions")
         .select("id, session_date, training_type, intensity, notes")
         .eq("category_id", categoryId)
         .gte("session_date", activeSeasonOnly && activeSeasonStart && activeSeasonStart > fromDate ? activeSeasonStart : fromDate);
 
-      if (activeSeasonOnly && activeSeasonEnd) {
-        query = query.lte("session_date", activeSeasonEnd);
-      }
+      const upper = activeSeasonOnly && activeSeasonEnd
+        ? (rangeTo && rangeTo < activeSeasonEnd ? rangeTo : activeSeasonEnd)
+        : rangeTo;
+      if (upper) query = query.lte("session_date", upper);
 
       const { data, error } = await query.order("session_date");
       if (error) throw error;
@@ -97,7 +98,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
 
   // Fetch session blocks for weighted RPE calculation
   const { data: sessionBlocks } = useQuery({
-    queryKey: ["session-blocks-intensity", categoryId, dateRange, scopeKey, sessions?.map(s => s.id).join(",")],
+    queryKey: ["session-blocks-intensity", categoryId, rangeKey, scopeKey, sessions?.map(s => s.id).join(",")],
     queryFn: async () => {
       if (!sessions || sessions.length === 0) return [];
       const sessionIds = sessions.map(s => s.id);
@@ -114,9 +115,9 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
 
   // Fetch AWCR data (actual RPE)
   const { data: awcrData } = useQuery({
-    queryKey: ["awcr-intensity", categoryId, dateRange, scopeKey, allowedIdsKey, activeSeasonStart, activeSeasonEnd],
+    queryKey: ["awcr-intensity", categoryId, rangeKey, scopeKey, allowedIdsKey, activeSeasonStart, activeSeasonEnd],
     queryFn: async () => {
-      const fromDate = subDays(new Date(), parseInt(dateRange)).toISOString().split("T")[0];
+      const fromDate = rangeFrom;
       if (allowedIds && allowedIds.size === 0) return [];
 
       let query = supabase
@@ -125,9 +126,10 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
         .eq("category_id", categoryId)
         .gte("session_date", activeSeasonOnly && activeSeasonStart && activeSeasonStart > fromDate ? activeSeasonStart : fromDate);
 
-      if (activeSeasonOnly && activeSeasonEnd) {
-        query = query.lte("session_date", activeSeasonEnd);
-      }
+      const upper = activeSeasonOnly && activeSeasonEnd
+        ? (rangeTo && rangeTo < activeSeasonEnd ? rangeTo : activeSeasonEnd)
+        : rangeTo;
+      if (upper) query = query.lte("session_date", upper);
 
       if (allowedIds) {
         query = query.in("player_id", Array.from(allowedIds));
@@ -142,6 +144,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       });
     },
   });
+
 
   // Get unique positions
   const positions = useMemo(() => {
