@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   BarChart, 
@@ -36,10 +37,23 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
   const [selectedPlayer, setSelectedPlayer] = useState<string>("all");
   const [selectedPosition, setSelectedPosition] = useState<string>("all");
   const [dateRange, setDateRange] = useState<string>("30");
+  const [dateMode, setDateMode] = useState<"preset" | "custom">("preset");
+  const [customFrom, setCustomFrom] = useState<string>("");
+  const [customTo, setCustomTo] = useState<string>("");
+  const [selectedSession, setSelectedSession] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const { activeSeasonOnly, activeSeasonId, activeSeasonStart, activeSeasonEnd, isDateInActiveSeason } = useSeasonRosterFilter();
   const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
   const scopeKey = activeSeasonOnly && activeSeasonId ? `season:${activeSeasonId}` : "all";
   const allowedIdsKey = allowedIds ? Array.from(allowedIds).sort().join(",") : "all";
+
+  const useCustom = dateMode === "custom" && !!customFrom;
+  const rangeFrom = useCustom
+    ? customFrom
+    : subDays(new Date(), parseInt(dateRange)).toISOString().split("T")[0];
+  const rangeTo = useCustom && customTo ? customTo : null;
+  const rangeKey = `${rangeFrom}|${rangeTo || ""}`;
+
 
   // Fetch players
   const { data: players } = useQuery({
@@ -63,18 +77,19 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
 
   // Fetch sessions with planned intensity
   const { data: sessions } = useQuery({
-    queryKey: ["sessions-intensity", categoryId, dateRange, scopeKey, activeSeasonStart, activeSeasonEnd],
+    queryKey: ["sessions-intensity", categoryId, rangeKey, scopeKey, activeSeasonStart, activeSeasonEnd],
     queryFn: async () => {
-      const fromDate = subDays(new Date(), parseInt(dateRange)).toISOString().split("T")[0];
+      const fromDate = rangeFrom;
       let query = supabase
         .from("training_sessions")
         .select("id, session_date, training_type, intensity, notes")
         .eq("category_id", categoryId)
         .gte("session_date", activeSeasonOnly && activeSeasonStart && activeSeasonStart > fromDate ? activeSeasonStart : fromDate);
 
-      if (activeSeasonOnly && activeSeasonEnd) {
-        query = query.lte("session_date", activeSeasonEnd);
-      }
+      const upper = activeSeasonOnly && activeSeasonEnd
+        ? (rangeTo && rangeTo < activeSeasonEnd ? rangeTo : activeSeasonEnd)
+        : rangeTo;
+      if (upper) query = query.lte("session_date", upper);
 
       const { data, error } = await query.order("session_date");
       if (error) throw error;
@@ -84,7 +99,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
 
   // Fetch session blocks for weighted RPE calculation
   const { data: sessionBlocks } = useQuery({
-    queryKey: ["session-blocks-intensity", categoryId, dateRange, scopeKey, sessions?.map(s => s.id).join(",")],
+    queryKey: ["session-blocks-intensity", categoryId, rangeKey, scopeKey, sessions?.map(s => s.id).join(",")],
     queryFn: async () => {
       if (!sessions || sessions.length === 0) return [];
       const sessionIds = sessions.map(s => s.id);
@@ -101,9 +116,9 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
 
   // Fetch AWCR data (actual RPE)
   const { data: awcrData } = useQuery({
-    queryKey: ["awcr-intensity", categoryId, dateRange, scopeKey, allowedIdsKey, activeSeasonStart, activeSeasonEnd],
+    queryKey: ["awcr-intensity", categoryId, rangeKey, scopeKey, allowedIdsKey, activeSeasonStart, activeSeasonEnd],
     queryFn: async () => {
-      const fromDate = subDays(new Date(), parseInt(dateRange)).toISOString().split("T")[0];
+      const fromDate = rangeFrom;
       if (allowedIds && allowedIds.size === 0) return [];
 
       let query = supabase
@@ -112,9 +127,10 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
         .eq("category_id", categoryId)
         .gte("session_date", activeSeasonOnly && activeSeasonStart && activeSeasonStart > fromDate ? activeSeasonStart : fromDate);
 
-      if (activeSeasonOnly && activeSeasonEnd) {
-        query = query.lte("session_date", activeSeasonEnd);
-      }
+      const upper = activeSeasonOnly && activeSeasonEnd
+        ? (rangeTo && rangeTo < activeSeasonEnd ? rangeTo : activeSeasonEnd)
+        : rangeTo;
+      if (upper) query = query.lte("session_date", upper);
 
       if (allowedIds) {
         query = query.in("player_id", Array.from(allowedIds));
@@ -129,6 +145,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       });
     },
   });
+
 
   // Get unique positions
   const positions = useMemo(() => {
@@ -162,9 +179,29 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
     return map;
   }, [sessionBlocks]);
 
+  // Options de séances (entraînements) de la période
+  const sessionOptions = useMemo(() => {
+    if (!sessions) return [];
+    return [...sessions].sort((a, b) => b.session_date.localeCompare(a.session_date));
+  }, [sessions]);
+
+  useEffect(() => {
+    if (selectedSession !== "all" && !sessionOptions.some((s) => s.id === selectedSession)) {
+      setSelectedSession("all");
+    }
+  }, [sessionOptions, selectedSession]);
+
+  // Séances retenues après filtre "entraînement"
+  const scopedSessions = useMemo(() => {
+    if (!sessions) return sessions;
+    if (selectedSession === "all") return sessions;
+    return sessions.filter((s) => s.id === selectedSession);
+  }, [sessions, selectedSession]);
+
+
   // Calculate comparison data with weighted RPE
   const comparisonData = useMemo(() => {
-    if (!sessions || !awcrData || !players) return [];
+    if (!scopedSessions || !awcrData || !players) return [];
 
     const playersToAnalyze = selectedPlayer === "all" 
       ? filteredPlayers 
@@ -180,7 +217,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       sessionType: string;
     }>();
 
-    sessions.forEach(session => {
+    scopedSessions.forEach(session => {
       // Calculate weighted RPE from blocks if available
       const blocks = blocksBySession.get(session.id) || [];
       const weightedResult = calculateWeightedRpe(blocks as SessionBlock[]);
@@ -232,11 +269,11 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
         };
       })
       .sort((a, b) => a.fullDate.localeCompare(b.fullDate));
-  }, [sessions, awcrData, players, selectedPlayer, filteredPlayers, blocksBySession]);
+  }, [scopedSessions, awcrData, players, selectedPlayer, filteredPlayers, blocksBySession]);
 
   // Calculate per-player stats with weighted RPE
   const playerStats = useMemo(() => {
-    if (!sessions || !awcrData || !players) return [];
+    if (!scopedSessions || !awcrData || !players) return [];
 
     const playersToAnalyze = selectedPosition === "all" 
       ? players 
@@ -250,7 +287,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       
       playerAwcr.forEach(awcr => {
         if (awcr.training_session_id) {
-          const session = sessions.find(s => s.id === awcr.training_session_id);
+          const session = scopedSessions.find(s => s.id === awcr.training_session_id);
           if (session) {
             // Calculate weighted RPE for this session
             const blocks = blocksBySession.get(session.id) || [];
@@ -279,7 +316,12 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       };
     }).filter(p => p.sessionsCount > 0)
       .sort((a, b) => Math.abs(b.avgDiff) - Math.abs(a.avgDiff));
-  }, [sessions, awcrData, players, selectedPosition, blocksBySession]);
+  }, [scopedSessions, awcrData, players, selectedPosition, blocksBySession]);
+
+  const displayedPlayerStats = useMemo(
+    () => (statusFilter === "all" ? playerStats : playerStats.filter((p) => p.status === statusFilter)),
+    [playerStats, statusFilter]
+  );
 
   // Check for team-wide RPE alert (>5 athletes with +2 gap)
   const teamAlert = useMemo(() => {
@@ -384,10 +426,16 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="space-y-2">
               <Label>Période</Label>
-              <Select value={dateRange} onValueChange={setDateRange}>
+              <Select
+                value={dateMode === "custom" ? "custom" : dateRange}
+                onValueChange={(v) => {
+                  if (v === "custom") setDateMode("custom");
+                  else { setDateMode("preset"); setDateRange(v); }
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -399,6 +447,56 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
                   <SelectItem value="30">30 derniers jours</SelectItem>
                   <SelectItem value="60">60 derniers jours</SelectItem>
                   <SelectItem value="90">90 derniers jours</SelectItem>
+                  <SelectItem value="custom">Période personnalisée…</SelectItem>
+                </SelectContent>
+              </Select>
+              {dateMode === "custom" && (
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="date"
+                    value={customFrom}
+                    onChange={(e) => setCustomFrom(e.target.value)}
+                    className="h-9"
+                  />
+                  <span className="text-xs text-muted-foreground">au</span>
+                  <Input
+                    type="date"
+                    value={customTo}
+                    onChange={(e) => setCustomTo(e.target.value)}
+                    className="h-9"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label>Entraînement</Label>
+              <Select value={selectedSession} onValueChange={setSelectedSession}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tous les entraînements" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les entraînements</SelectItem>
+                  {sessionOptions.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {format(new Date(s.session_date), "dd/MM/yyyy", { locale: fr })} · {s.training_type || "Séance"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Statut athlète</Label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tous les statuts" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les statuts</SelectItem>
+                  <SelectItem value="over">Hors cible · sur-entraînement</SelectItem>
+                  <SelectItem value="under">Hors cible · sous-entraînement</SelectItem>
+                  <SelectItem value="optimal">Optimal</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -433,6 +531,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
               </Select>
             </div>
           </div>
+
         </CardContent>
       </Card>
 
@@ -549,12 +648,12 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {playerStats.length === 0 ? (
+          {displayedPlayerStats.length === 0 ? (
             <p className="text-center py-4 text-muted-foreground">Aucune donnée</p>
           ) : (
             <ScrollArea className="h-[300px]">
               <div className="space-y-2">
-                {playerStats.map(player => (
+                {displayedPlayerStats.map(player => (
                   <div 
                     key={player.id}
                     className={cn(
