@@ -312,7 +312,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
         position: player.position,
         avgDiff: parseFloat(avgDiff.toFixed(1)),
         sessionsCount: count,
-        status: avgDiff > 1.5 ? "over" : avgDiff < -1.5 ? "under" : "optimal",
+        status: avgDiff >= 2 ? "over" : avgDiff <= -2 ? "under" : "optimal",
       };
     }).filter(p => p.sessionsCount > 0)
       .sort((a, b) => Math.abs(b.avgDiff) - Math.abs(a.avgDiff));
