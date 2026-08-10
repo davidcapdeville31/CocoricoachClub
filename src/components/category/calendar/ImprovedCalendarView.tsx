@@ -73,7 +73,7 @@ interface ImprovedCalendarViewProps {
   onAddSession: (date?: Date) => void;
   onAddMatch: (date?: Date) => void;
   onPrint: () => void;
-  onExportPdf: () => void;
+  onExportPdf: (date?: Date) => void;
   isViewer: boolean;
   categoryId: string;
   calendarRef?: React.RefObject<HTMLDivElement>;
@@ -494,7 +494,7 @@ export function ImprovedCalendarView({
               <Button variant="outline" size="icon" className="h-9 w-9" onClick={onPrint} title="Imprimer">
                 <Printer className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="icon" className="h-9 w-9" onClick={onExportPdf} title="Exporter PDF">
+              <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => onExportPdf(currentDate)} title="Exporter PDF">
                 <Download className="h-4 w-4" />
               </Button>
             </div>
