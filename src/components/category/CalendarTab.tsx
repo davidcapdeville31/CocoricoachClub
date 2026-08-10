@@ -298,7 +298,6 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
         .filter((m: any) => m.event_type !== "training")
         .filter((m: any) => isDateInActiveSeason(m.match_date)),
     [matchesRaw, isDateInActiveSeason],
-
   );
   const weeklyPlanning = useMemo(() => {
     return (weeklyPlanningRaw || []).filter((w: any) => {
@@ -307,6 +306,32 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
       return isDateInActiveSeason(d);
     });
   }, [weeklyPlanningRaw, isDateInActiveSeason]);
+
+  // Deep-link depuis une notification : ?session=<id> ouvre directement la séance
+  const [searchParams, setSearchParams] = useSearchParams();
+  const deepLinkSessionId = searchParams.get("session");
+  const handledDeepLinkRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!deepLinkSessionId || handledDeepLinkRef.current === deepLinkSessionId) return;
+    const target = (sessionsRaw || []).find((s: any) => s.id === deepLinkSessionId);
+    if (!target) return;
+    handledDeepLinkRef.current = deepLinkSessionId;
+    setSelectedSession({
+      id: target.id,
+      date: target.session_date,
+      type: "training",
+    });
+    setCurrentWeek(new Date(target.session_date));
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("session");
+        return next;
+      },
+      { replace: true },
+    );
+  }, [deepLinkSessionId, sessionsRaw, setSearchParams]);
+
 
   const deleteSession = useMutation({
     mutationFn: async (sessionId: string) => {
