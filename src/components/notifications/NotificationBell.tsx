@@ -32,6 +32,37 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const navigate = useNavigate();
+
+  /** Cible de navigation d'une notification (séance, retour de séance, blessure…) */
+  const getNotificationTarget = (n: Notification): string | null => {
+    const meta = n.metadata || {};
+    const categoryId = n.category_id || meta.category_id;
+    const sessionId = meta.session_id || meta.training_session_id;
+
+    if (sessionId && categoryId) {
+      return `/categories/${categoryId}?tab=planification&session=${sessionId}`;
+    }
+    if (meta.match_id && categoryId) {
+      return `/categories/${categoryId}?tab=competition&match=${meta.match_id}`;
+    }
+    if (n.injury_id && meta.player_id) {
+      return `/players/${meta.player_id}`;
+    }
+    if (meta.player_id) {
+      return `/players/${meta.player_id}`;
+    }
+    if (typeof meta.url === "string" && meta.url) {
+      try {
+        const u = new URL(meta.url, window.location.origin);
+        return `${u.pathname}${u.search}`;
+      } catch {
+        return meta.url.startsWith("/") ? meta.url : null;
+      }
+    }
+    return null;
+  };
+
 
   const { data: notifications } = useQuery({
     queryKey: ["notifications", user?.id],
