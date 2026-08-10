@@ -1351,7 +1351,7 @@ export const exportCalendarToPdf = async (
       
       // Cell background
       if (isToday) {
-        pdf.setFillColor(59, 130, 246, 0.1); // primary/10
+        pdf.setFillColor(219, 234, 254); // primary/10
         pdf.rect(cellX, weekY, cellWidth, cellHeight, 'F');
       } else if (!isCurrentMonth) {
         pdf.setFillColor(241, 245, 249); // light gray
