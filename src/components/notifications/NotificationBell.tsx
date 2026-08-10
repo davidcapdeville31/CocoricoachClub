@@ -37,6 +37,8 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
 
   /** Cible de navigation d'une notification (séance, retour de séance, blessure…) */
   const getNotificationTarget = (n: Notification): string | null => {
+    // Les demandes de rattachement se traitent directement dans la liste
+    if (n.notification_type === "category_link_request") return null;
     const meta = n.metadata || {};
     const categoryId = n.category_id || meta.category_id;
     const sessionId = meta.session_id || meta.training_session_id;
