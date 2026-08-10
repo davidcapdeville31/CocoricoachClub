@@ -1153,6 +1153,14 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
             )}
           </CardContent>
         </Card>
+        <TestsCompletionCard
+          categoryId={categoryId}
+          date={today}
+          sessions={todaySessions as any}
+          players={players as any}
+          participants={todaySessionParticipants as any}
+        />
+
         {/* 1.6️⃣ PRÉSENCES + RPE DU JOUR (colonne empilée) */}
         <div className="space-y-4">
           <Card className="border-2 border-blue-500/20 bg-gradient-to-r from-blue-500/5 to-transparent">
