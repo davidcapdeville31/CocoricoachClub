@@ -1155,6 +1155,7 @@ export type Database = {
       awcr_tracking: {
         Row: {
           acute_load: number | null
+          auto_filled: boolean
           awcr: number | null
           category_id: string
           chronic_load: number | null
@@ -1172,6 +1173,7 @@ export type Database = {
         }
         Insert: {
           acute_load?: number | null
+          auto_filled?: boolean
           awcr?: number | null
           category_id: string
           chronic_load?: number | null
@@ -1189,6 +1191,7 @@ export type Database = {
         }
         Update: {
           acute_load?: number | null
+          auto_filled?: boolean
           awcr?: number | null
           category_id?: string
           chronic_load?: number | null
@@ -14586,6 +14589,7 @@ export type Database = {
       }
       wellness_tracking: {
         Row: {
+          auto_filled: boolean
           category_id: string
           created_at: string
           custom_answers: Json
@@ -14607,6 +14611,7 @@ export type Database = {
           tracking_date: string
         }
         Insert: {
+          auto_filled?: boolean
           category_id: string
           created_at?: string
           custom_answers?: Json
@@ -14628,6 +14633,7 @@ export type Database = {
           tracking_date?: string
         }
         Update: {
+          auto_filled?: boolean
           category_id?: string
           created_at?: string
           custom_answers?: Json
@@ -15058,6 +15064,10 @@ export type Database = {
       can_view_player_sensitive_data: {
         Args: { _category_id: string; _user_id: string }
         Returns: boolean
+      }
+      category_staff_user_ids: {
+        Args: { _category_id: string }
+        Returns: string[]
       }
       cleanup_old_invitation_attempts: { Args: never; Returns: undefined }
       clone_system_test_to_club: {
