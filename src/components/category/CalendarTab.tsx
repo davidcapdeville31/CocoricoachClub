@@ -298,6 +298,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
         .filter((m: any) => m.event_type !== "training")
         .filter((m: any) => isDateInActiveSeason(m.match_date)),
     [matchesRaw, isDateInActiveSeason],
+
   );
   const weeklyPlanning = useMemo(() => {
     return (weeklyPlanningRaw || []).filter((w: any) => {
