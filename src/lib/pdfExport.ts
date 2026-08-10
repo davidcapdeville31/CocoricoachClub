@@ -4,6 +4,8 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
+import { trainingTypeRgb, MATCH_RGB, tailwindClassToRgb } from "@/lib/pdf/trainingTypePdfColors";
+import { getCompetitionTag } from "@/lib/constants/competitionTags";
 import { getObjectiveLabel } from "@/lib/constants/sessionBlockOptions";
 
 // Color palette for PDF exports
