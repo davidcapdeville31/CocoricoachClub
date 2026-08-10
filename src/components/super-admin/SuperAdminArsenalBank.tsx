@@ -346,7 +346,7 @@ export function SuperAdminArsenalBank() {
                     <SelectValue placeholder="Choisir..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {BOWLING_BALL_BRANDS.map((b) => (
+                    {[...BOWLING_BALL_BRANDS].sort((a, b) => a.localeCompare(b)).map((b) => (
                       <SelectItem key={b} value={b}>
                         {b}
                       </SelectItem>
