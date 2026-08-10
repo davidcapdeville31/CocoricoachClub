@@ -739,7 +739,7 @@ export const exportSessionToPdf = async (
     const { calculateWeightedRpe: calcRpe, formatDuration: fmtDur } = await import("./weightedRpeCalculations");
     
     blocks.forEach((block: any, idx: number) => {
-      const blockColor = trainingTypeColors[block.training_type] || accentColor;
+      const blockColor = block.training_type ? trainingTypeRgb(block.training_type) : accentColor;
       const blockHeight = 22;
       yPos = checkPageBreak(pdf, yPos, blockHeight + 4);
       
