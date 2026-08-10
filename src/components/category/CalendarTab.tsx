@@ -119,13 +119,20 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
   const handleExportPdf = async () => {
     if (sessions && matches) {
       await exportCalendarToPdf(
-        sessions, 
-        matches, 
-        "Catégorie"
+        sessions,
+        matches,
+        category?.name || "Catégorie",
+        { from: currentWeek, to: currentWeek },
+        {
+          clubName: (category as any)?.clubs?.name ?? null,
+          categoryName: category?.name ?? null,
+          seasonName: activeSeasonName ?? null,
+        }
       );
       toast.success("PDF exporté avec succès");
     }
   };
+
 
   const handlePrint = () => {
     // Use the calendar ref if available, otherwise fall back to PDF export
