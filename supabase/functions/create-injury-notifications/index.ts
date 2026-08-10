@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.81.1";
+import { isAuthorizedCronRequest } from "../_shared/cron-auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -29,7 +30,7 @@ serve(async (req: Request) => {
   }
 
   // Validate cron secret
-  if (!validateCronSecret(req)) {
+  if (!(await isAuthorizedCronRequest(req))) {
     return new Response(
       JSON.stringify({ error: "Unauthorized" }),
       {
