@@ -24,6 +24,7 @@ interface Notification {
   notification_type: string;
   notification_subtype: string | null;
   injury_id: string | null;
+  category_id: string | null;
   metadata: any;
 }
 
