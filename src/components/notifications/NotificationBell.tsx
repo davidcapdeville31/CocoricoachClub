@@ -14,6 +14,7 @@ import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 interface Notification {
   id: string;
@@ -24,6 +25,7 @@ interface Notification {
   notification_type: string;
   notification_subtype: string | null;
   injury_id: string | null;
+  category_id: string | null;
   metadata: any;
 }
 
@@ -31,6 +33,39 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const navigate = useNavigate();
+
+  /** Cible de navigation d'une notification (séance, retour de séance, blessure…) */
+  const getNotificationTarget = (n: Notification): string | null => {
+    // Les demandes de rattachement se traitent directement dans la liste
+    if (n.notification_type === "category_link_request") return null;
+    const meta = n.metadata || {};
+    const categoryId = n.category_id || meta.category_id;
+    const sessionId = meta.session_id || meta.training_session_id;
+
+    if (sessionId && categoryId) {
+      return `/categories/${categoryId}?tab=planification&session=${sessionId}`;
+    }
+    if (meta.match_id && categoryId) {
+      return `/categories/${categoryId}?tab=competition&match=${meta.match_id}`;
+    }
+    if (n.injury_id && meta.player_id) {
+      return `/players/${meta.player_id}`;
+    }
+    if (meta.player_id) {
+      return `/players/${meta.player_id}`;
+    }
+    if (typeof meta.url === "string" && meta.url) {
+      try {
+        const u = new URL(meta.url, window.location.origin);
+        return `${u.pathname}${u.search}`;
+      } catch {
+        return meta.url.startsWith("/") ? meta.url : null;
+      }
+    }
+    return null;
+  };
+
 
   const { data: notifications } = useQuery({
     queryKey: ["notifications", user?.id],
@@ -203,7 +238,13 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
                     if (!notification.is_read) {
                       markAsRead.mutate(notification.id);
                     }
+                    const target = getNotificationTarget(notification);
+                    if (target) {
+                      setOpen(false);
+                      navigate(target);
+                    }
                   }}
+
                 >
                   <div className="flex items-start gap-3">
                     <span className="text-2xl flex-shrink-0">
@@ -227,7 +268,10 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
                               variant="ghost"
                               size="icon"
                               className="h-6 w-6"
-                              onClick={() => markAsRead.mutate(notification.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                markAsRead.mutate(notification.id);
+                              }}
                             >
                               <Check className="h-3 w-3" />
                             </Button>
@@ -236,7 +280,10 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
                             variant="ghost"
                             size="icon"
                             className="h-6 w-6"
-                            onClick={() => deleteNotification.mutate(notification.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteNotification.mutate(notification.id);
+                            }}
                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>
@@ -246,7 +293,7 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
                         {notification.message}
                       </p>
                       {notification.notification_type === "category_link_request" && notification.notification_subtype === "pending" && notification.metadata?.player_category_id && (
-                        <div className="flex gap-2 mt-2">
+                        <div className="flex gap-2 mt-2" onClick={(e) => e.stopPropagation()}>
                           <Button
                             size="sm"
                             variant="default"

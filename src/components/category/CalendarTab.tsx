@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ import { MatchLineupDialog } from "./matches/MatchLineupDialog";
 import { EditMatchDialog } from "./matches/EditMatchDialog";
 import { DailySessionsDialog } from "./DailySessionsDialog";
 import { format, isSameDay, startOfWeek, addDays } from "date-fns";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { SeasonObjectivesSection } from "@/components/planning/SeasonObjectivesSection";
 import { BowlingTrainingStats } from "@/components/bowling/BowlingTrainingStats";
 import { TennisTrainingStats } from "@/components/tennis/TennisTrainingStats";
@@ -306,6 +306,32 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
       return isDateInActiveSeason(d);
     });
   }, [weeklyPlanningRaw, isDateInActiveSeason]);
+
+  // Deep-link depuis une notification : ?session=<id> ouvre directement la séance
+  const [searchParams, setSearchParams] = useSearchParams();
+  const deepLinkSessionId = searchParams.get("session");
+  const handledDeepLinkRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!deepLinkSessionId || handledDeepLinkRef.current === deepLinkSessionId) return;
+    const target = (sessionsRaw || []).find((s: any) => s.id === deepLinkSessionId);
+    if (!target) return;
+    handledDeepLinkRef.current = deepLinkSessionId;
+    setSelectedSession({
+      id: target.id,
+      date: target.session_date,
+      type: "training",
+    });
+    setCurrentWeek(new Date(target.session_date));
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("session");
+        return next;
+      },
+      { replace: true },
+    );
+  }, [deepLinkSessionId, sessionsRaw, setSearchParams]);
+
 
   const deleteSession = useMutation({
     mutationFn: async (sessionId: string) => {
