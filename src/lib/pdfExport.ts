@@ -1279,6 +1279,10 @@ export const exportCalendarToPdf = async (
     .join(" · ");
   let yPos = drawPdfHeader(pdf, "Calendrier Global", subtitle, dateLine);
 
+  // Légende dynamique : uniquement les types d'événements réellement présents
+  const usedLegend = new Map<string, { label: string; color: [number, number, number] }>();
+
+
   
   // Calendar grid setup
   const gridMargin = margin;
