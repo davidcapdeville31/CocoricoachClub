@@ -116,13 +116,15 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
 
 
 
-  const handleExportPdf = async () => {
+  const handleExportPdf = async (viewDate?: Date) => {
     if (sessions && matches) {
+      const monthRef = viewDate ?? currentWeek;
       await exportCalendarToPdf(
         sessions,
         matches,
         category?.name || "Catégorie",
-        { from: currentWeek, to: currentWeek },
+        { from: monthRef, to: monthRef },
+
         {
           clubName: (category as any)?.clubs?.name ?? null,
           categoryName: category?.name ?? null,
