@@ -107,20 +107,33 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
           }
         }
 
+        // Helper: clamp a value between 0 and 100
+        const clamp100 = (v: number) => Math.max(0, Math.min(100, v));
+        // Helper: normalize a 1-5 wellness answer (defaults to best value when missing)
+        const val = (v: number | null | undefined) => Math.min(5, Math.max(1, Number(v) || 1));
+
         // Wellness Score (0-100) — null if no data
         let wellnessScore: number | null = null;
         if (hasWellness) {
-          const sleepScore = (6 - playerWellness!.sleep_quality) * 20;
-          const fatigueScoreCalc = (6 - playerWellness!.general_fatigue) * 20;
-          const stressScore = (6 - playerWellness!.stress_level) * 20;
-          const sorenessScore = (12 - playerWellness!.soreness_upper_body - playerWellness!.soreness_lower_body) * 10;
-          
-          wellnessScore = Math.min(100, (sleepScore + fatigueScoreCalc + stressScore + sorenessScore) / 4);
-          
-          if (playerWellness!.sleep_quality >= 4) factors.push("Sommeil insuffisant");
-          if (playerWellness!.general_fatigue >= 4) factors.push("Fatigue élevée");
-          if (playerWellness!.stress_level >= 4) factors.push("Stress élevé");
-          if (playerWellness!.soreness_upper_body >= 4 || playerWellness!.soreness_lower_body >= 4) {
+          const sleep = val(playerWellness!.sleep_quality);
+          const fatigue = val(playerWellness!.general_fatigue);
+          const stress = val(playerWellness!.stress_level);
+          const soreUp = val(playerWellness!.soreness_upper_body);
+          const soreLow = val(playerWellness!.soreness_lower_body);
+
+          const sleepScore = clamp100((5 - sleep) * 25);
+          const fatigueScoreCalc = clamp100((5 - fatigue) * 25);
+          const stressScore = clamp100((5 - stress) * 25);
+          const sorenessScore = clamp100((10 - soreUp - soreLow) * 12.5);
+
+          wellnessScore = Math.round(
+            clamp100((sleepScore + fatigueScoreCalc + stressScore + sorenessScore) / 4)
+          );
+
+          if (sleep >= 4) factors.push("Sommeil insuffisant");
+          if (fatigue >= 4) factors.push("Fatigue élevée");
+          if (stress >= 4) factors.push("Stress élevé");
+          if (soreUp >= 4 || soreLow >= 4) {
             factors.push("Douleurs musculaires");
           }
         }
@@ -141,7 +154,7 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
         // Fatigue Score — null if no wellness
         let fatigueScore: number | null = null;
         if (hasWellness) {
-          fatigueScore = Math.max(0, 100 - (playerWellness!.general_fatigue - 1) * 25);
+          fatigueScore = Math.round(clamp100(100 - (val(playerWellness!.general_fatigue) - 1) * 25));
         }
 
         // Overall Score — only compute from available data sources
@@ -150,16 +163,15 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
           let totalWeight = 0;
           let weightedSum = 0;
 
-          if (awcrScore !== null) { weightedSum += awcrScore * 0.25; totalWeight += 0.25; }
-          if (wellnessScore !== null) { weightedSum += wellnessScore * 0.25; totalWeight += 0.25; }
+          if (awcrScore !== null) { weightedSum += clamp100(awcrScore) * 0.25; totalWeight += 0.25; }
+          if (wellnessScore !== null) { weightedSum += clamp100(wellnessScore) * 0.25; totalWeight += 0.25; }
           // Injury always counts (no injury = 100)
-          weightedSum += injuryScore * 0.35; totalWeight += 0.35;
-          if (fatigueScore !== null) { weightedSum += fatigueScore * 0.15; totalWeight += 0.15; }
+          weightedSum += clamp100(injuryScore) * 0.35; totalWeight += 0.35;
+          if (fatigueScore !== null) { weightedSum += clamp100(fatigueScore) * 0.15; totalWeight += 0.15; }
 
-          overallScore = Math.round(totalWeight > 0 ? weightedSum / totalWeight * 100 / 100 : 0);
-          // Normalize back to 100 scale
-          overallScore = Math.round(weightedSum / totalWeight);
+          overallScore = Math.round(clamp100(totalWeight > 0 ? weightedSum / totalWeight : 0));
         }
+
 
         // Determine status
         let status: 'available' | 'limited' | 'unavailable' | 'no_data' = hasAnyData ? 'available' : 'no_data';
