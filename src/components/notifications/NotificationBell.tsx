@@ -236,7 +236,13 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
                     if (!notification.is_read) {
                       markAsRead.mutate(notification.id);
                     }
+                    const target = getNotificationTarget(notification);
+                    if (target) {
+                      setOpen(false);
+                      navigate(target);
+                    }
                   }}
+
                 >
                   <div className="flex items-start gap-3">
                     <span className="text-2xl flex-shrink-0">
