@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, Filter, Eye, Copy, Check, Mail, RefreshCw, FileSpreadsheet, Link2, Info, ClipboardCopy, Archive, ArchiveRestore, CopyPlus, Search, ArrowDownAZ } from "lucide-react";
+import { Plus, Trash2, Filter, Eye, Copy, Check, Mail, RefreshCw, FileSpreadsheet, Link2, Info, ClipboardCopy, Archive, ArchiveRestore, CopyPlus, Search, ArrowDownAZ, Pencil } from "lucide-react";
 import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -133,9 +133,10 @@ function PlayerInfoHover({ player, isSki }: { player: any; isSki: boolean }) {
           variant="ghost"
           size="icon"
           className="h-7 w-7 shrink-0"
+          aria-label="Modifier les informations de l'athlète"
           onClick={(e) => e.stopPropagation()}
         >
-          <Info className="h-4 w-4 text-muted-foreground" />
+          <Pencil className="h-4 w-4 text-muted-foreground" />
         </Button>
       </HoverCardTrigger>
       <HoverCardContent className="w-80" align="start" onClick={(e) => e.stopPropagation()}>
