@@ -99,10 +99,10 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
           if (awcr >= 0.8 && awcr <= 1.3) {
             awcrScore = 100;
           } else if (awcr < 0.8) {
-            awcrScore = Math.max(0, 100 - (0.8 - awcr) * 150);
+            awcrScore = Math.round(Math.max(0, Math.min(100, 100 - (0.8 - awcr) * 150)));
             factors.push(`AWCR faible (${awcr.toFixed(2)})`);
           } else {
-            awcrScore = Math.max(0, 100 - (awcr - 1.3) * 80);
+            awcrScore = Math.round(Math.max(0, Math.min(100, 100 - (awcr - 1.3) * 80)));
             factors.push(`AWCR élevé (${awcr.toFixed(2)})`);
           }
         }
