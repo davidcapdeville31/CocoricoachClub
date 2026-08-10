@@ -8,20 +8,73 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const OPTIMAL_WELLNESS = {
-  sleep_quality: 5,
-  sleep_duration: 1,
-  general_fatigue: 0,
-  stress_level: 0,
-  soreness_upper_body: 0,
-  soreness_lower_body: 0,
+const STANDARD_KEYS = [
+  "sleep_quality",
+  "sleep_duration",
+  "general_fatigue",
+  "stress_level",
+  "soreness_upper_body",
+  "soreness_lower_body",
+] as const;
 
+// Fallback (no customisation saved for the category)
+const DEFAULT_INVERTED: Record<string, boolean> = {
+  sleep_quality: false,
+  sleep_duration: false,
+  general_fatigue: true,
+  stress_level: true,
+  soreness_upper_body: true,
+  soreness_lower_body: true,
+};
 
+const BASE_WELLNESS = {
   has_specific_pain: false,
   pain_zone: null,
   pain_location: null,
   notes: null,
 };
+
+type WellnessScaleLevel = { value: number; label?: string; color?: string };
+type WellnessQuestion = {
+  key: string;
+  enabled?: boolean;
+  inverted?: boolean;
+  is_custom?: boolean;
+  scale?: WellnessScaleLevel[];
+};
+
+/** Optimal answer for a question: best end of its (possibly customised) scale. */
+function optimalValue(q: { inverted?: boolean; scale?: WellnessScaleLevel[] }, fallbackInverted: boolean): number {
+  const inverted = q.inverted ?? fallbackInverted;
+  const values = Array.isArray(q.scale) && q.scale.length > 0
+    ? q.scale.map((s) => Number(s.value)).filter((v) => Number.isFinite(v))
+    : [];
+  if (values.length === 0) return inverted ? 0 : 5;
+  return inverted ? Math.min(...values) : Math.max(...values);
+}
+
+/**
+ * Build the "everything is fine" wellness payload for a category,
+ * honouring the category's wellness customisation (enabled questions,
+ * inverted/positive orientation, custom scales and custom questions).
+ */
+function buildOptimalWellness(questions: WellnessQuestion[] | null) {
+  const payload: Record<string, unknown> = { ...BASE_WELLNESS };
+  const customAnswers: Record<string, number> = {};
+
+  for (const key of STANDARD_KEYS) {
+    const q = questions?.find((x) => x.key === key);
+    payload[key] = optimalValue(q ?? {}, DEFAULT_INVERTED[key]);
+  }
+
+  for (const q of questions || []) {
+    if (!q.is_custom || q.enabled === false) continue;
+    customAnswers[q.key] = optimalValue(q, false);
+  }
+
+  payload.custom_answers = customAnswers;
+  return payload;
+}
 
 const validateCronSecret = (req: Request): boolean => {
   const cronSecret = Deno.env.get("CRON_SECRET");
