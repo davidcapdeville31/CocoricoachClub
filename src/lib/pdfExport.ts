@@ -1356,13 +1356,19 @@ export const exportCalendarToPdf = async (
       // Draw matches first (priority)
       dayMatches.forEach((match) => {
         if (eventCount >= maxEvents) return;
-        
-        pdf.setFillColor(239, 68, 68); // red-500
+
+        const tag = getCompetitionTag(match.competition_tag);
+        const matchColor = (tag && tailwindClassToRgb(tag.dot)) || MATCH_RGB;
+        usedLegend.set(tag ? `tag:${tag.value}` : "match", {
+          label: tag ? tag.label : "Compétition",
+          color: matchColor,
+        });
+        pdf.setFillColor(matchColor[0], matchColor[1], matchColor[2]);
         pdf.roundedRect(cellX + 1.5, eventY, cellWidth - 3, 5, 1, 1, 'F');
         pdf.setTextColor(...colors.white);
         pdf.setFontSize(5.5);
         pdf.setFont("helvetica", "bold");
-        const matchText = `⚔ ${(match.opponent || "Match").substring(0, 12)}`;
+        const matchText = `${(match.opponent || "Compétition").substring(0, 14)}`;
         pdf.text(matchText, cellX + 2.5, eventY + 3.5);
         
         eventY += 6;
@@ -1373,16 +1379,19 @@ export const exportCalendarToPdf = async (
       daySessions.forEach((session) => {
         if (eventCount >= maxEvents) return;
         
-        const typeColor = trainingTypeColors[session.training_type] || colors.secondary;
-        pdf.setFillColor(...typeColor);
+        const typeColor = trainingTypeRgb(session.training_type);
+        const typeLabel = session.training_type
+          ? getTrainingTypeLabel(session.training_type)
+          : "Séance";
+        usedLegend.set(session.training_type || "session", { label: typeLabel, color: typeColor });
+        pdf.setFillColor(typeColor[0], typeColor[1], typeColor[2]);
         pdf.roundedRect(cellX + 1.5, eventY, cellWidth - 3, 5, 1, 1, 'F');
         pdf.setTextColor(...colors.white);
         pdf.setFontSize(5.5);
         pdf.setFont("helvetica", "normal");
         
         const timePrefix = session.session_start_time ? `${session.session_start_time.slice(0, 5)} ` : "";
-        const typeLabel = session.training_type?.replace(/_/g, " ") || "Séance";
-        const sessionText = `${timePrefix}${typeLabel}`.substring(0, 15);
+        const sessionText = `${timePrefix}${typeLabel}`.substring(0, 16);
         pdf.text(sessionText, cellX + 2.5, eventY + 3.5);
         
         eventY += 6;
@@ -1401,31 +1410,30 @@ export const exportCalendarToPdf = async (
     }
   }
   
-  // Legend at the bottom
+  // Legend at the bottom — only the event types actually present, same colors as the app
   yPos = yPos + weeksInMonth * cellHeight + 5;
-  if (yPos < pageHeight - 15) {
+  if (yPos < pageHeight - 15 && usedLegend.size > 0) {
     pdf.setFontSize(7);
     pdf.setFont("helvetica", "bold");
     pdf.setTextColor(...colors.dark);
     pdf.text("Légende:", margin, yPos);
     
     let legendX = margin + 18;
-    const legendItems = [
-      { label: "Match", color: [239, 68, 68] as [number, number, number] },
-      { label: "Collectif", color: [34, 197, 94] as [number, number, number] },
-      { label: "Physique", color: [59, 130, 246] as [number, number, number] },
-      { label: "Musculation", color: [168, 85, 247] as [number, number, number] },
-    ];
-    
-    legendItems.forEach((item) => {
-      pdf.setFillColor(...item.color);
+    Array.from(usedLegend.values()).forEach((item) => {
+      const itemWidth = pdf.getTextWidth(item.label) + 14;
+      if (legendX + itemWidth > pageWidth - margin) {
+        legendX = margin + 18;
+        yPos += 5;
+      }
+      pdf.setFillColor(item.color[0], item.color[1], item.color[2]);
       pdf.roundedRect(legendX, yPos - 3, 3, 3, 0.5, 0.5, 'F');
       pdf.setFont("helvetica", "normal");
       pdf.setTextColor(...colors.dark);
       pdf.text(item.label, legendX + 4, yPos);
-      legendX += pdf.getTextWidth(item.label) + 10;
+      legendX += itemWidth;
     });
   }
+
   
   pdf.save(`calendrier-${categoryName.toLowerCase().replace(/\s+/g, "-")}-${format(currentMonth, "yyyy-MM")}.pdf`);
 };
