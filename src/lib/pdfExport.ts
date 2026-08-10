@@ -4,6 +4,8 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
+import { trainingTypeRgb, MATCH_RGB, tailwindClassToRgb } from "@/lib/pdf/trainingTypePdfColors";
+import { getCompetitionTag } from "@/lib/constants/competitionTags";
 import { getObjectiveLabel } from "@/lib/constants/sessionBlockOptions";
 
 // Color palette for PDF exports
@@ -737,7 +739,7 @@ export const exportSessionToPdf = async (
     const { calculateWeightedRpe: calcRpe, formatDuration: fmtDur } = await import("./weightedRpeCalculations");
     
     blocks.forEach((block: any, idx: number) => {
-      const blockColor = trainingTypeColors[block.training_type] || accentColor;
+      const blockColor = block.training_type ? trainingTypeRgb(block.training_type) : accentColor;
       const blockHeight = 22;
       yPos = checkPageBreak(pdf, yPos, blockHeight + 4);
       
@@ -1237,26 +1239,19 @@ export const exportPeriodizationToPdf = (
   pdf.save(`periodisation-${categoryName.toLowerCase().replace(/\s+/g, "-")}-${format(new Date(), "yyyy-MM-dd")}.pdf`);
 };
 
-// Training type colors for PDF (matching app colors)
-const trainingTypeColors: Record<string, [number, number, number]> = {
-  collectif: [34, 197, 94], // green-500
-  physique: [59, 130, 246], // blue-500
-  musculation: [168, 85, 247], // purple-500
-  technique_individuelle: [245, 158, 11], // amber-500
-  reathlétisation: [236, 72, 153], // pink-500
-  repos: [100, 116, 139], // slate-500
-  test: [14, 165, 233], // sky-500
-  video: [99, 102, 241], // indigo-500
-  tactique: [6, 182, 212], // cyan-500
-  match: [239, 68, 68], // red-500
-};
-
 // Export calendar to PDF - visual monthly grid matching app display
+export interface CalendarPdfMeta {
+  clubName?: string | null;
+  categoryName?: string | null;
+  seasonName?: string | null;
+}
+
 export const exportCalendarToPdf = async (
   sessions: any[],
   matches: any[],
   categoryName: string,
-  dateRange?: { from: Date; to: Date }
+  dateRange?: { from: Date; to: Date },
+  meta?: CalendarPdfMeta
 ): Promise<void> => {
   const pdf = new jsPDF({
     orientation: "landscape",
@@ -1272,14 +1267,22 @@ export const exportCalendarToPdf = async (
   const now = new Date();
   const currentMonth = dateRange?.from || new Date(now.getFullYear(), now.getMonth(), 1);
   
-  // Header
+  // Header : nom du club + nom de la catégorie + saison
   const monthYear = format(currentMonth, "MMMM yyyy", { locale: fr });
-  let yPos = drawPdfHeader(
-    pdf,
-    "Calendrier Global",
-    categoryName,
-    monthYear.charAt(0).toUpperCase() + monthYear.slice(1)
-  );
+  const subtitleParts = [meta?.clubName, meta?.categoryName || categoryName].filter(Boolean) as string[];
+  const subtitle = subtitleParts.join(" — ");
+  const dateLine = [
+    meta?.seasonName ? `Saison ${meta.seasonName}` : null,
+    monthYear.charAt(0).toUpperCase() + monthYear.slice(1),
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  let yPos = drawPdfHeader(pdf, "Calendrier Global", subtitle, dateLine);
+
+  // Légende dynamique : uniquement les types d'événements réellement présents
+  const usedLegend = new Map<string, { label: string; color: [number, number, number] }>();
+
+
   
   // Calendar grid setup
   const gridMargin = margin;
@@ -1357,13 +1360,19 @@ export const exportCalendarToPdf = async (
       // Draw matches first (priority)
       dayMatches.forEach((match) => {
         if (eventCount >= maxEvents) return;
-        
-        pdf.setFillColor(239, 68, 68); // red-500
+
+        const tag = getCompetitionTag(match.competition_tag);
+        const matchColor = (tag && tailwindClassToRgb(tag.dot)) || MATCH_RGB;
+        usedLegend.set(tag ? `tag:${tag.value}` : "match", {
+          label: tag ? tag.label : "Compétition",
+          color: matchColor,
+        });
+        pdf.setFillColor(matchColor[0], matchColor[1], matchColor[2]);
         pdf.roundedRect(cellX + 1.5, eventY, cellWidth - 3, 5, 1, 1, 'F');
         pdf.setTextColor(...colors.white);
         pdf.setFontSize(5.5);
         pdf.setFont("helvetica", "bold");
-        const matchText = `⚔ ${(match.opponent || "Match").substring(0, 12)}`;
+        const matchText = `${(match.opponent || "Compétition").substring(0, 14)}`;
         pdf.text(matchText, cellX + 2.5, eventY + 3.5);
         
         eventY += 6;
@@ -1374,16 +1383,19 @@ export const exportCalendarToPdf = async (
       daySessions.forEach((session) => {
         if (eventCount >= maxEvents) return;
         
-        const typeColor = trainingTypeColors[session.training_type] || colors.secondary;
-        pdf.setFillColor(...typeColor);
+        const typeColor = trainingTypeRgb(session.training_type);
+        const typeLabel = session.training_type
+          ? getTrainingTypeLabel(session.training_type)
+          : "Séance";
+        usedLegend.set(session.training_type || "session", { label: typeLabel, color: typeColor });
+        pdf.setFillColor(typeColor[0], typeColor[1], typeColor[2]);
         pdf.roundedRect(cellX + 1.5, eventY, cellWidth - 3, 5, 1, 1, 'F');
         pdf.setTextColor(...colors.white);
         pdf.setFontSize(5.5);
         pdf.setFont("helvetica", "normal");
         
         const timePrefix = session.session_start_time ? `${session.session_start_time.slice(0, 5)} ` : "";
-        const typeLabel = session.training_type?.replace(/_/g, " ") || "Séance";
-        const sessionText = `${timePrefix}${typeLabel}`.substring(0, 15);
+        const sessionText = `${timePrefix}${typeLabel}`.substring(0, 16);
         pdf.text(sessionText, cellX + 2.5, eventY + 3.5);
         
         eventY += 6;
@@ -1402,31 +1414,30 @@ export const exportCalendarToPdf = async (
     }
   }
   
-  // Legend at the bottom
+  // Legend at the bottom — only the event types actually present, same colors as the app
   yPos = yPos + weeksInMonth * cellHeight + 5;
-  if (yPos < pageHeight - 15) {
+  if (yPos < pageHeight - 15 && usedLegend.size > 0) {
     pdf.setFontSize(7);
     pdf.setFont("helvetica", "bold");
     pdf.setTextColor(...colors.dark);
     pdf.text("Légende:", margin, yPos);
     
     let legendX = margin + 18;
-    const legendItems = [
-      { label: "Match", color: [239, 68, 68] as [number, number, number] },
-      { label: "Collectif", color: [34, 197, 94] as [number, number, number] },
-      { label: "Physique", color: [59, 130, 246] as [number, number, number] },
-      { label: "Musculation", color: [168, 85, 247] as [number, number, number] },
-    ];
-    
-    legendItems.forEach((item) => {
-      pdf.setFillColor(...item.color);
+    Array.from(usedLegend.values()).forEach((item) => {
+      const itemWidth = pdf.getTextWidth(item.label) + 14;
+      if (legendX + itemWidth > pageWidth - margin) {
+        legendX = margin + 18;
+        yPos += 5;
+      }
+      pdf.setFillColor(item.color[0], item.color[1], item.color[2]);
       pdf.roundedRect(legendX, yPos - 3, 3, 3, 0.5, 0.5, 'F');
       pdf.setFont("helvetica", "normal");
       pdf.setTextColor(...colors.dark);
       pdf.text(item.label, legendX + 4, yPos);
-      legendX += pdf.getTextWidth(item.label) + 10;
+      legendX += itemWidth;
     });
   }
+
   
   pdf.save(`calendrier-${categoryName.toLowerCase().replace(/\s+/g, "-")}-${format(currentMonth, "yyyy-MM")}.pdf`);
 };
