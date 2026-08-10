@@ -1308,8 +1308,9 @@ export const exportCalendarToPdf = async (
   // Draw day headers
   pdf.setFillColor(...colors.secondary);
   dayHeaders.forEach((day, i) => {
+    pdf.setFillColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
     pdf.rect(gridMargin + i * cellWidth, yPos, cellWidth, 8, 'F');
-    pdf.setTextColor(...colors.white);
+    pdf.setTextColor(255, 255, 255);
     pdf.setFontSize(9);
     pdf.setFont("helvetica", "bold");
     const textWidth = pdf.getTextWidth(day);
