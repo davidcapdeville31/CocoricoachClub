@@ -266,7 +266,10 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
                               variant="ghost"
                               size="icon"
                               className="h-6 w-6"
-                              onClick={() => markAsRead.mutate(notification.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                markAsRead.mutate(notification.id);
+                              }}
                             >
                               <Check className="h-3 w-3" />
                             </Button>
@@ -275,7 +278,10 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
                             variant="ghost"
                             size="icon"
                             className="h-6 w-6"
-                            onClick={() => deleteNotification.mutate(notification.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteNotification.mutate(notification.id);
+                            }}
                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>
