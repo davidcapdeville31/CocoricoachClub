@@ -239,22 +239,23 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
     },
   });
 
-  // Fetch category to get sport type
+  // Fetch category to get sport type + names for exports
   const { data: category } = useQuery({
     queryKey: ["category-sport-type", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("categories")
-        .select("rugby_type")
+        .select("rugby_type, name, clubs(name)")
         .eq("id", categoryId)
         .single();
       if (error) throw error;
-      return data;
+      return data as any;
     },
   });
 
   // Get training types based on sport type
   const sportType = category?.rugby_type;
+
   const trainingTypes = useMemo(() => getTrainingTypesForSport(sportType), [sportType]);
   
   // Create labels and colors maps from training types
