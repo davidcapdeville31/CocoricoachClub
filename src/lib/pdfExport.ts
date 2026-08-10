@@ -1237,26 +1237,19 @@ export const exportPeriodizationToPdf = (
   pdf.save(`periodisation-${categoryName.toLowerCase().replace(/\s+/g, "-")}-${format(new Date(), "yyyy-MM-dd")}.pdf`);
 };
 
-// Training type colors for PDF (matching app colors)
-const trainingTypeColors: Record<string, [number, number, number]> = {
-  collectif: [34, 197, 94], // green-500
-  physique: [59, 130, 246], // blue-500
-  musculation: [168, 85, 247], // purple-500
-  technique_individuelle: [245, 158, 11], // amber-500
-  reathlétisation: [236, 72, 153], // pink-500
-  repos: [100, 116, 139], // slate-500
-  test: [14, 165, 233], // sky-500
-  video: [99, 102, 241], // indigo-500
-  tactique: [6, 182, 212], // cyan-500
-  match: [239, 68, 68], // red-500
-};
-
 // Export calendar to PDF - visual monthly grid matching app display
+export interface CalendarPdfMeta {
+  clubName?: string | null;
+  categoryName?: string | null;
+  seasonName?: string | null;
+}
+
 export const exportCalendarToPdf = async (
   sessions: any[],
   matches: any[],
   categoryName: string,
-  dateRange?: { from: Date; to: Date }
+  dateRange?: { from: Date; to: Date },
+  meta?: CalendarPdfMeta
 ): Promise<void> => {
   const pdf = new jsPDF({
     orientation: "landscape",
@@ -1272,14 +1265,18 @@ export const exportCalendarToPdf = async (
   const now = new Date();
   const currentMonth = dateRange?.from || new Date(now.getFullYear(), now.getMonth(), 1);
   
-  // Header
+  // Header : nom du club + nom de la catégorie + saison
   const monthYear = format(currentMonth, "MMMM yyyy", { locale: fr });
-  let yPos = drawPdfHeader(
-    pdf,
-    "Calendrier Global",
-    categoryName,
-    monthYear.charAt(0).toUpperCase() + monthYear.slice(1)
-  );
+  const subtitleParts = [meta?.clubName, meta?.categoryName || categoryName].filter(Boolean) as string[];
+  const subtitle = subtitleParts.join(" — ");
+  const dateLine = [
+    meta?.seasonName ? `Saison ${meta.seasonName}` : null,
+    monthYear.charAt(0).toUpperCase() + monthYear.slice(1),
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  let yPos = drawPdfHeader(pdf, "Calendrier Global", subtitle, dateLine);
+
   
   // Calendar grid setup
   const gridMargin = margin;
