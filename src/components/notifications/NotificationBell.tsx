@@ -291,7 +291,7 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
                         {notification.message}
                       </p>
                       {notification.notification_type === "category_link_request" && notification.notification_subtype === "pending" && notification.metadata?.player_category_id && (
-                        <div className="flex gap-2 mt-2">
+                        <div className="flex gap-2 mt-2" onClick={(e) => e.stopPropagation()}>
                           <Button
                             size="sm"
                             variant="default"
