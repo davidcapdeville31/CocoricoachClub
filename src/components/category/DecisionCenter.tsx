@@ -66,6 +66,8 @@ import { toast } from "sonner";
 import { parseTestsFromNotes } from "@/lib/utils/sessionNotes";
 import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
 import { AddWellnessDialog } from "./AddWellnessDialog";
+import { TestsCompletionCard } from "./decision/TestsCompletionCard";
+
 import { SessionFeedbackDialog } from "./calendar/SessionFeedbackDialog";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
 import { SeasonRosterFilterToggle } from "@/components/category/SeasonRosterFilterToggle";
@@ -1153,6 +1155,14 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
             )}
           </CardContent>
         </Card>
+        <TestsCompletionCard
+          categoryId={categoryId}
+          date={today}
+          sessions={todaySessions as any}
+          players={players as any}
+          participants={todaySessionParticipants as any}
+        />
+
         {/* 1.6️⃣ PRÉSENCES + RPE DU JOUR (colonne empilée) */}
         <div className="space-y-4">
           <Card className="border-2 border-blue-500/20 bg-gradient-to-r from-blue-500/5 to-transparent">
