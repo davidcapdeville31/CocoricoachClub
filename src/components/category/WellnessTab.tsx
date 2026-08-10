@@ -409,25 +409,28 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
             </div>
 
             <div className="mt-6 p-4 bg-muted rounded-lg">
-              <h4 className="font-medium mb-2">Légende des scores (1-5)</h4>
-              <div className="flex flex-wrap gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <Badge variant="default">1-2</Badge>
-                  <span>Bon état</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary">3</Badge>
-                  <span>À surveiller</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="destructive">4-5</Badge>
-                  <span>Attention requise</span>
-                </div>
+              <h4 className="font-medium mb-2">Légende des couleurs (échelle 1-5)</h4>
+              <div className="flex flex-wrap gap-3 text-sm">
+                {scale.map((s) => (
+                  <div key={s.value} className="flex items-center gap-2">
+                    <Badge variant="outline" style={getScaleStyle(s.color)}>{s.value}</Badge>
+                    <span>{s.label}</span>
+                  </div>
+                ))}
               </div>
               <p className="text-xs text-muted-foreground mt-2">
-                Pour Soreness: 1 = aucune gêne • 5 = douleur limitante
+                La couleur suit l'échelle personnalisée de la catégorie. Pour les questions à
+                orientation positive (ex. qualité du sommeil, heures de sommeil), la valeur est
+                inversée : 5 = optimal (vert), 1 = dégradé (rouge).
               </p>
+              {activeQuestions.some((q) => !q.inverted) && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Questions positives :{" "}
+                  {activeQuestions.filter((q) => !q.inverted).map((q) => q.label).join(" • ")}
+                </p>
+              )}
             </div>
+
               </>
             )}
           </CardContent>
