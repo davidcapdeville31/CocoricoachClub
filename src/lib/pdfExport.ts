@@ -1244,6 +1244,8 @@ export interface CalendarPdfMeta {
   clubName?: string | null;
   categoryName?: string | null;
   seasonName?: string | null;
+  categoryId?: string | null;
+  clubId?: string | null;
 }
 
 export const exportCalendarToPdf = async (
@@ -1267,7 +1269,19 @@ export const exportCalendarToPdf = async (
   const now = new Date();
   const currentMonth = dateRange?.from || new Date(now.getFullYear(), now.getMonth(), 1);
   
-  // Header : nom du club + nom de la catégorie + saison
+  // Logo (réglages PDF de la catégorie → logo du club → logo par défaut)
+  let logoBase64: string | null = null;
+  try {
+    const { getReportLogoDataUrl } = await import("@/lib/pdf/clubLogo");
+    logoBase64 = await getReportLogoDataUrl({
+      categoryId: meta?.categoryId ?? null,
+      clubId: meta?.clubId ?? null,
+    });
+  } catch {
+    logoBase64 = null;
+  }
+
+  // Header : logo + nom du club + nom de la catégorie + saison
   const monthYear = format(currentMonth, "MMMM yyyy", { locale: fr });
   const subtitleParts = [meta?.clubName, meta?.categoryName || categoryName].filter(Boolean) as string[];
   const subtitle = subtitleParts.join(" — ");
@@ -1277,7 +1291,8 @@ export const exportCalendarToPdf = async (
   ]
     .filter(Boolean)
     .join(" · ");
-  let yPos = drawPdfHeader(pdf, "Calendrier Global", subtitle, dateLine);
+  let yPos = drawPdfHeader(pdf, "Calendrier Global", subtitle, dateLine, null, logoBase64);
+
 
   // Légende dynamique : uniquement les types d'événements réellement présents
   const usedLegend = new Map<string, { label: string; color: [number, number, number] }>();

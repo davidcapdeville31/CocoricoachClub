@@ -127,6 +127,9 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
           clubName: (category as any)?.clubs?.name ?? null,
           categoryName: category?.name ?? null,
           seasonName: activeSeasonName ?? null,
+          categoryId: categoryId ?? null,
+          clubId: (category as any)?.club_id ?? null,
+
         }
       );
       toast.success("PDF exporté avec succès");
