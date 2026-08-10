@@ -191,6 +191,17 @@ serve(async (req) => {
 
       if (missingIds.length === 0) continue;
 
+      // Respect the category's wellness customisation
+      const { data: configRow } = await supabase
+        .from("wellness_question_configs")
+        .select("questions")
+        .eq("category_id", category.id)
+        .maybeSingle();
+
+      const optimal = buildOptimalWellness(
+        (configRow?.questions as WellnessQuestion[] | null) ?? null
+      );
+
       console.log(
         `[auto-fill-wellness] Category ${category.id} (date=${today}): auto-filling ${missingIds.length} players`
       );
@@ -200,7 +211,7 @@ serve(async (req) => {
         category_id: category.id,
         tracking_date: today,
         auto_filled: true,
-        ...OPTIMAL_WELLNESS,
+        ...optimal,
       }));
 
       const { error: insertError } = await supabase
