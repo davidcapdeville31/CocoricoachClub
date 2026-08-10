@@ -146,6 +146,7 @@ serve(async (req) => {
         player_id: playerId,
         category_id: category.id,
         tracking_date: today,
+        auto_filled: true,
         ...OPTIMAL_WELLNESS,
       }));
 

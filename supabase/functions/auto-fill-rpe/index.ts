@@ -157,6 +157,7 @@ serve(async (req) => {
           rpe: defaultRpe,
           duration_minutes: durationMinutes,
           training_session_id: session.id,
+          auto_filled: true,
         }));
 
         const { error: insertError } = await supabase
