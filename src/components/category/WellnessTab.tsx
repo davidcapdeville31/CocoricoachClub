@@ -177,7 +177,9 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
     for (const q of activeQuestions) {
       const v = getAnswer(entry, q);
       if (v == null) continue;
-      vals.push(q.inverted ? v : 6 - v);
+      // sleep_duration is stored 1 = >8h (best) → behaves like an inverted scale
+      const isInverted = q.inverted || q.is_sleep_duration;
+      vals.push(isInverted ? v : 6 - v);
     }
     if (vals.length === 0) return "0.0";
     return (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1);
@@ -379,7 +381,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                             ) : (
                               <Badge
                                 variant="outline"
-                                style={q.inverted ? styleFor(raw) : styleForPositive(raw)}
+                                style={q.inverted || q.is_sleep_duration ? styleFor(raw) : styleForPositive(raw)}
                               >
                                 {q.is_sleep_duration ? sleepScoreLabel(raw) : raw}
                               </Badge>
@@ -423,10 +425,10 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                 orientation positive (ex. qualité du sommeil, heures de sommeil), la valeur est
                 inversée : 5 = optimal (vert), 1 = dégradé (rouge).
               </p>
-              {activeQuestions.some((q) => !q.inverted) && (
+              {activeQuestions.some((q) => !q.inverted && !q.is_sleep_duration) && (
                 <p className="text-xs text-muted-foreground mt-1">
                   Questions positives :{" "}
-                  {activeQuestions.filter((q) => !q.inverted).map((q) => q.label).join(" • ")}
+                  {activeQuestions.filter((q) => !q.inverted && !q.is_sleep_duration).map((q) => q.label).join(" • ")}
                 </p>
               )}
             </div>
