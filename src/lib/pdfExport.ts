@@ -1327,10 +1327,14 @@ export const exportCalendarToPdf = async (
   const calendarStart = new Date(firstDayOfMonth);
   calendarStart.setDate(calendarStart.getDate() - firstMondayOffset);
   
-  // Calculate cell height based on available space
+  // Calculate cell height based on available space (legend reserved at the bottom)
   const weeksInMonth = Math.ceil((lastDayOfMonth.getDate() + firstMondayOffset) / 7);
-  const availableHeight = pageHeight - yPos - margin;
-  const cellHeight = Math.min(availableHeight / weeksInMonth, 28);
+  const legendReserve = 12;
+  const availableHeight = pageHeight - yPos - margin - legendReserve;
+  const cellHeight = availableHeight / weeksInMonth;
+  const eventHeight = 4.6;
+  // Nombre d'événements affichables par jour selon la hauteur réelle de la cellule
+  const maxEvents = Math.max(1, Math.floor((cellHeight - 7.5) / eventHeight));
   
   // Draw calendar grid
   let currentDate = new Date(calendarStart);
@@ -1368,8 +1372,7 @@ export const exportCalendarToPdf = async (
       const daySessions = sessions?.filter(s => s.session_date === dateStr) || [];
       const dayMatches = matches?.filter(m => m.match_date === dateStr) || [];
       
-      let eventY = weekY + 8;
-      const maxEvents = 3;
+      let eventY = weekY + 7;
       let eventCount = 0;
       
       // Draw matches first (priority)
@@ -1383,14 +1386,14 @@ export const exportCalendarToPdf = async (
           color: matchColor,
         });
         pdf.setFillColor(matchColor[0], matchColor[1], matchColor[2]);
-        pdf.roundedRect(cellX + 1.5, eventY, cellWidth - 3, 5, 1, 1, 'F');
+        pdf.roundedRect(cellX + 1.5, eventY, cellWidth - 3, eventHeight - 1, 1, 1, 'F');
         pdf.setTextColor(...colors.white);
         pdf.setFontSize(5.5);
         pdf.setFont("helvetica", "bold");
         const matchText = `${(match.opponent || "Compétition").substring(0, 14)}`;
-        pdf.text(matchText, cellX + 2.5, eventY + 3.5);
+        pdf.text(matchText, cellX + 2.5, eventY + eventHeight - 1.5);
         
-        eventY += 6;
+        eventY += eventHeight;
         eventCount++;
       });
       
@@ -1404,16 +1407,16 @@ export const exportCalendarToPdf = async (
           : "Séance";
         usedLegend.set(session.training_type || "session", { label: typeLabel, color: typeColor });
         pdf.setFillColor(typeColor[0], typeColor[1], typeColor[2]);
-        pdf.roundedRect(cellX + 1.5, eventY, cellWidth - 3, 5, 1, 1, 'F');
+        pdf.roundedRect(cellX + 1.5, eventY, cellWidth - 3, eventHeight - 1, 1, 1, 'F');
         pdf.setTextColor(...colors.white);
         pdf.setFontSize(5.5);
         pdf.setFont("helvetica", "normal");
         
         const timePrefix = session.session_start_time ? `${session.session_start_time.slice(0, 5)} ` : "";
         const sessionText = `${timePrefix}${typeLabel}`.substring(0, 16);
-        pdf.text(sessionText, cellX + 2.5, eventY + 3.5);
+        pdf.text(sessionText, cellX + 2.5, eventY + eventHeight - 1.5);
         
-        eventY += 6;
+        eventY += eventHeight;
         eventCount++;
       });
       
