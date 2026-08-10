@@ -1308,8 +1308,9 @@ export const exportCalendarToPdf = async (
   // Draw day headers
   pdf.setFillColor(...colors.secondary);
   dayHeaders.forEach((day, i) => {
+    pdf.setFillColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
     pdf.rect(gridMargin + i * cellWidth, yPos, cellWidth, 8, 'F');
-    pdf.setTextColor(...colors.white);
+    pdf.setTextColor(255, 255, 255);
     pdf.setFontSize(9);
     pdf.setFont("helvetica", "bold");
     const textWidth = pdf.getTextWidth(day);
@@ -1350,7 +1351,7 @@ export const exportCalendarToPdf = async (
       
       // Cell background
       if (isToday) {
-        pdf.setFillColor(59, 130, 246, 0.1); // primary/10
+        pdf.setFillColor(219, 234, 254); // primary/10
         pdf.rect(cellX, weekY, cellWidth, cellHeight, 'F');
       } else if (!isCurrentMonth) {
         pdf.setFillColor(241, 245, 249); // light gray
