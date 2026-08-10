@@ -381,7 +381,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                             ) : (
                               <Badge
                                 variant="outline"
-                                style={q.inverted ? styleFor(raw) : styleForPositive(raw)}
+                                style={q.inverted || q.is_sleep_duration ? styleFor(raw) : styleForPositive(raw)}
                               >
                                 {q.is_sleep_duration ? sleepScoreLabel(raw) : raw}
                               </Badge>
@@ -425,10 +425,10 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                 orientation positive (ex. qualité du sommeil, heures de sommeil), la valeur est
                 inversée : 5 = optimal (vert), 1 = dégradé (rouge).
               </p>
-              {activeQuestions.some((q) => !q.inverted) && (
+              {activeQuestions.some((q) => !q.inverted && !q.is_sleep_duration) && (
                 <p className="text-xs text-muted-foreground mt-1">
                   Questions positives :{" "}
-                  {activeQuestions.filter((q) => !q.inverted).map((q) => q.label).join(" • ")}
+                  {activeQuestions.filter((q) => !q.inverted && !q.is_sleep_duration).map((q) => q.label).join(" • ")}
                 </p>
               )}
             </div>
