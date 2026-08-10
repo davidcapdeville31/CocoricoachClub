@@ -177,7 +177,9 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
     for (const q of activeQuestions) {
       const v = getAnswer(entry, q);
       if (v == null) continue;
-      vals.push(q.inverted ? v : 6 - v);
+      // sleep_duration is stored 1 = >8h (best) → behaves like an inverted scale
+      const isInverted = q.inverted || q.is_sleep_duration;
+      vals.push(isInverted ? v : 6 - v);
     }
     if (vals.length === 0) return "0.0";
     return (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1);
