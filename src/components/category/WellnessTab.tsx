@@ -373,7 +373,17 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                       <X className="h-4 w-4" />
                     </Button>
                   )}
+                  <Button
+                    variant="outline"
+                    onClick={handleExportCsv}
+                    disabled={!filteredWellnessData || filteredWellnessData.length === 0}
+                    title="Exporter les wellness affichés en CSV"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Exporter CSV
+                  </Button>
                   {!isViewer && (
+
                     <>
                       <WellnessReminderButton categoryId={categoryId} />
                       <Button onClick={() => setIsDialogOpen(true)}>
