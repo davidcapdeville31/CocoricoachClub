@@ -20,7 +20,8 @@ const STANDARD_KEYS = [
 // Fallback (no customisation saved for the category)
 const DEFAULT_INVERTED: Record<string, boolean> = {
   sleep_quality: false,
-  sleep_duration: false,
+  // sleep_duration is stored as a 1-5 SCORE where 1 = >8h (best) → inverted
+  sleep_duration: true,
   general_fatigue: true,
   stress_level: true,
   soreness_upper_body: true,
@@ -64,7 +65,9 @@ function buildOptimalWellness(questions: WellnessQuestion[] | null) {
 
   for (const key of STANDARD_KEYS) {
     const q = questions?.find((x) => x.key === key);
-    payload[key] = optimalValue(q ?? {}, DEFAULT_INVERTED[key]);
+    // sleep_duration is always a 1-5 score where 1 = >8h (optimal): force inverted
+    const forced = key === "sleep_duration" ? { ...(q ?? {}), inverted: true } : (q ?? {});
+    payload[key] = optimalValue(forced, DEFAULT_INVERTED[key]);
   }
 
   for (const q of questions || []) {
