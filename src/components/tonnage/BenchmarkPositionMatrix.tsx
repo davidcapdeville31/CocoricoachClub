@@ -803,16 +803,24 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
             }
             return `${point.value}${unit ? ` ${unit}` : ""}`;
           });
+          const evoBase = useKgDelta ? first?.rawKg : first?.value;
+          const evoPct =
+            delta != null && evoBase != null && Number(evoBase) !== 0
+              ? (delta / Math.abs(Number(evoBase))) * 100
+              : null;
           const evo =
             delta == null || series.length < 2
               ? ""
               : `${delta > 0 ? "+" : ""}${fmtNum(delta, useKgDelta ? 1 : 2)}${
                   useKgDelta ? " kg" : ratioTest ? " ratio" : unit ? ` ${unit}` : ""
                 }${
+                  evoPct != null ? ` (${evoPct > 0 ? "+" : ""}${fmtNum(evoPct, 1)} %)` : ""
+                }${
                   ratioDelta != null && useKgDelta
                     ? ` (${ratioDelta > 0 ? "+" : ""}${fmtNum(ratioDelta)} ratio)`
                     : ""
                 }`;
+
           rows.push([
             info.label,
             p.first_name ? `${p.first_name} ${p.name}` : p.name,
@@ -1040,10 +1048,16 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                       const evoDelta = first && last
                         ? useKgDelta ? (last.rawKg! - first.rawKg!) : (last.value - first.value)
                         : 0;
-                      const evoUnit = useKgDelta ? " kg" : isRatio ? " ratio" : "";
+                      const evoUnit = useKgDelta ? " kg" : isRatio ? " ratio" : unitSuffix ? ` ${unitSuffix}` : "";
+                      const evoBase = useKgDelta ? first?.rawKg : first?.value;
+                      const evoPct =
+                        evoBase != null && Number(evoBase) !== 0
+                          ? (evoDelta / Math.abs(Number(evoBase))) * 100
+                          : null;
                       const ratioDelta = isRatio && first?.ratio != null && last?.ratio != null
                         ? last.ratio - first.ratio
                         : null;
+
                       const evoImproved: 1 | 0 | -1 = first && last
                         ? posBm?.lower_is_better
                           ? evoDelta < 0 ? 1 : evoDelta > 0 ? -1 : 0
@@ -1209,15 +1223,22 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                                     <Minus className="h-4 w-4" />
                                   )}
                                   {evoDelta > 0 ? "+" : ""}
-                                  {evoDelta.toFixed(useKgDelta ? 1 : 2)}
+                                  {evoDelta.toFixed(useKgDelta ? 1 : 2).replace(".", ",")}
                                   <span className="text-[10px] font-normal ml-0.5">{evoUnit}</span>
                                 </span>
+                                {evoPct != null && (
+                                  <span className="text-[10px] font-semibold text-muted-foreground">
+                                    {evoPct > 0 ? "+" : ""}
+                                    {evoPct.toFixed(1).replace(".", ",")} %
+                                  </span>
+                                )}
                                 {ratioDelta != null && (
                                   <span className="text-[10px] font-normal text-muted-foreground">
                                     {ratioDelta > 0 ? "+" : ""}
                                     {ratioDelta.toFixed(2).replace(".", ",")} ratio
                                   </span>
                                 )}
+
                               </div>
                             )}
                           </TableCell>
