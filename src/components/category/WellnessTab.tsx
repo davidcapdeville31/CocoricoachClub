@@ -123,6 +123,28 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
   const { data: wellnessQuestions } = useWellnessQuestions(categoryId);
   const activeQuestions = (wellnessQuestions ?? DEFAULT_WELLNESS_QUESTIONS).filter((q) => q.enabled);
 
+  // Fetch wellness schedule to highlight planned days in date pickers
+  const { data: wellnessSchedule } = useQuery({
+    queryKey: ["wellness_schedule", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("wellness_schedules")
+        .select("days_of_week")
+        .eq("category_id", categoryId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const plannedDays = useMemo(() => {
+    const days = wellnessSchedule?.days_of_week as number[] | undefined;
+    if (!days || days.length === 0) return [];
+    return days.map((d) => Number(d));
+  }, [wellnessSchedule]);
+
+  const isWellnessPlanned = (date: Date) => plannedDays.includes(date.getDay());
+
   /** Read the answer for a question: standard columns or custom_answers JSON. */
   const getAnswer = (entry: any, q: WellnessQuestion): number | null => {
     const raw = q.is_custom ? entry?.custom_answers?.[q.key] : entry?.[q.key];
