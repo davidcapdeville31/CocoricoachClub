@@ -902,14 +902,24 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
       {/* RÉSULTATS PAR JOUEUR */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">
-            Résultats — {selectedOpt?.label}
-          </CardTitle>
-          <p className="text-xs text-muted-foreground">
-            Chaque cellule est colorée selon le niveau atteint. Évolution = variation entre le
-            premier et le dernier test.
-          </p>
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <CardTitle className="text-base">
+                Résultats — {selectedOpt?.label}
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Chaque cellule est colorée selon le niveau atteint. Évolution = variation entre le
+                premier et le dernier test.
+              </p>
+            </div>
+            {bm && allDates.length > 0 && (
+              <Button variant="outline" size="sm" className="gap-1.5" onClick={handleExportCsv}>
+                <FileDown className="h-3.5 w-3.5" /> Exporter CSV
+              </Button>
+            )}
+          </div>
         </CardHeader>
+
         <CardContent className="pt-0">
           {!bm ? (
             <div className="py-10 text-center text-sm text-muted-foreground">
