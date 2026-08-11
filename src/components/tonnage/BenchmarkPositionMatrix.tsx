@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Target, TrendingUp, TrendingDown, Minus, Weight, LineChart as LineChartIcon } from "lucide-react";
+import { Target, TrendingUp, TrendingDown, Minus, Weight, LineChart as LineChartIcon, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { computeBenchmarkLevel } from "@/lib/benchmarks/computeLevel";
