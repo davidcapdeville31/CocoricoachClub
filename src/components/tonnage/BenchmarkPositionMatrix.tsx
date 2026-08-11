@@ -1040,10 +1040,16 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                       const evoDelta = first && last
                         ? useKgDelta ? (last.rawKg! - first.rawKg!) : (last.value - first.value)
                         : 0;
-                      const evoUnit = useKgDelta ? " kg" : isRatio ? " ratio" : "";
+                      const evoUnit = useKgDelta ? " kg" : isRatio ? " ratio" : unitSuffix ? ` ${unitSuffix}` : "";
+                      const evoBase = useKgDelta ? first?.rawKg : first?.value;
+                      const evoPct =
+                        evoBase != null && Number(evoBase) !== 0
+                          ? (evoDelta / Math.abs(Number(evoBase))) * 100
+                          : null;
                       const ratioDelta = isRatio && first?.ratio != null && last?.ratio != null
                         ? last.ratio - first.ratio
                         : null;
+
                       const evoImproved: 1 | 0 | -1 = first && last
                         ? posBm?.lower_is_better
                           ? evoDelta < 0 ? 1 : evoDelta > 0 ? -1 : 0
