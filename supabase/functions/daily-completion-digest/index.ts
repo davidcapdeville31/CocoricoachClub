@@ -71,15 +71,30 @@ serve(async (req) => {
         const playerIds = (players || []).map((p) => p.id);
         if (playerIds.length === 0) continue;
 
-        // --- Wellness ---
-        const { data: wellness } = await supabase
-          .from("wellness_tracking")
-          .select("player_id, auto_filled")
+        // --- Wellness (uniquement les jours planifiés pour la catégorie) ---
+        const { data: schedule } = await supabase
+          .from("wellness_schedules")
+          .select("days_of_week")
           .eq("category_id", category.id)
-          .eq("tracking_date", club.date)
-          .in("player_id", playerIds);
-        const wellnessReal = (wellness || []).filter((w) => !w.auto_filled).length;
-        const wellnessAuto = (wellness || []).filter((w) => w.auto_filled).length;
+          .maybeSingle();
+        const scheduledDays: number[] = schedule?.days_of_week ?? [0, 1, 2, 3, 4, 5, 6];
+        const [dy, dm, dd] = club.date.split("-").map(Number);
+        const weekday = new Date(Date.UTC(dy, dm - 1, dd)).getUTCDay();
+        const wellnessExpected = scheduledDays.includes(weekday);
+
+        let wellness: { player_id: string; auto_filled: boolean }[] = [];
+        if (wellnessExpected) {
+          const { data: w } = await supabase
+            .from("wellness_tracking")
+            .select("player_id, auto_filled")
+            .eq("category_id", category.id)
+            .eq("tracking_date", club.date)
+            .in("player_id", playerIds);
+          wellness = (w || []) as any;
+        }
+        const wellnessReal = wellness.filter((w) => !w.auto_filled).length;
+        const wellnessAuto = wellness.filter((w) => w.auto_filled).length;
+
 
         // --- RPE (only if there was a session that day) ---
         const { data: sessions } = await supabase
