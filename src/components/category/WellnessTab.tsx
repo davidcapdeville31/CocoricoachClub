@@ -329,6 +329,8 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                         locale={fr}
                         initialFocus
                         className="p-3 pointer-events-auto"
+                        modifiers={{ wellnessPlanned: isWellnessPlanned }}
+                        modifiersClassNames={{ wellnessPlanned: "relative after:absolute after:bottom-0.5 after:left-1/2 after:-translate-x-1/2 after:h-1.5 after:w-1.5 after:rounded-full after:bg-primary" }}
                       />
                     </PopoverContent>
                   </Popover>
