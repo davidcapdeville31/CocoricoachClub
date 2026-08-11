@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, AlertTriangle, Calendar, X, Settings2 } from "lucide-react";
+import { Plus, AlertTriangle, Calendar, X, Settings2, Download } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -30,6 +30,8 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { sleepScoreLabel } from "@/lib/sleepConversion";
 import { usePainConfig, DEFAULT_PAIN_CONFIG, useWellnessQuestions, DEFAULT_WELLNESS_QUESTIONS, type WellnessQuestion } from "@/lib/wellness/questionConfig";
+import { generateCsv, downloadCsv } from "@/lib/csv";
+
 
 interface WellnessTabProps {
   categoryId: string;
@@ -228,6 +230,33 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
 
   const hasActiveFilter = !!filterFrom || !!filterTo || filterPlayerId !== "all";
 
+  const handleExportCsv = () => {
+    const rows = (filteredWellnessData || []).map((entry: any) => [
+      [entry.players?.first_name, entry.players?.name].filter(Boolean).join(" "),
+      format(new Date(entry.tracking_date), "dd/MM/yyyy"),
+      ...activeQuestions.map((q) => {
+        const raw = getAnswer(entry, q);
+        if (raw == null) return "";
+        return q.is_sleep_duration ? sleepScoreLabel(raw) : String(raw);
+      }),
+      calculateWellnessScore(entry).replace(".", ","),
+      entry.has_specific_pain ? (entry.pain_location || "Oui") : "Non",
+    ]);
+    const headers = [
+      "Joueur",
+      "Date",
+      ...activeQuestions.map((q) => q.label),
+      "Score moyen",
+      "Douleur spécifique",
+    ];
+    const period = [
+      filterFrom ? format(filterFrom, "yyyy-MM-dd") : null,
+      filterTo ? format(filterTo, "yyyy-MM-dd") : null,
+    ].filter(Boolean).join("_");
+    downloadCsv(`wellness${period ? `_${period}` : ""}.csv`, generateCsv(headers, rows));
+  };
+
+
   return (
     <div className="space-y-6">
       <Tabs value={view ?? undefined} defaultValue={view ?? "tracking"} className="space-y-4">
@@ -344,7 +373,17 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                       <X className="h-4 w-4" />
                     </Button>
                   )}
+                  <Button
+                    variant="outline"
+                    onClick={handleExportCsv}
+                    disabled={!filteredWellnessData || filteredWellnessData.length === 0}
+                    title="Exporter les wellness affichés en CSV"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Exporter CSV
+                  </Button>
                   {!isViewer && (
+
                     <>
                       <WellnessReminderButton categoryId={categoryId} />
                       <Button onClick={() => setIsDialogOpen(true)}>
