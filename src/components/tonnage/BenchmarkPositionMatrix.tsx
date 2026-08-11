@@ -1215,15 +1215,22 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                                     <Minus className="h-4 w-4" />
                                   )}
                                   {evoDelta > 0 ? "+" : ""}
-                                  {evoDelta.toFixed(useKgDelta ? 1 : 2)}
+                                  {evoDelta.toFixed(useKgDelta ? 1 : 2).replace(".", ",")}
                                   <span className="text-[10px] font-normal ml-0.5">{evoUnit}</span>
                                 </span>
+                                {evoPct != null && (
+                                  <span className="text-[10px] font-semibold text-muted-foreground">
+                                    {evoPct > 0 ? "+" : ""}
+                                    {evoPct.toFixed(1).replace(".", ",")} %
+                                  </span>
+                                )}
                                 {ratioDelta != null && (
                                   <span className="text-[10px] font-normal text-muted-foreground">
                                     {ratioDelta > 0 ? "+" : ""}
                                     {ratioDelta.toFixed(2).replace(".", ",")} ratio
                                   </span>
                                 )}
+
                               </div>
                             )}
                           </TableCell>
