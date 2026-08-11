@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Target, TrendingUp, TrendingDown, Minus, Weight, LineChart as LineChartIcon } from "lucide-react";
+import { Target, TrendingUp, TrendingDown, Minus, Weight, LineChart as LineChartIcon, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { computeBenchmarkLevel } from "@/lib/benchmarks/computeLevel";
@@ -32,6 +32,8 @@ import {
 } from "@/lib/constants/sportPositionGroups";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
+import { generateCsv, downloadCsv } from "@/lib/csv";
+
 import {
   LineChart,
   Line,
@@ -760,7 +762,80 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
     return `${fmt(lvl.threshold)} – ${fmt(next.threshold ?? lvl.threshold)}`;
   };
 
+  // Export CSV : Poste / Joueur / une colonne par date de test / Évolution
+  const handleExportCsv = () => {
+    if (!bm || allDates.length === 0) return;
+    const ratioTest = !!bm.use_body_weight_ratio;
+    const unit = ratioTest ? "kg" : bm.unit || "";
+    const headers = [
+      "Poste",
+      "Joueur",
+      ...(ratioTest ? ["Poids de corps (kg)"] : []),
+      ...allDates.map((d) => fmtDate(d)),
+      "Évolution",
+    ];
+    const rows: (string | number | null)[][] = [];
+    playersByPosition.forEach(([groupId, info]) => {
+      info.list
+        .filter((p: any) => playerSeries.has(p.id))
+        .forEach((p: any) => {
+          const series = playerSeries.get(p.id) || [];
+          const weight = playerWeights.get(p.id);
+          const posBm = getBenchmarkForPlayer(groupId, p.gender || null);
+          const first = series[0];
+          const last = series[series.length - 1];
+          const useKgDelta = ratioTest && first?.rawKg != null && last?.rawKg != null;
+          const delta = first && last
+            ? useKgDelta ? last.rawKg! - first.rawKg! : last.value - first.value
+            : null;
+          const ratioDelta =
+            ratioTest && first?.ratio != null && last?.ratio != null
+              ? last.ratio - first.ratio
+              : null;
+          const fmtNum = (n: number, digits = 2) =>
+            n.toFixed(digits).replace(".", ",");
+          const cells = allDates.map((d) => {
+            const point = series.find((s) => s.date === d);
+            if (!point) return "";
+            if (ratioTest) {
+              const base = point.rawKg != null ? `${point.rawKg} kg` : `${point.value}`;
+              return point.ratio != null ? `${base} (ratio ${fmtNum(point.ratio)})` : base;
+            }
+            return `${point.value}${unit ? ` ${unit}` : ""}`;
+          });
+          const evo =
+            delta == null || series.length < 2
+              ? ""
+              : `${delta > 0 ? "+" : ""}${fmtNum(delta, useKgDelta ? 1 : 2)}${
+                  useKgDelta ? " kg" : ratioTest ? " ratio" : unit ? ` ${unit}` : ""
+                }${
+                  ratioDelta != null && useKgDelta
+                    ? ` (${ratioDelta > 0 ? "+" : ""}${fmtNum(ratioDelta)} ratio)`
+                    : ""
+                }`;
+          rows.push([
+            info.label,
+            p.first_name ? `${p.first_name} ${p.name}` : p.name,
+            ...(ratioTest ? [weight ?? ""] : []),
+            ...cells,
+            evo,
+          ]);
+        });
+    });
+    if (rows.length === 0) return;
+    const slug = (selectedOpt?.label || "test")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9]+/g, "-")
+      .toLowerCase();
+    downloadCsv(
+      `tests-${slug}-${format(new Date(), "yyyy-MM-dd")}.csv`,
+      generateCsv(headers, rows),
+    );
+  };
+
   if (renderOnlyOptions) return null;
+
 
   if (benchmarks.length === 0 && customTests.length === 0) {
     return (
@@ -902,14 +977,24 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
       {/* RÉSULTATS PAR JOUEUR */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">
-            Résultats — {selectedOpt?.label}
-          </CardTitle>
-          <p className="text-xs text-muted-foreground">
-            Chaque cellule est colorée selon le niveau atteint. Évolution = variation entre le
-            premier et le dernier test.
-          </p>
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <CardTitle className="text-base">
+                Résultats — {selectedOpt?.label}
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Chaque cellule est colorée selon le niveau atteint. Évolution = variation entre le
+                premier et le dernier test.
+              </p>
+            </div>
+            {bm && allDates.length > 0 && (
+              <Button variant="outline" size="sm" className="gap-1.5" onClick={handleExportCsv}>
+                <FileDown className="h-3.5 w-3.5" /> Exporter CSV
+              </Button>
+            )}
+          </div>
         </CardHeader>
+
         <CardContent className="pt-0">
           {!bm ? (
             <div className="py-10 text-center text-sm text-muted-foreground">
