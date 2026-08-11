@@ -30,6 +30,8 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { sleepScoreLabel } from "@/lib/sleepConversion";
 import { usePainConfig, DEFAULT_PAIN_CONFIG, useWellnessQuestions, DEFAULT_WELLNESS_QUESTIONS, type WellnessQuestion } from "@/lib/wellness/questionConfig";
+import { generateCsv, downloadCsv } from "@/lib/csv";
+
 
 interface WellnessTabProps {
   categoryId: string;
