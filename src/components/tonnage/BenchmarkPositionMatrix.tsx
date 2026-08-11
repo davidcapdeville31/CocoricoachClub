@@ -836,9 +836,33 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-zA-Z0-9]+/g, "-")
       .toLowerCase();
+
+    // Bloc "Barème" (si le test en possède un) placé avant les résultats
+    let baremeCsv = "";
+    if (bm.levels?.length) {
+      const baremeHeaders = ["Barème — Poste", ...bm.levels.map((l) => l.label)];
+      const baremeRows: (string | number | null)[][] = [];
+      playersByPosition.forEach(([groupId, info]) => {
+        const posBm = getBenchmarkForGroup(groupId);
+        if (!posBm) return;
+        baremeRows.push([
+          info.label,
+          ...bm.levels.map((_, i) =>
+            levelRangeString(posBm.levels || [], i, !!posBm.lower_is_better),
+          ),
+        ]);
+      });
+      if (baremeRows.length > 0) {
+        baremeCsv =
+          generateCsv(baremeHeaders, baremeRows) +
+          `\n${ratioTest ? "Valeurs exprimées en ratio (charge ÷ poids de corps)" : unit ? `Valeurs exprimées en ${unit}` : ""}\n\n`;
+      }
+    }
+
+    const resultsCsv = generateCsv(headers, rows).replace(/^\uFEFF/, "");
     downloadCsv(
       `tests-${slug}-${format(new Date(), "yyyy-MM-dd")}.csv`,
-      generateCsv(headers, rows),
+      baremeCsv ? baremeCsv + resultsCsv : generateCsv(headers, rows),
     );
   };
 
