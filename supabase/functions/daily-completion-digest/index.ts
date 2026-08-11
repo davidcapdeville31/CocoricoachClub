@@ -127,13 +127,19 @@ serve(async (req) => {
         const testsSubmitted = (tests || []).length;
         const testsPending = (tests || []).filter((t) => t.validation_status === "pending").length;
 
-        if (wellness?.length === 0 && sessionIds.length === 0 && testsSubmitted === 0) continue;
+        const nothingToReport =
+          (!wellnessExpected || wellness.length === 0) &&
+          sessionIds.length === 0 &&
+          testsSubmitted === 0;
+        if (nothingToReport) continue;
 
         const parts: string[] = [];
-        parts.push(
-          `Wellness : ${wellnessReal}/${playerIds.length} rempli(s) par les athlètes` +
-            (wellnessAuto > 0 ? ` — ${wellnessAuto} complété(s) automatiquement` : ""),
-        );
+        if (wellnessExpected) {
+          parts.push(
+            `Wellness : ${wellnessReal}/${playerIds.length} rempli(s) par les athlètes` +
+              (wellnessAuto > 0 ? ` — ${wellnessAuto} complété(s) automatiquement` : ""),
+          );
+        }
         if (rpeExpected > 0) {
           parts.push(
             `RPE : ${rpeReal}/${rpeExpected} saisi(s) par les athlètes` +
@@ -146,8 +152,9 @@ serve(async (req) => {
               (testsPending > 0 ? `, dont ${testsPending} à valider` : ""),
           );
         }
+        if (parts.length === 0) continue;
 
-        const missing = playerIds.length - wellnessReal;
+        const missing = wellnessExpected ? playerIds.length - wellnessReal : 0;
         const { data: staffIds } = await supabase.rpc("category_staff_user_ids", {
           _category_id: category.id,
         });
@@ -159,7 +166,8 @@ serve(async (req) => {
           user_id: userId,
           category_id: category.id,
           notification_type: "daily_completion_digest",
-          title: `Bilan de remplissage du ${d}/${m}/${y}`,
+          title: `${category.name} — Bilan de remplissage du ${d}/${m}/${y}`,
+
           message: parts.join(" • "),
           is_read: false,
           priority: missing > 0 ? "high" : "normal",
