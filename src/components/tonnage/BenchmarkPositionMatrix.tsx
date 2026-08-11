@@ -32,6 +32,8 @@ import {
 } from "@/lib/constants/sportPositionGroups";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
+import { generateCsv, downloadCsv } from "@/lib/csv";
+
 import {
   LineChart,
   Line,
