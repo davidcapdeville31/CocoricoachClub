@@ -283,21 +283,17 @@ export function useSessionNotifications() {
       console.log(`[SessionNotification] Title: ${title}`);
       console.log(`[SessionNotification] Message: ${message}`);
 
-      // ── Step 1: Tag participants ───────────────────────────────────────────
-      let tagResult = { tagged: 0, skipped: 0, errors: [] as string[] };
+      // ── Step 1: Tag participants (background — do not block the UI) ───────
+      const tagPromise: Promise<{ tagged: number; skipped: number; errors: string[] }> =
+        sessionId
+          ? tagSessionParticipants(
+              sessionId,
+              participantPlayerIds!,
+              clubId,
+              action === "cancelled" ? "remove" : "add"
+            )
+          : Promise.resolve({ tagged: 0, skipped: 0, errors: [] as string[] });
 
-      if (sessionId) {
-        if (action === "cancelled") {
-          console.log("[SessionNotification] Step 1 — Removing participation tags (cancellation)");
-          tagResult = await tagSessionParticipants(sessionId, participantPlayerIds!, clubId, "remove");
-        } else {
-          console.log("[SessionNotification] Step 1 — Adding participation tags");
-          tagResult = await tagSessionParticipants(sessionId, participantPlayerIds!, clubId, "add");
-        }
-        console.log(
-          `[SessionNotification] Step 1 done — ${tagResult.tagged} tagged, ${tagResult.skipped} skipped, ${tagResult.errors.length} error(s)`
-        );
-      }
 
       // ── Step 2: Build push payload ────────────────────────────────────────
       const requestBody: Record<string, unknown> = {
