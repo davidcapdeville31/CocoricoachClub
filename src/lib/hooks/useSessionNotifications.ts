@@ -283,21 +283,17 @@ export function useSessionNotifications() {
       console.log(`[SessionNotification] Title: ${title}`);
       console.log(`[SessionNotification] Message: ${message}`);
 
-      // ── Step 1: Tag participants ───────────────────────────────────────────
-      let tagResult = { tagged: 0, skipped: 0, errors: [] as string[] };
+      // ── Step 1: Tag participants (background — do not block the UI) ───────
+      const tagPromise: Promise<{ tagged: number; skipped: number; errors: string[] }> =
+        sessionId
+          ? tagSessionParticipants(
+              sessionId,
+              participantPlayerIds!,
+              clubId,
+              action === "cancelled" ? "remove" : "add"
+            )
+          : Promise.resolve({ tagged: 0, skipped: 0, errors: [] as string[] });
 
-      if (sessionId) {
-        if (action === "cancelled") {
-          console.log("[SessionNotification] Step 1 — Removing participation tags (cancellation)");
-          tagResult = await tagSessionParticipants(sessionId, participantPlayerIds!, clubId, "remove");
-        } else {
-          console.log("[SessionNotification] Step 1 — Adding participation tags");
-          tagResult = await tagSessionParticipants(sessionId, participantPlayerIds!, clubId, "add");
-        }
-        console.log(
-          `[SessionNotification] Step 1 done — ${tagResult.tagged} tagged, ${tagResult.skipped} skipped, ${tagResult.errors.length} error(s)`
-        );
-      }
 
       // ── Step 2: Build push payload ────────────────────────────────────────
       const requestBody: Record<string, unknown> = {
@@ -384,106 +380,111 @@ export function useSessionNotifications() {
       }
 
 
-      // ── Step 3-bis: Send EMAIL notifications in parallel ─────────────────
-      // Fetch player emails (and user_ids) for the targeted participants OR
-      // for the whole category (broadcast fallback). The notify-athletes
-      // function applies per-user notification preferences.
-      try {
-        let athletesQuery = supabase
-          .from("players")
-          .select("id, first_name, name, email, user_id")
-          .not("email", "is", null);
+      // ── Step 3-bis: Send EMAIL notifications (background, non-blocking) ───
+      void (async () => {
+        try {
+          let athletesQuery = supabase
+            .from("players")
+            .select("id, first_name, name, email, user_id")
+            .not("email", "is", null);
 
-        if (hasSpecificPlayers) {
-          athletesQuery = athletesQuery.in("id", participantPlayerIds!);
-        } else {
-          athletesQuery = athletesQuery.eq("category_id", categoryId);
-        }
-
-        const { data: athleteRows } = await athletesQuery;
-        const athletes = (athleteRows ?? [])
-          .filter((p) => p.email)
-          .map((p) => ({
-            name: [p.first_name, p.name].filter(Boolean).join(" ").trim() || "Athlète",
-            email: p.email as string,
-            user_id: p.user_id ?? undefined,
-          }));
-
-        if (athletes.length > 0) {
-          console.log(`[SessionNotification] Step 3-bis — Sending email to ${athletes.length} athlete(s)`);
-          const emailEventType =
-            sessionType === "match" ? "match" : "session";
-          const { data: emailData, error: emailError } = await supabase.functions.invoke(
-            "notify-athletes",
-            {
-              body: {
-                athletes,
-                subject: title,
-                message,
-                channels: ["email"],
-                eventType: emailEventType,
-                category_id: categoryId,
-                skipBell: true, // bell already inserted above (step 3-ter)
-                eventDetails: {
-                  date: dateLabel,
-                  ...(sessionStartTime ? { time: sessionStartTime.substring(0, 5) } : {}),
-                  ...(location ? { location } : {}),
-                },
-              },
-            }
-          );
-          if (emailError) {
-            console.error("[SessionNotification] ❌ Email send error:", emailError);
+          if (hasSpecificPlayers) {
+            athletesQuery = athletesQuery.in("id", participantPlayerIds!);
           } else {
-            console.log(
-              `[SessionNotification] ✉️  Emails sent: ${emailData?.emailsSent ?? 0}`
-            );
+            athletesQuery = athletesQuery.eq("category_id", categoryId);
           }
-        } else {
-          console.log("[SessionNotification] Step 3-bis — No emails to send (no athletes with email)");
+
+          const { data: athleteRows } = await athletesQuery;
+          const athletes = (athleteRows ?? [])
+            .filter((p) => p.email)
+            .map((p) => ({
+              name: [p.first_name, p.name].filter(Boolean).join(" ").trim() || "Athlète",
+              email: p.email as string,
+              user_id: p.user_id ?? undefined,
+            }));
+
+          if (athletes.length > 0) {
+            console.log(`[SessionNotification] Step 3-bis — Sending email to ${athletes.length} athlete(s)`);
+            const emailEventType = sessionType === "match" ? "match" : "session";
+            const { data: emailData, error: emailError } = await supabase.functions.invoke(
+              "notify-athletes",
+              {
+                body: {
+                  athletes,
+                  subject: title,
+                  message,
+                  channels: ["email"],
+                  eventType: emailEventType,
+                  category_id: categoryId,
+                  skipBell: true, // bell already inserted above (step 3-ter)
+                  eventDetails: {
+                    date: dateLabel,
+                    ...(sessionStartTime ? { time: sessionStartTime.substring(0, 5) } : {}),
+                    ...(location ? { location } : {}),
+                  },
+                },
+              }
+            );
+            if (emailError) {
+              console.error("[SessionNotification] ❌ Email send error:", emailError);
+            } else {
+              console.log(`[SessionNotification] ✉️  Emails sent: ${emailData?.emailsSent ?? 0}`);
+            }
+          } else {
+            console.log("[SessionNotification] Step 3-bis — No emails to send (no athletes with email)");
+          }
+        } catch (emailErr) {
+          console.error("[SessionNotification] ❌ Failed to send emails:", emailErr);
         }
-      } catch (emailErr) {
-        console.error("[SessionNotification] ❌ Failed to send emails:", emailErr);
-      }
+      })();
 
-      try {
-        const { data, error } = await supabase.functions.invoke(
-          "send-targeted-notification",
-          { body: requestBody }
-        );
-
-        if (error) {
-          console.error("[SessionNotification] ❌ Edge function error:", error);
-          return;
-        }
-
-        console.log("[SessionNotification] Step 3 — OneSignal API response:", data);
-
-        if (data?.errors?.length > 0) {
-          console.warn("[SessionNotification] ⚠️  Partial errors:", data.errors);
-        }
-
-        const pushSent = data?.pushSent ?? 0;
-        const responseMode = data?.mode ?? "unknown";
-
-        console.log(`[SessionNotification] ─── Summary ──────────────────────────────────────`);
-        console.log(`[SessionNotification] Tagging — tagged: ${tagResult.tagged} | skipped: ${tagResult.skipped}`);
-        console.log(`[SessionNotification] Push — mode: ${responseMode} | devices reached: ${pushSent}`);
-        console.log(`[SessionNotification] Errors — tagging: ${tagResult.errors.length} | push: ${data?.errors?.length ?? 0}`);
-
-        if (pushSent === 0) {
-          console.warn(
-            `[SessionNotification] ⚠️  0 push envoyés.\n` +
-            `  • tagged=${tagResult.tagged} skipped=${tagResult.skipped}\n` +
-            `  • Les joueurs doivent ouvrir l'app et accepter les notifications push.`
+      // ── Step 3: Push (background — waits for tagging, never blocks UI) ────
+      void (async () => {
+        try {
+          const tagResult = await tagPromise;
+          console.log(
+            `[SessionNotification] Step 1 done — ${tagResult.tagged} tagged, ${tagResult.skipped} skipped, ${tagResult.errors.length} error(s)`
           );
-        } else {
-          console.log(`[SessionNotification] ✅ Push envoyé à ${pushSent} appareil(s)`);
+
+          const { data, error } = await supabase.functions.invoke(
+            "send-targeted-notification",
+            { body: requestBody }
+          );
+
+          if (error) {
+            console.error("[SessionNotification] ❌ Edge function error:", error);
+            return;
+          }
+
+          console.log("[SessionNotification] Step 3 — OneSignal API response:", data);
+
+          if (data?.errors?.length > 0) {
+            console.warn("[SessionNotification] ⚠️  Partial errors:", data.errors);
+          }
+
+          const pushSent = data?.pushSent ?? 0;
+          const responseMode = data?.mode ?? "unknown";
+
+          console.log(`[SessionNotification] ─── Summary ──────────────────────────────────────`);
+          console.log(`[SessionNotification] Tagging — tagged: ${tagResult.tagged} | skipped: ${tagResult.skipped}`);
+          console.log(`[SessionNotification] Push — mode: ${responseMode} | devices reached: ${pushSent}`);
+          console.log(`[SessionNotification] Errors — tagging: ${tagResult.errors.length} | push: ${data?.errors?.length ?? 0}`);
+
+          if (pushSent === 0) {
+            console.warn(
+              `[SessionNotification] ⚠️  0 push envoyés.\n` +
+              `  • tagged=${tagResult.tagged} skipped=${tagResult.skipped}\n` +
+              `  • Les joueurs doivent ouvrir l'app et accepter les notifications push.`
+            );
+          } else {
+            console.log(`[SessionNotification] ✅ Push envoyé à ${pushSent} appareil(s)`);
+          }
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.error("[SessionNotification] ❌ Failed to send notification:", msg);
         }
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        console.error("[SessionNotification] ❌ Failed to send notification:", msg);
-      }
+      })();
+
     },
     []
   );
