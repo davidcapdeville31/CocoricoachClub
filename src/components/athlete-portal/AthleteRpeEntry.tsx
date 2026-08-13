@@ -131,16 +131,8 @@ export function AthleteRpeEntry({ token, playerId, categoryId, sportType, onRefr
 
   const refresh = () => setRefreshKey(k => k + 1);
 
-  const getSessionDuration = (session: Session) => {
-    if (session.session_start_time && session.session_end_time) {
-      const start = session.session_start_time.split(":");
-      const end = session.session_end_time.split(":");
-      const startMinutes = parseInt(start[0]) * 60 + parseInt(start[1]);
-      const endMinutes = parseInt(end[0]) * 60 + parseInt(end[1]);
-      return Math.max(0, endMinutes - startMinutes);
-    }
-    return 60;
-  };
+  const getSessionDuration = (session: Session) =>
+    computeSessionDurationMinutes(session.session_start_time, session.session_end_time);
 
   const handleSelectSession = (sessionId: string) => {
     setSelectedSession(sessionId);
