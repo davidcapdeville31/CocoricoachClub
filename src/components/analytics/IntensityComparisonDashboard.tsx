@@ -32,6 +32,7 @@ import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { generateCsv, downloadCsv } from "@/lib/csv";
+import { toast } from "sonner";
 
 interface IntensityComparisonDashboardProps {
   categoryId: string;
@@ -385,6 +386,10 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
   }, [scopedSessions, awcrData, players, blocksBySession, selectedPlayer, selectedPosition, statusFilter]);
 
   const handleExportCsv = () => {
+    if (detailRows.length === 0) {
+      toast.error("Aucune donnée RPE à exporter pour ces filtres");
+      return;
+    }
     const headers = ["Date", "Séance", "Athlète", "Poste", "RPE prévu", "RPE réel", "Écart", "Charge (UA)", "Statut"];
     const rows = detailRows.map((r) => [
       format(new Date(r.date), "dd/MM/yyyy", { locale: fr }),
