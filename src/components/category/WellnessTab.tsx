@@ -195,19 +195,31 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
   }
 
   const calculateWellnessScore = (entry: any) => {
-    // Average over all active questions, normalised to the inverted convention
-    // (1 = best, 5 = worst) so positive scales are flipped.
-    const vals: number[] = [];
+    // Each question can have its own scale (0..5, 1..5, custom) and its own
+    // orientation (higher = better for sleep, higher = worse for fatigue).
+    // We normalise every answer to a 0..1 "concern" ratio using its own
+    // min/max bounds, then map the average back onto the 1..5 display scale.
+    const ratios: number[] = [];
     for (const q of activeQuestions) {
       const v = getAnswer(entry, q);
       if (v == null) continue;
+      const values = (q.scale ?? []).map((s) => s.value).filter((n) => Number.isFinite(n));
+      const min = values.length ? Math.min(...values) : 1;
+      const max = values.length ? Math.max(...values) : 5;
+      if (max === min) continue;
+      const clamped = Math.max(min, Math.min(max, v));
       // sleep_duration is stored 1 = >8h (best) → behaves like an inverted scale
       const isInverted = q.inverted || q.is_sleep_duration;
-      vals.push(isInverted ? v : 6 - v);
+      const ratio = isInverted
+        ? (clamped - min) / (max - min) // high value = high concern
+        : (max - clamped) / (max - min); // high value = low concern
+      ratios.push(ratio);
     }
-    if (vals.length === 0) return "0.0";
-    return (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1);
+    if (ratios.length === 0) return "0.0";
+    const avg = ratios.reduce((a, b) => a + b, 0) / ratios.length;
+    return (1 + avg * 4).toFixed(1); // 1 = optimal, 5 = très dégradé
   };
+
 
   // Filter wellness data by date range
   const fromStr = filterFrom ? format(filterFrom, "yyyy-MM-dd") : null;
