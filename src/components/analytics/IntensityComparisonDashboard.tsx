@@ -28,6 +28,10 @@ import { calculateWeightedRpe, checkTeamRpeAlert, type SessionBlock } from "@/li
 import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
+import { useSearchParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
+import { generateCsv, downloadCsv } from "@/lib/csv";
 
 interface IntensityComparisonDashboardProps {
   categoryId: string;
