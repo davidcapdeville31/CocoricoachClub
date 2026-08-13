@@ -4,9 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { useState, useMemo } from "react";
 import { format, subDays } from "date-fns";
-import { BarChart3, Dumbbell, Zap, Shield, CalendarRange } from "lucide-react";
+import { BarChart3, Dumbbell, Zap, Shield, CalendarRange, Download } from "lucide-react";
+import { generateCsv, downloadCsv } from "@/lib/csv";
+import { toast } from "sonner";
 import {
   getSessionTypeLabel,
   getObjectiveLabel,
@@ -17,6 +20,7 @@ import {
   VOLUME_OPTIONS,
   CONTACT_CHARGE_OPTIONS,
 } from "@/lib/constants/sessionBlockOptions";
+
 
 interface TrainingDistributionProps {
   categoryId: string;
@@ -113,6 +117,37 @@ export function TrainingDistribution({ categoryId }: TrainingDistributionProps) 
     };
   }, [data]);
 
+  const handleExportCsv = () => {
+    if (!stats) {
+      toast.error("Aucune donnée à exporter sur cette période");
+      return;
+    }
+    const headers = ["Catégorie", "Valeur", "Nombre de blocs", "Part (%)", "Du", "Au"];
+    const rows: (string | number)[][] = [];
+    const pct = (n: number) => (stats.totalBlocks > 0 ? Math.round((n / stats.totalBlocks) * 100) : 0);
+    const push = (group: string, map: Map<string, number>, label: (v: string) => string) => {
+      Array.from(map.entries())
+        .sort((a, b) => b[1] - a[1])
+        .forEach(([value, count]) => {
+          rows.push([group, label(value), count, pct(count), startDate, endDate]);
+        });
+    };
+    push("Intensité", stats.intensityCounts, getIntensityLabel);
+    push("Volume", stats.volumeCounts, getVolumeLabel);
+    push("Charge de contact", stats.contactCounts, getContactChargeLabel);
+    push("Thématique", stats.typeCounts, getSessionTypeLabel);
+    push("Objectif", stats.objectiveCounts, getObjectiveLabel);
+    rows.push(["Total", "Séances", stats.totalSessions, "", startDate, endDate]);
+    rows.push(["Total", "Blocs", stats.totalBlocks, "", startDate, endDate]);
+
+    downloadCsv(
+      `repartition-entrainements-${startDate}_${endDate}.csv`,
+      generateCsv(headers, rows),
+    );
+  };
+
+
+
   if (isLoading) {
     return (
       <Card>
@@ -181,6 +216,11 @@ export function TrainingDistribution({ categoryId }: TrainingDistributionProps) 
             <Label className="text-xs text-muted-foreground">Au</Label>
             <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="h-8 w-[140px] text-sm" min={startDate} />
           </div>
+          <Button variant="outline" size="sm" className="gap-1.5 mt-5" onClick={handleExportCsv}>
+            <Download className="h-4 w-4" />
+            Export CSV
+          </Button>
+
         </div>
       </div>
 

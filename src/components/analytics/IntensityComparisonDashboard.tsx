@@ -443,10 +443,37 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       r.status,
     ]);
     downloadCsv(
-      `rpe-prevu-reel-${new Date().toISOString().split("T")[0]}.csv`,
+      `rpe-prevu-reel-${rangeFrom}_${rangeTo || new Date().toISOString().split("T")[0]}.csv`,
       generateCsv(headers, rows),
     );
   };
+
+  // Export de la synthèse par séance sur la période sélectionnée
+  const handleExportSessionsCsv = () => {
+    if (comparisonData.length === 0) {
+      toast.error("Aucune séance à exporter sur cette période");
+      return;
+    }
+    const headers = [
+      "Date",
+      "RPE prévu (staff)",
+      "RPE réel (athlètes)",
+      "Écart",
+      "Nb athlètes",
+    ];
+    const rows = comparisonData.map((d: any) => [
+      d.fullDate || d.date,
+      String(Number(d.planned).toFixed(1)).replace(".", ","),
+      String(Number(d.actual).toFixed(1)).replace(".", ","),
+      String(Number(d.diff).toFixed(1)).replace(".", ","),
+      d.playerCount ?? "",
+    ]);
+    downloadCsv(
+      `rpe-par-seance-${rangeFrom}_${rangeTo || new Date().toISOString().split("T")[0]}.csv`,
+      generateCsv(headers, rows),
+    );
+  };
+
 
 
   // Check for team-wide RPE alert (>5 athletes with +2 gap)
@@ -708,7 +735,13 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       {/* Chart */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Comparaison par séance</CardTitle>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <CardTitle className="text-base">Comparaison par séance</CardTitle>
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={handleExportSessionsCsv}>
+              <Download className="h-4 w-4" />
+              Export CSV (période)
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {comparisonData.length === 0 ? (

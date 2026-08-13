@@ -13,7 +13,10 @@ import {
   ReferenceLine,
   Cell,
 } from "recharts";
-import { Users, TrendingUp, Filter, UserCheck, Shield, Zap } from "lucide-react";
+import { Users, TrendingUp, Filter, UserCheck, Shield, Zap, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { generateCsv, downloadCsv } from "@/lib/csv";
+import { toast } from "sonner";
 import { LoadSummary, getRiskColor } from "@/lib/trainingLoadCalculations";
 import { getRugbyPositionGroup, getPositionGroupLabel, isRugbySport, RugbyPositionGroup } from "@/lib/constants/sportPositions";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
@@ -222,6 +225,52 @@ export function TeamLoadComparison({
     group: p.positionGroup,
   }));
 
+  const riskLabel = (r?: string) =>
+    r === "danger" ? "Risque élevé" : r === "warning" ? "Vigilance" : "Optimal";
+
+  const handleExportCsv = () => {
+    if (filteredPlayers.length === 0) {
+      toast.error("Aucune donnée à exporter");
+      return;
+    }
+    const num = (v: number | undefined, d = 2) =>
+      v == null ? "" : v.toFixed(d).replace(".", ",");
+    const headers = [
+      "Athlète",
+      isIndividual ? "Discipline" : "Poste",
+      "Groupe",
+      "Ratio EWMA (ACWR)",
+      "Charge aiguë",
+      "Charge chronique",
+      "Niveau de risque",
+    ];
+    const rows = filteredPlayers.map((p) => [
+      p.name,
+      (isIndividual ? (p.discipline ? getDisciplineLabel(p.discipline) : "") : p.position) || "—",
+      p.positionGroup ? getPositionGroupLabel(p.positionGroup as RugbyPositionGroup) : "—",
+      num(p.summary?.ewmaRatio),
+      num(p.summary?.ewmaAcute, 1),
+      num(p.summary?.ewmaChronic, 1),
+      riskLabel(p.summary?.riskLevel),
+    ]);
+    if (teamAverage) {
+      rows.push([
+        "Moyenne équipe",
+        "",
+        "",
+        num(teamAverage.ewmaRatio),
+        num(teamAverage.ewmaAcute, 1),
+        num(teamAverage.ewmaChronic, 1),
+        "",
+      ]);
+    }
+    downloadCsv(
+      `comparaison-charge-equipe-${new Date().toISOString().split("T")[0]}.csv`,
+      generateCsv(headers, rows),
+    );
+  };
+
+
   if (isLoading) {
     return (
       <Card className="bg-gradient-card shadow-md">
@@ -321,6 +370,11 @@ export function TeamLoadComparison({
                 <SelectItem value="name">Nom</SelectItem>
               </SelectContent>
             </Select>
+
+            <Button variant="outline" size="sm" className="h-9 gap-1.5" onClick={handleExportCsv}>
+              <Download className="h-4 w-4" />
+              Export CSV
+            </Button>
           </div>
         </div>
 
