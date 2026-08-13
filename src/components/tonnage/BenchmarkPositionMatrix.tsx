@@ -849,7 +849,9 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
             max = i === 0 ? t : levels[i + 1] ? nextT : null;
           }
           baremeRows.push({
+            test: testKey,
             poste: info.label,
+
             niveau: lvl.label,
             min,
             max,
