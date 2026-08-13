@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -38,6 +38,13 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
   const [periodDays, setPeriodDays] = useState<number>(56);
   const [isHrvDialogOpen, setIsHrvDialogOpen] = useState(false);
   const [loadSection, setLoadSection] = useState<"internal" | "external">("internal");
+  const [searchParams] = useSearchParams();
+  const urlLoadTab = searchParams.get("loadtab");
+  const [contentTab, setContentTab] = useState<string>(urlLoadTab || "chart");
+
+  useEffect(() => {
+    if (urlLoadTab) setContentTab(urlLoadTab);
+  }, [urlLoadTab]);
 
   // Sync metric when model changes
   const handleModelChange = (model: "ewma" | "awcr") => {
@@ -350,7 +357,7 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
           />
 
           {/* Main content tabs */}
-          <Tabs defaultValue="chart" className="space-y-4">
+          <Tabs value={contentTab} onValueChange={setContentTab} className="space-y-4">
             <div className="flex justify-center">
               <ColoredSubTabsList colorKey="performance" className="inline-flex flex-wrap h-auto gap-1 w-max">
                 <ColoredSubTabsTrigger value="chart" colorKey="performance" icon={<BarChart3 className="h-4 w-4" />}>

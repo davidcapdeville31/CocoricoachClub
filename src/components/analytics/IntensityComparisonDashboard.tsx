@@ -28,6 +28,11 @@ import { calculateWeightedRpe, checkTeamRpeAlert, type SessionBlock } from "@/li
 import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
+import { useSearchParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
+import { generateCsv, downloadCsv } from "@/lib/csv";
+import { toast } from "sonner";
 
 interface IntensityComparisonDashboardProps {
   categoryId: string;
@@ -42,6 +47,20 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
   const [customTo, setCustomTo] = useState<string>("");
   const [selectedSession, setSelectedSession] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [searchParams] = useSearchParams();
+  const urlSessionId = searchParams.get("session");
+  const urlSessionDate = searchParams.get("sessionDate");
+
+  // Arrivée depuis une notification « Bilan RPE » : cadrer sur la séance concernée
+  useEffect(() => {
+    if (!urlSessionId) return;
+    if (urlSessionDate) {
+      setDateMode("custom");
+      setCustomFrom(urlSessionDate);
+      setCustomTo(urlSessionDate);
+    }
+    setSelectedSession(urlSessionId);
+  }, [urlSessionId, urlSessionDate]);
   const { activeSeasonOnly, activeSeasonId, activeSeasonStart, activeSeasonEnd, isDateInActiveSeason } = useSeasonRosterFilter();
   const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
   const scopeKey = activeSeasonOnly && activeSeasonId ? `season:${activeSeasonId}` : "all";
@@ -186,7 +205,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
   }, [sessions]);
 
   useEffect(() => {
-    if (selectedSession !== "all" && !sessionOptions.some((s) => s.id === selectedSession)) {
+    if (sessionOptions.length > 0 && selectedSession !== "all" && !sessionOptions.some((s) => s.id === selectedSession)) {
       setSelectedSession("all");
     }
   }, [sessionOptions, selectedSession]);
@@ -322,6 +341,72 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
     () => (statusFilter === "all" ? playerStats : playerStats.filter((p) => p.status === statusFilter)),
     [playerStats, statusFilter]
   );
+
+  // Détail ligne à ligne (athlète × séance) pour l'export CSV / Excel
+  const detailRows = useMemo(() => {
+    if (!scopedSessions || !awcrData || !players) return [];
+    const playerMap = new Map(players.map((p) => [p.id, p]));
+    const statusOf = (diff: number) => (diff >= 2 ? "Sur-entraînement" : diff <= -2 ? "Sous-entraînement" : "Optimal");
+
+    return awcrData
+      .filter((a) => a.training_session_id && scopedSessions.some((s) => s.id === a.training_session_id))
+      .filter((a) => {
+        const p = playerMap.get(a.player_id);
+        if (!p) return false;
+        if (selectedPosition !== "all" && p.position !== selectedPosition) return false;
+        if (selectedPlayer !== "all" && p.id !== selectedPlayer) return false;
+        return true;
+      })
+      .map((a) => {
+        const session = scopedSessions.find((s) => s.id === a.training_session_id)!;
+        const blocks = blocksBySession.get(session.id) || [];
+        const weighted = calculateWeightedRpe(blocks as SessionBlock[]);
+        const planned = weighted.hasValidData ? weighted.weightedRpe : session.intensity || 0;
+        const diff = a.rpe - planned;
+        const p = playerMap.get(a.player_id)!;
+        return {
+          date: session.session_date,
+          sessionType: session.training_type || "Séance",
+          name: p.fullName,
+          position: p.position || "—",
+          planned: Number(planned.toFixed(1)),
+          actual: a.rpe,
+          diff: Number(diff.toFixed(1)),
+          load: a.training_load ?? "",
+          status: statusOf(diff),
+        };
+      })
+      .filter((r) => {
+        if (statusFilter === "all") return true;
+        if (statusFilter === "over") return r.diff >= 2;
+        if (statusFilter === "under") return r.diff <= -2;
+        return r.diff > -2 && r.diff < 2;
+      })
+      .sort((a, b) => a.date.localeCompare(b.date) || a.name.localeCompare(b.name));
+  }, [scopedSessions, awcrData, players, blocksBySession, selectedPlayer, selectedPosition, statusFilter]);
+
+  const handleExportCsv = () => {
+    if (detailRows.length === 0) {
+      toast.error("Aucune donnée RPE à exporter pour ces filtres");
+      return;
+    }
+    const headers = ["Date", "Séance", "Athlète", "Poste", "RPE prévu", "RPE réel", "Écart", "Charge (UA)", "Statut"];
+    const rows = detailRows.map((r) => [
+      format(new Date(r.date), "dd/MM/yyyy", { locale: fr }),
+      r.sessionType,
+      r.name,
+      r.position,
+      String(r.planned).replace(".", ","),
+      String(r.actual).replace(".", ","),
+      String(r.diff).replace(".", ","),
+      r.load,
+      r.status,
+    ]);
+    downloadCsv(
+      `rpe-prevu-reel-${new Date().toISOString().split("T")[0]}.csv`,
+      generateCsv(headers, rows),
+    );
+  };
 
   // Check for team-wide RPE alert (>5 athletes with +2 gap)
   const teamAlert = useMemo(() => {
@@ -642,10 +727,21 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       {/* Player Details */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Détail par athlète
-          </CardTitle>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Détail par athlète
+            </CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={handleExportCsv}
+            >
+              <Download className="h-4 w-4" />
+              Export CSV / Excel
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {displayedPlayerStats.length === 0 ? (

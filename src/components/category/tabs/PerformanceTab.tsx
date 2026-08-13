@@ -1,3 +1,5 @@
+import * as React from "react";
+import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Dumbbell, Zap, Lock, BarChart3 } from "lucide-react";
 import { PhysicalPreparationTab } from "@/components/category/PhysicalPreparationTab";
@@ -40,13 +42,20 @@ export function PerformanceTab({ categoryId, sportType }: PerformanceTabProps) {
   const pendingCount = usePendingWeightLogsCount(categoryId);
   const pendingTestsCount = usePendingTestResultsCount(categoryId);
   const totalPending = pendingCount + pendingTestsCount;
+  const [searchParams] = useSearchParams();
+  const urlSubTab = searchParams.get("subtab");
+  const [subTab, setSubTab] = React.useState(urlSubTab || "training-load");
+
+  React.useEffect(() => {
+    if (urlSubTab) setSubTab(urlSubTab);
+  }, [urlSubTab]);
 
   if (isViewer) {
     return <PerformanceDisabledMessage />;
   }
 
   return (
-    <Tabs defaultValue="training-load" className="space-y-4">
+    <Tabs value={subTab} onValueChange={setSubTab} className="space-y-4">
       <div className="flex justify-end">
         <SeasonRosterFilterToggle />
       </div>
