@@ -388,6 +388,8 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
           )
         );
         const theme = themes.length > 0 ? themes.join(" + ") : session.training_type || "Séance";
+        const durationMin =
+          (a as any).duration_minutes != null ? Number((a as any).duration_minutes) : null;
         return {
           date: session.session_date,
           sessionType: session.training_type || "Séance",
@@ -397,7 +399,8 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
           planned: Number(planned.toFixed(1)),
           actual: a.rpe,
           diff: Number(diff.toFixed(1)),
-          load: a.training_load ?? "",
+          durationMin,
+          load: a.training_load ?? (durationMin != null ? a.rpe * durationMin : ""),
           status: statusOf(diff),
           alert: alertOf(diff),
         };
@@ -426,6 +429,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       "RPE réel (athlète)",
       "Écart",
       "Alerte",
+      "duree_min",
       "Charge (UA)",
       "Statut",
     ];
@@ -439,6 +443,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       String(r.actual).replace(".", ","),
       String(r.diff).replace(".", ","),
       r.alert,
+      r.durationMin ?? "",
       r.load,
       r.status,
     ]);
