@@ -735,7 +735,13 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       {/* Chart */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Comparaison par séance</CardTitle>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <CardTitle className="text-base">Comparaison par séance</CardTitle>
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={handleExportSessionsCsv}>
+              <Download className="h-4 w-4" />
+              Export CSV (période)
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {comparisonData.length === 0 ? (
