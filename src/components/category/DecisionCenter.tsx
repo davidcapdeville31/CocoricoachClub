@@ -1014,8 +1014,12 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
 
           {/* Col 3: Blessés / Incertains / Malades */}
           <Card className="border-2 border-red-500/20 bg-gradient-to-r from-red-500/5 to-transparent">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm flex items-center gap-2">
+            <CardHeader
+              className="pb-2 cursor-pointer"
+              onClick={() => navigate(`/categories/${categoryId}?tab=sante&subtab=injuries`)}
+              title="Voir Santé › Blessures / Maladies"
+            >
+              <CardTitle className="text-sm flex items-center gap-2 hover:underline">
                 <XCircle className="h-4 w-4 text-red-500" />
                 Blessés / Incertains / Malades
                 {(groupStatus.total - groupStatus.available) > 0 && (
