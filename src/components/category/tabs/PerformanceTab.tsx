@@ -1,3 +1,5 @@
+import * as React from "react";
+import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Dumbbell, Zap, Lock, BarChart3 } from "lucide-react";
 import { PhysicalPreparationTab } from "@/components/category/PhysicalPreparationTab";
