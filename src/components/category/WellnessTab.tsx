@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, type CSSProperties } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { subDays } from "date-fns";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { supabase } from "@/integrations/supabase/client";
