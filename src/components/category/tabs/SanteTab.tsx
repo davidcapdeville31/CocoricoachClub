@@ -49,6 +49,13 @@ class SanteErrorBoundary extends React.Component<
 
 export function SanteTab({ categoryId }: SanteTabProps) {
   const { isViewer } = useViewerModeContext();
+  const [searchParams] = useSearchParams();
+  const urlSubTab = searchParams.get("subtab");
+  const [subTab, setSubTab] = React.useState(urlSubTab || "dashboard");
+
+  React.useEffect(() => {
+    if (urlSubTab) setSubTab(urlSubTab);
+  }, [urlSubTab]);
 
   const { data: category } = useQuery({
     queryKey: ["category-sport-type-sante", categoryId],
