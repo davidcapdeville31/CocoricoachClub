@@ -801,15 +801,16 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                 ? Number((metric(point) - metric(first)).toFixed(2))
                 : null;
             resultRows.push({
+              test: testKey,
               poste: info.label,
               joueur: p.first_name ? `${p.first_name} ${p.name}` : p.name,
               sexe: p.gender || "",
               date: point.date,
-              charge_kg: ratioTest ? point.rawKg ?? null : null,
-              valeur: point.value ?? null,
+              valeur: ratioTest ? point.rawKg ?? point.value ?? null : point.value ?? null,
               unite: ratioTest ? "kg" : unit,
               poids_corps_kg: ratioTest ? weight : null,
               ratio: ratioTest ? point.ratio ?? null : null,
+
               delta_vs_precedent: deltaPrev,
               delta_vs_premier: deltaFirst,
             });
