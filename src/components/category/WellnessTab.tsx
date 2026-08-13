@@ -194,6 +194,9 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
 
   const styleForQuestion = (q: WellnessQuestion, value: number | null | undefined) => {
     if (value == null) return {} as CSSProperties;
+    // sleep_duration is ALWAYS stored as a 1-5 score where 1 = >8h (optimal)
+    // and 5 = <5h (worst), whatever the display scale configured by the coach.
+    if (q.is_sleep_duration) return styleFor(value);
     // 1) Respect the colour configured by the coach for this exact value
     const exact = (q.scale ?? []).find((s) => Number(s.value) === Math.round(value));
     if (exact?.color) return getScaleStyle(exact.color);
@@ -203,7 +206,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
     const max = values.length ? Math.max(...values) : 5;
     if (max === min) return {} as CSSProperties;
     const clamped = Math.max(min, Math.min(max, value));
-    const isInverted = q.inverted || q.is_sleep_duration;
+    const isInverted = q.inverted;
     const ratio = isInverted ? (clamped - min) / (max - min) : (max - clamped) / (max - min);
     return styleFor(1 + ratio * 4);
   };
