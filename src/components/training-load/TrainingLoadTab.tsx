@@ -357,7 +357,7 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
           />
 
           {/* Main content tabs */}
-          <Tabs defaultValue="chart" className="space-y-4">
+          <Tabs value={contentTab} onValueChange={setContentTab} className="space-y-4">
             <div className="flex justify-center">
               <ColoredSubTabsList colorKey="performance" className="inline-flex flex-wrap h-auto gap-1 w-max">
                 <ColoredSubTabsTrigger value="chart" colorKey="performance" icon={<BarChart3 className="h-4 w-4" />}>
