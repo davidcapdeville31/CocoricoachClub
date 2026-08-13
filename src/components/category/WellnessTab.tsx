@@ -492,8 +492,16 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                   {filteredWellnessData.map((entry) => (
                     <TableRow key={entry.id}>
                       <TableCell className="font-medium whitespace-nowrap">
-                        {[entry.players?.first_name, entry.players?.name].filter(Boolean).join(" ")}
+                        <span className="inline-flex items-center gap-2">
+                          {[entry.players?.first_name, entry.players?.name].filter(Boolean).join(" ")}
+                          {entry.auto_filled && (
+                            <Badge variant="outline" className="text-[10px] text-muted-foreground">
+                              Auto
+                            </Badge>
+                          )}
+                        </span>
                       </TableCell>
+
                       <TableCell className="whitespace-nowrap">
                         {format(new Date(entry.tracking_date), "dd MMM yyyy", { locale: fr })}
                       </TableCell>
