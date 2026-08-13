@@ -1093,6 +1093,16 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                   </div>
                 </ScrollArea>
               )}
+              {(groupStatus.injuredPlayers.length > 0 || groupStatus.uncertainPlayers.length > 0 || groupStatus.sickPlayers.length > 0) && (
+                <button
+                  type="button"
+                  onClick={() => navigate(`/categories/${categoryId}?tab=health&subtab=injuries`)}
+                  className="mt-2 w-full text-xs font-medium text-red-600 dark:text-red-400 hover:underline flex items-center justify-center gap-1"
+                >
+                  Voir tous les blessés / incertains / malades
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+              )}
             </CardContent>
           </Card>
 
