@@ -829,7 +829,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
                         </p>
                         <p className="text-xs text-muted-foreground">écart moyen</p>
                       </div>
-                      {getStatusBadge(player.status)}
+                      {getStatusBadge(player.status, player.severity)}
                     </div>
                   </div>
                 ))}
