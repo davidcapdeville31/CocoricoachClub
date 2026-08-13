@@ -341,6 +341,63 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
     [playerStats, statusFilter]
   );
 
+  // Détail ligne à ligne (athlète × séance) pour l'export CSV / Excel
+  const detailRows = useMemo(() => {
+    if (!scopedSessions || !awcrData || !players) return [];
+    const playerMap = new Map(players.map((p) => [p.id, p]));
+    const statusOf = (diff: number) => (diff >= 2 ? "Sur-entraînement" : diff <= -2 ? "Sous-entraînement" : "Optimal");
+
+    return awcrData
+      .filter((a) => a.training_session_id && scopedSessions.some((s) => s.id === a.training_session_id))
+      .filter((a) => {
+        const p = playerMap.get(a.player_id);
+        if (!p) return false;
+        if (selectedPosition !== "all" && p.position !== selectedPosition) return false;
+        if (selectedPlayer !== "all" && p.id !== selectedPlayer) return false;
+        return true;
+      })
+      .map((a) => {
+        const session = scopedSessions.find((s) => s.id === a.training_session_id)!;
+        const blocks = blocksBySession.get(session.id) || [];
+        const weighted = calculateWeightedRpe(blocks as SessionBlock[]);
+        const planned = weighted.hasValidData ? weighted.weightedRpe : session.intensity || 0;
+        const diff = a.rpe - planned;
+        const p = playerMap.get(a.player_id)!;
+        return {
+          date: session.session_date,
+          sessionType: session.training_type || "Séance",
+          name: p.fullName,
+          position: p.position || "—",
+          planned: Number(planned.toFixed(1)),
+          actual: a.rpe,
+          diff: Number(diff.toFixed(1)),
+          load: a.training_load ?? "",
+          status: statusOf(diff),
+        };
+      })
+      .filter((r) => (statusFilter === "all" ? true : statusOf(r.diff) === statusOf(statusFilter === "over" ? 2 : statusFilter === "under" ? -2 : 0)))
+      .sort((a, b) => a.date.localeCompare(b.date) || a.name.localeCompare(b.name));
+  }, [scopedSessions, awcrData, players, blocksBySession, selectedPlayer, selectedPosition, statusFilter]);
+
+  const handleExportCsv = () => {
+    const headers = ["Date", "Séance", "Athlète", "Poste", "RPE prévu", "RPE réel", "Écart", "Charge (UA)", "Statut"];
+    const rows = detailRows.map((r) => [
+      format(new Date(r.date), "dd/MM/yyyy", { locale: fr }),
+      r.sessionType,
+      r.name,
+      r.position,
+      String(r.planned).replace(".", ","),
+      String(r.actual).replace(".", ","),
+      String(r.diff).replace(".", ","),
+      r.load,
+      r.status,
+    ]);
+    downloadCsv(
+      `rpe-prevu-reel-${new Date().toISOString().split("T")[0]}.csv`,
+      generateCsv(headers, rows),
+    );
+  };
+
   // Check for team-wide RPE alert (>5 athletes with +2 gap)
   const teamAlert = useMemo(() => {
     const gaps = playerStats.map(p => ({
