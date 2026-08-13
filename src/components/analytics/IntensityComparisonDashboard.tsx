@@ -331,7 +331,9 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
         position: player.position,
         avgDiff: parseFloat(avgDiff.toFixed(1)),
         sessionsCount: count,
-        status: avgDiff >= 2 ? "over" : avgDiff <= -2 ? "under" : "optimal",
+        // Vigilance dès ±1.5, alerte à ±2
+        status: avgDiff >= 1.5 ? "over" : avgDiff <= -1.5 ? "under" : "optimal",
+        severity: Math.abs(avgDiff) >= 2 ? "alert" : Math.abs(avgDiff) >= 1.5 ? "watch" : "none",
       };
     }).filter(p => p.sessionsCount > 0)
       .sort((a, b) => Math.abs(b.avgDiff) - Math.abs(a.avgDiff));
@@ -346,7 +348,20 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
   const detailRows = useMemo(() => {
     if (!scopedSessions || !awcrData || !players) return [];
     const playerMap = new Map(players.map((p) => [p.id, p]));
-    const statusOf = (diff: number) => (diff >= 2 ? "Sur-entraînement" : diff <= -2 ? "Sous-entraînement" : "Optimal");
+    // Seuils d'alerte : vigilance à ±1.5, alerte à ±2
+    const statusOf = (diff: number) => {
+      if (diff >= 2) return "Sur-entraînement (alerte)";
+      if (diff >= 1.5) return "Sur-entraînement (vigilance)";
+      if (diff <= -2) return "Sous-entraînement (alerte)";
+      if (diff <= -1.5) return "Sous-entraînement (vigilance)";
+      return "Optimal";
+    };
+    const alertOf = (diff: number) => {
+      const abs = Math.abs(diff);
+      if (abs >= 2) return "Alerte (±2)";
+      if (abs >= 1.5) return "Vigilance (±1.5)";
+      return "—";
+    };
 
     return awcrData
       .filter((a) => a.training_session_id && scopedSessions.some((s) => s.id === a.training_session_id))
@@ -364,9 +379,19 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
         const planned = weighted.hasValidData ? weighted.weightedRpe : session.intensity || 0;
         const diff = a.rpe - planned;
         const p = playerMap.get(a.player_id)!;
+        // Thématique : types/thèmes des blocs (musculation, rugby, ...) sinon type de séance
+        const themes = Array.from(
+          new Set(
+            (blocks as any[])
+              .flatMap((b) => [b.training_type, b.theme])
+              .filter((v): v is string => !!v && v.trim() !== "")
+          )
+        );
+        const theme = themes.length > 0 ? themes.join(" + ") : session.training_type || "Séance";
         return {
           date: session.session_date,
           sessionType: session.training_type || "Séance",
+          theme,
           name: p.fullName,
           position: p.position || "—",
           planned: Number(planned.toFixed(1)),
@@ -374,13 +399,14 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
           diff: Number(diff.toFixed(1)),
           load: a.training_load ?? "",
           status: statusOf(diff),
+          alert: alertOf(diff),
         };
       })
       .filter((r) => {
         if (statusFilter === "all") return true;
-        if (statusFilter === "over") return r.diff >= 2;
-        if (statusFilter === "under") return r.diff <= -2;
-        return r.diff > -2 && r.diff < 2;
+        if (statusFilter === "over") return r.diff >= 1.5;
+        if (statusFilter === "under") return r.diff <= -1.5;
+        return r.diff > -1.5 && r.diff < 1.5;
       })
       .sort((a, b) => a.date.localeCompare(b.date) || a.name.localeCompare(b.name));
   }, [scopedSessions, awcrData, players, blocksBySession, selectedPlayer, selectedPosition, statusFilter]);
@@ -390,15 +416,29 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       toast.error("Aucune donnée RPE à exporter pour ces filtres");
       return;
     }
-    const headers = ["Date", "Séance", "Athlète", "Poste", "RPE prévu", "RPE réel", "Écart", "Charge (UA)", "Statut"];
+    const headers = [
+      "Date",
+      "Séance",
+      "Thématique",
+      "Athlète",
+      "Poste",
+      "RPE prévu (staff)",
+      "RPE réel (athlète)",
+      "Écart",
+      "Alerte",
+      "Charge (UA)",
+      "Statut",
+    ];
     const rows = detailRows.map((r) => [
       format(new Date(r.date), "dd/MM/yyyy", { locale: fr }),
       r.sessionType,
+      r.theme,
       r.name,
       r.position,
       String(r.planned).replace(".", ","),
       String(r.actual).replace(".", ","),
       String(r.diff).replace(".", ","),
+      r.alert,
       r.load,
       r.status,
     ]);
@@ -407,6 +447,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       generateCsv(headers, rows),
     );
   };
+
 
   // Check for team-wide RPE alert (>5 athletes with +2 gap)
   const teamAlert = useMemo(() => {
@@ -437,12 +478,21 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
     };
   }, [comparisonData, playerStats]);
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, severity?: string) => {
+    const suffix = severity === "watch" ? " (vigilance)" : "";
     switch (status) {
       case "over":
-        return <Badge className="bg-red-500 text-white">Surcharge</Badge>;
+        return (
+          <Badge className={severity === "watch" ? "bg-orange-500 text-white" : "bg-red-500 text-white"}>
+            Surcharge{suffix}
+          </Badge>
+        );
       case "under":
-        return <Badge className="bg-yellow-500 text-white">Sous-charge</Badge>;
+        return (
+          <Badge className={severity === "watch" ? "bg-amber-400 text-black" : "bg-yellow-500 text-white"}>
+            Sous-charge{suffix}
+          </Badge>
+        );
       default:
         return <Badge className="bg-green-500 text-white">Optimal</Badge>;
     }
@@ -779,7 +829,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
                         </p>
                         <p className="text-xs text-muted-foreground">écart moyen</p>
                       </div>
-                      {getStatusBadge(player.status)}
+                      {getStatusBadge(player.status, player.severity)}
                     </div>
                   </div>
                 ))}
