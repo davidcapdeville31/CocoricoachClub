@@ -43,6 +43,13 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
     const categoryId = n.category_id || meta.category_id;
     const sessionId = meta.session_id || meta.training_session_id;
 
+    // Bilan de remplissage → onglet Wellness filtré sur la date du bilan
+    if (n.notification_type === "daily_completion_digest" && categoryId) {
+      const date = meta.digest_date;
+      return `/categories/${categoryId}?tab=sante&subtab=wellness-health${date ? `&wellnessDate=${date}` : ""}`;
+    }
+
+
     if (sessionId && categoryId) {
       return `/categories/${categoryId}?tab=planification&session=${sessionId}`;
     }

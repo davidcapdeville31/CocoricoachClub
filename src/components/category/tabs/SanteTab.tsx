@@ -14,6 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { isRugbyType } from "@/lib/constants/sportTypes";
 import React from "react";
+import { useSearchParams } from "react-router-dom";
 
 interface SanteTabProps {
   categoryId: string;
@@ -49,6 +50,13 @@ class SanteErrorBoundary extends React.Component<
 
 export function SanteTab({ categoryId }: SanteTabProps) {
   const { isViewer } = useViewerModeContext();
+  const [searchParams] = useSearchParams();
+  const urlSubTab = searchParams.get("subtab");
+  const [subTab, setSubTab] = React.useState(urlSubTab || "dashboard");
+
+  React.useEffect(() => {
+    if (urlSubTab) setSubTab(urlSubTab);
+  }, [urlSubTab]);
 
   const { data: category } = useQuery({
     queryKey: ["category-sport-type-sante", categoryId],
@@ -69,7 +77,7 @@ export function SanteTab({ categoryId }: SanteTabProps) {
 
   return (
     <SanteErrorBoundary>
-      <Tabs defaultValue="dashboard" className="space-y-4">
+      <Tabs value={subTab} onValueChange={setSubTab} className="space-y-4">
         <div className="flex justify-end">
           <SeasonRosterFilterToggle />
         </div>

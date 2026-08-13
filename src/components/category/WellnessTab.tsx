@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, type CSSProperties } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { subDays } from "date-fns";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { supabase } from "@/integrations/supabase/client";
@@ -55,13 +56,33 @@ const getScaleStyle = (color: string | undefined): CSSProperties => {
   };
 };
 
+/** Parse a yyyy-MM-dd string into a local Date (avoids UTC shift). */
+const parseLocalDate = (value: string | null): Date | undefined => {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return undefined;
+  const [y, m, d] = value.split("-").map(Number);
+  return new Date(y, m - 1, d);
+};
+
 export function WellnessTab({ categoryId, view }: WellnessTabProps) {
+  const [searchParams] = useSearchParams();
+  const urlWellnessDate = searchParams.get("wellnessDate");
+  const initialDate = parseLocalDate(urlWellnessDate) || new Date();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
-  const [filterFrom, setFilterFrom] = useState<Date | undefined>(new Date());
-  const [filterTo, setFilterTo] = useState<Date | undefined>(new Date());
+  const [filterFrom, setFilterFrom] = useState<Date | undefined>(initialDate);
+  const [filterTo, setFilterTo] = useState<Date | undefined>(initialDate);
   const [filterPlayerId, setFilterPlayerId] = useState<string>("all");
   const { isViewer } = useViewerModeContext();
+
+  // Sync filters when arriving from a notification link (?wellnessDate=YYYY-MM-DD)
+  useEffect(() => {
+    const d = parseLocalDate(urlWellnessDate);
+    if (d) {
+      setFilterFrom(d);
+      setFilterTo(d);
+      setFilterPlayerId("all");
+    }
+  }, [urlWellnessDate]);
 
   // Fetch clubId so useMenuPermissions can detect club-level roles
   // (e.g. doctor / prepa_physique stored at club level, not category level).
