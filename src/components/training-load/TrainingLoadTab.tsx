@@ -38,6 +38,13 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
   const [periodDays, setPeriodDays] = useState<number>(56);
   const [isHrvDialogOpen, setIsHrvDialogOpen] = useState(false);
   const [loadSection, setLoadSection] = useState<"internal" | "external">("internal");
+  const [searchParams] = useSearchParams();
+  const urlLoadTab = searchParams.get("loadtab");
+  const [contentTab, setContentTab] = useState<string>(urlLoadTab || "chart");
+
+  useEffect(() => {
+    if (urlLoadTab) setContentTab(urlLoadTab);
+  }, [urlLoadTab]);
 
   // Sync metric when model changes
   const handleModelChange = (model: "ewma" | "awcr") => {
