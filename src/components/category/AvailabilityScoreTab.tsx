@@ -164,8 +164,8 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
 
         // Fatigue Score — null if no wellness
         let fatigueScore: number | null = null;
-        if (hasWellness) {
-          fatigueScore = Math.round(clamp100(100 - (val(playerWellness!.general_fatigue) - 1) * 25));
+        if (hasWellness && fatigueConcern !== null) {
+          fatigueScore = Math.round(clamp100(100 - fatigueConcern * 100));
         }
 
         // Overall Score — only compute from available data sources
