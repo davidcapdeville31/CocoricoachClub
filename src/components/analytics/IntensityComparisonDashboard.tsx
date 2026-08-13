@@ -375,7 +375,12 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
           status: statusOf(diff),
         };
       })
-      .filter((r) => (statusFilter === "all" ? true : statusOf(r.diff) === statusOf(statusFilter === "over" ? 2 : statusFilter === "under" ? -2 : 0)))
+      .filter((r) => {
+        if (statusFilter === "all") return true;
+        if (statusFilter === "over") return r.diff >= 2;
+        if (statusFilter === "under") return r.diff <= -2;
+        return r.diff > -2 && r.diff < 2;
+      })
       .sort((a, b) => a.date.localeCompare(b.date) || a.name.localeCompare(b.name));
   }, [scopedSessions, awcrData, players, blocksBySession, selectedPlayer, selectedPosition, statusFilter]);
 
