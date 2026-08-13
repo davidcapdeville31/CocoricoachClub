@@ -46,6 +46,20 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
   const [customTo, setCustomTo] = useState<string>("");
   const [selectedSession, setSelectedSession] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [searchParams] = useSearchParams();
+  const urlSessionId = searchParams.get("session");
+  const urlSessionDate = searchParams.get("sessionDate");
+
+  // Arrivée depuis une notification « Bilan RPE » : cadrer sur la séance concernée
+  useEffect(() => {
+    if (!urlSessionId) return;
+    if (urlSessionDate) {
+      setDateMode("custom");
+      setCustomFrom(urlSessionDate);
+      setCustomTo(urlSessionDate);
+    }
+    setSelectedSession(urlSessionId);
+  }, [urlSessionId, urlSessionDate]);
   const { activeSeasonOnly, activeSeasonId, activeSeasonStart, activeSeasonEnd, isDateInActiveSeason } = useSeasonRosterFilter();
   const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
   const scopeKey = activeSeasonOnly && activeSeasonId ? `season:${activeSeasonId}` : "all";
