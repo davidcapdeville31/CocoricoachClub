@@ -762,108 +762,108 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
     return `${fmt(lvl.threshold)} – ${fmt(next.threshold ?? lvl.threshold)}`;
   };
 
-  // Export CSV : Poste / Joueur / une colonne par date de test / Évolution
-  const handleExportCsv = () => {
+  // Export Excel : 2 onglets (Barème / Résultats), format long (1 ligne par joueuse et par date)
+  const handleExportCsv = async () => {
     if (!bm || allDates.length === 0) return;
+    const XLSX = await import("xlsx");
     const ratioTest = !!bm.use_body_weight_ratio;
     const unit = ratioTest ? "kg" : bm.unit || "";
-    const headers = [
-      "Poste",
-      "Joueur",
-      ...(ratioTest ? ["Poids de corps (kg)"] : []),
-      ...allDates.map((d) => fmtDate(d)),
-      "Évolution",
-    ];
-    const rows: (string | number | null)[][] = [];
+    const lowerBetter = !!bm.lower_is_better;
+
+    // --- Onglet Résultats (format long) ---
+    const resultRows: Record<string, string | number | null>[] = [];
     playersByPosition.forEach(([groupId, info]) => {
       info.list
         .filter((p: any) => playerSeries.has(p.id))
         .forEach((p: any) => {
           const series = playerSeries.get(p.id) || [];
-          const weight = playerWeights.get(p.id);
-          const posBm = getBenchmarkForPlayer(groupId, p.gender || null);
+          const weight = playerWeights.get(p.id) ?? null;
           const first = series[0];
-          const last = series[series.length - 1];
-          const useKgDelta = ratioTest && first?.rawKg != null && last?.rawKg != null;
-          const delta = first && last
-            ? useKgDelta ? last.rawKg! - first.rawKg! : last.value - first.value
-            : null;
-          const ratioDelta =
-            ratioTest && first?.ratio != null && last?.ratio != null
-              ? last.ratio - first.ratio
-              : null;
-          const fmtNum = (n: number, digits = 2) =>
-            n.toFixed(digits).replace(".", ",");
-          const cells = allDates.map((d) => {
-            const point = series.find((s) => s.date === d);
-            if (!point) return "";
-            if (ratioTest) {
-              const base = point.rawKg != null ? `${point.rawKg} kg` : `${point.value}`;
-              return point.ratio != null ? `${base} (ratio ${fmtNum(point.ratio)})` : base;
-            }
-            return `${point.value}${unit ? ` ${unit}` : ""}`;
+          series.forEach((point, idx) => {
+            const prev = series[idx - 1];
+            const metric = (pt: any) =>
+              ratioTest && pt?.rawKg != null ? pt.rawKg : pt?.value;
+            const deltaPrev =
+              prev && metric(prev) != null && metric(point) != null
+                ? Number((metric(point) - metric(prev)).toFixed(2))
+                : null;
+            const deltaFirst =
+              first && metric(first) != null && metric(point) != null
+                ? Number((metric(point) - metric(first)).toFixed(2))
+                : null;
+            resultRows.push({
+              poste: info.label,
+              joueur: p.first_name ? `${p.first_name} ${p.name}` : p.name,
+              sexe: p.gender || "",
+              date: point.date,
+              charge_kg: ratioTest ? point.rawKg ?? null : null,
+              valeur: point.value ?? null,
+              unite: ratioTest ? "kg" : unit,
+              poids_corps_kg: ratioTest ? weight : null,
+              ratio: ratioTest ? point.ratio ?? null : null,
+              delta_vs_precedent: deltaPrev,
+              delta_vs_premier: deltaFirst,
+            });
           });
-          const evoBase = useKgDelta ? first?.rawKg : first?.value;
-          const evoPct =
-            delta != null && evoBase != null && Number(evoBase) !== 0
-              ? (delta / Math.abs(Number(evoBase))) * 100
-              : null;
-          const evo =
-            delta == null || series.length < 2
-              ? ""
-              : `${delta > 0 ? "+" : ""}${fmtNum(delta, useKgDelta ? 1 : 2)}${
-                  useKgDelta ? " kg" : ratioTest ? " ratio" : unit ? ` ${unit}` : ""
-                }${
-                  evoPct != null ? ` (${evoPct > 0 ? "+" : ""}${fmtNum(evoPct, 1)} %)` : ""
-                }${
-                  ratioDelta != null && useKgDelta
-                    ? ` (${ratioDelta > 0 ? "+" : ""}${fmtNum(ratioDelta)} ratio)`
-                    : ""
-                }`;
-
-          rows.push([
-            info.label,
-            p.first_name ? `${p.first_name} ${p.name}` : p.name,
-            ...(ratioTest ? [weight ?? ""] : []),
-            ...cells,
-            evo,
-          ]);
         });
     });
-    if (rows.length === 0) return;
+    if (resultRows.length === 0) return;
+
     const slug = (selectedOpt?.label || "test")
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-zA-Z0-9]+/g, "-")
       .toLowerCase();
 
-    // Bloc "Barème" (si le test en possède un) placé avant les résultats
-    let baremeCsv = "";
+    const wb = XLSX.utils.book_new();
+
+    // --- Onglet Barème (colonnes numériques min / max) ---
     if (bm.levels?.length) {
-      const baremeHeaders = ["Barème — Poste", ...bm.levels.map((l) => l.label)];
-      const baremeRows: (string | number | null)[][] = [];
+      const baremeRows: Record<string, string | number | null>[] = [];
       playersByPosition.forEach(([groupId, info]) => {
         const posBm = getBenchmarkForGroup(groupId);
         if (!posBm) return;
-        baremeRows.push([
-          info.label,
-          ...bm.levels.map((_, i) =>
-            levelRangeString(posBm.levels || [], i, !!posBm.lower_is_better),
-          ),
-        ]);
+        const levels = posBm.levels || [];
+        const lb = !!posBm.lower_is_better;
+        levels.forEach((lvl, i) => {
+          const t = lvl.threshold ?? null;
+          const prevT = levels[i - 1]?.threshold ?? null;
+          const nextT = levels[i + 1]?.threshold ?? null;
+          let min: number | null;
+          let max: number | null;
+          if (lb) {
+            min = i === 0 ? null : prevT;
+            max = levels[i + 1] ? t : null;
+          } else {
+            min = i === 0 ? null : t;
+            max = i === 0 ? t : levels[i + 1] ? nextT : null;
+          }
+          baremeRows.push({
+            poste: info.label,
+            niveau: lvl.label,
+            min,
+            max,
+            unite: ratioTest ? "ratio (charge / poids de corps)" : unit,
+            sens: lb ? "plus bas = mieux" : "plus haut = mieux",
+          });
+        });
       });
       if (baremeRows.length > 0) {
-        baremeCsv =
-          generateCsv(baremeHeaders, baremeRows) +
-          `\n${ratioTest ? "Valeurs exprimées en ratio (charge ÷ poids de corps)" : unit ? `Valeurs exprimées en ${unit}` : ""}\n\n`;
+        XLSX.utils.book_append_sheet(
+          wb,
+          XLSX.utils.json_to_sheet(baremeRows),
+          "Barème",
+        );
       }
     }
 
-    const resultsCsv = generateCsv(headers, rows).replace(/^\uFEFF/, "");
-    downloadCsv(
-      `tests-${slug}-${format(new Date(), "yyyy-MM-dd")}.csv`,
-      baremeCsv ? baremeCsv + resultsCsv : generateCsv(headers, rows),
+    XLSX.utils.book_append_sheet(
+      wb,
+      XLSX.utils.json_to_sheet(resultRows),
+      "Résultats",
     );
+
+    XLSX.writeFile(wb, `tests-${slug}-${format(new Date(), "yyyy-MM-dd")}.xlsx`);
   };
 
   if (renderOnlyOptions) return null;
@@ -1021,7 +1021,7 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
             </div>
             {bm && allDates.length > 0 && (
               <Button variant="outline" size="sm" className="gap-1.5" onClick={handleExportCsv}>
-                <FileDown className="h-3.5 w-3.5" /> Exporter CSV
+                <FileDown className="h-3.5 w-3.5" /> Exporter Excel
               </Button>
             )}
           </div>
