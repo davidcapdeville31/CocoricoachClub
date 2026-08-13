@@ -194,6 +194,10 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
 
   const styleForQuestion = (q: WellnessQuestion, value: number | null | undefined) => {
     if (value == null) return {} as CSSProperties;
+    // 1) Respect the colour configured by the coach for this exact value
+    const exact = (q.scale ?? []).find((s) => Number(s.value) === Math.round(value));
+    if (exact?.color) return getScaleStyle(exact.color);
+    // 2) Fallback: normalise on the question's own bounds + orientation
     const values = (q.scale ?? []).map((s) => s.value).filter((n) => Number.isFinite(n));
     const min = values.length ? Math.min(...values) : 1;
     const max = values.length ? Math.max(...values) : 5;
@@ -203,6 +207,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
     const ratio = isInverted ? (clamped - min) / (max - min) : (max - clamped) / (max - min);
     return styleFor(1 + ratio * 4);
   };
+
 
 
 
