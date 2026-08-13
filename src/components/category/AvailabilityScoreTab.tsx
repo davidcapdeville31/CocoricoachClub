@@ -109,34 +109,45 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
 
         // Helper: clamp a value between 0 and 100
         const clamp100 = (v: number) => Math.max(0, Math.min(100, v));
-        // Helper: normalize a 1-5 wellness answer (defaults to best value when missing)
-        const val = (v: number | null | undefined) => Math.min(5, Math.max(1, Number(v) || 1));
 
         // Wellness Score (0-100) — null if no data
+        // Each answer is normalised to a "concern" ratio (0 = optimal, 1 = worst)
+        // using its own scale + orientation from the category configuration.
         let wellnessScore: number | null = null;
+        let fatigueConcern: number | null = null;
         if (hasWellness) {
-          const sleep = val(playerWellness!.sleep_quality);
-          const fatigue = val(playerWellness!.general_fatigue);
-          const stress = val(playerWellness!.stress_level);
-          const soreUp = val(playerWellness!.soreness_upper_body);
-          const soreLow = val(playerWellness!.soreness_lower_body);
+          const w: any = playerWellness!;
+          const concerns: number[] = [];
 
-          const sleepScore = clamp100((5 - sleep) * 25);
-          const fatigueScoreCalc = clamp100((5 - fatigue) * 25);
-          const stressScore = clamp100((5 - stress) * 25);
-          const sorenessScore = clamp100((10 - soreUp - soreLow) * 12.5);
+          for (const q of activeQuestions) {
+            const raw = q.is_custom ? w.custom_answers?.[q.key] : w[q.key];
+            if (raw === null || raw === undefined || raw === "") continue;
+            const num = Number(raw);
+            if (!Number.isFinite(num)) continue;
 
-          wellnessScore = Math.round(
-            clamp100((sleepScore + fatigueScoreCalc + stressScore + sorenessScore) / 4)
-          );
+            const values = (q.scale || []).map((s: any) => s.value);
+            const min = values.length ? Math.min(...values) : 1;
+            const max = values.length ? Math.max(...values) : 5;
+            if (max === min) continue;
+            const clamped = Math.max(min, Math.min(max, num));
+            // inverted === true  → higher value means worse
+            // inverted === false → higher value means better (sleep quality, hours…)
+            const isHigherWorse = !!q.inverted;
+            const ratio = isHigherWorse
+              ? (clamped - min) / (max - min)
+              : (max - clamped) / (max - min);
 
-          if (sleep >= 4) factors.push("Sommeil insuffisant");
-          if (fatigue >= 4) factors.push("Fatigue élevée");
-          if (stress >= 4) factors.push("Stress élevé");
-          if (soreUp >= 4 || soreLow >= 4) {
-            factors.push("Douleurs musculaires");
+            concerns.push(ratio);
+            if (q.key === "general_fatigue") fatigueConcern = ratio;
+            if (ratio >= 0.7) factors.push(q.label);
+          }
+
+          if (concerns.length > 0) {
+            const avgConcern = concerns.reduce((s, r) => s + r, 0) / concerns.length;
+            wellnessScore = Math.round(clamp100((1 - avgConcern) * 100));
           }
         }
+
 
         // Injury Score (0-100) — 100 if no injury (absence = bonne nouvelle)
         let injuryScore = 100;
