@@ -261,12 +261,24 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
   // Filter wellness data by date range
   const fromStr = filterFrom ? format(filterFrom, "yyyy-MM-dd") : null;
   const toStr = filterTo ? format(filterTo, "yyyy-MM-dd") : null;
-  const filteredWellnessData = wellnessData?.filter(entry => {
-    if (fromStr && entry.tracking_date < fromStr) return false;
-    if (toStr && entry.tracking_date > toStr) return false;
-    if (filterPlayerId !== "all" && entry.player_id !== filterPlayerId) return false;
-    return true;
-  });
+  const filteredWellnessData = wellnessData
+    ?.filter(entry => {
+      if (fromStr && entry.tracking_date < fromStr) return false;
+      if (toStr && entry.tracking_date > toStr) return false;
+      if (filterPlayerId !== "all" && entry.player_id !== filterPlayerId) return false;
+      return true;
+    })
+    // Most recent date first, then real answers before auto-filled ones, then name
+    .sort((a: any, b: any) => {
+      if (a.tracking_date !== b.tracking_date) return a.tracking_date < b.tracking_date ? 1 : -1;
+      const autoA = a.auto_filled ? 1 : 0;
+      const autoB = b.auto_filled ? 1 : 0;
+      if (autoA !== autoB) return autoA - autoB;
+      const nameA = [a.players?.first_name, a.players?.name].filter(Boolean).join(" ");
+      const nameB = [b.players?.first_name, b.players?.name].filter(Boolean).join(" ");
+      return nameA.localeCompare(nameB);
+    });
+
 
   // Unique players list from wellness data for the dropdown
   const playersList = Array.from(
