@@ -478,12 +478,21 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
     };
   }, [comparisonData, playerStats]);
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, severity?: string) => {
+    const suffix = severity === "watch" ? " (vigilance)" : "";
     switch (status) {
       case "over":
-        return <Badge className="bg-red-500 text-white">Surcharge</Badge>;
+        return (
+          <Badge className={severity === "watch" ? "bg-orange-500 text-white" : "bg-red-500 text-white"}>
+            Surcharge{suffix}
+          </Badge>
+        );
       case "under":
-        return <Badge className="bg-yellow-500 text-white">Sous-charge</Badge>;
+        return (
+          <Badge className={severity === "watch" ? "bg-amber-400 text-black" : "bg-yellow-500 text-white"}>
+            Sous-charge{suffix}
+          </Badge>
+        );
       default:
         return <Badge className="bg-green-500 text-white">Optimal</Badge>;
     }
