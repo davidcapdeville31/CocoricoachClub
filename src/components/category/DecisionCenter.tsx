@@ -1096,7 +1096,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
               {(groupStatus.injuredPlayers.length > 0 || groupStatus.uncertainPlayers.length > 0 || groupStatus.sickPlayers.length > 0) && (
                 <button
                   type="button"
-                  onClick={() => navigate(`/categories/${categoryId}?tab=health&subtab=injuries`)}
+                  onClick={() => navigate(`/categories/${categoryId}?tab=sante&subtab=injuries`)}
                   className="mt-2 w-full text-xs font-medium text-red-600 dark:text-red-400 hover:underline flex items-center justify-center gap-1"
                 >
                   Voir tous les blessés / incertains / malades
