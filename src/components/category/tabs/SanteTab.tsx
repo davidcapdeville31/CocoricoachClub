@@ -77,7 +77,7 @@ export function SanteTab({ categoryId }: SanteTabProps) {
 
   return (
     <SanteErrorBoundary>
-      <Tabs defaultValue="dashboard" className="space-y-4">
+      <Tabs value={subTab} onValueChange={setSubTab} className="space-y-4">
         <div className="flex justify-end">
           <SeasonRosterFilterToggle />
         </div>
