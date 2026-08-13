@@ -216,6 +216,11 @@ export function TrainingDistribution({ categoryId }: TrainingDistributionProps) 
             <Label className="text-xs text-muted-foreground">Au</Label>
             <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="h-8 w-[140px] text-sm" min={startDate} />
           </div>
+          <Button variant="outline" size="sm" className="gap-1.5 mt-5" onClick={handleExportCsv}>
+            <Download className="h-4 w-4" />
+            Export CSV
+          </Button>
+
         </div>
       </div>
 
