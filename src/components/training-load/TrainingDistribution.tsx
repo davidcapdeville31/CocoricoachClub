@@ -117,6 +117,37 @@ export function TrainingDistribution({ categoryId }: TrainingDistributionProps) 
     };
   }, [data]);
 
+  const handleExportCsv = () => {
+    if (!stats) {
+      toast.error("Aucune donnée à exporter sur cette période");
+      return;
+    }
+    const headers = ["Catégorie", "Valeur", "Nombre de blocs", "Part (%)", "Du", "Au"];
+    const rows: (string | number)[][] = [];
+    const pct = (n: number) => (stats.totalBlocks > 0 ? Math.round((n / stats.totalBlocks) * 100) : 0);
+    const push = (group: string, map: Map<string, number>, label: (v: string) => string) => {
+      Array.from(map.entries())
+        .sort((a, b) => b[1] - a[1])
+        .forEach(([value, count]) => {
+          rows.push([group, label(value), count, pct(count), startDate, endDate]);
+        });
+    };
+    push("Intensité", stats.intensityCounts, getIntensityLabel);
+    push("Volume", stats.volumeCounts, getVolumeLabel);
+    push("Charge de contact", stats.contactCounts, getContactChargeLabel);
+    push("Thématique", stats.typeCounts, getSessionTypeLabel);
+    push("Objectif", stats.objectiveCounts, getObjectiveLabel);
+    rows.push(["Total", "Séances", stats.totalSessions, "", startDate, endDate]);
+    rows.push(["Total", "Blocs", stats.totalBlocks, "", startDate, endDate]);
+
+    downloadCsv(
+      `repartition-entrainements-${startDate}_${endDate}.csv`,
+      generateCsv(headers, rows),
+    );
+  };
+
+
+
   if (isLoading) {
     return (
       <Card>
