@@ -370,6 +370,11 @@ export function TeamLoadComparison({
                 <SelectItem value="name">Nom</SelectItem>
               </SelectContent>
             </Select>
+
+            <Button variant="outline" size="sm" className="h-9 gap-1.5" onClick={handleExportCsv}>
+              <Download className="h-4 w-4" />
+              Export CSV
+            </Button>
           </div>
         </div>
 
