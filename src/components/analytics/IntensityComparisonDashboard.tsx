@@ -427,10 +427,10 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       "Poste",
       "RPE prévu (staff)",
       "RPE réel (athlète)",
-      "Écart",
-      "Alerte",
       "duree_min",
       "Charge (UA)",
+      "Écart",
+      "Alerte",
       "Statut",
     ];
     const rows = detailRows.map((r) => [
@@ -441,10 +441,10 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       r.position,
       String(r.planned).replace(".", ","),
       String(r.actual).replace(".", ","),
-      String(r.diff).replace(".", ","),
-      r.alert,
       r.durationMin ?? "",
       r.load,
+      String(r.diff).replace(".", ","),
+      r.alert,
       r.status,
     ]);
     downloadCsv(
