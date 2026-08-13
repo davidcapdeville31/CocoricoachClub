@@ -248,14 +248,18 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
     for (const q of activeQuestions) {
       const v = getAnswer(entry, q);
       if (v == null) continue;
+      // sleep_duration: always a 1-5 score, 1 = >8h (optimal) → 5 = <5h (worst)
+      if (q.is_sleep_duration) {
+        const s = Math.max(1, Math.min(5, v));
+        ratios.push((s - 1) / 4);
+        continue;
+      }
       const values = (q.scale ?? []).map((s) => s.value).filter((n) => Number.isFinite(n));
       const min = values.length ? Math.min(...values) : 1;
       const max = values.length ? Math.max(...values) : 5;
       if (max === min) continue;
       const clamped = Math.max(min, Math.min(max, v));
-      // sleep_duration is stored 1 = >8h (best) → behaves like an inverted scale
-      const isInverted = q.inverted || q.is_sleep_duration;
-      const ratio = isInverted
+      const ratio = q.inverted
         ? (clamped - min) / (max - min) // high value = high concern
         : (max - clamped) / (max - min); // high value = low concern
       ratios.push(ratio);
