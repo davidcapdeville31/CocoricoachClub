@@ -199,7 +199,8 @@ export function mergeWithDefaults(saved: WellnessQuestion[] | null | undefined):
   for (const q of saved) {
     const defaultQ = DEFAULT_WELLNESS_QUESTIONS.find(d => d.key === q.key);
     const isStandard = !!defaultQ;
-    const validScale = Array.isArray(q.scale) && (q.scale.length === 5 || q.scale.length === 6);
+    // Custom questions may define any scale length (e.g. 0..3) — keep it as configured.
+    const validScale = Array.isArray(q.scale) && q.scale.length >= 2;
     // Force standard keys to use the new 0..5 defaults (length 6) so legacy
     // saved configs (length 5, value 1..5) are automatically migrated.
     result.push({
