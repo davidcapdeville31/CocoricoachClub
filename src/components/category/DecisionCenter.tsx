@@ -948,7 +948,19 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
 
           {/* Col 2: Joueurs à risque */}
           <Card className="border-2 border-orange-500/20 bg-gradient-to-r from-orange-500/5 to-transparent">
-            <CardHeader className="pb-2">
+            <CardHeader
+              className="pb-2 cursor-pointer hover:bg-orange-500/5 transition-colors rounded-t-lg"
+              role="button"
+              tabIndex={0}
+              onClick={() => navigate(`/categories/${categoryId}?tab=performance&subtab=physical-prep`)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  navigate(`/categories/${categoryId}?tab=performance&subtab=physical-prep`);
+                }
+              }}
+              title="Voir l'analyse complète des athlètes à risque"
+            >
               <CardTitle className="text-sm flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-orange-500" />
                 À risque
@@ -957,8 +969,10 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                     {groupStatus.atRisk}
                   </Badge>
                 )}
+                <ChevronRight className={cn("h-4 w-4 text-orange-500 shrink-0", groupStatus.atRisk > 0 ? "" : "ml-auto")} />
               </CardTitle>
             </CardHeader>
+
             <CardContent>
               {groupStatus.atRiskPlayers.length === 0 ? (
                 <div className="text-center py-4">
