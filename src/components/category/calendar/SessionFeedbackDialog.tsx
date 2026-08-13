@@ -108,14 +108,10 @@ export function SessionFeedbackDialog({
   const defaultDuration = useMemo(() => {
     // For test sessions, duration has no meaning — use 1 so trainingLoad = rpe
     if (sessionType === "test") return 1;
-    if (session?.session_start_time && session?.session_end_time) {
-      const start = session.session_start_time.split(":");
-      const end = session.session_end_time.split(":");
-      const startMinutes = parseInt(start[0]) * 60 + parseInt(start[1]);
-      const endMinutes = parseInt(end[0]) * 60 + parseInt(end[1]);
-      return Math.max(0, endMinutes - startMinutes);
-    }
-    return 60; // Default 60 minutes if no times set
+    return computeSessionDurationMinutes(
+      session?.session_start_time,
+      session?.session_end_time
+    );
   }, [session, sessionType]);
 
   // Fetch players
