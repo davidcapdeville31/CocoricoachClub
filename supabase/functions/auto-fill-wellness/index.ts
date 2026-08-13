@@ -65,10 +65,14 @@ function buildOptimalWellness(questions: WellnessQuestion[] | null) {
 
   for (const key of STANDARD_KEYS) {
     const q = questions?.find((x) => x.key === key);
-    // sleep_duration is always a 1-5 score where 1 = >8h (optimal): force inverted
-    const forced = key === "sleep_duration" ? { ...(q ?? {}), inverted: true } : (q ?? {});
-    payload[key] = optimalValue(forced, DEFAULT_INVERTED[key]);
+    // sleep_duration: honour the category's own scale/orientation when configured,
+    // otherwise fall back to the legacy 1-5 score where 1 = >8h (inverted).
+    let value = optimalValue(q ?? {}, DEFAULT_INVERTED[key]);
+    // DB constraint: sleep_duration must be >= 1
+    if (key === "sleep_duration") value = Math.max(1, value);
+    payload[key] = value;
   }
+
 
   for (const q of questions || []) {
     if (!q.is_custom || q.enabled === false) continue;
