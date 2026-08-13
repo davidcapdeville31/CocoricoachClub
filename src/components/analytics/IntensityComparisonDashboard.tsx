@@ -204,7 +204,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
   }, [sessions]);
 
   useEffect(() => {
-    if (selectedSession !== "all" && !sessionOptions.some((s) => s.id === selectedSession)) {
+    if (sessionOptions.length > 0 && selectedSession !== "all" && !sessionOptions.some((s) => s.id === selectedSession)) {
       setSelectedSession("all");
     }
   }, [sessionOptions, selectedSession]);
