@@ -37,9 +37,11 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
   const { allowedIds, isFiltering } = useSeasonFilteredPlayerIds(categoryId);
   const { isDateInActiveSeason, activeSeasonEnd } = useSeasonRosterFilter();
   const scopeKey = isFiltering ? `season:${activeSeasonEnd ?? "x"}` : "all";
+  const { data: wellnessQuestions } = useWellnessQuestions(categoryId);
+  const activeQuestions = (wellnessQuestions || DEFAULT_WELLNESS_QUESTIONS).filter((q) => q.enabled);
 
   const { data: availabilityData, isLoading } = useQuery({
-    queryKey: ["availability-scores", categoryId, scopeKey],
+    queryKey: ["availability-scores", categoryId, scopeKey, activeQuestions.map((q) => `${q.key}:${q.inverted}`).join(",")],
     queryFn: async () => {
       // Get all players
       const { data: playersRaw } = await supabase
