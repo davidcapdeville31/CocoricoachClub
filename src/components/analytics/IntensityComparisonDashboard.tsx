@@ -722,10 +722,21 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       {/* Player Details */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Détail par athlète
-          </CardTitle>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Détail par athlète
+            </CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={handleExportCsv}
+            >
+              <Download className="h-4 w-4" />
+              Export CSV / Excel
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {displayedPlayerStats.length === 0 ? (
