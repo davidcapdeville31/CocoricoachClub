@@ -10,6 +10,7 @@ import { format, subDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useWellnessQuestions, DEFAULT_WELLNESS_QUESTIONS } from "@/lib/wellness/questionConfig";
 
 interface AvailabilityScoreTabProps {
   categoryId: string;
