@@ -78,8 +78,10 @@ function buildOptimalWellness(questions: WellnessQuestion[] | null) {
 
   for (const q of questions || []) {
     if (!q.is_custom || q.enabled === false) continue;
-    customAnswers[q.key] = optimalValue(q, false);
+    // Custom questions default to "lower = better" (0 = aucun symptôme)
+    customAnswers[q.key] = optimalValue(q, q.inverted ?? true);
   }
+
 
   payload.custom_answers = customAnswers;
   return payload;
