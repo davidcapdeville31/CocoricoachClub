@@ -998,7 +998,18 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                   </div>
                 </ScrollArea>
               )}
+              {groupStatus.atRiskPlayers.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => navigate(`/categories/${categoryId}?tab=performance&subtab=physical-prep`)}
+                  className="mt-2 w-full text-xs font-medium text-orange-600 dark:text-orange-400 hover:underline flex items-center justify-center gap-1"
+                >
+                  Analyser tous les athlètes à risque
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+              )}
             </CardContent>
+
           </Card>
 
           {/* Col 3: Blessés / Incertains / Malades */}
