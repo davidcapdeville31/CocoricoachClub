@@ -1021,7 +1021,7 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
             </div>
             {bm && allDates.length > 0 && (
               <Button variant="outline" size="sm" className="gap-1.5" onClick={handleExportCsv}>
-                <FileDown className="h-3.5 w-3.5" /> Exporter CSV
+                <FileDown className="h-3.5 w-3.5" /> Exporter Excel
               </Button>
             )}
           </div>
