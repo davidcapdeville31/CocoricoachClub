@@ -63,10 +63,10 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
       // Filter out auto-completed zero-load entries
       const awcrData = awcrDataRaw?.filter(a => !(a.rpe === 0 && a.duration_minutes === 0));
 
-      // Get latest wellness data (exclude auto-completed entries with all scores at 1)
+      // Get latest wellness data
       const { data: wellnessDataRaw } = await supabase
         .from("wellness_tracking")
-        .select("player_id, sleep_quality, general_fatigue, stress_level, soreness_upper_body, soreness_lower_body")
+        .select("player_id, sleep_quality, sleep_duration, general_fatigue, stress_level, soreness_upper_body, soreness_lower_body, custom_answers")
         .eq("category_id", categoryId)
         .gte("tracking_date", format(weekAgo, "yyyy-MM-dd"))
         .order("tracking_date", { ascending: false });
