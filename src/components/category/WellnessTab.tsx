@@ -168,6 +168,22 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
     const inverted = 6 - rounded; // 5→1 (best→green), 1→5 (worst→red)
     return getScaleStyle(scale.find((s) => s.value === inverted)?.color);
   };
+  /** Color a question answer using its OWN scale bounds + orientation.
+   *  Works for 0..5 custom questions (0 = aucun symptôme → vert). */
+
+  const styleForQuestion = (q: WellnessQuestion, value: number | null | undefined) => {
+    if (value == null) return {} as CSSProperties;
+    const values = (q.scale ?? []).map((s) => s.value).filter((n) => Number.isFinite(n));
+    const min = values.length ? Math.min(...values) : 1;
+    const max = values.length ? Math.max(...values) : 5;
+    if (max === min) return {} as CSSProperties;
+    const clamped = Math.max(min, Math.min(max, value));
+    const isInverted = q.inverted || q.is_sleep_duration;
+    const ratio = isInverted ? (clamped - min) / (max - min) : (max - clamped) / (max - min);
+    return styleFor(1 + ratio * 4);
+  };
+
+
 
 
   const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
@@ -458,7 +474,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                             ) : (
                               <Badge
                                 variant="outline"
-                                style={q.inverted || q.is_sleep_duration ? styleFor(raw) : styleForPositive(raw)}
+                                style={styleForQuestion(q, raw)}
                               >
                                 {q.is_sleep_duration ? sleepScoreLabel(raw) : raw}
                               </Badge>
