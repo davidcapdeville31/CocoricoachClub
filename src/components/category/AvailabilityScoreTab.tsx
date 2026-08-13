@@ -128,21 +128,27 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
             const num = Number(raw);
             if (!Number.isFinite(num)) continue;
 
+            // `sleep_duration` is stored as a 1-5 score where 1 = >8h (optimal)
+            // and 5 = <5h (worst) — i.e. lower is better, whatever the config says.
+            const isSleepDuration = q.key === "sleep_duration" || !!q.is_sleep_duration;
+
             const values = (q.scale || []).map((s: any) => s.value);
-            const min = values.length ? Math.min(...values) : 1;
-            const max = values.length ? Math.max(...values) : 5;
+            let min = values.length ? Math.min(...values) : 1;
+            let max = values.length ? Math.max(...values) : 5;
+            if (isSleepDuration) { min = 1; max = 5; }
             if (max === min) continue;
             const clamped = Math.max(min, Math.min(max, num));
             // inverted === true  → higher value means worse
-            // inverted === false → higher value means better (sleep quality, hours…)
-            const isHigherWorse = !!q.inverted;
+            // inverted === false → higher value means better (sleep quality…)
+            const isHigherWorse = isSleepDuration ? true : !!q.inverted;
             const ratio = isHigherWorse
               ? (clamped - min) / (max - min)
               : (max - clamped) / (max - min);
 
             concerns.push(ratio);
             if (q.key === "general_fatigue") fatigueConcern = ratio;
-            if (ratio >= 0.7) factors.push(q.label);
+            if (ratio >= 0.7) factors.push(isSleepDuration ? "Sommeil insuffisant" : q.label);
+
           }
 
           if (concerns.length > 0) {
