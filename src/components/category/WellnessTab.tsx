@@ -474,7 +474,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                             ) : (
                               <Badge
                                 variant="outline"
-                                style={q.inverted || q.is_sleep_duration ? styleFor(raw) : styleForPositive(raw)}
+                                style={styleForQuestion(q, raw)}
                               >
                                 {q.is_sleep_duration ? sleepScoreLabel(raw) : raw}
                               </Badge>
