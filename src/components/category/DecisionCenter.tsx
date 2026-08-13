@@ -1014,8 +1014,12 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
 
           {/* Col 3: Blessés / Incertains / Malades */}
           <Card className="border-2 border-red-500/20 bg-gradient-to-r from-red-500/5 to-transparent">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm flex items-center gap-2">
+            <CardHeader
+              className="pb-2 cursor-pointer"
+              onClick={() => navigate(`/categories/${categoryId}?tab=sante&subtab=injuries`)}
+              title="Voir Santé › Blessures / Maladies"
+            >
+              <CardTitle className="text-sm flex items-center gap-2 hover:underline">
                 <XCircle className="h-4 w-4 text-red-500" />
                 Blessés / Incertains / Malades
                 {(groupStatus.total - groupStatus.available) > 0 && (
@@ -1096,7 +1100,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
               {(groupStatus.injuredPlayers.length > 0 || groupStatus.uncertainPlayers.length > 0 || groupStatus.sickPlayers.length > 0) && (
                 <button
                   type="button"
-                  onClick={() => navigate(`/categories/${categoryId}?tab=health&subtab=injuries`)}
+                  onClick={() => navigate(`/categories/${categoryId}?tab=sante&subtab=injuries`)}
                   className="mt-2 w-full text-xs font-medium text-red-600 dark:text-red-400 hover:underline flex items-center justify-center gap-1"
                 >
                   Voir tous les blessés / incertains / malades
