@@ -770,8 +770,17 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
     const unit = ratioTest ? "kg" : bm.unit || "";
     const lowerBetter = !!bm.lower_is_better;
 
+    // Identifiant normalisé du test (minuscules, sans espaces ni accents)
+    const testKey = (selectedOpt?.label || "test")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "")
+      .toLowerCase();
+
     // --- Onglet Résultats (format long) ---
     const resultRows: Record<string, string | number | null>[] = [];
+
     playersByPosition.forEach(([groupId, info]) => {
       info.list
         .filter((p: any) => playerSeries.has(p.id))
@@ -792,15 +801,16 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                 ? Number((metric(point) - metric(first)).toFixed(2))
                 : null;
             resultRows.push({
+              test: testKey,
               poste: info.label,
               joueur: p.first_name ? `${p.first_name} ${p.name}` : p.name,
               sexe: p.gender || "",
               date: point.date,
-              charge_kg: ratioTest ? point.rawKg ?? null : null,
-              valeur: point.value ?? null,
+              valeur: ratioTest ? point.rawKg ?? point.value ?? null : point.value ?? null,
               unite: ratioTest ? "kg" : unit,
               poids_corps_kg: ratioTest ? weight : null,
               ratio: ratioTest ? point.ratio ?? null : null,
+
               delta_vs_precedent: deltaPrev,
               delta_vs_premier: deltaFirst,
             });
@@ -839,7 +849,9 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
             max = i === 0 ? t : levels[i + 1] ? nextT : null;
           }
           baremeRows.push({
+            test: testKey,
             poste: info.label,
+
             niveau: lvl.label,
             min,
             max,
