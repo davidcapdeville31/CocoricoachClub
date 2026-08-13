@@ -4,9 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { useState, useMemo } from "react";
 import { format, subDays } from "date-fns";
-import { BarChart3, Dumbbell, Zap, Shield, CalendarRange } from "lucide-react";
+import { BarChart3, Dumbbell, Zap, Shield, CalendarRange, Download } from "lucide-react";
+import { generateCsv, downloadCsv } from "@/lib/csv";
+import { toast } from "sonner";
 import {
   getSessionTypeLabel,
   getObjectiveLabel,
@@ -17,6 +20,7 @@ import {
   VOLUME_OPTIONS,
   CONTACT_CHARGE_OPTIONS,
 } from "@/lib/constants/sessionBlockOptions";
+
 
 interface TrainingDistributionProps {
   categoryId: string;
