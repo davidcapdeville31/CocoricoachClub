@@ -225,6 +225,52 @@ export function TeamLoadComparison({
     group: p.positionGroup,
   }));
 
+  const riskLabel = (r?: string) =>
+    r === "danger" ? "Risque élevé" : r === "warning" ? "Vigilance" : "Optimal";
+
+  const handleExportCsv = () => {
+    if (filteredPlayers.length === 0) {
+      toast.error("Aucune donnée à exporter");
+      return;
+    }
+    const num = (v: number | undefined, d = 2) =>
+      v == null ? "" : v.toFixed(d).replace(".", ",");
+    const headers = [
+      "Athlète",
+      isIndividual ? "Discipline" : "Poste",
+      "Groupe",
+      "Ratio EWMA (ACWR)",
+      "Charge aiguë",
+      "Charge chronique",
+      "Niveau de risque",
+    ];
+    const rows = filteredPlayers.map((p) => [
+      p.name,
+      (isIndividual ? (p.discipline ? getDisciplineLabel(p.discipline) : "") : p.position) || "—",
+      p.positionGroup ? getPositionGroupLabel(p.positionGroup as RugbyPositionGroup) : "—",
+      num(p.summary?.ewmaRatio),
+      num(p.summary?.ewmaAcute, 1),
+      num(p.summary?.ewmaChronic, 1),
+      riskLabel(p.summary?.riskLevel),
+    ]);
+    if (teamAverage) {
+      rows.push([
+        "Moyenne équipe",
+        "",
+        "",
+        num(teamAverage.ewmaRatio),
+        num(teamAverage.ewmaAcute, 1),
+        num(teamAverage.ewmaChronic, 1),
+        "",
+      ]);
+    }
+    downloadCsv(
+      `comparaison-charge-equipe-${new Date().toISOString().split("T")[0]}.csv`,
+      generateCsv(headers, rows),
+    );
+  };
+
+
   if (isLoading) {
     return (
       <Card className="bg-gradient-card shadow-md">
