@@ -443,10 +443,37 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       r.status,
     ]);
     downloadCsv(
-      `rpe-prevu-reel-${new Date().toISOString().split("T")[0]}.csv`,
+      `rpe-prevu-reel-${rangeFrom}_${rangeTo || new Date().toISOString().split("T")[0]}.csv`,
       generateCsv(headers, rows),
     );
   };
+
+  // Export de la synthèse par séance sur la période sélectionnée
+  const handleExportSessionsCsv = () => {
+    if (comparisonData.length === 0) {
+      toast.error("Aucune séance à exporter sur cette période");
+      return;
+    }
+    const headers = [
+      "Date",
+      "RPE prévu (staff)",
+      "RPE réel (athlètes)",
+      "Écart",
+      "Nb athlètes",
+    ];
+    const rows = comparisonData.map((d: any) => [
+      d.fullDate || d.date,
+      String(Number(d.planned).toFixed(1)).replace(".", ","),
+      String(Number(d.actual).toFixed(1)).replace(".", ","),
+      String(Number(d.diff).toFixed(1)).replace(".", ","),
+      d.playerCount ?? "",
+    ]);
+    downloadCsv(
+      `rpe-par-seance-${rangeFrom}_${rangeTo || new Date().toISOString().split("T")[0]}.csv`,
+      generateCsv(headers, rows),
+    );
+  };
+
 
 
   // Check for team-wide RPE alert (>5 athletes with +2 gap)
