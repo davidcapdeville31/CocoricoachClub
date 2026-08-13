@@ -14,6 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { isRugbyType } from "@/lib/constants/sportTypes";
 import React from "react";
+import { useSearchParams } from "react-router-dom";
 
 interface SanteTabProps {
   categoryId: string;
