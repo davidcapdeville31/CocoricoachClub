@@ -1476,14 +1476,34 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                   }
                   const isLast = index === lastIndexWithData;
                   const anchor = isLast ? "end" : "start";
-                  const offset = isLast ? -12 : 12;
+                  const offset = isLast ? -16 : 16;
                   return (
                     <g key={`${key}-${index}`}>
-                      <text x={x + offset} y={y - 18} textAnchor={anchor} fontSize={10} fontWeight={700} fill={color}>
+                      <text
+                        x={x + offset}
+                        y={y - 22}
+                        textAnchor={anchor}
+                        fontSize={11}
+                        fontWeight={700}
+                        fill={color}
+                        stroke="hsl(var(--background))"
+                        strokeWidth={3}
+                        paintOrder="stroke"
+                      >
                         {pct > 0 ? "+" : ""}{pct.toFixed(1)}%
                       </text>
                       {cumPct != null && (
-                        <text x={x + offset} y={y - 6} textAnchor={anchor} fontSize={9} fontWeight={600} fill={cumColor}>
+                        <text
+                          x={x + offset}
+                          y={y - 8}
+                          textAnchor={anchor}
+                          fontSize={10}
+                          fontWeight={600}
+                          fill={cumColor}
+                          stroke="hsl(var(--background))"
+                          strokeWidth={3}
+                          paintOrder="stroke"
+                        >
                           cum. {cumPct > 0 ? "+" : ""}{cumPct.toFixed(1)}%
                         </text>
                       )}
@@ -1502,7 +1522,7 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                     </div>
                     <div className="h-80 w-full">
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={chartData} margin={{ top: 30, right: 40, left: 0, bottom: 10 }}>
+                        <LineChart data={chartData} margin={{ top: 34, right: 60, left: 0, bottom: 10 }}>
                           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                           <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
                           <YAxis
@@ -1603,15 +1623,18 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
               if (!d?.pctLabel) return null;
               const isLast = index === chartData.length - 1;
               const anchor = isLast ? "end" : "start";
-              const offset = isLast ? -12 : 12;
+              const offset = isLast ? -16 : 16;
               return (
                 <text
                   x={x + offset}
-                  y={y - 8}
+                  y={y - 12}
                   textAnchor={anchor}
-                  fontSize={11}
+                  fontSize={12}
                   fontWeight={700}
                   fill={d.pctLabel.color}
+                  stroke="hsl(var(--background))"
+                  strokeWidth={3}
+                  paintOrder="stroke"
                 >
                   {d.pctLabel.text}
                 </text>
@@ -1620,7 +1643,7 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
             return (
               <div className="h-80 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData} margin={{ top: 30, right: 50, left: 0, bottom: 10 }}>
+                  <LineChart data={chartData} margin={{ top: 34, right: 70, left: 0, bottom: 10 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
                     <YAxis
