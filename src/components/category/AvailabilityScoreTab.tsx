@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { computeAcwr, acwrToScore } from "@/lib/acwr";
+import { computeAcwrDetailed, acwrToScore, acwrMethodLabel, ACWR_MIN_HISTORY_DAYS } from "@/lib/acwr";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -27,6 +27,8 @@ interface PlayerAvailability {
   position: string | null;
   acwr: number | null;
   acwrScore: number | null;
+  acwrInsufficient: boolean;
+  acwrHistoryDays: number;
   adherenceRatio: number | null;
   wellnessScore: number | null;
   injuryScore: number;
@@ -101,7 +103,8 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
 
         // ---- ACWR réel : charge aiguë (7j) / charge chronique (28j) ----
         const hasLoad = playerLoads.length > 0;
-        const acwr = computeAcwr(playerLoads as any, acwrMethod, today);
+        const acwrDetail = computeAcwrDetailed(playerLoads as any, acwrMethod, today);
+        const acwr = acwrDetail.acwr;
         const acwrScore = acwrToScore(acwr);
         if (acwr !== null && acwrScore !== null && acwrScore < 100) {
           factors.push(acwr < 0.8 ? `ACWR faible (${acwr.toFixed(2)})` : `ACWR élevé (${acwr.toFixed(2)})`);
@@ -217,6 +220,8 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
           position: player.position,
           acwr,
           acwrScore,
+          acwrInsufficient: acwrDetail.insufficientHistory,
+          acwrHistoryDays: acwrDetail.historyDays,
           adherenceRatio,
           wellnessScore,
           injuryScore,
@@ -345,7 +350,7 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
             <InfoHint
               title="ACWR vs ratio d'adhérence"
               what="L'ACWR compare la charge aiguë (7 jours) à la charge chronique (28 jours). Le ratio d'adhérence compare la charge réalisée à la charge prévue par le staff."
-              how="ACWR = charge 7j ÷ charge 28j (moyenne glissante ou pondérée exponentielle EWMA). Adhérence = réel ÷ prévu sur 7 jours."
+              how={`ACWR = charge 7j ÷ charge 28j (${acwrMethodLabel(acwrMethod)}). Tant que la fenêtre chronique compte moins de 21 jours d'historique (début de saison), l'ACWR n'est pas calculé et le score de disponibilité repose à 100 % sur le wellness. Adhérence = réel ÷ prévu sur 7 jours.`}
               why="Seul l'ACWR est soumis aux seuils 0,8 / 1,3 issus de la littérature. L'adhérence est purement descriptive et n'entre pas dans le score."
             />
           </div>
@@ -397,7 +402,9 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
                       <Activity className="h-4 w-4 text-blue-400" />
                       <span>
                         ACWR: {player.acwrScore !== null
-                          ? <>{player.acwrScore}% <span className="text-muted-foreground">({player.acwr?.toFixed(2)})</span></>
+                          ? <>{player.acwrScore}% <span className="text-muted-foreground">({player.acwr?.toFixed(2)} · {acwrMethod === "ewma" ? "EWMA" : "glissante"})</span></>
+                          : player.acwrInsufficient
+                          ? <span className="italic text-muted-foreground">non calculé ({player.acwrHistoryDays}/{ACWR_MIN_HISTORY_DAYS} j) — score sur wellness seul</span>
                           : <span className="text-muted-foreground italic">—</span>}
                       </span>
                     </div>
