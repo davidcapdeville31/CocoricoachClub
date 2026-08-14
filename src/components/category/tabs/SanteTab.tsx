@@ -177,7 +177,7 @@ export function SanteTab({ categoryId }: SanteTabProps) {
 
         {!isViewer && hasConcussionProtocol && (
           <TabsContent value="concussion">
-            <ConcussionProtocolTab categoryId={categoryId} />
+            <ConcussionProtocolTab categoryId={categoryId} sportType={sportType || "XV"} />
           </TabsContent>
         )}
       </Tabs>
