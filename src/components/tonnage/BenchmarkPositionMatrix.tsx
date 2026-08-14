@@ -1378,22 +1378,43 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                   const { x, y, index } = props;
                   if (index === 0 || x == null || y == null) return null;
                   const curr = chartData[index]?.[key];
-                  // Find previous non-null value for this player
+                  // Valeur précédente non nulle (évolution test à test)
                   let prev: any = null;
                   for (let j = index - 1; j >= 0; j--) {
                     if (chartData[j]?.[key] != null) { prev = chartData[j][key]; break; }
                   }
+                  // Première valeur non nulle (évolution cumulée depuis le 1er test)
+                  let base: any = null;
+                  for (let j = 0; j < index; j++) {
+                    if (chartData[j]?.[key] != null) { base = chartData[j][key]; break; }
+                  }
                   if (prev == null || curr == null || prev === 0) return null;
                   const pct = ((curr - prev) / Math.abs(prev)) * 100;
-                  if (Math.abs(pct) < 0.5) return null;
+                  const cumPct =
+                    base != null && base !== 0 ? ((curr - base) / Math.abs(base)) * 100 : null;
                   const improved = lowerBetter ? pct < 0 : pct > 0;
                   const color = improved ? "hsl(142 71% 40%)" : "hsl(0 72% 51%)";
+                  const cumImproved = cumPct == null ? null : lowerBetter ? cumPct < 0 : cumPct > 0;
+                  const cumColor =
+                    cumImproved == null
+                      ? "hsl(var(--muted-foreground))"
+                      : cumImproved
+                      ? "hsl(142 71% 40%)"
+                      : "hsl(0 72% 51%)";
                   return (
-                    <text x={x + 12} y={y - 8} textAnchor="start" fontSize={10} fontWeight={700} fill={color}>
-                      {pct > 0 ? "+" : ""}{pct.toFixed(1)}%
-                    </text>
+                    <g>
+                      <text x={x + 12} y={y - 18} textAnchor="start" fontSize={10} fontWeight={700} fill={color}>
+                        {pct > 0 ? "+" : ""}{pct.toFixed(1)}%
+                      </text>
+                      {cumPct != null && (
+                        <text x={x + 12} y={y - 6} textAnchor="start" fontSize={9} fontWeight={600} fill={cumColor}>
+                          cum. {cumPct > 0 ? "+" : ""}{cumPct.toFixed(1)}%
+                        </text>
+                      )}
+                    </g>
                   );
                 };
+
 
                 return (
                   <div className="mt-6">
