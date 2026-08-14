@@ -359,8 +359,32 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
             Score de Disponibilité
           </CardTitle>
           <CardDescription>
-            Score global combinant AWCR, wellness, blessures et fatigue
+            Score global = ACWR (50 %) + Wellness (50 %). Une blessure active ou une réathlétisation
+            plafonne automatiquement le statut à « Limité » (ou « Indisponible » si grave).
           </CardDescription>
+          <div className="flex items-center gap-2 pt-2">
+            <span className="text-xs text-muted-foreground">Méthode ACWR :</span>
+            <Button
+              size="sm"
+              variant={acwrMethod === "rolling" ? "default" : "outline"}
+              onClick={() => setAcwrMethod("rolling")}
+            >
+              Moyenne glissante
+            </Button>
+            <Button
+              size="sm"
+              variant={acwrMethod === "ewma" ? "default" : "outline"}
+              onClick={() => setAcwrMethod("ewma")}
+            >
+              EWMA
+            </Button>
+            <InfoHint
+              title="ACWR vs ratio d'adhérence"
+              what="L'ACWR compare la charge aiguë (7 jours) à la charge chronique (28 jours). Le ratio d'adhérence compare la charge réalisée à la charge prévue par le staff."
+              how="ACWR = charge 7j ÷ charge 28j (moyenne glissante ou pondérée exponentielle EWMA). Adhérence = réel ÷ prévu sur 7 jours."
+              why="Seul l'ACWR est soumis aux seuils 0,8 / 1,3 issus de la littérature. L'adhérence est purement descriptive et n'entre pas dans le score."
+            />
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -407,7 +431,11 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div className="flex items-center gap-2">
                       <Activity className="h-4 w-4 text-blue-400" />
-                      <span>AWCR: {player.awcrScore !== null ? `${player.awcrScore}%` : <span className="text-muted-foreground italic">—</span>}</span>
+                      <span>
+                        ACWR: {player.acwrScore !== null
+                          ? <>{player.acwrScore}% <span className="text-muted-foreground">({player.acwr?.toFixed(2)})</span></>
+                          : <span className="text-muted-foreground italic">—</span>}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Heart className="h-4 w-4 text-pink-400" />
@@ -415,11 +443,13 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
                     </div>
                     <div className="flex items-center gap-2">
                       <AlertTriangle className="h-4 w-4 text-orange-400" />
-                      <span>Blessure: {player.injuryScore}%</span>
+                      <span>Blessure: {player.injuryScore === 100 ? "aucune" : `${player.injuryScore}%`}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Battery className="h-4 w-4 text-green-400" />
-                      <span>Fatigue: {player.fatigueScore !== null ? `${player.fatigueScore}%` : <span className="text-muted-foreground italic">—</span>}</span>
+                      <Target className="h-4 w-4 text-green-400" />
+                      <span className="text-muted-foreground">
+                        Adhérence: {player.adherenceRatio !== null ? player.adherenceRatio.toFixed(2) : <span className="italic">—</span>}
+                      </span>
                     </div>
                   </div>
 
