@@ -780,6 +780,19 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
 
     // --- Onglet Résultats (format long) ---
     const resultRows: Record<string, string | number | null>[] = [];
+    // --- Onglet Synthèse (1 ligne par joueur : 1er → dernier test) ---
+    const summaryRows: Record<string, string | number | null>[] = [];
+
+    const pct = (delta: number | null, base: number | null | undefined) =>
+      delta != null && base != null && Number(base) !== 0
+        ? Number(((delta / Math.abs(Number(base))) * 100).toFixed(1))
+        : null;
+    const trend = (delta: number | null) =>
+      delta == null || delta === 0
+        ? "stable"
+        : (lowerBetter ? delta < 0 : delta > 0)
+        ? "progression"
+        : "régression";
 
     playersByPosition.forEach(([groupId, info]) => {
       info.list
@@ -788,10 +801,13 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
           const series = playerSeries.get(p.id) || [];
           const weight = playerWeights.get(p.id) ?? null;
           const first = series[0];
+          const last = series[series.length - 1];
+          const playerName = p.first_name ? `${p.first_name} ${p.name}` : p.name;
+          const metric = (pt: any) =>
+            ratioTest && pt?.rawKg != null ? pt.rawKg : pt?.value;
+
           series.forEach((point, idx) => {
             const prev = series[idx - 1];
-            const metric = (pt: any) =>
-              ratioTest && pt?.rawKg != null ? pt.rawKg : pt?.value;
             const deltaPrev =
               prev && metric(prev) != null && metric(point) != null
                 ? Number((metric(point) - metric(prev)).toFixed(2))
@@ -800,24 +816,65 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
               first && metric(first) != null && metric(point) != null
                 ? Number((metric(point) - metric(first)).toFixed(2))
                 : null;
+            const ratioPrev =
+              ratioTest && prev?.ratio != null && point.ratio != null
+                ? Number((point.ratio - prev.ratio).toFixed(3))
+                : null;
+            const ratioFirst =
+              ratioTest && first?.ratio != null && point.ratio != null
+                ? Number((point.ratio - first.ratio).toFixed(3))
+                : null;
             resultRows.push({
               test: testKey,
               poste: info.label,
-              joueur: p.first_name ? `${p.first_name} ${p.name}` : p.name,
+              joueur: playerName,
               sexe: p.gender || "",
+              num_test: idx + 1,
               date: point.date,
+              date_precedente: prev?.date ?? null,
               valeur: ratioTest ? point.rawKg ?? point.value ?? null : point.value ?? null,
               unite: ratioTest ? "kg" : unit,
               poids_corps_kg: ratioTest ? weight : null,
               ratio: ratioTest ? point.ratio ?? null : null,
-
               delta_vs_precedent: deltaPrev,
+              delta_pct_vs_precedent: pct(deltaPrev, metric(prev)),
+              delta_ratio_vs_precedent: ratioPrev,
+              tendance_vs_precedent: prev ? trend(deltaPrev) : null,
               delta_vs_premier: deltaFirst,
+              delta_pct_vs_premier: pct(deltaFirst, metric(first)),
+              delta_ratio_vs_premier: ratioFirst,
+              tendance_vs_premier: idx > 0 ? trend(deltaFirst) : null,
             });
           });
+
+          if (series.length >= 1) {
+            const totalDelta =
+              first && last && metric(first) != null && metric(last) != null
+                ? Number((metric(last) - metric(first)).toFixed(2))
+                : null;
+            summaryRows.push({
+              test: testKey,
+              poste: info.label,
+              joueur: playerName,
+              sexe: p.gender || "",
+              nb_tests: series.length,
+              poids_corps_kg: ratioTest ? weight : null,
+              premiere_date: first?.date ?? null,
+              premiere_valeur: metric(first) ?? null,
+              derniere_date: last?.date ?? null,
+              derniere_valeur: metric(last) ?? null,
+              unite: ratioTest ? "kg" : unit,
+              delta_total: totalDelta,
+              delta_pct_total: pct(totalDelta, metric(first)),
+              ratio_premier: ratioTest ? first?.ratio ?? null : null,
+              ratio_dernier: ratioTest ? last?.ratio ?? null : null,
+              tendance_globale: series.length > 1 ? trend(totalDelta) : null,
+            });
+          }
         });
     });
     if (resultRows.length === 0) return;
+
 
     const slug = (selectedOpt?.label || "test")
       .normalize("NFD")
@@ -874,6 +931,15 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
       XLSX.utils.json_to_sheet(resultRows),
       "Résultats",
     );
+
+    if (summaryRows.length > 0) {
+      XLSX.utils.book_append_sheet(
+        wb,
+        XLSX.utils.json_to_sheet(summaryRows),
+        "Synthèse",
+      );
+    }
+
 
     XLSX.writeFile(wb, `tests-${slug}-${format(new Date(), "yyyy-MM-dd")}.xlsx`);
   };
