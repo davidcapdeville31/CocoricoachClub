@@ -1623,15 +1623,18 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
               if (!d?.pctLabel) return null;
               const isLast = index === chartData.length - 1;
               const anchor = isLast ? "end" : "start";
-              const offset = isLast ? -12 : 12;
+              const offset = isLast ? -16 : 16;
               return (
                 <text
                   x={x + offset}
-                  y={y - 8}
+                  y={y - 12}
                   textAnchor={anchor}
-                  fontSize={11}
+                  fontSize={12}
                   fontWeight={700}
                   fill={d.pctLabel.color}
+                  stroke="hsl(var(--background))"
+                  strokeWidth={3}
+                  paintOrder="stroke"
                 >
                   {d.pctLabel.text}
                 </text>
