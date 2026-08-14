@@ -24,8 +24,12 @@ export function useSeasonFilteredPlayerIds(categoryId: string | undefined | null
   });
 
   return useMemo(() => {
-    if (!enabled) return { allowedIds: null as Set<string> | null, isFiltering: false };
-    return { allowedIds: new Set<string>(data || []), isFiltering: true };
+    // While the roster is still loading, do not filter anything out:
+    // an empty set would hide every record and look like "no data".
+    if (!enabled || data === undefined) {
+      return { allowedIds: null as Set<string> | null, isFiltering: false };
+    }
+    return { allowedIds: new Set<string>(data), isFiltering: true };
   }, [enabled, data]);
 }
 
