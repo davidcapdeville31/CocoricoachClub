@@ -932,6 +932,15 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
       "Résultats",
     );
 
+    if (summaryRows.length > 0) {
+      XLSX.utils.book_append_sheet(
+        wb,
+        XLSX.utils.json_to_sheet(summaryRows),
+        "Synthèse",
+      );
+    }
+
+
     XLSX.writeFile(wb, `tests-${slug}-${format(new Date(), "yyyy-MM-dd")}.xlsx`);
   };
 
