@@ -15,6 +15,7 @@ import {
   type WellnessEntry 
 } from "@/lib/wellnessCalculations";
 import { useWellnessQuestions } from "@/lib/wellness/questionConfig";
+import { computeAcwr, acwrRiskLevel } from "@/lib/acwr";
 
 interface InjuryRiskAssessmentProps {
   categoryId: string;
@@ -61,15 +62,15 @@ export function InjuryRiskAssessment({ categoryId }: InjuryRiskAssessmentProps) 
     [playersRaw, allowedIds],
   );
 
-  // Fetch latest AWCR data for each player
+  // Charges des 28 derniers jours pour un vrai ACWR (aigu 7j / chronique 28j)
   const { data: awcrData } = useQuery({
-    queryKey: ["awcr_latest", categoryId],
+    queryKey: ["acwr_loads_28d", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("awcr_tracking")
-        .select("player_id, awcr, session_date")
+        .select("player_id, rpe, duration_minutes, training_load, session_date")
         .eq("category_id", categoryId)
-        .gte("session_date", weekAgo.toISOString().split("T")[0])
+        .gte("session_date", subDays(today, 28).toISOString().split("T")[0])
         .order("session_date", { ascending: false });
       if (error) throw error;
       return data;
@@ -95,16 +96,12 @@ export function InjuryRiskAssessment({ categoryId }: InjuryRiskAssessmentProps) 
     if (!players) return [];
 
     return players.map((player) => {
-      // Get latest AWCR for player
-      const playerAwcr = awcrData?.find((a) => a.player_id === player.id);
-      const awcrValue = playerAwcr?.awcr ?? null;
+      // ACWR réel (charge aiguë 7j / charge chronique 28j)
+      const playerLoads = (awcrData || []).filter((a: any) => a.player_id === player.id);
+      const awcrValue = computeAcwr(playerLoads as any, "rolling", today);
 
-      // Determine AWCR risk
-      let awcrRisk: "low" | "medium" | "high" = "low";
-      if (awcrValue !== null) {
-        if (awcrValue < 0.8 || awcrValue > 1.5) awcrRisk = "high";
-        else if (awcrValue < 0.9 || awcrValue > 1.3) awcrRisk = "medium";
-      }
+      const level = acwrRiskLevel(awcrValue);
+      const awcrRisk: "low" | "medium" | "high" = level === "unknown" ? "low" : level;
 
       // Get all wellness entries for this player (for trend analysis)
       const playerWellnessEntries = wellnessData?.filter((w) => w.player_id === player.id) || [];
@@ -141,8 +138,8 @@ export function InjuryRiskAssessment({ categoryId }: InjuryRiskAssessmentProps) 
       const riskFactors: string[] = [];
       let combinedRisk: "low" | "medium" | "high" | "critical" = "low";
 
-      if (awcrRisk === "high") riskFactors.push("EWMA hors zone optimale");
-      if (awcrRisk === "medium") riskFactors.push("EWMA à surveiller");
+      if (awcrRisk === "high") riskFactors.push("ACWR hors zone optimale");
+      if (awcrRisk === "medium") riskFactors.push("ACWR à surveiller");
       if (wellnessRisk === "high") riskFactors.push("Wellness préoccupant");
       if (wellnessRisk === "medium") riskFactors.push("Wellness à surveiller");
       if (hasSpecificPain) riskFactors.push(`Douleur: ${painLocation || "signalée"}`);
@@ -341,15 +338,9 @@ export function InjuryRiskAssessment({ categoryId }: InjuryRiskAssessmentProps) 
                     {getRiskBadge(player.combinedRisk)}
                   </div>
                   
-                  <div className="grid grid-cols-3 gap-4 text-sm mb-3">
+                  <div className="grid grid-cols-2 gap-4 text-sm mb-3">
                     <div>
-                      <span className="text-muted-foreground">EWMA: </span>
-                      <span className={player.awcrRisk === "high" ? "text-destructive font-medium" : ""}>
-                        {player.awcr?.toFixed(2) ?? "N/A"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">AWCR: </span>
+                      <span className="text-muted-foreground">ACWR (7j/28j): </span>
                       <span className={player.awcrRisk === "high" ? "text-destructive font-medium" : ""}>
                         {player.awcr?.toFixed(2) ?? "N/A"}
                       </span>
@@ -393,10 +384,7 @@ export function InjuryRiskAssessment({ categoryId }: InjuryRiskAssessmentProps) 
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="text-sm text-muted-foreground">
-                    EWMA: {player.awcr?.toFixed(2) ?? "-"}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    AWCR: {player.awcr?.toFixed(2) ?? "-"}
+                    ACWR (7j/28j): {player.awcr?.toFixed(2) ?? "-"}
                   </div>
                   <div className="text-sm text-muted-foreground">
                     W: {player.wellnessScore?.toFixed(2) ?? "-"}
@@ -414,10 +402,10 @@ export function InjuryRiskAssessment({ categoryId }: InjuryRiskAssessmentProps) 
           <ul className="space-y-1 text-muted-foreground">
             <li>• <strong>Score Wellness pondéré:</strong> Fatigue (22%) et douleurs bas du corps (22%) pèsent plus</li>
             <li>• <strong>Ratio EWMA optimal:</strong> 0.85 - 1.30 (zone de sécurité)</li>
-            <li>• <strong>AWCR (Acute:Chronic Workload Ratio):</strong> 0.8 - 1.3 (zone optimale)</li>
-            <li>• <strong>Corrélation triple:</strong> EWMA + AWCR + Wellness pour une évaluation plus précise</li>
+            <li>• <strong>ACWR (Acute:Chronic Workload Ratio, 7j/28j):</strong> 0.8 - 1.3 (zone optimale)</li>
+            <li>• <strong>Corrélation:</strong> ACWR + Wellness + douleurs pour une évaluation plus précise</li>
             <li>• <strong>Détection de tendance:</strong> Analyse sur 7 jours pour détecter les détériorations</li>
-            <li>• <strong>Risque critique:</strong> Douleur + (EWMA/AWCR ou Wellness élevé) ou détérioration rapide</li>
+            <li>• <strong>Risque critique:</strong> Douleur + (ACWR ou Wellness élevé) ou détérioration rapide</li>
             <li>• <strong>Alertes intelligentes:</strong> Recommandations personnalisées selon le contexte</li>
           </ul>
         </div>

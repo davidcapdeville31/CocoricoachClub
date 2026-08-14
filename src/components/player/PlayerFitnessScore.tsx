@@ -8,6 +8,7 @@ import { MetricTooltip, METRIC_TOOLTIPS } from "@/components/ui/metric-tooltip";
 import { FitnessScoreBadge } from "@/components/ui/status-badge";
 import { calculateFitnessScore, getScoreColorClass, getScoreBgClass } from "@/lib/fitnessScoreCalculator";
 import { subDays, format } from "date-fns";
+import { computeAcwr } from "@/lib/acwr";
 
 interface PlayerFitnessScoreProps {
   playerId: string;
@@ -21,14 +22,15 @@ export function PlayerFitnessScore({ playerId, categoryId }: PlayerFitnessScoreP
   const { data: fitnessData, isLoading } = useQuery({
     queryKey: ["player-fitness-score", playerId],
     queryFn: async () => {
-      // Fetch latest AWCR
-      const { data: awcrData } = await supabase
+      // Charges des 28 derniers jours pour un ACWR réel (7j / 28j)
+      const { data: loadRows } = await supabase
         .from("awcr_tracking")
-        .select("awcr")
+        .select("session_date, rpe, duration_minutes, training_load")
         .eq("player_id", playerId)
-        .not("awcr", "is", null)
-        .order("session_date", { ascending: false })
-        .limit(1);
+        .gte("session_date", format(subDays(today, 28), "yyyy-MM-dd"))
+        .order("session_date", { ascending: true });
+
+      const acwr = computeAcwr((loadRows || []) as any, "rolling", today);
 
       // Fetch recent wellness (last 7 days)
       const { data: wellnessData } = await supabase
@@ -69,7 +71,7 @@ export function PlayerFitnessScore({ playerId, categoryId }: PlayerFitnessScoreP
       const recentTestPerformance = recentTestCount && recentTestCount > 0 ? 70 : 50;
 
       return calculateFitnessScore({
-        awcr: awcrData?.[0]?.awcr ?? null,
+        acwr,
         wellnessAvg,
         recentTestPerformance,
         injuryStatus,
@@ -124,20 +126,22 @@ export function PlayerFitnessScore({ playerId, categoryId }: PlayerFitnessScoreP
         {/* Breakdown */}
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">AWCR</span>
-            <span className="font-medium">{breakdown.awcrScore}/30</span>
+            <span className="text-muted-foreground">ACWR (7j/28j)</span>
+            <span className="font-medium">{breakdown.acwrScore}/40</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Wellness</span>
-            <span className="font-medium">{breakdown.wellnessScore}/25</span>
+            <span className="font-medium">{breakdown.wellnessScore}/30</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Performance</span>
-            <span className="font-medium">{breakdown.performanceScore}/25</span>
+            <span className="font-medium">{breakdown.performanceScore}/30</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Santé</span>
-            <span className="font-medium">{breakdown.injuryScore}/20</span>
+            <span className="font-medium text-xs">
+              {status === "critical" ? "Blessure : plafond appliqué" : "Plafond de statut"}
+            </span>
           </div>
         </div>
 
