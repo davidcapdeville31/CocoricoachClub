@@ -68,10 +68,19 @@ export function ConcussionProtocolTab({ categoryId, sportType = "XV" }: Concussi
   );
 
   if (isLoading) return <p>Chargement...</p>;
+  if (protocolsError) {
+    return (
+      <p className="text-destructive text-sm">
+        Impossible de charger les protocoles commotion : {(protocolsError as any)?.message}
+      </p>
+    );
+  }
 
-  const activeProtocols = protocols?.filter((p: any) => p.status === "active") || [];
-  const recoveryProtocols = protocols?.filter((p: any) => p.status === "recovery") || [];
   const clearedProtocols = protocols?.filter((p: any) => p.status === "cleared") || [];
+  const recoveryProtocols = protocols?.filter((p: any) => p.status === "recovery") || [];
+  // Tout ce qui n'est ni "en récupération" ni "validé" est considéré comme actif
+  const activeProtocols =
+    protocols?.filter((p: any) => p.status !== "cleared" && p.status !== "recovery") || [];
 
   return (
     <div className="space-y-6">
