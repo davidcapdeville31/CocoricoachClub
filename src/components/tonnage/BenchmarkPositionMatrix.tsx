@@ -1601,11 +1601,14 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
               const { x, y, index } = props;
               const d = chartData[index];
               if (!d?.pctLabel) return null;
+              const isLast = index === chartData.length - 1;
+              const anchor = isLast ? "end" : "start";
+              const offset = isLast ? -12 : 12;
               return (
                 <text
-                  x={x + 12}
+                  x={x + offset}
                   y={y - 8}
-                  textAnchor="start"
+                  textAnchor={anchor}
                   fontSize={11}
                   fontWeight={700}
                   fill={d.pctLabel.color}
