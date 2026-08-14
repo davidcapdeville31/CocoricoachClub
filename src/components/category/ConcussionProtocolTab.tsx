@@ -26,16 +26,23 @@ export function ConcussionProtocolTab({ categoryId, sportType = "XV" }: Concussi
   const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
   const keepPlayer = makePlayerIdFilter(allowedIds);
 
-  const { data: protocolsRaw, isLoading } = useQuery({
+  const { data: protocolsRaw, isLoading, error: protocolsError } = useQuery({
     queryKey: ["concussion_protocols", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("concussion_protocols")
-        .select(`*, players(name)`)
+        .select("*")
         .eq("category_id", categoryId)
         .order("incident_date", { ascending: false });
       if (error) throw error;
-      return data;
+
+      const ids = [...new Set((data || []).map((p: any) => p.player_id).filter(Boolean))];
+      let names: Record<string, string> = {};
+      if (ids.length > 0) {
+        const { data: pl } = await supabase.from("players").select("id, name").in("id", ids);
+        names = Object.fromEntries((pl || []).map((p: any) => [p.id, p.name]));
+      }
+      return (data || []).map((p: any) => ({ ...p, players: { name: names[p.player_id] || "Athlète" } }));
     },
   });
   const protocols = useMemo(
