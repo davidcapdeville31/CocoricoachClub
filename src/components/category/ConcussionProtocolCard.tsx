@@ -117,6 +117,10 @@ export function ConcussionProtocolCard({ protocol, categoryId }: ConcussionProto
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["concussion_protocols", categoryId] });
+      queryClient.invalidateQueries({ predicate: (q) => {
+        const k = String(q.queryKey?.[0] ?? "");
+        return k.includes("injur") || k.includes("availability") || k.includes("health");
+      }});
       toast.success("Protocole mis à jour");
     },
     onError: () => {
