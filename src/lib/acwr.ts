@@ -64,6 +64,65 @@ export function acwrFromDailyLoads(daily: number[], method: AcwrMethod = "rollin
   return ewmaC > 0 ? ewmaA / ewmaC : null;
 }
 
+/** Nombre minimum de jours d'historique requis pour que la fenêtre chronique soit exploitable. */
+export const ACWR_MIN_HISTORY_DAYS = 21;
+/** Nombre minimum de séances chargées requis. */
+export const ACWR_MIN_SESSIONS = 4;
+
+export interface AcwrResult {
+  /** null si la fenêtre chronique est insuffisante (début de saison) */
+  acwr: number | null;
+  method: AcwrMethod;
+  /** Jours écoulés depuis la première charge enregistrée (max 28) */
+  historyDays: number;
+  sessions: number;
+  /** true tant que l'historique est trop court pour un ACWR fiable */
+  insufficientHistory: boolean;
+}
+
+/**
+ * ACWR avec garde de démarrage de saison : tant que la fenêtre chronique n'est pas
+ * suffisamment remplie (< 21 jours d'historique ou < 4 séances), on ne renvoie AUCUNE
+ * valeur, pour éviter des ratios aberrants et de fausses alertes.
+ */
+export function computeAcwrDetailed(
+  rows: LoadRow[],
+  method: AcwrMethod = "rolling",
+  endDate: Date = new Date()
+): AcwrResult {
+  const usable = (rows || []).filter(
+    (r) => r?.session_date && !(Number(r?.rpe) === 0 && Number(r?.duration_minutes) === 0)
+  );
+  const endDay = new Date(toDayKey(endDate)).getTime();
+  let firstDay: number | null = null;
+  for (const r of usable) {
+    const t = new Date(toDayKey(r.session_date)).getTime();
+    if (t > endDay) continue;
+    if (firstDay === null || t < firstDay) firstDay = t;
+  }
+  const historyDays =
+    firstDay === null ? 0 : Math.min(28, Math.round((endDay - firstDay) / DAY_MS) + 1);
+  const sessions = usable.length;
+  const insufficientHistory =
+    historyDays < ACWR_MIN_HISTORY_DAYS || sessions < ACWR_MIN_SESSIONS;
+
+  if (insufficientHistory) {
+    return { acwr: null, method, historyDays, sessions, insufficientHistory: true };
+  }
+  return {
+    acwr: acwrFromDailyLoads(buildDailyLoads(usable, 28, endDate), method),
+    method,
+    historyDays,
+    sessions,
+    insufficientHistory: false,
+  };
+}
+
+/** Libellé de la méthode pour les exports. */
+export function acwrMethodLabel(method: AcwrMethod): string {
+  return method === "ewma" ? "EWMA (7j/28j)" : "Moyenne glissante (7j/28j)";
+}
+
 /** ACWR directement depuis des lignes de charge (awcr_tracking, sessions, …). */
 export function computeAcwr(
   rows: LoadRow[],
@@ -74,7 +133,7 @@ export function computeAcwr(
     (r) => !(Number(r?.rpe) === 0 && Number(r?.duration_minutes) === 0)
   );
   if (usable.length === 0) return null;
-  return acwrFromDailyLoads(buildDailyLoads(usable, 28, endDate), method);
+  return computeAcwrDetailed(usable, method, endDate).acwr;
 }
 
 /** Convertit un ACWR en score 0-100 (100 = zone optimale 0,8-1,3). */

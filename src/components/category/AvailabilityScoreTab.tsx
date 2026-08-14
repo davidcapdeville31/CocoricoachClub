@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { computeAcwr, acwrToScore } from "@/lib/acwr";
+import { computeAcwrDetailed, acwrToScore, acwrMethodLabel, ACWR_MIN_HISTORY_DAYS } from "@/lib/acwr";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
-import { Activity, Heart, AlertTriangle, Target, CheckCircle2, AlertCircle, XCircle } from "lucide-react";
+import { Activity, Heart, AlertTriangle, Target, CheckCircle2, AlertCircle, XCircle, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { InfoHint } from "@/components/training-load/InfoHint";
 import { format, subDays } from "date-fns";
@@ -27,6 +27,8 @@ interface PlayerAvailability {
   position: string | null;
   acwr: number | null;
   acwrScore: number | null;
+  acwrInsufficient: boolean;
+  acwrHistoryDays: number;
   adherenceRatio: number | null;
   wellnessScore: number | null;
   injuryScore: number;
@@ -101,7 +103,8 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
 
         // ---- ACWR réel : charge aiguë (7j) / charge chronique (28j) ----
         const hasLoad = playerLoads.length > 0;
-        const acwr = computeAcwr(playerLoads as any, acwrMethod, today);
+        const acwrDetail = computeAcwrDetailed(playerLoads as any, acwrMethod, today);
+        const acwr = acwrDetail.acwr;
         const acwrScore = acwrToScore(acwr);
         if (acwr !== null && acwrScore !== null && acwrScore < 100) {
           factors.push(acwr < 0.8 ? `ACWR faible (${acwr.toFixed(2)})` : `ACWR élevé (${acwr.toFixed(2)})`);
@@ -217,6 +220,8 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
           position: player.position,
           acwr,
           acwrScore,
+          acwrInsufficient: acwrDetail.insufficientHistory,
+          acwrHistoryDays: acwrDetail.historyDays,
           adherenceRatio,
           wellnessScore,
           injuryScore,
@@ -274,6 +279,38 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
     available: availabilityData?.filter(p => p.status === 'available').length || 0,
     limited: availabilityData?.filter(p => p.status === 'limited').length || 0,
     unavailable: availabilityData?.filter(p => p.status === 'unavailable').length || 0,
+  };
+
+  const exportCsv = () => {
+    const rows = availabilityData || [];
+    const header = [
+      "joueur","poste","statut","score_global","score_wellness","acwr","score_acwr",
+      "methode_acwr","acwr_calculable","jours_historique_acwr","adherence","facteurs",
+    ];
+    const lines = [header.join(";")];
+    for (const p of rows) {
+      lines.push([
+        p.playerName,
+        p.position ?? "",
+        p.status,
+        p.overallScore ?? "",
+        p.wellnessScore ?? "",
+        p.acwr !== null ? p.acwr.toFixed(2).replace(".", ",") : "",
+        p.acwrScore ?? "",
+        acwrMethodLabel(acwrMethod),
+        p.acwrInsufficient ? "non (historique insuffisant)" : "oui",
+        p.acwrHistoryDays,
+        p.adherenceRatio !== null ? p.adherenceRatio.toFixed(2).replace(".", ",") : "",
+        p.factors.join(" | "),
+      ].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(";"));
+    }
+    const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `disponibilite_${acwrMethod}_${format(new Date(), "yyyy-MM-dd")}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -342,10 +379,13 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
             >
               EWMA
             </Button>
+            <Button size="sm" variant="outline" onClick={exportCsv}>
+              <Download className="h-4 w-4 mr-1" /> Export CSV
+            </Button>
             <InfoHint
               title="ACWR vs ratio d'adhérence"
               what="L'ACWR compare la charge aiguë (7 jours) à la charge chronique (28 jours). Le ratio d'adhérence compare la charge réalisée à la charge prévue par le staff."
-              how="ACWR = charge 7j ÷ charge 28j (moyenne glissante ou pondérée exponentielle EWMA). Adhérence = réel ÷ prévu sur 7 jours."
+              how={`ACWR = charge 7j ÷ charge 28j (${acwrMethodLabel(acwrMethod)}). Tant que la fenêtre chronique compte moins de 21 jours d'historique (début de saison), l'ACWR n'est pas calculé et le score de disponibilité repose à 100 % sur le wellness. Adhérence = réel ÷ prévu sur 7 jours.`}
               why="Seul l'ACWR est soumis aux seuils 0,8 / 1,3 issus de la littérature. L'adhérence est purement descriptive et n'entre pas dans le score."
             />
           </div>
@@ -397,7 +437,9 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
                       <Activity className="h-4 w-4 text-blue-400" />
                       <span>
                         ACWR: {player.acwrScore !== null
-                          ? <>{player.acwrScore}% <span className="text-muted-foreground">({player.acwr?.toFixed(2)})</span></>
+                          ? <>{player.acwrScore}% <span className="text-muted-foreground">({player.acwr?.toFixed(2)} · {acwrMethod === "ewma" ? "EWMA" : "glissante"})</span></>
+                          : player.acwrInsufficient
+                          ? <span className="italic text-muted-foreground">non calculé ({player.acwrHistoryDays}/{ACWR_MIN_HISTORY_DAYS} j) — score sur wellness seul</span>
                           : <span className="text-muted-foreground italic">—</span>}
                       </span>
                     </div>
