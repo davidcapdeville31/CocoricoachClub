@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,7 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
-import { Activity, Heart, AlertTriangle, Battery, CheckCircle2, AlertCircle, XCircle } from "lucide-react";
+import { Activity, Heart, AlertTriangle, Target, CheckCircle2, AlertCircle, XCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { InfoHint } from "@/components/training-load/InfoHint";
 import { format, subDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
@@ -21,10 +24,11 @@ interface PlayerAvailability {
   playerName: string;
   avatarUrl: string | null;
   position: string | null;
-  awcrScore: number | null;
+  acwr: number | null;
+  acwrScore: number | null;
+  adherenceRatio: number | null;
   wellnessScore: number | null;
   injuryScore: number;
-  fatigueScore: number | null;
   overallScore: number | null;
   status: 'available' | 'limited' | 'unavailable' | 'no_data';
   factors: string[];
@@ -33,8 +37,10 @@ interface PlayerAvailability {
 
 
 export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) {
+  const [acwrMethod, setAcwrMethod] = useState<"rolling" | "ewma">("rolling");
   const today = new Date();
   const weekAgo = subDays(today, 7);
+  const monthAgo = subDays(today, 27);
   const { allowedIds, isFiltering } = useSeasonFilteredPlayerIds(categoryId);
   const { isDateInActiveSeason, activeSeasonEnd } = useSeasonRosterFilter();
   const scopeKey = isFiltering ? `season:${activeSeasonEnd ?? "x"}` : "all";
@@ -42,7 +48,7 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
   const activeQuestions = (wellnessQuestions || DEFAULT_WELLNESS_QUESTIONS).filter((q) => q.enabled);
 
   const { data: availabilityData, isLoading } = useQuery({
-    queryKey: ["availability-scores", categoryId, scopeKey, activeQuestions.map((q) => `${q.key}:${q.inverted}`).join(",")],
+    queryKey: ["availability-scores", categoryId, scopeKey, acwrMethod, activeQuestions.map((q) => `${q.key}:${q.inverted}`).join(",")],
     queryFn: async () => {
       // Get all players
       const { data: playersRaw } = await supabase
@@ -55,16 +61,16 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
         : playersRaw;
       if (!players) return [];
 
-      // Get latest AWCR data (exclude auto-completed entries with RPE=0 and duration=0)
-      const { data: awcrDataRaw } = await supabase
+      // Charges des 28 derniers jours pour un ACWR réel (aigu 7j / chronique 28j)
+      const { data: loadRowsRaw } = await supabase
         .from("awcr_tracking")
-        .select("player_id, awcr, rpe, duration_minutes")
+        .select("player_id, session_date, awcr, rpe, duration_minutes")
         .eq("category_id", categoryId)
-        .gte("session_date", format(weekAgo, "yyyy-MM-dd"))
+        .gte("session_date", format(monthAgo, "yyyy-MM-dd"))
         .order("session_date", { ascending: false });
 
       // Filter out auto-completed zero-load entries
-      const awcrData = awcrDataRaw?.filter(a => !(a.rpe === 0 && a.duration_minutes === 0));
+      const loadRows = (loadRowsRaw || []).filter(a => !(a.rpe === 0 && a.duration_minutes === 0));
 
       // Get latest wellness data
       const { data: wellnessDataRaw } = await supabase
@@ -85,30 +91,70 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
 
       // Calculate availability for each player
       return players.map(player => {
-        const playerAwcr = awcrData?.find(a => a.player_id === player.id);
-        const playerWellness = wellnessData?.find(w => w.player_id === player.id);
+        const playerLoads = loadRows.filter(a => a.player_id === player.id);
+        const playerWellnessRows = (wellnessData || []).filter(w => w.player_id === player.id);
+        const playerWellness = playerWellnessRows[0];
         const playerInjury = injuries?.find(i => i.player_id === player.id);
 
         const factors: string[] = [];
-        const hasAwcr = !!playerAwcr?.awcr;
-        const hasWellness = !!playerWellness;
-        const hasInjuryData = !!playerInjury;
-        const hasAnyData = hasAwcr || hasWellness || hasInjuryData;
 
-        // AWCR Score (0-100) — null if no data
-        let awcrScore: number | null = null;
-        if (hasAwcr) {
-          const awcr = playerAwcr!.awcr!;
-          if (awcr >= 0.8 && awcr <= 1.3) {
-            awcrScore = 100;
-          } else if (awcr < 0.8) {
-            awcrScore = Math.round(Math.max(0, Math.min(100, 100 - (0.8 - awcr) * 150)));
-            factors.push(`AWCR faible (${awcr.toFixed(2)})`);
+        // ---- ACWR réel : charge aiguë (7j) / charge chronique (28j) ----
+        const dayMs = 24 * 60 * 60 * 1000;
+        const startDay = new Date(format(monthAgo, "yyyy-MM-dd")).getTime();
+        const endDay = new Date(format(today, "yyyy-MM-dd")).getTime();
+        const nDays = Math.round((endDay - startDay) / dayMs) + 1;
+        const daily: number[] = new Array(nDays).fill(0);
+        for (const row of playerLoads) {
+          const idx = Math.round((new Date(row.session_date).getTime() - startDay) / dayMs);
+          if (idx < 0 || idx >= nDays) continue;
+          daily[idx] += (Number(row.rpe) || 0) * (Number(row.duration_minutes) || 0);
+        }
+
+        const hasLoad = playerLoads.length > 0;
+        let acwr: number | null = null;
+        if (hasLoad) {
+          if (acwrMethod === "rolling") {
+            const acute = daily.slice(-7).reduce((a, b) => a + b, 0) / 7;
+            const chronic = daily.reduce((a, b) => a + b, 0) / nDays;
+            acwr = chronic > 0 ? acute / chronic : null;
           } else {
-            awcrScore = Math.round(Math.max(0, Math.min(100, 100 - (awcr - 1.3) * 80)));
-            factors.push(`AWCR élevé (${awcr.toFixed(2)})`);
+            const lAcute = 2 / (7 + 1);
+            const lChronic = 2 / (28 + 1);
+            let ewmaA = 0;
+            let ewmaC = 0;
+            daily.forEach((v, i) => {
+              ewmaA = i === 0 ? v : v * lAcute + ewmaA * (1 - lAcute);
+              ewmaC = i === 0 ? v : v * lChronic + ewmaC * (1 - lChronic);
+            });
+            acwr = ewmaC > 0 ? ewmaA / ewmaC : null;
           }
         }
+
+        let acwrScore: number | null = null;
+        if (acwr !== null && Number.isFinite(acwr)) {
+          if (acwr >= 0.8 && acwr <= 1.3) {
+            acwrScore = 100;
+          } else if (acwr < 0.8) {
+            acwrScore = Math.round(Math.max(0, Math.min(100, 100 - (0.8 - acwr) * 150)));
+            factors.push(`ACWR faible (${acwr.toFixed(2)})`);
+          } else {
+            acwrScore = Math.round(Math.max(0, Math.min(100, 100 - (acwr - 1.3) * 80)));
+            factors.push(`ACWR élevé (${acwr.toFixed(2)})`);
+          }
+        }
+
+        // ---- Ratio d'adhérence au plan (réel / prévu) — indicateur descriptif, non noté ----
+        const adherenceValues = playerLoads
+          .filter(a => new Date(a.session_date) >= new Date(format(weekAgo, "yyyy-MM-dd")))
+          .map(a => Number(a.awcr))
+          .filter(v => Number.isFinite(v) && v > 0);
+        const adherenceRatio = adherenceValues.length
+          ? adherenceValues.reduce((s2, v) => s2 + v, 0) / adherenceValues.length
+          : null;
+
+        const hasWellness = playerWellnessRows.length > 0;
+        const hasInjuryData = !!playerInjury;
+        const hasAnyData = hasLoad || hasWellness || hasInjuryData;
 
         // Helper: clamp a value between 0 and 100
         const clamp100 = (v: number) => Math.max(0, Math.min(100, v));
@@ -116,102 +162,100 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
         // Wellness Score (0-100) — null if no data
         // Each answer is normalised to a "concern" ratio (0 = optimal, 1 = worst)
         // using its own scale + orientation from the category configuration.
+        // Wellness Score (0-100) — moyenne des réponses PROPRES à l'athlète sur 7 jours.
+        // La fatigue générale y est incluse une seule fois (plus de sous-score dédié).
         let wellnessScore: number | null = null;
-        let fatigueConcern: number | null = null;
         if (hasWellness) {
-          const w: any = playerWellness!;
           const concerns: number[] = [];
+          const fatigueRatios: number[] = [];
 
-          for (const q of activeQuestions) {
-            const raw = q.is_custom ? w.custom_answers?.[q.key] : w[q.key];
-            if (raw === null || raw === undefined || raw === "") continue;
-            const num = Number(raw);
-            if (!Number.isFinite(num)) continue;
+          for (const row of playerWellnessRows) {
+            const w: any = row;
+            for (const q of activeQuestions) {
+              const raw = q.is_custom ? w.custom_answers?.[q.key] : w[q.key];
+              if (raw === null || raw === undefined || raw === "") continue;
+              const num = Number(raw);
+              if (!Number.isFinite(num)) continue;
 
-            // `sleep_duration` is stored as a 1-5 score where 1 = >8h (optimal)
-            // and 5 = <5h (worst) — i.e. lower is better, whatever the config says.
-            const isSleepDuration = q.key === "sleep_duration" || !!q.is_sleep_duration;
+              // `sleep_duration` est stocké en score 1-5 où 1 = >8h (optimal)
+              const isSleepDuration = q.key === "sleep_duration" || !!q.is_sleep_duration;
 
-            const values = (q.scale || []).map((s: any) => s.value);
-            let min = values.length ? Math.min(...values) : 1;
-            let max = values.length ? Math.max(...values) : 5;
-            if (isSleepDuration) { min = 1; max = 5; }
-            if (max === min) continue;
-            const clamped = Math.max(min, Math.min(max, num));
-            // inverted === true  → higher value means worse
-            // inverted === false → higher value means better (sleep quality…)
-            const isHigherWorse = isSleepDuration ? true : !!q.inverted;
-            const ratio = isHigherWorse
-              ? (clamped - min) / (max - min)
-              : (max - clamped) / (max - min);
+              const values = (q.scale || []).map((s2: any) => s2.value);
+              let min = values.length ? Math.min(...values) : 1;
+              let max = values.length ? Math.max(...values) : 5;
+              if (isSleepDuration) { min = 1; max = 5; }
+              if (max === min) continue;
+              const clamped = Math.max(min, Math.min(max, num));
+              const isHigherWorse = isSleepDuration ? true : !!q.inverted;
+              const ratio = isHigherWorse
+                ? (clamped - min) / (max - min)
+                : (max - clamped) / (max - min);
 
-            concerns.push(ratio);
-            if (q.key === "general_fatigue") fatigueConcern = ratio;
-            if (ratio >= 0.7) factors.push(isSleepDuration ? "Sommeil insuffisant" : q.label);
-
+              concerns.push(ratio);
+              if (q.key === "general_fatigue") fatigueRatios.push(ratio);
+              if (row === playerWellness && ratio >= 0.7) {
+                factors.push(isSleepDuration ? "Sommeil insuffisant" : q.label);
+              }
+            }
           }
 
           if (concerns.length > 0) {
-            const avgConcern = concerns.reduce((s, r) => s + r, 0) / concerns.length;
+            const avgConcern = concerns.reduce((s2, r) => s2 + r, 0) / concerns.length;
             wellnessScore = Math.round(clamp100((1 - avgConcern) * 100));
+          }
+          if (fatigueRatios.length > 0) {
+            const avgFatigue = fatigueRatios.reduce((s2, r) => s2 + r, 0) / fatigueRatios.length;
+            if (avgFatigue >= 0.7) factors.push("Fatigue élevée");
           }
         }
 
-
-        // Injury Score (0-100) — 100 if no injury (absence = bonne nouvelle)
+        // Blessure : plafond de statut (et non composante pondérée)
         let injuryScore = 100;
+        let injuryCap: 'limited' | 'unavailable' | null = null;
         if (hasInjuryData) {
+          const sev = (playerInjury!.severity as string) || "";
+          const isSevere = sev === "severe" || sev === "grave";
+          const isModerate = sev === "moderate" || sev === "modérée";
           if (playerInjury!.status === "active") {
-            const sev = playerInjury!.severity as string;
-            injuryScore = (sev === "severe" || sev === "grave") ? 0 : (sev === "moderate" || sev === "modérée") ? 20 : 40;
-            factors.push(`Blessure ${(sev === "severe" || sev === "grave") ? "grave" : (sev === "moderate" || sev === "modérée") ? "modérée" : "légère"}`);
+            injuryScore = isSevere ? 0 : isModerate ? 20 : 40;
+            injuryCap = isSevere ? 'unavailable' : 'limited';
+            factors.push(`Blessure ${isSevere ? "grave" : isModerate ? "modérée" : "légère"}`);
           } else {
             injuryScore = 70;
+            injuryCap = 'limited';
             factors.push("En réathlétisation");
           }
         }
 
-        // Fatigue Score — null if no wellness
-        let fatigueScore: number | null = null;
-        if (hasWellness && fatigueConcern !== null) {
-          fatigueScore = Math.round(clamp100(100 - fatigueConcern * 100));
-        }
-
-        // Overall Score — only compute from available data sources
+        // Score global — ACWR 50 % / Wellness 50 % (la blessure agit comme plafond)
         let overallScore: number | null = null;
         if (hasAnyData) {
           let totalWeight = 0;
           let weightedSum = 0;
-
-          if (awcrScore !== null) { weightedSum += clamp100(awcrScore) * 0.25; totalWeight += 0.25; }
-          if (wellnessScore !== null) { weightedSum += clamp100(wellnessScore) * 0.25; totalWeight += 0.25; }
-          // Injury always counts (no injury = 100)
-          weightedSum += clamp100(injuryScore) * 0.35; totalWeight += 0.35;
-          if (fatigueScore !== null) { weightedSum += clamp100(fatigueScore) * 0.15; totalWeight += 0.15; }
-
-          overallScore = Math.round(clamp100(totalWeight > 0 ? weightedSum / totalWeight : 0));
+          if (acwrScore !== null) { weightedSum += clamp100(acwrScore) * 0.5; totalWeight += 0.5; }
+          if (wellnessScore !== null) { weightedSum += clamp100(wellnessScore) * 0.5; totalWeight += 0.5; }
+          overallScore = totalWeight > 0 ? Math.round(clamp100(weightedSum / totalWeight)) : null;
         }
 
-
-        // Determine status
+        // Statut
         let status: 'available' | 'limited' | 'unavailable' | 'no_data' = hasAnyData ? 'available' : 'no_data';
         if (hasAnyData && overallScore !== null) {
-          if (overallScore < 50 || injuryScore === 0) {
-            status = 'unavailable';
-          } else if (overallScore < 75) {
-            status = 'limited';
-          }
+          if (overallScore < 50) status = 'unavailable';
+          else if (overallScore < 75) status = 'limited';
         }
+        if (injuryCap === 'unavailable') status = 'unavailable';
+        else if (injuryCap === 'limited' && status !== 'unavailable') status = 'limited';
 
         return {
           playerId: player.id,
           playerName: player.first_name ? `${player.first_name} ${player.name}` : player.name,
           avatarUrl: player.avatar_url,
           position: player.position,
-          awcrScore,
+          acwr,
+          acwrScore,
+          adherenceRatio,
           wellnessScore,
           injuryScore,
-          fatigueScore,
           overallScore,
           status,
           factors,
@@ -315,8 +359,32 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
             Score de Disponibilité
           </CardTitle>
           <CardDescription>
-            Score global combinant AWCR, wellness, blessures et fatigue
+            Score global = ACWR (50 %) + Wellness (50 %). Une blessure active ou une réathlétisation
+            plafonne automatiquement le statut à « Limité » (ou « Indisponible » si grave).
           </CardDescription>
+          <div className="flex items-center gap-2 pt-2">
+            <span className="text-xs text-muted-foreground">Méthode ACWR :</span>
+            <Button
+              size="sm"
+              variant={acwrMethod === "rolling" ? "default" : "outline"}
+              onClick={() => setAcwrMethod("rolling")}
+            >
+              Moyenne glissante
+            </Button>
+            <Button
+              size="sm"
+              variant={acwrMethod === "ewma" ? "default" : "outline"}
+              onClick={() => setAcwrMethod("ewma")}
+            >
+              EWMA
+            </Button>
+            <InfoHint
+              title="ACWR vs ratio d'adhérence"
+              what="L'ACWR compare la charge aiguë (7 jours) à la charge chronique (28 jours). Le ratio d'adhérence compare la charge réalisée à la charge prévue par le staff."
+              how="ACWR = charge 7j ÷ charge 28j (moyenne glissante ou pondérée exponentielle EWMA). Adhérence = réel ÷ prévu sur 7 jours."
+              why="Seul l'ACWR est soumis aux seuils 0,8 / 1,3 issus de la littérature. L'adhérence est purement descriptive et n'entre pas dans le score."
+            />
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -363,7 +431,11 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div className="flex items-center gap-2">
                       <Activity className="h-4 w-4 text-blue-400" />
-                      <span>AWCR: {player.awcrScore !== null ? `${player.awcrScore}%` : <span className="text-muted-foreground italic">—</span>}</span>
+                      <span>
+                        ACWR: {player.acwrScore !== null
+                          ? <>{player.acwrScore}% <span className="text-muted-foreground">({player.acwr?.toFixed(2)})</span></>
+                          : <span className="text-muted-foreground italic">—</span>}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Heart className="h-4 w-4 text-pink-400" />
@@ -371,11 +443,13 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
                     </div>
                     <div className="flex items-center gap-2">
                       <AlertTriangle className="h-4 w-4 text-orange-400" />
-                      <span>Blessure: {player.injuryScore}%</span>
+                      <span>Blessure: {player.injuryScore === 100 ? "aucune" : `${player.injuryScore}%`}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Battery className="h-4 w-4 text-green-400" />
-                      <span>Fatigue: {player.fatigueScore !== null ? `${player.fatigueScore}%` : <span className="text-muted-foreground italic">—</span>}</span>
+                      <Target className="h-4 w-4 text-green-400" />
+                      <span className="text-muted-foreground">
+                        Adhérence: {player.adherenceRatio !== null ? player.adherenceRatio.toFixed(2) : <span className="italic">—</span>}
+                      </span>
                     </div>
                   </div>
 
