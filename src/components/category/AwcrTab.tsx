@@ -247,15 +247,7 @@ export function AwcrTab({ categoryId }: AwcrTabProps) {
                     <TableCell>{entry.chronic_load?.toFixed(1) || "-"}</TableCell>
                     <TableCell>
                       {entry.awcr && (
-                        <span
-                          className={`font-semibold ${
-                            entry.awcr < 0.8 || entry.awcr > 1.3
-                              ? "text-destructive"
-                              : entry.awcr >= 0.8 && entry.awcr <= 1.3
-                              ? "text-primary"
-                              : "text-muted-foreground"
-                          }`}
-                        >
+                        <span className="font-semibold text-muted-foreground">
                           {entry.awcr.toFixed(2)}
                         </span>
                       )}

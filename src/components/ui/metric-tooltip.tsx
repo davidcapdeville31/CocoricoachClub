@@ -53,7 +53,7 @@ export function MetricTooltip({
 export const METRIC_TOOLTIPS = {
   ewmaRatio: {
     title: "Ratio EWMA (Exponential Weighted Moving Average)",
-    description: "Rapport entre la charge aiguë EWMA (7 jours) et la charge chronique EWMA (28 jours). Plus précis que l'AWCR classique car les données récentes ont plus de poids.",
+    description: "Rapport entre la charge aiguë EWMA (7 jours) et la charge chronique EWMA (28 jours). Plus précis que l'ACWR en moyenne glissante car les données récentes ont plus de poids.",
     optimalRange: "0.85 - 1.30",
     warningText: "> 1.5 = surcharge | < 0.8 = désentraînement",
   },
@@ -66,10 +66,14 @@ export const METRIC_TOOLTIPS = {
     description: "Moyenne exponentielle pondérée de la charge sur les 28 derniers jours. Représente la capacité d'entraînement de base de l'athlète.",
   },
   awcr: {
-    title: "AWCR (Acute:Chronic Workload Ratio)",
-    description: "Rapport entre la charge aiguë (7 jours) et la charge chronique (28 jours). Méthode classique avec moyenne simple.",
+    title: "ACWR (Acute:Chronic Workload Ratio)",
+    description: "Rapport entre la charge aiguë (7 jours) et la charge chronique (28 jours), en moyenne glissante ou EWMA.",
     optimalRange: "0.8 - 1.3",
     warningText: "> 1.5 = risque de blessure élevé | < 0.8 = désentraînement",
+  },
+  adherence: {
+    title: "Adhérence (réel / prévu)",
+    description: "Rapport entre la charge réalisée par l'athlète et la charge prévue par le staff. Indicateur descriptif du respect du plan : il n'entre pas dans le score de disponibilité et n'est pas soumis aux seuils 0,8 / 1,3 de l'ACWR.",
   },
   trainingLoad: {
     title: "Charge d'entraînement (sRPE)",
