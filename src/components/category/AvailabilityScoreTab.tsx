@@ -16,6 +16,9 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 import { useWellnessQuestions, DEFAULT_WELLNESS_QUESTIONS } from "@/lib/wellness/questionConfig";
 
+/** Hiérarchie wellness-first : le wellness prime sur la charge (contexte). */
+const AVAILABILITY_WEIGHTS = { wellness: 0.6, acwr: 0.4 } as const;
+
 interface AvailabilityScoreTabProps {
   categoryId: string;
 }
@@ -194,13 +197,13 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
           }
         }
 
-        // Score global — ACWR 50 % / Wellness 50 % (la blessure agit comme plafond)
+        // Score global — Wellness 60 % / ACWR 40 % (la blessure agit comme plafond)
         let overallScore: number | null = null;
         if (hasAnyData) {
           let totalWeight = 0;
           let weightedSum = 0;
-          if (acwrScore !== null) { weightedSum += clamp100(acwrScore) * 0.5; totalWeight += 0.5; }
-          if (wellnessScore !== null) { weightedSum += clamp100(wellnessScore) * 0.5; totalWeight += 0.5; }
+          if (acwrScore !== null) { weightedSum += clamp100(acwrScore) * AVAILABILITY_WEIGHTS.acwr; totalWeight += AVAILABILITY_WEIGHTS.acwr; }
+          if (wellnessScore !== null) { weightedSum += clamp100(wellnessScore) * AVAILABILITY_WEIGHTS.wellness; totalWeight += AVAILABILITY_WEIGHTS.wellness; }
           overallScore = totalWeight > 0 ? Math.round(clamp100(weightedSum / totalWeight)) : null;
         }
 
@@ -360,7 +363,7 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
             Score de Disponibilité
           </CardTitle>
           <CardDescription>
-            Score global = ACWR (50 %) + Wellness (50 %). Une blessure active ou une réathlétisation
+            Score global = Wellness (60 %) + ACWR (40 %). Une blessure active ou une réathlétisation
             plafonne automatiquement le statut à « Limité » (ou « Indisponible » si grave).
           </CardDescription>
           <div className="flex items-center gap-2 pt-2">

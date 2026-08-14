@@ -4,6 +4,9 @@
 
 import { ACWR_SAFE_MAX, ACWR_SAFE_MIN } from "@/lib/acwr";
 
+/** Pondération wellness-first : Wellness 40 % > Performance 30 % > ACWR 30 % */
+export const FITNESS_WEIGHTS = { wellness: 40, performance: 30, acwr: 30 } as const;
+
 interface FitnessScoreInput {
   /** ACWR réel : charge aiguë 7j / charge chronique 28j */
   acwr: number | null;
@@ -34,50 +37,55 @@ export function calculateFitnessScore(input: FitnessScoreInput): FitnessScoreRes
   };
   const recommendations: string[] = [];
 
-  // ACWR réel (aigu 7j / chronique 28j) — 40 % du total
+  // Hiérarchie wellness-first : le wellness (indicateur le mieux étayé) pèse plus que
+  // l'ACWR (valeur prédictive débattue). Les composantes sans donnée sont ignorées
+  // et le total est renormalisé sur les composantes disponibles.
+  let acwrRatio: number | null = null;
+  let wellnessRatio: number | null = null;
+  let performanceRatio: number | null = null;
+
+  // ACWR réel (aigu 7j / chronique 28j) — poids 30 %
   if (input.acwr !== null) {
     if (input.acwr >= ACWR_SAFE_MIN && input.acwr <= ACWR_SAFE_MAX) {
-      breakdown.acwrScore = 40;
+      acwrRatio = 1;
     } else if (input.acwr > 1.3 && input.acwr <= 1.5) {
-      breakdown.acwrScore = 26;
+      acwrRatio = 0.65;
       recommendations.push("Réduire légèrement la charge d'entraînement");
     } else if (input.acwr < 0.8 && input.acwr >= 0.6) {
-      breakdown.acwrScore = 20;
+      acwrRatio = 0.5;
       recommendations.push("Augmenter progressivement la charge d'entraînement");
     } else if (input.acwr > 1.5) {
-      breakdown.acwrScore = 7;
+      acwrRatio = 0.18;
       recommendations.push("URGENT: Réduire significativement la charge");
     } else {
-      breakdown.acwrScore = 7;
+      acwrRatio = 0.18;
       recommendations.push("URGENT: Reprendre l'entraînement progressivement");
     }
-  } else {
-    breakdown.acwrScore = 20; // Valeur neutre si aucune donnée
   }
 
-  // Wellness (30 %) — inclut déjà la fatigue, pas de sous-score fatigue dédié
+  // Wellness — poids 40 % (inclut déjà la fatigue, pas de sous-score dédié)
   if (input.wellnessAvg !== null) {
     if (input.wellnessAvg <= 1.5) {
-      breakdown.wellnessScore = 30;
+      wellnessRatio = 1;
     } else if (input.wellnessAvg <= 2.5) {
-      breakdown.wellnessScore = 24;
+      wellnessRatio = 0.8;
     } else if (input.wellnessAvg <= 3.5) {
-      breakdown.wellnessScore = 14;
+      wellnessRatio = 0.47;
       recommendations.push("Surveiller la récupération et le sommeil");
     } else {
-      breakdown.wellnessScore = 6;
+      wellnessRatio = 0.2;
       recommendations.push("Prioriser la récupération");
     }
-  } else {
-    breakdown.wellnessScore = 15;
   }
 
-  // Performance (30 %)
+  // Performance — poids 30 %
   if (input.recentTestPerformance !== null) {
-    breakdown.performanceScore = Math.round((input.recentTestPerformance / 100) * 30);
-  } else {
-    breakdown.performanceScore = 15;
+    performanceRatio = Math.max(0, Math.min(1, input.recentTestPerformance / 100));
   }
+
+  breakdown.acwrScore = Math.round((acwrRatio ?? 0) * FITNESS_WEIGHTS.acwr);
+  breakdown.wellnessScore = Math.round((wellnessRatio ?? 0) * FITNESS_WEIGHTS.wellness);
+  breakdown.performanceScore = Math.round((performanceRatio ?? 0) * FITNESS_WEIGHTS.performance);
 
   // Blessure : plafond de statut, pas de composante pondérée (évite le double comptage)
   if (input.injuryStatus === "recovering") {
@@ -86,13 +94,16 @@ export function calculateFitnessScore(input: FitnessScoreInput): FitnessScoreRes
     recommendations.push("Priorité à la guérison de la blessure");
   }
 
-  const totalScore = Math.max(
-    0,
-    Math.min(
-      100,
-      breakdown.acwrScore + breakdown.wellnessScore + breakdown.performanceScore
-    )
-  );
+  // Renormalisation sur les seules composantes disponibles
+  let weightedSum = 0;
+  let totalWeight = 0;
+  if (acwrRatio !== null) { weightedSum += acwrRatio * FITNESS_WEIGHTS.acwr; totalWeight += FITNESS_WEIGHTS.acwr; }
+  if (wellnessRatio !== null) { weightedSum += wellnessRatio * FITNESS_WEIGHTS.wellness; totalWeight += FITNESS_WEIGHTS.wellness; }
+  if (performanceRatio !== null) { weightedSum += performanceRatio * FITNESS_WEIGHTS.performance; totalWeight += FITNESS_WEIGHTS.performance; }
+
+  const totalScore = totalWeight > 0
+    ? Math.max(0, Math.min(100, Math.round((weightedSum / totalWeight) * 100)))
+    : 0;
 
   let status: "optimal" | "attention" | "critical";
   if (totalScore >= 70) {
