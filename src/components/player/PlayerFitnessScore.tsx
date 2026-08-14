@@ -126,20 +126,22 @@ export function PlayerFitnessScore({ playerId, categoryId }: PlayerFitnessScoreP
         {/* Breakdown */}
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">AWCR</span>
-            <span className="font-medium">{breakdown.awcrScore}/30</span>
+            <span className="text-muted-foreground">ACWR (7j/28j)</span>
+            <span className="font-medium">{breakdown.acwrScore}/40</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Wellness</span>
-            <span className="font-medium">{breakdown.wellnessScore}/25</span>
+            <span className="font-medium">{breakdown.wellnessScore}/30</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Performance</span>
-            <span className="font-medium">{breakdown.performanceScore}/25</span>
+            <span className="font-medium">{breakdown.performanceScore}/30</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Santé</span>
-            <span className="font-medium">{breakdown.injuryScore}/20</span>
+            <span className="font-medium text-xs">
+              {status === "critical" ? "Blessure : plafond appliqué" : "Plafond de statut"}
+            </span>
           </div>
         </div>
 
