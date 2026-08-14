@@ -1027,9 +1027,11 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                 Résultats — {selectedOpt?.label}
               </CardTitle>
               <p className="text-xs text-muted-foreground">
-                Chaque cellule est colorée selon le niveau atteint. Évolution = variation entre le
-                premier et le dernier test.
+                Chaque cellule est colorée selon le niveau atteint et affiche la variation par
+                rapport au test précédent. La colonne Évolution = variation du premier au dernier
+                test.
               </p>
+
             </div>
             {bm && allDates.length > 0 && (
               <Button variant="outline" size="sm" className="gap-1.5" onClick={handleExportCsv}>
