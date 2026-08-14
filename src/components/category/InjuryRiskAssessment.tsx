@@ -384,9 +384,6 @@ export function InjuryRiskAssessment({ categoryId }: InjuryRiskAssessmentProps) 
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="text-sm text-muted-foreground">
-                    ACWR: {player.awcr?.toFixed(2) ?? "-"}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
                     ACWR (7j/28j): {player.awcr?.toFixed(2) ?? "-"}
                   </div>
                   <div className="text-sm text-muted-foreground">
