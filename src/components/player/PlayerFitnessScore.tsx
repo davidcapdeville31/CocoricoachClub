@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Activity, AlertTriangle, CheckCircle, Info } from "lucide-react";
 import { MetricTooltip, METRIC_TOOLTIPS } from "@/components/ui/metric-tooltip";
 import { FitnessScoreBadge } from "@/components/ui/status-badge";
-import { calculateFitnessScore, getScoreColorClass, getScoreBgClass } from "@/lib/fitnessScoreCalculator";
+import { calculateFitnessScore, getScoreColorClass, getScoreBgClass, FITNESS_WEIGHTS } from "@/lib/fitnessScoreCalculator";
 import { subDays, format } from "date-fns";
 import { computeAcwr } from "@/lib/acwr";
 
@@ -127,15 +127,15 @@ export function PlayerFitnessScore({ playerId, categoryId }: PlayerFitnessScoreP
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div className="flex justify-between">
             <span className="text-muted-foreground">ACWR (7j/28j)</span>
-            <span className="font-medium">{breakdown.acwrScore}/40</span>
+            <span className="font-medium">{breakdown.acwrScore}/{FITNESS_WEIGHTS.acwr}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Wellness</span>
-            <span className="font-medium">{breakdown.wellnessScore}/30</span>
+            <span className="font-medium">{breakdown.wellnessScore}/{FITNESS_WEIGHTS.wellness}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Performance</span>
-            <span className="font-medium">{breakdown.performanceScore}/30</span>
+            <span className="font-medium">{breakdown.performanceScore}/{FITNESS_WEIGHTS.performance}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Santé</span>
