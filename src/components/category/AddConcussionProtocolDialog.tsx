@@ -93,6 +93,11 @@ export function AddConcussionProtocolDialog({ open, onOpenChange, categoryId, pl
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["concussion_protocols", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["player_concussions", playerId] });
+      // La commotion crée automatiquement une blessure : rafraîchir santé/disponibilité
+      queryClient.invalidateQueries({ predicate: (q) => {
+        const k = String(q.queryKey?.[0] ?? "");
+        return k.includes("injur") || k.includes("availability") || k.includes("blessure") || k.includes("health");
+      }});
       toast.success("Protocole commotion créé");
       resetForm();
       onOpenChange(false);
