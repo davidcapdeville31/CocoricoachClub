@@ -2,8 +2,11 @@
  * Calculate a global fitness score (0-100) combining multiple metrics
  */
 
+import { ACWR_SAFE_MAX, ACWR_SAFE_MIN } from "@/lib/acwr";
+
 interface FitnessScoreInput {
-  awcr: number | null;
+  /** ACWR réel : charge aiguë 7j / charge chronique 28j */
+  acwr: number | null;
   wellnessAvg: number | null; // 1-5 scale, lower is better
   recentTestPerformance: number | null; // 0-100 percentile
   injuryStatus: "none" | "recovering" | "active";
@@ -13,7 +16,7 @@ interface FitnessScoreInput {
 interface FitnessScoreResult {
   score: number;
   breakdown: {
-    awcrScore: number;
+    acwrScore: number;
     wellnessScore: number;
     performanceScore: number;
     injuryScore: number;
@@ -24,79 +27,72 @@ interface FitnessScoreResult {
 
 export function calculateFitnessScore(input: FitnessScoreInput): FitnessScoreResult {
   const breakdown = {
-    awcrScore: 0,
+    acwrScore: 0,
     wellnessScore: 0,
     performanceScore: 0,
     injuryScore: 0,
   };
   const recommendations: string[] = [];
 
-  // AWCR Score (30% of total)
-  if (input.awcr !== null) {
-    if (input.awcr >= 0.8 && input.awcr <= 1.3) {
-      breakdown.awcrScore = 30;
-    } else if (input.awcr > 1.3 && input.awcr <= 1.5) {
-      breakdown.awcrScore = 20;
+  // ACWR réel (aigu 7j / chronique 28j) — 40 % du total
+  if (input.acwr !== null) {
+    if (input.acwr >= ACWR_SAFE_MIN && input.acwr <= ACWR_SAFE_MAX) {
+      breakdown.acwrScore = 40;
+    } else if (input.acwr > 1.3 && input.acwr <= 1.5) {
+      breakdown.acwrScore = 26;
       recommendations.push("Réduire légèrement la charge d'entraînement");
-    } else if (input.awcr < 0.8 && input.awcr >= 0.6) {
-      breakdown.awcrScore = 15;
+    } else if (input.acwr < 0.8 && input.acwr >= 0.6) {
+      breakdown.acwrScore = 20;
       recommendations.push("Augmenter progressivement la charge d'entraînement");
-    } else if (input.awcr > 1.5) {
-      breakdown.awcrScore = 5;
+    } else if (input.acwr > 1.5) {
+      breakdown.acwrScore = 7;
       recommendations.push("URGENT: Réduire significativement la charge");
     } else {
-      breakdown.awcrScore = 5;
+      breakdown.acwrScore = 7;
       recommendations.push("URGENT: Reprendre l'entraînement progressivement");
     }
   } else {
-    breakdown.awcrScore = 15; // Default if no data
+    breakdown.acwrScore = 20; // Valeur neutre si aucune donnée
   }
 
-  // Wellness Score (25% of total)
+  // Wellness (30 %) — inclut déjà la fatigue, pas de sous-score fatigue dédié
   if (input.wellnessAvg !== null) {
-    // Convert 1-5 scale (lower better) to 0-25 score
     if (input.wellnessAvg <= 1.5) {
-      breakdown.wellnessScore = 25;
+      breakdown.wellnessScore = 30;
     } else if (input.wellnessAvg <= 2.5) {
-      breakdown.wellnessScore = 20;
+      breakdown.wellnessScore = 24;
     } else if (input.wellnessAvg <= 3.5) {
-      breakdown.wellnessScore = 12;
+      breakdown.wellnessScore = 14;
       recommendations.push("Surveiller la récupération et le sommeil");
     } else {
-      breakdown.wellnessScore = 5;
+      breakdown.wellnessScore = 6;
       recommendations.push("Prioriser la récupération");
     }
   } else {
-    breakdown.wellnessScore = 12; // Default if no data
+    breakdown.wellnessScore = 15;
   }
 
-  // Performance Score (25% of total)
+  // Performance (30 %)
   if (input.recentTestPerformance !== null) {
-    breakdown.performanceScore = Math.round((input.recentTestPerformance / 100) * 25);
+    breakdown.performanceScore = Math.round((input.recentTestPerformance / 100) * 30);
   } else {
-    breakdown.performanceScore = 12; // Default if no data
+    breakdown.performanceScore = 15;
   }
 
-  // Injury Score (20% of total)
-  switch (input.injuryStatus) {
-    case "none":
-      breakdown.injuryScore = 20;
-      break;
-    case "recovering":
-      breakdown.injuryScore = 10;
-      recommendations.push("Respecter le protocole de retour au jeu");
-      break;
-    case "active":
-      breakdown.injuryScore = 0;
-      recommendations.push("Priorité à la guérison de la blessure");
-      break;
+  // Blessure : plafond de statut, pas de composante pondérée (évite le double comptage)
+  if (input.injuryStatus === "recovering") {
+    recommendations.push("Respecter le protocole de retour au jeu");
+  } else if (input.injuryStatus === "active") {
+    recommendations.push("Priorité à la guérison de la blessure");
   }
 
-  const totalScore = 
-    breakdown.awcrScore + 
-    breakdown.wellnessScore + 
-    breakdown.performanceScore + 
-    breakdown.injuryScore;
+  const totalScore = Math.max(
+    0,
+    Math.min(
+      100,
+      breakdown.acwrScore + breakdown.wellnessScore + breakdown.performanceScore
+    )
+  );
 
   let status: "optimal" | "attention" | "critical";
   if (totalScore >= 70) {
@@ -105,6 +101,13 @@ export function calculateFitnessScore(input: FitnessScoreInput): FitnessScoreRes
     status = "attention";
   } else {
     status = "critical";
+  }
+
+  // Plafond blessure
+  if (input.injuryStatus === "active") {
+    status = "critical";
+  } else if (input.injuryStatus === "recovering" && status === "optimal") {
+    status = "attention";
   }
 
   return {
