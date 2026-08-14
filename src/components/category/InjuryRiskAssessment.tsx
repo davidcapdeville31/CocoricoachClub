@@ -338,15 +338,9 @@ export function InjuryRiskAssessment({ categoryId }: InjuryRiskAssessmentProps) 
                     {getRiskBadge(player.combinedRisk)}
                   </div>
                   
-                  <div className="grid grid-cols-3 gap-4 text-sm mb-3">
+                  <div className="grid grid-cols-2 gap-4 text-sm mb-3">
                     <div>
-                      <span className="text-muted-foreground">EWMA: </span>
-                      <span className={player.awcrRisk === "high" ? "text-destructive font-medium" : ""}>
-                        {player.awcr?.toFixed(2) ?? "N/A"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">ACWR: </span>
+                      <span className="text-muted-foreground">ACWR (7j/28j): </span>
                       <span className={player.awcrRisk === "high" ? "text-destructive font-medium" : ""}>
                         {player.awcr?.toFixed(2) ?? "N/A"}
                       </span>
