@@ -1258,7 +1258,27 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                                       </span>
                                     </span>
                                   )}
+                                  {stepDelta != null && (
+                                    <span
+                                      className={`text-[10px] font-semibold ${
+                                        stepImproved === 1
+                                          ? "text-emerald-600"
+                                          : stepImproved === -1
+                                          ? "text-rose-600"
+                                          : "text-muted-foreground"
+                                      }`}
+                                      title="Variation par rapport au test précédent"
+                                    >
+                                      {stepDelta > 0 ? "+" : ""}
+                                      {stepDelta.toFixed(stepUseKg || !isRatio ? 1 : 2).replace(".", ",")}
+                                      {stepUnit}
+                                      {stepPct != null && (
+                                        <> ({stepPct > 0 ? "+" : ""}{stepPct.toFixed(1).replace(".", ",")} %)</>
+                                      )}
+                                    </span>
+                                  )}
                                   {level && (
+
                                     <span
                                       className="text-[10px] font-semibold"
                                       style={{ color: level.color }}
