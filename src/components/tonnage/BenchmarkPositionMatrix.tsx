@@ -1027,9 +1027,11 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                 Résultats — {selectedOpt?.label}
               </CardTitle>
               <p className="text-xs text-muted-foreground">
-                Chaque cellule est colorée selon le niveau atteint. Évolution = variation entre le
-                premier et le dernier test.
+                Chaque cellule est colorée selon le niveau atteint et affiche la variation par
+                rapport au test précédent. La colonne Évolution = variation du premier au dernier
+                test.
               </p>
+
             </div>
             {bm && allDates.length > 0 && (
               <Button variant="outline" size="sm" className="gap-1.5" onClick={handleExportCsv}>
@@ -1147,6 +1149,39 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                           </TableCell>
                           {allDates.map((d) => {
                             const point = series.find((s) => s.date === d);
+                            const sIdx = series.findIndex((s) => s.date === d);
+                            const prevPoint = sIdx > 0 ? series[sIdx - 1] : null;
+                            const stepUseKg =
+                              isRatio && point?.rawKg != null && prevPoint?.rawKg != null;
+                            const stepDelta =
+                              point && prevPoint
+                                ? stepUseKg
+                                  ? point.rawKg! - prevPoint.rawKg!
+                                  : point.value - prevPoint.value
+                                : null;
+                            const stepBase = stepUseKg ? prevPoint?.rawKg : prevPoint?.value;
+                            const stepPct =
+                              stepDelta != null && stepBase != null && Number(stepBase) !== 0
+                                ? (stepDelta / Math.abs(Number(stepBase))) * 100
+                                : null;
+                            const stepImproved =
+                              stepDelta == null || stepDelta === 0
+                                ? 0
+                                : posBm?.lower_is_better
+                                ? stepDelta < 0
+                                  ? 1
+                                  : -1
+                                : stepDelta > 0
+                                ? 1
+                                : -1;
+                            const stepUnit = stepUseKg
+                              ? " kg"
+                              : isRatio
+                              ? " ratio"
+                              : unitSuffix
+                              ? ` ${unitSuffix}`
+                              : "";
+
                             if (!point) {
                               return (
                                 <TableCell
@@ -1225,7 +1260,27 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                                       </span>
                                     </span>
                                   )}
+                                  {stepDelta != null && (
+                                    <span
+                                      className={`text-[10px] font-semibold ${
+                                        stepImproved === 1
+                                          ? "text-emerald-600"
+                                          : stepImproved === -1
+                                          ? "text-rose-600"
+                                          : "text-muted-foreground"
+                                      }`}
+                                      title="Variation par rapport au test précédent"
+                                    >
+                                      {stepDelta > 0 ? "+" : ""}
+                                      {stepDelta.toFixed(stepUseKg || !isRatio ? 1 : 2).replace(".", ",")}
+                                      {stepUnit}
+                                      {stepPct != null && (
+                                        <> ({stepPct > 0 ? "+" : ""}{stepPct.toFixed(1).replace(".", ",")} %)</>
+                                      )}
+                                    </span>
+                                  )}
                                   {level && (
+
                                     <span
                                       className="text-[10px] font-semibold"
                                       style={{ color: level.color }}
@@ -1325,22 +1380,43 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                   const { x, y, index } = props;
                   if (index === 0 || x == null || y == null) return null;
                   const curr = chartData[index]?.[key];
-                  // Find previous non-null value for this player
+                  // Valeur précédente non nulle (évolution test à test)
                   let prev: any = null;
                   for (let j = index - 1; j >= 0; j--) {
                     if (chartData[j]?.[key] != null) { prev = chartData[j][key]; break; }
                   }
+                  // Première valeur non nulle (évolution cumulée depuis le 1er test)
+                  let base: any = null;
+                  for (let j = 0; j < index; j++) {
+                    if (chartData[j]?.[key] != null) { base = chartData[j][key]; break; }
+                  }
                   if (prev == null || curr == null || prev === 0) return null;
                   const pct = ((curr - prev) / Math.abs(prev)) * 100;
-                  if (Math.abs(pct) < 0.5) return null;
+                  const cumPct =
+                    base != null && base !== 0 ? ((curr - base) / Math.abs(base)) * 100 : null;
                   const improved = lowerBetter ? pct < 0 : pct > 0;
                   const color = improved ? "hsl(142 71% 40%)" : "hsl(0 72% 51%)";
+                  const cumImproved = cumPct == null ? null : lowerBetter ? cumPct < 0 : cumPct > 0;
+                  const cumColor =
+                    cumImproved == null
+                      ? "hsl(var(--muted-foreground))"
+                      : cumImproved
+                      ? "hsl(142 71% 40%)"
+                      : "hsl(0 72% 51%)";
                   return (
-                    <text x={x + 12} y={y - 8} textAnchor="start" fontSize={10} fontWeight={700} fill={color}>
-                      {pct > 0 ? "+" : ""}{pct.toFixed(1)}%
-                    </text>
+                    <g>
+                      <text x={x + 12} y={y - 18} textAnchor="start" fontSize={10} fontWeight={700} fill={color}>
+                        {pct > 0 ? "+" : ""}{pct.toFixed(1)}%
+                      </text>
+                      {cumPct != null && (
+                        <text x={x + 12} y={y - 6} textAnchor="start" fontSize={9} fontWeight={600} fill={cumColor}>
+                          cum. {cumPct > 0 ? "+" : ""}{cumPct.toFixed(1)}%
+                        </text>
+                      )}
+                    </g>
                   );
                 };
+
 
                 return (
                   <div className="mt-6">
