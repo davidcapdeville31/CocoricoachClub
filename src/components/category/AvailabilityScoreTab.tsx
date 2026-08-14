@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { computeAcwr, acwrToScore } from "@/lib/acwr";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -99,48 +100,11 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
         const factors: string[] = [];
 
         // ---- ACWR réel : charge aiguë (7j) / charge chronique (28j) ----
-        const dayMs = 24 * 60 * 60 * 1000;
-        const startDay = new Date(format(monthAgo, "yyyy-MM-dd")).getTime();
-        const endDay = new Date(format(today, "yyyy-MM-dd")).getTime();
-        const nDays = Math.round((endDay - startDay) / dayMs) + 1;
-        const daily: number[] = new Array(nDays).fill(0);
-        for (const row of playerLoads) {
-          const idx = Math.round((new Date(row.session_date).getTime() - startDay) / dayMs);
-          if (idx < 0 || idx >= nDays) continue;
-          daily[idx] += (Number(row.rpe) || 0) * (Number(row.duration_minutes) || 0);
-        }
-
         const hasLoad = playerLoads.length > 0;
-        let acwr: number | null = null;
-        if (hasLoad) {
-          if (acwrMethod === "rolling") {
-            const acute = daily.slice(-7).reduce((a, b) => a + b, 0) / 7;
-            const chronic = daily.reduce((a, b) => a + b, 0) / nDays;
-            acwr = chronic > 0 ? acute / chronic : null;
-          } else {
-            const lAcute = 2 / (7 + 1);
-            const lChronic = 2 / (28 + 1);
-            let ewmaA = 0;
-            let ewmaC = 0;
-            daily.forEach((v, i) => {
-              ewmaA = i === 0 ? v : v * lAcute + ewmaA * (1 - lAcute);
-              ewmaC = i === 0 ? v : v * lChronic + ewmaC * (1 - lChronic);
-            });
-            acwr = ewmaC > 0 ? ewmaA / ewmaC : null;
-          }
-        }
-
-        let acwrScore: number | null = null;
-        if (acwr !== null && Number.isFinite(acwr)) {
-          if (acwr >= 0.8 && acwr <= 1.3) {
-            acwrScore = 100;
-          } else if (acwr < 0.8) {
-            acwrScore = Math.round(Math.max(0, Math.min(100, 100 - (0.8 - acwr) * 150)));
-            factors.push(`ACWR faible (${acwr.toFixed(2)})`);
-          } else {
-            acwrScore = Math.round(Math.max(0, Math.min(100, 100 - (acwr - 1.3) * 80)));
-            factors.push(`ACWR élevé (${acwr.toFixed(2)})`);
-          }
+        const acwr = computeAcwr(playerLoads as any, acwrMethod, today);
+        const acwrScore = acwrToScore(acwr);
+        if (acwr !== null && acwrScore !== null && acwrScore < 100) {
+          factors.push(acwr < 0.8 ? `ACWR faible (${acwr.toFixed(2)})` : `ACWR élevé (${acwr.toFixed(2)})`);
         }
 
         // ---- Ratio d'adhérence au plan (réel / prévu) — indicateur descriptif, non noté ----
