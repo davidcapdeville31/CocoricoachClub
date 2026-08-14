@@ -1147,6 +1147,39 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                           </TableCell>
                           {allDates.map((d) => {
                             const point = series.find((s) => s.date === d);
+                            const sIdx = series.findIndex((s) => s.date === d);
+                            const prevPoint = sIdx > 0 ? series[sIdx - 1] : null;
+                            const stepUseKg =
+                              isRatio && point?.rawKg != null && prevPoint?.rawKg != null;
+                            const stepDelta =
+                              point && prevPoint
+                                ? stepUseKg
+                                  ? point.rawKg! - prevPoint.rawKg!
+                                  : point.value - prevPoint.value
+                                : null;
+                            const stepBase = stepUseKg ? prevPoint?.rawKg : prevPoint?.value;
+                            const stepPct =
+                              stepDelta != null && stepBase != null && Number(stepBase) !== 0
+                                ? (stepDelta / Math.abs(Number(stepBase))) * 100
+                                : null;
+                            const stepImproved =
+                              stepDelta == null || stepDelta === 0
+                                ? 0
+                                : posBm?.lower_is_better
+                                ? stepDelta < 0
+                                  ? 1
+                                  : -1
+                                : stepDelta > 0
+                                ? 1
+                                : -1;
+                            const stepUnit = stepUseKg
+                              ? " kg"
+                              : isRatio
+                              ? " ratio"
+                              : unitSuffix
+                              ? ` ${unitSuffix}`
+                              : "";
+
                             if (!point) {
                               return (
                                 <TableCell
