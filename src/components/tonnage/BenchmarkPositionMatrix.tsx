@@ -1476,14 +1476,34 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                   }
                   const isLast = index === lastIndexWithData;
                   const anchor = isLast ? "end" : "start";
-                  const offset = isLast ? -12 : 12;
+                  const offset = isLast ? -16 : 16;
                   return (
                     <g key={`${key}-${index}`}>
-                      <text x={x + offset} y={y - 18} textAnchor={anchor} fontSize={10} fontWeight={700} fill={color}>
+                      <text
+                        x={x + offset}
+                        y={y - 22}
+                        textAnchor={anchor}
+                        fontSize={11}
+                        fontWeight={700}
+                        fill={color}
+                        stroke="hsl(var(--background))"
+                        strokeWidth={3}
+                        paintOrder="stroke"
+                      >
                         {pct > 0 ? "+" : ""}{pct.toFixed(1)}%
                       </text>
                       {cumPct != null && (
-                        <text x={x + offset} y={y - 6} textAnchor={anchor} fontSize={9} fontWeight={600} fill={cumColor}>
+                        <text
+                          x={x + offset}
+                          y={y - 8}
+                          textAnchor={anchor}
+                          fontSize={10}
+                          fontWeight={600}
+                          fill={cumColor}
+                          stroke="hsl(var(--background))"
+                          strokeWidth={3}
+                          paintOrder="stroke"
+                        >
                           cum. {cumPct > 0 ? "+" : ""}{cumPct.toFixed(1)}%
                         </text>
                       )}
