@@ -1522,7 +1522,7 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                     </div>
                     <div className="h-80 w-full">
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={chartData} margin={{ top: 30, right: 40, left: 0, bottom: 10 }}>
+                        <LineChart data={chartData} margin={{ top: 34, right: 60, left: 0, bottom: 10 }}>
                           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                           <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
                           <YAxis
