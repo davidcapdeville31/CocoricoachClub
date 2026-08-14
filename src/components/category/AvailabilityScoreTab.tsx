@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
-import { Activity, Heart, AlertTriangle, Target, CheckCircle2, AlertCircle, XCircle } from "lucide-react";
+import { Activity, Heart, AlertTriangle, Target, CheckCircle2, AlertCircle, XCircle, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { InfoHint } from "@/components/training-load/InfoHint";
 import { format, subDays } from "date-fns";
@@ -281,6 +281,38 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
     unavailable: availabilityData?.filter(p => p.status === 'unavailable').length || 0,
   };
 
+  const exportCsv = () => {
+    const rows = availabilityData || [];
+    const header = [
+      "joueur","poste","statut","score_global","score_wellness","acwr","score_acwr",
+      "methode_acwr","acwr_calculable","jours_historique_acwr","adherence","facteurs",
+    ];
+    const lines = [header.join(";")];
+    for (const p of rows) {
+      lines.push([
+        p.playerName,
+        p.position ?? "",
+        p.status,
+        p.overallScore ?? "",
+        p.wellnessScore ?? "",
+        p.acwr !== null ? p.acwr.toFixed(2).replace(".", ",") : "",
+        p.acwrScore ?? "",
+        acwrMethodLabel(acwrMethod),
+        p.acwrInsufficient ? "non (historique insuffisant)" : "oui",
+        p.acwrHistoryDays,
+        p.adherenceRatio !== null ? p.adherenceRatio.toFixed(2).replace(".", ",") : "",
+        p.factors.join(" | "),
+      ].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(";"));
+    }
+    const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `disponibilite_${acwrMethod}_${format(new Date(), "yyyy-MM-dd")}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
@@ -346,6 +378,9 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
               onClick={() => setAcwrMethod("ewma")}
             >
               EWMA
+            </Button>
+            <Button size="sm" variant="outline" onClick={exportCsv}>
+              <Download className="h-4 w-4 mr-1" /> Export CSV
             </Button>
             <InfoHint
               title="ACWR vs ratio d'adhérence"
