@@ -117,6 +117,10 @@ const AVIRON_PHASES = [
 const JUDO_PHASES = [
   { value: "poules", label: "Phase de poules" },
   { value: "repechage", label: "Repêchage" },
+  { value: "cent_vingt_huitiemes", label: "128èmes de finale" },
+  { value: "soixante_quatriemes", label: "64èmes de finale" },
+  { value: "trente_deuxiemes", label: "32èmes de finale" },
+  { value: "seiziemes", label: "16èmes de finale" },
   { value: "huitiemes", label: "Huitièmes de finale" },
   { value: "quart", label: "Quart de finale" },
   { value: "demi", label: "Demi-finale" },

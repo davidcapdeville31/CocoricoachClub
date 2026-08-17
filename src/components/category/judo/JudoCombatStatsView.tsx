@@ -124,6 +124,8 @@ const K = {
   // Scores
   wazariMe: "ijf_wazari_me",
   wazariOpp: "ijf_wazari_opp",
+  yukoMe: "ijf_yuko_me",
+  yukoOpp: "ijf_yuko_opp",
   ipponMe: "ijf_ippon_me",
   ipponOpp: "ijf_ippon_opp",
   // Pénalités
@@ -208,6 +210,8 @@ function computeResult(stats: Record<string, number> | undefined, manualResult: 
   const wazariOpp = num(s[K.wazariOpp]);
   const ipponMe = num(s[K.ipponMe]);
   const ipponOpp = num(s[K.ipponOpp]);
+  const yukoMe = num(s[K.yukoMe]);
+  const yukoOpp = num(s[K.yukoOpp]);
   const shidoMe = num(s[K.shidoMe]);
   const shidoOpp = num(s[K.shidoOpp]);
   const subMe = num(s[K.submissionMe]) > 0;
@@ -228,7 +232,9 @@ function computeResult(stats: Record<string, number> | undefined, manualResult: 
   const wazariIpponMe = wMeEff >= 2;
   const wazariIpponOpp = wOppEff >= 2;
 
-  const scoreLabel = `Ippon ${iMeEff}–${iOppEff} · Waza-ari ${wMeEff}–${wOppEff} · Shido ${shidoMe}–${shidoOpp}`;
+  const scoreLabel = `Ippon ${iMeEff}–${iOppEff} · Waza-ari ${wMeEff}–${wOppEff}${
+    yukoMe || yukoOpp ? ` · Yuko ${yukoMe}–${yukoOpp}` : ""
+  } · Shido ${shidoMe}–${shidoOpp}`;
 
   // Priorités IJF de fin de combat (premier vrai)
   // 1) Soumission immédiate
@@ -262,7 +268,8 @@ function computeResult(stats: Record<string, number> | undefined, manualResult: 
   // Pas de fin nette → état "en cours" / décision possible
   // On ne respecte manualResult QUE s'il y a au moins un score / pénalité saisi
   const hasAnyActivity =
-    wMeEff > 0 || wOppEff > 0 || iMeEff > 0 || iOppEff > 0 || shidoMe > 0 || shidoOpp > 0;
+    wMeEff > 0 || wOppEff > 0 || iMeEff > 0 || iOppEff > 0 || shidoMe > 0 || shidoOpp > 0 ||
+    yukoMe > 0 || yukoOpp > 0;
   if (
     hasAnyActivity &&
     (manualResult === "win" || manualResult === "loss" || manualResult === "draw")
@@ -353,6 +360,8 @@ function userVisibleNotes(notes: string): string {
 const ACTION_LABELS: Record<string, { label: string; side: "me" | "opp"; kind: string }> = {
   ijf_wazari_me: { label: "Waza-ari", side: "me", kind: "wazari" },
   ijf_wazari_opp: { label: "Waza-ari", side: "opp", kind: "wazari" },
+  ijf_yuko_me: { label: "Yuko", side: "me", kind: "yuko" },
+  ijf_yuko_opp: { label: "Yuko", side: "opp", kind: "yuko" },
   ijf_ippon_me: { label: "Ippon", side: "me", kind: "ippon" },
   ijf_ippon_opp: { label: "Ippon", side: "opp", kind: "ippon" },
   ijf_shido_me: { label: "Shido", side: "me", kind: "shido" },
@@ -1064,6 +1073,8 @@ function CombatPanel({
             color="emerald"
             ippon={num(round.stats?.[K.ipponMe])}
             wazari={num(round.stats?.[K.wazariMe])}
+            yuko={num(round.stats?.[K.yukoMe])}
+            onYuko={(v) => onUpdateStat(K.yukoMe, Math.max(0, Math.min(9, v)))}
             onIppon={(v) => {
               const nv = Math.max(0, Math.min(1, v));
               if (nv > 0) clearLosingFor("me");
@@ -1080,6 +1091,8 @@ function CombatPanel({
             color="red"
             ippon={num(round.stats?.[K.ipponOpp])}
             wazari={num(round.stats?.[K.wazariOpp])}
+            yuko={num(round.stats?.[K.yukoOpp])}
+            onYuko={(v) => onUpdateStat(K.yukoOpp, Math.max(0, Math.min(9, v)))}
             onIppon={(v) => {
               const nv = Math.max(0, Math.min(1, v));
               if (nv > 0) clearLosingFor("opp");
@@ -1545,15 +1558,19 @@ function ScoreColumn({
   color,
   ippon,
   wazari,
+  yuko,
   onIppon,
   onWazari,
+  onYuko,
 }: {
   label: string;
   color: "emerald" | "red";
   ippon: number;
   wazari: number;
+  yuko: number;
   onIppon: (v: number) => void;
   onWazari: (v: number) => void;
+  onYuko: (v: number) => void;
 }) {
   const palette =
     color === "emerald"
@@ -1578,6 +1595,14 @@ function ScoreColumn({
         onChange={onWazari}
         btnClass={palette.btn}
         helper={wazari >= 2 ? "→ Ippon !" : undefined}
+      />
+      <CounterRow
+        label="Yuko"
+        value={yuko}
+        max={9}
+        onChange={onYuko}
+        btnClass={palette.btn}
+        helper="Départage uniquement"
       />
     </div>
   );
