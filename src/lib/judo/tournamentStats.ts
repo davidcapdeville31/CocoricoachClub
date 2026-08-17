@@ -16,6 +16,8 @@ export interface JudoTournamentSummary {
   ipponFor: number;
   ipponAgainst: number;
   wazariFor: number;
+  yukoFor: number;
+  yukoAgainst: number;
   wazariAgainst: number;
   shidoFor: number;
   shidoAgainst: number;
@@ -63,7 +65,7 @@ function isLoss(s?: string | null) {
 export function emptyJudoSummary(): JudoTournamentSummary {
   return {
     combats: 0, wins: 0, losses: 0, draws: 0, winRate: 0,
-    ipponFor: 0, ipponAgainst: 0, wazariFor: 0, wazariAgainst: 0,
+    ipponFor: 0, ipponAgainst: 0, wazariFor: 0, wazariAgainst: 0, yukoFor: 0, yukoAgainst: 0,
     shidoFor: 0, shidoAgainst: 0, hansokuDirectFor: 0, hansokuDirectAgainst: 0,
     osaekomiSecFor: 0, osaekomiSecAgainst: 0,
     immoAttempts: 0, immoSuccess: 0, chokeAttempts: 0, chokeSuccess: 0,
@@ -91,6 +93,8 @@ export function summarizeTournamentRounds(rounds: JudoRoundStatsRow[]): JudoTour
 
     out.ipponFor += num(s["ijf_ippon_me"]) + (osaeMe >= 20 ? 1 : 0);
     out.ipponAgainst += num(s["ijf_ippon_opp"]) + (osaeOpp >= 20 ? 1 : 0);
+    out.yukoFor += num(s["ijf_yuko_me"]);
+    out.yukoAgainst += num(s["ijf_yuko_opp"]);
     out.wazariFor += num(s["ijf_wazari_me"]) + (osaeMe >= 10 && osaeMe < 20 ? 1 : 0);
     out.wazariAgainst += num(s["ijf_wazari_opp"]) + (osaeOpp >= 10 && osaeOpp < 20 ? 1 : 0);
     out.shidoFor += num(s["ijf_shido_me"]);
@@ -166,6 +170,8 @@ export const JUDO_METRIC_GROUPS: JudoMetricGroup[] = [
       { key: "ipponFor", label: "Ippon pour", format: "int", higherIsBetter: true },
       { key: "ipponAgainst", label: "Ippon contre", format: "int", higherIsBetter: false },
       { key: "wazariFor", label: "Waza-ari pour", format: "int", higherIsBetter: true },
+      { key: "yukoFor", label: "Yuko pour", format: "int", higherIsBetter: true },
+      { key: "yukoAgainst", label: "Yuko contre", format: "int", higherIsBetter: false },
       { key: "wazariAgainst", label: "Waza-ari contre", format: "int", higherIsBetter: false },
     ],
   },
