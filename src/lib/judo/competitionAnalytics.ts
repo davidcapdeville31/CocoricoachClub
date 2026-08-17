@@ -8,9 +8,15 @@ export type TournamentLevel =
   | "departmental"
   | "regional"
   | "national"
+  | "interclub"
+  | "promotion"
+  | "honneur"
+  | "pre_excellence"
+  | "excellence"
   | "label_b"
   | "label_a"
-  | "excellence"
+  | "coupe_france"
+  | "championnat_france"
   | "international"
   | "european_cup"
   | "grand_prix"
@@ -26,9 +32,15 @@ export const TOURNAMENT_LEVELS: { value: TournamentLevel; label: string; color: 
   { value: "departmental",             label: "Départemental",             color: "bg-teal-100 text-teal-700 border-teal-300" },
   { value: "regional",                 label: "Régional",                  color: "bg-cyan-100 text-cyan-700 border-cyan-300" },
   { value: "national",                 label: "National",                  color: "bg-blue-100 text-blue-700 border-blue-300" },
+  { value: "interclub",                label: "Interclubs",                color: "bg-lime-100 text-lime-700 border-lime-300" },
+  { value: "promotion",                label: "Promotion",               color: "bg-stone-100 text-stone-700 border-stone-300" },
+  { value: "honneur",                  label: "Honneur",                 color: "bg-slate-100 text-slate-700 border-slate-300" },
+  { value: "pre_excellence",           label: "Pré-excellence",          color: "bg-zinc-100 text-zinc-700 border-zinc-300" },
+  { value: "excellence",               label: "Excellence",                color: "bg-indigo-100 text-indigo-700 border-indigo-300" },
   { value: "label_b",                  label: "Label B",                   color: "bg-amber-100 text-amber-700 border-amber-300" },
   { value: "label_a",                  label: "Label A",                   color: "bg-rose-100 text-rose-700 border-rose-300" },
-  { value: "excellence",               label: "Excellence",                color: "bg-indigo-100 text-indigo-700 border-indigo-300" },
+  { value: "coupe_france",             label: "Coupe de France",           color: "bg-blue-100 text-blue-700 border-blue-300" },
+  { value: "championnat_france",       label: "Championnat de France",     color: "bg-red-100 text-red-700 border-red-300" },
   { value: "international",            label: "International",             color: "bg-violet-100 text-violet-700 border-violet-300" },
   { value: "european_cup",             label: "European Cup",              color: "bg-fuchsia-100 text-fuchsia-700 border-fuchsia-300" },
   { value: "grand_prix",               label: "Grand Prix",                color: "bg-sky-100 text-sky-700 border-sky-300" },
@@ -155,9 +167,15 @@ export function summarizeByLevel(matches: MatchForAnalytics[]): LevelSummary[] {
     "departmental",
     "regional",
     "national",
+    "interclub",
+    "promotion",
+    "honneur",
+    "pre_excellence",
+    "excellence",
     "label_b",
     "label_a",
-    "excellence",
+    "coupe_france",
+    "championnat_france",
     "international",
     "european_cup",
     "grand_prix",
