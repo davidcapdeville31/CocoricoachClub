@@ -8,16 +8,36 @@ export type TournamentLevel =
   | "departmental"
   | "regional"
   | "national"
+  | "label_b"
+  | "label_a"
+  | "excellence"
   | "international"
+  | "european_cup"
+  | "grand_prix"
+  | "grand_slam"
+  | "continental_championship"
+  | "world_championship"
+  | "world_masters"
+  | "olympic_games"
   | "other";
 
 export const TOURNAMENT_LEVELS: { value: TournamentLevel; label: string; color: string }[] = [
-  { value: "local",         label: "Local",         color: "bg-emerald-100 text-emerald-700 border-emerald-300" },
-  { value: "departmental",  label: "Départemental", color: "bg-teal-100 text-teal-700 border-teal-300" },
-  { value: "regional",      label: "Régional",      color: "bg-cyan-100 text-cyan-700 border-cyan-300" },
-  { value: "national",      label: "National",      color: "bg-blue-100 text-blue-700 border-blue-300" },
-  { value: "international", label: "International", color: "bg-purple-100 text-purple-700 border-purple-300" },
-  { value: "other",         label: "Autre",         color: "bg-muted text-muted-foreground border-border" },
+  { value: "local",                    label: "Local",                     color: "bg-emerald-100 text-emerald-700 border-emerald-300" },
+  { value: "departmental",             label: "Départemental",             color: "bg-teal-100 text-teal-700 border-teal-300" },
+  { value: "regional",                 label: "Régional",                  color: "bg-cyan-100 text-cyan-700 border-cyan-300" },
+  { value: "national",                 label: "National",                  color: "bg-blue-100 text-blue-700 border-blue-300" },
+  { value: "label_b",                  label: "Label B",                   color: "bg-amber-100 text-amber-700 border-amber-300" },
+  { value: "label_a",                  label: "Label A",                   color: "bg-rose-100 text-rose-700 border-rose-300" },
+  { value: "excellence",               label: "Excellence",                color: "bg-indigo-100 text-indigo-700 border-indigo-300" },
+  { value: "international",            label: "International",             color: "bg-violet-100 text-violet-700 border-violet-300" },
+  { value: "european_cup",             label: "European Cup",              color: "bg-fuchsia-100 text-fuchsia-700 border-fuchsia-300" },
+  { value: "grand_prix",               label: "Grand Prix",                color: "bg-sky-100 text-sky-700 border-sky-300" },
+  { value: "grand_slam",               label: "Grand Slam",                color: "bg-yellow-100 text-yellow-700 border-yellow-300" },
+  { value: "continental_championship", label: "Championnat continental",   color: "bg-violet-100 text-violet-700 border-violet-300" },
+  { value: "world_championship",       label: "Championnat du monde",      color: "bg-amber-100 text-amber-700 border-amber-300" },
+  { value: "world_masters",            label: "World Masters",             color: "bg-orange-100 text-orange-700 border-orange-300" },
+  { value: "olympic_games",            label: "Jeux Olympiques",           color: "bg-yellow-100 text-yellow-700 border-yellow-300" },
+  { value: "other",                    label: "Autre",                     color: "bg-muted text-muted-foreground border-border" },
 ];
 
 export type SelectionType =
