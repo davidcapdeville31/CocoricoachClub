@@ -25,6 +25,8 @@ const STAT_META: Record<string, StatMeta> = {
   ijf_ippon_opp: { label: "Ippon contre", format: "int", polarity: "against" },
   ijf_wazari_me: { label: "Waza-ari pour", format: "int", polarity: "for" },
   ijf_wazari_opp: { label: "Waza-ari contre", format: "int", polarity: "against" },
+  ijf_yuko_me: { label: "Yuko pour", format: "int", polarity: "for" },
+  ijf_yuko_opp: { label: "Yuko contre", format: "int", polarity: "against" },
   // Discipline
   ijf_shido_me: { label: "Shido reçus", format: "int", polarity: "against" },
   ijf_shido_opp: { label: "Shido adverses", format: "int", polarity: "for" },
