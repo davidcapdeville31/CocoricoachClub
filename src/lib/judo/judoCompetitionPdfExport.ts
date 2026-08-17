@@ -719,7 +719,25 @@ function renderByLevel(
 ): number {
   let y = yStart;
   // Group by tournament_level, ordered local→international
-  const order = ["local", "departmental", "regional", "national", "international", "other", "unknown"];
+  const order = [
+    "local",
+    "departmental",
+    "regional",
+    "national",
+    "label_b",
+    "label_a",
+    "excellence",
+    "international",
+    "european_cup",
+    "grand_prix",
+    "grand_slam",
+    "continental_championship",
+    "world_championship",
+    "world_masters",
+    "olympic_games",
+    "other",
+    "unknown",
+  ];
   const map = new Map<string, JudoPdfTournament[]>();
   for (const t of tournaments) {
     const key = t.tournamentLevel || "unknown";

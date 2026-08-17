@@ -150,7 +150,25 @@ export function summarizeByLevel(matches: MatchForAnalytics[]): LevelSummary[] {
     if (!groups[key]) groups[key] = [];
     groups[key].push(m);
   }
-  const order: (TournamentLevel | "unknown")[] = ["local", "departmental", "regional", "national", "international", "other", "unknown"];
+  const order: (TournamentLevel | "unknown")[] = [
+    "local",
+    "departmental",
+    "regional",
+    "national",
+    "label_b",
+    "label_a",
+    "excellence",
+    "international",
+    "european_cup",
+    "grand_prix",
+    "grand_slam",
+    "continental_championship",
+    "world_championship",
+    "world_masters",
+    "olympic_games",
+    "other",
+    "unknown",
+  ];
   const out: LevelSummary[] = [];
   for (const lvl of order) {
     const list = groups[lvl];
