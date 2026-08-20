@@ -1192,6 +1192,15 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                 </div>
               </div>
             )}
+
+            <button
+              type="button"
+              onClick={() => navigate(`/categories/${categoryId}?tab=sante&subtab=wellness-health`)}
+              className="mt-3 w-full text-xs font-medium text-green-600 dark:text-green-400 hover:underline flex items-center justify-center gap-1"
+            >
+              Voir le détail wellness
+              <ChevronRight className="h-3.5 w-3.5" />
+            </button>
           </CardContent>
         </Card>
         <TestsCompletionCard
