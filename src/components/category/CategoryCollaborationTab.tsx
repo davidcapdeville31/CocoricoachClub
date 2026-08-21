@@ -274,7 +274,7 @@ export function CategoryCollaborationTab({ categoryId }: CategoryCollaborationTa
       if (!user.user) throw new Error("Not authenticated");
       
       const token = crypto.randomUUID();
-      const expiresAt = new Date(Date.now() + 28 * 24 * 60 * 60 * 1000).toISOString();
+      const expiresAt = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
 
       if (isClubMember) {
         const { error } = await supabase.from("club_invitations").insert({
