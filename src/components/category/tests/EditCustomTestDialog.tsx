@@ -21,6 +21,7 @@ import { ScoringScaleEditor } from "./ScoringScaleEditor";
 import { FormulaConfigEditor } from "./FormulaConfigEditor";
 import type { FormulaConfig } from "@/lib/tests/formulaEngine";
 import { Trash2, Upload, X, ImageIcon, Loader2 } from "lucide-react";
+import { translateOnSave } from "@/lib/i18n/contentTranslation";
 
 export interface EditableTest {
   id?: string;                 // custom_tests.id (undefined si seed catalogue)
@@ -280,6 +281,8 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
           .insert({ custom_test_id: created.id, category_id: categoryId });
         if (linkErr) throw linkErr;
       }
+
+      void translateOnSave([trimmedName, description, objectives]);
     },
     onSuccess: () => {
       toast.success("Test mis à jour");

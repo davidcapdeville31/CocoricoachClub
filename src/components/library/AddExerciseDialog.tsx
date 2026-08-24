@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Plus, Upload, X, Image as ImageIcon, Video } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
+import { translateOnSave } from "@/lib/i18n/contentTranslation";
 import { 
   EXERCISE_CATEGORIES, 
   DIFFICULTY_LEVELS, 
@@ -153,6 +154,7 @@ export function AddExerciseDialog() {
       if (error) throw error;
 
       sonnerToast.success("Exercice créé avec succès");
+      void translateOnSave([name, subcategory, description]);
       queryClient.invalidateQueries({ queryKey: ["exercise-library"] });
       queryClient.invalidateQueries({ queryKey: ["v2-bank-sidebar-exercises"] });
       queryClient.invalidateQueries({ queryKey: ["exercise-library-picker"] });

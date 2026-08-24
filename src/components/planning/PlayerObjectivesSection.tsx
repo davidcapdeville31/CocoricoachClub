@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { translateOnSave } from "@/lib/i18n/contentTranslation";
+import { useContentTranslation } from "@/hooks/use-content-translation";
 import { Plus, Target, User, TrendingUp, Trash2, Users } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -104,6 +106,13 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
     },
   });
 
+  const { tc } = useContentTranslation(
+    useMemo(
+      () => (objectives ?? []).flatMap((o: any) => [o.title, o.description]),
+      [objectives],
+    ),
+  );
+
   const addMutation = useMutation({
     mutationFn: async () => {
       if (formPlayerIds.length === 0) {
@@ -130,6 +139,7 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
       const { error } = await supabase.from("player_objectives").insert(rows);
       if (error) throw error;
       return rows.length;
+      void translateOnSave([formTitle, formDescription, formMetricName]);
     },
     onSuccess: (count) => {
       queryClient.invalidateQueries({ queryKey: ["player-objectives"] });
@@ -365,7 +375,7 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     <div className={`w-2 h-2 rounded-full shrink-0 ${goalTypeColors[obj.goal_type] || "bg-muted"}`} />
-                    <span className="font-medium text-sm truncate">{obj.title}</span>
+                    <span className="font-medium text-sm truncate">{tc(obj.title)}</span>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     <Badge variant="outline" className="text-xs">{getPlayerName(obj)}</Badge>

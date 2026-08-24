@@ -26,6 +26,7 @@ import {
   getCategoriesForSport,
 } from "@/lib/constants/exerciseCategories";
 import { z } from "zod";
+import { translateOnSave } from "@/lib/i18n/contentTranslation";
 
 interface QuickAddExerciseDialogProps {
   open: boolean;
@@ -144,7 +145,10 @@ export function QuickAddExerciseDialog({
         throw new Error(error.message || "Erreur lors de la création");
       }
       return data;
+      // Traduction automatique du contenu saisi (nom, description) à l'enregistrement
+      void translateOnSave([parsed.data.name, subcategory, parsed.data.description]);
     },
+    
     onSuccess: (data) => {
       toast.success("Exercice créé avec succès");
       queryClient.invalidateQueries({ queryKey: ["exercise-library"] });

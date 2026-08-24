@@ -35,6 +35,7 @@ import { Plus, Dumbbell, Trash2, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { translateOnSave } from "@/lib/i18n/contentTranslation";
 
 interface CustomTrainingTypeSelectProps {
   value: string;
@@ -74,6 +75,7 @@ export function CustomTrainingTypeSelect({
 
       if (error) throw error;
       return data;
+      void translateOnSave([name]);
     },
     enabled: !!categoryId,
   });

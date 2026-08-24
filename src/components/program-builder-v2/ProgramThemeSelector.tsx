@@ -23,6 +23,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Plus, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { translateOnSave } from "@/lib/i18n/contentTranslation";
+import { useContentTranslation } from "@/hooks/use-content-translation";
 import { cn } from "@/lib/utils";
 
 const COLOR_OPTIONS = [
@@ -108,6 +110,7 @@ export function ProgramThemeSelector({
         .single();
       if (error) throw error;
       return data.id;
+      void translateOnSave([trimmed]);
     },
     onSuccess: (id) => {
       toast.success("Thématique créée ✅");
@@ -133,6 +136,10 @@ export function ProgramThemeSelector({
     },
     onError: (err: any) => toast.error(err?.message ?? "Suppression impossible"),
   });
+
+  const { tc } = useContentTranslation(
+    useMemo(() => (themes ?? []).map((t) => t.name), [themes]),
+  );
 
   const selected = useMemo(
     () => (themes ?? []).find((t) => t.id === value) ?? null,
@@ -170,7 +177,7 @@ export function ProgramThemeSelector({
                     className="inline-block h-2.5 w-2.5 rounded-full"
                     style={{ backgroundColor: t.color }}
                   />
-                  {t.name}
+                  {tc(t.name)}
                   {!t.is_system && (
                     <span className="text-[10px] text-muted-foreground">(perso)</span>
                   )}
