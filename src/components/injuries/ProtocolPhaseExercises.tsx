@@ -20,6 +20,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Plus, Trash2, GripVertical, Search, Dumbbell, Image, Video } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export interface ProtocolExercise {
   id?: string;
@@ -41,6 +42,7 @@ interface ProtocolPhaseExercisesProps {
 }
 
 export function ProtocolPhaseExercises({ exercises, onChange, disabled }: ProtocolPhaseExercisesProps) {
+  const { t } = useTranslation();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
@@ -117,25 +119,25 @@ export function ProtocolPhaseExercises({ exercises, onChange, disabled }: Protoc
       <div className="flex items-center justify-between">
         <Label className="text-xs font-medium flex items-center gap-1">
           <Dumbbell className="h-3 w-3" />
-          Exercices ({exercises.length})
+          {t("health.protocolPhaseExercises.exercisesCount", { count: exercises.length })}
         </Label>
         <div className="flex gap-1">
           <Popover open={searchOpen} onOpenChange={setSearchOpen}>
             <PopoverTrigger asChild>
               <Button variant="outline" size="sm" className="h-7 text-xs gap-1" disabled={disabled}>
                 <Search className="h-3 w-3" />
-                Bibliothèque
+                {t("health.protocolPhaseExercises.library")}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-80 p-0" align="end">
               <Command>
                 <CommandInput
-                  placeholder="Rechercher un exercice..."
+                  placeholder={t("health.protocolPhaseExercises.searchPlaceholder")}
                   value={searchQuery}
                   onValueChange={setSearchQuery}
                 />
                 <CommandList className="max-h-60">
-                  <CommandEmpty>Aucun exercice trouvé</CommandEmpty>
+                  <CommandEmpty>{t("health.protocolPhaseExercises.noExerciseFound")}</CommandEmpty>
                   {Object.entries(groupedExercises).map(([category, exs]) => (
                     <CommandGroup key={category} heading={category}>
                       {exs.map((ex) => (
@@ -160,14 +162,14 @@ export function ProtocolPhaseExercises({ exercises, onChange, disabled }: Protoc
           </Popover>
           <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={addCustomExercise} disabled={disabled}>
             <Plus className="h-3 w-3" />
-            Manuel
+            {t("health.protocolPhaseExercises.manual")}
           </Button>
         </div>
       </div>
 
       {exercises.length === 0 && (
         <p className="text-xs text-muted-foreground italic py-2">
-          Aucun exercice. Ajoutez depuis la bibliothèque ou manuellement.
+          {t("health.protocolPhaseExercises.empty")}
         </p>
       )}
 
@@ -179,7 +181,7 @@ export function ProtocolPhaseExercises({ exercises, onChange, disabled }: Protoc
               <Input
                 value={exercise.name}
                 onChange={(e) => updateExercise(index, "name", e.target.value)}
-                placeholder="Nom de l'exercice"
+                placeholder={t("health.protocolPhaseExercises.namePlaceholder")}
                 className="h-7 text-sm font-medium"
                 disabled={disabled}
               />
@@ -192,13 +194,13 @@ export function ProtocolPhaseExercises({ exercises, onChange, disabled }: Protoc
             <Input
               value={exercise.description}
               onChange={(e) => updateExercise(index, "description", e.target.value)}
-              placeholder="Description / consignes"
+              placeholder={t("health.protocolPhaseExercises.descriptionPlaceholder")}
               className="h-7 text-xs"
               disabled={disabled}
             />
             <div className="grid grid-cols-3 gap-1.5">
               <div className="flex items-center gap-1">
-                <span className="text-xs text-muted-foreground whitespace-nowrap">Séries:</span>
+                <span className="text-xs text-muted-foreground whitespace-nowrap">{t("health.protocolPhaseExercises.sets")}</span>
                 <Input
                   type="number"
                   value={exercise.sets || ""}
@@ -208,7 +210,7 @@ export function ProtocolPhaseExercises({ exercises, onChange, disabled }: Protoc
                 />
               </div>
               <div className="flex items-center gap-1">
-                <span className="text-xs text-muted-foreground whitespace-nowrap">Reps:</span>
+                <span className="text-xs text-muted-foreground whitespace-nowrap">{t("health.protocolPhaseExercises.reps")}</span>
                 <Input
                   value={exercise.reps}
                   onChange={(e) => updateExercise(index, "reps", e.target.value)}
@@ -217,7 +219,7 @@ export function ProtocolPhaseExercises({ exercises, onChange, disabled }: Protoc
                 />
               </div>
               <div className="flex items-center gap-1">
-                <span className="text-xs text-muted-foreground whitespace-nowrap">Fréq:</span>
+                <span className="text-xs text-muted-foreground whitespace-nowrap">{t("health.protocolPhaseExercises.frequency")}</span>
                 <Input
                   value={exercise.frequency}
                   onChange={(e) => updateExercise(index, "frequency", e.target.value)}

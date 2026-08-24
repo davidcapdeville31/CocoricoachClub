@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
+import { useTranslation } from "react-i18next";
 
 interface SessionNotifyDialogProps {
   open: boolean;
@@ -33,32 +34,34 @@ interface SessionNotifyDialogProps {
   categoryId: string;
 }
 
-const NOTIFICATION_TYPES = [
-  { 
-    value: "event_added", 
-    label: "Événement ajouté au calendrier",
-    icon: CalendarPlus,
-    defaultMessage: "Une nouvelle séance a été programmée. Merci de confirmer votre présence."
-  },
-  { 
-    value: "schedule_changed", 
-    label: "Horaire décalé",
-    icon: Clock,
-    defaultMessage: "Attention, l'horaire de la séance a été modifié. Veuillez prendre note du nouvel horaire."
-  },
-  { 
-    value: "training_cancelled", 
-    label: "Entraînement annulé",
-    icon: XCircle,
-    defaultMessage: "La séance d'entraînement a été annulée. Nous vous tiendrons informés de la reprogrammation."
-  },
-  { 
-    value: "appointment_cancelled", 
-    label: "RDV annulé",
-    icon: XCircle,
-    defaultMessage: "Le rendez-vous a été annulé. Nous vous tiendrons informés de la reprogrammation."
-  },
-];
+function getNotificationTypes(t: (k: string) => string) {
+  return [
+    {
+      value: "event_added",
+      label: t("planning.calendarDialogs.sessionNotify.types.eventAdded.label"),
+      icon: CalendarPlus,
+      defaultMessage: t("planning.calendarDialogs.sessionNotify.types.eventAdded.defaultMessage"),
+    },
+    {
+      value: "schedule_changed",
+      label: t("planning.calendarDialogs.sessionNotify.types.scheduleChanged.label"),
+      icon: Clock,
+      defaultMessage: t("planning.calendarDialogs.sessionNotify.types.scheduleChanged.defaultMessage"),
+    },
+    {
+      value: "training_cancelled",
+      label: t("planning.calendarDialogs.sessionNotify.types.trainingCancelled.label"),
+      icon: XCircle,
+      defaultMessage: t("planning.calendarDialogs.sessionNotify.types.trainingCancelled.defaultMessage"),
+    },
+    {
+      value: "appointment_cancelled",
+      label: t("planning.calendarDialogs.sessionNotify.types.appointmentCancelled.label"),
+      icon: XCircle,
+      defaultMessage: t("planning.calendarDialogs.sessionNotify.types.appointmentCancelled.defaultMessage"),
+    },
+  ];
+}
 
 export function SessionNotifyDialog({
   open,
@@ -66,6 +69,7 @@ export function SessionNotifyDialog({
   session,
   categoryId,
 }: SessionNotifyDialogProps) {
+  const { t } = useTranslation();
   const [notificationType, setNotificationType] = useState("event_added");
   const [message, setMessage] = useState("");
   const [sendEmail, setSendEmail] = useState(true);
@@ -147,13 +151,14 @@ export function SessionNotifyDialog({
   const athletesWithPhone = athletes.filter((a: any) => a.phone).length;
   const athletesWithPush = athletes.filter((a: any) => a.user_id).length;
 
-  const selectedType = NOTIFICATION_TYPES.find(t => t.value === notificationType);
+  const NOTIFICATION_TYPES = getNotificationTypes(t);
+  const selectedType = NOTIFICATION_TYPES.find(nt => nt.value === notificationType);
   const finalMessage = message || selectedType?.defaultMessage || "";
 
   const sendNotification = useMutation({
     mutationFn: async () => {
       if (!sendEmail && !sendPush) {
-        throw new Error("Veuillez sélectionner au moins un canal de notification");
+        throw new Error(t("planning.calendarDialogs.sessionNotify.toasts.selectChannel"));
       }
 
       const results = { emailsSent: 0, pushSent: 0, bellSent: 0 };
@@ -162,7 +167,7 @@ export function SessionNotifyDialog({
         time: session.session_start_time ? session.session_start_time.substring(0, 5) : undefined,
       };
 
-      const title = selectedType?.label || "Notification";
+      const title = selectedType?.label || t("planning.calendarDialogs.sessionNotify.title");
 
       // Collect user_ids of players with an app account
       const targetUserIds = athletes
@@ -251,17 +256,17 @@ export function SessionNotifyDialog({
     },
     onSuccess: (data) => {
       const parts = [];
-      if (data.emailsSent > 0) parts.push(`${data.emailsSent} email(s)`);
-      if (data.pushSent > 0) parts.push(`${data.pushSent} push`);
-      if (data.bellSent > 0) parts.push(`${data.bellSent} cloche`);
+      if (data.emailsSent > 0) parts.push(t("planning.calendarDialogs.sessionNotify.toasts.emailPart", { count: data.emailsSent }));
+      if (data.pushSent > 0) parts.push(t("planning.calendarDialogs.sessionNotify.toasts.pushPart", { count: data.pushSent }));
+      if (data.bellSent > 0) parts.push(t("planning.calendarDialogs.sessionNotify.toasts.bellPart", { count: data.bellSent }));
 
-      toast.success(`Notifications envoyées : ${parts.join(", ") || "aucune"}`);
+      toast.success(t("planning.calendarDialogs.sessionNotify.toasts.sent", { parts: parts.join(", ") || t("planning.calendarDialogs.sessionNotify.toasts.none") }));
       onOpenChange(false);
       setMessage("");
       setNotificationType("event_added");
     },
     onError: (error: any) => {
-      toast.error(error.message || "Erreur lors de l'envoi des notifications");
+      toast.error(error.message || t("planning.calendarDialogs.sessionNotify.toasts.sendError"));
     },
   });
 
@@ -276,10 +281,10 @@ export function SessionNotifyDialog({
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Send className="h-5 w-5" />
-            Notifier les athlètes
+            {t("planning.calendarDialogs.sessionNotify.title")}
           </DialogTitle>
           <DialogDescription>
-            Séance: {getTrainingTypeLabel(session.training_type)} - {format(new Date(session.session_date), "d MMMM yyyy", { locale: fr })}
+            {t("planning.calendarDialogs.sessionNotify.sessionSummary", { type: getTrainingTypeLabel(session.training_type), date: format(new Date(session.session_date), "d MMMM yyyy", { locale: fr }) })}
           </DialogDescription>
         </DialogHeader>
 
@@ -289,17 +294,17 @@ export function SessionNotifyDialog({
           <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
             <Users className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm">
-              <strong>{athletes.length}</strong> athlète(s)
-              {sessionPlayers?.fromSession ? " (inscrits à la séance)" : " (tous)"} •{" "}
-              <span className="text-muted-foreground">{athletesWithEmail} avec email</span>
+              <strong>{athletes.length}</strong> {t("planning.calendarDialogs.sessionNotify.athleteSummary")}
+              {sessionPlayers?.fromSession ? t("planning.calendarDialogs.sessionNotify.fromSession") : t("planning.calendarDialogs.sessionNotify.allAthletes")} •{" "}
+              <span className="text-muted-foreground">{athletesWithEmail} {t("planning.calendarDialogs.sessionNotify.withEmail")}</span>
               {" • "}
-              <span className="text-muted-foreground">{athletesWithPush} avec push</span>
+              <span className="text-muted-foreground">{athletesWithPush} {t("planning.calendarDialogs.sessionNotify.withPush")}</span>
             </span>
           </div>
 
           {/* Notification type */}
           <div className="space-y-3">
-            <Label>Type de notification</Label>
+            <Label>{t("planning.calendarDialogs.sessionNotify.notificationTypeLabel")}</Label>
             <RadioGroup value={notificationType} onValueChange={setNotificationType} className="space-y-2">
               {NOTIFICATION_TYPES.map((type) => {
                 const Icon = type.icon;
@@ -323,7 +328,7 @@ export function SessionNotifyDialog({
 
           {/* Notification channels */}
           <div className="space-y-3">
-            <Label>Canaux de notification</Label>
+            <Label>{t("planning.calendarDialogs.sessionNotify.channelsLabel")}</Label>
             <div className="flex flex-wrap gap-4">
               <div className="flex items-center space-x-2">
                 <Checkbox
@@ -337,7 +342,7 @@ export function SessionNotifyDialog({
                   className="flex items-center gap-2 text-sm font-medium cursor-pointer"
                 >
                   <Mail className="h-4 w-4" />
-                  Email
+                  {t("planning.calendarDialogs.sessionNotify.email")}
                   <Badge variant="secondary" className="text-xs">
                     {athletesWithEmail}
                   </Badge>
@@ -355,7 +360,7 @@ export function SessionNotifyDialog({
                   className="flex items-center gap-2 text-sm font-medium cursor-pointer"
                 >
                   <Bell className="h-4 w-4" />
-                  Push
+                  {t("planning.calendarDialogs.sessionNotify.push")}
                   <Badge variant="secondary" className="text-xs">
                     {athletesWithPush}
                   </Badge>
@@ -366,7 +371,7 @@ export function SessionNotifyDialog({
 
           {/* Custom message */}
           <div className="space-y-2">
-            <Label htmlFor="message">Message personnalisé (optionnel)</Label>
+            <Label htmlFor="message">{t("planning.calendarDialogs.sessionNotify.customMessageLabel")}</Label>
             <Textarea
               id="message"
               value={message}
@@ -375,13 +380,13 @@ export function SessionNotifyDialog({
               rows={3}
             />
             <p className="text-xs text-muted-foreground">
-              Laissez vide pour utiliser le message par défaut
+              {t("planning.calendarDialogs.sessionNotify.customMessageHint")}
             </p>
           </div>
 
           {/* Event details preview */}
           <div className="p-3 bg-accent/20 rounded-lg text-sm space-y-1">
-            <p className="font-medium text-muted-foreground">Détails inclus automatiquement :</p>
+            <p className="font-medium text-muted-foreground">{t("planning.calendarDialogs.sessionNotify.detailsIncluded")}</p>
             <p>📅 {format(new Date(session.session_date), "EEEE d MMMM yyyy", { locale: fr })}</p>
             {session.session_start_time && <p>🕐 {session.session_start_time.substring(0, 5)}</p>}
           </div>
@@ -393,7 +398,7 @@ export function SessionNotifyDialog({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Annuler
+              {t("planning.calendarDialogs.sessionNotify.cancel")}
             </Button>
             <Button
               type="submit"
@@ -402,12 +407,12 @@ export function SessionNotifyDialog({
               {sendNotification.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Envoi...
+                  {t("planning.calendarDialogs.sessionNotify.sending")}
                 </>
               ) : (
                 <>
                   <Send className="h-4 w-4 mr-2" />
-                  Envoyer
+                  {t("planning.calendarDialogs.sessionNotify.send")}
                 </>
               )}
             </Button>

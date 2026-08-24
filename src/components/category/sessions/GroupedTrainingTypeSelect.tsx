@@ -14,6 +14,7 @@ import {
   type TrainingTypeOption,
 } from "@/lib/constants/trainingTypes";
 import { Plus, Dumbbell } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface GroupedTrainingTypeSelectProps {
   value: string;
@@ -30,10 +31,12 @@ export function GroupedTrainingTypeSelect({
   onValueChange,
   sportType,
   required = false,
-  placeholder = "Sélectionner un type",
+  placeholder,
   showCustomOption = false,
   showExerciseIcon = false,
 }: GroupedTrainingTypeSelectProps) {
+  const { t } = useTranslation();
+  const effectivePlaceholder = placeholder ?? t("planning:calendarDialogs.sessionForm.selectType");
   const hasGroups = hasGroupedTrainingTypes(sportType);
   const groups = getTrainingTypesGrouped(sportType);
   const flatTypes = getTrainingTypesForSport(sportType);
@@ -43,7 +46,7 @@ export function GroupedTrainingTypeSelect({
     return (
       <Select value={value} onValueChange={onValueChange} required={required}>
         <SelectTrigger>
-          <SelectValue placeholder={placeholder} />
+          <SelectValue placeholder={effectivePlaceholder} />
         </SelectTrigger>
         <SelectContent className="max-h-[400px] bg-popover z-50">
           {groups.map((group) => (
@@ -69,7 +72,7 @@ export function GroupedTrainingTypeSelect({
             <SelectItem value="_custom">
               <span className="flex items-center gap-2 text-primary">
                 <Plus className="h-3 w-3" />
-                Autre (personnalisé)
+                {t("planning:calendarDialogs.sessionForm.otherCustom")}
               </span>
             </SelectItem>
           )}
@@ -82,7 +85,7 @@ export function GroupedTrainingTypeSelect({
   return (
     <Select value={value} onValueChange={onValueChange} required={required}>
       <SelectTrigger>
-        <SelectValue placeholder={placeholder} />
+        <SelectValue placeholder={effectivePlaceholder} />
       </SelectTrigger>
       <SelectContent className="bg-popover z-50">
         {flatTypes.map((t) => (

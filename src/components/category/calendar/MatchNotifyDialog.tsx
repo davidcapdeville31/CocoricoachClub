@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
+import { useTranslation } from "react-i18next";
 
 interface MatchNotifyDialogProps {
   open: boolean;
@@ -41,6 +42,7 @@ export function MatchNotifyDialog({
   categoryId,
   sportType,
 }: MatchNotifyDialogProps) {
+  const { t } = useTranslation();
   const [message, setMessage] = useState("");
   const [sendEmail, setSendEmail] = useState(true);
   const [sendPush, setSendPush] = useState(true);
@@ -109,9 +111,9 @@ export function MatchNotifyDialog({
   const athletes = matchPlayers?.players || [];
   const athletesWithEmail = athletes.filter((a) => a.email).length;
 
-  const defaultMessage = isIndividual 
-    ? "Vous êtes convoqué(e) pour la compétition. Merci de confirmer votre présence."
-    : `Vous êtes convoqué(e) pour le match contre ${match.opponent}. Merci de confirmer votre présence.`;
+  const defaultMessage = isIndividual
+    ? t("planning.calendarDialogs.matchNotify.individualDefaultMessage")
+    : t("planning.calendarDialogs.matchNotify.matchDefaultMessage", { opponent: match.opponent });
 
   const finalMessage = message || defaultMessage;
 
@@ -122,11 +124,11 @@ export function MatchNotifyDialog({
       if (sendPush) channels.push("push");
 
       if (channels.length === 0) {
-        throw new Error("Veuillez sélectionner au moins un canal de notification");
+        throw new Error(t("planning.calendarDialogs.matchNotify.toasts.selectChannel"));
       }
 
       const results: { emailsSent: number; pushSent: number } = { emailsSent: 0, pushSent: 0 };
-      const subject = isIndividual ? "Convocation competition" : `Convocation - ${match.opponent}`;
+      const subject = isIndividual ? t("planning.calendarDialogs.matchNotify.individualSubject") : t("planning.calendarDialogs.matchNotify.matchSubject", { opponent: match.opponent });
       const eventDetails = {
         date: format(new Date(match.match_date), "EEEE d MMMM yyyy", { locale: fr }),
         time: match.match_time ? match.match_time.substring(0, 5) : undefined,
@@ -182,12 +184,12 @@ export function MatchNotifyDialog({
       if (data.emailsSent > 0) parts.push(`${data.emailsSent} email(s)`);
       if (data.pushSent > 0) parts.push(`${data.pushSent} push`);
       
-      toast.success(`Convocations envoyées : ${parts.join(", ") || "aucune"}`);
+      toast.success(t("planning.calendarDialogs.matchNotify.toasts.sent", { parts: parts.join(", ") || t("planning.calendarDialogs.matchNotify.toasts.none") }));
       onOpenChange(false);
       setMessage("");
     },
     onError: (error: any) => {
-      toast.error(error.message || "Erreur lors de l'envoi des convocations");
+      toast.error(error.message || t("planning.calendarDialogs.matchNotify.toasts.sendError"));
     },
   });
 
@@ -202,10 +204,10 @@ export function MatchNotifyDialog({
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Trophy className="h-5 w-5" />
-            Notification de convocation
+            {t("planning.calendarDialogs.matchNotify.title")}
           </DialogTitle>
           <DialogDescription>
-            {isIndividual ? "Compétition" : `Match vs ${match.opponent}`} - {format(new Date(match.match_date), "d MMMM yyyy", { locale: fr })}
+            {isIndividual ? t("planning.calendarDialogs.matchNotify.individualDescription") : t("planning.calendarDialogs.matchNotify.matchDescription", { opponent: match.opponent })} - {format(new Date(match.match_date), "d MMMM yyyy", { locale: fr })}
           </DialogDescription>
         </DialogHeader>
 
@@ -215,15 +217,15 @@ export function MatchNotifyDialog({
           <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
             <Users className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm">
-              <strong>{athletes.length}</strong> athlète(s) 
-              {matchPlayers?.fromMatch ? " (convoqués)" : " (tous)"} • 
-              <span className="text-muted-foreground"> {athletesWithEmail} avec email</span>
+              <strong>{athletes.length}</strong> {t("planning.calendarDialogs.matchNotify.athleteSummary")}
+              {matchPlayers?.fromMatch ? t("planning.calendarDialogs.matchNotify.athleteCountFromMatch") : t("planning.calendarDialogs.matchNotify.athleteCountAll")} •
+              <span className="text-muted-foreground"> {athletesWithEmail} {t("planning.calendarDialogs.matchNotify.withEmail")}</span>
             </span>
           </div>
 
           {/* Notification channels */}
           <div className="space-y-3">
-            <Label>Canaux de notification</Label>
+            <Label>{t("planning.calendarDialogs.matchNotify.channelsLabel")}</Label>
             <div className="flex flex-wrap gap-4">
               <div className="flex items-center space-x-2">
                 <Checkbox
@@ -237,7 +239,7 @@ export function MatchNotifyDialog({
                   className="flex items-center gap-2 text-sm font-medium cursor-pointer"
                 >
                   <Mail className="h-4 w-4" />
-                  Email
+                  {t("planning.calendarDialogs.matchNotify.email")}
                   <Badge variant="secondary" className="text-xs">
                     {athletesWithEmail}
                   </Badge>
@@ -255,7 +257,7 @@ export function MatchNotifyDialog({
                   className="flex items-center gap-2 text-sm font-medium cursor-pointer"
                 >
                   <Bell className="h-4 w-4" />
-                  Push
+                  {t("planning.calendarDialogs.matchNotify.push")}
                 </label>
               </div>
             </div>
@@ -263,7 +265,7 @@ export function MatchNotifyDialog({
 
           {/* Custom message */}
           <div className="space-y-2">
-            <Label htmlFor="message">Message personnalisé (optionnel)</Label>
+            <Label htmlFor="message">{t("planning.calendarDialogs.matchNotify.customMessageLabel")}</Label>
             <Textarea
               id="message"
               value={message}
@@ -272,13 +274,13 @@ export function MatchNotifyDialog({
               rows={3}
             />
             <p className="text-xs text-muted-foreground">
-              Laissez vide pour utiliser le message par défaut
+              {t("planning.calendarDialogs.matchNotify.customMessageHint")}
             </p>
           </div>
 
           {/* Event details preview */}
           <div className="p-3 bg-accent/20 rounded-lg text-sm space-y-1">
-            <p className="font-medium text-muted-foreground">Détails inclus automatiquement :</p>
+            <p className="font-medium text-muted-foreground">{t("planning.calendarDialogs.matchNotify.detailsIncluded")}</p>
             <p>📅 {format(new Date(match.match_date), "EEEE d MMMM yyyy", { locale: fr })}</p>
             {match.match_time && <p>🕐 {match.match_time.substring(0, 5)}</p>}
             {match.location && <p>📍 {match.location}</p>}
@@ -291,7 +293,7 @@ export function MatchNotifyDialog({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Annuler
+              {t("planning.calendarDialogs.matchNotify.cancel")}
             </Button>
             <Button
               type="submit"
@@ -300,12 +302,12 @@ export function MatchNotifyDialog({
               {sendNotification.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Envoi...
+                  {t("planning.calendarDialogs.matchNotify.sending")}
                 </>
               ) : (
                 <>
                   <Send className="h-4 w-4 mr-2" />
-                  Envoyer convocation
+                  {t("planning.calendarDialogs.matchNotify.sendConvocation")}
                 </>
               )}
             </Button>

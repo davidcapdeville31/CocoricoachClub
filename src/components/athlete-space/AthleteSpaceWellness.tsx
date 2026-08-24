@@ -23,6 +23,7 @@ import { useWellnessQuestions } from "@/lib/wellness/questionConfig";
 import { BodyPainSelector, type BodyPainEntry } from "@/components/wellness/BodyPainSelector";
 import { format, subDays, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
+import { useTranslation } from "react-i18next";
 
 
 interface Props {
@@ -42,6 +43,7 @@ const SLEEP_RANGES: { label: string; value: number }[] = [
 ];
 
 export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Props) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const today = new Date().toISOString().split("T")[0];
 
@@ -255,7 +257,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
         });
         if (hrvError) {
           console.error("HRV insert error:", hrvError);
-          toast.error("Wellness enregistré mais erreur HRV");
+          toast.error(t("athleteSpace:wellness.hrvSaveError"));
         }
       }
 
@@ -275,8 +277,8 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
     onSuccess: () => {
       toast.success(
         isToday
-          ? "Wellness enregistré !"
-          : `Wellness du ${format(selectedDate, "d MMM", { locale: fr })} enregistré !`,
+          ? t("athleteSpace:wellness.savedToday")
+          : t("athleteSpace:wellness.savedDate", { date: format(selectedDate, "d MMM", { locale: fr }) }),
       );
       queryClient.invalidateQueries({ queryKey: ["athlete-space-wellness"] });
       queryClient.invalidateQueries({ queryKey: ["athlete-space-wellness-today"] });
@@ -287,7 +289,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
       setExpanded(false);
       setForceEdit(false);
     },
-    onError: () => toast.error("Erreur lors de l'enregistrement"),
+    onError: () => toast.error(t("athleteSpace:wellness.saveError")),
   });
 
 
@@ -310,7 +312,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
           >
             <CalendarIcon className="h-3.5 w-3.5" />
             {isToday
-              ? `Aujourd'hui · ${format(selectedDate, "EEEE d MMM", { locale: fr })}`
+              ? `${t("athleteSpace:wellness.today")} · ${format(selectedDate, "EEEE d MMM", { locale: fr })}`
               : format(selectedDate, "EEEE d MMM yyyy", { locale: fr })}
           </Button>
         </PopoverTrigger>
@@ -337,7 +339,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
           />
           <div className="px-3 pb-2 pt-1 flex items-center gap-2 text-[10px] text-muted-foreground border-t">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-status-optimal" />
-            Wellness rempli — cliquez pour modifier
+            {t("athleteSpace:wellness.filledDot")}
           </div>
         </PopoverContent>
       </Popover>
@@ -352,7 +354,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
             setForceEdit(false);
           }}
         >
-          Revenir à aujourd'hui
+          {t("athleteSpace:wellness.backToToday")}
         </Button>
       )}
     </div>
@@ -361,7 +363,15 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
   // Wellness not scheduled today — skip rendering the form, but keep history visible
   // (uniquement pour la date du jour : pour les jours passés, on autorise toujours la saisie de rattrapage)
   if (isToday && !existingWellness && !isScheduledToday) {
-    const dayNames = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+    const dayNames = [
+      t("athleteSpace:wellness.dayNames.sunday"),
+      t("athleteSpace:wellness.dayNames.monday"),
+      t("athleteSpace:wellness.dayNames.tuesday"),
+      t("athleteSpace:wellness.dayNames.wednesday"),
+      t("athleteSpace:wellness.dayNames.thursday"),
+      t("athleteSpace:wellness.dayNames.friday"),
+      t("athleteSpace:wellness.dayNames.saturday"),
+    ];
     const nextDay = (() => {
       for (let i = 1; i <= 7; i++) {
         const d = (todayDow + i) % 7;
@@ -378,14 +388,14 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                 <Heart className="h-5 w-5" style={{ color: NAV_COLORS.sante.base }} />
               </div>
               <div className="flex-1">
-                <p className="font-semibold text-sm">Pas de wellness à remplir aujourd'hui</p>
+                <p className="font-semibold text-sm">{t("athleteSpace:wellness.notScheduledTitle")}</p>
                 <p className="text-xs text-muted-foreground">
-                  {nextDay ? `Prochain wellness : ${nextDay}` : "Aucun jour planifié par le staff."}
+                  {nextDay ? t("athleteSpace:wellness.nextWellness", { day: nextDay }) : t("athleteSpace:wellness.noScheduledDay")}
                 </p>
               </div>
             </div>
             <div className="pt-1">
-              <p className="text-[11px] text-muted-foreground mb-1">Rattraper un jour passé :</p>
+              <p className="text-[11px] text-muted-foreground mb-1">{t("athleteSpace:wellness.catchUpPast")}</p>
               {DateSelector}
             </div>
           </CardContent>
@@ -406,8 +416,8 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
               <CheckCircle2 className="h-5 w-5 text-status-optimal" />
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-sm">Wellness du jour enregistré</p>
-              <p className="text-xs text-muted-foreground">Score global : <span className="font-bold text-foreground">{score}%</span></p>
+              <p className="font-semibold text-sm">{t("athleteSpace:wellness.todaySavedTitle")}</p>
+              <p className="text-xs text-muted-foreground">{t("athleteSpace:wellness.globalScore", { score })}</p>
             </div>
             <Button
               type="button"
@@ -417,7 +427,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
               onClick={() => { setForceEdit(true); setExpanded(true); }}
             >
               <Pencil className="h-3 w-3" />
-              Modifier
+              {t("athleteSpace:wellness.edit")}
             </Button>
           </div>
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
@@ -436,7 +446,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
             })}
           </div>
           <div className="border-t pt-3">
-            <p className="text-[11px] text-muted-foreground mb-1">Rattraper / corriger un jour passé :</p>
+            <p className="text-[11px] text-muted-foreground mb-1">{t("athleteSpace:wellness.catchUpEdit")}</p>
             {DateSelector}
           </div>
         </CardContent>
@@ -455,7 +465,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
       <button
         type="button"
         onClick={() => setExpanded(true)}
-        aria-label="Remplir le Wellness du jour"
+        aria-label={t("athleteSpace:wellness.fillDailyAria")}
         className="group w-full rounded-2xl px-5 py-5 sm:py-6 text-left shadow-lg border-2 transition-all duration-150 active:scale-[0.99] hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-offset-2 flex items-center gap-4"
         style={{
           backgroundColor: NAV_COLORS.sante.base,
@@ -467,8 +477,8 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
           <Heart className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-lg sm:text-xl font-bold leading-tight">Remplir le Wellness du jour</p>
-          <p className="text-xs sm:text-sm text-white/85 mt-0.5">Appuyez ici pour saisir votre wellness</p>
+          <p className="text-lg sm:text-xl font-bold leading-tight">{t("athleteSpace:wellness.todayFillTitle")}</p>
+          <p className="text-xs sm:text-sm text-white/85 mt-0.5">{t("athleteSpace:wellness.todayFillSubtitle")}</p>
         </div>
         <ChevronDown className="h-6 w-6 text-white shrink-0 transition-transform group-hover:translate-y-0.5" />
       </button>
@@ -486,13 +496,13 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
             </div>
             <span className="truncate" style={{ color: NAV_COLORS.sante.base }}>
               {isToday
-                ? "Wellness du jour à remplir"
-                : `Wellness du ${format(selectedDate, "EEEE d MMM", { locale: fr })}`}
+                ? t("athleteSpace:wellness.todayToFillTitle")
+                : t("athleteSpace:wellness.wellnessOfDay", { date: format(selectedDate, "EEEE d MMM", { locale: fr }) })}
             </span>
           </button>
           <div className="flex items-center gap-2 shrink-0">
             <Badge variant="outline" className="text-xs" style={{ borderColor: NAV_COLORS.sante.base, color: NAV_COLORS.sante.base }}>
-              {existingWellness ? "À modifier" : "À remplir"}
+              {existingWellness ? t("athleteSpace:wellness.toEdit") : t("athleteSpace:wellness.toFill")}
             </Badge>
             {shouldBeExpanded ? (
               <ChevronUp className="h-4 w-4" style={{ color: NAV_COLORS.sante.base }} />
@@ -616,13 +626,13 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                 }}
               />
               <Label htmlFor="has-specific-pain" className="text-xs font-semibold cursor-pointer">
-                J'ai une ou plusieurs douleurs aujourd'hui
+                {t("athleteSpace:wellness.hasSpecificPain")}
               </Label>
             </div>
             <p className="text-[10px] text-muted-foreground italic mb-2">
               {hasSpecificPain
-                ? "Cliquez sur chaque zone du corps où vous avez mal. Vous pouvez en ajouter plusieurs (ex. poignet 3/5 et épaule 4/5)."
-                : "Cochez la case ci-dessus si vous avez une douleur à signaler."}
+                ? t("athleteSpace:wellness.painHint")
+                : t("athleteSpace:wellness.painCheckHint")}
             </p>
             <BodyPainSelector
               entries={painEntries}
@@ -636,11 +646,11 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
 
 
           <div>
-            <Label className="text-xs">Notes (optionnel)</Label>
+            <Label className="text-xs">{t("athleteSpace:wellness.notesOptional")}</Label>
             <Textarea
               value={notes}
               onChange={e => setNotes(e.target.value)}
-              placeholder="Remarques, sensations..."
+              placeholder={t("athleteSpace:wellness.notesPlaceholder")}
               className="mt-1 text-sm"
               rows={2}
             />
@@ -655,31 +665,31 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
               }} />
               <Label className="text-xs flex items-center gap-1.5">
                 <Activity className="h-3 w-3" style={{ color: NAV_COLORS.sante.base }} />
-                Ajouter mes données HRV (matin)
+                {t("athleteSpace:wellness.addHrv")}
               </Label>
             </div>
 
             {showHrv && (
               <div className="grid grid-cols-2 gap-2 pl-6">
                 <div className="space-y-1">
-                  <Label className="text-[10px]">HRV (ms)</Label>
+                  <Label className="text-[10px]">{t("athleteSpace:wellness.hrvMs")}</Label>
                   <Input
                     type="number"
                     min="0"
                     max="300"
-                    placeholder="Ex: 65"
+                    placeholder={t("athleteSpace:wellness.hrvMsPlaceholder")}
                     value={hrvMs}
                     onChange={(e) => setHrvMs(e.target.value)}
                     className="h-8 text-sm"
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-[10px]">FC repos (bpm)</Label>
+                  <Label className="text-[10px]">{t("athleteSpace:wellness.restingHr")}</Label>
                   <Input
                     type="number"
                     min="30"
                     max="120"
-                    placeholder="Ex: 55"
+                    placeholder={t("athleteSpace:wellness.restingHrPlaceholder")}
                     value={restingHr}
                     onChange={(e) => setRestingHr(e.target.value)}
                     className="h-8 text-sm"
@@ -692,14 +702,14 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
           {/* Poids du corps (optionnel) */}
           <div className="space-y-1">
             <Label className="text-xs flex items-center gap-1.5">
-              ⚖️ Mon poids du jour (kg) — optionnel
+              {t("athleteSpace:wellness.weightToday")}
             </Label>
             <Input
               type="number"
               step="0.1"
               min="20"
               max="250"
-              placeholder="Ex: 82.5"
+              placeholder={t("athleteSpace:wellness.weightPlaceholder")}
               value={weightKg}
               onChange={(e) => setWeightKg(e.target.value)}
               className="h-8 text-sm max-w-[140px]"
@@ -711,7 +721,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
           <Button
             onClick={() => {
               if (!allFieldsFilled) {
-                toast.error("Merci de remplir tous les indicateurs (1 à 5)");
+                toast.error(t("athleteSpace:wellness.fillIndicatorsError"));
                 return;
               }
               submitWellness.mutate();
@@ -720,7 +730,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
             style={{ backgroundColor: NAV_COLORS.sante.base }}
           >
             <CheckCircle2 className="h-4 w-4 mr-2" />
-            {isToday ? "Enregistrer mon wellness" : `Enregistrer le wellness du ${format(selectedDate, "d MMM", { locale: fr })}`}
+            {isToday ? t("athleteSpace:wellness.saveToday") : t("athleteSpace:wellness.saveDate", { date: format(selectedDate, "d MMM", { locale: fr }) })}
           </Button>
         </CardContent>
       )}

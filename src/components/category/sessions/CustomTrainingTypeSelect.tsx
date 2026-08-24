@@ -36,6 +36,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { translateOnSave } from "@/lib/i18n/contentTranslation";
+import { useTranslation } from "react-i18next";
 
 interface CustomTrainingTypeSelectProps {
   value: string;
@@ -53,10 +54,12 @@ export function CustomTrainingTypeSelect({
   sportType,
   categoryId,
   required = false,
-  placeholder = "Sélectionner un type",
+  placeholder,
   showExerciseIcon = false,
 }: CustomTrainingTypeSelectProps) {
   const { user } = useAuth();
+  const { t } = useTranslation();
+  const effectivePlaceholder = placeholder ?? t("planning:calendarDialogs.sessionForm.selectType");
   const queryClient = useQueryClient();
   const [isAddingCustom, setIsAddingCustom] = useState(false);
   const [customTypeName, setCustomTypeName] = useState("");
@@ -98,16 +101,16 @@ export function CustomTrainingTypeSelect({
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["custom-training-types", categoryId] });
-      toast.success("Thème personnalisé ajouté");
+      toast.success(t("planning:calendarDialogs.sessionForm.customThemeAdded"));
       setCustomTypeName("");
       setIsAddingCustom(false);
       onValueChange(data.name);
     },
     onError: (error: any) => {
       if (error.code === "23505") {
-        toast.error("Ce thème existe déjà");
+        toast.error(t("planning:calendarDialogs.sessionForm.themeAlreadyExists"));
       } else {
-        toast.error("Erreur lors de l'ajout du thème");
+        toast.error(t("planning:calendarDialogs.sessionForm.addThemeError"));
       }
     },
   });
@@ -124,12 +127,12 @@ export function CustomTrainingTypeSelect({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["custom-training-types", categoryId] });
-      toast.success("Thème personnalisé supprimé");
+      toast.success(t("planning:calendarDialogs.sessionForm.customThemeDeleted"));
       setDeleteDialogOpen(false);
       setTypeToDelete(null);
     },
     onError: () => {
-      toast.error("Erreur lors de la suppression");
+      toast.error(t("planning:calendarDialogs.sessionForm.deleteError"));
     },
   });
 
@@ -157,7 +160,7 @@ export function CustomTrainingTypeSelect({
           <SelectGroup>
             <SelectLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wide bg-accent/50 py-2 px-2 sticky -top-1 z-10 flex items-center gap-2">
               <Settings className="h-3 w-3" />
-              Mes thèmes personnalisés
+              {t("planning:calendarDialogs.sessionForm.myCustomThemes")}
             </SelectLabel>
             {customTypes.map((ct) => (
               <SelectItem key={ct.id} value={ct.name} className="pl-6 group">
@@ -209,7 +212,7 @@ export function CustomTrainingTypeSelect({
           {isAddingCustom ? (
             <div className="flex gap-2">
               <Input
-                placeholder="Nom du thème..."
+                placeholder={t("planning:calendarDialogs.sessionForm.customThemeNamePlaceholder")}
                 value={customTypeName}
                 onChange={(e) => {
                   e.stopPropagation();
@@ -235,7 +238,7 @@ export function CustomTrainingTypeSelect({
                 onClick={handleAddCustomType}
                 disabled={!customTypeName.trim() || addCustomType.isPending}
               >
-                Ajouter
+                {t("planning:calendarDialogs.sessionForm.add")}
               </Button>
             </div>
           ) : (
@@ -250,7 +253,7 @@ export function CustomTrainingTypeSelect({
               }}
             >
               <Plus className="h-4 w-4 mr-2" />
-              Créer un thème personnalisé
+              {t("planning:calendarDialogs.sessionForm.createCustomTheme")}
             </Button>
           )}
         </div>
@@ -262,7 +265,7 @@ export function CustomTrainingTypeSelect({
     <>
       <Select value={value} onValueChange={onValueChange} required={required}>
         <SelectTrigger>
-          <SelectValue placeholder={placeholder} />
+          <SelectValue placeholder={effectivePlaceholder} />
         </SelectTrigger>
         {renderSelectContent()}
       </Select>
@@ -270,19 +273,18 @@ export function CustomTrainingTypeSelect({
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer ce thème ?</AlertDialogTitle>
+            <AlertDialogTitle>{t("planning:calendarDialogs.sessionForm.deleteThemeTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Êtes-vous sûr de vouloir supprimer le thème "{typeToDelete?.name}" ?
-              Cette action est irréversible.
+              {t("planning:calendarDialogs.sessionForm.deleteThemeDesc", { name: typeToDelete?.name })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogCancel>{t("planning:calendarDialogs.sessionForm.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => typeToDelete && deleteCustomType.mutate(typeToDelete.id)}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Supprimer
+              {t("planning:calendarDialogs.sessionForm.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

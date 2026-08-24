@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
+import { useTranslation } from "react-i18next";
 
 interface EditIllnessDialogProps {
   open: boolean;
@@ -28,13 +29,13 @@ interface EditIllnessDialogProps {
   illness: any;
 }
 
-const severityOptions = [
-  { value: "légère", label: "Légère" },
-  { value: "modérée", label: "Modérée" },
-  { value: "grave", label: "Grave" },
-];
-
 export function EditIllnessDialog({ open, onOpenChange, illness }: EditIllnessDialogProps) {
+  const { t } = useTranslation();
+  const severityOptions = [
+    { value: "légère", label: t("health.editIllnessDialog.severity.mild") },
+    { value: "modérée", label: t("health.editIllnessDialog.severity.moderate") },
+    { value: "grave", label: t("health.editIllnessDialog.severity.severe") },
+  ];
   const qc = useQueryClient();
   const guard = useSeasonGuard(illness?.category_id);
   const [illnessType, setIllnessType] = useState("");
@@ -74,12 +75,12 @@ export function EditIllnessDialog({ open, onOpenChange, illness }: EditIllnessDi
     },
     onSuccess: () => {
       qc.invalidateQueries();
-      toast.success("Maladie mise à jour");
+      toast.success(t("health.editIllnessDialog.toastSuccess"));
       onOpenChange(false);
     },
     onError: (e: any) => {
       if (typeof e?.message === "string" && e.message.startsWith("guard:")) return;
-      toast.error(e?.message || "Erreur de mise à jour");
+      toast.error(e?.message || t("health.editIllnessDialog.toastError"));
     },
   });
 
@@ -87,21 +88,21 @@ export function EditIllnessDialog({ open, onOpenChange, illness }: EditIllnessDi
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Modifier la maladie</DialogTitle>
+          <DialogTitle>{t("health.editIllnessDialog.title")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <div>
-            <Label>Type de maladie</Label>
+            <Label>{t("health.editIllnessDialog.illnessType")}</Label>
             <Input value={illnessType} onChange={(e) => setIllnessType(e.target.value)} className="mt-1" />
           </div>
           <div>
-            <Label>Date</Label>
+            <Label>{t("health.editIllnessDialog.date")}</Label>
             <Input type="date" value={illnessDate} onChange={(e) => setIllnessDate(e.target.value)} className="mt-1" />
           </div>
           <div>
-            <Label>Gravité</Label>
+            <Label>{t("health.editIllnessDialog.severityLabel")}</Label>
             <Select value={severity} onValueChange={setSeverity}>
-              <SelectTrigger className="mt-1"><SelectValue placeholder="Sélectionner" /></SelectTrigger>
+              <SelectTrigger className="mt-1"><SelectValue placeholder={t("health.editIllnessDialog.selectPlaceholder")} /></SelectTrigger>
               <SelectContent>
                 {severityOptions.map((s) => (
                   <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
@@ -110,33 +111,33 @@ export function EditIllnessDialog({ open, onOpenChange, illness }: EditIllnessDi
             </Select>
           </div>
           <div>
-            <Label>Statut</Label>
+            <Label>{t("health.editIllnessDialog.statusLabel")}</Label>
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="recovering">En convalescence</SelectItem>
-                <SelectItem value="healed">Guérie</SelectItem>
+                <SelectItem value="active">{t("health.editIllnessDialog.status.active")}</SelectItem>
+                <SelectItem value="recovering">{t("health.editIllnessDialog.status.recovering")}</SelectItem>
+                <SelectItem value="healed">{t("health.editIllnessDialog.status.healed")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div>
-            <Label>Retour estimé</Label>
+            <Label>{t("health.editIllnessDialog.estimatedReturn")}</Label>
             <Input type="date" value={estimatedReturnDate} onChange={(e) => setEstimatedReturnDate(e.target.value)} className="mt-1" />
           </div>
           <div>
-            <Label>Description</Label>
+            <Label>{t("health.editIllnessDialog.description")}</Label>
             <Textarea value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1" />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t("health.editIllnessDialog.cancel")}</Button>
           <Button onClick={() => {
-            if (!illnessType.trim()) { toast.error("Type requis"); return; }
-            if (!illnessDate) { toast.error("Date requise"); return; }
+            if (!illnessType.trim()) { toast.error(t("health.editIllnessDialog.toastTypeRequired")); return; }
+            if (!illnessDate) { toast.error(t("health.editIllnessDialog.toastDateRequired")); return; }
             update.mutate();
           }} disabled={update.isPending}>
-            Enregistrer
+            {t("health.editIllnessDialog.save")}
           </Button>
         </DialogFooter>
       </DialogContent>

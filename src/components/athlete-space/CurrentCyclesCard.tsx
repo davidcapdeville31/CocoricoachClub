@@ -5,18 +5,20 @@ import { Badge } from "@/components/ui/badge";
 import { CalendarRange, Activity } from "lucide-react";
 import { format, differenceInCalendarDays } from "date-fns";
 import { fr } from "date-fns/locale";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   categoryId: string;
 }
 
-const CYCLE_TYPE_META: Record<string, { label: string; short: string; className: string; icon: string }> = {
-  PG: { label: "Préparation Générale", short: "PG", className: "bg-blue-500/15 text-blue-600 dark:text-blue-300 border-blue-500/30", icon: "🏗️" },
-  PS: { label: "Préparation Spécifique", short: "PS", className: "bg-amber-500/15 text-amber-600 dark:text-amber-300 border-amber-500/30", icon: "🎯" },
-  PC: { label: "Préparation Compétition", short: "PC", className: "bg-red-500/15 text-red-600 dark:text-red-300 border-red-500/30", icon: "⚡" },
+const CYCLE_TYPE_META: Record<string, { short: string; className: string; icon: string }> = {
+  PG: { short: "PG", className: "bg-blue-500/15 text-blue-600 dark:text-blue-300 border-blue-500/30", icon: "🏗️" },
+  PS: { short: "PS", className: "bg-amber-500/15 text-amber-600 dark:text-amber-300 border-amber-500/30", icon: "🎯" },
+  PC: { short: "PC", className: "bg-red-500/15 text-red-600 dark:text-red-300 border-red-500/30", icon: "⚡" },
 };
 
 export function CurrentCyclesCard({ categoryId }: Props) {
+  const { t } = useTranslation();
   const today = new Date().toISOString().split("T")[0];
 
   const { data: cycles = [], isLoading } = useQuery({
@@ -42,7 +44,7 @@ export function CurrentCyclesCard({ categoryId }: Props) {
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
           <CalendarRange className="h-4 w-4 text-primary" />
-          Cycle en cours
+          {t("athleteSpace:components.currentCyclesCard.title")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2 pt-0">
@@ -67,7 +69,7 @@ export function CurrentCyclesCard({ categoryId }: Props) {
                     style={{ backgroundColor: thematic?.color || c.color || "#64748b" }}
                   />
                   <span className="text-xs text-muted-foreground truncate">
-                    {thematic?.name || "Activité"}
+                    {thematic?.name || t("athleteSpace:components.currentCyclesCard.activity")}
                   </span>
                 </div>
                 {meta && (
@@ -90,7 +92,9 @@ export function CurrentCyclesCard({ categoryId }: Props) {
                   {format(new Date(c.end_date), "d MMM yyyy", { locale: fr })}
                 </span>
                 <span className="font-medium">
-                  {daysLeft > 0 ? `${daysLeft}j restant${daysLeft > 1 ? "s" : ""}` : "Dernier jour"}
+                  {daysLeft > 0
+                    ? t("athleteSpace:components.currentCyclesCard.daysLeft", { count: daysLeft, plural: daysLeft > 1 ? "s" : "" })
+                    : t("athleteSpace:components.currentCyclesCard.lastDay")}
                 </span>
               </div>
 
@@ -107,7 +111,7 @@ export function CurrentCyclesCard({ categoryId }: Props) {
               {typeof c.intensity === "number" && c.intensity > 0 && (
                 <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
                   <Activity className="h-3 w-3" />
-                  <span>Intensité</span>
+                  <span>{t("athleteSpace:components.currentCyclesCard.intensity")}</span>
                   <div className="flex gap-0.5">
                     {[1, 2, 3, 4, 5].map((i) => (
                       <span

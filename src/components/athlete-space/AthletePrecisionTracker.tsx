@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { PrecisionFieldTracker } from "@/components/rugby/PrecisionFieldTracker";
 import { BasketballPrecisionTracker } from "@/components/basketball/BasketballPrecisionTracker";
 import { isBasketballPrecisionSport } from "@/lib/constants/basketballPrecisionExercises";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   categoryId: string;
@@ -23,6 +24,7 @@ interface Props {
  * (athlete-create-session) afin de pouvoir saisir ses stats individuelles.
  */
 export function AthletePrecisionTracker({ categoryId, playerId, sportType }: Props) {
+  const { t } = useTranslation();
   const isBasket = isBasketballPrecisionSport(sportType);
   const queryClient = useQueryClient();
   const today = format(new Date(), "yyyy-MM-dd");
@@ -50,7 +52,7 @@ export function AthletePrecisionTracker({ categoryId, playerId, sportType }: Pro
       const { data: sessionData } = await supabase.auth.getSession();
       const accessToken = sessionData?.session?.access_token;
       if (!accessToken) {
-        toast.error("Session expirée, reconnectez-vous");
+        toast.error(t("athleteSpace:components.precisionTracker.sessionExpired"));
         return;
       }
       const { data, error } = await supabase.functions.invoke("athlete-create-session", {
@@ -63,11 +65,11 @@ export function AthletePrecisionTracker({ categoryId, playerId, sportType }: Pro
         },
       });
       if (error) throw error;
-      if (!data?.success) throw new Error(data?.error || "Création échouée");
-      toast.success("Séance créée — vous pouvez saisir vos stats");
+      if (!data?.success) throw new Error(data?.error || t("athleteSpace:components.precisionTracker.createError"));
+      toast.success(t("athleteSpace:components.precisionTracker.created"));
       await queryClient.invalidateQueries({ queryKey: ["today-training-sessions", categoryId] });
     } catch (e: any) {
-      toast.error(e?.message || "Impossible de créer la séance");
+      toast.error(e?.message || t("athleteSpace:components.precisionTracker.createFail"));
     } finally {
       setCreating(false);
     }
@@ -77,8 +79,8 @@ export function AthletePrecisionTracker({ categoryId, playerId, sportType }: Pro
     <div className="space-y-3">
       <div className="rounded-xl border bg-primary/5 p-3 text-xs text-muted-foreground">
         {isBasket
-          ? "🏀 Saisissez vos séances individuelles de shooting. Les données alimentent votre base personnelle de précision et sont uniquement les vôtres."
-          : "🦶 Saisissez vos séances individuelles de jeu au pied. Les données alimentent votre base personnelle de précision et sont uniquement les vôtres."}
+          ? t("athleteSpace:components.precisionTracker.basketHint")
+          : t("athleteSpace:components.precisionTracker.fieldHint")}
       </div>
 
       {!isLoading && !hasSession ? (
@@ -86,14 +88,14 @@ export function AthletePrecisionTracker({ categoryId, playerId, sportType }: Pro
           <CardContent className="py-6 text-center space-y-3">
             <CalendarPlus className="h-8 w-8 mx-auto text-amber-600" />
             <h3 className="font-semibold text-amber-800 dark:text-amber-200">
-              Aucune séance planifiée aujourd'hui
+              {t("athleteSpace:components.precisionTracker.noSessionTitle")}
             </h3>
             <p className="text-sm text-amber-700 dark:text-amber-300">
-              Créez une séance individuelle pour commencer à saisir vos stats de précision.
+              {t("athleteSpace:components.precisionTracker.noSessionDesc")}
             </p>
             <Button onClick={handleCreateSession} disabled={creating} className="gap-2">
               {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Target className="h-4 w-4" />}
-              Créer une séance individuelle
+              {t("athleteSpace:components.precisionTracker.createSession")}
             </Button>
           </CardContent>
         </Card>

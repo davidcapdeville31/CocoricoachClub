@@ -31,6 +31,7 @@ import { BowlingSessionContent } from "@/components/bowling/BowlingSessionConten
 import { useSeasonGuard } from "@/hooks/use-season-guard";
 import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
 import { FlaskConical } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 
 interface SessionFeedbackDialogProps {
@@ -67,6 +68,7 @@ export function SessionFeedbackDialog({
   const [sessionTests, setSessionTests] = useState<SessionTest[]>([]);
   const [weightLogs, setWeightLogs] = useState<Record<string, Record<string, { weight: string; sets: string; reps: string }>>>({});
   const [activeTab, setActiveTab] = useState(sessionType === "precision" ? "precision" : "rpe");
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const guard = useSeasonGuard(categoryId);
 
@@ -373,7 +375,7 @@ export function SessionFeedbackDialog({
 
   const saveData = useMutation({
     mutationFn: async () => {
-      if (!session?.session_date) throw new Error("Date de séance manquante");
+      if (!session?.session_date) throw new Error(t("planning:calendarDialogs.sessionFeedback.toasts.sessionDateMissing"));
       if (!guard.assertDate(session.session_date)) throw new Error("guard:date");
 
       // Save RPE data
@@ -492,12 +494,12 @@ export function SessionFeedbackDialog({
       const parts: string[] = [];
       if (result.rpeCount > 0) parts.push(`${result.rpeCount} RPE`);
       if (result.testCount > 0) parts.push(`${result.testCount} test(s)`);
-      if (result.weightCount > 0) parts.push(`${result.weightCount} charge(s)`);
+      if (result.weightCount > 0) parts.push(`${result.weightCount} ${t("planning:calendarDialogs.sessionFeedback.loadLabel")}(s)`);
       
       if (parts.length > 0) {
-        toast.success(`Enregistré: ${parts.join(", ")}`);
+        toast.success(t("planning:calendarDialogs.sessionFeedback.toasts.savedSummary", { parts: parts.join(", ") }));
       } else {
-        toast.info("Aucune donnée à enregistrer");
+        toast.info(t("planning:calendarDialogs.sessionFeedback.toasts.nothingToSave"));
       }
       
       setRpeValues({});
@@ -507,7 +509,7 @@ export function SessionFeedbackDialog({
     },
     onError: (error: Error) => {
       if (typeof error?.message === "string" && error.message.startsWith("guard:")) return;
-      toast.error(error.message || "Erreur lors de l'enregistrement");
+      toast.error(error.message || t("planning:calendarDialogs.sessionFeedback.toasts.saveError"));
     },
   });
 
@@ -619,7 +621,7 @@ export function SessionFeedbackDialog({
       queryClient.invalidateQueries({ queryKey: ["generic-tests-multi-comparison", categoryId] });
     } catch (e: any) {
       console.error("Autosave test result failed:", e);
-      toast.error("Échec de l'enregistrement automatique du résultat");
+      toast.error(t("planning:calendarDialogs.sessionFeedback.toasts.autosaveError"));
     }
   };
 
@@ -678,7 +680,7 @@ export function SessionFeedbackDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-primary" />
-            Saisie post-séance - {getTrainingTypeLabel(sessionType)}
+            {t("planning:calendarDialogs.sessionFeedback.dialogTitle", { type: getTrainingTypeLabel(sessionType) })}
           </DialogTitle>
         </DialogHeader>
 
@@ -687,40 +689,40 @@ export function SessionFeedbackDialog({
             {isPrecisionSession && (
               <TabsTrigger value="precision" className="flex-1 gap-2">
                 <Target className="h-4 w-4" />
-                🎯 Précision
+                🎯 {t("planning:calendarDialogs.sessionFeedback.precisionTab")}
               </TabsTrigger>
             )}
             {hasBowlingGame && (
               <TabsTrigger value="bowling_game" className="flex-1 gap-2">
                 <Target className="h-4 w-4" />
-                🎳 Parties
+                🎳 {t("planning:calendarDialogs.sessionFeedback.bowlingGamesTab")}
               </TabsTrigger>
             )}
             {hasBowlingSpare && (
               <TabsTrigger value="bowling_spare" className="flex-1 gap-2">
                 <Target className="h-4 w-4" />
-                🎳 Précision
+                🎳 {t("planning:calendarDialogs.sessionFeedback.bowlingPrecisionTab")}
               </TabsTrigger>
             )}
             {hasBasketPrecision && (
               <TabsTrigger value="basket_precision" className="flex-1 gap-2">
                 <Target className="h-4 w-4" />
-                🏀 Précision
+                🏀 {t("planning:calendarDialogs.sessionFeedback.basketPrecisionTab")}
               </TabsTrigger>
             )}
             <TabsTrigger value="rpe" className="flex-1 gap-2">
               <Activity className="h-4 w-4" />
-              RPE
+              {t("planning:calendarDialogs.sessionFeedback.rpeTab")}
               {hasNewRpeValues && (
                 <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs" title="Joueurs renseignés">
-                  {Object.entries(rpeValues).filter(([id, v]) => v.rpe && !playersWithRpe.has(id)).length} joueur(s)
+                  {Object.entries(rpeValues).filter(([id, v]) => v.rpe && !playersWithRpe.has(id)).length} {t("planning:calendarDialogs.sessionFeedback.playersSuffix")}
                 </Badge>
               )}
             </TabsTrigger>
             {sessionTests.length > 0 && (
               <TabsTrigger value="tests" className="flex-1 gap-2">
                 <FlaskConical className="h-4 w-4" />
-                Tests
+                {t("planning:calendarDialogs.sessionFeedback.testsTab")}
                 {(testResultsCount > 0 || savedTestResultsCount > 0) && (
                   <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
                     {savedTestResultsCount + testResultsCount}
@@ -731,7 +733,7 @@ export function SessionFeedbackDialog({
             {sessionType === "musculation" && (
               <TabsTrigger value="weights" className="flex-1 gap-2">
                 <Dumbbell className="h-4 w-4" />
-                Charges
+                {t("planning:calendarDialogs.sessionFeedback.weightsTab")}
                 {hasWeightLogs && (
                   <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
                     {weightLogCount}
@@ -773,7 +775,7 @@ export function SessionFeedbackDialog({
                   sessionDate={session.session_date}
                 />
                 <p className="text-xs text-muted-foreground mt-3 italic">
-                  ✅ Les données bowling sont enregistrées immédiatement et alimentent <b>Stats → Stats d'entraînement</b>.
+                  {t("planning:calendarDialogs.sessionFeedback.bowlingSavedHint")}
                 </p>
               </div>
             </TabsContent>
@@ -790,7 +792,7 @@ export function SessionFeedbackDialog({
                   sessionDate={session.session_date}
                 />
                 <p className="text-xs text-muted-foreground mt-3 italic">
-                  ✅ Les données bowling sont enregistrées immédiatement et alimentent <b>Stats → Stats d'entraînement</b>.
+                  {t("planning:calendarDialogs.sessionFeedback.bowlingSavedHint")}
                 </p>
               </div>
             </TabsContent>
@@ -805,7 +807,7 @@ export function SessionFeedbackDialog({
                   sessionDate={session.session_date}
                 />
                 <p className="text-xs text-muted-foreground mt-3 italic">
-                  ✅ Saisies enregistrées immédiatement et visibles dans <b>Stats → Stats d'entraînement</b>.
+                  {t("planning:calendarDialogs.sessionFeedback.basketSavedHint")}
                 </p>
               </div>
             </TabsContent>
@@ -813,7 +815,7 @@ export function SessionFeedbackDialog({
 
           <TabsContent value="rpe" className="flex-1 flex flex-col min-h-0 mt-4">
             <p className="text-sm text-muted-foreground mb-3">
-              RPE: Rate of Perceived Exertion (0-10). La durée est pré-remplie depuis les horaires de la séance.
+              {t("planning:calendarDialogs.sessionFeedback.rpeHint")}
             </p>
 
             <div className="flex-1 min-h-0 overflow-y-auto pr-2" style={{ maxHeight: "calc(90vh - 240px)" }}>
@@ -836,16 +838,16 @@ export function SessionFeedbackDialog({
                       {existing && !editingRpe.has(player.id) ? (
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-muted-foreground">
-                            ✓ RPE {existing.rpe}
+                            ✓ {t("planning:calendarDialogs.sessionFeedback.rpe")} {existing.rpe}
                             {sessionType !== "test" && ` - ${existing.duration_minutes}min`}
-                            <span className="text-xs ml-1">(charge: {existing.training_load})</span>
+                            <span className="text-xs ml-1">({t("planning:calendarDialogs.sessionFeedback.loadLabel")}: {existing.training_load})</span>
                           </span>
                           <Button
                             type="button"
                             variant="ghost"
                             size="icon"
                             className="h-7 w-7"
-                            title="Modifier"
+                            title={t("planning:calendarDialogs.sessionFeedback.edit")}
                             onClick={() => {
                               setRpeValues((prev) => ({
                                 ...prev,
@@ -867,7 +869,7 @@ export function SessionFeedbackDialog({
                       ) : (
                         <>
                           <div className="flex items-center gap-1">
-                            <Label className="text-xs text-muted-foreground">RPE</Label>
+                            <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionFeedback.rpe")}</Label>
                             <Input
                               type="number"
                               min="0"
@@ -880,11 +882,11 @@ export function SessionFeedbackDialog({
                           </div>
                           {sessionType !== "test" && (
                             <div className="flex items-center gap-1">
-                              <Label className="text-xs text-muted-foreground">Min</Label>
+                              <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionFeedback.min")}</Label>
                               <Input
                                 type="number"
                                 min="0"
-                                placeholder="Min"
+                                placeholder={t("planning:calendarDialogs.sessionFeedback.min")}
                                 className="w-20 h-8"
                                 value={rpeValues[player.id]?.duration || ""}
                                 onChange={(e) => handleRpeChange(player.id, "duration", e.target.value)}
@@ -903,7 +905,7 @@ export function SessionFeedbackDialog({
           {sessionTests.length > 0 && (
             <TabsContent value="tests" className="flex-1 flex flex-col min-h-0 mt-4">
               <p className="text-sm text-muted-foreground mb-3">
-                Résultats des tests planifiés pour cette séance. Chaque valeur est enregistrée automatiquement à la sortie du champ.
+                {t("planning:calendarDialogs.sessionFeedback.testsHint")}
               </p>
               <div className="flex-1 min-h-0 overflow-y-auto pr-2 space-y-4" style={{ maxHeight: "calc(90vh - 240px)" }}>
                 {sessionTests.map((test) => {
@@ -944,17 +946,17 @@ export function SessionFeedbackDialog({
                                 <Badge
                                   variant={athleteEntry.validation_status === "pending" ? "secondary" : "default"}
                                   className="text-[10px]"
-                                  title="Résultat soumis par l'athlète — à valider dans la liste des résultats en attente"
+                                  title={t("planning:calendarDialogs.sessionFeedback.pendingResultTitle")}
                                 >
                                   {athleteEntry.result_value} {athleteEntry.result_unit || unit}
-                                  {athleteEntry.validation_status === "pending" ? " — athlète (à valider)" : " ✓ athlète"}
+                                  {athleteEntry.validation_status === "pending" ? t("planning:calendarDialogs.sessionFeedback.athletePendingLabel") : t("planning:calendarDialogs.sessionFeedback.athleteValidatedLabel")}
                                 </Badge>
                               ) : (
                                 <>
                                   <Input
                                     type="number"
                                     step="0.01"
-                                    placeholder="Résultat"
+                                    placeholder={t("planning:calendarDialogs.sessionFeedback.resultPlaceholder")}
                                     className="w-24 h-8 text-sm"
                                     value={val}
                                     onChange={(e) => updatePlayerTestResult(test.id, player.id, e.target.value)}
@@ -1002,19 +1004,19 @@ export function SessionFeedbackDialog({
             return (
               <>
                 <Button variant="outline" onClick={() => onOpenChange(false)}>
-                  {isAutoSaveTab ? "Fermer" : "Annuler"}
+                  {isAutoSaveTab ? t("planning:calendarDialogs.sessionFeedback.close") : t("planning:calendarDialogs.sessionFeedback.cancel")}
                 </Button>
                 {!isAutoSaveTab && (
                   <Button
                     onClick={() => saveData.mutate()}
                     disabled={saveData.isPending || (!hasNewRpeValues && !hasTestResults && !hasWeightLogs)}
                   >
-                    {saveData.isPending ? "Enregistrement..." : "Enregistrer"}
+                    {saveData.isPending ? t("planning:calendarDialogs.sessionFeedback.saving") : t("planning:calendarDialogs.sessionFeedback.save")}
                   </Button>
                 )}
                 {isAutoSaveTab && (
                   <p className="text-xs text-muted-foreground self-center">
-                    ✅ Données sauvegardées automatiquement à chaque saisie.
+                    {t("planning:calendarDialogs.sessionFeedback.autoSavedHint")}
                   </p>
                 )}
               </>

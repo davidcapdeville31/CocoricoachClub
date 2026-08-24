@@ -22,6 +22,7 @@ import {
 import { toast } from "sonner";
 import { INJURY_STATUS, INJURY_STATUS_LABELS } from "@/lib/constants/injury";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
+import { useTranslation } from "react-i18next";
 
 interface EditInjuryDialogProps {
   open: boolean;
@@ -29,13 +30,13 @@ interface EditInjuryDialogProps {
   injury: any;
 }
 
-const severityOptions = [
-  { value: "légère", label: "Légère" },
-  { value: "modérée", label: "Modérée" },
-  { value: "grave", label: "Grave" },
-];
-
 export function EditInjuryDialog({ open, onOpenChange, injury }: EditInjuryDialogProps) {
+  const { t } = useTranslation();
+  const severityOptions = [
+    { value: "légère", label: t("health.editInjuryDialog.severity.mild") },
+    { value: "modérée", label: t("health.editInjuryDialog.severity.moderate") },
+    { value: "grave", label: t("health.editInjuryDialog.severity.severe") },
+  ];
   const qc = useQueryClient();
   const guard = useSeasonGuard(injury?.category_id);
   const [injuryType, setInjuryType] = useState("");
@@ -75,12 +76,12 @@ export function EditInjuryDialog({ open, onOpenChange, injury }: EditInjuryDialo
     },
     onSuccess: () => {
       qc.invalidateQueries();
-      toast.success("Blessure mise à jour");
+      toast.success(t("health.editInjuryDialog.toastSuccess"));
       onOpenChange(false);
     },
     onError: (e: any) => {
       if (typeof e?.message === "string" && e.message.startsWith("guard:")) return;
-      toast.error(e?.message || "Erreur de mise à jour");
+      toast.error(e?.message || t("health.editInjuryDialog.toastError"));
     },
   });
 
@@ -88,21 +89,21 @@ export function EditInjuryDialog({ open, onOpenChange, injury }: EditInjuryDialo
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Modifier la blessure</DialogTitle>
+          <DialogTitle>{t("health.editInjuryDialog.title")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <div>
-            <Label>Type de blessure</Label>
+            <Label>{t("health.editInjuryDialog.injuryType")}</Label>
             <Input value={injuryType} onChange={(e) => setInjuryType(e.target.value)} className="mt-1" />
           </div>
           <div>
-            <Label>Date de la blessure</Label>
+            <Label>{t("health.editInjuryDialog.date")}</Label>
             <Input type="date" value={injuryDate} onChange={(e) => setInjuryDate(e.target.value)} className="mt-1" />
           </div>
           <div>
-            <Label>Gravité</Label>
+            <Label>{t("health.editInjuryDialog.severityLabel")}</Label>
             <Select value={severity} onValueChange={setSeverity}>
-              <SelectTrigger className="mt-1"><SelectValue placeholder="Sélectionner" /></SelectTrigger>
+              <SelectTrigger className="mt-1"><SelectValue placeholder={t("health.editInjuryDialog.selectPlaceholder")} /></SelectTrigger>
               <SelectContent>
                 {severityOptions.map((s) => (
                   <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
@@ -111,7 +112,7 @@ export function EditInjuryDialog({ open, onOpenChange, injury }: EditInjuryDialo
             </Select>
           </div>
           <div>
-            <Label>Statut</Label>
+            <Label>{t("health.editInjuryDialog.statusLabel")}</Label>
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -122,22 +123,22 @@ export function EditInjuryDialog({ open, onOpenChange, injury }: EditInjuryDialo
             </Select>
           </div>
           <div>
-            <Label>Retour estimé</Label>
+            <Label>{t("health.editInjuryDialog.estimatedReturn")}</Label>
             <Input type="date" value={estimatedReturnDate} onChange={(e) => setEstimatedReturnDate(e.target.value)} className="mt-1" />
           </div>
           <div>
-            <Label>Description</Label>
+            <Label>{t("health.editInjuryDialog.description")}</Label>
             <Textarea value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1" />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t("health.editInjuryDialog.cancel")}</Button>
           <Button onClick={() => {
-            if (!injuryType.trim()) { toast.error("Type requis"); return; }
-            if (!injuryDate) { toast.error("Date requise"); return; }
+            if (!injuryType.trim()) { toast.error(t("health.editInjuryDialog.toastTypeRequired")); return; }
+            if (!injuryDate) { toast.error(t("health.editInjuryDialog.toastDateRequired")); return; }
             update.mutate();
           }} disabled={update.isPending}>
-            Enregistrer
+            {t("health.editInjuryDialog.save")}
           </Button>
         </DialogFooter>
       </DialogContent>

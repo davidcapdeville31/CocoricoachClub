@@ -13,12 +13,14 @@ import { requestOneSignalPermission, getOneSignalPermission, initOneSignal, buil
 import { useQuery } from "@tanstack/react-query";
 import { PersonalNotificationPreferences } from "@/components/notifications/PersonalNotificationPreferences";
 import { PWAInstallGuide } from "@/components/PWAInstallGuide";
+import { useTranslation } from "react-i18next";
 
 interface AthleteSpaceSettingsProps {
   playerId?: string;
 }
 
 export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [isSupported, setIsSupported] = useState(false);
   const [serverSubscribed, setServerSubscribed] = useState<boolean | null>(null);
@@ -107,19 +109,19 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
       await initOneSignal();
       const granted = await requestOneSignalPermission();
       if (granted) {
-        if (!user) throw new Error("Utilisateur introuvable");
+        if (!user) throw new Error(t("athleteSpace:settings.userNotFound"));
         const tags = await buildUserTags(user.id);
         const subscribed = await oneSignalLogin(user.id, user.email || "", tags);
         setPermission(getOneSignalPermission());
         setServerSubscribed(subscribed);
-        if (subscribed) toast.success("Notifications push activées !");
-        else toast.warning("Autorisation accordée, mais l'appareil n'est pas encore abonné au push.");
+        if (subscribed) toast.success(t("athleteSpace:settings.activatedSuccess"));
+        else toast.warning(t("athleteSpace:settings.grantedNotSubscribed"));
       } else {
         setPermission(getOneSignalPermission());
-        toast.error("Notifications refusées par le navigateur");
+        toast.error(t("athleteSpace:settings.denied"));
       }
     } catch {
-      toast.error("Erreur lors de l'activation");
+      toast.error(t("athleteSpace:settings.activationError"));
     } finally {
       setIsActivating(false);
     }
@@ -127,11 +129,11 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
 
   const handleChangePassword = async () => {
     if (newPassword.length < 6) {
-      toast.error("Le mot de passe doit contenir au moins 6 caractères");
+      toast.error(t("athleteSpace:settings.passwordTooShort"));
       return;
     }
     if (newPassword !== confirmPassword) {
-      toast.error("Les mots de passe ne correspondent pas");
+      toast.error(t("athleteSpace:settings.passwordMismatch"));
       return;
     }
 
@@ -139,12 +141,12 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
     try {
       const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) throw error;
-      toast.success("Mot de passe modifié avec succès !");
+      toast.success(t("athleteSpace:settings.passwordChanged"));
       setNewPassword("");
       setConfirmPassword("");
       setShowPasswordForm(false);
     } catch (err: any) {
-      toast.error(err.message || "Erreur lors du changement de mot de passe");
+      toast.error(err.message || t("athleteSpace:settings.passwordChangeError"));
     } finally {
       setIsChangingPassword(false);
     }
@@ -162,7 +164,7 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Bell className="h-4 w-4" style={{ color: NAV_COLORS.communication.base }} />
-            Notifications Push
+            {t("athleteSpace:settings.pushNotifications")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -170,9 +172,9 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
             <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
               <BellOff className="h-5 w-5 text-muted-foreground" />
               <div>
-                <p className="text-sm font-medium">Non disponible</p>
+                <p className="text-sm font-medium">{t("athleteSpace:settings.notSupported")}</p>
                 <p className="text-xs text-muted-foreground">
-                  Les notifications push ne sont pas supportées sur ce navigateur.
+                  {t("athleteSpace:settings.notSupportedDesc")}
                 </p>
               </div>
             </div>
@@ -180,9 +182,9 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
             <div className="flex items-center gap-3 p-3 rounded-lg" style={{ backgroundColor: `${NAV_COLORS.communication.base}10` }}>
               <CheckCircle2 className="h-5 w-5 text-status-optimal" />
               <div>
-                <p className="text-sm font-medium">Notifications activées</p>
+                <p className="text-sm font-medium">{t("athleteSpace:settings.enabled")}</p>
                 <p className="text-xs text-muted-foreground">
-                  Tu recevras les notifications de messages, convocations et annonces.
+                  {t("athleteSpace:settings.enabledDesc")}
                 </p>
               </div>
             </div>
@@ -190,10 +192,9 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
             <div className="flex items-center gap-3 p-3 rounded-lg bg-destructive/10">
               <AlertCircle className="h-5 w-5 text-destructive" />
               <div>
-                <p className="text-sm font-medium">Notifications bloquées</p>
+                <p className="text-sm font-medium">{t("athleteSpace:settings.blocked")}</p>
                 <p className="text-xs text-muted-foreground">
-                  Les notifications sont bloquées dans les paramètres de ton navigateur. 
-                  Va dans les paramètres de ton navigateur pour les réactiver.
+                  {t("athleteSpace:settings.blockedDesc")}
                 </p>
               </div>
             </div>
@@ -202,11 +203,11 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
               <div className="flex items-center gap-3 p-3 rounded-lg bg-warning/10">
                 <Bell className="h-5 w-5 text-warning" />
                 <div>
-                  <p className="text-sm font-medium">Notifications non activées</p>
+                  <p className="text-sm font-medium">{t("athleteSpace:settings.notEnabled")}</p>
                   <p className="text-xs text-muted-foreground">
                     {permission === "granted"
-                      ? "Autorisation accordée, mais aucun appareil push n'est encore relié."
-                      : "Active les notifications pour ne rien manquer !"}
+                      ? t("athleteSpace:settings.grantedNoDevice")
+                      : t("athleteSpace:settings.activatePrompt")}
                   </p>
                 </div>
               </div>
@@ -217,7 +218,7 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
                 style={{ backgroundColor: NAV_COLORS.communication.base }}
               >
                 <Bell className="h-4 w-4 mr-2" />
-                {isActivating ? "Activation..." : "Activer les notifications"}
+                {isActivating ? t("athleteSpace:settings.activating") : t("athleteSpace:settings.activate")}
               </Button>
             </div>
           )}
@@ -229,7 +230,7 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Mail className="h-4 w-4" style={{ color: NAV_COLORS.planification.base }} />
-            Notifications Email
+            {t("athleteSpace:settings.emailNotifications")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -242,20 +243,20 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
             <div>
               <div className="flex items-center gap-2">
                 <p className="text-sm font-medium">
-                  {emailNotifStatus ? "Actif" : "Inactif"}
+                  {emailNotifStatus ? t("athleteSpace:settings.active") : t("athleteSpace:settings.inactive")}
                 </p>
                 <Badge 
                   variant={emailNotifStatus ? "default" : "secondary"}
                   className="text-[10px] h-5"
                   style={emailNotifStatus ? { backgroundColor: NAV_COLORS.sante.base } : {}}
                 >
-                  {emailNotifStatus ? "Actif" : "Inactif"}
+                  {emailNotifStatus ? t("athleteSpace:settings.active") : t("athleteSpace:settings.inactive")}
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {emailNotifStatus 
-                  ? "Tu recevras les notifications importantes par email."
-                  : "Les notifications email ne sont pas encore activées. Active les notifications push pour les activer."}
+                  ? t("athleteSpace:settings.emailActiveDesc")
+                  : t("athleteSpace:settings.emailInactiveDesc")}
               </p>
             </div>
           </div>
@@ -270,13 +271,13 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Mail className="h-4 w-4" style={{ color: NAV_COLORS.effectif.base }} />
-            Mon compte
+            {t("athleteSpace:settings.myAccount")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="p-3 rounded-lg bg-muted/30 space-y-2">
             <div className="flex items-center justify-between">
-              <Label className="text-sm text-muted-foreground">Email / Identifiant</Label>
+              <Label className="text-sm text-muted-foreground">{t("athleteSpace:settings.emailIdentifier")}</Label>
               <Badge variant="outline" className="text-xs max-w-[200px] truncate">{displayEmail}</Badge>
             </div>
           </div>
@@ -288,18 +289,18 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
               onClick={() => setShowPasswordForm(true)}
             >
               <Lock className="h-4 w-4 mr-2" />
-              Modifier mon mot de passe
+              {t("athleteSpace:settings.changePassword")}
             </Button>
           ) : (
             <div className="space-y-3 p-4 rounded-lg border">
               <div>
-                <Label className="text-sm">Nouveau mot de passe</Label>
+                <Label className="text-sm">{t("athleteSpace:settings.newPassword")}</Label>
                 <div className="relative mt-1">
                   <Input
                     type={showPassword ? "text" : "password"}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Min. 6 caractères"
+                    placeholder={t("athleteSpace:settings.newPasswordPlaceholder")}
                   />
                   <Button
                     type="button"
@@ -313,12 +314,12 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
                 </div>
               </div>
               <div>
-                <Label className="text-sm">Confirmer le mot de passe</Label>
+                <Label className="text-sm">{t("athleteSpace:settings.confirmPassword")}</Label>
                 <Input
                   type={showPassword ? "text" : "password"}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirmer"
+                  placeholder={t("athleteSpace:settings.confirmPasswordPlaceholder")}
                   className="mt-1"
                 />
               </div>
@@ -332,14 +333,14 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
                     setConfirmPassword("");
                   }}
                 >
-                  Annuler
+                  {t("athleteSpace:settings.cancel")}
                 </Button>
                 <Button
                   className="flex-1"
                   onClick={handleChangePassword}
                   disabled={isChangingPassword || !newPassword || !confirmPassword}
                 >
-                  {isChangingPassword ? "..." : "Enregistrer"}
+                  {isChangingPassword ? t("athleteSpace:settings.saving") : t("athleteSpace:settings.save")}
                 </Button>
               </div>
             </div>

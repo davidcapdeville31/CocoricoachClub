@@ -142,7 +142,7 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
               <TooltipProvider delayDuration={150}>
                 <UITooltip>
                   <TooltipTrigger asChild>
-                    <button type="button" aria-label="Comment est calculé ce score ?" className="text-muted-foreground hover:text-foreground transition-colors">
+                    <button type="button" aria-label={t('athleteSpace.components.wellnessHistory.recoveryScoreAriaLabel')} className="text-muted-foreground hover:text-foreground transition-colors">
                       <Info className="h-3.5 w-3.5" />
                     </button>
                   </TooltipTrigger>
@@ -204,7 +204,7 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
                   fontSize: "12px",
                   borderRadius: "8px",
                 }}
-                formatter={(value: number) => [`${value}%`, "Récupération"]}
+                formatter={(value: number) => [`${value}%`, t('athleteSpace.components.wellnessHistory.recoveryLegend')]}
                 labelFormatter={(_, payload: any[]) => payload?.[0]?.payload?.fullDate || ""}
               />
               <Line
@@ -214,7 +214,7 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
                 strokeWidth={4}
                 dot={{ r: 4, fill: NAV_COLORS.sante.base, strokeWidth: 2, stroke: "#fff" }}
                 activeDot={{ r: 6 }}
-                name="Récupération"
+                name={t('athleteSpace.components.wellnessHistory.recoveryLegend')}
               />
             </LineChart>
           </ResponsiveContainer>

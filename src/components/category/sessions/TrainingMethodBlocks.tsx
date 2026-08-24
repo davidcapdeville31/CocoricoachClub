@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -121,19 +123,19 @@ function getSlotLabels(method: string, slotIndex: number): { label: string; subl
   switch (method) {
     case "superset":
       return slotIndex === 0 
-        ? { label: "Exercice 1 (agoniste)", sublabel: "Entrez le nom de l'exercice" }
-        : { label: "Exercice 2 (antagoniste)", sublabel: "Entrez le nom de l'exercice" };
+        ? { label: i18n.t("planning:calendarDialogs.sessionForm.methodBlocks.exercise1Agonist"), sublabel: i18n.t("planning:calendarDialogs.sessionForm.methodBlocks.enterExerciseName") }
+        : { label: i18n.t("planning:calendarDialogs.sessionForm.methodBlocks.exercise2Antagonist"), sublabel: i18n.t("planning:calendarDialogs.sessionForm.methodBlocks.enterExerciseName") };
     case "bulgarian":
       return slotIndex === 0
-        ? { label: "Exercice lourd (85-95% 1RM)", sublabel: "Entrez le nom de l'exercice lourd" }
-        : { label: "Exercice léger (explosif)", sublabel: "Entrez le nom de l'exercice explosif" };
+        ? { label: i18n.t("planning:calendarDialogs.sessionForm.methodBlocks.heavyExercise"), sublabel: i18n.t("planning:calendarDialogs.sessionForm.methodBlocks.enterHeavyExerciseName") }
+        : { label: i18n.t("planning:calendarDialogs.sessionForm.methodBlocks.lightExercise"), sublabel: i18n.t("planning:calendarDialogs.sessionForm.methodBlocks.enterExplosiveExerciseName") };
     case "triset":
     case "giant_set":
-      return { label: `Exercice ${slotIndex + 1}`, sublabel: "Entrez le nom de l'exercice" };
+      return { label: i18n.t("planning:calendarDialogs.sessionForm.methodBlocks.exerciseN", { index: slotIndex + 1 }), sublabel: i18n.t("planning:calendarDialogs.sessionForm.methodBlocks.enterExerciseName") };
     case "biset":
-      return { label: `Exercice ${slotIndex + 1}`, sublabel: "Entrez le nom de l'exercice" };
+      return { label: i18n.t("planning:calendarDialogs.sessionForm.methodBlocks.exerciseN", { index: slotIndex + 1 }), sublabel: i18n.t("planning:calendarDialogs.sessionForm.methodBlocks.enterExerciseName") };
     default:
-      return { label: `Exercice ${slotIndex + 1}`, sublabel: "Entrez le nom de l'exercice" };
+      return { label: i18n.t("planning:calendarDialogs.sessionForm.methodBlocks.exerciseN", { index: slotIndex + 1 }), sublabel: i18n.t("planning:calendarDialogs.sessionForm.methodBlocks.enterExerciseName") };
   }
 }
 
@@ -163,6 +165,7 @@ function ExerciseInput({
   setShowLibraryFor: (i: number | null) => void;
   className?: string;
 }) {
+  const { t } = useTranslation();
   return (
     <Popover
       open={showLibraryFor === exerciseIndex}
@@ -174,7 +177,7 @@ function ExerciseInput({
       <PopoverTrigger asChild>
         <div className={cn("flex-1 relative", className)}>
           <Input
-            placeholder={placeholder || "Nom de l'exercice..."}
+            placeholder={placeholder || t("planning:calendarDialogs.sessionForm.methodBlocks.exerciseNamePlaceholder")}
             value={exercise.exercise_name}
             onChange={(e) => {
               onUpdateExercise(exerciseIndex, "exercise_name", e.target.value);
@@ -196,7 +199,7 @@ function ExerciseInput({
       >
         {filteredLibrary.length === 0 ? (
           <div className="px-2 py-2 text-xs text-muted-foreground">
-            Aucun exercice trouvé - tapez pour créer
+            {t("planning:calendarDialogs.sessionForm.methodBlocks.noExerciseFound")}
           </div>
         ) : (
           filteredLibrary.slice(0, 15).map((libEx) => (
@@ -254,6 +257,7 @@ function ExerciseSlotCard({
   showLibraryFor: number | null;
   setShowLibraryFor: (i: number | null) => void;
 }) {
+  const { t } = useTranslation();
   const hasExercise = exercise && exercise.exercise_name.trim();
   const isVbt = isVbtMethod(method);
   
@@ -312,7 +316,7 @@ function ExerciseSlotCard({
             {hasExercise && exercise && (
               <div className={cn("grid gap-2", isVbt ? "grid-cols-6" : "grid-cols-5")}>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Séries</Label>
+                  <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.sets")}</Label>
                   <Input
                     type="number"
                     min="1"
@@ -322,7 +326,7 @@ function ExerciseSlotCard({
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Reps</Label>
+                  <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.reps")}</Label>
                   <Input
                     className="h-8 text-xs"
                     value={exercise.reps || ""}
@@ -330,7 +334,7 @@ function ExerciseSlotCard({
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">%1RM</Label>
+                  <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.percentRm")}</Label>
                   <Input
                     type="number"
                     min="0"
@@ -341,7 +345,7 @@ function ExerciseSlotCard({
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Kg</Label>
+                  <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.kg")}</Label>
                   <Input
                     type="number"
                     min="0"
@@ -354,7 +358,7 @@ function ExerciseSlotCard({
                 {isVbt && (
                   <>
                     <div>
-                      <Label className="text-xs text-muted-foreground">V. min (m/s)</Label>
+                      <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.minVelocity")}</Label>
                       <Input
                         type="number"
                         min="0"
@@ -366,7 +370,7 @@ function ExerciseSlotCard({
                       />
                     </div>
                     <div>
-                      <Label className="text-xs text-muted-foreground">V. max (m/s)</Label>
+                      <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.maxVelocity")}</Label>
                       <Input
                         type="number"
                         min="0"
@@ -380,7 +384,7 @@ function ExerciseSlotCard({
                   </>
                 )}
                 <div>
-                  <Label className="text-xs text-muted-foreground">Repos (s)</Label>
+                  <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.restSeconds")}</Label>
                   <Input
                     type="number"
                     min="0"
@@ -415,6 +419,7 @@ function EmomBlock({
   showLibraryFor,
   setShowLibraryFor,
 }: TrainingMethodBlockProps & { styleConfig: any }) {
+  const { t } = useTranslation();
   const emomInterval = blockConfig.emom_interval || 1;
   const duration = blockConfig.duration_minutes || 10;
   const intervals = Math.floor(duration / emomInterval);
@@ -424,7 +429,7 @@ function EmomBlock({
     <div className="space-y-4">
       {/* EMOM Type selector */}
       <div>
-        <Label className="text-xs text-muted-foreground mb-2 block">Type d'intervalle</Label>
+        <Label className="text-xs text-muted-foreground mb-2 block">{t("planning:calendarDialogs.sessionForm.methodBlocks.intervalType")}</Label>
         <ToggleGroup 
           type="single" 
           value={`e${emomInterval}mom`}
@@ -463,7 +468,7 @@ function EmomBlock({
         <Label className="text-xs text-muted-foreground mb-2 block">Durée</Label>
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-2">
-            <span className="text-sm">Durée totale</span>
+            <span className="text-sm">{t("planning:calendarDialogs.sessionForm.methodBlocks.totalDuration")}</span>
             <Input
               type="number"
               min="1"
@@ -485,7 +490,7 @@ function EmomBlock({
 
       {/* Exercise slots */}
       <div>
-        <p className="text-sm text-muted-foreground mb-3">Exercices du bloc EMOM</p>
+        <p className="text-sm text-muted-foreground mb-3">{t("planning:calendarDialogs.sessionForm.methodBlocks.emomExercises")}</p>
         <div className="space-y-3">
           {exercises.map(({ exercise, index }, i) => (
             <div key={exercise.id || index} className="flex items-start gap-3">
@@ -525,7 +530,7 @@ function EmomBlock({
                 {exercise.exercise_name && (
                   <div className="grid grid-cols-3 gap-2">
                     <div>
-                      <Label className="text-xs text-muted-foreground">Reps</Label>
+                      <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.reps")}</Label>
                       <Input
                         className="h-8 text-xs"
                         value={exercise.reps || ""}
@@ -533,7 +538,7 @@ function EmomBlock({
                       />
                     </div>
                     <div>
-                      <Label className="text-xs text-muted-foreground">%1RM</Label>
+                      <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.percentRm")}</Label>
                       <Input
                         type="number"
                         className="h-8 text-xs"
@@ -542,7 +547,7 @@ function EmomBlock({
                       />
                     </div>
                     <div>
-                      <Label className="text-xs text-muted-foreground">Kg</Label>
+                      <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.kg")}</Label>
                       <Input
                         type="number"
                         step="0.5"
@@ -565,7 +570,7 @@ function EmomBlock({
               onClick={() => onAddExerciseToGroup(groupId, "emom")}
             >
               <Plus className="h-4 w-4 mr-2" />
-              Ajouter un exercice
+              {t("planning:calendarDialogs.sessionForm.methodBlocks.addExercise")}
             </Button>
           )}
         </div>
@@ -591,6 +596,7 @@ function PyramidBlock({
   showLibraryFor,
   setShowLibraryFor,
 }: TrainingMethodBlockProps & { styleConfig: any }) {
+  const { t } = useTranslation();
   const exercise = exercises[0]?.exercise;
   const exerciseIndex = exercises[0]?.index;
   
@@ -636,14 +642,14 @@ function PyramidBlock({
 
       {/* Exercise slot */}
       <div>
-        <Label className="text-xs text-muted-foreground mb-2 block">Exercice</Label>
+        <Label className="text-xs text-muted-foreground mb-2 block">{t("planning:calendarDialogs.sessionForm.methodBlocks.exercise")}</Label>
         <div className="border rounded-xl p-4">
           <div className="flex items-center gap-2">
             <Dumbbell className="h-4 w-4 text-muted-foreground shrink-0" />
             <ExerciseInput
               exercise={exercise}
               exerciseIndex={exerciseIndex}
-              placeholder="Nom de l'exercice..."
+              placeholder={t("planning:calendarDialogs.sessionForm.methodBlocks.exerciseNamePlaceholder")}
               onUpdateExercise={onUpdateExercise}
               onSelectFromLibrary={onSelectFromLibrary}
               filteredLibrary={filteredLibrary}
@@ -684,7 +690,7 @@ function PyramidBlock({
                     Série {setIndex + 1}
                   </Badge>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm">Reps</span>
+                    <span className="text-sm">{t("planning:calendarDialogs.sessionForm.methodBlocks.reps")}</span>
                     <Input
                       className="h-8 w-20 text-sm"
                       value={set.reps}
@@ -692,7 +698,7 @@ function PyramidBlock({
                     />
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm">%1RM</span>
+                    <span className="text-sm">{t("planning:calendarDialogs.sessionForm.methodBlocks.percentRm")}</span>
                     <Input
                       type="number"
                       min="40"
@@ -720,12 +726,12 @@ function PyramidBlock({
         </div>
       )}
 
-      {/* Tempo, Contraction Regime and RPE */}
+      {/* {t("planning:calendarDialogs.sessionForm.methodBlocks.tempo")}, Contraction Regime and RPE */}
       {exercise.exercise_name && (
         <div className="space-y-2 pt-3 border-t">
           <div className="flex items-center gap-4 flex-wrap">
             <div className="flex items-center gap-2">
-              <Label className="text-sm">Tempo</Label>
+              <Label className="text-sm">{t("planning:calendarDialogs.sessionForm.methodBlocks.tempo")}</Label>
               <Input
                 className="h-8 w-24 text-sm"
                 placeholder="3-1-2-0"
@@ -734,29 +740,29 @@ function PyramidBlock({
               />
             </div>
             <div className="flex items-center gap-2">
-              <Label className="text-sm whitespace-nowrap">Régime</Label>
+              <Label className="text-sm whitespace-nowrap">{t("planning:calendarDialogs.sessionForm.methodBlocks.regime")}</Label>
               <Select
                 value={exercise.contraction_regime || ""}
                 onValueChange={(v) => onUpdateExercise(exerciseIndex, "contraction_regime", v || undefined)}
               >
                 <SelectTrigger className="h-8 text-xs w-40">
-                  <SelectValue placeholder="Contraction..." />
+                  <SelectValue placeholder={t("planning:calendarDialogs.sessionForm.methodBlocks.contractionPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="concentrique">Concentrique</SelectItem>
-                  <SelectItem value="excentrique">Excentrique</SelectItem>
-                  <SelectItem value="isometrique">Isométrique</SelectItem>
-                  <SelectItem value="pliometrique">Pliométrique</SelectItem>
-                  <SelectItem value="stato_dynamique">Stato-dynamique</SelectItem>
-                  <SelectItem value="concentrique_excentrique">Conc. + Exc.</SelectItem>
-                  <SelectItem value="excentrique_surcharge">Exc. surchargé</SelectItem>
-                  <SelectItem value="balistique">Balistique</SelectItem>
-                  <SelectItem value="isokinetique">Isocinétique</SelectItem>
+                  <SelectItem value="concentrique">{t("planning:calendarDialogs.sessionForm.methodBlocks.concentric")}</SelectItem>
+                  <SelectItem value="excentrique">{t("planning:calendarDialogs.sessionForm.methodBlocks.eccentric")}</SelectItem>
+                  <SelectItem value="isometrique">{t("planning:calendarDialogs.sessionForm.methodBlocks.isometric")}</SelectItem>
+                  <SelectItem value="pliometrique">{t("planning:calendarDialogs.sessionForm.methodBlocks.plyometric")}</SelectItem>
+                  <SelectItem value="stato_dynamique">{t("planning:calendarDialogs.sessionForm.methodBlocks.statoDynamic")}</SelectItem>
+                  <SelectItem value="concentrique_excentrique">{t("planning:calendarDialogs.sessionForm.methodBlocks.concEcc")}</SelectItem>
+                  <SelectItem value="excentrique_surcharge">{t("planning:calendarDialogs.sessionForm.methodBlocks.eccOverload")}</SelectItem>
+                  <SelectItem value="balistique">{t("planning:calendarDialogs.sessionForm.methodBlocks.ballistic")}</SelectItem>
+                  <SelectItem value="isokinetique">{t("planning:calendarDialogs.sessionForm.methodBlocks.isokinetic")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="flex items-center gap-2">
-              <Label className="text-sm">RPE cible</Label>
+              <Label className="text-sm">{t("planning:calendarDialogs.sessionForm.methodBlocks.targetRpe")}</Label>
               <Input
                 type="number"
                 min="1"
@@ -768,10 +774,10 @@ function PyramidBlock({
             </div>
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground">Notes / Consignes</Label>
+            <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.notesInstructions")}</Label>
             <Textarea
               className="min-h-[36px] text-xs resize-y"
-              placeholder="Consignes, explications..."
+              placeholder={t("planning:calendarDialogs.sessionForm.methodBlocks.instructionsPlaceholder")}
               value={exercise.notes || ""}
               onChange={(e) => onUpdateExercise(exerciseIndex, "notes", e.target.value)}
               rows={1}
@@ -800,6 +806,7 @@ function TabataBlock({
   showLibraryFor,
   setShowLibraryFor,
 }: TrainingMethodBlockProps & { styleConfig: any }) {
+  const { t } = useTranslation();
   const workSeconds = blockConfig.work_seconds || 20;
   const restSeconds = blockConfig.rest_seconds || 10;
   const cycles = blockConfig.rounds || 8;
@@ -809,7 +816,7 @@ function TabataBlock({
       {/* Tabata config */}
       <div className="flex items-center gap-4 flex-wrap">
         <div className="flex items-center gap-2">
-          <Label className="text-sm">Work (s)</Label>
+          <Label className="text-sm">{t("planning:calendarDialogs.sessionForm.methodBlocks.workSeconds")}</Label>
           <Input
             type="number"
             min="5"
@@ -819,7 +826,7 @@ function TabataBlock({
           />
         </div>
         <div className="flex items-center gap-2">
-          <Label className="text-sm">Rest (s)</Label>
+          <Label className="text-sm">{t("planning:calendarDialogs.sessionForm.methodBlocks.restSecondsShort")}</Label>
           <Input
             type="number"
             min="5"
@@ -829,7 +836,7 @@ function TabataBlock({
           />
         </div>
         <div className="flex items-center gap-2">
-          <Label className="text-sm">Cycles</Label>
+          <Label className="text-sm">{t("planning:calendarDialogs.sessionForm.methodBlocks.cycles")}</Label>
           <Input
             type="number"
             min="1"
@@ -847,7 +854,7 @@ function TabataBlock({
 
       {/* Exercise slots */}
       <div>
-        <Label className="text-xs text-muted-foreground mb-2 block">Exercices du Tabata</Label>
+        <Label className="text-xs text-muted-foreground mb-2 block">{t("planning:calendarDialogs.sessionForm.methodBlocks.tabataExercises")}</Label>
         <div className="space-y-3">
           {exercises.map(({ exercise, index }, i) => (
             <div key={exercise.id || index} className="flex items-start gap-3">
@@ -865,7 +872,7 @@ function TabataBlock({
                   <ExerciseInput
                     exercise={exercise}
                     exerciseIndex={index}
-                    placeholder={`Exercice ${i + 1}`}
+                    placeholder={`{t("planning:calendarDialogs.sessionForm.methodBlocks.exercise")} ${i + 1}`}
                     onUpdateExercise={onUpdateExercise}
                     onSelectFromLibrary={onSelectFromLibrary}
                     filteredLibrary={filteredLibrary}
@@ -896,7 +903,7 @@ function TabataBlock({
           onClick={() => onAddExerciseToGroup(groupId, "tabata")}
         >
           <Plus className="h-4 w-4 mr-2" />
-          Ajouter un exercice
+          {t("planning:calendarDialogs.sessionForm.methodBlocks.addExercise")}
         </Button>
       </div>
     </div>
@@ -920,6 +927,7 @@ function DeathByBlock({
   showLibraryFor,
   setShowLibraryFor,
 }: TrainingMethodBlockProps & { styleConfig: any }) {
+  const { t } = useTranslation();
   const exercise = exercises[0]?.exercise;
   const exerciseIndex = exercises[0]?.index;
 
@@ -931,7 +939,7 @@ function DeathByBlock({
 
       {/* Exercise slot */}
       <div>
-        <Label className="text-xs text-muted-foreground mb-2 block">Exercice</Label>
+        <Label className="text-xs text-muted-foreground mb-2 block">{t("planning:calendarDialogs.sessionForm.methodBlocks.exercise")}</Label>
         <div className="border rounded-xl p-4">
           {exercise ? (
             <div className="flex items-center gap-2">
@@ -939,7 +947,7 @@ function DeathByBlock({
               <ExerciseInput
                 exercise={exercise}
                 exerciseIndex={exerciseIndex}
-                placeholder="Nom de l'exercice..."
+                placeholder={t("planning:calendarDialogs.sessionForm.methodBlocks.exerciseNamePlaceholder")}
                 onUpdateExercise={onUpdateExercise}
                 onSelectFromLibrary={onSelectFromLibrary}
                 filteredLibrary={filteredLibrary}
@@ -966,7 +974,7 @@ function DeathByBlock({
               onClick={() => onAddExerciseToGroup(groupId, "death_by")}
             >
               <Plus className="h-4 w-4 mr-2" />
-              Ajouter l'exercice
+              {t("planning:calendarDialogs.sessionForm.methodBlocks.addTheExercise")}
             </Button>
           )}
         </div>
@@ -1010,10 +1018,11 @@ function CardioBlock({
   showLibraryFor,
   setShowLibraryFor,
 }: TrainingMethodBlockProps & { styleConfig: any }) {
+  const { t } = useTranslation();
   const methodLabels: Record<string, string> = {
-    circuit: "Exercices du circuit",
-    amrap: "Exercices du AMRAP",
-    for_time: "Exercices du For Time",
+    circuit: `${t("planning:calendarDialogs.sessionForm.methodBlocks.exercise")}s du circuit`,
+    amrap: `${t("planning:calendarDialogs.sessionForm.methodBlocks.exercise")}s du AMRAP`,
+    for_time: `${t("planning:calendarDialogs.sessionForm.methodBlocks.exercise")}s du For Time`,
   };
 
   const filledExercises = exercises.filter(e => e.exercise.exercise_name.trim());
@@ -1025,7 +1034,7 @@ function CardioBlock({
         {method === "circuit" && (
           <>
             <div className="flex items-center gap-2">
-              <Label className="text-sm">Tours</Label>
+              <Label className="text-sm">{t("planning:calendarDialogs.sessionForm.methodBlocks.rounds")}</Label>
               <Input
                 type="number"
                 min="1"
@@ -1035,7 +1044,7 @@ function CardioBlock({
               />
             </div>
             <div className="flex items-center gap-2">
-              <Label className="text-sm">Repos entre tours (s)</Label>
+              <Label className="text-sm">{t("planning:calendarDialogs.sessionForm.methodBlocks.restBetweenRounds")}</Label>
               <Input
                 type="number"
                 min="0"
@@ -1048,7 +1057,7 @@ function CardioBlock({
         )}
         {method === "amrap" && (
           <div className="flex items-center gap-2">
-            <Label className="text-sm">Temps de l'AMRAP</Label>
+            <Label className="text-sm">{t("planning:calendarDialogs.sessionForm.methodBlocks.amrapTime")}</Label>
             <Input
               type="number"
               min="1"
@@ -1061,7 +1070,7 @@ function CardioBlock({
         )}
         {method === "for_time" && (
           <div className="flex items-center gap-2">
-            <Label className="text-sm">Time Cap</Label>
+            <Label className="text-sm">{t("planning:calendarDialogs.sessionForm.methodBlocks.timeCap")}</Label>
             <Input
               type="number"
               min="1"
@@ -1076,7 +1085,7 @@ function CardioBlock({
 
       {/* Exercises list */}
       <div>
-        <Label className="text-xs text-muted-foreground mb-2 block">{methodLabels[method] || "Exercices"}</Label>
+        <Label className="text-xs text-muted-foreground mb-2 block">{methodLabels[method] || `${t("planning:calendarDialogs.sessionForm.methodBlocks.exercise")}s`}</Label>
         <div className="space-y-3">
           {exercises.map(({ exercise, index }, i) => (
             <div key={exercise.id || index} className="flex items-start gap-3">
@@ -1094,7 +1103,7 @@ function CardioBlock({
                   <ExerciseInput
                     exercise={exercise}
                     exerciseIndex={index}
-                    placeholder={`Exercice ${i + 1}`}
+                    placeholder={`{t("planning:calendarDialogs.sessionForm.methodBlocks.exercise")} ${i + 1}`}
                     onUpdateExercise={onUpdateExercise}
                     onSelectFromLibrary={onSelectFromLibrary}
                     filteredLibrary={filteredLibrary}
@@ -1105,7 +1114,7 @@ function CardioBlock({
                   />
                   {exercise.exercise_name && (
                     <Input
-                      placeholder="Reps"
+                      placeholder={t("planning:calendarDialogs.sessionForm.methodBlocks.reps")}
                       value={exercise.reps || ""}
                       onChange={(e) => onUpdateExercise(index, "reps", e.target.value)}
                       className="h-8 w-20"
@@ -1133,7 +1142,7 @@ function CardioBlock({
           onClick={() => onAddExerciseToGroup(groupId, method)}
         >
           <Plus className="h-4 w-4 mr-2" />
-          Ajouter un exercice
+          {t("planning:calendarDialogs.sessionForm.methodBlocks.addExercise")}
         </Button>
       </div>
     </div>
@@ -1157,6 +1166,7 @@ function LinkableBlock({
   showLibraryFor,
   setShowLibraryFor,
 }: TrainingMethodBlockProps & { styleConfig: any }) {
+  const { t } = useTranslation();
   const minExercises = getMinExercisesForMethod(method);
   const maxExercises = getMaxExercisesForMethod(method);
   
@@ -1183,7 +1193,7 @@ function LinkableBlock({
             exercise={slot.exercise}
             exerciseIndex={slot.index}
             slotNumber={i + 1}
-            slotLabel={slot.label || `Exercice ${i + 1}`}
+            slotLabel={slot.label || `{t("planning:calendarDialogs.sessionForm.methodBlocks.exercise")} ${i + 1}`}
             slotSublabel={slot.sublabel}
             styleConfig={styleConfig}
             method={method}
@@ -1209,7 +1219,7 @@ function LinkableBlock({
           onClick={() => onAddExerciseToGroup(groupId, method)}
         >
           <Plus className="h-4 w-4 mr-2" />
-          Ajouter un exercice
+          {t("planning:calendarDialogs.sessionForm.methodBlocks.addExercise")}
         </Button>
       )}
     </div>
@@ -1229,6 +1239,7 @@ function FiveByFiveBlock({
   showLibraryFor,
   setShowLibraryFor,
 }: TrainingMethodBlockProps & { styleConfig: any }) {
+  const { t } = useTranslation();
   const exercise = exercises[0]?.exercise;
   const exerciseIndex = exercises[0]?.index;
   
@@ -1247,7 +1258,7 @@ function FiveByFiveBlock({
           <ExerciseInput
             exercise={exercise}
             exerciseIndex={exerciseIndex}
-            placeholder="Nom de l'exercice..."
+            placeholder={t("planning:calendarDialogs.sessionForm.methodBlocks.exerciseNamePlaceholder")}
             onUpdateExercise={onUpdateExercise}
             onSelectFromLibrary={onSelectFromLibrary}
             filteredLibrary={filteredLibrary}
@@ -1262,11 +1273,11 @@ function FiveByFiveBlock({
           <div className="grid grid-cols-3 gap-3">
             <div className="text-center p-2 bg-sky-100 dark:bg-sky-900/30 rounded-lg">
               <span className="text-2xl font-bold text-sky-600">5</span>
-              <p className="text-xs text-muted-foreground">Séries</p>
+              <p className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.sets")}</p>
             </div>
             <div className="text-center p-2 bg-sky-100 dark:bg-sky-900/30 rounded-lg">
               <span className="text-2xl font-bold text-sky-600">5</span>
-              <p className="text-xs text-muted-foreground">Reps</p>
+              <p className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.reps")}</p>
             </div>
             <div className="text-center p-2 bg-sky-100 dark:bg-sky-900/30 rounded-lg">
               <div className="flex items-center justify-center gap-1">
@@ -1306,6 +1317,7 @@ function IntermittentCardioBlock({
   showLibraryFor,
   setShowLibraryFor,
 }: TrainingMethodBlockProps & { styleConfig: any }) {
+  const { t } = useTranslation();
   const reps = blockConfig.rounds || 6;
   const workSeconds = blockConfig.work_seconds || 30;
   const restSeconds = blockConfig.rest_seconds || 30;
@@ -1315,7 +1327,7 @@ function IntermittentCardioBlock({
     <div className="space-y-4">
       {/* Support selector */}
       <div>
-        <Label className="text-xs text-muted-foreground mb-2 block">Support (obligatoire)</Label>
+        <Label className="text-xs text-muted-foreground mb-2 block">{t("planning:calendarDialogs.sessionForm.methodBlocks.support")}</Label>
         <ToggleGroup
           type="single"
           value={blockConfig.emom_mode || "running"}
@@ -1337,17 +1349,17 @@ function IntermittentCardioBlock({
       {/* Config */}
       <div className="grid grid-cols-3 gap-4">
         <div>
-          <Label className="text-xs text-muted-foreground">Répétitions</Label>
+          <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.repetitions")}</Label>
           <Input type="number" min="1" className="h-8 text-sm" value={reps}
             onChange={(e) => onUpdateBlockConfig(groupId, "rounds", parseInt(e.target.value) || 6)} />
         </div>
         <div>
-          <Label className="text-xs text-muted-foreground">Effort (s)</Label>
+          <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.effortSeconds")}</Label>
           <Input type="number" min="5" className="h-8 text-sm" value={workSeconds}
             onChange={(e) => onUpdateBlockConfig(groupId, "work_seconds", parseInt(e.target.value) || 30)} />
         </div>
         <div>
-          <Label className="text-xs text-muted-foreground">Récup (s)</Label>
+          <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.recoverySeconds")}</Label>
           <Input type="number" min="5" className="h-8 text-sm" value={restSeconds}
             onChange={(e) => onUpdateBlockConfig(groupId, "rest_seconds", parseInt(e.target.value) || 30)} />
         </div>
@@ -1358,7 +1370,7 @@ function IntermittentCardioBlock({
         <p className="text-sm font-medium text-amber-700 dark:text-amber-400">⚡ Intensité</p>
         <div className="grid grid-cols-3 gap-3">
           <div>
-            <Label className="text-xs text-muted-foreground">Type</Label>
+            <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.type")}</Label>
             <Select
               value={blockConfig.time_cap_minutes?.toString() || "rpe"}
               onValueChange={(v) => onUpdateBlockConfig(groupId, "time_cap_minutes" as keyof BlockConfig, v)}
@@ -1370,13 +1382,13 @@ function IntermittentCardioBlock({
                 <SelectItem value="rpe">RPE (/10)</SelectItem>
                 <SelectItem value="vma">% VMA (%)</SelectItem>
                 <SelectItem value="fc">FC cible (bpm)</SelectItem>
-                <SelectItem value="watts">Watts (W)</SelectItem>
+                <SelectItem value="watts">{t("planning:calendarDialogs.sessionForm.methodBlocks.watts")}</SelectItem>
                 <SelectItem value="rpm">RPM (tr/min)</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground">RPE cible</Label>
+            <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.targetRpe")}</Label>
             <Input type="number" min="1" max="10" className="h-8 text-sm" placeholder="8" />
           </div>
           <div>
@@ -1388,7 +1400,7 @@ function IntermittentCardioBlock({
 
       {/* Summary */}
       <div className={cn("px-4 py-3 rounded-lg text-sm font-medium", styleConfig.bgColor)}>
-        <p className="text-muted-foreground text-xs mb-1">Aperçu</p>
+        <p className="text-muted-foreground text-xs mb-1">{t("planning:calendarDialogs.sessionForm.methodBlocks.preview")}</p>
         <p>Intermittent: {reps} × ({Math.floor(workSeconds / 60)}:{String(workSeconds % 60).padStart(2, "0")}/{Math.floor(restSeconds / 60)}:{String(restSeconds % 60).padStart(2, "0")})</p>
         <p className="text-xs text-muted-foreground mt-1">≈ {totalMinutes} min total</p>
       </div>
@@ -1413,6 +1425,7 @@ function FartlekBlock({
   showLibraryFor,
   setShowLibraryFor,
 }: TrainingMethodBlockProps & { styleConfig: any }) {
+  const { t } = useTranslation();
   const isStructured = blockConfig.emom_mode === "structured";
   const cycles = blockConfig.rounds || 6;
   const workSeconds = blockConfig.work_seconds || 0;
@@ -1433,7 +1446,7 @@ function FartlekBlock({
             )}
             onClick={() => onUpdateBlockConfig(groupId, "emom_mode" as keyof BlockConfig, "free")}
           >
-            <p className="font-medium text-sm">Fartlek libre</p>
+            <p className="font-medium text-sm">{t("planning:calendarDialogs.sessionForm.methodBlocks.freeFartlek")}</p>
             <p className={cn("text-xs mt-1", !isStructured ? "text-green-100" : "text-muted-foreground")}>L'athlète varie les allures selon ses sensations</p>
           </button>
           <button
@@ -1444,7 +1457,7 @@ function FartlekBlock({
             )}
             onClick={() => onUpdateBlockConfig(groupId, "emom_mode" as keyof BlockConfig, "structured")}
           >
-            <p className="font-medium text-sm">Fartlek structuré</p>
+            <p className="font-medium text-sm">{t("planning:calendarDialogs.sessionForm.methodBlocks.structuredFartlek")}</p>
             <p className={cn("text-xs mt-1", isStructured ? "text-green-100" : "text-muted-foreground")}>Phases d'effort et récupération définies</p>
           </button>
         </div>
@@ -1452,16 +1465,16 @@ function FartlekBlock({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label className="text-xs text-muted-foreground">Nombre de cycles</Label>
+          <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.numberOfCycles")}</Label>
           <Input type="number" min="1" className="h-8 text-sm" value={cycles}
             onChange={(e) => onUpdateBlockConfig(groupId, "rounds", parseInt(e.target.value) || 6)} />
         </div>
         <div>
-          <Label className="text-xs text-muted-foreground">⏱ Durée totale (calculée)</Label>
+          <Label className="text-xs text-muted-foreground">⏱ {t("planning:calendarDialogs.sessionForm.methodBlocks.totalDuration")} (calculée)</Label>
           <div className="h-8 flex items-center px-3 rounded-md border bg-muted text-sm">
             {totalMinutes} min
           </div>
-          <p className="text-xs text-muted-foreground mt-1">Calculée automatiquement</p>
+          <p className="text-xs text-muted-foreground mt-1">{t("planning:calendarDialogs.sessionForm.methodBlocks.autoCalculated")}</p>
         </div>
       </div>
 
@@ -1472,12 +1485,12 @@ function FartlekBlock({
             <p className="text-sm font-medium text-red-600 dark:text-red-400">🔥 Phase d'effort</p>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs text-muted-foreground">Durée effort (s)</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.effortDuration")}</Label>
                 <Input type="number" min="5" className="h-8 text-sm" value={workSeconds}
                   onChange={(e) => onUpdateBlockConfig(groupId, "work_seconds", parseInt(e.target.value) || 30)} />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">RPE cible effort</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.targetRpe")} effort</Label>
                 <Input type="number" min="1" max="10" className="h-8 text-sm" placeholder="7" />
               </div>
             </div>
@@ -1498,12 +1511,12 @@ function FartlekBlock({
             <p className="text-sm font-medium text-green-600 dark:text-green-400">🌿 Phase de récupération</p>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs text-muted-foreground">Durée récupération (s)</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.recoveryDuration")}</Label>
                 <Input type="number" min="5" className="h-8 text-sm" value={restSeconds}
                   onChange={(e) => onUpdateBlockConfig(groupId, "rest_seconds", parseInt(e.target.value) || 30)} />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">RPE cible récup</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.targetRpe")} récup</Label>
                 <Input type="number" min="1" max="10" className="h-8 text-sm" placeholder="3" />
               </div>
             </div>
@@ -1523,7 +1536,7 @@ function FartlekBlock({
 
       {!isStructured && (
         <div>
-          <Label className="text-xs text-muted-foreground">Durée totale (min)</Label>
+          <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.totalDurationMin")}</Label>
           <Input type="number" min="1" className="h-8 text-sm" value={blockConfig.duration_minutes || 20}
             onChange={(e) => onUpdateBlockConfig(groupId, "duration_minutes", parseInt(e.target.value) || 20)} />
         </div>
@@ -1531,14 +1544,14 @@ function FartlekBlock({
 
       {/* Summary */}
       <div className={cn("px-4 py-3 rounded-lg text-sm", styleConfig.bgColor)}>
-        <p className="text-muted-foreground text-xs mb-1">Résumé</p>
+        <p className="text-muted-foreground text-xs mb-1">{t("planning:calendarDialogs.sessionForm.methodBlocks.summary")}</p>
         {isStructured ? (
           <>
             <p className="font-medium">{cycles} × ({Math.floor(workSeconds / 60)}:{String(workSeconds % 60).padStart(2, "0")}/{Math.floor(restSeconds / 60)}:{String(restSeconds % 60).padStart(2, "0")})</p>
             <p className="text-xs mt-1">● Effort: {Math.round(cycles * workSeconds / 60)} min &nbsp;&nbsp; ● Récup: {Math.round(cycles * restSeconds / 60)} min</p>
           </>
         ) : (
-          <p className="font-medium">Fartlek libre - {blockConfig.duration_minutes || 20} min</p>
+          <p className="font-medium">{t("planning:calendarDialogs.sessionForm.methodBlocks.freeFartlek")} - {blockConfig.duration_minutes || 20} min</p>
         )}
       </div>
     </div>
@@ -1556,6 +1569,7 @@ function IsometricOvercomingBlock({
   showLibraryFor,
   setShowLibraryFor,
 }: TrainingMethodBlockProps & { styleConfig: any }) {
+  const { t } = useTranslation();
   const exercise = exercises[0]?.exercise;
   const exerciseIndex = exercises[0]?.index;
   if (!exercise) return null;
@@ -1568,7 +1582,7 @@ function IsometricOvercomingBlock({
       <div className="border rounded-xl p-4">
         <div className="flex items-center gap-2 mb-3">
           <Dumbbell className="h-4 w-4 text-muted-foreground shrink-0" />
-          <ExerciseInput exercise={exercise} exerciseIndex={exerciseIndex} placeholder="Nom de l'exercice..."
+          <ExerciseInput exercise={exercise} exerciseIndex={exerciseIndex} placeholder={t("planning:calendarDialogs.sessionForm.methodBlocks.exerciseNamePlaceholder")}
             onUpdateExercise={onUpdateExercise} onSelectFromLibrary={onSelectFromLibrary}
             filteredLibrary={filteredLibrary} searchQuery={searchQuery} setSearchQuery={setSearchQuery}
             showLibraryFor={showLibraryFor} setShowLibraryFor={setShowLibraryFor} />
@@ -1577,22 +1591,22 @@ function IsometricOvercomingBlock({
           <div className="space-y-3">
             <div className="grid grid-cols-4 gap-2">
               <div>
-                <Label className="text-xs text-muted-foreground">Séries</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.sets")}</Label>
                 <Input type="number" min="1" className="h-8 text-xs"
                   value={exercise.sets || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "sets", parseInt(e.target.value) || 1)} />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Durée contraction (s)</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.contractionDuration")}</Label>
                 <Input type="number" min="1" className="h-8 text-xs" placeholder="6-10"
                   value={exercise.reps || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "reps", e.target.value)} />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Repos (s)</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.restSeconds")}</Label>
                 <Input type="number" min="0" className="h-8 text-xs"
                   value={exercise.rest_seconds || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "rest_seconds", parseInt(e.target.value) || null)} />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">RPE cible</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.targetRpe")}</Label>
                 <Input type="number" min="1" max="10" className="h-8 text-xs" placeholder="10"
                   value={exercise.target_rpe || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "target_rpe", parseInt(e.target.value) || null)} />
               </div>
@@ -1603,12 +1617,12 @@ function IsometricOvercomingBlock({
               <p className="text-xs font-medium text-stone-700 dark:text-stone-400 mb-2">📐 Configuration isométrique</p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs text-muted-foreground">Angle articulaire (°)</Label>
+                  <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.jointAngle")}</Label>
                   <Input className="h-8 text-xs" placeholder="Ex: 90° (mi-course)"
                     value={exercise.tempo || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "tempo", e.target.value)} />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Position / Notes</Label>
+                  <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.positionNotesLabel")}</Label>
                   <Input className="h-8 text-xs" placeholder="Ex: Mi-course, position basse..."
                     value={exercise.notes || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "notes", e.target.value)} />
                 </div>
@@ -1636,6 +1650,7 @@ function IsometricYieldingBlock({
   showLibraryFor,
   setShowLibraryFor,
 }: TrainingMethodBlockProps & { styleConfig: any }) {
+  const { t } = useTranslation();
   const exercise = exercises[0]?.exercise;
   const exerciseIndex = exercises[0]?.index;
   if (!exercise) return null;
@@ -1648,7 +1663,7 @@ function IsometricYieldingBlock({
       <div className="border rounded-xl p-4">
         <div className="flex items-center gap-2 mb-3">
           <Dumbbell className="h-4 w-4 text-muted-foreground shrink-0" />
-          <ExerciseInput exercise={exercise} exerciseIndex={exerciseIndex} placeholder="Nom de l'exercice..."
+          <ExerciseInput exercise={exercise} exerciseIndex={exerciseIndex} placeholder={t("planning:calendarDialogs.sessionForm.methodBlocks.exerciseNamePlaceholder")}
             onUpdateExercise={onUpdateExercise} onSelectFromLibrary={onSelectFromLibrary}
             filteredLibrary={filteredLibrary} searchQuery={searchQuery} setSearchQuery={setSearchQuery}
             showLibraryFor={showLibraryFor} setShowLibraryFor={setShowLibraryFor} />
@@ -1657,17 +1672,17 @@ function IsometricYieldingBlock({
           <div className="space-y-3">
             <div className="grid grid-cols-3 gap-2">
               <div>
-                <Label className="text-xs text-muted-foreground">Séries</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.sets")}</Label>
                 <Input type="number" min="1" className="h-8 text-xs"
                   value={exercise.sets || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "sets", parseInt(e.target.value) || 1)} />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Durée maintien (s)</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.holdDuration")}</Label>
                 <Input type="number" min="1" className="h-8 text-xs" placeholder="20-60"
                   value={exercise.reps || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "reps", e.target.value)} />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Repos (s)</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.restSeconds")}</Label>
                 <Input type="number" min="0" className="h-8 text-xs"
                   value={exercise.rest_seconds || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "rest_seconds", parseInt(e.target.value) || null)} />
               </div>
@@ -1675,12 +1690,12 @@ function IsometricYieldingBlock({
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <Label className="text-xs text-muted-foreground">%1RM</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.percentRm")}</Label>
                 <Input type="number" min="0" max="100" className="h-8 text-xs" placeholder="60-80"
                   value={exercise.weight_percent_rm || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "weight_percent_rm", parseInt(e.target.value) || null)} />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Kg</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.kg")}</Label>
                 <Input type="number" min="0" step="0.5" className="h-8 text-xs"
                   value={exercise.weight_kg || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "weight_kg", parseFloat(e.target.value) || null)} />
               </div>
@@ -1691,18 +1706,18 @@ function IsometricYieldingBlock({
               <p className="text-xs font-medium text-slate-700 dark:text-slate-400 mb-2">📐 Position de maintien</p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs text-muted-foreground">Angle articulaire (°)</Label>
+                  <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.jointAngle")}</Label>
                   <Input className="h-8 text-xs" placeholder="Ex: 90°, 120°, mi-course..."
                     value={exercise.tempo || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "tempo", e.target.value)} />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">RPE cible</Label>
+                  <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.targetRpe")}</Label>
                   <Input type="number" min="1" max="10" className="h-8 text-xs" placeholder="7-9"
                     value={exercise.target_rpe || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "target_rpe", parseInt(e.target.value) || null)} />
                 </div>
               </div>
               <div className="mt-2">
-                <Label className="text-xs text-muted-foreground">Notes position</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.positionNotes")}</Label>
                 <Input className="h-8 text-xs" placeholder="Ex: Pause en bas du squat, coudes à 90°..."
                   value={exercise.notes || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "notes", e.target.value)} />
               </div>
@@ -1729,6 +1744,7 @@ function IsoMaxBlock({
   showLibraryFor,
   setShowLibraryFor,
 }: TrainingMethodBlockProps & { styleConfig: any }) {
+  const { t } = useTranslation();
   const exercise = exercises[0]?.exercise;
   const exerciseIndex = exercises[0]?.index;
   if (!exercise) return null;
@@ -1741,7 +1757,7 @@ function IsoMaxBlock({
       <div className="border rounded-xl p-4">
         <div className="flex items-center gap-2 mb-3">
           <Dumbbell className="h-4 w-4 text-muted-foreground shrink-0" />
-          <ExerciseInput exercise={exercise} exerciseIndex={exerciseIndex} placeholder="Nom de l'exercice..."
+          <ExerciseInput exercise={exercise} exerciseIndex={exerciseIndex} placeholder={t("planning:calendarDialogs.sessionForm.methodBlocks.exerciseNamePlaceholder")}
             onUpdateExercise={onUpdateExercise} onSelectFromLibrary={onSelectFromLibrary}
             filteredLibrary={filteredLibrary} searchQuery={searchQuery} setSearchQuery={setSearchQuery}
             showLibraryFor={showLibraryFor} setShowLibraryFor={setShowLibraryFor} />
@@ -1750,17 +1766,17 @@ function IsoMaxBlock({
           <div className="space-y-3">
             <div className="grid grid-cols-3 gap-2">
               <div>
-                <Label className="text-xs text-muted-foreground">Séries</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.sets")}</Label>
                 <Input type="number" min="1" className="h-8 text-xs"
                   value={exercise.sets || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "sets", parseInt(e.target.value) || 1)} />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Durée max (s)</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.maxDuration")}</Label>
                 <Input type="number" min="1" className="h-8 text-xs" placeholder="6-30"
                   value={exercise.reps || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "reps", e.target.value)} />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Repos (s)</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.restSeconds")}</Label>
                 <Input type="number" min="0" className="h-8 text-xs"
                   value={exercise.rest_seconds || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "rest_seconds", parseInt(e.target.value) || null)} />
               </div>
@@ -1768,12 +1784,12 @@ function IsoMaxBlock({
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <Label className="text-xs text-muted-foreground">%1RM</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.percentRm")}</Label>
                 <Input type="number" min="0" max="100" className="h-8 text-xs" placeholder="85-100"
                   value={exercise.weight_percent_rm || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "weight_percent_rm", parseInt(e.target.value) || null)} />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Kg</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.kg")}</Label>
                 <Input type="number" min="0" step="0.5" className="h-8 text-xs"
                   value={exercise.weight_kg || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "weight_kg", parseFloat(e.target.value) || null)} />
               </div>
@@ -1784,18 +1800,18 @@ function IsoMaxBlock({
               <p className="text-xs font-medium text-zinc-700 dark:text-zinc-400 mb-2">📐 Position isométrique</p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs text-muted-foreground">Angle articulaire (°)</Label>
+                  <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.jointAngle")}</Label>
                   <Input className="h-8 text-xs" placeholder="Ex: 90°, point de blocage..."
                     value={exercise.tempo || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "tempo", e.target.value)} />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">RPE cible</Label>
+                  <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.targetRpe")}</Label>
                   <Input type="number" min="1" max="10" className="h-8 text-xs" placeholder="9-10"
                     value={exercise.target_rpe || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "target_rpe", parseInt(e.target.value) || null)} />
                 </div>
               </div>
               <div className="mt-2">
-                <Label className="text-xs text-muted-foreground">Notes position</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.positionNotes")}</Label>
                 <Input className="h-8 text-xs" placeholder="Ex: Maintien au point de blocage, sticking point..."
                   value={exercise.notes || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "notes", e.target.value)} />
               </div>
@@ -1822,6 +1838,7 @@ function SuperPletnevBlock({
   showLibraryFor,
   setShowLibraryFor,
 }: TrainingMethodBlockProps & { styleConfig: any }) {
+  const { t } = useTranslation();
   const exercise = exercises[0]?.exercise;
   const exerciseIndex = exercises[0]?.index;
   if (!exercise) return null;
@@ -1841,7 +1858,7 @@ function SuperPletnevBlock({
       <div className="border rounded-xl p-4">
         <div className="flex items-center gap-2 mb-3">
           <Dumbbell className="h-4 w-4 text-muted-foreground shrink-0" />
-          <ExerciseInput exercise={exercise} exerciseIndex={exerciseIndex} placeholder="Nom de l'exercice..."
+          <ExerciseInput exercise={exercise} exerciseIndex={exerciseIndex} placeholder={t("planning:calendarDialogs.sessionForm.methodBlocks.exerciseNamePlaceholder")}
             onUpdateExercise={onUpdateExercise} onSelectFromLibrary={onSelectFromLibrary}
             filteredLibrary={filteredLibrary} searchQuery={searchQuery} setSearchQuery={setSearchQuery}
             showLibraryFor={showLibraryFor} setShowLibraryFor={setShowLibraryFor} />
@@ -1850,27 +1867,27 @@ function SuperPletnevBlock({
           <div className="space-y-3">
             <div className="grid grid-cols-5 gap-2">
               <div>
-                <Label className="text-xs text-muted-foreground">Séries</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.sets")}</Label>
                 <Input type="number" min="1" className="h-8 text-xs"
                   value={exercise.sets || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "sets", parseInt(e.target.value) || 1)} />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Reps</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.reps")}</Label>
                 <Input className="h-8 text-xs" placeholder="3-5"
                   value={exercise.reps || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "reps", e.target.value)} />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">%1RM</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.percentRm")}</Label>
                 <Input type="number" min="0" max="100" className="h-8 text-xs" placeholder="70-85"
                   value={exercise.weight_percent_rm || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "weight_percent_rm", parseInt(e.target.value) || null)} />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Kg</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.kg")}</Label>
                 <Input type="number" min="0" step="0.5" className="h-8 text-xs"
                   value={exercise.weight_kg || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "weight_kg", parseFloat(e.target.value) || null)} />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Repos (s)</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.restSeconds")}</Label>
                 <Input type="number" min="0" className="h-8 text-xs"
                   value={exercise.rest_seconds || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "rest_seconds", parseInt(e.target.value) || null)} />
               </div>
@@ -1887,7 +1904,7 @@ function SuperPletnevBlock({
               </div>
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground">Tempo (ex: 4-0-X-2)</Label>
+              <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.tempo")} (ex: 4-0-X-2)</Label>
               <Input className="h-8 text-xs" placeholder="4-0-X-2"
                 value={exercise.tempo || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "tempo", e.target.value)} />
             </div>
@@ -1909,6 +1926,7 @@ function CombineHalteroBlock({
   showLibraryFor,
   setShowLibraryFor,
 }: TrainingMethodBlockProps & { styleConfig: any }) {
+  const { t } = useTranslation();
   const exercise = exercises[0]?.exercise;
   const exerciseIndex = exercises[0]?.index;
   if (!exercise) return null;
@@ -1930,27 +1948,27 @@ function CombineHalteroBlock({
           <div className="space-y-3">
             <div className="grid grid-cols-5 gap-2">
               <div>
-                <Label className="text-xs text-muted-foreground">Séries</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.sets")}</Label>
                 <Input type="number" min="1" className="h-8 text-xs"
                   value={exercise.sets || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "sets", parseInt(e.target.value) || 1)} />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Reps</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.reps")}</Label>
                 <Input className="h-8 text-xs" placeholder="1-3"
                   value={exercise.reps || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "reps", e.target.value)} />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">%1RM</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.percentRm")}</Label>
                 <Input type="number" min="0" max="100" className="h-8 text-xs" placeholder="70-85"
                   value={exercise.weight_percent_rm || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "weight_percent_rm", parseInt(e.target.value) || null)} />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Kg</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.kg")}</Label>
                 <Input type="number" min="0" step="0.5" className="h-8 text-xs"
                   value={exercise.weight_kg || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "weight_kg", parseFloat(e.target.value) || null)} />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Repos (s)</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.restSeconds")}</Label>
                 <Input type="number" min="0" className="h-8 text-xs"
                   value={exercise.rest_seconds || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "rest_seconds", parseInt(e.target.value) || null)} />
               </div>
@@ -1983,6 +2001,7 @@ function StatoDynamiqueBlock({
   showLibraryFor,
   setShowLibraryFor,
 }: TrainingMethodBlockProps & { styleConfig: any }) {
+  const { t } = useTranslation();
   const exercise = exercises[0]?.exercise;
   const exerciseIndex = exercises[0]?.index;
   
@@ -2001,7 +2020,7 @@ function StatoDynamiqueBlock({
           <ExerciseInput
             exercise={exercise}
             exerciseIndex={exerciseIndex}
-            placeholder="Nom de l'exercice..."
+            placeholder={t("planning:calendarDialogs.sessionForm.methodBlocks.exerciseNamePlaceholder")}
             onUpdateExercise={onUpdateExercise}
             onSelectFromLibrary={onSelectFromLibrary}
             filteredLibrary={filteredLibrary}
@@ -2016,30 +2035,30 @@ function StatoDynamiqueBlock({
           <div className="space-y-3">
             <div className="grid grid-cols-5 gap-2">
               <div>
-                <Label className="text-xs text-muted-foreground">Séries</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.sets")}</Label>
                 <Input type="number" min="1" className="h-8 text-xs"
                   value={exercise.sets || ""}
                   onChange={(e) => onUpdateExercise(exerciseIndex, "sets", parseInt(e.target.value) || 1)} />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Reps</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.reps")}</Label>
                 <Input className="h-8 text-xs" value={exercise.reps || ""}
                   onChange={(e) => onUpdateExercise(exerciseIndex, "reps", e.target.value)} />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">%1RM</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.percentRm")}</Label>
                 <Input type="number" min="0" max="100" className="h-8 text-xs"
                   value={exercise.weight_percent_rm || ""}
                   onChange={(e) => onUpdateExercise(exerciseIndex, "weight_percent_rm", parseInt(e.target.value) || null)} />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Kg</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.kg")}</Label>
                 <Input type="number" min="0" step="0.5" className="h-8 text-xs"
                   value={exercise.weight_kg || ""}
                   onChange={(e) => onUpdateExercise(exerciseIndex, "weight_kg", parseFloat(e.target.value) || null)} />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Repos (s)</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.restSeconds")}</Label>
                 <Input type="number" min="0" className="h-8 text-xs"
                   value={exercise.rest_seconds || ""}
                   onChange={(e) => onUpdateExercise(exerciseIndex, "rest_seconds", parseInt(e.target.value) || null)} />
@@ -2051,19 +2070,19 @@ function StatoDynamiqueBlock({
               <p className="text-xs font-medium text-amber-700 dark:text-amber-400 mb-2">⏱ Phase isométrique</p>
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <Label className="text-xs text-muted-foreground">Durée maintien (s)</Label>
+                  <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.holdDuration")}</Label>
                   <Input type="number" min="1" max="10" className="h-8 text-xs" placeholder="3-5"
                     value={exercise.tempo || ""}
                     onChange={(e) => onUpdateExercise(exerciseIndex, "tempo", e.target.value)} />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Angle articulaire (°)</Label>
+                  <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.jointAngle")}</Label>
                   <Input className="h-8 text-xs" placeholder="Ex: 90°, mi-course..."
                     value={exercise.notes || ""}
                     onChange={(e) => onUpdateExercise(exerciseIndex, "notes", e.target.value)} />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">RPE cible</Label>
+                  <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.targetRpe")}</Label>
                   <Input type="number" min="1" max="10" className="h-8 text-xs" placeholder="8"
                     value={exercise.target_rpe || ""}
                     onChange={(e) => onUpdateExercise(exerciseIndex, "target_rpe", parseInt(e.target.value) || null)} />
@@ -2094,6 +2113,7 @@ function DropSetBlock({
   showLibraryFor,
   setShowLibraryFor,
 }: TrainingMethodBlockProps & { styleConfig: any }) {
+  const { t } = useTranslation();
   const exercise = exercises[0]?.exercise;
   const exerciseIndex = exercises[0]?.index;
 
@@ -2139,14 +2159,14 @@ function DropSetBlock({
 
       {/* Exercise slot */}
       <div>
-        <Label className="text-xs text-muted-foreground mb-2 block">Exercice</Label>
+        <Label className="text-xs text-muted-foreground mb-2 block">{t("planning:calendarDialogs.sessionForm.methodBlocks.exercise")}</Label>
         <div className="border rounded-xl p-4">
           <div className="flex items-center gap-2">
             <Dumbbell className="h-4 w-4 text-muted-foreground shrink-0" />
             <ExerciseInput
               exercise={exercise}
               exerciseIndex={exerciseIndex}
-              placeholder="Nom de l'exercice..."
+              placeholder={t("planning:calendarDialogs.sessionForm.methodBlocks.exerciseNamePlaceholder")}
               onUpdateExercise={onUpdateExercise}
               onSelectFromLibrary={onSelectFromLibrary}
               filteredLibrary={filteredLibrary}
@@ -2187,7 +2207,7 @@ function DropSetBlock({
                     {idx === 0 ? "Série de départ" : `Drop ${idx}`}
                   </Badge>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm">Reps</span>
+                    <span className="text-sm">{t("planning:calendarDialogs.sessionForm.methodBlocks.reps")}</span>
                     <Input
                       className="h-8 w-24 text-sm"
                       placeholder="Échec"
@@ -2196,7 +2216,7 @@ function DropSetBlock({
                     />
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm">%1RM</span>
+                    <span className="text-sm">{t("planning:calendarDialogs.sessionForm.methodBlocks.percentRm")}</span>
                     <Input
                       type="number"
                       min="20"
@@ -2224,12 +2244,12 @@ function DropSetBlock({
         </div>
       )}
 
-      {/* Tempo, Contraction Regime, RPE & Notes — same block as other methods */}
+      {/* {t("planning:calendarDialogs.sessionForm.methodBlocks.tempo")}, Contraction Regime, RPE & Notes — same block as other methods */}
       {exercise.exercise_name && (
         <div className="space-y-2 pt-3 border-t">
           <div className="flex items-center gap-4 flex-wrap">
             <div className="flex items-center gap-2">
-              <Label className="text-sm">Tempo</Label>
+              <Label className="text-sm">{t("planning:calendarDialogs.sessionForm.methodBlocks.tempo")}</Label>
               <Input
                 className="h-8 w-24 text-sm"
                 placeholder="3-1-X-0"
@@ -2238,29 +2258,29 @@ function DropSetBlock({
               />
             </div>
             <div className="flex items-center gap-2">
-              <Label className="text-sm whitespace-nowrap">Régime</Label>
+              <Label className="text-sm whitespace-nowrap">{t("planning:calendarDialogs.sessionForm.methodBlocks.regime")}</Label>
               <Select
                 value={exercise.contraction_regime || ""}
                 onValueChange={(v) => onUpdateExercise(exerciseIndex, "contraction_regime", v || undefined)}
               >
                 <SelectTrigger className="h-8 text-xs w-40">
-                  <SelectValue placeholder="Contraction..." />
+                  <SelectValue placeholder={t("planning:calendarDialogs.sessionForm.methodBlocks.contractionPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="concentrique">Concentrique</SelectItem>
-                  <SelectItem value="excentrique">Excentrique</SelectItem>
-                  <SelectItem value="isometrique">Isométrique</SelectItem>
-                  <SelectItem value="pliometrique">Pliométrique</SelectItem>
-                  <SelectItem value="stato_dynamique">Stato-dynamique</SelectItem>
-                  <SelectItem value="concentrique_excentrique">Conc. + Exc.</SelectItem>
-                  <SelectItem value="excentrique_surcharge">Exc. surchargé</SelectItem>
-                  <SelectItem value="balistique">Balistique</SelectItem>
-                  <SelectItem value="isokinetique">Isocinétique</SelectItem>
+                  <SelectItem value="concentrique">{t("planning:calendarDialogs.sessionForm.methodBlocks.concentric")}</SelectItem>
+                  <SelectItem value="excentrique">{t("planning:calendarDialogs.sessionForm.methodBlocks.eccentric")}</SelectItem>
+                  <SelectItem value="isometrique">{t("planning:calendarDialogs.sessionForm.methodBlocks.isometric")}</SelectItem>
+                  <SelectItem value="pliometrique">{t("planning:calendarDialogs.sessionForm.methodBlocks.plyometric")}</SelectItem>
+                  <SelectItem value="stato_dynamique">{t("planning:calendarDialogs.sessionForm.methodBlocks.statoDynamic")}</SelectItem>
+                  <SelectItem value="concentrique_excentrique">{t("planning:calendarDialogs.sessionForm.methodBlocks.concEcc")}</SelectItem>
+                  <SelectItem value="excentrique_surcharge">{t("planning:calendarDialogs.sessionForm.methodBlocks.eccOverload")}</SelectItem>
+                  <SelectItem value="balistique">{t("planning:calendarDialogs.sessionForm.methodBlocks.ballistic")}</SelectItem>
+                  <SelectItem value="isokinetique">{t("planning:calendarDialogs.sessionForm.methodBlocks.isokinetic")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="flex items-center gap-2">
-              <Label className="text-sm">RPE cible</Label>
+              <Label className="text-sm">{t("planning:calendarDialogs.sessionForm.methodBlocks.targetRpe")}</Label>
               <Input
                 type="number"
                 min="1"
@@ -2272,10 +2292,10 @@ function DropSetBlock({
             </div>
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground">Notes / Consignes</Label>
+            <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.methodBlocks.notesInstructions")}</Label>
             <Textarea
               className="min-h-[36px] text-xs resize-y"
-              placeholder="Consignes, explications..."
+              placeholder={t("planning:calendarDialogs.sessionForm.methodBlocks.instructionsPlaceholder")}
               value={exercise.notes || ""}
               onChange={(e) => onUpdateExercise(exerciseIndex, "notes", e.target.value)}
               rows={1}
@@ -2289,6 +2309,7 @@ function DropSetBlock({
 
 // Main export component
 export function TrainingMethodBlock(props: TrainingMethodBlockProps) {
+  const { t } = useTranslation();
   const { method, groupId, exercises, blockConfig, onUnlinkGroup, onValidate, onCancel } = props;
   const styleConfig = getTrainingStyleConfig(method);
   const minExercises = getMinExercisesForMethod(method);
@@ -2372,7 +2393,7 @@ export function TrainingMethodBlock(props: TrainingMethodBlockProps) {
         <div className="flex items-center gap-2">
           {onCancel && (
             <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
-              Annuler
+              {t("planning:calendarDialogs.sessionForm.methodBlocks.cancel")}
             </Button>
           )}
           {onValidate && isComplete && (
@@ -2382,7 +2403,7 @@ export function TrainingMethodBlock(props: TrainingMethodBlockProps) {
               className={cn("text-white", styleConfig.color)}
               onClick={onValidate}
             >
-              Valider le bloc
+              {t("planning:calendarDialogs.sessionForm.methodBlocks.validateBlock")}
             </Button>
           )}
           <TooltipProvider>
@@ -2405,7 +2426,7 @@ export function TrainingMethodBlock(props: TrainingMethodBlockProps) {
             className="h-7 text-xs text-destructive"
           >
             <Unlink className="h-3 w-3 mr-1" />
-            Dissoudre
+            {t("planning:calendarDialogs.sessionForm.methodBlocks.dissolve")}
           </Button>
         </div>
       </div>
@@ -2417,7 +2438,7 @@ export function TrainingMethodBlock(props: TrainingMethodBlockProps) {
       {isComplete && (
         <div className="flex items-center justify-center gap-2 text-sm text-green-600 dark:text-green-400 pt-4 mt-4 border-t">
           <Check className="h-4 w-4" />
-          Bloc configuré
+          {t("planning:calendarDialogs.sessionForm.methodBlocks.blockConfigured")}
         </div>
       )}
     </div>

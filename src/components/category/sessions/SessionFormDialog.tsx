@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -275,6 +276,7 @@ export function SessionFormDialog({
   defaultTrainingType,
 }: SessionFormDialogProps) {
   const isAthleteMode = !!athletePlayerId;
+  const { t } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const guard = useSeasonGuard(categoryId);
@@ -812,8 +814,8 @@ export function SessionFormDialog({
           },
         });
 
-        if (error) throw new Error(error.message || "Erreur lors de la création de la séance");
-        if (!payload?.success) throw new Error(payload?.error || "Erreur lors de la création de la séance");
+        if (error) throw new Error(error.message || t("planning:calendarDialogs.sessionForm.dialog.errorCreatingSession"));
+        if (!payload?.success) throw new Error(payload?.error || t("planning:calendarDialogs.sessionForm.dialog.errorCreatingSession"));
         return payload.session_id;
       }
 
@@ -1119,11 +1121,11 @@ export function SessionFormDialog({
       const testCount = sessionTests.filter(t => t.test_type && Object.values(t.player_results).some(v => v)).length;
       const blockCount = sessionBlocks.filter(b => b.training_type).length;
       
-      let successMessage = isAthleteMode ? "Séance ajoutée" : (editSession ? "Séance modifiée" : "Séance créée");
-      if (blockCount > 0) successMessage += ` avec ${blockCount} bloc(s)`;
-      if (exerciseCount > 0) successMessage += ` et ${exerciseCount} exercice(s)`;
-      if (testCount > 0) successMessage += ` et ${testCount} test(s)`;
-      if (gpsCount > 0) successMessage += ` + ${gpsCount} données GPS`;
+      let successMessage = isAthleteMode ? t("planning:calendarDialogs.sessionForm.dialog.toasts.sessionAdded") : (editSession ? t("planning:calendarDialogs.sessionForm.dialog.toasts.sessionModified") : t("planning:calendarDialogs.sessionForm.dialog.toasts.sessionCreated"));
+      if (blockCount > 0) successMessage += ` ${t("planning:calendarDialogs.sessionForm.dialog.toasts.withBlocks", { count: blockCount })}`;
+      if (exerciseCount > 0) successMessage += ` ${t("planning:calendarDialogs.sessionForm.dialog.toasts.withExercises", { count: exerciseCount })}`;
+      if (testCount > 0) successMessage += ` ${t("planning:calendarDialogs.sessionForm.dialog.toasts.withTests", { count: testCount })}`;
+      if (gpsCount > 0) successMessage += ` ${t("planning:calendarDialogs.sessionForm.dialog.toasts.withGps", { count: gpsCount })}`;
       
       toast.success(successMessage);
 
@@ -1150,7 +1152,7 @@ export function SessionFormDialog({
     onError: (error: Error) => {
       if (typeof error?.message === "string" && error.message.startsWith("guard:")) return;
       console.error("[SessionFormDialog] Save error:", error);
-      toast.error(error.message || "Erreur lors de l'enregistrement");
+      toast.error(error.message || t("planning:calendarDialogs.sessionForm.dialog.toasts.saveError"));
     },
   });
 
@@ -1187,31 +1189,31 @@ export function SessionFormDialog({
     e.preventDefault();
 
     if (!date) {
-      toast.error("Veuillez sélectionner une date");
+      toast.error(t("planning:calendarDialogs.sessionForm.dialog.toasts.selectDate"));
       return;
     }
 
     if (endTime && !startTime) {
-      toast.error("Veuillez indiquer une heure de début si vous spécifiez une heure de fin");
+      toast.error(t("planning:calendarDialogs.sessionForm.dialog.toasts.startTimeRequired"));
       return;
     }
 
     if (startTime && endTime && endTime <= startTime) {
-      toast.error("L'heure de fin doit être après l'heure de début");
+      toast.error(t("planning:calendarDialogs.sessionForm.dialog.toasts.endAfterStart"));
       return;
     }
 
     // Validate: athlete mode uses type, staff mode uses blocks
     if (isAthleteMode) {
       if (!type) {
-        toast.error("Veuillez sélectionner un type de séance");
+        toast.error(t("planning:calendarDialogs.sessionForm.dialog.toasts.selectSessionType"));
         return;
       }
       saveSession.mutate();
     } else {
       const hasValidBlocks = sessionBlocks.length > 0 && sessionBlocks.some(b => b.training_type);
       if (!hasValidBlocks) {
-        toast.error("Veuillez ajouter au moins un bloc thématique à la séance");
+        toast.error(t("planning:calendarDialogs.sessionForm.dialog.toasts.addAtLeastOneBlock"));
         return;
       }
       saveSession.mutate();
@@ -1401,7 +1403,7 @@ export function SessionFormDialog({
       const maxExercises = getMaxExercisesForMethod(groupMethod);
       
       if (groupExercises.length >= maxExercises) {
-        toast.error(`Maximum ${maxExercises} exercices pour cette méthode`);
+        toast.error(t("planning:calendarDialogs.sessionForm.dialog.toasts.maxExercisesForMethod", { count: maxExercises }));
         return;
       }
       
@@ -1427,7 +1429,7 @@ export function SessionFormDialog({
       };
       
       setExercises([...exercises, newExercise]);
-      toast.success(`${droppedExercise.name} ajouté au bloc`);
+      toast.success(t("planning:calendarDialogs.sessionForm.dialog.toasts.exerciseAddedToBlock", { name: droppedExercise.name }));
       return;
     }
 
@@ -1454,7 +1456,7 @@ export function SessionFormDialog({
     };
 
     setExercises([...exercises, newExercise]);
-    toast.success(`${droppedExercise.name} ajouté`);
+    toast.success(t("planning:calendarDialogs.sessionForm.dialog.toasts.exerciseAdded", { name: droppedExercise.name }));
   };
 
   const removeExercise = (index: number) => {
@@ -1546,7 +1548,7 @@ export function SessionFormDialog({
     const maxExercises = getMaxExercisesForMethod(method);
     
     if (groupExercises.length >= maxExercises) {
-      toast.error(`Maximum ${maxExercises} exercices pour cette méthode`);
+        toast.error(t("planning:calendarDialogs.sessionForm.dialog.toasts.maxExercisesForMethod", { count: maxExercises }));
       return;
     }
     
@@ -1752,7 +1754,7 @@ export function SessionFormDialog({
               <PopoverTrigger asChild>
                 <div className="relative">
                   <Input
-                    placeholder="Nom de l'exercice..."
+                    placeholder={t("planning:calendarDialogs.sessionForm.dialog.exercise.namePlaceholder")}
                     value={exercise.exercise_name}
                     onChange={(e) => {
                       updateExercise(index, "exercise_name", e.target.value);
@@ -1773,7 +1775,7 @@ export function SessionFormDialog({
               >
                 {filteredLibrary.length === 0 ? (
                   <div className="px-2 py-2 text-xs text-muted-foreground">
-                    Aucun exercice trouvé
+                    {t("planning:calendarDialogs.sessionForm.dialog.exercise.noExerciseFound")}
                   </div>
                 ) : (
                   filteredLibrary.slice(0, 15).map((libEx) => (
@@ -1808,7 +1810,7 @@ export function SessionFormDialog({
                 size="icon"
                 onClick={() => moveExercise(index, "up")}
                 disabled={index === 0}
-                title="Monter"
+                title={t("planning:calendarDialogs.sessionForm.dialog.exercise.moveUp")}
                 className="h-7 w-7"
               >
                 <ArrowUp className="h-3 w-3" />
@@ -1819,7 +1821,7 @@ export function SessionFormDialog({
                 size="icon"
                 onClick={() => moveExercise(index, "down")}
                 disabled={index === exercises.length - 1}
-                title="Descendre"
+                title={t("planning:calendarDialogs.sessionForm.dialog.exercise.moveDown")}
                 className="h-7 w-7"
               >
                 <ArrowDown className="h-3 w-3" />
@@ -1832,7 +1834,7 @@ export function SessionFormDialog({
             variant="ghost"
             size="icon"
             onClick={() => duplicateExercise(index)}
-            title="Dupliquer"
+            title={t("planning:calendarDialogs.sessionForm.dialog.exercise.duplicate")}
             className="h-7 w-7"
           >
             <Copy className="h-3 w-3" />
@@ -1852,7 +1854,7 @@ export function SessionFormDialog({
         <div className="grid grid-cols-2 gap-2">
            {!isGrouped && (
              <div>
-               <Label className="text-xs text-muted-foreground">Méthode</Label>
+               <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.method")}</Label>
                <TrainingMethodSelect
                  value={exercise.set_type}
                   onValueChange={(v) => {
@@ -1876,7 +1878,7 @@ export function SessionFormDialog({
              </div>
            )}
           <div className={isGrouped ? "col-span-2" : ""}>
-            <Label className="text-xs text-muted-foreground">Catégorie</Label>
+            <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.category")}</Label>
             <Select
               value={exercise.exercise_category}
               onValueChange={(v) => updateExercise(index, "exercise_category", v)}
@@ -1900,7 +1902,7 @@ export function SessionFormDialog({
           // Sled-specific inputs (distance in meters)
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <div>
-              <Label className="text-xs text-muted-foreground">Séries</Label>
+              <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.sets")}</Label>
               <Input
                 type="number"
                 min="1"
@@ -1911,7 +1913,7 @@ export function SessionFormDialog({
               />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground">Distance (m)</Label>
+              <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.distanceM")}</Label>
               <Input
                 type="number"
                 min="0"
@@ -1927,7 +1929,7 @@ export function SessionFormDialog({
               />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground">Poids (kg)</Label>
+              <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.weightKg")}</Label>
               <Input
                 type="number"
                 min="0"
@@ -1940,7 +1942,7 @@ export function SessionFormDialog({
               />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground">Repos (s)</Label>
+              <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.restSec")}</Label>
               <Input
                 type="number"
                 min="0"
@@ -1957,7 +1959,7 @@ export function SessionFormDialog({
           // Erg-specific inputs
           <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
             <div>
-              <Label className="text-xs text-muted-foreground">Temps (s)</Label>
+              <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.timeSec")}</Label>
               <Input
                 type="number"
                 min="0"
@@ -1973,7 +1975,7 @@ export function SessionFormDialog({
               />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground">Distance (m)</Label>
+              <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.distanceM")}</Label>
               <Input
                 type="number"
                 min="0"
@@ -1989,7 +1991,7 @@ export function SessionFormDialog({
               />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground">Calories</Label>
+              <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.calories")}</Label>
               <Input
                 type="number"
                 min="0"
@@ -2005,7 +2007,7 @@ export function SessionFormDialog({
               />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground">Watts</Label>
+              <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.watts")}</Label>
               <Input
                 type="number"
                 min="0"
@@ -2021,7 +2023,7 @@ export function SessionFormDialog({
               />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground">RPM</Label>
+              <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.rpm")}</Label>
               <Input
                 type="number"
                 min="0"
@@ -2038,7 +2040,7 @@ export function SessionFormDialog({
             </div>
             {(exercise.exercise_category === "ergo_rowerg" || exercise.exercise_name.toLowerCase().includes("row")) && (
               <div>
-                <Label className="text-xs text-muted-foreground">Stroke/min</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.strokeRate")}</Label>
                 <Input
                   type="number"
                   min="0"
@@ -2060,7 +2062,7 @@ export function SessionFormDialog({
           <div className="space-y-3">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <div>
-                <Label className="text-xs text-muted-foreground">% VMA</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.percentVma")}</Label>
                 <Input
                   type="number"
                   min="0"
@@ -2077,7 +2079,7 @@ export function SessionFormDialog({
                 />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Allure (km/h)</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.paceKmh")}</Label>
                 <Input
                   type="number"
                   min="0"
@@ -2094,7 +2096,7 @@ export function SessionFormDialog({
                 />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Allure (m/s)</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.paceMs")}</Label>
                 <Input
                   type="number"
                   min="0"
@@ -2111,7 +2113,7 @@ export function SessionFormDialog({
                 />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Durée (s)</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.durationSec")}</Label>
                 <Input
                   type="number"
                   min="0"
@@ -2134,7 +2136,7 @@ export function SessionFormDialog({
               exercise.exercise_category === "running_sprint") && (
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                 <div>
-                  <Label className="text-xs text-muted-foreground">Répétitions</Label>
+                  <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.repetitions")}</Label>
                   <Input
                     type="number"
                     min="1"
@@ -2150,7 +2152,7 @@ export function SessionFormDialog({
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Dist./rep (m)</Label>
+                  <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.distPerRep")}</Label>
                   <Input
                     type="number"
                     min="0"
@@ -2166,7 +2168,7 @@ export function SessionFormDialog({
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Durée/rep (s)</Label>
+                  <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.durationPerRep")}</Label>
                   <Input
                     type="number"
                     min="0"
@@ -2182,7 +2184,7 @@ export function SessionFormDialog({
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Récup (s)</Label>
+                  <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.recoverySec")}</Label>
                   <Input
                     type="number"
                     min="0"
@@ -2198,7 +2200,7 @@ export function SessionFormDialog({
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Récup (m)</Label>
+                  <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.recoveryM")}</Label>
                   <Input
                     type="number"
                     min="0"
@@ -2220,7 +2222,7 @@ export function SessionFormDialog({
             {exercise.exercise_category === "running_cote" && (
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <Label className="text-xs text-muted-foreground">Distance (m)</Label>
+                  <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.distanceM")}</Label>
                   <Input
                     type="number"
                     min="0"
@@ -2236,7 +2238,7 @@ export function SessionFormDialog({
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Dénivelé (m)</Label>
+                  <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.elevationM")}</Label>
                   <Input
                     type="number"
                     min="0"
@@ -2262,7 +2264,7 @@ export function SessionFormDialog({
               exercise.exercise_category === "running_fartlek") && (
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <Label className="text-xs text-muted-foreground">Distance totale (m)</Label>
+                  <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.totalDistanceM")}</Label>
                   <Input
                     type="number"
                     min="0"
@@ -2278,7 +2280,7 @@ export function SessionFormDialog({
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Repos après (s)</Label>
+                  <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.restAfterSec")}</Label>
                   <Input
                     type="number"
                     min="0"
@@ -2298,10 +2300,10 @@ export function SessionFormDialog({
           <div className="space-y-2 bg-muted/50 p-3 rounded-lg">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium">
-                {exercise.set_type === "drop_set" && "Drop Set - Même reps, charge décroissante"}
-                {exercise.set_type === "pyramid_up" && "Pyramide Montante - ↑ charge, ↓ reps"}
-                {exercise.set_type === "pyramid_down" && "Pyramide Descendante - ↓ charge, ↑ reps"}
-                {exercise.set_type === "pyramid_full" && "Pyramide Complète ↑↓"}
+                {exercise.set_type === "drop_set" && t("planning:calendarDialogs.sessionForm.dialog.dropSet.dropSetDesc")}
+                {exercise.set_type === "pyramid_up" && t("planning:calendarDialogs.sessionForm.dialog.dropSet.pyramidUpDesc")}
+                {exercise.set_type === "pyramid_down" && t("planning:calendarDialogs.sessionForm.dialog.dropSet.pyramidDownDesc")}
+                {exercise.set_type === "pyramid_full" && t("planning:calendarDialogs.sessionForm.dialog.dropSet.pyramidFullDesc")}
               </span>
               <Button
                 type="button"
@@ -2311,7 +2313,7 @@ export function SessionFormDialog({
                 className="h-6 text-xs"
               >
                 <Plus className="h-3 w-3 mr-1" />
-                Série
+                {t("planning:calendarDialogs.sessionForm.dialog.dropSet.addSeries")}
               </Button>
             </div>
             
@@ -2360,8 +2362,8 @@ export function SessionFormDialog({
           <div className="space-y-2 bg-muted/50 p-3 rounded-lg">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium">
-                {exercise.set_type === "cluster" && "Cluster - Mini-séries avec micro-repos"}
-                {exercise.set_type === "rest_pause" && "Rest-Pause - Séries à l'échec avec pauses"}
+                {exercise.set_type === "cluster" && t("planning:calendarDialogs.sessionForm.dialog.clusterSet.clusterDesc")}
+                {exercise.set_type === "rest_pause" && t("planning:calendarDialogs.sessionForm.dialog.clusterSet.restPauseDesc")}
               </span>
               <Button
                 type="button"
@@ -2371,13 +2373,13 @@ export function SessionFormDialog({
                 className="h-6 text-xs"
               >
                 <Plus className="h-3 w-3 mr-1" />
-                Mini-série
+                {t("planning:calendarDialogs.sessionForm.dialog.clusterSet.addMiniSeries")}
               </Button>
             </div>
             
             <div className="space-y-1">
               <div className="grid grid-cols-4 gap-2 text-xs text-muted-foreground font-medium mb-1">
-                <span>Mini-série</span>
+                <span>{t("planning:calendarDialogs.sessionForm.dialog.clusterSet.miniSeriesHeader")}</span>
                 <span>Reps</span>
                 <span>Micro-repos</span>
                 <span></span>
@@ -2462,7 +2464,7 @@ export function SessionFormDialog({
               <Label className="text-xs text-muted-foreground">Notes</Label>
               <Input
                 className="h-8 text-xs"
-                placeholder="Notes..."
+                placeholder={t("planning:calendarDialogs.sessionForm.dialog.exercise.notesPlaceholder")}
                 value={exercise.notes}
                 onChange={(e) => updateExercise(index, "notes", e.target.value)}
               />
@@ -2472,7 +2474,7 @@ export function SessionFormDialog({
           // VBT: Sets, Reps, Weight (kg), Velocity min, Velocity max, Rest
           <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
             <div>
-              <Label className="text-xs text-muted-foreground">Séries</Label>
+              <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.sets")}</Label>
               <Input
                 type="number"
                 min="1"
@@ -2482,7 +2484,7 @@ export function SessionFormDialog({
               />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground">Reps</Label>
+              <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.reps")}</Label>
               <Input
                 className="h-8 text-xs"
                 value={exercise.reps || ""}
@@ -2491,7 +2493,7 @@ export function SessionFormDialog({
               />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground">Poids (kg)</Label>
+              <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.weightKg")}</Label>
               <Input
                 type="number"
                 step="0.5"
@@ -2502,7 +2504,7 @@ export function SessionFormDialog({
               />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground">V. min (m/s)</Label>
+              <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.velocityMin")}</Label>
               <Input
                 type="number"
                 min="0"
@@ -2514,7 +2516,7 @@ export function SessionFormDialog({
               />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground">V. max (m/s)</Label>
+              <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.velocityMax")}</Label>
               <Input
                 type="number"
                 min="0"
@@ -2527,7 +2529,7 @@ export function SessionFormDialog({
             </div>
             {!isGrouped && (
               <div>
-                <Label className="text-xs text-muted-foreground">Repos (sec)</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.restSeconds")}</Label>
                 <Input
                   type="number"
                   className="h-8 text-xs"
@@ -2542,7 +2544,7 @@ export function SessionFormDialog({
           <div className="space-y-2">
             <div className="grid grid-cols-4 gap-2">
               <div>
-                <Label className="text-xs text-muted-foreground">Séries</Label>
+                <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.sets")}</Label>
                 <Input
                   type="number"
                   min="1"
@@ -2564,13 +2566,13 @@ export function SessionFormDialog({
               </div>
               <div>
                 <Label className="text-xs text-muted-foreground flex items-center gap-1">
-                  Poids
+                  {t("planning:calendarDialogs.sessionForm.dialog.weightLabel")}
                   <button
                     type="button"
                     className="text-[10px] px-1 py-0.5 rounded bg-muted hover:bg-muted/80"
                     onClick={() => updateExercise(index, "weight_mode", exercise.weight_mode === "kg" ? "percent_rm" : "kg")}
                   >
-                    {exercise.weight_mode === "kg" ? "kg" : "% RM"}
+                    {exercise.weight_mode === "kg" ? t("planning:calendarDialogs.sessionForm.dialog.weightMode.kg") : t("planning:calendarDialogs.sessionForm.dialog.weightMode.percentRm")}
                   </button>
                 </Label>
                 {exercise.weight_mode === "kg" ? (
@@ -2600,7 +2602,7 @@ export function SessionFormDialog({
               </div>
               {!isGrouped && (
                 <div>
-                  <Label className="text-xs text-muted-foreground">Repos (sec)</Label>
+                  <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.restSeconds")}</Label>
                   <Input
                     type="number"
                     className="h-8 text-xs"
@@ -2629,7 +2631,7 @@ export function SessionFormDialog({
                   }
                 }}
               >
-                ⚡ VBT
+                {t("planning:calendarDialogs.sessionForm.dialog.vbtToggle")}
               </button>
               {(exercise.target_velocity != null || exercise.target_rpe != null) && (
                 <div className="flex items-center gap-2">
@@ -2676,7 +2678,7 @@ export function SessionFormDialog({
                   }
                 }}
               >
-                💪 Force
+                {t("planning:calendarDialogs.sessionForm.dialog.forceToggle")}
               </button>
               {exercise.target_force_newton != null && (
                 <div className="flex items-center gap-1">
@@ -2700,33 +2702,33 @@ export function SessionFormDialog({
         {!isCardioBlock && exercise.exercise_name && (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             <div>
-              <Label className="text-xs text-muted-foreground">Tempo</Label>
+              <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.tempo")}</Label>
               <Input
                 className="h-8 text-xs"
-                placeholder="3-1-2-0"
+                placeholder={t("planning:calendarDialogs.sessionForm.dialog.exercise.tempoPlaceholder")}
                 value={exercise.tempo || ""}
                 onChange={(e) => updateExercise(index, "tempo", e.target.value)}
               />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground">Régime de contraction</Label>
+              <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.contractionRegime")}</Label>
               <Select
                 value={exercise.contraction_regime || ""}
                 onValueChange={(v) => updateExercise(index, "contraction_regime", v || undefined)}
               >
                 <SelectTrigger className="h-8 text-xs">
-                  <SelectValue placeholder="Sélectionner..." />
+                  <SelectValue placeholder={t("planning:calendarDialogs.sessionForm.dialog.exercise.selectPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="concentrique">Concentrique</SelectItem>
-                  <SelectItem value="excentrique">Excentrique</SelectItem>
-                  <SelectItem value="isometrique">Isométrique</SelectItem>
-                  <SelectItem value="pliometrique">Pliométrique</SelectItem>
-                  <SelectItem value="stato_dynamique">Stato-dynamique</SelectItem>
-                  <SelectItem value="concentrique_excentrique">Concentrique + Excentrique</SelectItem>
-                  <SelectItem value="excentrique_surcharge">Excentrique surchargé</SelectItem>
-                  <SelectItem value="balistique">Balistique</SelectItem>
-                  <SelectItem value="isokinetique">Isocinétique</SelectItem>
+                  <SelectItem value="concentrique">{t("planning:calendarDialogs.sessionForm.methodBlocks.concentric")}</SelectItem>
+                  <SelectItem value="excentrique">{t("planning:calendarDialogs.sessionForm.methodBlocks.eccentric")}</SelectItem>
+                  <SelectItem value="isometrique">{t("planning:calendarDialogs.sessionForm.methodBlocks.isometric")}</SelectItem>
+                  <SelectItem value="pliometrique">{t("planning:calendarDialogs.sessionForm.methodBlocks.plyometric")}</SelectItem>
+                  <SelectItem value="stato_dynamique">{t("planning:calendarDialogs.sessionForm.methodBlocks.statoDynamic")}</SelectItem>
+                  <SelectItem value="concentrique_excentrique">{t("planning:calendarDialogs.sessionForm.methodBlocks.concEcc")}</SelectItem>
+                  <SelectItem value="excentrique_surcharge">{t("planning:calendarDialogs.sessionForm.methodBlocks.eccOverload")}</SelectItem>
+                  <SelectItem value="balistique">{t("planning:calendarDialogs.sessionForm.methodBlocks.ballistic")}</SelectItem>
+                  <SelectItem value="isokinetique">{t("planning:calendarDialogs.sessionForm.methodBlocks.isokinetic")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -2736,10 +2738,10 @@ export function SessionFormDialog({
         {/* Notes for non-cardio exercises */}
         {!isCardioBlock && (
           <div>
-            <Label className="text-xs text-muted-foreground">Notes / Consignes</Label>
+              <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.exercise.notesInstructions")}</Label>
             <Textarea
               className="min-h-[40px] text-xs resize-y"
-              placeholder="Consignes, explications de la méthode, points clés..."
+              placeholder={t("planning:calendarDialogs.sessionForm.dialog.exercise.notesInstructionsPlaceholder")}
               value={exercise.notes}
               onChange={(e) => updateExercise(index, "notes", e.target.value)}
               rows={2}
@@ -2798,10 +2800,10 @@ export function SessionFormDialog({
   // Render block creation buttons
   const renderBlockCreationButtons = () => {
     const methodGroups = [
-      { label: "📋 Classique", methods: LINKABLE_METHODS },
-      { label: "💪 Intensification", methods: [...DROP_METHODS, "five_by_five", "super_pletnev", "combine_haltero", "bulgarian"] },
-      { label: "⚡ Spéciales", methods: ["vbt", "isometric_overcoming", "isometric_yielding", "iso_max", "stato_dynamique"] },
-      { label: "🏃 Cardio", methods: CARDIO_BLOCK_METHODS },
+      { label: t("planning:calendarDialogs.sessionForm.dialog.blockGroups.classic"), methods: LINKABLE_METHODS },
+      { label: t("planning:calendarDialogs.sessionForm.dialog.blockGroups.intensification"), methods: [...DROP_METHODS, "five_by_five", "super_pletnev", "combine_haltero", "bulgarian"] },
+      { label: t("planning:calendarDialogs.sessionForm.dialog.blockGroups.special"), methods: ["vbt", "isometric_overcoming", "isometric_yielding", "iso_max", "stato_dynamique"] },
+      { label: t("planning:calendarDialogs.sessionForm.dialog.blockGroups.cardio"), methods: CARDIO_BLOCK_METHODS },
     ];
 
     // Deduplicate (bulgarian is in both LINKABLE and intensification)
@@ -2809,7 +2811,7 @@ export function SessionFormDialog({
 
     return (
       <div className="space-y-2">
-        <Label className="text-xs text-muted-foreground">Créer un bloc d'exercices</Label>
+        <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.dialog.createBlock")}</Label>
         <div className="space-y-2">
           <TooltipProvider delayDuration={200}>
             {methodGroups.map(group => {
@@ -2858,11 +2860,11 @@ export function SessionFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={cn("max-h-[95vh] flex flex-col p-4 sm:p-6", isAthleteMode ? "max-w-4xl w-[95vw]" : "max-w-6xl w-[95vw]")}>
         <DialogHeader>
-          <DialogTitle>{isAthleteMode ? "Ajouter ma séance" : (editSession ? "Modifier la séance" : "Nouvelle séance")}</DialogTitle>
+          <DialogTitle>{isAthleteMode ? t("planning:calendarDialogs.sessionForm.dialog.addMySession") : (editSession ? t("planning:calendarDialogs.sessionForm.dialog.editSession") : t("planning:calendarDialogs.sessionForm.dialog.newSession"))}</DialogTitle>
           <DialogDescription>
             {isAthleteMode 
-              ? "Crée ta séance avec exercices et tests. Elle sera visible par le staff."
-              : "Remplissez les détails de la séance et ajoutez des exercices si nécessaire."
+              ? t("planning:calendarDialogs.sessionForm.dialog.athleteDescription")
+              : t("planning:calendarDialogs.sessionForm.dialog.staffDescription")
             }
           </DialogDescription>
         </DialogHeader>
@@ -2870,9 +2872,9 @@ export function SessionFormDialog({
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
             <TabsList className={cn("grid w-full shrink-0", isAthleteMode ? "grid-cols-3" : "grid-cols-4")}>
-              <TabsTrigger value="details" className="text-xs sm:text-sm px-1 sm:px-3">Détails</TabsTrigger>
+              <TabsTrigger value="details" className="text-xs sm:text-sm px-1 sm:px-3">{t("planning:calendarDialogs.sessionForm.dialog.tabs.details")}</TabsTrigger>
               <TabsTrigger value="exercises" className="text-xs sm:text-sm px-1 sm:px-3">
-                Exercices
+                {t("planning:calendarDialogs.sessionForm.dialog.tabs.exercises")}
                 {exercises.filter((e) => e.exercise_name.trim()).length > 0 && (
                   <Badge variant="secondary" className="ml-1 sm:ml-2 px-1">
                     {exercises.filter((e) => e.exercise_name.trim()).length}
@@ -2880,14 +2882,14 @@ export function SessionFormDialog({
                 )}
               </TabsTrigger>
               <TabsTrigger value="tests" className="text-xs sm:text-sm px-1 sm:px-3">
-                Tests
+                {t("planning:calendarDialogs.sessionForm.dialog.tabs.tests")}
                 {sessionTests.filter((t) => t.test_type).length > 0 && (
                   <Badge variant="secondary" className="ml-1 sm:ml-2 px-1 bg-emerald-100 text-emerald-700">
                     {sessionTests.filter((t) => t.test_type).length}
                   </Badge>
                 )}
               </TabsTrigger>
-              {!isAthleteMode && <TabsTrigger value="players" className="text-xs sm:text-sm px-1 sm:px-3">{isIndividualSport(sportType || "") ? "Athlètes" : "Joueurs"}</TabsTrigger>}
+              {!isAthleteMode && <TabsTrigger value="players" className="text-xs sm:text-sm px-1 sm:px-3">{isIndividualSport(sportType || "") ? t("planning:calendarDialogs.sessionForm.dialog.tabs.athletes") : t("planning:calendarDialogs.sessionForm.dialog.tabs.players")}</TabsTrigger>}
             </TabsList>
 
             <div className="flex-1 overflow-hidden mt-4">
@@ -2900,10 +2902,10 @@ export function SessionFormDialog({
                         <div className="flex items-center justify-between">
                           <div>
                             <Label className="text-sm font-semibold flex items-center gap-2">
-                              🔁 Récurrence (Rappel test)
+                              {t("planning:calendarDialogs.sessionForm.dialog.recurrence.title")}
                             </Label>
                             <p className="text-xs text-muted-foreground mt-0.5">
-                              Ajoute automatiquement cette séance dans le calendrier de manière récurrente.
+                              {t("planning:calendarDialogs.sessionForm.dialog.recurrence.hint")}
                             </p>
                           </div>
                           <button
@@ -2916,14 +2918,14 @@ export function SessionFormDialog({
                                 : "bg-muted text-muted-foreground"
                             )}
                           >
-                            {recurrenceEnabled ? "Activée" : "Désactivée"}
+                            {recurrenceEnabled ? t("planning:calendarDialogs.sessionForm.dialog.recurrence.enabled") : t("planning:calendarDialogs.sessionForm.dialog.recurrence.disabled")}
                           </button>
                         </div>
 
                         {recurrenceEnabled && (
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <div className="space-y-1">
-                              <Label className="text-xs">Toutes les</Label>
+                              <Label className="text-xs">{t("planning:calendarDialogs.sessionForm.dialog.recurrence.every")}</Label>
                               <Input
                                 type="number"
                                 min={1}
@@ -2933,20 +2935,20 @@ export function SessionFormDialog({
                               />
                             </div>
                             <div className="space-y-1">
-                              <Label className="text-xs">Unité</Label>
+                              <Label className="text-xs">{t("planning:calendarDialogs.sessionForm.dialog.recurrence.unit")}</Label>
                               <Select value={recurrenceUnit} onValueChange={(v: any) => setRecurrenceUnit(v)}>
                                 <SelectTrigger className="bg-background">
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="days">Jour(s)</SelectItem>
-                                  <SelectItem value="weeks">Semaine(s)</SelectItem>
-                                  <SelectItem value="months">Mois</SelectItem>
+                                  <SelectItem value="days">{t("planning:calendarDialogs.sessionForm.dialog.recurrence.days")}</SelectItem>
+                                  <SelectItem value="weeks">{t("planning:calendarDialogs.sessionForm.dialog.recurrence.weeks")}</SelectItem>
+                                  <SelectItem value="months">{t("planning:calendarDialogs.sessionForm.dialog.recurrence.months")}</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
                             <div className="space-y-1">
-                              <Label className="text-xs">Pendant (mois)</Label>
+                              <Label className="text-xs">{t("planning:calendarDialogs.sessionForm.dialog.recurrence.forMonths")}</Label>
                               <Input
                                 type="number"
                                 min={1}
@@ -2964,15 +2966,15 @@ export function SessionFormDialog({
                     {/* Athlete quick type selector */}
                     {isAthleteMode && (
                       <div className="space-y-2">
-                        <Label>Type de séance *</Label>
+                        <Label>{t("planning:calendarDialogs.sessionForm.dialog.sessionTypeRequired")}</Label>
                         <div className="grid grid-cols-3 gap-2">
                           {[
-                            { value: "musculation", label: "Musculation", icon: "💪" },
-                            { value: "cardio", label: "Cardio / Course", icon: "🏃" },
-                            { value: "precision", label: "Précision", icon: "🎯" },
-                            { value: "test", label: "Test", icon: "📋" },
-                            { value: "physique", label: "Physique", icon: "⚡" },
-                            { value: "recuperation", label: "Récupération", icon: "🧘" },
+                            { value: "musculation", label: t("planning:calendarDialogs.sessionForm.dialog.quickTypes.musculation"), icon: "💪" },
+                            { value: "cardio", label: t("planning:calendarDialogs.sessionForm.dialog.quickTypes.cardio"), icon: "🏃" },
+                            { value: "precision", label: t("planning:calendarDialogs.sessionForm.dialog.quickTypes.precision"), icon: "🎯" },
+                            { value: "test", label: t("planning:calendarDialogs.sessionForm.dialog.quickTypes.test"), icon: "📋" },
+                            { value: "physique", label: t("planning:calendarDialogs.sessionForm.dialog.quickTypes.physique"), icon: "⚡" },
+                            { value: "recuperation", label: t("planning:calendarDialogs.sessionForm.dialog.quickTypes.recuperation"), icon: "🧘" },
                           ].map((opt) => (
                             <Button
                               key={opt.value}
@@ -2994,7 +2996,7 @@ export function SessionFormDialog({
                     )}
 
                     <div className="space-y-2">
-                      <Label htmlFor="date">Date *</Label>
+                      <Label htmlFor="date">{t("planning:calendarDialogs.sessionForm.dialog.dateRequired")}</Label>
                       <Input
                         id="date"
                         type="date"
@@ -3006,7 +3008,7 @@ export function SessionFormDialog({
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="startTime">Heure de début</Label>
+                        <Label htmlFor="startTime">{t("planning:calendarDialogs.sessionForm.dialog.startTime")}</Label>
                         <Input
                           id="startTime"
                           type="time"
@@ -3015,7 +3017,7 @@ export function SessionFormDialog({
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="endTime">Heure de fin</Label>
+                        <Label htmlFor="endTime">{t("planning:calendarDialogs.sessionForm.dialog.endTime")}</Label>
                         <Input
                           id="endTime"
                           type="time"
@@ -3040,7 +3042,7 @@ export function SessionFormDialog({
                     {/* Intensity - only shown if no blocks */}
                     {sessionBlocks.length === 0 && (
                       <div className="space-y-2">
-                        <Label htmlFor="intensity-no-blocks">Intensité (1-10)</Label>
+                        <Label htmlFor="intensity-no-blocks">{t("planning:calendarDialogs.sessionForm.dialog.intensityRange")}</Label>
                         <Input
                           id="intensity-no-blocks"
                           type="number"
@@ -3048,7 +3050,7 @@ export function SessionFormDialog({
                           max="10"
                           value={intensity}
                           onChange={(e) => setIntensity(e.target.value)}
-                          placeholder="De 1 à 10"
+                          placeholder={t("planning:calendarDialogs.sessionForm.dialog.intensityPlaceholder")}
                         />
                       </div>
                     )}
@@ -3068,8 +3070,7 @@ export function SessionFormDialog({
                           allowCreate={!isAthleteMode}
                         />
                         <p className="text-[10px] text-muted-foreground">
-                          📊 Les athlètes pourront saisir leurs stats de précision (réussites / tentatives) lors de la saisie RPE.
-                          Le staff peut créer des exercices personnalisés via le bouton « + ».
+                          {t("planning:calendarDialogs.sessionForm.dialog.precisionInfoHint")}
                         </p>
                       </div>
                     )}
@@ -3080,7 +3081,7 @@ export function SessionFormDialog({
                       return (
                       <div className="rounded-lg border border-accent/30 p-3 space-y-3">
                         <div className="space-y-2">
-                          <Label className="text-sm">Catégorie de précision</Label>
+                          <Label className="text-sm">{t("planning:calendarDialogs.sessionForm.dialog.precisionCategory")}</Label>
                           <Select
                             value={activeCatKey}
                             onValueChange={(catKey) => {
@@ -3093,7 +3094,7 @@ export function SessionFormDialog({
                             }}
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder="Choisir la catégorie" />
+                              <SelectValue placeholder={t("planning:calendarDialogs.sessionForm.dialog.chooseCategory")} />
                             </SelectTrigger>
                             <SelectContent position="popper" className="z-[200]">
                               {EXERCISE_CATEGORIES.map((cat) => (
@@ -3108,7 +3109,7 @@ export function SessionFormDialog({
                         {/* Show specific exercise for non-buteur */}
                         {activeCatKey === "buteur" ? (
                               <div className="rounded-lg bg-primary/5 border border-primary/20 p-2.5 space-y-1.5">
-                                <p className="text-xs font-medium text-primary">🎯 Exercices buteur disponibles :</p>
+                                <p className="text-xs font-medium text-primary">{t("planning:calendarDialogs.sessionForm.dialog.buteurExercisesAvailable")}</p>
                                 <div className="flex items-center gap-3 flex-wrap">
                                   {activeCat.exercises.map(ex => (
                                     <span key={ex.value} className="flex items-center gap-1.5 text-xs">
@@ -3120,12 +3121,12 @@ export function SessionFormDialog({
                                   ))}
                                 </div>
                                 <p className="text-[10px] text-muted-foreground">
-                                  Les 3 types seront disponibles simultanément sur la cartographie.
+                                  {t("planning:calendarDialogs.sessionForm.dialog.threeTypesHint")}
                                 </p>
                               </div>
                         ) : (
                             <div className="space-y-2">
-                              <Label className="text-sm">Exercice spécifique</Label>
+                              <Label className="text-sm">{t("planning:calendarDialogs.sessionForm.dialog.specificExercise")}</Label>
                               <Select
                                 value={precisionExerciseId ?? undefined}
                                 onValueChange={(value) => {
@@ -3135,7 +3136,7 @@ export function SessionFormDialog({
                                 }}
                               >
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Choisir l'exercice" />
+                                  <SelectValue placeholder={t("planning:calendarDialogs.sessionForm.dialog.chooseExercise")} />
                                 </SelectTrigger>
                                 <SelectContent position="popper" className="z-[200]">
                                   {activeCat.exercises.map((exercise) => (
@@ -3152,22 +3153,22 @@ export function SessionFormDialog({
                         )}
 
                         <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                          🏉 Le choix fait ici sera repris par défaut dans la saisie athlète.
+                          {t("planning:calendarDialogs.sessionForm.dialog.rugbyChoiceHint")}
                         </p>
                         <p className="text-[10px] text-muted-foreground">
-                          📊 Tu pourras saisir tes stats de précision (réussites / tentatives) lors de la saisie RPE via le terrain interactif.
+                          {t("planning:calendarDialogs.sessionForm.dialog.rugbyRpeHint")}
                         </p>
                       </div>
                       );
                     })()}
 
                     <div className="space-y-2">
-                      <Label htmlFor="notes">Notes</Label>
+                      <Label htmlFor="notes">{t("planning:calendarDialogs.sessionForm.dialog.notes")}</Label>
                       <Textarea
                         id="notes"
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
-                        placeholder="Remarques ou détails supplémentaires..."
+                        placeholder={t("planning:calendarDialogs.sessionForm.dialog.notesPlaceholder")}
                         rows={3}
                       />
                     </div>
@@ -3206,7 +3207,7 @@ export function SessionFormDialog({
                         ) : (
                           <div className="flex items-center gap-2 p-3 rounded-lg border border-dashed text-muted-foreground text-sm">
                             <Waves className="h-4 w-4 shrink-0" />
-                            <span>Les conditions de surf et le matériel seront disponibles après la création de la séance.</span>
+                          <span>{t("planning:calendarDialogs.sessionForm.dialog.surfConditionsHint")}</span>
                           </div>
                         )}
                       </div>
@@ -3224,7 +3225,7 @@ export function SessionFormDialog({
                         ) : (
                           <div className="flex items-center gap-2 p-3 rounded-lg border border-dashed text-muted-foreground text-sm">
                             <Mountain className="h-4 w-4 shrink-0" />
-                            <span>Les conditions neige et le matériel seront disponibles après la création de la séance.</span>
+                          <span>{t("planning:calendarDialogs.sessionForm.dialog.skiConditionsHint")}</span>
                           </div>
                         )}
                       </div>
@@ -3257,11 +3258,11 @@ export function SessionFormDialog({
                               <div className="flex items-center justify-between">
                                 <Label className="flex items-center gap-2 text-base font-medium">
                                   <Dumbbell className="h-4 w-4" />
-                                  Exercices de la séance
+                                  {t("planning:calendarDialogs.sessionForm.dialog.sessionExercises")}
                                 </Label>
                                 <Button type="button" variant="outline" size="sm" onClick={addExercise}>
                                   <Plus className="h-4 w-4 mr-1" />
-                                  Exercice simple
+                                  {t("planning:calendarDialogs.sessionForm.dialog.simpleExercise")}
                                 </Button>
                               </div>
 
@@ -3271,9 +3272,9 @@ export function SessionFormDialog({
                               {exercises.length === 0 ? (
                                 <div className="text-center py-8 border-2 border-dashed rounded-lg bg-muted/30">
                                   <Dumbbell className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                                  <p className="text-sm text-muted-foreground mb-2">Aucun exercice ajouté</p>
+                                  <p className="text-sm text-muted-foreground mb-2">{t("planning:calendarDialogs.sessionForm.dialog.noExerciseAdded")}</p>
                                   <p className="text-xs text-muted-foreground mb-4">
-                                    Glissez-déposez des exercices depuis la bibliothèque ou ajoutez-en manuellement
+                                    {t("planning:calendarDialogs.sessionForm.dialog.dragDropHint")}
                                   </p>
                                 </div>
                               ) : (
@@ -3308,11 +3309,11 @@ export function SessionFormDialog({
                           <div className="flex items-center justify-between">
                             <Label className="flex items-center gap-2 text-base font-medium">
                               <Dumbbell className="h-4 w-4" />
-                              Exercices de la séance
+                              {t("planning:calendarDialogs.sessionForm.dialog.sessionExercises")}
                             </Label>
                             <Button type="button" variant="outline" size="sm" onClick={addExercise}>
                               <Plus className="h-4 w-4 mr-1" />
-                              Exercice simple
+                              {t("planning:calendarDialogs.sessionForm.dialog.simpleExercise")}
                             </Button>
                           </div>
 
@@ -3322,9 +3323,9 @@ export function SessionFormDialog({
                           {exercises.length === 0 ? (
                             <div className="text-center py-8 border-2 border-dashed rounded-lg bg-muted/30">
                               <Dumbbell className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                              <p className="text-sm text-muted-foreground mb-2">Aucun exercice ajouté</p>
+                              <p className="text-sm text-muted-foreground mb-2">{t("planning:calendarDialogs.sessionForm.dialog.noExerciseAdded")}</p>
                               <p className="text-xs text-muted-foreground mb-4">
-                                Cliquez sur l'onglet Exercices pour utiliser le glisser-déposer
+                                {t("planning:calendarDialogs.sessionForm.dialog.dragDropTabHint")}
                               </p>
                             </div>
                           ) : (
@@ -3367,7 +3368,7 @@ export function SessionFormDialog({
                     <div className="flex items-center justify-between">
                       <Label className="flex items-center gap-2 text-base font-medium">
                         <Users className="h-4 w-4" />
-                        Athlètes concernés
+                        {t("planning:calendarDialogs.sessionForm.dialog.athletesConcerned")}
                       </Label>
                       <div className="flex gap-2">
                         <Button
@@ -3379,7 +3380,7 @@ export function SessionFormDialog({
                             setSelectedPlayers([]);
                           }}
                         >
-                          Tous
+                          {t("planning:calendarDialogs.sessionForm.dialog.all")}
                         </Button>
                         <Button
                           type="button"
@@ -3387,7 +3388,7 @@ export function SessionFormDialog({
                           size="sm"
                           onClick={() => setPlayerSelectionMode("specific")}
                         >
-                          Spécifiques
+                          {t("planning:calendarDialogs.sessionForm.dialog.specific")}
                         </Button>
                       </div>
                     </div>
@@ -3403,7 +3404,7 @@ export function SessionFormDialog({
                             className="text-xs"
                           >
                             <UserCheck className="h-3 w-3 mr-1" />
-                            Tous ({players?.length || 0})
+                          {t("planning:calendarDialogs.sessionForm.dialog.allCount", { count: players?.length || 0 })}
                           </Button>
                           {injuredPlayers.length > 0 && (
                             <Button
@@ -3414,7 +3415,7 @@ export function SessionFormDialog({
                               className="text-xs border-amber-300 text-amber-700 hover:bg-amber-50"
                             >
                               <AlertTriangle className="h-3 w-3 mr-1" />
-                              Blessés ({injuredPlayers.length})
+                          {t("planning:calendarDialogs.sessionForm.dialog.injuredCount", { count: injuredPlayers.length })}
                             </Button>
                           )}
                           <Button
@@ -3425,7 +3426,7 @@ export function SessionFormDialog({
                             className="text-xs border-green-300 text-green-700 hover:bg-green-50"
                           >
                             <UserCheck className="h-3 w-3 mr-1" />
-                            Aptes ({healthyPlayers.length})
+                          {t("planning:calendarDialogs.sessionForm.dialog.healthyCount", { count: healthyPlayers.length })}
                           </Button>
                           {selectedPlayers.length > 0 && (
                             <Button
@@ -3435,14 +3436,14 @@ export function SessionFormDialog({
                               onClick={clearSelection}
                               className="text-xs text-muted-foreground"
                             >
-                              Effacer
+                          {t("planning:calendarDialogs.sessionForm.dialog.clear")}
                             </Button>
                           )}
                         </div>
 
                         {selectedPlayers.length > 0 && (
                           <Badge variant="secondary" className="w-fit">
-                            {selectedPlayers.length} athlète(s) sélectionné(s)
+                            {t("planning:calendarDialogs.sessionForm.dialog.athletesSelectedCount", { count: selectedPlayers.length })}
                           </Badge>
                         )}
 
@@ -3500,7 +3501,7 @@ export function SessionFormDialog({
                       <div className="text-center py-8 border rounded-lg bg-muted/30">
                         <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
                         <p className="text-sm text-muted-foreground">
-                          Tous les {players?.length || 0} athlètes seront concernés
+                          {t("planning:calendarDialogs.sessionForm.dialog.allAthletesConcerned", { count: players?.length || 0 })}
                         </p>
                       </div>
                     )}
@@ -3516,13 +3517,13 @@ export function SessionFormDialog({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Annuler
+              {t("planning:calendarDialogs.sessionForm.dialog.cancel")}
             </Button>
             <Button 
               type="submit" 
               disabled={saveSession.isPending}
             >
-              {saveSession.isPending ? "Enregistrement..." : editSession ? "Modifier" : "Créer"}
+              {saveSession.isPending ? t("planning:calendarDialogs.sessionForm.dialog.saving") : editSession ? t("planning:calendarDialogs.sessionForm.dialog.modify") : t("planning:calendarDialogs.sessionForm.dialog.create")}
             </Button>
           </DialogFooter>
         </form>

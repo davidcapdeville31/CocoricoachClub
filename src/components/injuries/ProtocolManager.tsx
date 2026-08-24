@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,6 +44,7 @@ import { INJURY_CATEGORIES, RUGBY_INJURY_TYPES, DEFAULT_REHAB_PHASES } from "@/l
 import { ProtocolPhaseExercises, ProtocolExercise } from "./ProtocolPhaseExercises";
 import { TapingDetailEditor } from "./TapingDetailEditor";
 import { ProtocolPhaseProgramLink } from "./ProtocolPhaseProgramLink";
+import i18n from "@/i18n";
 
 interface ProtocolManagerProps {
   categoryId: string;
@@ -64,19 +66,21 @@ interface Phase {
   exercises: ProtocolExercise[];
 }
 
-const DEFAULT_PHASES: Phase[] = [
-  { phase_number: 1, name: "Réhabilitation", description: "Phase de récupération initiale et traitement", duration_days_min: 7, duration_days_max: 14, objectives: [], exit_criteria: [], care_instructions: ["Bain froid (cryothérapie)", "Électrostimulation"], taping_instructions: [], taping_diagram_url: null, linked_program_id: null, exercises: [] },
-  { phase_number: 2, name: "Retour au terrain", description: "Reprise progressive de l'activité physique", duration_days_min: 7, duration_days_max: 14, objectives: [], exit_criteria: [], care_instructions: ["Étirements passifs", "Bain chaud/froid alternés"], taping_instructions: ["Tape de soutien articulaire"], taping_diagram_url: null, linked_program_id: null, exercises: [] },
-  { phase_number: 3, name: "Retour à la compétition", description: "Réintégration aux entraînements collectifs", duration_days_min: 7, duration_days_max: 14, objectives: [], exit_criteria: [], care_instructions: ["Étirements actifs", "Automassage / foam roller"], taping_instructions: ["Tape de prévention"], taping_diagram_url: null, linked_program_id: null, exercises: [] },
-  { phase_number: 4, name: "Retour à la performance", description: "Validation complète pour la compétition", duration_days_min: 7, duration_days_max: 14, objectives: [], exit_criteria: [], care_instructions: [], taping_instructions: [], taping_diagram_url: null, linked_program_id: null, exercises: [] },
-];
+function getDefaultPhases(): Phase[] {
+  return [
+    { phase_number: 1, name: i18n.t("health:protocolManager.defaultPhases.phase1.name"), description: i18n.t("health:protocolManager.defaultPhases.phase1.description"), duration_days_min: 7, duration_days_max: 14, objectives: [], exit_criteria: [], care_instructions: i18n.t("health:protocolManager.defaultPhases.phase1.care", { returnObjects: true }) as string[], taping_instructions: [], taping_diagram_url: null, linked_program_id: null, exercises: [] },
+    { phase_number: 2, name: i18n.t("health:protocolManager.defaultPhases.phase2.name"), description: i18n.t("health:protocolManager.defaultPhases.phase2.description"), duration_days_min: 7, duration_days_max: 14, objectives: [], exit_criteria: [], care_instructions: i18n.t("health:protocolManager.defaultPhases.phase2.care", { returnObjects: true }) as string[], taping_instructions: i18n.t("health:protocolManager.defaultPhases.phase2.taping", { returnObjects: true }) as string[], taping_diagram_url: null, linked_program_id: null, exercises: [] },
+    { phase_number: 3, name: i18n.t("health:protocolManager.defaultPhases.phase3.name"), description: i18n.t("health:protocolManager.defaultPhases.phase3.description"), duration_days_min: 7, duration_days_max: 14, objectives: [], exit_criteria: [], care_instructions: i18n.t("health:protocolManager.defaultPhases.phase3.care", { returnObjects: true }) as string[], taping_instructions: i18n.t("health:protocolManager.defaultPhases.phase3.taping", { returnObjects: true }) as string[], taping_diagram_url: null, linked_program_id: null, exercises: [] },
+    { phase_number: 4, name: i18n.t("health:protocolManager.defaultPhases.phase4.name"), description: i18n.t("health:protocolManager.defaultPhases.phase4.description"), duration_days_min: 7, duration_days_max: 14, objectives: [], exit_criteria: [], care_instructions: [], taping_instructions: [], taping_diagram_url: null, linked_program_id: null, exercises: [] },
+  ];
+}
 
 /**
  * Convert DEFAULT_REHAB_PHASES for a given category into Phase[] with exercises
  */
 function getPhasesForInjuryCategory(category: string): Phase[] {
   const rehabPhases = DEFAULT_REHAB_PHASES[category as keyof typeof DEFAULT_REHAB_PHASES];
-  if (!rehabPhases) return DEFAULT_PHASES;
+  if (!rehabPhases) return getDefaultPhases();
   
   return rehabPhases.map((p: any) => ({
     phase_number: p.phase_number,
@@ -122,6 +126,7 @@ function ProtocolFormFields({
   movePhase: (index: number, direction: 'up' | 'down') => void;
   hideNameField?: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <>
       <div className="p-3 rounded-lg bg-muted/50 space-y-2">
@@ -185,7 +190,7 @@ function ProtocolFormFields({
               <Input
                 value={phase.name}
                 onChange={(e) => updatePhase(index, 'name', e.target.value)}
-                placeholder="Nom de la phase"
+                placeholder={t("health:protocolManager.phaseNamePlaceholder")}
                 className="flex-1"
               />
               <div className="flex gap-1">
@@ -203,7 +208,7 @@ function ProtocolFormFields({
             <Input
               value={phase.description}
               onChange={(e) => updatePhase(index, 'description', e.target.value)}
-              placeholder="Description de la phase"
+              placeholder={t("health:protocolManager.phaseDescriptionPlaceholder")}
               className="text-sm"
             />
             <div className="grid grid-cols-2 gap-2">
@@ -225,7 +230,7 @@ function ProtocolFormFields({
                 <Textarea
                   value={(phase.objectives || []).join('\n')}
                   onChange={(e) => updatePhase(index, 'objectives', e.target.value.split('\n').filter((o: string) => o.trim()))}
-                  placeholder="Objectifs de la phase..."
+                  placeholder={t("health:protocolManager.objectivesPlaceholder")}
                   rows={2}
                   className="text-sm"
                 />
@@ -237,7 +242,7 @@ function ProtocolFormFields({
               <Textarea
                 value={(phase.care_instructions || []).join('\n')}
                 onChange={(e) => updatePhase(index, 'care_instructions', e.target.value.split('\n').filter((c: string) => c.trim()))}
-                placeholder="Bain froid, étirements..."
+                placeholder={t("health:protocolManager.carePlaceholder")}
                 rows={2}
                 className="text-sm"
               />
@@ -268,6 +273,7 @@ function ProtocolFormFields({
 }
 
 export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
+  const { t } = useTranslation();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isEditPhasesOpen, setIsEditPhasesOpen] = useState(false);
@@ -282,7 +288,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
   const [protocolDescription, setProtocolDescription] = useState("");
   const [durationMin, setDurationMin] = useState(14);
   const [durationMax, setDurationMax] = useState(42);
-  const [phases, setPhases] = useState<Phase[]>(DEFAULT_PHASES);
+  const [phases, setPhases] = useState<Phase[]>(getDefaultPhases());
   
   const queryClient = useQueryClient();
 
@@ -372,12 +378,12 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["injury-protocols-manager", categoryId] });
-      toast.success("Protocole créé avec succès");
+      toast.success(t("health:protocolManager.toastCreateSuccess"));
       resetForm();
       setIsAddDialogOpen(false);
     },
     onError: () => {
-      toast.error("Erreur lors de la création du protocole");
+      toast.error(t("health:protocolManager.toastCreateError"));
     },
   });
 
@@ -399,11 +405,11 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["injury-protocols-manager", categoryId] });
-      toast.success("Protocole mis à jour");
+      toast.success(t("health:protocolManager.toastUpdateSuccess"));
       setIsEditDialogOpen(false);
     },
     onError: () => {
-      toast.error("Erreur lors de la mise à jour");
+      toast.error(t("health:protocolManager.toastUpdateError"));
     },
   });
 
@@ -464,11 +470,11 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["injury-protocols-manager", categoryId] });
-      toast.success("Phases mises à jour");
+      toast.success(t("health:protocolManager.toastPhasesUpdateSuccess"));
       setIsEditPhasesOpen(false);
     },
     onError: () => {
-      toast.error("Erreur lors de la mise à jour des phases");
+      toast.error(t("health:protocolManager.toastPhasesUpdateError"));
     },
   });
 
@@ -484,10 +490,10 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["injury-protocols-manager", categoryId] });
-      toast.success("Protocole supprimé");
+      toast.success(t("health:protocolManager.toastDeleteSuccess"));
     },
     onError: () => {
-      toast.error("Erreur lors de la suppression");
+      toast.error(t("health:protocolManager.toastDeleteError"));
     },
   });
 
@@ -498,7 +504,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
       const { data: newProtocol, error: protocolError } = await supabase
         .from("injury_protocols")
         .insert({
-          name: `${protocol.name} (copie)`,
+          name: `${protocol.name}${t("health:protocolManager.duplicateSuffix")}`,
           injury_category: protocol.injury_category,
           description: protocol.description,
           typical_duration_days_min: protocol.typical_duration_days_min,
@@ -563,10 +569,10 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["injury-protocols-manager", categoryId] });
-      toast.success("Protocole dupliqué");
+      toast.success(t("health:protocolManager.toastDuplicateSuccess"));
     },
     onError: () => {
-      toast.error("Erreur lors de la duplication");
+      toast.error(t("health:protocolManager.toastDuplicateError"));
     },
   });
 
@@ -577,7 +583,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
     setProtocolDescription("");
     setDurationMin(14);
     setDurationMax(42);
-    setPhases(DEFAULT_PHASES);
+    setPhases(getDefaultPhases());
     setSelectedProtocol(null);
   };
 
@@ -585,7 +591,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
     setSelectedInjuryType(injuryName);
     const injury = RUGBY_INJURY_TYPES.find(i => i.name === injuryName);
     if (injury) {
-      setProtocolName(`Protocole - ${injury.name}`);
+      setProtocolName(`${t("health:protocolManager.protocolNamePlaceholder")} - ${injury.name}`);
       setProtocolCategory(injury.category);
       setProtocolDescription(injury.description);
       setDurationMin(injury.durationMin);
@@ -647,7 +653,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
       }
       setPhases(phasesWithExercises);
     } else {
-      setPhases(DEFAULT_PHASES);
+      setPhases(getDefaultPhases());
     }
     setIsEditPhasesOpen(true);
   };
@@ -656,7 +662,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
     const newPhaseNumber = phases.length + 1;
     setPhases([...phases, {
       phase_number: newPhaseNumber,
-      name: `Phase ${newPhaseNumber}`,
+      name: t("health:protocolManager.defaultPhaseName", { number: newPhaseNumber }),
       description: "",
       duration_days_min: 7,
       duration_days_max: 14,
@@ -709,26 +715,26 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold">Gestion des protocoles</h2>
+          <h2 className="text-xl font-semibold">{t("health:protocolManager.title")}</h2>
           <p className="text-sm text-muted-foreground">
-            Personnalisez les étapes de réathlétisation pour chaque type de blessure
+            {t("health:protocolManager.subtitle")}
           </p>
         </div>
         <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
           <Plus className="h-4 w-4" />
-          Nouveau protocole
+          {t("health:protocolManager.newProtocol")}
         </Button>
       </div>
 
       {/* Filter */}
       <div className="flex items-center gap-4">
-        <Label>Filtrer par catégorie:</Label>
+        <Label>{t("health:protocolManager.filterByCategory")}</Label>
         <Select value={filterCategory} onValueChange={setFilterCategory}>
           <SelectTrigger className="w-48">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Toutes les catégories</SelectItem>
+            <SelectItem value="all">{t("health:protocolManager.allCategories")}</SelectItem>
             {INJURY_CATEGORIES.map(cat => (
               <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
             ))}
@@ -748,7 +754,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                     <CardTitle className="text-lg flex items-center gap-2">
                       {protocol.name}
                       {protocol.is_system_default && (
-                        <Badge variant="outline" className="text-xs">Système</Badge>
+                        <Badge variant="outline" className="text-xs">{t("health:protocolManager.systemBadge")}</Badge>
                       )}
                     </CardTitle>
                     <p className="text-sm text-muted-foreground">{protocol.description}</p>
@@ -775,7 +781,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                     </Badge>
                   ))}
                   {(!protocol.protocol_phases || protocol.protocol_phases.length === 0) && (
-                    <span className="text-sm text-muted-foreground italic">Aucune phase définie</span>
+                    <span className="text-sm text-muted-foreground italic">{t("health:protocolManager.noPhasesDefined")}</span>
                   )}
                 </div>
                 <div className="flex gap-1">
@@ -783,7 +789,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                     variant="ghost"
                     size="sm"
                     onClick={() => duplicateProtocol.mutate(protocol)}
-                    title="Dupliquer"
+                    title={t("health:protocolManager.duplicate")}
                   >
                     <Copy className="h-4 w-4" />
                   </Button>
@@ -793,7 +799,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleEditPhases(protocol)}
-                        title="Modifier les phases"
+                        title={t("health:protocolManager.editPhases")}
                       >
                         <Settings2 className="h-4 w-4" />
                       </Button>
@@ -801,7 +807,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleEdit(protocol)}
-                        title="Modifier"
+                        title={t("health:protocolManager.edit")}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -809,11 +815,11 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          if (confirm("Supprimer ce protocole ?")) {
+                          if (confirm(t("health:protocolManager.deleteConfirm"))) {
                             deleteProtocol.mutate(protocol.id);
                           }
                         }}
-                        title="Supprimer"
+                        title={t("health:protocolManager.delete")}
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
@@ -829,14 +835,14 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
           <Card className="border-dashed">
             <CardContent className="p-8 text-center">
               <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">Aucun protocole trouvé</p>
+              <p className="text-muted-foreground">{t("health:protocolManager.noProtocolsFound")}</p>
               <Button 
                 variant="outline" 
                 className="mt-4"
                 onClick={() => setIsAddDialogOpen(true)}
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Créer un protocole
+                {t("health:protocolManager.createProtocol")}
               </Button>
             </CardContent>
           </Card>
@@ -847,7 +853,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
       <Dialog open={isAddDialogOpen} onOpenChange={(open) => { if (!open) resetForm(); setIsAddDialogOpen(open); }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Nouveau protocole de réhabilitation</DialogTitle>
+            <DialogTitle>{t("health:protocolManager.newProtocolDialogTitle")}</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-4">
@@ -858,7 +864,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                 size="sm"
                 onClick={() => { setCreationMode("predefined"); resetForm(); }}
               >
-                Blessure prédéfinie
+                {t("health:protocolManager.predefinedInjury")}
               </Button>
               <Button
                 variant={creationMode === "custom" ? "default" : "outline"}
@@ -866,20 +872,20 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                 onClick={() => {
                   setCreationMode("custom");
                   resetForm();
-                  setPhases(DEFAULT_PHASES);
+                  setPhases(getDefaultPhases());
                 }}
               >
-                Protocole personnalisé
+                {t("health:protocolManager.customProtocol")}
               </Button>
             </div>
 
             {creationMode === "predefined" && (
               <>
                 <div className="space-y-2">
-                  <Label className="text-base font-semibold">1. Sélectionnez la blessure</Label>
+                  <Label className="text-base font-semibold">{t("health:protocolManager.selectInjuryStep")}</Label>
                   <Select value={selectedInjuryType} onValueChange={handleInjuryTypeSelect}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Choisir le type de blessure..." />
+                      <SelectValue placeholder={t("health:protocolManager.chooseInjuryTypePlaceholder")} />
                     </SelectTrigger>
                     <SelectContent>
                       {INJURY_CATEGORIES.map(cat => (
@@ -924,22 +930,22 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
               <>
                 <div className="space-y-3">
                   <div className="space-y-2">
-                    <Label>Nom du protocole *</Label>
+                    <Label>{t("health:protocolManager.protocolNameRequired")}</Label>
                     <Input
                       value={protocolName}
                       onChange={(e) => setProtocolName(e.target.value)}
-                      placeholder="Ex: Protocole entorse cheville grade 2"
+                      placeholder={t("health:protocolManager.protocolNamePlaceholder")}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Type de blessure *</Label>
+                    <Label>{t("health:protocolManager.injuryTypeRequired")}</Label>
                     <Select value={protocolCategory} onValueChange={(val) => {
                       setProtocolCategory(val);
                       setPhases(getPhasesForInjuryCategory(val));
                     }}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Choisir le type..." />
+                        <SelectValue placeholder={t("health:protocolManager.chooseTypePlaceholder")} />
                       </SelectTrigger>
                       <SelectContent>
                         {INJURY_CATEGORIES.map(cat => (
@@ -950,11 +956,11 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Description</Label>
+                    <Label>{t("health:protocolManager.description")}</Label>
                     <Textarea
                       value={protocolDescription}
                       onChange={(e) => setProtocolDescription(e.target.value)}
-                      placeholder="Description de la blessure et du protocole..."
+                      placeholder={t("health:protocolManager.descriptionPlaceholder")}
                       rows={2}
                     />
                   </div>
@@ -986,7 +992,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-              Annuler
+              {t("health:protocolManager.cancel")}
             </Button>
             <Button 
               onClick={() => createProtocol.mutate()}
@@ -995,7 +1001,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                 (creationMode === "predefined" && !selectedInjuryType)
               }
             >
-              Créer le protocole
+              {t("health:protocolManager.createProtocolButton")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1005,19 +1011,19 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Modifier le protocole</DialogTitle>
+            <DialogTitle>{t("health:protocolManager.editProtocolTitle")}</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Nom du protocole *</Label>
+              <Label>{t("health:protocolManager.protocolNameField")}</Label>
               <Input
                 value={protocolName}
                 onChange={(e) => setProtocolName(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label>Catégorie *</Label>
+              <Label>{t("health:protocolManager.categoryRequired")}</Label>
               <Select value={protocolCategory} onValueChange={setProtocolCategory}>
                 <SelectTrigger>
                   <SelectValue />
@@ -1030,7 +1036,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Description</Label>
+              <Label>{t("health:protocolManager.description")}</Label>
               <Textarea
                 value={protocolDescription}
                 onChange={(e) => setProtocolDescription(e.target.value)}
@@ -1039,7 +1045,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Durée min (jours)</Label>
+                <Label>{t("health:protocolManager.durationMin")}</Label>
                 <Input
                   type="number"
                   value={durationMin}
@@ -1047,7 +1053,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Durée max (jours)</Label>
+                <Label>{t("health:protocolManager.durationMax")}</Label>
                 <Input
                   type="number"
                   value={durationMax}
@@ -1059,13 +1065,13 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Annuler
+              {t("health:protocolManager.cancel")}
             </Button>
             <Button 
               onClick={() => updateProtocol.mutate()}
               disabled={!protocolName || !protocolCategory || updateProtocol.isPending}
             >
-              Enregistrer
+              {t("health:protocolManager.save")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1075,14 +1081,14 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
       <Dialog open={isEditPhasesOpen} onOpenChange={setIsEditPhasesOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Modifier les phases - {selectedProtocol?.name}</DialogTitle>
+            <DialogTitle>{t("health:protocolManager.editPhasesTitle", { name: selectedProtocol?.name })}</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-3">
             <div className="flex justify-end">
               <Button variant="outline" size="sm" onClick={addPhase}>
                 <Plus className="h-4 w-4 mr-1" />
-                Ajouter une phase
+                {t("health:protocolManager.addPhaseButton")}
               </Button>
             </div>
 
@@ -1093,7 +1099,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                   <Input
                     value={phase.name}
                     onChange={(e) => updatePhase(index, 'name', e.target.value)}
-                    placeholder="Nom de la phase"
+                    placeholder={t("health:protocolManager.phaseNamePlaceholder")}
                     className="flex-1 font-medium"
                   />
                   <div className="flex gap-1">
@@ -1127,13 +1133,13 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                 <Textarea
                   value={phase.description}
                   onChange={(e) => updatePhase(index, 'description', e.target.value)}
-                  placeholder="Description de la phase..."
+                  placeholder={t("health:protocolManager.phaseDescriptionPlaceholder")}
                   rows={2}
                 />
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <Label className="text-xs">Durée minimale</Label>
+                    <Label className="text-xs">{t("health:protocolManager.totalDurationMin")}</Label>
                     <div className="flex items-center gap-2">
                       <Input
                         type="number"
@@ -1144,7 +1150,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs">Durée maximale</Label>
+                    <Label className="text-xs">{t("health:protocolManager.totalDurationMax")}</Label>
                     <div className="flex items-center gap-2">
                       <Input
                         type="number"
@@ -1157,31 +1163,31 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                 </div>
 
                 <div className="space-y-1">
-                  <Label className="text-xs">Objectifs (un par ligne)</Label>
+                  <Label className="text-xs">{t("health:protocolManager.objectivesLabel")} (une par ligne)</Label>
                   <Textarea
                     value={(phase.objectives || []).join('\n')}
                     onChange={(e) => updatePhase(index, 'objectives', e.target.value.split('\n').filter(o => o.trim()))}
-                    placeholder="Ex: Réduire l'inflammation&#10;Contrôler la douleur"
+                    placeholder={t("health:protocolManager.objectivesLinesPlaceholder")}
                     rows={3}
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <Label className="text-xs">Critères de passage (un par ligne)</Label>
+                  <Label className="text-xs">{t("health:protocolManager.exitCriteriaLabel")}</Label>
                   <Textarea
                     value={(phase.exit_criteria || []).join('\n')}
                     onChange={(e) => updatePhase(index, 'exit_criteria', e.target.value.split('\n').filter(c => c.trim()))}
-                    placeholder="Ex: Douleur < 3/10 au repos&#10;Mobilité passive indolore"
+                    placeholder={t("health:protocolManager.exitCriteriaPlaceholder")}
                     rows={3}
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <Label className="text-xs">🩹 Soins (un par ligne)</Label>
+                  <Label className="text-xs">{t("health:protocolManager.careLabel")} (un par ligne)</Label>
                   <Textarea
                     value={(phase.care_instructions || []).join('\n')}
                     onChange={(e) => updatePhase(index, 'care_instructions', e.target.value.split('\n').filter(c => c.trim()))}
-                    placeholder="Ex: Bain froid (cryothérapie)&#10;Étirements passifs&#10;Électrostimulation"
+                    placeholder={t("health:protocolManager.carePlaceholderMulti")}
                     rows={3}
                   />
                 </div>
@@ -1212,13 +1218,13 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditPhasesOpen(false)}>
-              Annuler
+              {t("health:protocolManager.cancel")}
             </Button>
             <Button 
               onClick={() => updatePhases.mutate()}
               disabled={updatePhases.isPending}
             >
-              Enregistrer les phases
+              {t("health:protocolManager.savePhases")}
             </Button>
           </DialogFooter>
         </DialogContent>

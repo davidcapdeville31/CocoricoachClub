@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { getDisplayNotes } from "@/lib/utils/sessionNotes";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,6 +42,7 @@ const trainingTypeLabels: Record<string, string> = {
 };
 
 export function SessionsTab({ categoryId }: SessionsTabProps) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { notify } = useSessionNotifications();
   const queryClient = useQueryClient();
@@ -72,7 +74,7 @@ export function SessionsTab({ categoryId }: SessionsTabProps) {
 
     const printWindow = window.open("", "_blank");
     if (!printWindow) {
-      toast.error("Impossible d'ouvrir la fenêtre d'impression");
+      toast.error(t("planning:calendarDialogs.sessionForm.cannotOpenPrintWindow"));
       return;
     }
 
@@ -97,7 +99,7 @@ export function SessionsTab({ categoryId }: SessionsTabProps) {
         </style>
       </head>
       <body>
-        <h1>Séance d'entraînement</h1>
+        <h1>${t("planning:calendarDialogs.sessionForm.trainingSession")}</h1>
         <div class="meta">
           <span class="badge">${trainingType}</span>
           ${session.intensity ? `<span class="badge">Intensité ${session.intensity}/10</span>` : ""}
@@ -135,7 +137,7 @@ export function SessionsTab({ categoryId }: SessionsTabProps) {
               `).join("")}
             </tbody>
           </table>
-        ` : "<p>Aucun exercice détaillé pour cette séance.</p>"}
+        ` : `<p>${t("planning:calendarDialogs.sessionForm.noDetailedExercise")}</p>`}
       </body>
       </html>
     `);
@@ -219,7 +221,7 @@ export function SessionsTab({ categoryId }: SessionsTabProps) {
       queryClient.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["today_session_exercises"] });
-      toast.success("Séance supprimée");
+      toast.success(t("planning:calendarDialogs.sessionForm.sessionDeleted"));
 
       // 🔔 Notify convoked athletes of the cancellation
       if (sessionToDeleteMeta && participantIds.length > 0) {
@@ -239,7 +241,7 @@ export function SessionsTab({ categoryId }: SessionsTabProps) {
     },
 
     onError: () => {
-      toast.error("Erreur lors de la suppression");
+      toast.error(t("planning:calendarDialogs.sessionForm.deleteError"));
     },
   });
 
@@ -274,7 +276,7 @@ export function SessionsTab({ categoryId }: SessionsTabProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-center">
-        <h2 className="text-lg font-semibold sr-only">Séances d'entraînement</h2>
+        <h2 className="text-lg font-semibold sr-only">{t("planning:calendarDialogs.sessionForm.trainingSessions")}</h2>
       </div>
       {!isViewer && (
         <div className="flex items-center justify-center py-2">
@@ -282,22 +284,22 @@ export function SessionsTab({ categoryId }: SessionsTabProps) {
             onClick={() => setV2EditorOpen(true)}
             size="lg"
             className="gap-2 px-8 py-6 text-base font-semibold shadow-lg hover:shadow-xl transition-all rounded-2xl"
-            title="Ajouter une séance — méthodes d'intensification avancées"
+            title={t("planning:calendarDialogs.sessionForm.addSessionAdvanced")}
           >
             <Sparkles className="h-5 w-5" />
-            Ajouter une séance
+            {t("planning:calendarDialogs.sessionForm.addSession")}
           </Button>
         </div>
       )}
 
       {isLoading ? (
-        <div className="text-sm text-muted-foreground">Chargement...</div>
+        <div className="text-sm text-muted-foreground">{t("planning:calendarTab.loading")}</div>
       ) : sessions?.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
             <Dumbbell className="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p>Aucune séance créée</p>
-            <p className="text-sm mt-1">Cliquez sur "Ajouter une séance" pour commencer</p>
+            <p>{t("planning:calendarDialogs.sessionForm.noSessionCreated")}</p>
+            <p className="text-sm mt-1">{t("planning:calendarDialogs.sessionForm.clickAddSessionHint")}</p>
           </CardContent>
         </Card>
       ) : (
@@ -348,7 +350,7 @@ export function SessionsTab({ categoryId }: SessionsTabProps) {
                       variant="ghost"
                       size="icon"
                       onClick={() => handlePrintSession(session)}
-                      title="Imprimer"
+                      title={t("planning:calendarDialogs.sessionForm.printAction")}
                     >
                       <Printer className="h-4 w-4" />
                     </Button>
@@ -390,19 +392,18 @@ export function SessionsTab({ categoryId }: SessionsTabProps) {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer cette séance ?</AlertDialogTitle>
+            <AlertDialogTitle>{t("planning:calendarDialogs.sessionForm.deleteSessionTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Cette action est irréversible. Les exercices, présences et données AWCR associés seront
-              également supprimés.
+              {t("planning:calendarDialogs.sessionForm.deleteSessionDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogCancel>{t("planning:calendarDialogs.sessionForm.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => sessionToDelete && deleteSession.mutate(sessionToDelete)}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Supprimer
+              {t("planning:calendarDialogs.sessionForm.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
