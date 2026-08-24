@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, Minus, Activity, AlertTriangle, Target, Zap } from "lucide-react";
 import { LoadSummary, getRiskColor } from "@/lib/trainingLoadCalculations";
 import { InfoHint } from "./InfoHint";
+import { Trans, useTranslation } from "react-i18next";
 
 interface TrainingLoadKPIsProps {
   summary: LoadSummary | null;
@@ -11,6 +12,7 @@ interface TrainingLoadKPIsProps {
 }
 
 export function TrainingLoadKPIs({ summary, isLoading, loadModel = "ewma" }: TrainingLoadKPIsProps) {
+  const { t } = useTranslation();
   if (isLoading) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -34,7 +36,7 @@ export function TrainingLoadKPIs({ summary, isLoading, loadModel = "ewma" }: Tra
         <Card className="bg-gradient-card col-span-full">
           <CardContent className="p-6 text-center text-muted-foreground">
             <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p>Aucune donnée de charge disponible</p>
+            <p>{t("workload.kpis.noData")}</p>
           </CardContent>
         </Card>
       </div>
@@ -53,19 +55,19 @@ export function TrainingLoadKPIs({ summary, isLoading, loadModel = "ewma" }: Tra
       <Card className="bg-gradient-card shadow-md">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium flex items-center gap-1.5">
-            <span>Charge du jour</span>
+            <span>{t("workload.kpis.currentLoad.label")}</span>
             <InfoHint
-              title="Charge du jour"
-              what="La quantité d'effort de la dernière séance enregistrée."
-              how="Durée de la séance (en min) × RPE ressenti (1 à 10)."
-              why="Pour voir si la séance a été légère, normale ou très lourde par rapport à l'habitude de l'athlète."
+              title={t("workload.kpis.currentLoad.hint.title")}
+              what={t("workload.kpis.currentLoad.hint.what")}
+              how={t("workload.kpis.currentLoad.hint.how")}
+              why={t("workload.kpis.currentLoad.hint.why")}
             />
           </CardTitle>
           <Zap className="h-4 w-4 text-primary" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{Math.round(summary.currentLoad)}</div>
-          <p className="text-xs text-muted-foreground">UA (unités arbitraires)</p>
+          <p className="text-xs text-muted-foreground">{t("workload.kpis.currentLoad.unit")}</p>
         </CardContent>
       </Card>
 
@@ -73,14 +75,14 @@ export function TrainingLoadKPIs({ summary, isLoading, loadModel = "ewma" }: Tra
       <Card className="bg-gradient-card shadow-md">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium flex items-center gap-1.5">
-            <span>{loadModel === "ewma" ? "Charge récente" : "Charge récente (7j)"}</span>
+            <span>{loadModel === "ewma" ? t("workload.kpis.acute.labelEwma") : t("workload.kpis.acute.labelAwcr")}</span>
             <InfoHint
-              title="Charge récente (7 derniers jours)"
-              what="Ce que l'athlète a encaissé cette semaine."
+              title={t("workload.kpis.acute.hint.title")}
+              what={t("workload.kpis.acute.hint.what")}
               how={loadModel === "ewma"
-                ? "Moyenne des 7 derniers jours, avec plus de poids sur les séances les plus récentes (EWMA)."
-                : "Moyenne simple de la charge des 7 derniers jours (méthode Gabbett)."}
-              why="Si elle monte brutalement, l'athlète est en surcharge potentielle. Si elle chute, il se désentraîne."
+                ? t("workload.kpis.acute.hint.howEwma")
+                : t("workload.kpis.acute.hint.howAwcr")}
+              why={t("workload.kpis.acute.hint.why")}
             />
           </CardTitle>
           <Activity className="h-4 w-4 text-muted-foreground" />
@@ -90,11 +92,11 @@ export function TrainingLoadKPIs({ summary, isLoading, loadModel = "ewma" }: Tra
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <TrendIcon className={`h-3 w-3 ${trendColor}`} />
             <span className={trendColor}>
-              {summary.weeklyChange >= 0 ? "+" : ""}{summary.weeklyChange}% vs sem. préc.
+              {t("workload.kpis.acute.weeklyChange", { value: `${summary.weeklyChange >= 0 ? "+" : ""}${summary.weeklyChange}` })}
             </span>
           </div>
           <p className="text-[10px] text-muted-foreground/70 mt-2 leading-relaxed border-t border-border/30 pt-1.5">
-            Alimentée par le RPE et la durée des séances saisis dans <span className="font-semibold">Programmation</span>.
+            <Trans i18nKey="workload.kpis.acute.footer" t={t} components={[<span className="font-semibold" key="0" />]} />
           </p>
         </CardContent>
       </Card>
@@ -103,23 +105,23 @@ export function TrainingLoadKPIs({ summary, isLoading, loadModel = "ewma" }: Tra
       <Card className="bg-gradient-card shadow-md">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium flex items-center gap-1.5">
-            <span>{loadModel === "ewma" ? "Charge habituelle" : "Charge habituelle (28j)"}</span>
+            <span>{loadModel === "ewma" ? t("workload.kpis.chronic.labelEwma") : t("workload.kpis.chronic.labelAwcr")}</span>
             <InfoHint
-              title="Charge habituelle (28 derniers jours)"
-              what="La capacité de travail de base de l'athlète — son niveau de référence."
+              title={t("workload.kpis.chronic.hint.title")}
+              what={t("workload.kpis.chronic.hint.what")}
               how={loadModel === "ewma"
-                ? "Moyenne pondérée des 28 derniers jours (EWMA)."
-                : "Moyenne simple des charges sur 28 jours."}
-              why="C'est le 'point d'équilibre' contre lequel on compare la semaine en cours. Elle évolue lentement."
+                ? t("workload.kpis.chronic.hint.howEwma")
+                : t("workload.kpis.chronic.hint.howAwcr")}
+              why={t("workload.kpis.chronic.hint.why")}
             />
           </CardTitle>
           <Target className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{summary.ewmaChronic.toFixed(1)}</div>
-          <p className="text-xs text-muted-foreground">Capacité de base (28j)</p>
+          <p className="text-xs text-muted-foreground">{t("workload.kpis.chronic.unit")}</p>
           <p className="text-[10px] text-muted-foreground/70 mt-2 leading-relaxed border-t border-border/30 pt-1.5">
-            Se met à jour automatiquement à chaque séance enregistrée.
+            {t("workload.kpis.chronic.footer")}
           </p>
         </CardContent>
       </Card>
@@ -128,12 +130,12 @@ export function TrainingLoadKPIs({ summary, isLoading, loadModel = "ewma" }: Tra
       <Card className="bg-gradient-card shadow-md">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium flex items-center gap-1.5">
-            <span>Ratio charge récente / habituelle</span>
+            <span>{t("workload.kpis.ratio.label")}</span>
             <InfoHint
-              title={loadModel === "ewma" ? "Ratio EWMA (aiguë / chronique)" : "Ratio AWCR (aiguë / chronique)"}
-              what="Compare ce que l'athlète fait cette semaine à ce qu'il fait d'habitude."
-              how="Charge récente (7j) ÷ Charge habituelle (28j)."
-              why="🟢 0,85–1,30 = zone optimale. 🟡 0,8–0,85 ou 1,30–1,50 = à surveiller. 🔴 <0,8 = désentraînement, >1,5 = risque de blessure élevé."
+              title={loadModel === "ewma" ? t("workload.kpis.ratio.hint.titleEwma") : t("workload.kpis.ratio.hint.titleAwcr")}
+              what={t("workload.kpis.ratio.hint.what")}
+              how={t("workload.kpis.ratio.hint.how")}
+              why={t("workload.kpis.ratio.hint.why")}
             />
           </CardTitle>
           {summary.riskLevel !== "optimal" ? (
@@ -154,11 +156,11 @@ export function TrainingLoadKPIs({ summary, isLoading, loadModel = "ewma" }: Tra
               "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
             }`}
           >
-            {summary.riskLevel === "optimal" ? "Zone optimale" : 
-             summary.riskLevel === "warning" ? "Vigilance" : "Zone danger"}
+            {summary.riskLevel === "optimal" ? t("workload.kpis.ratio.optimal") : 
+             summary.riskLevel === "warning" ? t("workload.kpis.ratio.warning") : t("workload.kpis.ratio.danger")}
           </Badge>
           <p className="text-[10px] text-muted-foreground/70 mt-2 leading-relaxed border-t border-border/30 pt-1.5">
-            En zone danger : alléger la prochaine séance. En sous-charge : réintroduire progressivement de l'intensité.
+            {t("workload.kpis.ratio.footer")}
           </p>
         </CardContent>
       </Card>

@@ -58,6 +58,7 @@ import { SessionDetailDialog } from "@/components/athlete-space/SessionDetailDia
 import { SessionAttendanceResponse } from "@/components/athlete-space/SessionAttendanceResponse";
 import { MatchAttendanceResponse } from "@/components/athlete-space/MatchAttendanceResponse";
 import { Eye } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 
 interface Props {
@@ -74,6 +75,7 @@ const TEST_COLOR = "#06b6d4"; // Test (cyan)
 const MATCH_COLOR = "#ef4444"; // Match/Compétition (rouge)
 
 export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props) {
+  const { t } = useTranslation();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isBowlingTrainingOpen, setIsBowlingTrainingOpen] = useState(false);
@@ -104,12 +106,12 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         body: { session_id: sessionToDelete.id, player_id: playerId },
       });
       if (error) throw error;
-      if (!data?.success) throw new Error(data?.error || "Échec de la suppression");
-      toast.success(data?.unassigned ? "Vous avez été retiré de la séance" : "Séance supprimée");
+      if (!data?.success) throw new Error(data?.error || t("athleteSpace:calendar.deleteFailed"));
+      toast.success(data?.unassigned ? t("athleteSpace:calendar.sessionRemoved") : t("athleteSpace:calendar.sessionDeleted"));
       setSessionToDelete(null);
       queryClient.invalidateQueries({ queryKey: ["athlete-calendar-sessions", categoryId, playerId] });
     } catch (e: any) {
-      toast.error(e?.message || "Erreur lors de la suppression");
+      toast.error(e?.message || t("athleteSpace:calendar.deleteError"));
     } finally {
       setIsDeleting(false);
     }
@@ -123,12 +125,12 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         body: { match_id: matchToDelete.id, player_id: playerId },
       });
       if (error) throw error;
-      if (!data?.success) throw new Error(data?.error || "Échec de la suppression");
-      toast.success("Compétition supprimée");
+      if (!data?.success) throw new Error(data?.error || t("athleteSpace:calendar.deleteFailed"));
+      toast.success(t("athleteSpace:calendar.matchDeleted"));
       setMatchToDelete(null);
       queryClient.invalidateQueries({ queryKey: ["athlete-calendar-matches", categoryId, playerId] });
     } catch (e: any) {
-      toast.error(e?.message || "Erreur lors de la suppression");
+      toast.error(e?.message || t("athleteSpace:calendar.deleteError"));
     } finally {
       setIsDeleting(false);
     }
@@ -452,7 +454,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
           <div className="flex items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <Activity className="h-4 w-4" style={{ color: NAV_COLORS.planification.base }} />
-              Mon calendrier
+              {t("athleteSpace:calendar.title")}
             </CardTitle>
             <div className="flex flex-wrap gap-2">
               <Button
@@ -462,7 +464,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                 style={{ backgroundColor: ATHLETE_SESSION_COLOR }}
               >
                 <Plus className="h-3.5 w-3.5" />
-                Ajouter une séance
+                {t("athleteSpace:calendar.addSession")}
               </Button>
             </div>
 
@@ -479,7 +481,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
             return (
               <div className="mb-4 rounded-lg border border-border/60 bg-muted/20 p-3">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-                  Prochaines séances — confirme ta présence
+                  {t("athleteSpace:calendar.upcomingConfirm")}
                 </p>
                 <div className="space-y-2">
                   {upcoming.map((s: any) => (
@@ -543,32 +545,32 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
               <div className="flex flex-wrap gap-2 text-xs p-2 rounded-lg bg-muted/40">
                 <div className="flex items-center gap-1.5">
                   <div className="w-3 h-3 rounded" style={{ backgroundColor: `${TRAINING_COLOR}40`, border: `1px solid ${TRAINING_COLOR}` }} />
-                  <span>Entraînement</span>
+                  <span>{t("athleteSpace:calendar.legend.training")}</span>
                 </div>
                 {!isBowling && (
                   <div className="flex items-center gap-1.5">
                     <div className="w-3 h-3 rounded" style={{ backgroundColor: `${TEST_COLOR}40`, border: `1px dashed ${TEST_COLOR}` }} />
-                    <span>Test</span>
+                    <span>{t("athleteSpace:calendar.legend.test")}</span>
                   </div>
                 )}
                 <div className="flex items-center gap-1.5">
                   <div className="w-3 h-3 rounded" style={{ backgroundColor: `${MATCH_COLOR}40`, border: `1px solid ${MATCH_COLOR}` }} />
-                  <span>Match / Compétition</span>
+                  <span>{t("athleteSpace:calendar.legend.match")}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="w-3 h-3 rounded" style={{ border: `2px solid ${ATHLETE_SESSION_COLOR}` }} />
-                  <span>Mes séances</span>
+                  <span>{t("athleteSpace:calendar.legend.mySessions")}</span>
                 </div>
                 {!isBowling && (
                   <div className="flex items-center gap-1.5">
                     <div className="w-1 h-3 rounded-full" style={{ backgroundColor: REHAB_COLOR }} />
-                    <span>Réhab</span>
+                    <span>{t("athleteSpace:calendar.legend.rehab")}</span>
                   </div>
                 )}
                 {!isBowling && (
                   <div className="flex items-center gap-1.5">
                     <div className="w-3 h-1 rounded-full" style={{ backgroundColor: PROPHYLAXIS_COLOR }} />
-                    <span>Prophylaxie</span>
+                    <span>{t("athleteSpace:calendar.legend.prophylaxis")}</span>
                   </div>
                 )}
               </div>
@@ -581,7 +583,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
 
                   {!hasDayEvents ? (
                     <div className="text-center py-6">
-                      <p className="text-sm text-muted-foreground">Aucun événement</p>
+                      <p className="text-sm text-muted-foreground">{t("athleteSpace:calendar.noEvent")}</p>
                     </div>
 
                   ) : (
@@ -591,9 +593,9 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                         const isPersonalMine = match.is_personal && match.created_by_player_id === playerId;
                         const title = match.competition
                           ? match.competition
-                          : match.opponent && match.opponent !== "Compétition"
+                          : match.opponent && match.opponent !== t("athleteSpace:calendar.competitionFallback")
                             ? `vs ${match.opponent}`
-                            : "Compétition";
+                            : t("athleteSpace:calendar.competitionFallback");
                         const hasScore = match.score_home != null || match.score_away != null;
                         return (
                           <div key={match.id} className="p-3 rounded-lg border-l-4 border-rose-500 bg-rose-50 dark:bg-rose-950/20">
@@ -603,13 +605,13 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                 <div className="flex items-center gap-2 flex-wrap">
                                   <p className="font-medium text-sm">{title}</p>
                                   <Badge variant="outline" className={cn("text-[10px] h-4 px-1.5", isPersonalMine ? "border-cyan-500 text-cyan-600" : "border-rose-500 text-rose-600")}>
-                                    {isPersonalMine ? "Personnelle" : "Club"}
+                                    {isPersonalMine ? t("athleteSpace:calendar.personal") : t("athleteSpace:calendar.club")}
                                   </Badge>
                                   {match.competition_stage && (
                                     <Badge variant="outline" className="text-[10px] h-4 px-1.5">{match.competition_stage}</Badge>
                                   )}
                                 </div>
-                                {match.competition && match.opponent && match.opponent !== "Compétition" && (
+                                {match.competition && match.opponent && match.opponent !== t("athleteSpace:calendar.competitionFallback") && (
                                   <p className="text-xs text-muted-foreground">vs {match.opponent}</p>
                                 )}
                                 {match.match_time && (
@@ -619,7 +621,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                 )}
                                 {match.location && <p className="text-xs text-muted-foreground">{match.location}</p>}
                                 {hasScore && (
-                                  <p className="text-xs text-muted-foreground">Score : {match.score_home ?? "-"} - {match.score_away ?? "-"}</p>
+                                  <p className="text-xs text-muted-foreground">{t("athleteSpace:calendar.scoreLabel")}{match.score_home ?? "-"} - {match.score_away ?? "-"}</p>
                                 )}
                                 {match.notes && (
                                   <p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">{match.notes}</p>
@@ -632,7 +634,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                     onClick={(e) => { e.stopPropagation(); setBowlingMatchEntry(match); }}
                                   >
                                     <Plus className="h-3.5 w-3.5" />
-                                    Saisir les données
+                                    {t("athleteSpace:calendar.enterData")}
                                   </Button>
                                 )}
                               </div>
@@ -642,7 +644,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                   size="icon"
                                   className="h-7 w-7 text-rose-600 hover:text-rose-700 hover:bg-rose-100 dark:hover:bg-rose-900/30 shrink-0"
                                   onClick={(e) => { e.stopPropagation(); setMatchToDelete(match); }}
-                                  aria-label="Supprimer la compétition"
+                                  aria-label={t("athleteSpace:calendar.deleteCompetitionAria")}
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -690,17 +692,17 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                           }
                                           const reminderId = (session as any).test_reminder_id;
                                           if (reminderId && testTypeByReminderId[reminderId]) {
-                                            return `Test : ${labelizeTestType(testTypeByReminderId[reminderId], customTestMap)}`;
+                                            return t("athleteSpace:calendar.testLabel", { label: labelizeTestType(testTypeByReminderId[reminderId], customTestMap) });
                                           }
                                           // Fallback: parse <!--TESTS:[...]--> metadata from notes
                                           const tests = parseTestsFromNotes((session as any).notes);
                                           if (tests.length > 0) {
-                                            const labels = tests.map(t => /^custom:/i.test(t.test_type || "") ? labelizeTestType(t.test_type, customTestMap) : getTestLabel(t.test_type) || t.test_type).join(", ");
-                                            return `Test : ${labels}`;
+                                            const labels = tests.map(tst => /^custom:/i.test(tst.test_type || "") ? labelizeTestType(tst.test_type, customTestMap) : getTestLabel(tst.test_type) || tst.test_type).join(", ");
+                                            return t("athleteSpace:calendar.testLabel", { label: labels });
                                           }
                                           // Fallback 2: legacy "Test auto-planifié: <label>" in notes
                                           const legacy = ((session as any).notes || "").match(/Test auto-planifi[ée]\s*:\s*([^\n<]+)/i);
-                                          if (legacy) return `Test : ${legacy[1].trim()}`;
+                                          if (legacy) return t("athleteSpace:calendar.testLabel", { label: legacy[1].trim() });
                                           return getTrainingTypeLabel(session.training_type);
                                         })()}
                                       </p>
@@ -715,7 +717,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                       )}
                                       {isAthleteSession && (
                                         <Badge className="text-[10px] h-4 px-1.5 border" style={{ backgroundColor: `${ATHLETE_SESSION_COLOR}15`, color: ATHLETE_SESSION_COLOR, borderColor: `${ATHLETE_SESSION_COLOR}40` }}>
-                                          <User className="h-2.5 w-2.5 mr-0.5" />Ma séance
+                                          <User className="h-2.5 w-2.5 mr-0.5" />{t("athleteSpace:calendar.mySessionBadge")}
                                         </Badge>
                                       )}
                                     </div>
@@ -740,7 +742,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                       type="button"
                                       onClick={(e) => { e.stopPropagation(); setSessionToDelete(session); }}
                                       className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                                      title="Supprimer la séance"
+                                      title={t("athleteSpace:calendar.deleteSessionTitle")}
                                     >
                                       <Trash2 className="h-3.5 w-3.5" />
                                     </button>
@@ -767,7 +769,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                   return (
                                     <div className="rounded-md border border-primary/20 bg-primary/5 p-2">
                                       <p className="text-[10px] uppercase tracking-wide font-semibold text-primary mb-1">
-                                        Consignes du coach
+                                        {t("athleteSpace:calendar.coachInstructions")}
                                       </p>
                                       <p className="text-xs whitespace-pre-line text-foreground/90">{rawNotes}</p>
                                     </div>
@@ -787,7 +789,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                        onClick={() => setDetailSession({ session, exercises })}
                                      >
                                        <Eye className="h-3.5 w-3.5" />
-                                       Voir la séance
+                                       {t("athleteSpace:calendar.viewSession")}
                                      </Button>
                                      <Button
                                        size="sm"
@@ -814,7 +816,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                        }}
                                      >
                                        <Plus className="h-3.5 w-3.5" />
-                                       Remplir les données
+                                       {t("athleteSpace:calendar.fillData")}
                                      </Button>
                                    </div>
                                  )}
@@ -837,7 +839,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                       }
                                       const cleaned = rawNotes.replace(/<!--[\s\S]*?-->\n?/g, "");
                                       const lines = cleaned.split("\n");
-                                      const firstLine = (lines[0] || "Séance mental").trim();
+                                      const firstLine = (lines[0] || t("athleteSpace:calendar.defaultMentalSessionTitle")).trim();
                                       const title = theme && firstLine.endsWith(` - ${theme}`)
                                         ? firstLine.slice(0, -(` - ${theme}`).length)
                                         : firstLine;
@@ -854,7 +856,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                     }}
                                   >
                                     <Brain className="h-3.5 w-3.5" />
-                                    Modifier la séance mentale
+                                    {t("athleteSpace:calendar.editMentalSession")}
                                   </Button>
                                 )}
                                 {isBasket && (
@@ -868,7 +870,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                     }}
                                   >
                                     <Plus className="h-3.5 w-3.5" />
-                                    Remplir les données
+                                    {t("athleteSpace:calendar.fillData")}
                                   </Button>
                                 )}
                               </div>
@@ -892,7 +894,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                   <ShieldCheck className="h-4 w-4" style={{ color: PROPHYLAXIS_COLOR }} />
                                   <div>
                                     <p className="font-medium text-sm">{prog.name}</p>
-                                    <p className="text-xs text-muted-foreground">🎯 {prog.body_zone} • 📅 {prog.frequency || "quotidien"}</p>
+                                    <p className="text-xs text-muted-foreground">🎯 {prog.body_zone} • 📅 {prog.frequency || t("athleteSpace:calendar.daily")}</p>
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-1.5">
@@ -912,10 +914,10 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                     <div className="flex-1">
                                       <p className="font-medium">{ex.exercise_name}</p>
                                       <p className="text-muted-foreground">
-                                        {ex.sets && `${ex.sets} séries`}
+                                        {ex.sets && t("athleteSpace:calendar.sets", { n: ex.sets })}
                                         {ex.reps && ` × ${ex.reps}`}
                                         {ex.duration_seconds ? ` • ${ex.duration_seconds}s` : ""}
-                                        {ex.rest_seconds ? ` • Repos: ${ex.rest_seconds}s` : ""}
+                                        {ex.rest_seconds ? ` • ${t("athleteSpace:calendar.rest", { n: ex.rest_seconds })}` : ""}
                                       </p>
                                       {ex.notes && <p className="text-muted-foreground italic mt-0.5">{ex.notes}</p>}
                                     </div>
@@ -934,7 +936,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
 
                       {/* Rehab protocols for this day */}
                       {dayRehab.map((protocol: any) => {
-                        const protocolName = protocol.injury_protocols?.name || "Réhabilitation";
+                        const protocolName = protocol.injury_protocols?.name || t("athleteSpace:calendar.rehabilitationFallback");
                         const currentPhase = protocol.current_phase || 1;
                         const exercises = (protocol.player_rehab_exercises || [])
                           .filter((ex: any) => ex.phase_number <= currentPhase)
@@ -950,7 +952,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                   <div>
                                     <p className="font-medium text-sm">{protocolName}</p>
                                     <p className="text-xs text-muted-foreground">
-                                      Phase {currentPhase} • {protocol.injury_protocols?.injury_category || ""}
+                                      {t("athleteSpace:calendar.phase", { n: currentPhase })} • {protocol.injury_protocols?.injury_category || ""}
                                     </p>
                                   </div>
                                 </div>
@@ -974,7 +976,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                         <Badge variant="outline" className="text-[9px] h-3.5 px-1">P{ex.phase_number}</Badge>
                                       </div>
                                       <p className="text-muted-foreground">
-                                        {ex.sets && `${ex.sets} séries`}
+                                        {ex.sets && t("athleteSpace:calendar.sets", { n: ex.sets })}
                                         {ex.reps && ` × ${ex.reps}`}
                                         {ex.duration && ` • ${ex.duration}`}
                                         {ex.frequency && ` • ${ex.frequency}`}
@@ -1001,7 +1003,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                       <div className="flex flex-wrap gap-2">
                         <Button variant="ghost" size="sm" onClick={() => setIsPickerOpen(true)} className="flex-1 gap-1.5 text-muted-foreground">
                           <Plus className="h-3.5 w-3.5" />
-                          Ajouter une séance
+                          {t("athleteSpace:calendar.addSession")}
                         </Button>
                       </div>
 
@@ -1011,7 +1013,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
               ) : (
                 <div className="text-center py-8">
                   <p className="text-sm text-muted-foreground">
-                    Sélectionne une date pour voir les événements
+                    {t("athleteSpace:calendar.selectDatePrompt")}
                   </p>
                 </div>
               )}
@@ -1177,17 +1179,17 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
       <AlertDialog open={!!sessionToDelete} onOpenChange={(open) => !open && setSessionToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer cette séance ?</AlertDialogTitle>
+            <AlertDialogTitle>{t("athleteSpace:calendar.confirmDeleteSessionTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
               {sessionToDelete?.created_by_player_id === playerId
-                ? "Cette séance que vous avez créée sera définitivement supprimée."
-                : "Cette séance vous a été assignée. Elle sera retirée de votre calendrier."}
+                ? t("athleteSpace:calendar.confirmDeleteSessionOwnDesc")
+                : t("athleteSpace:calendar.confirmDeleteSessionAssignedDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Annuler</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>{t("athleteSpace:calendar.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteSession} disabled={isDeleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              {isDeleting ? "Suppression..." : "Supprimer"}
+              {isDeleting ? t("athleteSpace:calendar.deleting") : t("athleteSpace:calendar.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1196,15 +1198,15 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
       <AlertDialog open={!!matchToDelete} onOpenChange={(open) => !open && setMatchToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer cette compétition ?</AlertDialogTitle>
+            <AlertDialogTitle>{t("athleteSpace:calendar.confirmDeleteMatchTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Cette compétition personnelle que vous avez créée sera définitivement supprimée, ainsi que les données associées.
+              {t("athleteSpace:calendar.confirmDeleteMatchDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Annuler</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>{t("athleteSpace:calendar.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteMatch} disabled={isDeleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              {isDeleting ? "Suppression..." : "Supprimer"}
+              {isDeleting ? t("athleteSpace:calendar.deleting") : t("athleteSpace:calendar.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

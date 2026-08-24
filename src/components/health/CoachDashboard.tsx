@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { supabase } from "@/integrations/supabase/client";
@@ -60,6 +61,7 @@ import { useSeasonFilteredPlayerIds, makePlayerIdFilter } from "@/hooks/use-seas
 import { useMemo as useMemoCoachDash } from "react";
 
 export function CoachDashboard({ categoryId }: CoachDashboardProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [editingInjury, setEditingInjury] = useState<any>(null);
   const [editingIllness, setEditingIllness] = useState<any>(null);
@@ -74,9 +76,9 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["active_injuries", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["injuries", categoryId] });
-      toast.success("Blessure supprimée");
+      toast.success(t("health.coachDashboard.toastInjuryDeleted"));
     },
-    onError: (e: any) => toast.error(e?.message || "Erreur"),
+    onError: (e: any) => toast.error(e?.message || t("health.coachDashboard.toastError")),
   });
 
   const deleteIllness = useMutation({
@@ -87,9 +89,9 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["active_illnesses", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["illnesses", categoryId] });
-      toast.success("Maladie supprimée");
+      toast.success(t("health.coachDashboard.toastIllnessDeleted"));
     },
-    onError: (e: any) => toast.error(e?.message || "Erreur"),
+    onError: (e: any) => toast.error(e?.message || t("health.coachDashboard.toastError")),
   });
 
   // Realtime sync for EWMA, wellness, and AWCR
@@ -339,8 +341,8 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">Dashboard Coach</h2>
-        <p className="text-muted-foreground">Vue consolidée des indicateurs critiques</p>
+        <h2 className="text-2xl font-bold">{t("health.coachDashboard.title")}</h2>
+        <p className="text-muted-foreground">{t("health.coachDashboard.subtitle")}</p>
       </div>
 
       {/* Main KPIs + Rappels */}
@@ -349,7 +351,7 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
           <CardHeader className="pb-1 px-3 pt-3">
             <CardTitle className="text-xs flex items-center gap-1.5">
               <Users className="h-3.5 w-3.5" />
-              Disponibilité
+              {t("health.coachDashboard.availability")}
             </CardTitle>
           </CardHeader>
           <CardContent className="px-3 pb-3">
@@ -358,7 +360,7 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
             </div>
             <Progress value={availabilityRate} className="mt-1.5 h-1.5" />
             <p className="text-[10px] text-muted-foreground mt-1">
-              {availabilityRate.toFixed(0)}% disponibles
+              {t("health.coachDashboard.availablePercent", { percent: availabilityRate.toFixed(0) })}
             </p>
           </CardContent>
         </Card>
@@ -367,13 +369,13 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
           <CardHeader className="pb-1 px-3 pt-3">
             <CardTitle className="text-xs flex items-center gap-1.5">
               <Activity className="h-3.5 w-3.5" />
-              Blessures / Maladies
+              {t("health.coachDashboard.injuriesIllnesses")}
             </CardTitle>
           </CardHeader>
           <CardContent className="px-3 pb-3">
             <div className="text-2xl font-bold text-red-600">{injuredPlayers + sickPlayers}</div>
             <p className="text-[10px] text-muted-foreground mt-1">
-              {injuredPlayers} blessé{injuredPlayers > 1 ? "s" : ""} · {sickPlayers} malade{sickPlayers > 1 ? "s" : ""}
+              {t("health.coachDashboard.injuredCount", { count: injuredPlayers, plural: injuredPlayers > 1 ? "s" : "" })} · {t("health.coachDashboard.sickCount", { count: sickPlayers, plural: sickPlayers > 1 ? "s" : "" })}
             </p>
           </CardContent>
         </Card>
@@ -382,13 +384,13 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
           <CardHeader className="pb-1 px-3 pt-3">
             <CardTitle className="text-xs flex items-center gap-1.5">
               <TrendingUp className="h-3.5 w-3.5" />
-              EWMA élevé
+              {t("health.coachDashboard.highEwma")}
             </CardTitle>
           </CardHeader>
           <CardContent className="px-3 pb-3">
             <div className="text-2xl font-bold text-orange-600">{highEwma.length}</div>
             <p className="text-[10px] text-muted-foreground mt-1">
-              Risque de surcharge
+              {t("health.coachDashboard.overloadRisk")}
             </p>
           </CardContent>
         </Card>
@@ -397,13 +399,13 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
           <CardHeader className="pb-1 px-3 pt-3">
             <CardTitle className="text-xs flex items-center gap-1.5">
               <HeartPulse className="h-3.5 w-3.5" />
-              Wellness faible
+              {t("health.coachDashboard.lowWellness")}
             </CardTitle>
           </CardHeader>
           <CardContent className="px-3 pb-3">
             <div className="text-2xl font-bold text-blue-600">{lowWellnessPlayers.length}</div>
             <p className="text-[10px] text-muted-foreground mt-1">
-              Attention requise
+              {t("health.coachDashboard.attentionRequired")}
             </p>
           </CardContent>
         </Card>
@@ -413,7 +415,7 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
           <CardHeader className="pb-1 px-3 pt-3">
             <CardTitle className="text-xs flex items-center gap-1.5">
               <Clock className="h-3.5 w-3.5" />
-              Rappels à venir
+              {t("health.coachDashboard.upcomingReminders")}
             </CardTitle>
           </CardHeader>
           <CardContent className="px-3 pb-3">
@@ -449,7 +451,7 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
                 ))}
                 {(!dueSoonMedical?.length && !rtpProtocols?.length && !birthdaysThisMonth?.length) && (
                   <p className="text-center text-[10px] text-muted-foreground py-2">
-                    Aucun rappel
+                    {t("health.coachDashboard.noReminders")}
                   </p>
                 )}
               </div>
@@ -462,7 +464,7 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
       {((injuries && injuries.length > 0) || (illnesses && illnesses.length > 0)) && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Blessures & Maladies en cours</CardTitle>
+            <CardTitle className="text-lg">{t("health.coachDashboard.activeInjuriesIllnesses")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -478,25 +480,25 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
                         <Badge variant={injury.status === "active" ? "destructive" : "secondary"}>
-                          {injury.status === "active" ? "Blessé" : "Réhab"}
+                          {injury.status === "active" ? t("health.coachDashboard.injured") : t("health.coachDashboard.rehab")}
                         </Badge>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingInjury(injury)} title="Modifier">
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingInjury(injury)} title={t("health.coachDashboard.edit")}>
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" title="Supprimer">
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" title={t("health.coachDashboard.delete")}>
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Supprimer cette blessure ?</AlertDialogTitle>
-                              <AlertDialogDescription>Action irréversible.</AlertDialogDescription>
+                              <AlertDialogTitle>{t("health.coachDashboard.deleteInjuryTitle")}</AlertDialogTitle>
+                              <AlertDialogDescription>{t("health.coachDashboard.deleteIrreversible")}</AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Annuler</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => deleteInjury.mutate(injury.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Supprimer</AlertDialogAction>
+                              <AlertDialogCancel>{t("health.coachDashboard.cancel")}</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => deleteInjury.mutate(injury.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">{t("health.coachDashboard.delete")}</AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
@@ -505,15 +507,15 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
                     </div>
                     <div className="space-y-1 text-xs text-muted-foreground">
                       <div className="flex items-center gap-1">
-                        <span className="font-medium text-foreground">Blessure le:</span>
+                        <span className="font-medium text-foreground">{t("health.coachDashboard.injuredOn")}</span>
                         <span>{safeFormat(injury.injury_date, "EEEE dd MMMM yyyy", { locale: fr })}</span>
                       </div>
                       {daysOut !== null && (
-                        <p>Absent depuis <span className="font-medium text-foreground">{daysOut} jour{daysOut > 1 ? "s" : ""}</span></p>
+                        <p>{t("health.coachDashboard.absentSince", { days: daysOut, plural: daysOut > 1 ? "s" : "" })}</p>
                       )}
                       {injury.estimated_return_date && (
                         <div className="flex items-center gap-1">
-                          <span className="font-medium text-foreground">Retour estimé:</span>
+                          <span className="font-medium text-foreground">{t("health.coachDashboard.estimatedReturn")}</span>
                           <span>{safeFormat(injury.estimated_return_date, "EEEE dd MMMM yyyy", { locale: fr })}</span>
                         </div>
                       )}
@@ -532,24 +534,24 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
                         <p className="text-sm text-orange-600 font-medium">{illness.illness_type}</p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
-                        <Badge className="bg-orange-500 text-white hover:bg-orange-500">Malade</Badge>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingIllness(illness)} title="Modifier">
+                        <Badge className="bg-orange-500 text-white hover:bg-orange-500">{t("health.coachDashboard.sick")}</Badge>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingIllness(illness)} title={t("health.coachDashboard.edit")}>
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" title="Supprimer">
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" title={t("health.coachDashboard.delete")}>
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Supprimer cette maladie ?</AlertDialogTitle>
-                              <AlertDialogDescription>Action irréversible.</AlertDialogDescription>
+                              <AlertDialogTitle>{t("health.coachDashboard.deleteIllnessTitle")}</AlertDialogTitle>
+                              <AlertDialogDescription>{t("health.coachDashboard.deleteIrreversible")}</AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Annuler</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => deleteIllness.mutate(illness.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Supprimer</AlertDialogAction>
+                              <AlertDialogCancel>{t("health.coachDashboard.cancel")}</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => deleteIllness.mutate(illness.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">{t("health.coachDashboard.delete")}</AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
@@ -558,15 +560,15 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
                     </div>
                     <div className="space-y-1 text-xs text-muted-foreground">
                       <div className="flex items-center gap-1">
-                        <span className="font-medium text-foreground">Maladie le:</span>
+                        <span className="font-medium text-foreground">{t("health.coachDashboard.illOn")}</span>
                         <span>{safeFormat(illness.illness_date, "EEEE dd MMMM yyyy", { locale: fr })}</span>
                       </div>
                       {daysOut !== null && (
-                        <p>Absent depuis <span className="font-medium text-foreground">{daysOut} jour{daysOut > 1 ? "s" : ""}</span></p>
+                        <p>{t("health.coachDashboard.absentSince", { days: daysOut, plural: daysOut > 1 ? "s" : "" })}</p>
                       )}
                       {illness.estimated_return_date && (
                         <div className="flex items-center gap-1">
-                          <span className="font-medium text-foreground">Retour estimé:</span>
+                          <span className="font-medium text-foreground">{t("health.coachDashboard.estimatedReturn")}</span>
                           <span>{safeFormat(illness.estimated_return_date, "EEEE dd MMMM yyyy", { locale: fr })}</span>
                         </div>
                       )}
@@ -582,15 +584,15 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
       {/* EWMA distribution */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Distribution EWMA</CardTitle>
+          <CardTitle className="text-lg">{t("health.coachDashboard.ewmaDistribution")}</CardTitle>
         </CardHeader>
         <CardContent>
           {ewmaValues.length === 0 ? (
             <div className="text-center py-6 text-muted-foreground">
               <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p className="font-medium">Aucune donnée EWMA disponible</p>
+              <p className="font-medium">{t("health.coachDashboard.noEwmaData")}</p>
               <p className="text-sm mt-1">
-                Les ratios EWMA sont calculés automatiquement lorsque les joueurs ont suffisamment de sessions RPE enregistrées (minimum 7 jours de données).
+                {t("health.coachDashboard.noEwmaDataHint")}
               </p>
             </div>
           ) : (
@@ -599,11 +601,11 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
               <div className="p-4 bg-blue-500/10 rounded-lg border border-blue-500/20 flex flex-col">
                 <div className="text-center mb-3">
                   <p className="text-2xl font-bold text-blue-600">{lowEwma.length}</p>
-                  <p className="text-sm text-muted-foreground">Sous-entraînés (&lt;0.8)</p>
+                  <p className="text-sm text-muted-foreground">{t("health.coachDashboard.undertrained")}</p>
                 </div>
                 <div className="space-y-1.5 max-h-[260px] overflow-y-auto">
                   {lowEwma.length === 0 ? (
-                    <p className="text-xs text-center text-muted-foreground italic py-2">Aucun joueur</p>
+                    <p className="text-xs text-center text-muted-foreground italic py-2">{t("health.coachDashboard.noPlayer")}</p>
                   ) : (
                     [...lowEwma]
                       .sort((a, b) => a.ewmaRatio - b.ewmaRatio)
@@ -626,11 +628,11 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
               <div className="p-4 bg-green-500/10 rounded-lg border border-green-500/20 flex flex-col">
                 <div className="text-center mb-3">
                   <p className="text-2xl font-bold text-green-600">{optimalEwma.length}</p>
-                  <p className="text-sm text-muted-foreground">Zone optimale (0.8-1.3)</p>
+                  <p className="text-sm text-muted-foreground">{t("health.coachDashboard.optimalZone")}</p>
                 </div>
                 <div className="space-y-1.5 max-h-[260px] overflow-y-auto">
                   {optimalEwma.length === 0 ? (
-                    <p className="text-xs text-center text-muted-foreground italic py-2">Aucun joueur</p>
+                    <p className="text-xs text-center text-muted-foreground italic py-2">{t("health.coachDashboard.noPlayer")}</p>
                   ) : (
                     [...optimalEwma]
                       .sort((a, b) => a.name.localeCompare(b.name))
@@ -653,11 +655,11 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
               <div className="p-4 bg-orange-500/10 rounded-lg border border-orange-500/20 flex flex-col">
                 <div className="text-center mb-3">
                   <p className="text-2xl font-bold text-orange-600">{highEwma.length}</p>
-                  <p className="text-sm text-muted-foreground">Sur-entraînés (&gt;1.3)</p>
+                  <p className="text-sm text-muted-foreground">{t("health.coachDashboard.overtrained")}</p>
                 </div>
                 <div className="space-y-1.5 max-h-[260px] overflow-y-auto">
                   {highEwma.length === 0 ? (
-                    <p className="text-xs text-center text-muted-foreground italic py-2">Aucun joueur</p>
+                    <p className="text-xs text-center text-muted-foreground italic py-2">{t("health.coachDashboard.noPlayer")}</p>
                   ) : (
                     [...highEwma]
                       .sort((a, b) => b.ewmaRatio - a.ewmaRatio)

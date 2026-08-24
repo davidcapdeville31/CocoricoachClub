@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { format, subDays } from "date-fns";
 import { BarChart3, Dumbbell, Zap, Shield, CalendarRange, Download } from "lucide-react";
 import { generateCsv, downloadCsv } from "@/lib/csv";
@@ -27,6 +28,7 @@ interface TrainingDistributionProps {
 }
 
 export function TrainingDistribution({ categoryId }: TrainingDistributionProps) {
+  const { t } = useTranslation();
   const [startDate, setStartDate] = useState(() => format(subDays(new Date(), 28), "yyyy-MM-dd"));
   const [endDate, setEndDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
 
@@ -119,10 +121,17 @@ export function TrainingDistribution({ categoryId }: TrainingDistributionProps) 
 
   const handleExportCsv = () => {
     if (!stats) {
-      toast.error("Aucune donnée à exporter sur cette période");
+      toast.error(t("workload.trainingDistribution.exportEmpty"));
       return;
     }
-    const headers = ["Catégorie", "Valeur", "Nombre de blocs", "Part (%)", "Du", "Au"];
+    const headers = [
+      t("workload.trainingDistribution.csvHeaders.category"),
+      t("workload.trainingDistribution.csvHeaders.value"),
+      t("workload.trainingDistribution.csvHeaders.blocksCount"),
+      t("workload.trainingDistribution.csvHeaders.share"),
+      t("workload.trainingDistribution.csvHeaders.from"),
+      t("workload.trainingDistribution.csvHeaders.to"),
+    ];
     const rows: (string | number)[][] = [];
     const pct = (n: number) => (stats.totalBlocks > 0 ? Math.round((n / stats.totalBlocks) * 100) : 0);
     const push = (group: string, map: Map<string, number>, label: (v: string) => string) => {
@@ -132,13 +141,13 @@ export function TrainingDistribution({ categoryId }: TrainingDistributionProps) 
           rows.push([group, label(value), count, pct(count), startDate, endDate]);
         });
     };
-    push("Intensité", stats.intensityCounts, getIntensityLabel);
-    push("Volume", stats.volumeCounts, getVolumeLabel);
-    push("Charge de contact", stats.contactCounts, getContactChargeLabel);
-    push("Thématique", stats.typeCounts, getSessionTypeLabel);
-    push("Objectif", stats.objectiveCounts, getObjectiveLabel);
-    rows.push(["Total", "Séances", stats.totalSessions, "", startDate, endDate]);
-    rows.push(["Total", "Blocs", stats.totalBlocks, "", startDate, endDate]);
+    push(t("workload.trainingDistribution.csvHeaders.intensity"), stats.intensityCounts, getIntensityLabel);
+    push(t("workload.trainingDistribution.csvHeaders.volume"), stats.volumeCounts, getVolumeLabel);
+    push(t("workload.trainingDistribution.csvHeaders.contactCharge"), stats.contactCounts, getContactChargeLabel);
+    push(t("workload.trainingDistribution.csvHeaders.theme"), stats.typeCounts, getSessionTypeLabel);
+    push(t("workload.trainingDistribution.csvHeaders.objective"), stats.objectiveCounts, getObjectiveLabel);
+    rows.push([t("workload.trainingDistribution.csvHeaders.total"), t("workload.trainingDistribution.csvHeaders.sessions"), stats.totalSessions, "", startDate, endDate]);
+    rows.push([t("workload.trainingDistribution.csvHeaders.total"), t("workload.trainingDistribution.csvHeaders.blocks"), stats.totalBlocks, "", startDate, endDate]);
 
     downloadCsv(
       `repartition-entrainements-${startDate}_${endDate}.csv`,
@@ -168,16 +177,16 @@ export function TrainingDistribution({ categoryId }: TrainingDistributionProps) 
           <div>
             <h3 className="text-lg font-semibold flex items-center gap-2">
               <BarChart3 className="h-5 w-5 text-primary" />
-              Répartition des entraînements
+              {t("workload.trainingDistribution.title")}
             </h3>
           </div>
           <div className="flex items-center gap-3">
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Du</Label>
+              <Label className="text-xs text-muted-foreground">{t("workload.trainingDistribution.from")}</Label>
               <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="h-8 w-[140px] text-sm" max={endDate} />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Au</Label>
+              <Label className="text-xs text-muted-foreground">{t("workload.trainingDistribution.to")}</Label>
               <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="h-8 w-[140px] text-sm" min={startDate} />
             </div>
           </div>
@@ -185,7 +194,7 @@ export function TrainingDistribution({ categoryId }: TrainingDistributionProps) 
         <Card>
           <CardContent className="p-6 text-center text-muted-foreground">
             <BarChart3 className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p>Aucune donnée de séance sur cette période</p>
+            <p>{t("workload.trainingDistribution.noData")}</p>
           </CardContent>
         </Card>
       </div>
@@ -199,26 +208,26 @@ export function TrainingDistribution({ categoryId }: TrainingDistributionProps) 
         <div>
           <h3 className="text-lg font-semibold flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-primary" />
-            Répartition des entraînements
+            {t("workload.trainingDistribution.title")}
           </h3>
           <p className="text-sm text-muted-foreground">
-            {stats.totalSessions} séances · {stats.totalBlocks} blocs analysés
+            {t("workload.trainingDistribution.sessionsSummary", { sessions: stats.totalSessions, blocks: stats.totalBlocks })}
           </p>
         </div>
         <div className="flex items-center gap-3">
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground flex items-center gap-1">
-              <CalendarRange className="h-3 w-3" /> Du
+              <CalendarRange className="h-3 w-3" /> {t("workload.trainingDistribution.from")}
             </Label>
             <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="h-8 w-[140px] text-sm" max={endDate} />
           </div>
           <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Au</Label>
+            <Label className="text-xs text-muted-foreground">{t("workload.trainingDistribution.to")}</Label>
             <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="h-8 w-[140px] text-sm" min={startDate} />
           </div>
           <Button variant="outline" size="sm" className="gap-1.5 mt-5" onClick={handleExportCsv}>
             <Download className="h-4 w-4" />
-            Export CSV
+            {t("workload.trainingDistribution.exportCsv")}
           </Button>
 
         </div>
@@ -227,7 +236,7 @@ export function TrainingDistribution({ categoryId }: TrainingDistributionProps) 
       <div className="grid gap-4 md:grid-cols-2">
         {/* Intensity Distribution */}
         <DistributionCard
-          title="Intensité"
+          title={t("workload.trainingDistribution.cards.intensity")}
           icon={<Zap className="h-4 w-4 text-orange-500" />}
           counts={stats.intensityCounts}
           total={stats.totalBlocks}
@@ -241,7 +250,7 @@ export function TrainingDistribution({ categoryId }: TrainingDistributionProps) 
 
         {/* Volume Distribution */}
         <DistributionCard
-          title="Volume"
+          title={t("workload.trainingDistribution.cards.volume")}
           icon={<Dumbbell className="h-4 w-4 text-blue-500" />}
           counts={stats.volumeCounts}
           total={stats.totalBlocks}
@@ -257,7 +266,7 @@ export function TrainingDistribution({ categoryId }: TrainingDistributionProps) 
 
         {/* Contact Charge Distribution */}
         <DistributionCard
-          title="Charge de contact"
+          title={t("workload.trainingDistribution.cards.contactCharge")}
           icon={<Shield className="h-4 w-4 text-red-500" />}
           counts={stats.contactCounts}
           total={stats.totalBlocks}
@@ -277,7 +286,7 @@ export function TrainingDistribution({ categoryId }: TrainingDistributionProps) 
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-primary" />
-              Thématiques dominantes
+              {t("workload.trainingDistribution.cards.dominantThemes")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -301,7 +310,7 @@ export function TrainingDistribution({ categoryId }: TrainingDistributionProps) 
                 );
               })}
             {stats.typeCounts.size === 0 && (
-              <p className="text-sm text-muted-foreground">Aucune thématique renseignée</p>
+              <p className="text-sm text-muted-foreground">{t("workload.trainingDistribution.cards.noTheme")}</p>
             )}
           </CardContent>
         </Card>
@@ -311,7 +320,7 @@ export function TrainingDistribution({ categoryId }: TrainingDistributionProps) 
       {stats.objectiveCounts.size > 0 && (
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Objectifs travaillés</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("workload.trainingDistribution.cards.objectives")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
@@ -347,6 +356,7 @@ function DistributionCard({
   items: { value: string; label: string; colorClass: string }[];
   getLabel: (v: string) => string;
 }) {
+  const { t } = useTranslation();
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -386,7 +396,7 @@ function DistributionCard({
           );
         })}
         {Array.from(counts.values()).every(c => c === 0) && (
-          <p className="text-sm text-muted-foreground">Aucune donnée</p>
+          <p className="text-sm text-muted-foreground">{t("workload.trainingDistribution.cards.noData")}</p>
         )}
       </CardContent>
     </Card>
