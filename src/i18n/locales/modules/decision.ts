@@ -141,6 +141,18 @@ export const decisionFr = {
     sessionUpdateSubject: "Mise à jour : {{session}}",
     customSubject: "Message de l'équipe",
   },
+  alerts: {
+    team: "Équipe",
+    overloadMessage: "Ratio EWMA à {{value}} - Réduire la charge",
+    overloadAction: "Adapter charge",
+    fatigueMessage: "Fatigue détectée ({{value}}/5)",
+    fatigueAction: "Voir fiche",
+    returnTodayMessage: "Retour prévu aujourd'hui",
+    returnInDaysMessage: "Retour prévu dans {{days}}j",
+    returnAction: "Valider reprise",
+    adminExpiredMessage: "{{title}} - Document expiré",
+    adminAction: "Régulariser",
+  },
   toasts: {
     sessionDeleted: "Séance supprimée",
     sessionDeleteError: "Erreur lors de la suppression",
@@ -286,6 +298,18 @@ export const decisionEn = {
   notify: {
     sessionUpdateSubject: "Update: {{session}}",
     customSubject: "Team message",
+  },
+  alerts: {
+    team: "Team",
+    overloadMessage: "EWMA ratio at {{value}} - Reduce load",
+    overloadAction: "Adapt load",
+    fatigueMessage: "Fatigue detected ({{value}}/5)",
+    fatigueAction: "View profile",
+    returnTodayMessage: "Return expected today",
+    returnInDaysMessage: "Return expected in {{days}}d",
+    returnAction: "Validate return",
+    adminExpiredMessage: "{{title}} - Expired document",
+    adminAction: "Regularize",
   },
   toasts: {
     sessionDeleted: "Session deleted",

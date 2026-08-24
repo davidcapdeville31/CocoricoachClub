@@ -190,7 +190,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
 
     const sportType = categoryData?.rugby_type || "";
     const isIndividual = isIndividualSport(sportType);
-    const matchLabel = isIndividual ? "Compétition" : "Match";
+    const matchLabel = isIndividual ? t("decision.matches.competition") : t("decision.matches.match");
     const testCategories = useMemo(() => getTestCategoriesForSport(sportType), [sportType]);
 
     // Fetch upcoming matches/competitions
@@ -623,8 +623,8 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
             severity: ewmaRatio > 1.8 ? "critical" : "high",
             playerId: player.id,
             playerName: getFullName(player),
-            message: `Ratio EWMA à ${ewmaRatio.toFixed(2)} - Réduire la charge`,
-            action: "Adapter charge",
+            message: t("decision.alerts.overloadMessage", { value: ewmaRatio.toFixed(2) }),
+            action: t("decision.alerts.overloadAction"),
           });
        }
  
@@ -639,8 +639,8 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
              severity: score > 4.2 ? "critical" : "high",
              playerId: player.id,
               playerName: getFullName(player),
-             message: `Fatigue détectée (${score.toFixed(1)}/5)`,
-             action: "Voir fiche",
+             message: t("decision.alerts.fatigueMessage", { value: score.toFixed(1) }),
+             action: t("decision.alerts.fatigueAction"),
            });
          }
        }
@@ -671,9 +671,9 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
          type: "admin",
          severity: "medium",
          playerId: doc.player_id || "",
-         playerName: doc.players ? [doc.players.first_name, doc.players.name].filter(Boolean).join(" ") : "Équipe",
-         message: `${doc.title} - Document expiré`,
-         action: "Régulariser",
+         playerName: doc.players ? [doc.players.first_name, doc.players.name].filter(Boolean).join(" ") : t("decision.alerts.team"),
+         message: t("decision.alerts.adminExpiredMessage", { title: doc.title }),
+         action: t("decision.alerts.adminAction"),
        });
      });
  
@@ -848,7 +848,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
        return { sessionId, sessionInfo, participantIds };
      },
      onSuccess: ({ sessionId, sessionInfo, participantIds }) => {
-       toast.success("Séance supprimée");
+       toast.success(t("decision.toasts.sessionDeleted"));
        queryClient.invalidateQueries({ queryKey: ["today_sessions_decision", categoryId] });
        queryClient.invalidateQueries({ queryKey: ["tomorrow_sessions_decision", categoryId] });
        queryClient.invalidateQueries({ queryKey: ["sessions", categoryId] });
