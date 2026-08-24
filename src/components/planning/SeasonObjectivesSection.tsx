@@ -26,6 +26,7 @@ import {
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { PlayerObjectivesSection } from "./PlayerObjectivesSection";
+import { useTranslation } from "react-i18next";
 
 interface SeasonObjectivesSectionProps {
   categoryId: string;
@@ -33,12 +34,14 @@ interface SeasonObjectivesSectionProps {
 
 const currentYear = new Date().getFullYear();
 
-const goalTypeLabels: Record<string, string> = {
-  team: "Équipe",
-  physical: "Physique",
-  tactical: "Tactique",
-  technical: "Technique",
-};
+function useGoalTypeLabels(t: (k: string) => string): Record<string, string> {
+  return {
+    team: t("planning.objectives.goalTypes.team"),
+    physical: t("planning.objectives.goalTypes.physical"),
+    tactical: t("planning.objectives.goalTypes.tactical"),
+    technical: t("planning.objectives.goalTypes.technical"),
+  };
+}
 
 const goalTypeColors: Record<string, string> = {
   team: "bg-blue-500",
@@ -47,20 +50,28 @@ const goalTypeColors: Record<string, string> = {
   technical: "bg-orange-500",
 };
 
-const statusLabels: Record<string, string> = {
-  pending: "À faire",
-  in_progress: "En cours",
-  completed: "Terminé",
-};
+function useStatusLabels(t: (k: string) => string): Record<string, string> {
+  return {
+    pending: t("planning.objectives.status.pending"),
+    in_progress: t("planning.objectives.status.inProgress"),
+    completed: t("planning.objectives.status.completed"),
+  };
+}
 
-const milestoneTypeLabels: Record<string, string> = {
-  competition: "Compétition",
-  training: "Entraînement",
-  evaluation: "Évaluation",
-  other: "Autre",
-};
+function useMilestoneTypeLabels(t: (k: string) => string): Record<string, string> {
+  return {
+    competition: t("planning.objectives.milestoneTypes.competition"),
+    training: t("planning.objectives.milestoneTypes.training"),
+    evaluation: t("planning.objectives.milestoneTypes.evaluation"),
+    other: t("planning.objectives.milestoneTypes.other"),
+  };
+}
 
 export function SeasonObjectivesSection({ categoryId }: SeasonObjectivesSectionProps) {
+  const { t } = useTranslation();
+  const goalTypeLabels = useGoalTypeLabels(t);
+  const statusLabels = useStatusLabels(t);
+  const milestoneTypeLabels = useMilestoneTypeLabels(t);
   const queryClient = useQueryClient();
   const [goalDialogOpen, setGoalDialogOpen] = useState(false);
   const [milestoneDialogOpen, setMilestoneDialogOpen] = useState(false);
@@ -120,11 +131,11 @@ export function SeasonObjectivesSection({ categoryId }: SeasonObjectivesSectionP
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["season-goals", categoryId] });
-      toast.success("Objectif ajouté");
+      toast.success(t("planning.objectives.toasts.goalAdded"));
       setGoalDialogOpen(false);
       resetGoalForm();
     },
-    onError: () => toast.error("Erreur lors de l'ajout"),
+    onError: () => toast.error(t("planning.objectives.toasts.addError")),
   });
 
   const addMilestoneMutation = useMutation({
@@ -141,11 +152,11 @@ export function SeasonObjectivesSection({ categoryId }: SeasonObjectivesSectionP
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["season-milestones", categoryId] });
-      toast.success("Étape ajoutée");
+      toast.success(t("planning.objectives.toasts.milestoneAdded"));
       setMilestoneDialogOpen(false);
       resetMilestoneForm();
     },
-    onError: () => toast.error("Erreur lors de l'ajout"),
+    onError: () => toast.error(t("planning.objectives.toasts.addError")),
   });
 
   const updateGoalMutation = useMutation({
@@ -158,7 +169,7 @@ export function SeasonObjectivesSection({ categoryId }: SeasonObjectivesSectionP
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["season-goals", categoryId] });
-      toast.success("Objectif mis à jour");
+      toast.success(t("planning.objectives.toasts.goalUpdated"));
     },
   });
 
@@ -169,9 +180,9 @@ export function SeasonObjectivesSection({ categoryId }: SeasonObjectivesSectionP
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["season-goals", categoryId] });
-      toast.success("Objectif supprimé");
+      toast.success(t("planning.objectives.toasts.goalDeleted"));
     },
-    onError: () => toast.error("Erreur lors de la suppression"),
+    onError: () => toast.error(t("planning.objectives.toasts.deleteError")),
   });
 
   const deleteMilestoneMutation = useMutation({
@@ -181,9 +192,9 @@ export function SeasonObjectivesSection({ categoryId }: SeasonObjectivesSectionP
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["season-milestones", categoryId] });
-      toast.success("Étape supprimée");
+      toast.success(t("planning.objectives.toasts.milestoneDeleted"));
     },
-    onError: () => toast.error("Erreur lors de la suppression"),
+    onError: () => toast.error(t("planning.objectives.toasts.deleteError")),
   });
 
   const toggleMilestoneMutation = useMutation({
@@ -224,8 +235,8 @@ export function SeasonObjectivesSection({ categoryId }: SeasonObjectivesSectionP
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-xl font-bold">Objectifs de Saison</h2>
-          <p className="text-sm text-muted-foreground">Objectifs et étapes clés</p>
+          <h2 className="text-xl font-bold">{t("planning.objectives.seasonTitle")}</h2>
+          <p className="text-sm text-muted-foreground">{t("planning.objectives.seasonSubtitle")}</p>
         </div>
         <div className="flex items-center gap-2">
           <Select value={String(selectedSeason)} onValueChange={(v) => setSelectedSeason(Number(v))}>
@@ -235,7 +246,7 @@ export function SeasonObjectivesSection({ categoryId }: SeasonObjectivesSectionP
             <SelectContent>
               {[currentYear - 1, currentYear, currentYear + 1].map((year) => (
                 <SelectItem key={year} value={String(year)}>
-                  Saison {year}/{year + 1}
+                  {t("planning.objectives.seasonYear", { year, nextYear: year + 1 })}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -252,7 +263,7 @@ export function SeasonObjectivesSection({ categoryId }: SeasonObjectivesSectionP
                 <Flag className="h-4 w-4 text-blue-500" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Étapes</p>
+                <p className="text-xs text-muted-foreground">{t("planning.objectives.milestones")}</p>
                 <p className="text-lg font-bold">{completedMilestones}/{milestones.length}</p>
               </div>
             </div>
@@ -272,22 +283,22 @@ export function SeasonObjectivesSection({ categoryId }: SeasonObjectivesSectionP
           <CardHeader className="flex flex-row items-center justify-between py-4">
             <CardTitle className="flex items-center gap-2 text-base">
               <Flag className="h-4 w-4" />
-              Étapes Clés
+              {t("planning.objectives.keyMilestones")}
             </CardTitle>
             <Dialog open={milestoneDialogOpen} onOpenChange={setMilestoneDialogOpen}>
               <DialogTrigger asChild>
                 <Button size="sm">
                   <Plus className="h-4 w-4 mr-1" />
-                  Ajouter
+                  {t("planning.objectives.add")}
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Nouvelle Étape</DialogTitle>
+                  <DialogTitle>{t("planning.objectives.newMilestone")}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium">Type</label>
+                    <label className="text-sm font-medium">{t("planning.objectives.type")}</label>
                     <Select value={milestoneType} onValueChange={setMilestoneType}>
                       <SelectTrigger>
                         <SelectValue />
@@ -300,23 +311,23 @@ export function SeasonObjectivesSection({ categoryId }: SeasonObjectivesSectionP
                     </Select>
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Titre</label>
+                    <label className="text-sm font-medium">{t("planning.objectives.titleLabel")}</label>
                     <Input 
                       value={milestoneTitle} 
                       onChange={(e) => setMilestoneTitle(e.target.value)}
-                      placeholder="Ex: Début de la compétition"
+                      placeholder={t("planning.objectives.milestoneTitlePlaceholder")}
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Description</label>
+                    <label className="text-sm font-medium">{t("planning.objectives.description")}</label>
                     <Textarea 
                       value={milestoneDescription} 
                       onChange={(e) => setMilestoneDescription(e.target.value)}
-                      placeholder="Détails..."
+                      placeholder={t("planning.objectives.detailsPlaceholder")}
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Date</label>
+                    <label className="text-sm font-medium">{t("planning.objectives.date")}</label>
                     <Input 
                       type="date" 
                       value={milestoneDate} 
@@ -328,7 +339,7 @@ export function SeasonObjectivesSection({ categoryId }: SeasonObjectivesSectionP
                     disabled={!milestoneTitle || !milestoneDate}
                     className="w-full"
                   >
-                    Ajouter l'étape
+                    {t("planning.objectives.addMilestone")}
                   </Button>
                 </div>
               </DialogContent>
@@ -336,7 +347,7 @@ export function SeasonObjectivesSection({ categoryId }: SeasonObjectivesSectionP
           </CardHeader>
           <CardContent className="space-y-2 max-h-[400px] overflow-y-auto">
             {milestones.length === 0 ? (
-              <p className="text-muted-foreground text-center py-6 text-sm">Aucune étape définie</p>
+              <p className="text-muted-foreground text-center py-6 text-sm">{t("planning.objectives.noMilestones")}</p>
             ) : (
               milestones.map((milestone) => (
                 <div 
@@ -376,15 +387,15 @@ export function SeasonObjectivesSection({ categoryId }: SeasonObjectivesSectionP
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Supprimer cette étape ?</AlertDialogTitle>
+                        <AlertDialogTitle>{t("planning.objectives.confirmDeleteMilestoneTitle")}</AlertDialogTitle>
                         <AlertDialogDescription>
-                          « {milestone.title} » sera définitivement supprimée.
+                          {t("planning.objectives.confirmDeleteMilestoneDesc", { title: milestone.title })}
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                        <AlertDialogCancel>{t("planning.objectives.cancel")}</AlertDialogCancel>
                         <AlertDialogAction onClick={() => deleteMilestoneMutation.mutate(milestone.id)}>
-                          Supprimer
+                          {t("planning.objectives.delete")}
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>

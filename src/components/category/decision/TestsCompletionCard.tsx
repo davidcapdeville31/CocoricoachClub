@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { FlaskConical, CheckCircle, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
+import { useTranslation } from "react-i18next";
 
 interface PlayerLite {
   id: string;
@@ -44,6 +45,7 @@ function parseTestsFromNotes(notes: string | null | undefined) {
 const fullName = (p: PlayerLite) => `${p.first_name ? p.first_name + " " : ""}${p.name}`.trim();
 
 export function TestsCompletionCard({ categoryId, date, sessions, players, participants = [] }: Props) {
+  const { t } = useTranslation();
   const testSessions = useMemo(
     () => sessions.filter((s) => parseTestsFromNotes(s.notes).length > 0),
     [sessions],
@@ -94,7 +96,7 @@ export function TestsCompletionCard({ categoryId, date, sessions, players, parti
       <CardHeader className="pb-2">
         <CardTitle className="text-base flex items-center gap-2">
           <FlaskConical className="h-5 w-5 text-cyan-600" />
-          Tests du jour
+          {t("decision.tests.title")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -109,7 +111,7 @@ export function TestsCompletionCard({ categoryId, date, sessions, players, parti
             <div key={session.id} className="space-y-3">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                 {session.session_start_time ? `${session.session_start_time.slice(0, 5)} · ` : ""}
-                {session.training_type || "Séance"}
+                {session.training_type || t("decision.common.session")}
               </p>
 
               {tests.map((t, idx) => {
@@ -169,18 +171,18 @@ export function TestsCompletionCard({ categoryId, date, sessions, players, parti
                     />
                     <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
                       <span>
-                        {doneCount} / {total} résultats enregistrés
+                        {t("decision.tests.resultsRecorded", { done: doneCount, total })}
                       </span>
                       {pendingCount > 0 && (
                         <Badge variant="secondary" className="text-[10px] gap-1">
                           <Clock className="h-3 w-3" />
-                          {pendingCount} à valider
+                          {t("decision.tests.toValidate", { count: pendingCount })}
                         </Badge>
                       )}
                       {percent === 100 && (
                         <Badge className="text-[10px] gap-1 bg-green-500 text-white">
                           <CheckCircle className="h-3 w-3" />
-                          Complet
+                          {t("decision.tests.complete")}
                         </Badge>
                       )}
                     </div>
@@ -195,7 +197,7 @@ export function TestsCompletionCard({ categoryId, date, sessions, players, parti
                     )}
                     {missing.length > 8 && (
                       <p className="text-[11px] text-muted-foreground pt-1 border-t">
-                        {missing.length} athlètes en attente
+                        {t("decision.tests.waitingAthletes", { count: missing.length })}
                       </p>
                     )}
                   </div>

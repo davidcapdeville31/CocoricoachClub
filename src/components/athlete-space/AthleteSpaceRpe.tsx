@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { AthleteSpaceRpeHistory } from "./AthleteSpaceRpeHistory";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -84,7 +85,7 @@ const formatFrNumber = (value: number, digits = 2) => {
 const formatBodyWeightRatioResult = (rawValue: unknown, playerWeight?: number | null) => {
   const value = Number(rawValue);
   if (!Number.isFinite(value)) return String(rawValue ?? "");
-  if (!playerWeight || playerWeight <= 0) return `ratio ${formatFrNumber(value, 2)} (poids athlète manquant)`;
+  if (!playerWeight || playerWeight <= 0) return `ratio ${formatFrNumber(value, 2)} (${t("athleteSpace.rpe.missingWeight")})`;
 
   const loadKg = value >= 5 ? value : value * playerWeight;
   const ratio = value >= 5 ? loadKg / playerWeight : value;
@@ -92,6 +93,7 @@ const formatBodyWeightRatioResult = (rawValue: unknown, playerWeight?: number | 
 };
 
 export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const today = new Date().toISOString().split("T")[0];
   const endDate = addDays(new Date(), 14).toISOString().split("T")[0];
@@ -464,7 +466,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
       selectedSession === session.id ? getSpareExerciseLabel(spareExerciseType) : null;
     const configuredExerciseLabel = getSpareExerciseLabel(session.bowling_exercise_type);
 
-    return `${baseLabel} — ${configuredExerciseLabel || selectedExerciseLabel || "Exercice à définir"}`;
+    return `${baseLabel} — ${configuredExerciseLabel || selectedExerciseLabel || t("athleteSpace.rpe.exerciseToDefine")}`;
   };
 
   const handleSelectSession = (sessionId: string) => {
@@ -510,15 +512,15 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
 
   const submitRpe = useMutation({
     mutationFn: async () => {
-      if (!selectedSession || !duration) throw new Error("Données manquantes");
+      if (!selectedSession || !duration) throw new Error(t("athleteSpace.rpe.missingData"));
 
       const durationMin = parseInt(duration, 10);
       if (Number.isNaN(durationMin) || durationMin <= 0) {
-        throw new Error("Durée invalide");
+        throw new Error(t("athleteSpace.rpe.invalidDuration"));
       }
 
       if (isPrecisionSession && !isRugbyPrecision && !isSpareStatsValid) {
-        throw new Error("Renseigne des statistiques valides (réussites ≤ tentatives)");
+        throw new Error(t("athleteSpace.rpe.invalidStats"));
       }
 
       const sessionDate = selectedSessionData?.session_date || today;
@@ -545,7 +547,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         ? { data: updatedAwcrRows?.[0] ?? null, error: null }
         : await supabase.from("awcr_tracking").insert(awcrPayload).select("id, post_session_feeling").single();
 
-      if (awcrError || !awcrRow) throw awcrError || new Error("Erreur AWCR");
+      if (awcrError || !awcrRow) throw awcrError || new Error(t("athleteSpace.rpe.awcrError"));
 
       // Safety net for duplicate/legacy rows: all rows for this athlete/session must carry
       // the selected post-session feeling used by the coach detail panel.
@@ -599,7 +601,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
           session_date: today,
           training_session_id: selectedSession,
           exercise_type_id: precisionExerciseId || null,
-          exercise_label: precisionExerciseLabel || "Précision",
+          exercise_label: precisionExerciseLabel || t("athleteSpace.rpe.precision"),
           attempts: attemptsValue,
           successes: successesValue,
         });
@@ -631,7 +633,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         });
         if (hrvError) {
           console.error("HRV insert error:", hrvError);
-          toast.error("RPE enregistré mais erreur HRV");
+          toast.error(t("athleteSpace.rpe.savedButHrvError"));
         }
       }
 
@@ -656,7 +658,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
           });
         if (weightError) {
           console.error("Weight log insert error:", weightError);
-          toast.error("RPE enregistré mais erreur lors de la sauvegarde des charges");
+          toast.error(t("athleteSpace.rpe.savedButWeightError"));
         }
       }
 
@@ -678,12 +680,12 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         const { error: testErr } = await supabase.from("pending_test_results").insert(stamped);
         if (testErr) {
           console.error("Pending test results error:", testErr);
-          toast.error("RPE enregistré mais erreur lors de l'envoi des résultats de test");
+          toast.error(t("athleteSpace.rpe.savedButTestError"));
         }
       }
     },
     onSuccess: () => {
-      toast.success(isPrecisionSession ? "RPE et statistiques enregistrés !" : "RPE enregistré !");
+      toast.success(isPrecisionSession ? t("athleteSpace.rpe.savedWithStats") : t("athleteSpace.rpe.saved"));
       queryClient.invalidateQueries({ queryKey: ["athlete-space-rpes"] });
       queryClient.invalidateQueries({ queryKey: ["athlete-space-awcr"] });
       queryClient.invalidateQueries({ queryKey: ["athlete-space-sessions"] });
@@ -716,7 +718,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
       queryClient.invalidateQueries({ queryKey: ["athlete-exercise-logs-dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
     },
-    onError: (error: any) => toast.error(error?.message || "Erreur lors de l'enregistrement"),
+    onError: (error: any) => toast.error(error?.message || t("athleteSpace.rpe.saveError")),
   });
 
   const getRpeColor = (val: number) => {
@@ -727,11 +729,11 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
   };
 
   const getRpeLabel = (val: number) => {
-    if (val <= 2) return "Très facile";
-    if (val <= 4) return "Facile";
-    if (val <= 6) return "Modéré";
-    if (val <= 8) return "Difficile";
-    return "Maximal";
+    if (val <= 2) return t("athleteSpace.rpe.level.veryEasy");
+    if (val <= 4) return t("athleteSpace.rpe.level.easy");
+    if (val <= 6) return t("athleteSpace.rpe.level.moderate");
+    if (val <= 8) return t("athleteSpace.rpe.level.hard");
+    return t("athleteSpace.rpe.level.maximal");
   };
 
   // Types informatifs : pas de RPE
@@ -753,7 +755,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
     const testNames = getTestNamesForSession(session.notes);
     const results = session.session_date === today ? getTestResultsForSession(session.id) : [];
     if (testNames.length === 0 && results.length === 0) {
-      return <div className="text-xs text-muted-foreground mt-0.5 italic">Test prévu</div>;
+      return <div className="text-xs text-muted-foreground mt-0.5 italic">{t("athleteSpace.rpe.testPlanned")}</div>;
     }
     return (
       <div className="text-xs text-muted-foreground mt-0.5">
@@ -832,9 +834,9 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2 text-sky-800 dark:text-sky-300">
                   <Activity className="h-4 w-4" />
-                  À ton agenda aujourd'hui (informatif)
+                  {t("athleteSpace.rpe.agendaToday")}
                 </CardTitle>
-                <CardDescription>Ces évènements n'ont pas de RPE à saisir.</CardDescription>
+                <CardDescription>{t("athleteSpace.rpe.agendaDesc")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
@@ -862,7 +864,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Activity className="h-4 w-4 text-accent" />
-                  Séances du jour à remplir
+                  {t("athleteSpace.rpe.sessionsToFill")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -889,7 +891,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                         </p>
                       )}
                     </div>
-                    <Badge variant="outline" className="text-xs">À remplir</Badge>
+                    <Badge variant="outline" className="text-xs">{t("athleteSpace.rpe.toFill")}</Badge>
                   </div>
                   {renderExerciseToggle(session.id)}
                 </div>
@@ -907,7 +909,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                     <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <Label className="text-sm">Ressenti (RPE)</Label>
+                        <Label className="text-sm">{t("athleteSpace.rpe.feelingRpe")}</Label>
                         <div className="mt-2">
                           <Slider
                             value={[rpe]}
@@ -924,7 +926,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                       </div>
 
                       <div>
-                        <Label className="text-sm">Durée (minutes)</Label>
+                        <Label className="text-sm">{t("athleteSpace.rpe.durationMinutes")}</Label>
                         {durationLocked ? (
                           <div className="mt-1 flex items-center gap-2">
                             <Input
@@ -946,7 +948,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                             pattern="[0-9]*"
                             value={duration}
                             onChange={e => setDuration(e.target.value)}
-                            placeholder="Ex: 90"
+                            placeholder={t("athleteSpace.rpe.ex90")}
                             className="mt-1"
                           />
                         )}
@@ -955,14 +957,14 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
 
                     {/* Ressenti global de la séance */}
                     <div>
-                      <Label className="text-sm">Ressenti global</Label>
+                      <Label className="text-sm">{t("athleteSpace.rpe.overallFeeling")}</Label>
                       <div className="mt-2 grid grid-cols-5 gap-2">
                         {[
-                          { value: 1, label: "Super forme", emoji: "💪" },
-                          { value: 2, label: "Bien", emoji: "🙂" },
-                          { value: 3, label: "Moyen", emoji: "😐" },
-                          { value: 4, label: "Fatigué", emoji: "😓" },
-                          { value: 5, label: "Épuisé", emoji: "🥵" },
+                          { value: 1, label: t("athleteSpace.rpe.mood.great"), emoji: "💪" },
+                          { value: 2, label: t("athleteSpace.rpe.mood.good"), emoji: "🙂" },
+                          { value: 3, label: t("athleteSpace.rpe.mood.average"), emoji: "😐" },
+                          { value: 4, label: t("athleteSpace.rpe.mood.tired"), emoji: "😓" },
+                          { value: 5, label: t("athleteSpace.rpe.mood.exhausted"), emoji: "🥵" },
                         ].map((f) => (
                           <button
                             key={f.value}
@@ -982,11 +984,11 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                     </div>
 
                     <div>
-                      <Label className="text-sm">Commentaire (optionnel)</Label>
+                      <Label className="text-sm">{t("athleteSpace.rpe.commentOptional")}</Label>
                       <Input
                         value={comment}
                         onChange={(e) => setComment(e.target.value)}
-                        placeholder="Ressenti, points forts, difficultés..."
+                        placeholder={t("athleteSpace.rpe.commentPlaceholder")}
                         className="mt-1"
                       />
                     </div>
@@ -996,10 +998,10 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                     {isBowlingPrecision && (
                       <div className="space-y-3 rounded-lg border border-border p-3">
                         <div>
-                          <Label className="text-sm">Exercice précision</Label>
+                          <Label className="text-sm">{t("athleteSpace.rpe.precisionExercise")}</Label>
                           <Select value={spareExerciseType} onValueChange={setSpareExerciseType}>
                             <SelectTrigger className="mt-1">
-                              <SelectValue placeholder="Choisir l'exercice" />
+                              <SelectValue placeholder={t("athleteSpace.rpe.chooseExercise")} />
                             </SelectTrigger>
                             <SelectContent>
                               {SPARE_EXERCISE_TYPES.map((type) => (
@@ -1013,26 +1015,26 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
-                            <Label className="text-sm">Tentatives</Label>
+                            <Label className="text-sm">{t("athleteSpace.rpe.attempts")}</Label>
                             <Input
                               type="number"
                               min={1}
                               step={1}
                               value={spareAttempts}
                               onChange={(e) => setSpareAttempts(e.target.value)}
-                              placeholder="Ex: 20"
+                              placeholder={t("athleteSpace.rpe.ex20")}
                               className="mt-1"
                             />
                           </div>
                           <div>
-                            <Label className="text-sm">Réussites</Label>
+                            <Label className="text-sm">{t("athleteSpace.rpe.successes")}</Label>
                             <Input
                               type="number"
                               min={0}
                               step={1}
                               value={spareSuccesses}
                               onChange={(e) => setSpareSuccesses(e.target.value)}
-                              placeholder="Ex: 14"
+                              placeholder={t("athleteSpace.rpe.ex14")}
                               className="mt-1"
                             />
                           </div>
@@ -1041,7 +1043,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                         {attemptsValue > 0 && successesValue >= 0 && successesValue <= attemptsValue && (
                           <p className="text-xs text-muted-foreground flex items-center gap-1">
                             <Target className="h-3 w-3" />
-                            Taux de réussite : {Math.round((successesValue / attemptsValue) * 10000) / 100}%
+                            {t("athleteSpace.rpe.successRate")} : {Math.round((successesValue / attemptsValue) * 10000) / 100}%
                           </p>
                         )}
                       </div>
@@ -1074,26 +1076,26 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
-                            <Label className="text-sm">Tentatives</Label>
+                            <Label className="text-sm">{t("athleteSpace.rpe.attempts")}</Label>
                             <Input
                               type="number"
                               min={1}
                               step={1}
                               value={spareAttempts}
                               onChange={(e) => setSpareAttempts(e.target.value)}
-                              placeholder="Ex: 20"
+                              placeholder={t("athleteSpace.rpe.ex20")}
                               className="mt-1"
                             />
                           </div>
                           <div>
-                            <Label className="text-sm">Réussites</Label>
+                            <Label className="text-sm">{t("athleteSpace.rpe.successes")}</Label>
                             <Input
                               type="number"
                               min={0}
                               step={1}
                               value={spareSuccesses}
                               onChange={(e) => setSpareSuccesses(e.target.value)}
-                              placeholder="Ex: 14"
+                              placeholder={t("athleteSpace.rpe.ex14")}
                               className="mt-1"
                             />
                           </div>
@@ -1102,7 +1104,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                         {attemptsValue > 0 && successesValue >= 0 && successesValue <= attemptsValue && (
                           <p className="text-xs text-muted-foreground flex items-center gap-1">
                             <Target className="h-3 w-3" />
-                            Taux de réussite : {Math.round((successesValue / attemptsValue) * 10000) / 100}%
+                            {t("athleteSpace.rpe.successRate")} : {Math.round((successesValue / attemptsValue) * 10000) / 100}%
                           </p>
                         )}
                       </div>
@@ -1114,7 +1116,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                         <div className="flex items-center justify-between">
                           <Label className="text-sm flex items-center gap-1.5">
                             <Target className="h-3.5 w-3.5 text-blue-600" />
-                            Parties d'entraînement
+                            {t("athleteSpace.rpe.trainingGames")}
                           </Label>
                           {savedGameScores.length > 0 && (
                             <Badge variant="secondary" className="text-xs">
@@ -1130,7 +1132,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                             onClick={() => setShowBowlingSheet(true)}
                             disabled={submittingGame}
                           >
-                            + Ajouter une partie
+                            {t("athleteSpace.rpe.addGame")}
                           </Button>
                         ) : (
                           <BowlingScoreSheet
@@ -1156,15 +1158,15 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                                   },
                                 );
                                 if (error || !(data as any)?.success) {
-                                  throw new Error((data as any)?.error || error?.message || "Erreur");
+                                  throw new Error((data as any)?.error || error?.message || t("athleteSpace.rpe.error"));
                                 }
-                                toast.success(`Partie enregistrée : ${stats.totalScore} pts`);
+                                toast.success(t("athleteSpace.rpe.gameSaved", { score: stats.totalScore }));
                                 setSavedGameScores((prev) => [...prev, stats.totalScore]);
                                 setShowBowlingSheet(false);
                                 queryClient.invalidateQueries({ queryKey: ["bowling-training-rounds"] });
                                 queryClient.invalidateQueries({ queryKey: ["bowling_training_stats"] });
                               } catch (e: any) {
-                                toast.error(e?.message || "Erreur lors de l'enregistrement de la partie");
+                                toast.error(e?.message || t("athleteSpace.rpe.gameSaveError"));
                               } finally {
                                 setSubmittingGame(false);
                               }
@@ -1172,7 +1174,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                           />
                         )}
                         <p className="text-[11px] text-muted-foreground italic">
-                          Tu peux ajouter plusieurs parties. Elles alimentent <b>Stats → Stats d'entraînement</b>.
+                          {t("athleteSpace.rpe.multipleGamesHint")} <b>{t("athleteSpace.rpe.statsTrainingPath")}</b>.
                         </p>
                       </div>
                     )}
@@ -1211,10 +1213,10 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                         <Label className="text-sm flex items-center gap-1.5">
                           <Heart className="h-3.5 w-3.5 text-destructive" />
                           {selectedSessionData?.training_type === "test"
-                            ? "Ajouter mes données HRV test"
+                            ? t("athleteSpace.rpe.hrvAddTest")
                             : selectedSessionData?.training_type === "competition"
-                            ? "Ajouter mes données HRV compétition"
-                            : "Ajouter mes données HRV séance"}
+                            ? t("athleteSpace.rpe.hrvAddCompetition")
+                            : t("athleteSpace.rpe.hrvAddSession")}
                         </Label>
                       </div>
 
@@ -1222,48 +1224,48 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                         <div className="space-y-3 pl-6">
                           <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1.5">
-                              <Label className="text-xs">HRV (ms)</Label>
+                              <Label className="text-xs">{t("athleteSpace.rpe.hrvMs")}</Label>
                               <Input
                                 type="number"
                                 min="0"
                                 max="300"
-                                placeholder="Ex: 65"
+                                placeholder={t("athleteSpace.rpe.ex65")}
                                 value={hrvMs}
                                 onChange={(e) => setHrvMs(e.target.value)}
                                 className="h-9"
                               />
                             </div>
                             <div className="space-y-1.5">
-                              <Label className="text-xs">FC repos (bpm)</Label>
+                              <Label className="text-xs">{t("athleteSpace.rpe.restingHr")}</Label>
                               <Input
                                 type="number"
                                 min="30"
                                 max="120"
-                                placeholder="Ex: 55"
+                                placeholder={t("athleteSpace.rpe.ex55")}
                                 value={restingHr}
                                 onChange={(e) => setRestingHr(e.target.value)}
                                 className="h-9"
                               />
                             </div>
                             <div className="space-y-1.5">
-                              <Label className="text-xs">FC moyenne (bpm)</Label>
+                              <Label className="text-xs">{t("athleteSpace.rpe.avgHr")}</Label>
                               <Input
                                 type="number"
                                 min="40"
                                 max="220"
-                                placeholder="Ex: 145"
+                                placeholder={t("athleteSpace.rpe.ex145")}
                                 value={avgHr}
                                 onChange={(e) => setAvgHr(e.target.value)}
                                 className="h-9"
                               />
                             </div>
                             <div className="space-y-1.5">
-                              <Label className="text-xs">FC max (bpm)</Label>
+                              <Label className="text-xs">{t("athleteSpace.rpe.maxHr")}</Label>
                               <Input
                                 type="number"
                                 min="60"
                                 max="230"
-                                placeholder="Ex: 185"
+                                placeholder={t("athleteSpace.rpe.ex185")}
                                 value={maxHr}
                                 onChange={(e) => setMaxHr(e.target.value)}
                                 className="h-9"
@@ -1277,18 +1279,18 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                               setShowZones(!!v);
                               if (!v) { setZone1(""); setZone2(""); setZone3(""); setZone4(""); setZone5(""); }
                             }} />
-                            <Label className="text-xs">Ajouter le temps par zone cardiaque</Label>
+                            <Label className="text-xs">{t("athleteSpace.rpe.addZoneTime")}</Label>
                           </div>
 
                           {showZones && (
                             <div className="space-y-2 rounded-lg border border-border p-3">
-                              <Label className="text-xs font-medium text-muted-foreground">Temps par zone (minutes)</Label>
+                              <Label className="text-xs font-medium text-muted-foreground">{t("athleteSpace.rpe.timePerZone")}</Label>
                               {[
-                                { label: "Z1 — Récupération", color: "bg-sky-500", state: zone1, setter: setZone1 },
-                                { label: "Z2 — Endurance", color: "bg-emerald-500", state: zone2, setter: setZone2 },
-                                { label: "Z3 — Tempo", color: "bg-amber-500", state: zone3, setter: setZone3 },
-                                { label: "Z4 — Seuil", color: "bg-orange-500", state: zone4, setter: setZone4 },
-                                { label: "Z5 — VO2max", color: "bg-red-500", state: zone5, setter: setZone5 },
+                                { label: t("athleteSpace.rpe.zone.z1"), color: "bg-sky-500", state: zone1, setter: setZone1 },
+                                { label: t("athleteSpace.rpe.zone.z2"), color: "bg-emerald-500", state: zone2, setter: setZone2 },
+                                { label: t("athleteSpace.rpe.zone.z3"), color: "bg-amber-500", state: zone3, setter: setZone3 },
+                                { label: t("athleteSpace.rpe.zone.z4"), color: "bg-orange-500", state: zone4, setter: setZone4 },
+                                { label: t("athleteSpace.rpe.zone.z5"), color: "bg-red-500", state: zone5, setter: setZone5 },
                               ].map((z) => (
                                 <div key={z.label} className="flex items-center gap-2">
                                   <div className={`w-2.5 h-2.5 rounded-full ${z.color} shrink-0`} />
@@ -1308,14 +1310,14 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                                   .filter(Boolean)
                                   .reduce((s, v) => s + (parseFloat(v) || 0), 0);
                                 return total > 0 ? (
-                                  <p className="text-xs text-muted-foreground text-right">Total : {total} min</p>
+                                  <p className="text-xs text-muted-foreground text-right">{t("athleteSpace.rpe.total")} : {total} min</p>
                                 ) : null;
                               })()}
                             </div>
                           )}
 
                           <p className="text-[10px] text-muted-foreground">
-                            Données visibles dans Santé → HRV
+                            {t("athleteSpace.rpe.hrvVisibleHint")}
                           </p>
                         </div>
                       )}
@@ -1326,7 +1328,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                         const incomplete = countIncompleteWeightLogs(weightLogs);
                         if (incomplete > 0) {
                           const ok = window.confirm(
-                            `${incomplete} exercice${incomplete > 1 ? "s" : ""} de musculation sans charge renseignée.\n\nValider quand même ? (Le tonnage de ces exercices ne sera pas comptabilisé.)`
+                            t("athleteSpace.rpe.incompleteWeightsConfirm", { count: incomplete })
                           );
                           if (!ok) return;
                         }
@@ -1336,7 +1338,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                       className="w-full"
                     >
                       <CheckCircle2 className="h-4 w-4 mr-2" />
-                      {isPrecisionSession ? "Valider mon RPE et mes stats" : "Valider mon RPE"}
+                      {isPrecisionSession ? t("athleteSpace.rpe.validateRpeStats") : t("athleteSpace.rpe.validateRpe")}
                     </Button>
                     </>
                     )}
@@ -1360,15 +1362,15 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex items-center gap-2">
                 <Activity className="h-4 w-4 text-muted-foreground" />
-                Séance d'aujourd'hui
+                {t("athleteSpace.rpe.todaySession")}
               </CardTitle>
             </CardHeader>
             <CardContent className="py-6 text-center">
               <CheckCircle2 className="h-10 w-10 text-status-optimal mx-auto mb-2" />
               <p className="text-sm text-muted-foreground">
                 {todaySessions.length === 0
-                  ? "Aucune séance prévue aujourd'hui"
-                  : "Tous les RPE du jour sont enregistrés 👏"}
+                  ? t("athleteSpace.rpe.noSessionToday")
+                  : t("athleteSpace.rpe.allRpeSubmitted")}
               </p>
             </CardContent>
           </Card>
@@ -1379,7 +1381,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
-                  Séances à venir
+                  {t("athleteSpace.rpe.upcomingSessions")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -1409,7 +1411,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                             </div>
                             <div className="flex items-center gap-1 text-muted-foreground">
                               <Lock className="h-3 w-3" />
-                              <span className="text-xs">Jour J</span>
+                              <span className="text-xs">{t("athleteSpace.rpe.dDay")}</span>
                             </div>
                           </div>
                           {renderExerciseToggle(session.id)}

@@ -115,6 +115,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
  }
  
  export function DecisionCenter({ categoryId, categoryName }: DecisionCenterProps) {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const { notify: notifySessions } = useSessionNotifications();
@@ -898,22 +899,22 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
                 <Users className="h-4 w-4 text-primary" />
-                État du groupe
+                {t("decision.groupStatus.title")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {playersLoading ? (
                 <div className="py-4 text-sm text-muted-foreground">
-                  Chargement de l’effectif...
+                  {t("decision.groupStatus.loading")}
                 </div>
               ) : groupStatus.total === 0 ? (
                 <div className="py-4 text-sm text-muted-foreground">
-                  Aucun athlète dans cette catégorie
+                  {t("decision.groupStatus.noAthletes")}
                 </div>
               ) : (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Disponibilité</span>
+                    <span className="text-sm font-medium">{t("decision.groupStatus.availability")}</span>
                     <span className={cn(
                       "text-2xl font-bold",
                       availabilityPercent >= 80 ? "text-green-600" :
@@ -931,13 +932,13 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                     )}
                   />
                   <p className="text-xs text-muted-foreground">
-                    {groupStatus.available} / {groupStatus.total} athlètes disponibles
+                    {t("decision.groupStatus.availableCount", { available: groupStatus.available, total: groupStatus.total })}
                   </p>
                   {groupStatus.atRisk === 0 && groupStatus.injured === 0 && groupStatus.uncertain === 0 && (
                     <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-100 dark:bg-green-900/30">
                       <CheckCircle className="h-4 w-4 text-green-600" />
                       <span className="font-semibold text-green-700 dark:text-green-400 text-sm">
-                        Groupe au complet
+                        {t("decision.groupStatus.full")}
                       </span>
                     </div>
                   )}
@@ -959,11 +960,11 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                   navigate(`/categories/${categoryId}?tab=performance&subtab=physical-prep`);
                 }
               }}
-              title="Voir l'analyse complète des athlètes à risque"
+              title={t("decision.atRisk.tooltip")}
             >
               <CardTitle className="text-sm flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-orange-500" />
-                À risque
+                {t("decision.atRisk.title")}
                 {groupStatus.atRisk > 0 && (
                   <Badge variant="secondary" className="ml-auto bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
                     {groupStatus.atRisk}
@@ -977,7 +978,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
               {groupStatus.atRiskPlayers.length === 0 ? (
                 <div className="text-center py-4">
                   <CheckCircle className="h-6 w-6 text-green-500 mx-auto mb-1" />
-                  <p className="text-xs text-muted-foreground">Aucun joueur à risque</p>
+                  <p className="text-xs text-muted-foreground">{t("decision.atRisk.none")}</p>
                 </div>
               ) : (
                 <ScrollArea className={groupStatus.atRiskPlayers.length > 4 ? "h-[180px]" : ""}>
@@ -1004,7 +1005,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                   onClick={() => navigate(`/categories/${categoryId}?tab=performance&subtab=physical-prep`)}
                   className="mt-2 w-full text-xs font-medium text-orange-600 dark:text-orange-400 hover:underline flex items-center justify-center gap-1"
                 >
-                  Analyser tous les athlètes à risque
+                  {t("decision.atRisk.analyzeAll")}
                   <ChevronRight className="h-3.5 w-3.5" />
                 </button>
               )}
@@ -1017,11 +1018,11 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
             <CardHeader
               className="pb-2 cursor-pointer"
               onClick={() => navigate(`/categories/${categoryId}?tab=sante&subtab=injuries`)}
-              title="Voir Santé › Blessures / Maladies"
+              title={t("decision.unavailable.tooltip")}
             >
               <CardTitle className="text-sm flex items-center gap-2 hover:underline">
                 <XCircle className="h-4 w-4 text-red-500" />
-                Blessés / Incertains / Malades
+                {t("decision.unavailable.title")}
                 {(groupStatus.total - groupStatus.available) > 0 && (
                   <Badge variant="secondary" className="ml-auto bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
                     {groupStatus.total - groupStatus.available}
@@ -1033,7 +1034,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
               {groupStatus.injuredPlayers.length === 0 && groupStatus.uncertainPlayers.length === 0 && groupStatus.sickPlayers.length === 0 ? (
                 <div className="text-center py-4">
                   <CheckCircle className="h-6 w-6 text-green-500 mx-auto mb-1" />
-                  <p className="text-xs text-muted-foreground">Aucun indisponible</p>
+                  <p className="text-xs text-muted-foreground">{t("decision.unavailable.none")}</p>
                 </div>
               ) : (
                 <ScrollArea className={(groupStatus.injuredPlayers.length + groupStatus.uncertainPlayers.length + groupStatus.sickPlayers.length) > 4 ? "h-[180px]" : ""}>
@@ -1043,19 +1044,19 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                         key={`inj-${p.id}`}
                         className="flex items-center justify-between p-2 rounded-lg bg-red-50 dark:bg-red-900/10 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors"
                         onClick={() => navigate(getPlayerProfilePath(p.id, "injuries"))}
-                        title="Voir le détail des blessures"
+                        title={t("decision.unavailable.injuriesTooltip")}
                       >
                         <div className="flex items-center gap-2 min-w-0">
                           <XCircle className="h-3.5 w-3.5 text-red-500 shrink-0" />
                           <div className="min-w-0">
                             <p className="text-sm font-medium truncate">{p.name}</p>
                             {p.injuryCount > 1 && (
-                              <p className="text-[10px] text-muted-foreground">{p.injuryCount} blessures actives</p>
+                              <p className="text-[10px] text-muted-foreground">{t("decision.unavailable.activeInjuriesCount", { count: p.injuryCount })}</p>
                             )}
                           </div>
                         </div>
                         <Badge className="text-[10px] bg-red-500 text-white shrink-0">
-                          {p.injuryCount > 1 ? `${p.injuryCount} blessures` : "Blessé"}
+                          {p.injuryCount > 1 ? t("decision.unavailable.injuredBadgeCount", { count: p.injuryCount }) : t("decision.unavailable.injuredBadgeSingle")}
                         </Badge>
                       </div>
                     ))}
@@ -1064,18 +1065,18 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                         key={`unc-${p.id}`}
                         className="flex items-center justify-between p-2 rounded-lg bg-yellow-50 dark:bg-yellow-900/10 cursor-pointer hover:bg-yellow-100 dark:hover:bg-yellow-900/20 transition-colors"
                         onClick={() => navigate(getPlayerProfilePath(p.id, "injuries"))}
-                        title="Voir le détail des blessures"
+                        title={t("decision.unavailable.injuriesTooltip")}
                       >
                         <div className="flex items-center gap-2 min-w-0">
                           <Clock className="h-3.5 w-3.5 text-yellow-500 shrink-0" />
                           <div className="min-w-0">
                             <p className="text-sm font-medium truncate">{p.name}</p>
                             {p.injuryCount > 1 && (
-                              <p className="text-[10px] text-muted-foreground">{p.injuryCount} blessures en réathlé.</p>
+                              <p className="text-[10px] text-muted-foreground">{t("decision.unavailable.recoveringCount", { count: p.injuryCount })}</p>
                             )}
                           </div>
                         </div>
-                        <Badge className="text-[10px] bg-yellow-500 text-white shrink-0">Réathléti.</Badge>
+                        <Badge className="text-[10px] bg-yellow-500 text-white shrink-0">{t("decision.unavailable.recoveringBadge")}</Badge>
                       </div>
                     ))}
                     {groupStatus.sickPlayers.map(p => (
@@ -1091,7 +1092,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                             {p.illness && <p className="text-[10px] text-muted-foreground truncate">{p.illness}</p>}
                           </div>
                         </div>
-                        <Badge className="text-[10px] bg-orange-500 text-white shrink-0">Malade</Badge>
+                        <Badge className="text-[10px] bg-orange-500 text-white shrink-0">{t("decision.unavailable.sickBadge")}</Badge>
                       </div>
                     ))}
                   </div>
@@ -1103,7 +1104,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                   onClick={() => navigate(`/categories/${categoryId}?tab=sante&subtab=injuries`)}
                   className="mt-2 w-full text-xs font-medium text-red-600 dark:text-red-400 hover:underline flex items-center justify-center gap-1"
                 >
-                  Voir tous les blessés / incertains / malades
+                  {t("decision.unavailable.viewAll")}
                   <ChevronRight className="h-3.5 w-3.5" />
                 </button>
               )}
@@ -1118,14 +1119,14 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
               <Heart className="h-5 w-5 text-green-600" />
-              Wellness du jour
+              {t("decision.wellness.title")}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-6 flex-wrap">
               <div className="flex-1 min-w-[200px]">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium">Taux de remplissage</span>
+                  <span className="text-sm font-medium">{t("decision.wellness.fillRate")}</span>
                   <span className={cn(
                     "text-2xl font-bold",
                     wellnessStatus.filledPercent >= 80 ? "text-green-600" : 
@@ -1143,7 +1144,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                   )}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  {wellnessStatus.filledCount} / {players.length} ont rempli leur wellness
+                  {t("decision.wellness.filledCount", { filled: wellnessStatus.filledCount, total: players.length })}
                 </p>
               </div>
               
@@ -1152,14 +1153,14 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                   <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-100 dark:bg-green-900/30">
                     <CheckCircle className="h-4 w-4 text-green-600" />
                     <span className="font-semibold text-green-700 dark:text-green-400 text-sm">
-                      Tous complétés
+                      {t("decision.wellness.allCompleted")}
                     </span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
                     <Clock className="h-4 w-4 text-orange-600" />
                     <span className="font-semibold text-orange-700 dark:text-orange-400 text-sm">
-                      {wellnessStatus.missingPlayers.length} en attente
+                      {t("decision.wellness.pending", { count: wellnessStatus.missingPlayers.length })}
                     </span>
                   </div>
                 )}
@@ -1169,7 +1170,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                   className="w-full"
                 >
                   <Pencil className="h-4 w-4 mr-1" />
-                  Ajouter manuel
+                  {t("decision.wellness.addManual")}
                 </Button>
               </div>
             </div>
@@ -1177,7 +1178,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
             {/* Missing players list */}
             {wellnessStatus.missingPlayers.length > 0 && wellnessStatus.missingPlayers.length <= 6 && (
               <div className="mt-3 pt-3 border-t">
-                <p className="text-xs text-muted-foreground mb-2">En attente :</p>
+                <p className="text-xs text-muted-foreground mb-2">{t("decision.wellness.pendingListLabel")}</p>
                 <div className="flex flex-wrap gap-1">
                   {wellnessStatus.missingPlayers.slice(0, 6).map((name, idx) => (
                     <Badge key={idx} variant="outline" className="text-xs">
@@ -1198,7 +1199,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
               onClick={() => navigate(`/categories/${categoryId}?tab=sante&subtab=wellness-health`)}
               className="mt-3 w-full text-xs font-medium text-green-600 dark:text-green-400 hover:underline flex items-center justify-center gap-1"
             >
-              Voir le détail wellness
+              {t("decision.wellness.viewDetail")}
               <ChevronRight className="h-3.5 w-3.5" />
             </button>
           </CardContent>
@@ -1217,7 +1218,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex items-center gap-2">
                 <ClipboardCheck className="h-5 w-5 text-blue-600" />
-                Présences du jour
+                {t("decision.attendance.title")}
                 {todayAttendance.length > 0 && (
                   <Badge variant="secondary" className="ml-auto text-xs">
                     {todayAttendance.length} / {players.length}
@@ -1228,7 +1229,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
             <CardContent>
               {todayAttendance.length === 0 ? (
                 <p className="text-sm text-muted-foreground italic text-center py-4">
-                  Aucune présence enregistrée pour aujourd'hui
+                  {t("decision.attendance.none")}
                 </p>
               ) : (
                 <div className="space-y-3">
@@ -1245,30 +1246,30 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                           {present > 0 && (
                             <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-green-100 dark:bg-green-900/30">
                               <CheckCircle className="h-3.5 w-3.5 text-green-600" />
-                              <span className="text-xs font-semibold text-green-700 dark:text-green-400">{present} présent{present > 1 ? "s" : ""}</span>
+                              <span className="text-xs font-semibold text-green-700 dark:text-green-400">{t("decision.attendance.presentCount", { count: present })}</span>
                             </div>
                           )}
                           {late > 0 && (
                             <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-orange-100 dark:bg-orange-900/30">
                               <Clock className="h-3.5 w-3.5 text-orange-600" />
-                              <span className="text-xs font-semibold text-orange-700 dark:text-orange-400">{late} en retard</span>
+                              <span className="text-xs font-semibold text-orange-700 dark:text-orange-400">{t("decision.attendance.lateCount", { count: late })}</span>
                             </div>
                           )}
                           {absent > 0 && (
                             <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-red-100 dark:bg-red-900/30">
                               <XCircle className="h-3.5 w-3.5 text-red-600" />
-                              <span className="text-xs font-semibold text-red-700 dark:text-red-400">{absent} absent{absent > 1 ? "s" : ""}</span>
+                              <span className="text-xs font-semibold text-red-700 dark:text-red-400">{t("decision.attendance.absentCount", { count: absent })}</span>
                             </div>
                           )}
                           {excused > 0 && (
                             <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/30">
                               <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
-                              <span className="text-xs font-semibold text-amber-700 dark:text-amber-400">{excused} excusé{excused > 1 ? "s" : ""}</span>
+                              <span className="text-xs font-semibold text-amber-700 dark:text-amber-400">{t("decision.attendance.excusedCount", { count: excused })}</span>
                             </div>
                           )}
                           {notMarked > 0 && (
                             <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted">
-                              <span className="text-xs font-semibold text-muted-foreground">{notMarked} non pointé{notMarked > 1 ? "s" : ""}</span>
+                              <span className="text-xs font-semibold text-muted-foreground">{t("decision.attendance.notMarkedCount", { count: notMarked })}</span>
                             </div>
                           )}
                         </>
@@ -1291,9 +1292,9 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                               {entry.status === "late" && <Clock className="h-4 w-4 text-orange-500 shrink-0" />}
                               {entry.status === "excused" && <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />}
                               <div className="min-w-0">
-                                <span className="font-medium truncate block">{entry.players ? [entry.players.first_name, entry.players.name].filter(Boolean).join(" ") : "Inconnu"}</span>
+                                <span className="font-medium truncate block">{entry.players ? [entry.players.first_name, entry.players.name].filter(Boolean).join(" ") : t("decision.common.unknown")}</span>
                                 {entry.status === "late" && entry.late_minutes && (
-                                  <span className="text-xs text-orange-600 dark:text-orange-400">+{entry.late_minutes} min</span>
+                                  <span className="text-xs text-orange-600 dark:text-orange-400">{t("decision.attendance.lateMinutes", { minutes: entry.late_minutes })}</span>
                                 )}
                               </div>
                             </div>
@@ -1305,7 +1306,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                                   entry.status === "late" ? "bg-orange-500" : "bg-amber-500"
                                 )}
                               >
-                                {entry.status === "absent" ? "Absent" : entry.status === "late" ? `Retard${entry.late_minutes ? ` ${entry.late_minutes}min` : ""}` : "Excusé"}
+                                {entry.status === "absent" ? t("decision.attendance.statusAbsent") : entry.status === "late" ? (entry.late_minutes ? t("decision.attendance.statusLateWithMinutes", { minutes: entry.late_minutes }) : t("decision.attendance.statusLate")) : t("decision.attendance.statusExcused")}
                               </Badge>
                               {entry.status === "late" && entry.late_reason && (
                                 <span className="text-xs text-muted-foreground max-w-[150px] truncate" title={entry.late_reason}>
@@ -1332,7 +1333,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                       onClick={() => setAttendanceDetailOpen(true)}
                     >
                       <ClipboardCheck className="h-4 w-4 mr-2" />
-                      Voir le détail des présences
+                      {t("decision.attendance.viewDetail")}
                     </Button>
                   </div>
                 </div>
@@ -1353,9 +1354,9 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex items-center gap-2">
                     <Activity className="h-5 w-5 text-indigo-600" />
-                    RPE post-séance du jour
+                    {t("decision.rpe.title")}
                     <Badge variant="secondary" className="ml-auto text-xs">
-                      {completedSessions}/{totalSessions} séance{totalSessions > 1 ? "s" : ""} complétée{completedSessions > 1 ? "s" : ""}
+                      {completedSessions}/{totalSessions} {t("decision.rpe.sessionsWord", { count: totalSessions })} {t("decision.rpe.completedWord", { count: completedSessions })}
                     </Badge>
                   </CardTitle>
                 </CardHeader>
@@ -1363,7 +1364,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                   {totalSessions > 1 && (
                     <div className="p-3 rounded-lg bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-200/50 dark:border-indigo-800/30 space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-indigo-700 dark:text-indigo-300">Progression globale</span>
+                        <span className="text-sm font-medium text-indigo-700 dark:text-indigo-300">{t("decision.rpe.globalProgress")}</span>
                         <span className={cn(
                           "text-lg font-bold",
                           globalPercent >= 80 ? "text-green-600" :
@@ -1401,7 +1402,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                               <Badge variant="outline" className="text-[10px] shrink-0">{session.sessionTime}</Badge>
                             )}
                             <span className="text-[10px] text-muted-foreground shrink-0">
-                              Cible: {session.plannedIntensity}/10
+                              {t("decision.rpe.target", { value: session.plannedIntensity })}
                             </span>
                             <span className={cn(
                               "ml-auto text-sm font-bold shrink-0",
@@ -1423,7 +1424,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                           />
                           <div className="flex items-center justify-between">
                             <p className="text-xs text-muted-foreground">
-                              {session.filledCount} / {session.totalParticipants} ont rempli leur RPE
+                              {t("decision.rpe.filledOf", { filled: session.filledCount, total: session.totalParticipants })}
                             </p>
                             {session.filledPercent < 100 && (
                               <Button
@@ -1436,13 +1437,13 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                                 }}
                               >
                                 <Pencil className="h-3 w-3 mr-1" />
-                                Saisir RPE
+                                {t("decision.rpe.enterRpe")}
                               </Button>
                             )}
                           </div>
                           {session.missingPlayers.length > 0 && (
                             <div>
-                              <p className="text-[11px] font-medium text-muted-foreground mb-1">Non rempli :</p>
+                              <p className="text-[11px] font-medium text-muted-foreground mb-1">{t("decision.rpe.notFilledLabel")}</p>
                               <div className="flex flex-wrap gap-1">
                                 {session.missingPlayers.slice(0, 10).map((name, idx) => (
                                   <Badge key={idx} variant="outline" className="text-[10px] text-orange-600 border-orange-200 dark:border-orange-800">
@@ -1461,7 +1462,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                             <Collapsible>
                               <CollapsibleTrigger className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-1">
                                 <ChevronRight className="h-3 w-3" />
-                                Voir les {session.filledPlayers.length} complétés
+                                {t("decision.rpe.viewCompleted", { count: session.filledPlayers.length })}
                               </CollapsibleTrigger>
                               <CollapsibleContent className="pt-1">
                                 <div className="flex flex-wrap gap-1">
@@ -1488,17 +1489,17 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
            <CardHeader className="pb-2">
              <CardTitle className="text-base flex items-center gap-2">
                <Calendar className="h-5 w-5 text-primary" />
-               Séances prévues
+               {t("decision.sessions.title")}
              </CardTitle>
            </CardHeader>
            <CardContent className="space-y-3">
              {/* Today */}
              <div>
                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
-                 Aujourd'hui
+                 {t("decision.sessions.today")}
                </p>
                {todaySessions.length === 0 ? (
-                 <p className="text-sm text-muted-foreground italic">Pas de séance prévue</p>
+                 <p className="text-sm text-muted-foreground italic">{t("decision.sessions.none")}</p>
                ) : (
                  <div className="space-y-2">
                     {todaySessions.slice(0, 2).map(session => {
@@ -1513,11 +1514,11 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                             <div>
                               <p className="font-medium text-sm">{getTrainingTypeLabel(session.training_type)}</p>
                               <p className="text-xs text-muted-foreground">
-                                {session.session_start_time?.slice(0, 5)} • Charge cible: {session.planned_intensity || 5}/10
+                                {session.session_start_time?.slice(0, 5)} • {t("decision.sessions.targetLoad", { value: session.planned_intensity || 5 })}
                               </p>
                               {testNames.length > 0 && (
                                 <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
-                                  🧪 Test : {testNames.join(", ")}
+                                  {t("decision.sessions.testLabel", { names: testNames.join(", ") })}
                                 </p>
                               )}
                             </div>
@@ -1528,7 +1529,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                               size="sm"
                               className="h-7 w-7 p-0"
                               onClick={() => handleEditSession(session)}
-                              title="Modifier"
+                              title={t("decision.sessions.edit")}
                             >
                               <Pencil className="h-3.5 w-3.5" />
                             </Button>
@@ -1537,7 +1538,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                               size="sm"
                               className="h-7 w-7 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                               onClick={() => handleNotifySession(session)}
-                              title="Notifier les athlètes"
+                              title={t("decision.sessions.notify")}
                             >
                               <Bell className="h-3.5 w-3.5" />
                             </Button>
@@ -1546,7 +1547,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                               size="sm"
                               className="h-7 w-7 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
                               onClick={() => setDeleteSessionId(session.id)}
-                              title="Supprimer"
+                              title={t("decision.sessions.delete")}
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
@@ -1561,10 +1562,10 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
              {/* Tomorrow */}
              <div>
                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
-                 Demain
+                 {t("decision.sessions.tomorrow")}
                </p>
                {tomorrowSessions.length === 0 ? (
-                 <p className="text-sm text-muted-foreground italic">Pas de séance prévue</p>
+                 <p className="text-sm text-muted-foreground italic">{t("decision.sessions.none")}</p>
                ) : (
                  <div className="space-y-2">
                     {tomorrowSessions.slice(0, 2).map(session => {
@@ -1579,11 +1580,11 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                             <div>
                               <p className="font-medium text-sm">{getTrainingTypeLabel(session.training_type)}</p>
                               <p className="text-xs text-muted-foreground">
-                                {session.session_start_time?.slice(0, 5)} • Charge cible: {session.planned_intensity || 5}/10
+                                {session.session_start_time?.slice(0, 5)} • {t("decision.sessions.targetLoad", { value: session.planned_intensity || 5 })}
                               </p>
                               {testNames.length > 0 && (
                                 <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
-                                  🧪 Test : {testNames.join(", ")}
+                                  {t("decision.sessions.testLabel", { names: testNames.join(", ") })}
                                 </p>
                               )}
                             </div>
@@ -1599,7 +1600,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
              {playersToAdapt.length > 0 && (
                <div className="pt-2 border-t">
                  <p className="text-xs font-medium text-orange-600 dark:text-orange-400 mb-2">
-                   ⚠️ À adapter ({playersToAdapt.length})
+                   {t("decision.sessions.toAdapt", { count: playersToAdapt.length })}
                  </p>
                  <div className="flex flex-wrap gap-1">
                    {playersToAdapt.map(p => (
@@ -1626,8 +1627,8 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
               <CardTitle className="text-base flex items-center gap-2">
                 <Swords className="h-5 w-5 text-purple-600" />
                 {upcomingMatches.length === 1 
-                  ? `Prochain ${matchLabel.toLowerCase()}`
-                  : `Prochains ${matchLabel.toLowerCase()}s`}
+                  ? t("decision.matches.next", { label: matchLabel.toLowerCase() })
+                  : t("decision.matches.nextPlural", { label: matchLabel.toLowerCase() })}
                 <Badge variant="secondary" className="ml-auto text-xs">
                   {upcomingMatches.length}
                 </Badge>
@@ -1685,7 +1686,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                                     : "border-blue-500 text-blue-600"
                                 )}
                               >
-                                {match.is_home ? "DOM" : "EXT"}
+                                {match.is_home ? t("decision.matches.home") : t("decision.matches.away")}
                               </Badge>
                             )}
                           </div>
@@ -1705,11 +1706,11 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                           </div>
                           <p className="text-xs mt-0.5">
                             {isToday ? (
-                              <span className="font-semibold text-purple-600 dark:text-purple-400">Aujourd'hui</span>
+                              <span className="font-semibold text-purple-600 dark:text-purple-400">{t("decision.matches.today")}</span>
                             ) : isTomorrow ? (
-                              <span className="font-medium text-orange-600 dark:text-orange-400">Demain</span>
+                              <span className="font-medium text-orange-600 dark:text-orange-400">{t("decision.matches.tomorrow")}</span>
                             ) : (
-                              <span className="text-muted-foreground">Dans {daysUntil} jour{daysUntil > 1 ? "s" : ""}</span>
+                              <span className="text-muted-foreground">{t("decision.matches.inDays", { count: daysUntil })}</span>
                             )}
                           </p>
                         </div>
@@ -1770,13 +1771,13 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
          <AlertDialog open={!!deleteSessionId} onOpenChange={(open) => { if (!open) setDeleteSessionId(null); }}>
            <AlertDialogContent>
              <AlertDialogHeader>
-               <AlertDialogTitle>Supprimer cette séance ?</AlertDialogTitle>
+               <AlertDialogTitle>{t("decision.dialogs.deleteSession.title")}</AlertDialogTitle>
                <AlertDialogDescription>
-                 La séance sera également retirée du calendrier des athlètes assignés. Cette action est irréversible.
+                 {t("decision.dialogs.deleteSession.description")}
                </AlertDialogDescription>
              </AlertDialogHeader>
              <AlertDialogFooter>
-               <AlertDialogCancel>Annuler</AlertDialogCancel>
+               <AlertDialogCancel>{t("decision.dialogs.deleteSession.cancel")}</AlertDialogCancel>
                <AlertDialogAction
                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                  onClick={() => {
@@ -1784,7 +1785,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                    setDeleteSessionId(null);
                  }}
                >
-                 Supprimer
+                 {t("decision.dialogs.deleteSession.confirm")}
                </AlertDialogAction>
              </AlertDialogFooter>
            </AlertDialogContent>
@@ -1796,7 +1797,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
           onOpenChange={setNotifyDialogOpen}
           athletes={players.map(p => ({ id: p.id, name: getFullName(p) }))}
           eventType="custom"
-          defaultSubject="Message de l'équipe"
+          defaultSubject={t("decision.notify.customSubject")}
         />
 
         {/* Athlete Selection Dialog */}
@@ -1805,7 +1806,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
-                Choisir un athlète
+                {t("decision.dialogs.chooseAthlete.title")}
               </DialogTitle>
             </DialogHeader>
             <ScrollArea className="max-h-[400px]">
@@ -1829,7 +1830,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                 ))}
                 {players.length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    Aucun athlète dans cette catégorie
+                    {t("decision.dialogs.chooseAthlete.none")}
                   </p>
                 )}
               </div>
@@ -1850,7 +1851,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Activity className="h-5 w-5 text-orange-500" />
-                Joueurs à adapter ({playersToAdapt.length})
+                {t("decision.dialogs.adaptCharge.title", { count: playersToAdapt.length })}
               </DialogTitle>
             </DialogHeader>
             <ScrollArea className="max-h-[400px]">
@@ -1877,7 +1878,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                 ))}
                 {playersToAdapt.length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    Aucun joueur ne nécessite d'adaptation
+                    {t("decision.dialogs.adaptCharge.none")}
                   </p>
                 )}
               </div>

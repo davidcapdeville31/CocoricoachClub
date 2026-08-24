@@ -17,6 +17,7 @@ import { athletePortalHeaders, buildAthletePortalFunctionUrl } from "@/lib/athle
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "react-i18next";
 
 interface AthleteInfo {
   player_id: string;
@@ -32,6 +33,7 @@ export default function AthletePortal() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { t } = useTranslation();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [errorMessage, setErrorMessage] = useState("");
   const [athleteInfo, setAthleteInfo] = useState<AthleteInfo | null>(null);
@@ -51,7 +53,7 @@ export default function AthletePortal() {
       navigate("/");
     } else {
       setStatus("error");
-      setErrorMessage("Lien d'accès invalide");
+      setErrorMessage(t("athleteSpace.portal.invalidLink"));
     }
   }, [token, user]);
 
@@ -68,7 +70,7 @@ export default function AthletePortal() {
 
       if (playerError || !player) {
         setStatus("error");
-        setErrorMessage("Aucun profil athlète lié à ce compte");
+        setErrorMessage(t("athleteSpace.portal.noProfile"));
         return;
       }
 
@@ -84,7 +86,7 @@ export default function AthletePortal() {
       setStatus("success");
     } catch {
       setStatus("error");
-      setErrorMessage("Erreur lors du chargement des données");
+      setErrorMessage(t("athleteSpace.portal.loadError"));
     }
   };
 
@@ -105,11 +107,11 @@ export default function AthletePortal() {
         setStatus("success");
       } else {
         setStatus("error");
-        setErrorMessage(data?.error || "Ce lien n'est plus valide ou a expiré");
+        setErrorMessage(data?.error || t("athleteSpace.portal.linkExpired"));
       }
     } catch {
       setStatus("error");
-      setErrorMessage("Erreur de connexion au serveur");
+      setErrorMessage(t("athleteSpace.portal.connectionError"));
     }
   };
 
@@ -128,7 +130,7 @@ export default function AthletePortal() {
         <Card className="w-full max-w-md">
           <CardContent className="flex flex-col items-center py-8 space-y-4">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
-            <p className="text-center text-muted-foreground">Chargement de ton espace athlète...</p>
+            <p className="text-center text-muted-foreground">{t("athleteSpace.portal.loading")}</p>
           </CardContent>
         </Card>
       </div>
@@ -142,11 +144,11 @@ export default function AthletePortal() {
           <CardContent className="flex flex-col items-center py-8 space-y-4">
             <XCircle className="h-12 w-12 text-destructive" />
             <p className="text-center font-medium text-destructive">{errorMessage}</p>
-            <p className="text-sm text-muted-foreground text-center">Contacte ton coach pour obtenir de l'aide.</p>
+            <p className="text-sm text-muted-foreground text-center">{t("athleteSpace.portal.contactCoach")}</p>
             {user && (
               <Button variant="outline" onClick={handleSignOut}>
                 <LogOut className="mr-2 h-4 w-4" />
-                Se déconnecter
+                {t("athleteSpace.portal.signOut")}
               </Button>
             )}
           </CardContent>
@@ -198,8 +200,8 @@ export default function AthletePortal() {
         <Card className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
           <CardContent className="py-4">
             <p className="text-sm text-blue-800 dark:text-blue-200">
-              <strong>Ton espace athlète</strong> – Saisis tes données personnelles :
-              RPE après les entraînements{isBowling ? ", feuilles de score, exercices de précision" : ""} et statistiques après les matchs.
+              <strong>{t("athleteSpace.portal.instructionsTitle")}</strong> {t("athleteSpace.portal.instructionsBody")}
+              {isBowling ? t("athleteSpace.portal.instructionsBowlingExtra") : ""}
             </p>
           </CardContent>
         </Card>
@@ -209,39 +211,39 @@ export default function AthletePortal() {
           <TabsList className={`grid w-full ${isBowling ? "grid-cols-4" : isJudo ? "grid-cols-3" : isAthletics ? "grid-cols-3" : "grid-cols-2"}`}>
             <TabsTrigger value="rpe" className="gap-1 text-xs sm:text-sm">
               <Activity className="h-4 w-4" />
-              <span className="hidden sm:inline">Séances & RPE</span>
-              <span className="sm:hidden">RPE</span>
+              <span className="hidden sm:inline">{t("athleteSpace.portal.tabs.sessionsRpe")}</span>
+              <span className="sm:hidden">{t("athleteSpace.portal.tabs.rpeShort")}</span>
             </TabsTrigger>
             <TabsTrigger value="matches" className="gap-1 text-xs sm:text-sm">
               <Trophy className="h-4 w-4" />
-              <span className="hidden sm:inline">Compétitions</span>
-              <span className="sm:hidden">Compét.</span>
+              <span className="hidden sm:inline">{t("athleteSpace.portal.tabs.competitions")}</span>
+              <span className="sm:hidden">{t("athleteSpace.portal.tabs.competitionsShort")}</span>
             </TabsTrigger>
             {isAthletics && (
               <TabsTrigger value="records" className="gap-1 text-xs sm:text-sm">
                 <Medal className="h-4 w-4" />
-                <span className="hidden sm:inline">Minimas / Records</span>
-                <span className="sm:hidden">Records</span>
+                <span className="hidden sm:inline">{t("athleteSpace.portal.tabs.records")}</span>
+                <span className="sm:hidden">{t("athleteSpace.portal.tabs.recordsShort")}</span>
               </TabsTrigger>
             )}
             {isJudo && (
               <TabsTrigger value="opponents" className="gap-1 text-xs sm:text-sm">
                 <Users className="h-4 w-4" />
-                <span className="hidden sm:inline">Adversaires</span>
-                <span className="sm:hidden">Advers.</span>
+                <span className="hidden sm:inline">{t("athleteSpace.portal.tabs.opponents")}</span>
+                <span className="sm:hidden">{t("athleteSpace.portal.tabs.opponentsShort")}</span>
               </TabsTrigger>
             )}
             {isBowling && (
               <>
                 <TabsTrigger value="stats" className="gap-1 text-xs sm:text-sm">
                   <BarChart3 className="h-4 w-4" />
-                  <span className="hidden sm:inline">Stats Entraînement</span>
-                  <span className="sm:hidden">Stats</span>
+                  <span className="hidden sm:inline">{t("athleteSpace.portal.tabs.trainingStats")}</span>
+                  <span className="sm:hidden">{t("athleteSpace.portal.tabs.trainingStatsShort")}</span>
                 </TabsTrigger>
                 <TabsTrigger value="create" className="gap-1 text-xs sm:text-sm">
                   <CalendarPlus className="h-4 w-4" />
-                  <span className="hidden sm:inline">Ajouter Séance</span>
-                  <span className="sm:hidden">+ Séance</span>
+                  <span className="hidden sm:inline">{t("athleteSpace.portal.tabs.addSession")}</span>
+                  <span className="sm:hidden">{t("athleteSpace.portal.tabs.addSessionShort")}</span>
                 </TabsTrigger>
               </>
             )}

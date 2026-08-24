@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,19 +28,19 @@ interface ConcussionProtocolCardProps {
 }
 
 // World Rugby GRTP Protocol - 6 phases with minimum delays
-const PHASES = [
-  { value: 1, label: "Phase 1: Repos complet", minDays: 0, description: "24-48h minimum de repos symptomatique" },
-  { value: 2, label: "Phase 2: Activité légère", minDays: 1, description: "Marche, vélo stationnaire (FC < 70%)" },
-  { value: 3, label: "Phase 3: Exercice spécifique", minDays: 2, description: "Exercices de course, sans contact" },
-  { value: 4, label: "Phase 4: Entraînement sans contact", minDays: 3, description: "Entraînement technique complet" },
-  { value: 5, label: "Phase 5: Entraînement avec contact", minDays: 4, description: "Participation complète après avis médical" },
-  { value: 6, label: "Phase 6: Retour au jeu", minDays: 5, description: "Retour à la compétition" },
+const getPhases = (t: (k: string) => string) => [
+  { value: 1, label: t("health.concussionCard.phases.phase1Label"), minDays: 0, description: t("health.concussionCard.phases.phase1Description") },
+  { value: 2, label: t("health.concussionCard.phases.phase2Label"), minDays: 1, description: t("health.concussionCard.phases.phase2Description") },
+  { value: 3, label: t("health.concussionCard.phases.phase3Label"), minDays: 2, description: t("health.concussionCard.phases.phase3Description") },
+  { value: 4, label: t("health.concussionCard.phases.phase4Label"), minDays: 3, description: t("health.concussionCard.phases.phase4Description") },
+  { value: 5, label: t("health.concussionCard.phases.phase5Label"), minDays: 4, description: t("health.concussionCard.phases.phase5Description") },
+  { value: 6, label: t("health.concussionCard.phases.phase6Label"), minDays: 5, description: t("health.concussionCard.phases.phase6Description") },
 ];
 
-const STATUS_OPTIONS = [
-  { value: "active", label: "Actif" },
-  { value: "recovery", label: "En récupération" },
-  { value: "cleared", label: "Retour validé" },
+const getStatusOptions = (t: (k: string) => string) => [
+  { value: "active", label: t("health.concussionCard.status.active") },
+  { value: "recovery", label: t("health.concussionCard.status.recovery") },
+  { value: "cleared", label: t("health.concussionCard.status.cleared") },
 ];
 
 // Minimum rest days based on concussion history
@@ -56,6 +57,7 @@ const getConcussionBadgeVariant = (number: number) => {
 };
 
 export function ConcussionProtocolCard({ protocol, categoryId }: ConcussionProtocolCardProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   // Get total concussion count for this player
@@ -79,6 +81,8 @@ export function ConcussionProtocolCard({ protocol, categoryId }: ConcussionProto
   const totalConcussions = allPlayerConcussions?.length || 1;
 
   // Calculate timeline dates based on incident date and concussion history
+  const PHASES = getPhases(t);
+  const STATUS_OPTIONS = getStatusOptions(t);
   const incidentDate = new Date(protocol.incident_date);
   const minRestDays = getMinRestDays(concussionNumber);
   
@@ -121,10 +125,10 @@ export function ConcussionProtocolCard({ protocol, categoryId }: ConcussionProto
         const k = String(q.queryKey?.[0] ?? "");
         return k.includes("injur") || k.includes("availability") || k.includes("health");
       }});
-      toast.success("Protocole mis à jour");
+      toast.success(t("health.concussionCard.toastUpdated"));
     },
     onError: () => {
-      toast.error("Erreur lors de la mise à jour");
+      toast.error(t("health.concussionCard.toastUpdateError"));
     },
   });
 
@@ -140,10 +144,10 @@ export function ConcussionProtocolCard({ protocol, categoryId }: ConcussionProto
         const k = String(q.queryKey?.[0] ?? "");
         return k.includes("injur") || k.includes("availability") || k.includes("health");
       }});
-      toast.success("Protocole supprimé");
+      toast.success(t("health.concussionCard.toastDeleted"));
     },
     onError: () => {
-      toast.error("Erreur lors de la suppression");
+      toast.error(t("health.concussionCard.toastDeleteError"));
     },
   });
 
@@ -153,7 +157,7 @@ export function ConcussionProtocolCard({ protocol, categoryId }: ConcussionProto
     // Validate delay
     if (!canAdvanceToPhase(targetPhase)) {
       const daysRemaining = getDaysUntilPhase(targetPhase);
-      toast.error(`Délai minimum non respecté. Attendez encore ${daysRemaining} jour(s) selon le protocole World Rugby.`);
+      toast.error(t("health.concussionCard.toastDelayNotRespected", { days: daysRemaining }));
       return;
     }
 
@@ -172,7 +176,7 @@ export function ConcussionProtocolCard({ protocol, categoryId }: ConcussionProto
     if (status === "cleared") {
       // Check if all phases completed
       if ((protocol.return_to_play_phase || 1) < 6) {
-        toast.error("Toutes les phases doivent être validées avant le retour au jeu");
+        toast.error(t("health.concussionCard.toastAllPhasesRequired"));
         return;
       }
       updates.clearance_date = new Date().toISOString().split("T")[0];
@@ -195,7 +199,7 @@ export function ConcussionProtocolCard({ protocol, categoryId }: ConcussionProto
               className={`text-xs ${totalConcussions === 2 ? "bg-yellow-500/20 text-yellow-600 border-yellow-500" : ""}`}
             >
               {totalConcussions >= 3 && <AlertTriangle className="h-3 w-3 mr-1" />}
-              Commotion n°{concussionNumber}/{totalConcussions}
+              {t("health.concussionCard.concussionCount", { number: concussionNumber, total: totalConcussions })}
             </Badge>
           </div>
           {canDelete ? (
@@ -207,15 +211,15 @@ export function ConcussionProtocolCard({ protocol, categoryId }: ConcussionProto
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Supprimer ce protocole ?</AlertDialogTitle>
+                  <AlertDialogTitle>{t("health.concussionCard.deleteDialogTitle")}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Cette action est irréversible. Les données médicales seront perdues.
+                    {t("health.concussionCard.deleteDialogDescription")}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                  <AlertDialogCancel>{t("health.concussionCard.cancel")}</AlertDialogCancel>
                   <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-destructive text-destructive-foreground">
-                    Supprimer
+                    {t("health.concussionCard.delete")}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -223,14 +227,14 @@ export function ConcussionProtocolCard({ protocol, categoryId }: ConcussionProto
           ) : (
             <div className="flex items-center gap-1 text-muted-foreground text-xs">
               <Lock className="h-3 w-3" />
-              <span>Historique protégé</span>
+              <span>{t("health.concussionCard.historyProtected")}</span>
             </div>
           )}
         </div>
 
         <div className="grid gap-3 text-sm">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Date incident:</span>
+            <span className="text-muted-foreground">{t("health.concussionCard.incidentDate")}</span>
             <span>{format(incidentDate, "dd/MM/yyyy", { locale: fr })}</span>
           </div>
 
@@ -238,28 +242,28 @@ export function ConcussionProtocolCard({ protocol, categoryId }: ConcussionProto
           <div className="p-3 bg-muted/50 rounded-lg space-y-2">
             <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
               <Calendar className="h-3 w-3" />
-              Timeline GRTP World Rugby (Commotion n°{concussionNumber})
+              {t("health.concussionCard.timelineTitle", { number: concussionNumber })}
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div>
-                <span className="text-muted-foreground">Repos minimum:</span>
-                <span className="ml-1 font-medium">{minRestDays} jours</span>
+                <span className="text-muted-foreground">{t("health.concussionCard.minRest")}</span>
+                <span className="ml-1 font-medium">{t("health.concussionCard.minRestDays", { days: minRestDays })}</span>
               </div>
               <div>
-                <span className="text-muted-foreground">Fin repos estimée:</span>
+                <span className="text-muted-foreground">{t("health.concussionCard.estimatedRestEnd")}</span>
                 <span className="ml-1 font-medium">{format(addDays(incidentDate, minRestDays), "dd/MM", { locale: fr })}</span>
               </div>
               <div>
-                <span className="text-muted-foreground">Retour estimé:</span>
+                <span className="text-muted-foreground">{t("health.concussionCard.estimatedReturn")}</span>
                 <span className="ml-1 font-medium">{format(getPhaseTargetDate(6) || new Date(), "dd/MM", { locale: fr })}</span>
               </div>
               {protocol.status !== "cleared" && (
                 <div>
-                  <span className="text-muted-foreground">Prochaine phase:</span>
+                  <span className="text-muted-foreground">{t("health.concussionCard.nextPhase")}</span>
                   <span className={`ml-1 font-medium ${canAdvanceToPhase((protocol.return_to_play_phase || 1) + 1) ? "text-green-600" : "text-orange-500"}`}>
                     {canAdvanceToPhase((protocol.return_to_play_phase || 1) + 1) 
-                      ? "Disponible" 
-                      : `Dans ${getDaysUntilPhase((protocol.return_to_play_phase || 1) + 1)}j`}
+                      ? t("health.concussionCard.available") 
+                      : t("health.concussionCard.inDays", { days: getDaysUntilPhase((protocol.return_to_play_phase || 1) + 1) })}
                   </span>
                 </div>
               )}
@@ -268,14 +272,14 @@ export function ConcussionProtocolCard({ protocol, categoryId }: ConcussionProto
 
           {protocol.incident_description && (
             <div>
-              <span className="text-muted-foreground">Description:</span>
+              <span className="text-muted-foreground">{t("health.concussionCard.description")}</span>
               <p className="mt-1">{protocol.incident_description}</p>
             </div>
           )}
 
           {protocol.symptoms && protocol.symptoms.length > 0 && (
             <div>
-              <span className="text-muted-foreground">Symptômes:</span>
+              <span className="text-muted-foreground">{t("health.concussionCard.symptoms")}</span>
               <div className="flex flex-wrap gap-1 mt-1">
                 {protocol.symptoms.map((symptom: string) => (
                   <Badge key={symptom} variant="outline" className="text-xs">
@@ -287,7 +291,7 @@ export function ConcussionProtocolCard({ protocol, categoryId }: ConcussionProto
           )}
 
           <div className="flex items-center gap-2">
-            <span className="text-muted-foreground">Phase:</span>
+            <span className="text-muted-foreground">{t("health.concussionCard.phase")}</span>
             <Select
               value={protocol.return_to_play_phase?.toString()}
               onValueChange={handlePhaseChange}
@@ -327,7 +331,7 @@ export function ConcussionProtocolCard({ protocol, categoryId }: ConcussionProto
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-muted-foreground">Statut:</span>
+            <span className="text-muted-foreground">{t("health.concussionCard.statusLabel")}</span>
             <Select value={protocol.status} onValueChange={handleStatusChange}>
               <SelectTrigger className="w-[180px] h-8">
                 <SelectValue />
@@ -344,7 +348,7 @@ export function ConcussionProtocolCard({ protocol, categoryId }: ConcussionProto
 
           {protocol.clearance_date && (
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Date retour:</span>
+              <span className="text-muted-foreground">{t("health.concussionCard.returnDate")}</span>
               <span className="text-green-600">
                 {format(new Date(protocol.clearance_date), "dd/MM/yyyy", { locale: fr })}
               </span>
@@ -353,7 +357,7 @@ export function ConcussionProtocolCard({ protocol, categoryId }: ConcussionProto
 
           {protocol.medical_notes && (
             <div>
-              <span className="text-muted-foreground">Notes médicales:</span>
+              <span className="text-muted-foreground">{t("health.concussionCard.medicalNotes")}</span>
               <p className="mt-1 text-xs bg-muted p-2 rounded">{protocol.medical_notes}</p>
             </div>
           )}
