@@ -3,6 +3,7 @@ import { Bell, Trash2, BarChart3, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
 import { getCompetitionColor } from "@/lib/constants/competitionColors";
+import { useTranslation } from "react-i18next";
 
 interface Match {
   id: string;
@@ -38,6 +39,7 @@ export function MatchVignette({
   onDelete,
   onEdit,
 }: MatchVignetteProps) {
+  const { t } = useTranslation();
   const [isHovered, setIsHovered] = useState(false);
 
   const formatTime = (time: string | null) => {
@@ -66,7 +68,7 @@ export function MatchVignette({
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    if (confirm("Supprimer ce match ?")) {
+    if (confirm(t("planning:calendarViews.vignette.deleteMatchConfirm"))) {
       onDelete?.();
     }
   };
@@ -93,7 +95,7 @@ export function MatchVignette({
           color.bg,
           color.bgHover
         )}
-        title={`${match.match_time ? formatTime(match.match_time) + " - " : ""}${compLabel ? compLabel + " · " : ""}${match.opponent}${creatorName ? " · créé par " + creatorName : ""}`}
+        title={`${match.match_time ? formatTime(match.match_time) + " - " : ""}${compLabel ? compLabel + " · " : ""}${match.opponent}${creatorName ? " · " + t("planning:calendarViews.vignette.createdBy", { name: creatorName }) : ""}`}
       >
         {/* Match content - hidden when hovered to show action buttons */}
         <div className={cn(
@@ -126,7 +128,7 @@ export function MatchVignette({
               <button
                 onClick={handleEditClick}
                 className="p-1.5 rounded-md hover:bg-white/20 transition-colors"
-                title="Modifier / convoquer les athlètes"
+                title={t("planning:calendarViews.vignette.editMatchTooltip")}
               >
                 <Pencil className="h-4 w-4" />
               </button>
@@ -135,7 +137,7 @@ export function MatchVignette({
               <button
                 onClick={handleNotifyClick}
                 className="p-1.5 rounded-md hover:bg-white/20 transition-colors"
-                title="Notifier les athlètes"
+                title={t("planning:calendarViews.vignette.notify")}
               >
                 <Bell className="h-4 w-4" />
               </button>
@@ -144,7 +146,7 @@ export function MatchVignette({
               <button
                 onClick={handleStatsClick}
                 className="p-1.5 rounded-md hover:bg-white/20 transition-colors"
-                title="Statistiques du match"
+                title={t("planning:calendarViews.vignette.statsTooltip")}
               >
                 <BarChart3 className="h-4 w-4" />
               </button>
@@ -153,7 +155,7 @@ export function MatchVignette({
               <button
                 onClick={handleDeleteClick}
                 className="p-1.5 rounded-md hover:bg-white/20 transition-colors flex items-center gap-1"
-                title="Supprimer le match"
+                title={t("planning:calendarViews.vignette.deleteMatchTooltip")}
               >
                 <Trash2 className="h-4 w-4" />
               </button>
