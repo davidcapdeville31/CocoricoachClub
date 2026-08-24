@@ -30,12 +30,13 @@ import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { EXERCISE_CATEGORIES } from "@/lib/constants/rugbyPrecisionExercises";
 import { isRugbyType } from "@/lib/constants/sportTypes";
 import { PrecisionFieldTracker } from "@/components/rugby/PrecisionFieldTracker";
+import { useTranslation } from "react-i18next";
 
 interface WeeklyPlanningCalendarProps {
   categoryId: string;
 }
 
-const DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+const DAYS_FALLBACK = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 
 interface PlanningItem {
   id: string;
@@ -76,6 +77,9 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
   const [precisionTrackerOpen, setPrecisionTrackerOpen] = useState(false);
   const [precisionItemDate, setPrecisionItemDate] = useState<string | null>(null);
   const [precisionSessionId, setPrecisionSessionId] = useState<string | null>(null);
+
+  const { t } = useTranslation();
+  const DAYS = (t("planning:weeklyCalendar.days", { returnObjects: true }) as string[]) || DAYS_FALLBACK;
 
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -232,9 +236,9 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
       queryClient.invalidateQueries({ queryKey: ["weekly-planning-all", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["today-training-sessions", categoryId] });
       toast.success(
-        sessionMode === "match" ? "Match ajouté" : 
-        wasPrecision ? "Séance de précision ajoutée" : 
-        "Séance ajoutée"
+        sessionMode === "match" ? t("planning:weeklyCalendar.toasts.matchAdded") : 
+        wasPrecision ? t("planning:weeklyCalendar.toasts.precisionSessionAdded") : 
+        t("planning:weeklyCalendar.toasts.sessionAdded")
       );
       resetAddDialog();
       // Auto-open precision tracker after creating precision session
@@ -259,7 +263,7 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
       }
     },
     onError: () => {
-      toast.error("Erreur lors de l'ajout");
+      toast.error(t("planning:weeklyCalendar.toasts.addError"));
     },
   });
 
@@ -270,10 +274,10 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["weekly-planning", categoryId, weekStartStr] });
-      toast.success("Séance supprimée");
+      toast.success(t("planning:weeklyCalendar.toasts.sessionDeleted"));
     },
     onError: () => {
-      toast.error("Erreur lors de la suppression");
+      toast.error(t("planning:weeklyCalendar.toasts.deleteError"));
     },
   });
 
@@ -330,7 +334,7 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
   const handleExportPdf = () => {
     if (planning) {
       exportWeeklyPlanningToPdf(planning, currentWeekStart, "Catégorie");
-      toast.success("PDF exporté avec succès");
+      toast.success(t("planning:weeklyCalendar.toasts.pdfExported"));
     }
   };
 
