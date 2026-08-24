@@ -13,6 +13,7 @@ import {
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface AddEventDialogProps {
   open: boolean;
@@ -25,11 +26,9 @@ interface AddEventDialogProps {
   sportType?: string;
 }
 
-const EVENT_TYPES = [
+const EVENT_TYPE_META = [
   {
     id: "session",
-    label: "Séance d'entraînement",
-    description: "Planifier un entraînement",
     icon: Dumbbell,
     iconColor: "text-emerald-700 dark:text-emerald-300",
     iconBgColor: "bg-emerald-100 dark:bg-emerald-500/15",
@@ -38,8 +37,6 @@ const EVENT_TYPES = [
   },
   {
     id: "match",
-    label: "Match / Compétition",
-    description: "Ajouter un match ou une compétition",
     icon: Swords,
     iconColor: "text-rose-700 dark:text-rose-300",
     iconBgColor: "bg-rose-100 dark:bg-rose-500/15",
@@ -48,8 +45,6 @@ const EVENT_TYPES = [
   },
   {
     id: "medical",
-    label: "Rendez-vous médical",
-    description: "Consultation, bilan, suivi",
     icon: Stethoscope,
     iconColor: "text-sky-700 dark:text-sky-300",
     iconBgColor: "bg-sky-100 dark:bg-sky-500/15",
@@ -58,8 +53,6 @@ const EVENT_TYPES = [
   },
   {
     id: "video",
-    label: "Analyse vidéo",
-    description: "Session d'analyse vidéo",
     icon: Video,
     iconColor: "text-purple-700 dark:text-purple-300",
     iconBgColor: "bg-purple-100 dark:bg-purple-500/15",
@@ -68,8 +61,6 @@ const EVENT_TYPES = [
   },
   {
     id: "test",
-    label: "Test physique",
-    description: "Évaluation et tests de performance",
     icon: ClipboardList,
     iconColor: "text-amber-700 dark:text-amber-300",
     iconBgColor: "bg-amber-100 dark:bg-amber-500/15",
@@ -78,8 +69,6 @@ const EVENT_TYPES = [
   },
   {
     id: "team",
-    label: "Réunion d'équipe",
-    description: "Briefing, débriefing, tactique",
     icon: Users,
     iconColor: "text-indigo-700 dark:text-indigo-300",
     iconBgColor: "bg-indigo-100 dark:bg-indigo-500/15",
@@ -88,8 +77,6 @@ const EVENT_TYPES = [
   },
   {
     id: "mental",
-    label: "Séance mental",
-    description: "Préparation mentale, sophrologie",
     icon: Brain,
     iconColor: "text-fuchsia-700 dark:text-fuchsia-300",
     iconBgColor: "bg-fuchsia-100 dark:bg-fuchsia-500/15",
@@ -108,11 +95,20 @@ export function AddEventDialog({
   onAddVideoAnalysis,
   sportType,
 }: AddEventDialogProps) {
+  const { t } = useTranslation();
   const isBowling = (sportType || "").toLowerCase().includes("bowling");
-  const eventTypes = EVENT_TYPES.map((e) =>
+  const eventTypes = EVENT_TYPE_META.map((e) =>
     e.id === "match" && isBowling
-      ? { ...e, label: "Compétition", description: "Ajouter une compétition" }
-      : e
+      ? {
+          ...e,
+          label: t("planning.calendarDialogs.addEvent.types.matchBowling.label"),
+          description: t("planning.calendarDialogs.addEvent.types.matchBowling.description"),
+        }
+      : {
+          ...e,
+          label: t(`planning.calendarDialogs.addEvent.types.${e.id}.label`),
+          description: t(`planning.calendarDialogs.addEvent.types.${e.id}.description`),
+        }
   );
   const handleEventClick = (eventType: string) => {
     switch (eventType) {
@@ -148,7 +144,7 @@ export function AddEventDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Calendar className="h-5 w-5 text-primary" />
-            Ajouter un événement
+            {t("planning.calendarDialogs.addEvent.title")}
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
             {format(date, "EEEE d MMMM yyyy", { locale: fr })}

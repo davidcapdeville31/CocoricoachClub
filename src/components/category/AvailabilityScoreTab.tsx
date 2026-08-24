@@ -15,6 +15,7 @@ import { fr } from "date-fns/locale";
 import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 import { useWellnessQuestions, DEFAULT_WELLNESS_QUESTIONS } from "@/lib/wellness/questionConfig";
+import { Trans, useTranslation } from "react-i18next";
 
 /** Hiérarchie wellness-first : le wellness prime sur la charge (contexte). */
 const AVAILABILITY_WEIGHTS = { wellness: 0.6, acwr: 0.4 } as const;
@@ -43,6 +44,7 @@ interface PlayerAvailability {
 
 
 export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) {
+  const { t } = useTranslation();
   const [acwrMethod, setAcwrMethod] = useState<"rolling" | "ewma">("rolling");
   const today = new Date();
   const weekAgo = subDays(today, 7);
@@ -110,7 +112,7 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
         const acwr = acwrDetail.acwr;
         const acwrScore = acwrToScore(acwr);
         if (acwr !== null && acwrScore !== null && acwrScore < 100) {
-          factors.push(acwr < 0.8 ? `ACWR faible (${acwr.toFixed(2)})` : `ACWR élevé (${acwr.toFixed(2)})`);
+          factors.push(acwr < 0.8 ? t("workload.availability.factors.acwrLow", { value: acwr.toFixed(2) }) : t("workload.availability.factors.acwrHigh", { value: acwr.toFixed(2) }));
         }
 
         // ---- Ratio d'adhérence au plan (réel / prévu) — indicateur descriptif, non noté ----
@@ -164,7 +166,7 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
               concerns.push(ratio);
               if (q.key === "general_fatigue") fatigueRatios.push(ratio);
               if (row === playerWellness && ratio >= 0.7) {
-                factors.push(isSleepDuration ? "Sommeil insuffisant" : q.label);
+                factors.push(isSleepDuration ? t("workload.availability.factors.insufficientSleep") : q.label);
               }
             }
           }
@@ -175,7 +177,7 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
           }
           if (fatigueRatios.length > 0) {
             const avgFatigue = fatigueRatios.reduce((s2, r) => s2 + r, 0) / fatigueRatios.length;
-            if (avgFatigue >= 0.7) factors.push("Fatigue élevée");
+            if (avgFatigue >= 0.7) factors.push(t("workload.availability.factors.highFatigue"));
           }
         }
 
@@ -189,11 +191,11 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
           if (playerInjury!.status === "active") {
             injuryScore = isSevere ? 0 : isModerate ? 20 : 40;
             injuryCap = isSevere ? 'unavailable' : 'limited';
-            factors.push(`Blessure ${isSevere ? "grave" : isModerate ? "modérée" : "légère"}`);
+            factors.push(isSevere ? t("workload.availability.factors.injurySevere") : isModerate ? t("workload.availability.factors.injuryModerate") : t("workload.availability.factors.injuryMild"));
           } else {
             injuryScore = 70;
             injuryCap = 'limited';
-            factors.push("En réathlétisation");
+            factors.push(t("workload.availability.factors.rehab"));
           }
         }
 
@@ -245,13 +247,13 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'no_data':
-        return <Badge className="bg-muted/50 text-muted-foreground border-border"><AlertCircle className="h-3 w-3 mr-1" /> Non renseigné</Badge>;
+        return <Badge className="bg-muted/50 text-muted-foreground border-border"><AlertCircle className="h-3 w-3 mr-1" /> {t("workload.availability.badges.noData")}</Badge>;
       case 'available':
-        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30"><CheckCircle2 className="h-3 w-3 mr-1" /> Disponible</Badge>;
+        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30"><CheckCircle2 className="h-3 w-3 mr-1" /> {t("workload.availability.badges.available")}</Badge>;
       case 'limited':
-        return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30"><AlertCircle className="h-3 w-3 mr-1" /> Limité</Badge>;
+        return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30"><AlertCircle className="h-3 w-3 mr-1" /> {t("workload.availability.badges.limited")}</Badge>;
       case 'unavailable':
-        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30"><XCircle className="h-3 w-3 mr-1" /> Indisponible</Badge>;
+        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30"><XCircle className="h-3 w-3 mr-1" /> {t("workload.availability.badges.unavailable")}</Badge>;
       default:
         return null;
     }
@@ -327,7 +329,7 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
             </div>
             <div>
               <p className="text-2xl font-bold text-green-400">{stats.available}</p>
-              <p className="text-sm text-muted-foreground">Disponibles</p>
+              <p className="text-sm text-muted-foreground">{t("workload.availability.stats.available")}</p>
             </div>
           </CardContent>
         </Card>
@@ -338,7 +340,7 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
             </div>
             <div>
               <p className="text-2xl font-bold text-yellow-400">{stats.limited}</p>
-              <p className="text-sm text-muted-foreground">Disponibilité limitée</p>
+              <p className="text-sm text-muted-foreground">{t("workload.availability.stats.limited")}</p>
             </div>
           </CardContent>
         </Card>
@@ -349,7 +351,7 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
             </div>
             <div>
               <p className="text-2xl font-bold text-red-400">{stats.unavailable}</p>
-              <p className="text-sm text-muted-foreground">Indisponibles</p>
+              <p className="text-sm text-muted-foreground">{t("workload.availability.stats.unavailable")}</p>
             </div>
           </CardContent>
         </Card>
@@ -360,36 +362,35 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-primary" />
-            Score de Disponibilité
+            {t("workload.availability.cardTitle")}
           </CardTitle>
           <CardDescription>
-            Score global = Wellness (60 %) + ACWR (40 %). Une blessure active ou une réathlétisation
-            plafonne automatiquement le statut à « Limité » (ou « Indisponible » si grave).
+            {t("workload.availability.cardDesc")}
           </CardDescription>
           <div className="flex items-center gap-2 pt-2">
-            <span className="text-xs text-muted-foreground">Méthode ACWR :</span>
+            <span className="text-xs text-muted-foreground">{t("workload.availability.acwrMethodLabel")}</span>
             <Button
               size="sm"
               variant={acwrMethod === "rolling" ? "default" : "outline"}
               onClick={() => setAcwrMethod("rolling")}
             >
-              Moyenne glissante
+              {t("workload.availability.acwrMethodRolling")}
             </Button>
             <Button
               size="sm"
               variant={acwrMethod === "ewma" ? "default" : "outline"}
               onClick={() => setAcwrMethod("ewma")}
             >
-              EWMA
+              {t("workload.availability.acwrMethodEwma")}
             </Button>
             <Button size="sm" variant="outline" onClick={exportCsv}>
-              <Download className="h-4 w-4 mr-1" /> Export CSV
+              <Download className="h-4 w-4 mr-1" /> {t("workload.availability.exportCsv")}
             </Button>
             <InfoHint
-              title="ACWR vs ratio d'adhérence"
-              what="L'ACWR compare la charge aiguë (7 jours) à la charge chronique (28 jours). Le ratio d'adhérence compare la charge réalisée à la charge prévue par le staff."
-              how={`ACWR = charge 7j ÷ charge 28j (${acwrMethodLabel(acwrMethod)}). Tant que la fenêtre chronique compte moins de 21 jours d'historique (début de saison), l'ACWR n'est pas calculé et le score de disponibilité repose à 100 % sur le wellness. Adhérence = réel ÷ prévu sur 7 jours.`}
-              why="Seul l'ACWR est soumis aux seuils 0,8 / 1,3 issus de la littérature. L'adhérence est purement descriptive et n'entre pas dans le score."
+              title={t("workload.availability.acwrVsAdherenceHint.title")}
+              what={t("workload.availability.acwrVsAdherenceHint.what")}
+              how={t("workload.availability.acwrVsAdherenceHint.how", { method: acwrMethodLabel(acwrMethod) })}
+              why={t("workload.availability.acwrVsAdherenceHint.why")}
             />
           </div>
         </CardHeader>
@@ -405,7 +406,7 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
                     </Avatar>
                     <div className="flex-1">
                       <p className="font-medium">{player.playerName}</p>
-                      <p className="text-sm text-muted-foreground">{player.position || "Position non définie"}</p>
+                      <p className="text-sm text-muted-foreground">{player.position || t("workload.availability.noPosition")}</p>
                     </div>
                     {getStatusBadge(player.status)}
                   </div>
@@ -414,7 +415,7 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
                   {player.hasAnyData ? (
                     <div className="mb-4">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium">Score Global</span>
+                        <span className="text-sm font-medium">{t("workload.availability.overallScore")}</span>
                         <span className={`text-lg font-bold ${
                           (player.overallScore ?? 0) >= 80 ? 'text-green-400' :
                           (player.overallScore ?? 0) >= 60 ? 'text-yellow-400' :
@@ -427,9 +428,13 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
                     </div>
                   ) : (
                     <div className="mb-4 p-3 rounded-lg bg-muted/30 border border-dashed border-border text-center">
-                      <p className="text-sm text-muted-foreground font-medium">Aucune donnée disponible</p>
+                      <p className="text-sm text-muted-foreground font-medium">{t("workload.availability.noDataTitle")}</p>
                       <p className="text-[10px] text-muted-foreground/70 mt-1">
-                        L'athlète doit remplir son wellness dans <span className="font-semibold">Santé</span> et des séances doivent être enregistrées dans <span className="font-semibold">Programmation</span>.
+                        <Trans
+                          i18nKey="workload.availability.noDataDesc"
+                          t={t}
+                          components={[<span className="font-semibold" key="0" />]}
+                        />
                       </p>
                     </div>
                   )}
@@ -439,25 +444,25 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
                     <div className="flex items-center gap-2">
                       <Activity className="h-4 w-4 text-blue-400" />
                       <span>
-                        ACWR: {player.acwrScore !== null
-                          ? <>{player.acwrScore}% <span className="text-muted-foreground">({player.acwr?.toFixed(2)} · {acwrMethod === "ewma" ? "EWMA" : "glissante"})</span></>
+                        {t("workload.availability.acwrLabel", { value: "" })}{player.acwrScore !== null
+                          ? <>{player.acwrScore}% <span className="text-muted-foreground">({player.acwr?.toFixed(2)} · {acwrMethod === "ewma" ? t("workload.availability.acwrMethodEwma") : t("workload.availability.acwrMethodRolling")})</span></>
                           : player.acwrInsufficient
-                          ? <span className="italic text-muted-foreground">non calculé ({player.acwrHistoryDays}/{ACWR_MIN_HISTORY_DAYS} j) — score sur wellness seul</span>
+                          ? <span className="italic text-muted-foreground">{t("workload.availability.acwrNotCalculated", { days: player.acwrHistoryDays, min: ACWR_MIN_HISTORY_DAYS })}</span>
                           : <span className="text-muted-foreground italic">—</span>}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Heart className="h-4 w-4 text-pink-400" />
-                      <span>Wellness: {player.wellnessScore !== null ? `${player.wellnessScore}%` : <span className="text-muted-foreground italic">—</span>}</span>
+                      <span>{t("workload.availability.wellnessLabel", { value: "" })}{player.wellnessScore !== null ? `${player.wellnessScore}%` : <span className="text-muted-foreground italic">—</span>}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <AlertTriangle className="h-4 w-4 text-orange-400" />
-                      <span>Blessure: {player.injuryScore === 100 ? "aucune" : `${player.injuryScore}%`}</span>
+                      <span>{t("workload.availability.injuryLabel", { value: "" })}{player.injuryScore === 100 ? t("workload.availability.injuryNone") : `${player.injuryScore}%`}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Target className="h-4 w-4 text-green-400" />
                       <span className="text-muted-foreground">
-                        Adhérence: {player.adherenceRatio !== null ? player.adherenceRatio.toFixed(2) : <span className="italic">—</span>}
+                        {t("workload.availability.adherenceLabel", { value: "" })}{player.adherenceRatio !== null ? player.adherenceRatio.toFixed(2) : <span className="italic">—</span>}
                       </span>
                     </div>
                   </div>
@@ -465,7 +470,7 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
                   {/* Risk Factors */}
                   {player.factors.length > 0 && (
                     <div className="mt-3 pt-3 border-t border-border/50">
-                      <p className="text-xs text-muted-foreground mb-1">Facteurs de risque:</p>
+                      <p className="text-xs text-muted-foreground mb-1">{t("workload.availability.riskFactors")}</p>
                       <div className="flex flex-wrap gap-1">
                         {player.factors.map((factor, idx) => (
                           <Badge key={idx} variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/20">
