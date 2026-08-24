@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ClipboardCheck, Users, UserSearch, FolderOpen, BarChart3, Trophy } from "lucide-react";
 import { AttendanceTab } from "@/components/category/attendance/AttendanceTab";
@@ -17,6 +18,7 @@ interface AdminTabProps {
 }
 
 export function AdminTab({ categoryId }: AdminTabProps) {
+  const { t } = useTranslation();
   return (
     <Tabs defaultValue="attendance" className="space-y-4">
       <div className="flex justify-end">

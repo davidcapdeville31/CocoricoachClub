@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import * as React from "react";
 import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
@@ -38,6 +39,7 @@ function PerformanceDisabledMessage() {
 }
 
 export function PerformanceTab({ categoryId, sportType }: PerformanceTabProps) {
+  const { t } = useTranslation();
   const { isViewer } = useViewerModeContext();
   const pendingCount = usePendingWeightLogsCount(categoryId);
   const pendingTestsCount = usePendingTestResultsCount(categoryId);

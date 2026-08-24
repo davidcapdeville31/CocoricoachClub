@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -54,6 +55,7 @@ const SUBJECTS = [
 const TERMS = ["Trimestre 1", "Trimestre 2", "Trimestre 3", "Semestre 1", "Semestre 2"];
 
 export function AcademicTab({ categoryId }: AcademicTabProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);

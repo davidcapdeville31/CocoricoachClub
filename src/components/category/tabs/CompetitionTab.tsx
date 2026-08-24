@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Trophy, Swords, Flag, Award, Mountain, BarChart3, Users, LineChart } from "lucide-react";
 import { JudoOpponentsTab } from "@/components/category/judo/JudoOpponentsTab";
@@ -20,6 +21,7 @@ interface CompetitionTabProps {
 }
 
 export function CompetitionTab({ categoryId, isRugby7, isNationalTeam, sportType }: CompetitionTabProps) {
+  const { t } = useTranslation();
   const isIndividual = isIndividualSport(sportType || "");
   const isSkiSport = sportType ? getMainSportFromType(sportType) === "ski" : false;
   // (athletics: minimas/records moved to Planification only)

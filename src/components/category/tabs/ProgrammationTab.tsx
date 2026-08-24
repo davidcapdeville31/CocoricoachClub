@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { FolderOpen, ClipboardCheck, Library } from "lucide-react";
 import { TestsTab } from "@/components/category/TestsTab";
@@ -12,6 +13,7 @@ interface ProgrammationTabProps {
 }
 
 export function ProgrammationTab({ categoryId }: ProgrammationTabProps) {
+  const { t } = useTranslation();
   const { data: category } = useQuery({
     queryKey: ["category-sport-type-programmation", categoryId],
     queryFn: async () => {

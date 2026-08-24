@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Trophy, Target, Timer, Flame } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -26,6 +27,7 @@ interface DatasTabProps {
 }
 
 function AthleticsTrainingStats({ categoryId }: { categoryId: string }) {
+  const { t: translate } = useTranslation();
   // Détecte les familles d'épreuves réellement pratiquées dans la catégorie
   const { data: players = [] } = useQuery({
     queryKey: ["athletics-category-disciplines", categoryId],
@@ -120,6 +122,7 @@ function AthleticsTrainingStats({ categoryId }: { categoryId: string }) {
 }
 
 export function DatasTab({ categoryId, sportType }: DatasTabProps) {
+  const { t } = useTranslation();
   const isBowling = (sportType || "").toLowerCase().includes("bowling");
   const isTennis = (sportType || "").toLowerCase().includes("tennis");
   const isBasket = isBasketballPrecisionSport(sportType);

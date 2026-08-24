@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Heart, Smile, Apple, Activity, Dumbbell, LayoutDashboard, Brain, AlertTriangle } from "lucide-react";
 import { MedicalRecordsTab } from "@/components/health/MedicalRecordsTab";
@@ -49,6 +50,7 @@ class SanteErrorBoundary extends React.Component<
 }
 
 export function SanteTab({ categoryId }: SanteTabProps) {
+  const { t } = useTranslation();
   const { isViewer } = useViewerModeContext();
   const [searchParams] = useSearchParams();
   const urlSubTab = searchParams.get("subtab");

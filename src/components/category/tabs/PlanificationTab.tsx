@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { CalendarDays, BarChart3, Medal } from "lucide-react";
 import { CalendarTab } from "@/components/category/CalendarTab";
@@ -14,6 +15,7 @@ interface PlanificationTabProps {
 }
 
 export function PlanificationTab({ categoryId, sportType }: PlanificationTabProps) {
+  const { t } = useTranslation();
   const isSkiSport = sportType ? getMainSportFromType(sportType) === "ski" : false;
   const isAthletics = sportType ? isAthletismeCategory(sportType) : false;
 
