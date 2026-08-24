@@ -31,19 +31,19 @@ export function PlanificationTab({ categoryId, sportType }: PlanificationTabProp
             value="calendar"
             colorKey="planification"
             icon={<CalendarDays className="h-4 w-4" />}
-            tooltip="Calendrier et périodisation"
+            tooltip={t("subnav.planification.calendarTooltip")}
           >
-            Calendrier
+            {t("subnav.planification.calendar")}
           </ColoredSubTabsTrigger>
           {isSkiSport && (
             <ColoredSubTabsTrigger
               value="fis-ranking"
               colorKey="planification"
               icon={<BarChart3 className="h-4 w-4" />}
-              tooltip="Classement FIS + WSPL par athlète : points, objectifs, simulation et projections"
+              tooltip={t("subnav.planification.fisWsplTooltip")}
             >
-              <span className="hidden sm:inline">Classement FIS + WSPL</span>
-              <span className="sm:hidden">Classmt</span>
+              <span className="hidden sm:inline">{t("subnav.planification.fisWspl")}</span>
+              <span className="sm:hidden">{t("subnav.planification.fisWsplShort")}</span>
             </ColoredSubTabsTrigger>
           )}
           {isAthletics && (
@@ -51,10 +51,10 @@ export function PlanificationTab({ categoryId, sportType }: PlanificationTabProp
               value="minimas"
               colorKey="planification"
               icon={<Medal className="h-4 w-4" />}
-              tooltip="Minimas fédéraux, records personnels (PB) et records de la saison (SB) par discipline"
+              tooltip={t("subnav.planification.minimasTooltip")}
             >
-              <span className="hidden sm:inline">Minimas / Records</span>
-              <span className="sm:hidden">Minimas</span>
+              <span className="hidden sm:inline">{t("subnav.planification.minimas")}</span>
+              <span className="sm:hidden">{t("subnav.planification.minimasShort")}</span>
             </ColoredSubTabsTrigger>
           )}
         </ColoredSubTabsList>

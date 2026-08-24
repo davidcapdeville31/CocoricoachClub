@@ -103,7 +103,7 @@ function AthleticsTrainingStats({ categoryId }: { categoryId: string }) {
               value={t.value}
               colorKey="performance"
               icon={t.icon}
-              tooltip={`Données d'entraînement — ${t.label}. Seuls les athlètes pratiquant cette épreuve apparaissent ici.`}
+              tooltip={translate("subnav.stats.trainingDataTooltip", { label: t.label })}
             >
               {t.label}
             </ColoredSubTabsTrigger>
@@ -138,19 +138,19 @@ export function DatasTab({ categoryId, sportType }: DatasTabProps) {
             value="competition"
             colorKey="competition"
             icon={<Trophy className="h-4 w-4" />}
-            tooltip="Statistiques cumulées issues des compétitions"
+            tooltip={t("subnav.stats.competitionTooltip")}
           >
-            <span className="hidden sm:inline">Stats de compétition</span>
-            <span className="sm:hidden">Compét.</span>
+            <span className="hidden sm:inline">{t("subnav.stats.competition")}</span>
+            <span className="sm:hidden">{t("subnav.stats.competitionShort")}</span>
           </ColoredSubTabsTrigger>
           <ColoredSubTabsTrigger
             value="training"
             colorKey="competition"
             icon={<Target className="h-4 w-4" />}
-            tooltip="Statistiques détaillées des entraînements : précision, drills et exercices spécifiques au sport"
+            tooltip={t("subnav.stats.trainingTooltip")}
           >
-            <span className="hidden sm:inline">Stats d'entraînement</span>
-            <span className="sm:hidden">Entr.</span>
+            <span className="hidden sm:inline">{t("subnav.stats.training")}</span>
+            <span className="sm:hidden">{t("subnav.stats.trainingShort")}</span>
           </ColoredSubTabsTrigger>
         </ColoredSubTabsList>
       </div>

@@ -42,8 +42,8 @@ export function CompetitionTab({ categoryId, isRugby7, isNationalTeam, sportType
               colorKey="competition"
               icon={isSkiSport ? <Mountain className="h-4 w-4" /> : <MatchIcon className="h-4 w-4" />}
               tooltip={isSkiSport 
-                ? "Compétitions FIS : création, résultats, calcul automatique des points"
-                : "Liste des matchs et compétitions : création, résultats, statistiques et gestion des rencontres"
+                ? t("subnav.competition.matchesSkiTooltip")
+                : t("subnav.competition.matchesTooltip")
               }
             >
               {matchLabel}
@@ -53,10 +53,10 @@ export function CompetitionTab({ categoryId, isRugby7, isNationalTeam, sportType
                 value="fis-ranking" 
                 colorKey="competition"
                 icon={<BarChart3 className="h-4 w-4" />}
-                tooltip="Classement FIS par athlète : points, objectifs, simulation et projections"
+                tooltip={t("subnav.competition.fisRankingTooltip")}
               >
-                <span className="hidden sm:inline">Classement FIS</span>
-                <span className="sm:hidden">Classmt</span>
+                <span className="hidden sm:inline">{t("subnav.competition.fisRanking")}</span>
+                <span className="sm:hidden">{t("subnav.competition.fisRankingShort")}</span>
               </ColoredSubTabsTrigger>
             )}
             {isRugby7 && (
@@ -64,9 +64,9 @@ export function CompetitionTab({ categoryId, isRugby7, isNationalTeam, sportType
                 value="tournaments" 
                 colorKey="competition"
                 icon={<Trophy className="h-4 w-4" />}
-                tooltip="Gestion des tournois : phases de poules, classements et résultats consolidés"
+                tooltip={t("subnav.competition.tournamentsTooltip")}
               >
-                Tournois
+                {t("subnav.competition.tournaments")}
               </ColoredSubTabsTrigger>
             )}
             {isNationalTeam && (
@@ -74,10 +74,10 @@ export function CompetitionTab({ categoryId, isRugby7, isNationalTeam, sportType
                 value="national-team" 
                 colorKey="competition"
                 icon={<Flag className="h-4 w-4" />}
-                tooltip="Suivi des sélections en équipe nationale : convocations, performances et historique"
+                tooltip={t("subnav.competition.nationalTeamTooltip")}
               >
-                <span className="hidden sm:inline">Équipe Nationale</span>
-                <span className="sm:hidden">National</span>
+                <span className="hidden sm:inline">{t("subnav.competition.nationalTeam")}</span>
+                <span className="sm:hidden">{t("subnav.competition.nationalTeamShort")}</span>
               </ColoredSubTabsTrigger>
             )}
             {isJudo && (
@@ -85,10 +85,10 @@ export function CompetitionTab({ categoryId, isRugby7, isNationalTeam, sportType
                 value="opponents"
                 colorKey="competition"
                 icon={<Users className="h-4 w-4" />}
-                tooltip="Profils adversaires : enregistrer les judokas rencontrés en compétition pour analyser les forces/faiblesses"
+                tooltip={t("subnav.competition.opponentsTooltip")}
               >
-                <span className="hidden sm:inline">Profils adversaires</span>
-                <span className="sm:hidden">Adversaires</span>
+                <span className="hidden sm:inline">{t("subnav.competition.opponents")}</span>
+                <span className="sm:hidden">{t("subnav.competition.opponentsShort")}</span>
               </ColoredSubTabsTrigger>
             )}
             {isJudo && (
@@ -96,7 +96,7 @@ export function CompetitionTab({ categoryId, isRugby7, isNationalTeam, sportType
                 value="judo-analytics"
                 colorKey="competition"
                 icon={<LineChart className="h-4 w-4" />}
-                tooltip="Bilan compétitions : nombre de tournois locaux/nationaux/internationaux, meilleures performances et statistiques par adversaire"
+                tooltip={t("subnav.competition.judoReviewTooltip")}
               >
                 <span className="hidden sm:inline">Bilan compétitions</span>
                 <span className="sm:hidden">Bilan</span>
@@ -107,7 +107,7 @@ export function CompetitionTab({ categoryId, isRugby7, isNationalTeam, sportType
                 value="athle-analytics"
                 colorKey="competition"
                 icon={<LineChart className="h-4 w-4" />}
-                tooltip="Bilan compétitions : nombre d'épreuves par niveau (local, départemental, régional, national, international), meilleures performances et participations Club / Sélection"
+                tooltip={t("subnav.competition.athleReviewTooltip")}
               >
                 <span className="hidden sm:inline">Bilan compétitions</span>
                 <span className="sm:hidden">Bilan</span>

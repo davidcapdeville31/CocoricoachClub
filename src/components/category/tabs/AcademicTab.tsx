@@ -382,8 +382,8 @@ export function AcademicTab({ categoryId }: AcademicTabProps) {
               <CardHeader className="pb-0">
                 <div className="flex items-center justify-between">
                   <TabsList>
-                    <TabsTrigger value="grades">Notes</TabsTrigger>
-                    <TabsTrigger value="absences">Absences</TabsTrigger>
+                    <TabsTrigger value="grades">{t("subnav.academy.grades")}</TabsTrigger>
+                    <TabsTrigger value="absences">{t("subnav.academy.absences")}</TabsTrigger>
                   </TabsList>
                   <div className="flex gap-2">
                     <Dialog open={gradeDialogOpen} onOpenChange={setGradeDialogOpen}>

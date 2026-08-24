@@ -87,17 +87,17 @@ export function SanteTab({ categoryId }: SanteTabProps) {
               value="dashboard"
               colorKey="sante"
               icon={<LayoutDashboard className="h-4 w-4" />}
-              tooltip="Vue d'ensemble santé : alertes, blessures actives, indicateurs clés"
+              tooltip={t("subnav.sante.dashboardTooltip")}
             >
-              Dashboard Coach
+              {t("subnav.sante.dashboard")}
             </ColoredSubTabsTrigger>
             <ColoredSubTabsTrigger
               value="wellness-health"
               colorKey="sante"
               icon={<Smile className="h-4 w-4" />}
-              tooltip="Wellness quotidien et dossiers médicaux des athlètes"
+              tooltip={t("subnav.sante.wellnessTooltip")}
             >
-              Wellness
+              {t("subnav.sante.wellness")}
             </ColoredSubTabsTrigger>
             {/* Nutrition masquée pour toutes les disciplines (non pertinent pour le moment) */}
             {!isViewer && (
@@ -105,9 +105,9 @@ export function SanteTab({ categoryId }: SanteTabProps) {
                 value="injuries"
                 colorKey="sante"
                 icon={<Activity className="h-4 w-4" />}
-                tooltip="Suivi des blessures, maladies, historique et bibliothèque"
+                tooltip={t("subnav.sante.injuriesTooltip")}
               >
-                Blessures / Maladies
+                {t("subnav.sante.injuries")}
               </ColoredSubTabsTrigger>
             )}
             {!isViewer && (
@@ -115,9 +115,9 @@ export function SanteTab({ categoryId }: SanteTabProps) {
                 value="rehab"
                 colorKey="sante"
                 icon={<Dumbbell className="h-4 w-4" />}
-                tooltip="Protocoles de réhabilitation actifs"
+                tooltip={t("subnav.sante.rehabTooltip")}
               >
-                Réhabilitation
+                {t("subnav.sante.rehab")}
               </ColoredSubTabsTrigger>
             )}
             {!isViewer && (
@@ -125,9 +125,9 @@ export function SanteTab({ categoryId }: SanteTabProps) {
                 value="risk"
                 colorKey="sante"
                 icon={<AlertTriangle className="h-4 w-4" />}
-                tooltip="Évaluation du risque de blessure (EWMA + AWCR + Wellness)"
+                tooltip={t("subnav.sante.riskTooltip")}
               >
-                Risque blessure
+                {t("subnav.sante.risk")}
               </ColoredSubTabsTrigger>
             )}
             {!isViewer && hasConcussionProtocol && (
@@ -135,9 +135,9 @@ export function SanteTab({ categoryId }: SanteTabProps) {
                 value="concussion"
                 colorKey="sante"
                 icon={<Brain className="h-4 w-4" />}
-                tooltip="Protocole commotion cérébrale spécifique à votre sport"
+                tooltip={t("subnav.sante.concussionTooltip")}
               >
-                Protocole Commotion
+                {t("subnav.sante.concussion")}
               </ColoredSubTabsTrigger>
             )}
           </ColoredSubTabsList>

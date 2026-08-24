@@ -35,27 +35,27 @@ export function ProgrammationTab({ categoryId }: ProgrammationTabProps) {
             value="programs"
             colorKey="programmation"
             icon={<FolderOpen className="h-4 w-4" />}
-            tooltip="Programmes structurés en blocs et semaines pour organiser la progression à long terme"
+            tooltip={t("subnav.programmation.programsTooltip")}
           >
-            <span className="hidden sm:inline">Programmes d'entraînement</span>
-            <span className="sm:hidden">Prog</span>
+            <span className="hidden sm:inline">{t("subnav.programmation.programs")}</span>
+            <span className="sm:hidden">{t("subnav.programmation.programsShort")}</span>
           </ColoredSubTabsTrigger>
           <ColoredSubTabsTrigger
             value="tests"
             colorKey="programmation"
             icon={<ClipboardCheck className="h-4 w-4" />}
-            tooltip="Bibliothèque de tests, planification ponctuelle ou récurrente, et gestion des rappels"
+            tooltip={t("subnav.programmation.testsTooltip")}
           >
-            Tests
+            {t("subnav.programmation.tests")}
           </ColoredSubTabsTrigger>
           <ColoredSubTabsTrigger
             value="exercise-library"
             colorKey="programmation"
             icon={<Library className="h-4 w-4" />}
-            tooltip="Banque d'exercices : exercices système (gérés par Super Admin) et vos exercices personnels"
+            tooltip={t("subnav.programmation.exerciseLibraryTooltip")}
           >
-            <span className="hidden sm:inline">Banque d'exercices</span>
-            <span className="sm:hidden">Banque</span>
+            <span className="hidden sm:inline">{t("subnav.programmation.exerciseLibrary")}</span>
+            <span className="sm:hidden">{t("subnav.programmation.exerciseLibraryShort")}</span>
           </ColoredSubTabsTrigger>
         </ColoredSubTabsList>
       </div>
