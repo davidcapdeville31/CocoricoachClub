@@ -23,6 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Plus, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { translateOnSave } from "@/lib/i18n/contentTranslation";
 import { cn } from "@/lib/utils";
 
 const COLOR_OPTIONS = [
@@ -108,6 +109,7 @@ export function ProgramThemeSelector({
         .single();
       if (error) throw error;
       return data.id;
+      void translateOnSave([trimmed]);
     },
     onSuccess: (id) => {
       toast.success("Thématique créée ✅");

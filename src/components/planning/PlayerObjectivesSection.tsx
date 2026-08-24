@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { translateOnSave } from "@/lib/i18n/contentTranslation";
 import { Plus, Target, User, TrendingUp, Trash2, Users } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -130,6 +131,7 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
       const { error } = await supabase.from("player_objectives").insert(rows);
       if (error) throw error;
       return rows.length;
+      void translateOnSave([formTitle, formDescription, formMetricName]);
     },
     onSuccess: (count) => {
       queryClient.invalidateQueries({ queryKey: ["player-objectives"] });
