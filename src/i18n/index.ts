@@ -43,9 +43,10 @@ export function getStoredLanguage(): AppLanguage {
 
 i18n.use(initReactI18next).init({
   resources: {
-    fr: { translation: fr },
-    en: { translation: en },
+    fr: { translation: frResources },
+    en: { translation: enResources },
   },
+
   lng: getStoredLanguage(),
   fallbackLng: "fr",
   interpolation: { escapeValue: false },
