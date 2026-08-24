@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -30,6 +31,7 @@ interface TrainingLoadTabProps {
 }
 
 export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { isViewer } = useViewerModeContext();
   const [loadModel, setLoadModel] = useState<"ewma" | "awcr">("ewma");
@@ -131,12 +133,12 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
   };
 
   const periodOptions = [
-    { value: 3, label: "3 jours" },
-    { value: 7, label: "7 jours" },
-    { value: 14, label: "14 jours" },
-    { value: 28, label: "28 jours" },
-    { value: 56, label: "8 semaines" },
-    { value: 90, label: "Saison" },
+    { value: 3, label: t("workload.tab.period.days3") },
+    { value: 7, label: t("workload.tab.period.days7") },
+    { value: 14, label: t("workload.tab.period.days14") },
+    { value: 28, label: t("workload.tab.period.days28") },
+    { value: 56, label: t("workload.tab.period.weeks8") },
+    { value: 90, label: t("workload.tab.period.season") },
   ];
 
   return (
@@ -148,9 +150,9 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
             <Lightbulb className="h-4 w-4 text-primary" />
           </div>
           <div className="text-sm text-foreground/90 leading-relaxed">
-            <span className="font-semibold">Comment lire cet onglet ?</span>{" "}
-            Le Workload aide à suivre la charge d'entraînement, repérer les pics de fatigue et adapter les séances.
-            Cliquez sur les icônes <Info className="inline h-3.5 w-3.5 mx-0.5 text-muted-foreground" /> pour comprendre chaque indicateur.
+            <span className="font-semibold">{t("workload.tab.banner.title")}</span>{" "}
+            {t("workload.tab.banner.text")}{" "}
+            <Info className="inline h-3.5 w-3.5 mx-0.5 text-muted-foreground" />
           </div>
         </CardContent>
       </Card>
@@ -159,16 +161,16 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
-            Charge d'entraînement
+            {t("workload.tab.header.title")}
             <InfoHint
-              title="Charge d'entraînement"
-              what="La quantité d'effort cumulé fait par l'athlète, séance après séance."
-              how="Pour chaque séance : durée × RPE (perception d'effort de 1 à 10). On compare ensuite la semaine en cours à la moyenne du mois."
-              why="Une charge bien dosée = progression. Trop brutale = blessure. Trop faible = désentraînement."
+              title={t("workload.tab.header.hint.title")}
+              what={t("workload.tab.header.hint.what")}
+              how={t("workload.tab.header.hint.how")}
+              why={t("workload.tab.header.hint.why")}
             />
           </h2>
           <p className="text-muted-foreground text-sm">
-            Suivi {loadModel === "ewma" ? "EWMA (moyenne pondérée)" : "AWCR (moyenne simple, Gabbett)"} — charge interne & récupération.
+            {loadModel === "ewma" ? t("workload.tab.header.subtitleEwma") : t("workload.tab.header.subtitleAwcr")}
           </p>
         </div>
 
@@ -186,14 +188,14 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
                   onClick={() => setLoadSection("internal")}
                 >
                   <Activity className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Charge interne</span>
-                  <span className="sm:hidden">Interne</span>
+                  <span className="hidden sm:inline">{t("workload.tab.section.internal")}</span>
+                  <span className="sm:hidden">{t("workload.tab.section.internalShort")}</span>
                 </button>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="max-w-xs bg-background/95 backdrop-blur-sm border shadow-lg">
-                <p className="font-semibold text-xs mb-1">Charge interne (sRPE)</p>
+                <p className="font-semibold text-xs mb-1">{t("workload.tab.section.internalTooltipTitle")}</p>
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Mesure subjective de la charge d'entraînement basée sur le RPE (perception de l'effort) multiplié par la durée de la séance. Permet de quantifier le stress physiologique ressenti par l'athlète.
+                  {t("workload.tab.section.internalTooltipDesc")}
                 </p>
               </TooltipContent>
             </Tooltip>
@@ -208,14 +210,14 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
                   onClick={() => setLoadSection("external")}
                 >
                   <Heart className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">HRV / Récupération</span>
-                  <span className="sm:hidden">HRV</span>
+                  <span className="hidden sm:inline">{t("workload.tab.section.external")}</span>
+                  <span className="sm:hidden">{t("workload.tab.section.externalShort")}</span>
                 </button>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="max-w-xs bg-background/95 backdrop-blur-sm border shadow-lg">
-                <p className="font-semibold text-xs mb-1">HRV / Récupération</p>
+                <p className="font-semibold text-xs mb-1">{t("workload.tab.section.externalTooltipTitle")}</p>
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Variabilité de la fréquence cardiaque (HRV) et indicateurs de récupération. Le RMSSD mesure l'activité du système nerveux parasympathique — un indicateur clé de la capacité de récupération et de la fatigue accumulée.
+                  {t("workload.tab.section.externalTooltipDesc")}
                 </p>
               </TooltipContent>
             </Tooltip>
@@ -240,9 +242,9 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="max-w-xs bg-background/95 backdrop-blur-sm border shadow-lg">
-                  <p className="font-semibold text-xs mb-1">EWMA (Exponentially Weighted Moving Average)</p>
+                  <p className="font-semibold text-xs mb-1">{t("workload.tab.model.ewmaTooltipTitle")}</p>
                   <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    Moyenne mobile pondérée exponentiellement. Accorde plus de poids aux séances récentes. Le ratio aiguë/chronique (7j vs 28j) indique le risque de blessure : zone optimale entre 0.85 et 1.30.
+                    {t("workload.tab.model.ewmaTooltipDesc")}
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -260,9 +262,9 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="max-w-xs bg-background/95 backdrop-blur-sm border shadow-lg">
-                  <p className="font-semibold text-xs mb-1">AWCR (Acute:Chronic Workload Ratio)</p>
+                  <p className="font-semibold text-xs mb-1">{t("workload.tab.model.awcrTooltipTitle")}</p>
                   <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    Ratio de charge aiguë/chronique classique (modèle Gabbett). Compare la charge des 7 derniers jours à la moyenne des 28 derniers jours par somme simple. Zone sûre : 0.8–1.3, zone de danger : &gt;1.5.
+                    {t("workload.tab.model.awcrTooltipDesc")}
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -292,13 +294,13 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
           >
             <SelectTrigger className="w-[180px]">
               <Users className="h-3 w-3 mr-1" />
-              <SelectValue placeholder="Sélectionner athlète" />
+              <SelectValue placeholder={t("workload.tab.playerSelect.placeholder")} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="team">
                 <span className="flex items-center gap-1">
                   <Users className="h-3 w-3" />
-                  Vue équipe
+                  {t("workload.tab.playerSelect.teamView")}
                 </span>
               </SelectItem>
               {players.map(p => (
@@ -316,7 +318,7 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
               className="gap-2"
             >
               <Heart className="h-4 w-4 text-destructive" />
-              <span className="hidden sm:inline">Saisir HRV</span>
+              <span className="hidden sm:inline">{t("workload.tab.enterHrv")}</span>
             </Button>
           )}
         </div>
@@ -334,7 +336,7 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
                     <Satellite className="h-3 w-3" />
                     GPS
                   </Badge>
-                  Données GPS disponibles - Métriques de charge externe activées
+                  {t("workload.tab.gpsInfo")}
                 </p>
               </CardContent>
             </Card>
@@ -361,27 +363,27 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
             <div className="flex justify-center">
               <ColoredSubTabsList colorKey="performance" className="inline-flex flex-wrap h-auto gap-1 w-max">
                 <ColoredSubTabsTrigger value="chart" colorKey="performance" icon={<BarChart3 className="h-4 w-4" />}>
-                  Graphique
+                  {t("workload.tab.subtabs.chart")}
                 </ColoredSubTabsTrigger>
                 <ColoredSubTabsTrigger value="calendar" colorKey="performance" icon={<Calendar className="h-4 w-4" />}>
-                  Calendrier
+                  {t("workload.tab.subtabs.calendar")}
                 </ColoredSubTabsTrigger>
                 <ColoredSubTabsTrigger value="rpe" colorKey="performance" icon={<TrendingUp className="h-4 w-4" />}>
-                  RPE Prévu/Réel
+                  {t("workload.tab.subtabs.rpe")}
                 </ColoredSubTabsTrigger>
                 <ColoredSubTabsTrigger value="team" colorKey="performance" icon={<Users className="h-4 w-4" />}>
-                  Comparaison
+                  {t("workload.tab.subtabs.team")}
                 </ColoredSubTabsTrigger>
                 <ColoredSubTabsTrigger value="distribution" colorKey="performance" icon={<BarChart3 className="h-4 w-4" />}>
-                  Répartition
+                  {t("workload.tab.subtabs.distribution")}
                 </ColoredSubTabsTrigger>
               </ColoredSubTabsList>
             </div>
 
             <TabsContent value="chart" className="space-y-2">
               <SubTabHelp
-                title="Comment lire le graphique ?"
-                text="Axe horizontal = dates. Axe vertical = niveau de charge. La courbe 'aiguë' (récente, 7j) doit rester proche de la courbe 'chronique' (habituelle, 28j). Quand l'écart se creuse vers le haut, l'athlète est en surcharge."
+                title={t("workload.tab.subtabHelp.chartTitle")}
+                text={t("workload.tab.subtabHelp.chartText")}
               />
               <TrainingLoadChart
                 chartData={chartData}
@@ -396,24 +398,24 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
 
             <TabsContent value="calendar" className="space-y-2">
               <SubTabHelp
-                title="Vue calendrier"
-                text="Chaque case = un jour. La couleur indique l'intensité de la séance. Permet de repérer d'un coup d'œil les jours surchargés ou les périodes de repos."
+                title={t("workload.tab.subtabHelp.calendarTitle")}
+                text={t("workload.tab.subtabHelp.calendarText")}
               />
               <TrainingLoadCalendar categoryId={categoryId} />
             </TabsContent>
 
             <TabsContent value="rpe" className="space-y-2">
               <SubTabHelp
-                title="RPE prévu vs RPE réel"
-                text="Compare l'intensité que le coach avait prévue (RPE prévu) avec celle ressentie par l'athlète après la séance (RPE réel). Un écart important = la séance a été plus dure ou plus légère que prévu : utile pour ajuster les prochaines."
+                title={t("workload.tab.subtabHelp.rpeTitle")}
+                text={t("workload.tab.subtabHelp.rpeText")}
               />
               <IntensityComparisonDashboard categoryId={categoryId} />
             </TabsContent>
 
             <TabsContent value="team" className="space-y-2">
               <SubTabHelp
-                title="Comparaison entre athlètes"
-                text="Permet de voir d'un coup d'œil quels athlètes sont en zone optimale, en vigilance ou en danger. Cliquez sur un athlète pour zoomer sur sa charge."
+                title={t("workload.tab.subtabHelp.teamTitle")}
+                text={t("workload.tab.subtabHelp.teamText")}
               />
               <TeamLoadComparison
                 players={players}
@@ -426,8 +428,8 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
 
             <TabsContent value="distribution" className="space-y-2">
               <SubTabHelp
-                title="Répartition de la charge"
-                text="Montre comment la charge se répartit par type de séance ou par objectif (technique, physique, tactique...). Utile pour vérifier que la planification respecte les priorités."
+                title={t("workload.tab.subtabHelp.distributionTitle")}
+                text={t("workload.tab.subtabHelp.distributionText")}
               />
               <TrainingDistribution categoryId={categoryId} />
             </TabsContent>
@@ -438,7 +440,7 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
           {summary && selectedPlayerId && (
             <Card className="bg-gradient-card shadow-md">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Recommandations</CardTitle>
+                <CardTitle className="text-lg">{t("workload.tab.recommendations.title")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className={`p-4 rounded-lg border ${
@@ -447,16 +449,16 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
                   "bg-red-500/5 border-red-500/20"
                 }`}>
                   <p className="font-medium">
-                    {summary.riskLevel === "optimal" ? "✅ Charge optimale" :
-                     summary.riskLevel === "warning" ? "⚠️ Vigilance requise" :
-                     "🚨 Action nécessaire"}
+                    {summary.riskLevel === "optimal" ? t("workload.tab.recommendations.optimal") :
+                     summary.riskLevel === "warning" ? t("workload.tab.recommendations.warning") :
+                     t("workload.tab.recommendations.danger")}
                   </p>
                   <p className="text-sm text-muted-foreground mt-1">
                     {summary.ewmaRatio > 1.3 
-                      ? "Réduire l'intensité des prochaines séances pour éviter la surcharge"
+                      ? t("workload.tab.recommendations.reduceIntensity")
                       : summary.ewmaRatio < 0.85
-                      ? "Augmenter progressivement la charge pour éviter le désentraînement"
-                      : "Maintenir le rythme actuel et surveiller la récupération"
+                      ? t("workload.tab.recommendations.increaseLoad")
+                      : t("workload.tab.recommendations.maintain")
                     }
                   </p>
                 </div>

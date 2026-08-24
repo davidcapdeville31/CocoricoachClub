@@ -7,6 +7,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { TrendingUp, Clock, Trophy, FlaskConical, Filter, Target } from "lucide-react";
+import i18n from "@/i18n";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
@@ -19,6 +20,7 @@ import { collectLatestPlayerWeights } from "@/lib/benchmarks/playerWeights";
 import { getPositionGroupsForSport, playerBelongsToGroup } from "@/lib/constants/sportPositionGroups";
 import { BenchmarkPositionMatrix } from "@/components/tonnage/BenchmarkPositionMatrix";
 import { AllTestsBenchmarkMatrix } from "@/components/tonnage/AllTestsBenchmarkMatrix";
+import { useTranslation } from "react-i18next";
 
 
 interface Props {
@@ -50,17 +52,17 @@ const formatFrNumber = (value: number, digits = 2) => {
 const buildRatioDisplay = (rawValue: unknown, playerWeight?: number | null) => {
   const value = Number(rawValue);
   if (!Number.isFinite(value)) {
-    return { main: String(rawValue ?? ""), sub: "ratio charge/poids", ratio: null as number | null, loadKg: null as number | null };
+    return { main: String(rawValue ?? ""), sub: i18n.t("athleteSpace:progression.ratioLoadWeight"), ratio: null as number | null, loadKg: null as number | null };
   }
 
   if (!playerWeight || playerWeight <= 0) {
-    return { main: formatFrNumber(value), sub: "ratio charge/poids", ratio: null as number | null, loadKg: value };
+    return { main: formatFrNumber(value), sub: i18n.t("athleteSpace:progression.ratioLoadWeight"), ratio: null as number | null, loadKg: value };
   }
 
   const loadKg = value >= 5 ? value : value * playerWeight;
   const ratio = value >= 5 ? loadKg / playerWeight : value;
   return {
-    main: `ratio ${formatFrNumber(ratio, 2)}`,
+    main: `${i18n.t("athleteSpace:progression.ratioPrefix")} ${formatFrNumber(ratio, 2)}`,
     sub: `${formatFrNumber(loadKg, 1)}/${formatFrNumber(playerWeight, 1)} kg`,
     ratio,
     loadKg,
@@ -75,6 +77,7 @@ const getRatioComparableValue = (rawValue: unknown, playerWeight?: number | null
 };
 
 export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Props) {
+  const { t } = useTranslation();
   const testCategories = useMemo(() => getTestCategoriesForSport(sportType || ""), [sportType]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const { map: customTestsMap } = useCustomTestsMap();
@@ -284,11 +287,11 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
     
     // Check for speed tests
     if (categoriesWithData.has("__speed__")) {
-      filters.push({ value: "__speed__", label: "Vitesse" });
+      filters.push({ value: "__speed__", label: t("athleteSpace:progression.speed") });
     }
     // Check for strength tests
     if (categoriesWithData.has("__strength__")) {
-      filters.push({ value: "__strength__", label: "Musculation" });
+      filters.push({ value: "__strength__", label: t("athleteSpace:progression.strength") });
     }
     // Generic test categories
     testCategories.forEach(cat => {
@@ -305,7 +308,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
     });
     
     return filters;
-  }, [categoriesWithData, testCategories]);
+  }, [categoriesWithData, testCategories, t]);
 
   // Filter logic
   const showSpeed = selectedCategory === "all" || selectedCategory === "__speed__";
@@ -333,9 +336,9 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
       if (latest.time_40m_seconds && previous.time_40m_seconds) {
         const diff = latest.time_40m_seconds - previous.time_40m_seconds;
         if (diff < 0) {
-          msgs.push(`🏃 Vitesse: tu as progressé de ${Math.abs(diff).toFixed(2)}s par rapport à ton dernier test !`);
+          msgs.push(t("athleteSpace:progression.speedProgressGain", { diff: Math.abs(diff).toFixed(2) }));
         } else if (diff > 0) {
-          msgs.push(`🏃 Vitesse: +${diff.toFixed(2)}s par rapport à ton dernier test. Continue de travailler ta vitesse.`);
+          msgs.push(t("athleteSpace:progression.speedProgressLoss", { diff: diff.toFixed(2) }));
         }
       }
     }
@@ -347,7 +350,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
           const previous = data[data.length - 2].value;
           const diff = latest - previous;
           if (diff > 0) {
-            msgs.push(`💪 ${exercise}: +${diff}kg depuis ton dernier test. Belle progression !`);
+            msgs.push(t("athleteSpace:progression.strengthProgress", { exercise, diff }));
           }
         }
       });
@@ -362,18 +365,18 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
         const isTimeTest = latest.unit === "s" || latest.unit === "min";
         if (isTimeTest) {
           if (diff < 0) {
-            msgs.push(`⏱️ ${latest.label}: -${Math.abs(diff).toFixed(1)}${latest.unit} par rapport à ton dernier test !`);
+            msgs.push(t("athleteSpace:progression.genericTimeImprovement", { label: latest.label, diff: Math.abs(diff).toFixed(1), unit: latest.unit }));
           }
         } else {
           if (diff > 0) {
-            msgs.push(`📈 ${latest.label}: +${diff.toFixed(1)}${latest.unit} depuis ton dernier test !`);
+            msgs.push(t("athleteSpace:progression.genericValueImprovement", { label: latest.label, diff: diff.toFixed(1), unit: latest.unit }));
           }
         }
       }
     });
 
     if (msgs.length === 0) {
-      msgs.push("📊 Tes résultats de tests s'afficheront ici au fur et à mesure.");
+      msgs.push(t("athleteSpace:progression.defaultFeedback"));
     }
 
     return msgs;
@@ -393,7 +396,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Filter className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium text-muted-foreground">Filtrer par catégorie</span>
+            <span className="text-sm font-medium text-muted-foreground">{t("athleteSpace:progression.filterByCategory")}</span>
           </div>
           <ScrollArea className="w-full whitespace-nowrap">
             <div className="flex gap-2 pb-2">
@@ -405,7 +408,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
                     : "bg-muted text-muted-foreground hover:bg-muted/80"
                 }`}
               >
-                Tous les tests
+                {t("athleteSpace:progression.allTests")}
               </button>
               {availableFilters.map(f => (
                 <button
@@ -441,7 +444,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex items-center gap-2">
                     <FlaskConical className="h-4 w-4 text-primary" />
-                    Derniers résultats de tests
+                    {t("athleteSpace:progression.latestResults")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>

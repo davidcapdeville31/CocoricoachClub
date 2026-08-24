@@ -1,5 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FlaskConical, Weight, BarChart3, Target } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { AthleteSpaceTests } from "./AthleteSpaceTests";
 import { AthleteSpaceProgression } from "./AthleteSpaceProgression";
 import { AthleteSpaceObjectives } from "./AthleteSpaceObjectives";
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export function AthleteSpacePerformance({ playerId, categoryId, sportType }: Props) {
+  const { t } = useTranslation();
   const accent = NAV_COLORS.performance.base;
   const triggerStyle = {
     ["--tab-accent" as any]: accent,
@@ -28,15 +30,15 @@ export function AthleteSpacePerformance({ playerId, categoryId, sportType }: Pro
         <TabsList className="flex flex-wrap h-auto gap-1 w-full bg-muted/40 rounded-xl p-1">
           <TabsTrigger value="tests" style={triggerStyle} className={triggerClass}>
             <FlaskConical className="h-3.5 w-3.5" />
-            <span>Tests & Progression</span>
+            <span>{t("athleteSpace:performance.testsAndProgression")}</span>
           </TabsTrigger>
           <TabsTrigger value="tonnage" style={triggerStyle} className={triggerClass}>
             <Weight className="h-3.5 w-3.5" />
-            <span>Tonnage</span>
+            <span>{t("athleteSpace:performance.tonnage")}</span>
           </TabsTrigger>
           <TabsTrigger value="objectives" style={triggerStyle} className={triggerClass}>
             <Target className="h-3.5 w-3.5" />
-            <span>Objectifs</span>
+            <span>{t("athleteSpace:performance.objectives")}</span>
           </TabsTrigger>
         </TabsList>
 

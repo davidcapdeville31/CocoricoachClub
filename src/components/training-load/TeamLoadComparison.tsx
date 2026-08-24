@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -79,6 +80,7 @@ export function TeamLoadComparison({
   isLoading,
   sportType,
 }: TeamLoadComparisonProps) {
+  const { t } = useTranslation();
   const [sortBy, setSortBy] = useState<"name" | "ratio" | "risk">("risk");
   const [filterPosition, setFilterPosition] = useState<string>("all");
   const [filterGroup, setFilterGroup] = useState<string>("all");
@@ -226,23 +228,23 @@ export function TeamLoadComparison({
   }));
 
   const riskLabel = (r?: string) =>
-    r === "danger" ? "Risque élevé" : r === "warning" ? "Vigilance" : "Optimal";
+    r === "danger" ? t("workload.teamLoadComparison.riskLabel.danger") : r === "warning" ? t("workload.teamLoadComparison.riskLabel.warning") : t("workload.teamLoadComparison.riskLabel.optimal");
 
   const handleExportCsv = () => {
     if (filteredPlayers.length === 0) {
-      toast.error("Aucune donnée à exporter");
+      toast.error(t("workload.teamLoadComparison.exportEmpty"));
       return;
     }
     const num = (v: number | undefined, d = 2) =>
       v == null ? "" : v.toFixed(d).replace(".", ",");
     const headers = [
-      "Athlète",
-      isIndividual ? "Discipline" : "Poste",
-      "Groupe",
-      "Ratio EWMA (ACWR)",
-      "Charge aiguë",
-      "Charge chronique",
-      "Niveau de risque",
+      t("workload.teamLoadComparison.csvHeaders.athlete"),
+      isIndividual ? t("workload.teamLoadComparison.csvHeaders.discipline") : t("workload.teamLoadComparison.csvHeaders.position"),
+      t("workload.teamLoadComparison.csvHeaders.group"),
+      t("workload.teamLoadComparison.csvHeaders.ratio"),
+      t("workload.teamLoadComparison.csvHeaders.acuteLoad"),
+      t("workload.teamLoadComparison.csvHeaders.chronicLoad"),
+      t("workload.teamLoadComparison.csvHeaders.riskLevel"),
     ];
     const rows = filteredPlayers.map((p) => [
       p.name,
@@ -255,7 +257,7 @@ export function TeamLoadComparison({
     ]);
     if (teamAverage) {
       rows.push([
-        "Moyenne équipe",
+        t("workload.teamLoadComparison.csvHeaders.teamAverage"),
         "",
         "",
         num(teamAverage.ewmaRatio),
@@ -290,7 +292,7 @@ export function TeamLoadComparison({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5 text-primary" />
-            Comparaison Équipe
+            {t("workload.teamLoadComparison.title")}
           </CardTitle>
 
           <div className="flex items-center gap-2 flex-wrap">
@@ -302,17 +304,17 @@ export function TeamLoadComparison({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tous</SelectItem>
+                  <SelectItem value="all">{t("workload.teamLoadComparison.filters.all")}</SelectItem>
                   <SelectItem value="avants">
                     <span className="flex items-center gap-1.5">
                       <div className="h-2 w-2 rounded-full bg-amber-500" />
-                      Avants
+                      {t("workload.teamLoadComparison.filters.avants")}
                     </span>
                   </SelectItem>
                   <SelectItem value="trois_quarts">
                     <span className="flex items-center gap-1.5">
                       <div className="h-2 w-2 rounded-full bg-cyan-500" />
-                      3/4
+                      {t("workload.teamLoadComparison.filters.troisQuarts")}
                     </span>
                   </SelectItem>
                 </SelectContent>
@@ -324,10 +326,10 @@ export function TeamLoadComparison({
               <Select value={filterGroup} onValueChange={setFilterGroup}>
                 <SelectTrigger className="w-[150px] h-9">
                   <Zap className="h-3 w-3 mr-1" />
-                  <SelectValue placeholder="Discipline" />
+                  <SelectValue placeholder={t("workload.teamLoadComparison.filters.discipline")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Toutes</SelectItem>
+                  <SelectItem value="all">{t("workload.teamLoadComparison.filters.allFem")}</SelectItem>
                   {disciplines.map(disc => (
                     <SelectItem key={disc} value={disc}>
                       <span className="flex items-center gap-1.5">
@@ -348,10 +350,10 @@ export function TeamLoadComparison({
               <Select value={filterPosition} onValueChange={setFilterPosition}>
                 <SelectTrigger className="w-[140px] h-9">
                   <Filter className="h-3 w-3 mr-1" />
-                  <SelectValue placeholder="Poste" />
+                  <SelectValue placeholder={t("workload.teamLoadComparison.filters.position")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tous postes</SelectItem>
+                  <SelectItem value="all">{t("workload.teamLoadComparison.filters.allPositions")}</SelectItem>
                   {positions.map(pos => (
                     <SelectItem key={pos} value={pos}>{pos}</SelectItem>
                   ))}
@@ -362,18 +364,18 @@ export function TeamLoadComparison({
             {/* Sort */}
             <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
               <SelectTrigger className="w-[120px] h-9">
-                <SelectValue placeholder="Trier par" />
+                <SelectValue placeholder={t("workload.teamLoadComparison.filters.sortBy")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="risk">Risque</SelectItem>
-                <SelectItem value="ratio">Ratio</SelectItem>
-                <SelectItem value="name">Nom</SelectItem>
+                <SelectItem value="risk">{t("workload.teamLoadComparison.filters.risk")}</SelectItem>
+                <SelectItem value="ratio">{t("workload.teamLoadComparison.filters.ratio")}</SelectItem>
+                <SelectItem value="name">{t("workload.teamLoadComparison.filters.name")}</SelectItem>
               </SelectContent>
             </Select>
 
             <Button variant="outline" size="sm" className="h-9 gap-1.5" onClick={handleExportCsv}>
               <Download className="h-4 w-4" />
-              Export CSV
+              {t("workload.teamLoadComparison.exportCsv")}
             </Button>
           </div>
         </div>
@@ -383,29 +385,29 @@ export function TeamLoadComparison({
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
             {teamAverage && (
               <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
-                <p className="text-xs text-muted-foreground font-medium">Équipe</p>
+                <p className="text-xs text-muted-foreground font-medium">{t("workload.teamLoadComparison.teamAvg")}</p>
                 <p className="text-xl font-bold text-primary">{teamAverage.ewmaRatio.toFixed(2)}</p>
-                <p className="text-xs text-muted-foreground">Ratio moyen</p>
+                <p className="text-xs text-muted-foreground">{t("workload.teamLoadComparison.avgRatio")}</p>
               </div>
             )}
             {groupAverages.avants && (
               <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
                 <div className="flex items-center gap-1.5">
                   <div className="h-2 w-2 rounded-full bg-amber-500" />
-                  <p className="text-xs text-muted-foreground font-medium">Avants ({groupAverages.avants.count})</p>
+                  <p className="text-xs text-muted-foreground font-medium">{t("workload.teamLoadComparison.filters.avants")} ({groupAverages.avants.count})</p>
                 </div>
                 <p className="text-xl font-bold text-amber-600">{groupAverages.avants.avgRatio.toFixed(2)}</p>
-                <p className="text-xs text-muted-foreground">Ratio moyen</p>
+                <p className="text-xs text-muted-foreground">{t("workload.teamLoadComparison.avgRatio")}</p>
               </div>
             )}
             {groupAverages.troisQuarts && (
               <div className="p-3 rounded-lg bg-cyan-500/10 border border-cyan-500/30">
                 <div className="flex items-center gap-1.5">
                   <div className="h-2 w-2 rounded-full bg-cyan-500" />
-                  <p className="text-xs text-muted-foreground font-medium">3/4 ({groupAverages.troisQuarts.count})</p>
+                  <p className="text-xs text-muted-foreground font-medium">{t("workload.teamLoadComparison.filters.troisQuarts")} ({groupAverages.troisQuarts.count})</p>
                 </div>
                 <p className="text-xl font-bold text-cyan-600">{groupAverages.troisQuarts.avgRatio.toFixed(2)}</p>
-                <p className="text-xs text-muted-foreground">Ratio moyen</p>
+                <p className="text-xs text-muted-foreground">{t("workload.teamLoadComparison.avgRatio")}</p>
               </div>
             )}
           </div>
@@ -416,9 +418,9 @@ export function TeamLoadComparison({
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mt-4">
             {teamAverage && (
               <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
-                <p className="text-xs text-muted-foreground font-medium">Groupe</p>
+                <p className="text-xs text-muted-foreground font-medium">{t("workload.teamLoadComparison.teamAvg")}</p>
                 <p className="text-xl font-bold text-primary">{teamAverage.ewmaRatio.toFixed(2)}</p>
-                <p className="text-xs text-muted-foreground">Ratio moyen</p>
+                <p className="text-xs text-muted-foreground">{t("workload.teamLoadComparison.avgRatio")}</p>
               </div>
             )}
             {disciplineAverages.map(avg => avg && (
@@ -435,7 +437,7 @@ export function TeamLoadComparison({
                   <p className="text-xs text-muted-foreground font-medium">{avg.label} ({avg.count})</p>
                 </div>
                 <p className="text-xl font-bold" style={{ color: avg.color }}>{avg.avgRatio.toFixed(2)}</p>
-                <p className="text-xs text-muted-foreground">Ratio moyen</p>
+                <p className="text-xs text-muted-foreground">{t("workload.teamLoadComparison.avgRatio")}</p>
               </div>
             ))}
           </div>
@@ -445,11 +447,11 @@ export function TeamLoadComparison({
         {!isRugby && (!isIndividual || !disciplineAverages || disciplineAverages.length === 0) && teamAverage && (
           <div className="flex items-center gap-4 mt-3 text-sm">
             <div className="flex items-center gap-1">
-              <span className="text-muted-foreground">Moyenne équipe:</span>
+              <span className="text-muted-foreground">{t("workload.teamLoadComparison.teamAverageLabel")}</span>
               <span className="font-semibold">{teamAverage.ewmaRatio.toFixed(2)}</span>
             </div>
             <div className="flex items-center gap-1">
-              <span className="text-muted-foreground">Aiguë moy:</span>
+              <span className="text-muted-foreground">{t("workload.teamLoadComparison.acuteAvgLabel")}</span>
               <span className="font-medium">{teamAverage.ewmaAcute.toFixed(0)}</span>
             </div>
           </div>
@@ -460,7 +462,7 @@ export function TeamLoadComparison({
         {chartData.length === 0 ? (
           <div className="flex flex-col items-center py-12 text-muted-foreground">
             <UserCheck className="h-12 w-12 mb-4 opacity-50" />
-            <p>Aucune donnée de charge pour les athlètes</p>
+            <p>{t("workload.teamLoadComparison.noData")}</p>
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={Math.max(300, chartData.length * 40)}>
@@ -525,7 +527,7 @@ export function TeamLoadComparison({
                         </Badge>
                       )}
                       <p className="text-sm mt-1">
-                        Ratio: <span className={cn("font-semibold", getRiskColor(data.riskLevel))}>{data.ratio.toFixed(2)}</span>
+                        {t("workload.chart.tooltip.ratio")} <span className={cn("font-semibold", getRiskColor(data.riskLevel))}>{data.ratio.toFixed(2)}</span>
                       </p>
                     </div>
                   );
@@ -543,7 +545,7 @@ export function TeamLoadComparison({
                   x={teamAverage.ewmaRatio} 
                   stroke="hsl(var(--accent))" 
                   strokeWidth={2}
-                  label={{ value: "Moy", position: "top", fontSize: 10 }}
+                  label={{ value: t("workload.teamLoadComparison.average"), position: "top", fontSize: 10 }}
                 />
               )}
 

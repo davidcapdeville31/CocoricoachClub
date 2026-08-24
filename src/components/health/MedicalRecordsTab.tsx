@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useSeasonFilteredPlayerIds, makePlayerIdFilter } from "@/hooks/use-season-filtered-players";
@@ -40,36 +41,17 @@ interface MedicalRecordsTabProps {
   categoryId: string;
 }
 
-const RECORD_TYPES = [
-  { value: "vaccination", label: "Vaccination", icon: Syringe },
-  { value: "medical_exam", label: "Examen médical", icon: FileText },
-  { value: "certificate", label: "Certificat", icon: FileText },
-  { value: "blood_test", label: "Analyse sanguine", icon: FileText },
-  { value: "imaging", label: "Imagerie", icon: FileText },
-  { value: "other", label: "Autre", icon: FileText },
-];
-
-const COMMON_VACCINATIONS = [
-  "Tétanos",
-  "Diphtérie",
-  "Poliomyélite",
-  "Coqueluche",
-  "Hépatite B",
-  "Grippe",
-  "COVID-19",
-];
-
-const COMMON_EXAMS = [
-  "Visite médicale d'aptitude",
-  "Certificat médical de non contre-indication",
-  "ECG",
-  "Épreuve d'effort",
-  "Bilan sanguin annuel",
-  "Examen dentaire",
-  "Examen ophtalmologique",
-];
+const RECORD_TYPE_VALUES = [
+  { value: "vaccination", key: "vaccination", icon: Syringe },
+  { value: "medical_exam", key: "medicalExam", icon: FileText },
+  { value: "certificate", key: "certificate", icon: FileText },
+  { value: "blood_test", key: "bloodTest", icon: FileText },
+  { value: "imaging", key: "imaging", icon: FileText },
+  { value: "other", key: "other", icon: FileText },
+] as const;
 
 export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
+  const { t } = useTranslation();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [filterType, setFilterType] = useState<string>("all");
   const [filterPlayer, setFilterPlayer] = useState<string>("all");
@@ -90,6 +72,31 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
 
   const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
   const keepPlayer = makePlayerIdFilter(allowedIds);
+
+  const RECORD_TYPES = RECORD_TYPE_VALUES.map((rt) => ({
+    ...rt,
+    label: t(`health:medicalRecords.recordTypes.${rt.key}`),
+  }));
+
+  const COMMON_VACCINATIONS = [
+    t("health:medicalRecords.vaccinations.tetanus"),
+    t("health:medicalRecords.vaccinations.diphtheria"),
+    t("health:medicalRecords.vaccinations.poliomyelitis"),
+    t("health:medicalRecords.vaccinations.pertussis"),
+    t("health:medicalRecords.vaccinations.hepatitisB"),
+    t("health:medicalRecords.vaccinations.flu"),
+    t("health:medicalRecords.vaccinations.covid19"),
+  ];
+
+  const COMMON_EXAMS = [
+    t("health:medicalRecords.exams.fitnessCheckup"),
+    t("health:medicalRecords.exams.noContraindicationCertificate"),
+    t("health:medicalRecords.exams.ecg"),
+    t("health:medicalRecords.exams.stressTest"),
+    t("health:medicalRecords.exams.annualBloodPanel"),
+    t("health:medicalRecords.exams.dentalExam"),
+    t("health:medicalRecords.exams.eyeExam"),
+  ];
 
   // Fetch players
   const { data: playersRaw } = useQuery({
@@ -170,12 +177,12 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["medical_records"] });
-      toast.success("Document médical ajouté");
+      toast.success(t("health:medicalRecords.toastSuccess"));
       resetForm();
       setIsDialogOpen(false);
     },
     onError: () => {
-      toast.error("Erreur lors de l'ajout");
+      toast.error(t("health:medicalRecords.toastError"));
     },
   });
 
@@ -193,18 +200,18 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
     if (days === null) return null;
     
     if (days < 0) {
-      return <Badge variant="destructive">Expiré depuis {Math.abs(days)}j</Badge>;
+      return <Badge variant="destructive">{t("health:medicalRecords.badges.expiredSince", { days: Math.abs(days) })}</Badge>;
     }
     if (days <= 7) {
-      return <Badge variant="destructive">Dans {days}j</Badge>;
+      return <Badge variant="destructive">{t("health:medicalRecords.badges.inDays", { days })}</Badge>;
     }
     if (days <= 30) {
-      return <Badge className="bg-orange-500">Dans {days}j</Badge>;
+      return <Badge className="bg-orange-500">{t("health:medicalRecords.badges.inDays", { days })}</Badge>;
     }
     if (days <= 90) {
-      return <Badge className="bg-yellow-500 text-black">Dans {days}j</Badge>;
+      return <Badge className="bg-yellow-500 text-black">{t("health:medicalRecords.badges.inDays", { days })}</Badge>;
     }
-    return <Badge variant="outline">{days}j</Badge>;
+    return <Badge variant="outline">{t("health:medicalRecords.badges.daysShort", { days })}</Badge>;
   };
 
   // Stats
@@ -229,13 +236,13 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
               <div>
                 {expiredCount > 0 && (
                   <span className="text-destructive font-medium">
-                    {expiredCount} document(s) expiré(s)
+                    {t("health:medicalRecords.expiredCount", { count: expiredCount })}
                   </span>
                 )}
                 {expiredCount > 0 && dueSoonCount > 0 && " • "}
                 {dueSoonCount > 0 && (
                   <span className="text-orange-600 font-medium">
-                    {dueSoonCount} à renouveler dans les 30 jours
+                    {t("health:medicalRecords.dueSoonCount", { count: dueSoonCount })}
                   </span>
                 )}
               </div>
@@ -250,7 +257,7 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
               <Syringe className="h-4 w-4" />
-              Vaccinations
+              {t("health:medicalRecords.stats.vaccinations")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -263,7 +270,7 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
               <FileText className="h-4 w-4" />
-              Examens
+              {t("health:medicalRecords.stats.exams")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -276,7 +283,7 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
               <Clock className="h-4 w-4" />
-              À renouveler
+              {t("health:medicalRecords.stats.dueSoon")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -287,7 +294,7 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
               <AlertTriangle className="h-4 w-4" />
-              Expirés
+              {t("health:medicalRecords.stats.expired")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -300,10 +307,10 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
       <div className="flex flex-wrap gap-4 items-center">
         <Select value={filterType} onValueChange={setFilterType}>
           <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Type de document" />
+            <SelectValue placeholder={t("health:medicalRecords.filters.typePlaceholder")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tous les types</SelectItem>
+            <SelectItem value="all">{t("health:medicalRecords.filters.allTypes")}</SelectItem>
             {RECORD_TYPES.map((type) => (
               <SelectItem key={type.value} value={type.value}>
                 {type.label}
@@ -314,10 +321,10 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
 
         <Select value={filterPlayer} onValueChange={setFilterPlayer}>
           <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Joueur" />
+            <SelectValue placeholder={t("health:medicalRecords.filters.playerPlaceholder")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tous les joueurs</SelectItem>
+            <SelectItem value="all">{t("health:medicalRecords.filters.allPlayers")}</SelectItem>
             {players?.map((player) => (
               <SelectItem key={player.id} value={player.id}>
                 {player.name}
@@ -330,7 +337,7 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
 
         <Button onClick={() => setIsDialogOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
-          Ajouter un document
+          {t("health:medicalRecords.addDocument")}
         </Button>
       </div>
 
@@ -338,17 +345,17 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
       <Card>
         <CardContent className="pt-6">
           {isLoading ? (
-            <div className="text-center py-8 text-muted-foreground">Chargement...</div>
+            <div className="text-center py-8 text-muted-foreground">{t("health:medicalRecords.loading")}</div>
           ) : records && records.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Joueur</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Document</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Prochaine échéance</TableHead>
-                  <TableHead>Statut</TableHead>
+                  <TableHead>{t("health:medicalRecords.table.player")}</TableHead>
+                  <TableHead>{t("health:medicalRecords.table.type")}</TableHead>
+                  <TableHead>{t("health:medicalRecords.table.document")}</TableHead>
+                  <TableHead>{t("health:medicalRecords.table.date")}</TableHead>
+                  <TableHead>{t("health:medicalRecords.table.nextDue")}</TableHead>
+                  <TableHead>{t("health:medicalRecords.table.status")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -374,7 +381,7 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
             </Table>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
-              Aucun document médical enregistré
+              {t("health:medicalRecords.empty")}
             </div>
           )}
         </CardContent>
@@ -384,16 +391,16 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Ajouter un document médical</DialogTitle>
+            <DialogTitle>{t("health:medicalRecords.dialog.title")}</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 pb-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Joueur *</Label>
+                <Label>{t("health:medicalRecords.dialog.player")}</Label>
                 <Select value={playerId} onValueChange={setPlayerId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner" />
+                    <SelectValue placeholder={t("health:medicalRecords.dialog.selectPlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
                     {players?.map((player) => (
@@ -406,7 +413,7 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
               </div>
 
               <div className="space-y-2">
-                <Label>Type *</Label>
+                <Label>{t("health:medicalRecords.dialog.type")}</Label>
                 <Select value={recordType} onValueChange={setRecordType}>
                   <SelectTrigger>
                     <SelectValue />
@@ -423,10 +430,10 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
             </div>
 
             <div className="space-y-2">
-              <Label>Nom du document *</Label>
+              <Label>{t("health:medicalRecords.dialog.documentName")}</Label>
               <Select value={name} onValueChange={setName}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner ou saisir" />
+                  <SelectValue placeholder={t("health:medicalRecords.dialog.documentNamePlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   {(recordType === "vaccination" ? COMMON_VACCINATIONS : COMMON_EXAMS).map(
@@ -441,14 +448,14 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Ou saisir manuellement"
+                placeholder={t("health:medicalRecords.dialog.documentNameManualPlaceholder")}
                 className="mt-2"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Date du document</Label>
+                <Label>{t("health:medicalRecords.dialog.documentDate")}</Label>
                 <Input
                   type="date"
                   value={recordDate}
@@ -456,7 +463,7 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Prochaine échéance</Label>
+                <Label>{t("health:medicalRecords.dialog.nextDue")}</Label>
                 <Input
                   type="date"
                   value={nextDueDate}
@@ -466,37 +473,37 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
             </div>
 
             <div className="space-y-2">
-              <Label>Établissement/Médecin</Label>
+              <Label>{t("health:medicalRecords.dialog.provider")}</Label>
               <Input
                 value={provider}
                 onChange={(e) => setProvider(e.target.value)}
-                placeholder="Nom du médecin ou établissement"
+                placeholder={t("health:medicalRecords.dialog.providerPlaceholder")}
               />
             </div>
 
             <div className="space-y-2">
-              <Label>Résultat/Conclusion</Label>
+              <Label>{t("health:medicalRecords.dialog.result")}</Label>
               <Input
                 value={result}
                 onChange={(e) => setResult(e.target.value)}
-                placeholder="Ex: Apte, RAS, ..."
+                placeholder={t("health:medicalRecords.dialog.resultPlaceholder")}
               />
             </div>
 
             <div className="space-y-2">
-              <Label>Notes</Label>
+              <Label>{t("health:medicalRecords.dialog.notes")}</Label>
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Notes complémentaires..."
+                placeholder={t("health:medicalRecords.dialog.notesPlaceholder")}
               />
             </div>
 
             <div className="flex items-center justify-between border rounded-lg p-3">
               <div>
-                <p className="font-medium">Rappel automatique</p>
+                <p className="font-medium">{t("health:medicalRecords.dialog.autoReminder")}</p>
                 <p className="text-sm text-muted-foreground">
-                  Notification {reminderDays} jours avant l'échéance
+                  {t("health:medicalRecords.dialog.reminderNotice", { days: reminderDays })}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -514,13 +521,13 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              Annuler
+              {t("health:medicalRecords.dialog.cancel")}
             </Button>
             <Button
               onClick={() => addRecord.mutate()}
               disabled={!playerId || !name || addRecord.isPending}
             >
-              {addRecord.isPending ? "Ajout..." : "Ajouter"}
+              {addRecord.isPending ? t("health:medicalRecords.dialog.adding") : t("health:medicalRecords.dialog.add")}
             </Button>
           </DialogFooter>
         </DialogContent>
