@@ -75,7 +75,6 @@ export function CustomTrainingTypeSelect({
 
       if (error) throw error;
       return data;
-      void translateOnSave([name]);
     },
     enabled: !!categoryId,
   });
@@ -94,6 +93,7 @@ export function CustomTrainingTypeSelect({
         .single();
 
       if (error) throw error;
+      void translateOnSave([name.trim()]);
       return data;
     },
     onSuccess: (data) => {
