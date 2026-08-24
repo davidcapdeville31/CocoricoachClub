@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { FlaskConical, Clock, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
+import { useTranslation } from "react-i18next";
 
 interface TestRef {
   test_category: string;
@@ -43,6 +44,7 @@ function labelize(v: string) {
 }
 
 export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onChange, categoryId, sessionDate }: Props) {
+  const { t } = useTranslation();
   const tests = parseTestsFromNotes(notes);
   const customMap = useCustomTestLabels(tests.map((t) => t.test_type));
   const [pending, setPending] = useState<any[]>([]);
@@ -90,20 +92,20 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
   }, [sessionId, playerId]);
 
 
-  const handleSendOne = async (t: TestRef) => {
-    const key = `${t.test_category}::${t.test_type}`;
+  const handleSendOne = async (test: TestRef) => {
+    const key = `${test.test_category}::${test.test_type}`;
     const raw = value[key];
     if (raw == null || raw === "") {
-      toast.error("Saisis d'abord un résultat");
+      toast.error(t('athleteSpace.components.testResultsInput.enterFirst'));
       return;
     }
     const v = parseFloat(raw);
     if (!Number.isFinite(v)) {
-      toast.error("Résultat invalide");
+      toast.error(t('athleteSpace.components.testResultsInput.invalidResult'));
       return;
     }
     if (!categoryId) {
-      toast.error("Catégorie manquante");
+      toast.error(t('athleteSpace.components.testResultsInput.missingCategory'));
       return;
     }
     setSubmittingKey(key);
@@ -112,19 +114,19 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
       category_id: categoryId,
       training_session_id: sessionId,
       test_date: sessionDate || new Date().toISOString().slice(0, 10),
-      test_category: t.test_category,
-      test_type: t.test_type,
+      test_category: test.test_category,
+      test_type: test.test_type,
       result_value: v,
-      result_unit: t.result_unit || null,
+      result_unit: test.result_unit || null,
       submitted_via: "athlete" as const,
       validation_status: "pending" as const,
     });
     setSubmittingKey(null);
     if (error) {
-      toast.error("Erreur d'envoi : " + error.message);
+      toast.error(t('athleteSpace.components.testResultsInput.sendError', { message: error.message }));
       return;
     }
-    toast.success("Résultat envoyé au staff pour validation");
+    toast.success(t('athleteSpace.components.testResultsInput.sent'));
     onChange({ ...value, [key]: "" });
     await reload();
   };
@@ -135,28 +137,28 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
     <div className="space-y-2 rounded-lg border border-border p-3 bg-muted/30">
       <Label className="text-sm flex items-center gap-1.5">
         <FlaskConical className="h-4 w-4 text-primary" />
-        Mes résultats de tests (en attente de validation staff)
+        {t('athleteSpace.components.testResultsInput.title')}
       </Label>
       <div className="space-y-2">
-        {tests.map((t, idx) => {
-          const key = `${t.test_category}::${t.test_type}`;
+        {tests.map((test, idx) => {
+          const key = `${test.test_category}::${test.test_type}`;
           const existing = pending.find(
-            (p) => p.test_category === t.test_category && p.test_type === t.test_type,
+            (p) => p.test_category === test.test_category && p.test_type === test.test_type,
           );
           const staffRow = staffSaved.find(
-            (p) => p.test_category === t.test_category && p.test_type === t.test_type,
+            (p) => p.test_category === test.test_category && p.test_type === test.test_type,
           );
-          const testLabel = labelizeTestType(t.test_type, customMap);
-          const unit = t.result_unit || (t.test_type?.startsWith("custom:") ? customMap[t.test_type]?.unit || "" : "");
+          const testLabel = labelizeTestType(test.test_type, customMap);
+          const unit = test.result_unit || (test.test_type?.startsWith("custom:") ? customMap[test.test_type]?.unit || "" : "");
           return (
             <div key={idx} className="flex items-center gap-2 flex-wrap">
               <span className="text-xs flex-1 min-w-[140px] font-medium">
                 {testLabel}
-                <span className="text-muted-foreground ml-1">({labelize(t.test_category)})</span>
+                <span className="text-muted-foreground ml-1">({labelize(test.test_category)})</span>
               </span>
               {staffRow ? (
-                <Badge variant="default" className="text-[10px] gap-1" title="Résultat déjà saisi par le staff">
-                  {staffRow.result_value} {staffRow.result_unit || unit} ✓ staff
+                <Badge variant="default" className="text-[10px] gap-1" title={t('athleteSpace.components.testResultsInput.title')}>
+                  {staffRow.result_value} {staffRow.result_unit || unit} {t('athleteSpace.components.testResultsInput.staffValidated')}
                 </Badge>
               ) : existing ? (
                 <Badge
@@ -164,10 +166,10 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
                   className="text-[10px] gap-1"
                 >
                   {existing.validation_status === "pending" && <Clock className="h-3 w-3" />}
-                  {existing.result_value} {existing.result_unit || t.result_unit || ""}
-                  {existing.validation_status === "pending" && " — en attente"}
-                  {existing.validation_status === "validated" && " ✓"}
-                  {existing.validation_status === "rejected" && " ✕"}
+                  {existing.result_value} {existing.result_unit || test.result_unit || ""}
+                  {existing.validation_status === "pending" && t('athleteSpace.components.testResultsInput.pending')}
+                  {existing.validation_status === "validated" && t('athleteSpace.components.testResultsInput.validated')}
+                  {existing.validation_status === "rejected" && t('athleteSpace.components.testResultsInput.rejected')}
                 </Badge>
               ) : (
                 <>
@@ -175,7 +177,7 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
                     type="number"
                     inputMode="decimal"
                     step="0.01"
-                    placeholder="Résultat"
+                    placeholder={t('athleteSpace.components.testResultsInput.resultPlaceholder')}
                     value={value[key] ?? ""}
                     onChange={(e) => onChange({ ...value, [key]: e.target.value })}
                     className="h-8 w-24 text-sm"
@@ -187,7 +189,7 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
                       size="sm"
                       variant="default"
                       className="h-8 px-2"
-                      onClick={() => handleSendOne(t)}
+                      onClick={() => handleSendOne(test)}
                       disabled={submittingKey === key}
                     >
                       {submittingKey === key ? (
@@ -195,7 +197,7 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
                       ) : (
                         <>
                           <Send className="h-3.5 w-3.5 mr-1" />
-                          Envoyer
+                          {t('athleteSpace.components.testResultsInput.send')}
                         </>
                       )}
                     </Button>
@@ -207,7 +209,7 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
         })}
       </div>
       <p className="text-[10px] text-muted-foreground">
-        Tes résultats seront envoyés au staff pour validation avant d'être ajoutés à ton historique.
+        {t('athleteSpace.components.testResultsInput.footer')}
       </p>
     </div>
   );

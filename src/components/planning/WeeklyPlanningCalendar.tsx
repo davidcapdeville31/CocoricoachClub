@@ -30,12 +30,13 @@ import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { EXERCISE_CATEGORIES } from "@/lib/constants/rugbyPrecisionExercises";
 import { isRugbyType } from "@/lib/constants/sportTypes";
 import { PrecisionFieldTracker } from "@/components/rugby/PrecisionFieldTracker";
+import { useTranslation } from "react-i18next";
 
 interface WeeklyPlanningCalendarProps {
   categoryId: string;
 }
 
-const DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+const DAYS_FALLBACK = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 
 interface PlanningItem {
   id: string;
@@ -76,6 +77,9 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
   const [precisionTrackerOpen, setPrecisionTrackerOpen] = useState(false);
   const [precisionItemDate, setPrecisionItemDate] = useState<string | null>(null);
   const [precisionSessionId, setPrecisionSessionId] = useState<string | null>(null);
+
+  const { t } = useTranslation();
+  const DAYS = (t("planning.weeklyCalendar.days", { returnObjects: true }) as string[]) || DAYS_FALLBACK;
 
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -232,9 +236,9 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
       queryClient.invalidateQueries({ queryKey: ["weekly-planning-all", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["today-training-sessions", categoryId] });
       toast.success(
-        sessionMode === "match" ? "Match ajouté" : 
-        wasPrecision ? "Séance de précision ajoutée" : 
-        "Séance ajoutée"
+        sessionMode === "match" ? t("planning.weeklyCalendar.toasts.matchAdded") : 
+        wasPrecision ? t("planning.weeklyCalendar.toasts.precisionSessionAdded") : 
+        t("planning.weeklyCalendar.toasts.sessionAdded")
       );
       resetAddDialog();
       // Auto-open precision tracker after creating precision session
@@ -259,7 +263,7 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
       }
     },
     onError: () => {
-      toast.error("Erreur lors de l'ajout");
+      toast.error(t("planning.weeklyCalendar.toasts.addError"));
     },
   });
 
@@ -270,10 +274,10 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["weekly-planning", categoryId, weekStartStr] });
-      toast.success("Séance supprimée");
+      toast.success(t("planning.weeklyCalendar.toasts.sessionDeleted"));
     },
     onError: () => {
-      toast.error("Erreur lors de la suppression");
+      toast.error(t("planning.weeklyCalendar.toasts.deleteError"));
     },
   });
 
@@ -330,13 +334,13 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
   const handleExportPdf = () => {
     if (planning) {
       exportWeeklyPlanningToPdf(planning, currentWeekStart, "Catégorie");
-      toast.success("PDF exporté avec succès");
+      toast.success(t("planning.weeklyCalendar.toasts.pdfExported"));
     }
   };
 
   const handlePrint = () => {
     if (calendarRef.current) {
-      printElement(calendarRef.current, `Planning Hebdomadaire - Semaine du ${format(currentWeekStart, "d MMMM yyyy", { locale: fr })}`);
+      printElement(calendarRef.current, t("planning.weeklyCalendar.printTitle", { date: format(currentWeekStart, "d MMMM yyyy", { locale: fr }) }));
     }
   };
 
@@ -356,22 +360,22 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <CardTitle className="text-base">Planification hebdomadaire</CardTitle>
+            <CardTitle className="text-base">{t("planning.weeklyCalendar.title")}</CardTitle>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="icon" onClick={() => setCurrentWeekStart(subWeeks(currentWeekStart, 1))}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <span className="text-sm font-medium min-w-[200px] text-center">
-                Semaine du {format(currentWeekStart, "d MMMM yyyy", { locale: fr })}
+                {t("planning.weeklyCalendar.weekOf", { date: format(currentWeekStart, "d MMMM yyyy", { locale: fr }) })}
               </span>
               <Button variant="outline" size="icon" onClick={() => setCurrentWeekStart(addWeeks(currentWeekStart, 1))}>
                 <ChevronRight className="h-4 w-4" />
               </Button>
               <div className="flex gap-1 ml-2">
-                <Button variant="outline" size="icon" onClick={handlePrint} title="Imprimer">
+                <Button variant="outline" size="icon" onClick={handlePrint} title={t("planning.weeklyCalendar.print")}>
                   <Printer className="h-4 w-4" />
                 </Button>
-                <Button variant="outline" size="icon" onClick={handleExportPdf} title="Exporter PDF">
+                <Button variant="outline" size="icon" onClick={handleExportPdf} title={t("planning.weeklyCalendar.exportPdf")}>
                   <Download className="h-4 w-4" />
                 </Button>
               </div>
@@ -463,14 +467,14 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
                         {match.is_finalized ? (
                           <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4 gap-0.5">
                             <CheckCircle2 className="h-2.5 w-2.5" />
-                            Terminé
+                            {t("planning.weeklyCalendar.completed")}
                             {match.score_home != null && match.score_away != null && (
                               <span className="ml-0.5">{match.score_home}-{match.score_away}</span>
                             )}
                           </Badge>
                         ) : (
                           <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 border-destructive/40 text-destructive">
-                            En cours
+                            {t("planning.weeklyCalendar.inProgress")}
                           </Badge>
                         )}
                       </div>
@@ -497,11 +501,11 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
                           </Button>
                         )}
                         <p className="font-medium truncate">
-                        {item.template?.name || item.custom_title || "Séance"}
+                        {item.template?.name || item.custom_title || t("planning.weeklyCalendar.sessionFallback")}
                       </p>
                       {isPrecisionItem(item) && (
                         <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 border-amber-500/40 text-amber-700 dark:text-amber-400 mt-0.5">
-                          {getPrecisionTheme(item) || "Précision"}
+                          {getPrecisionTheme(item) || t("planning.weeklyCalendar.precisionFallback")}
                         </Badge>
                       )}
                       {item.time_slot && (
@@ -542,7 +546,7 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
                           }}
                         >
                           <Target className="h-3 w-3" />
-                          Saisir stats
+                          {t("planning.weeklyCalendar.enterStats")}
                         </Button>
                       )}
                     </div>
@@ -553,7 +557,7 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
           </div>
           {!isViewer && (
             <p className="text-xs text-muted-foreground mt-3 text-center">
-              Glissez-déposez un template depuis la liste pour l'ajouter à un jour
+              {t("planning.weeklyCalendar.dragDropHint")}
             </p>
           )}
         </CardContent>
@@ -564,7 +568,7 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              Ajouter une séance - {selectedDay !== null ? DAYS[selectedDay] : ""}
+              {t("planning.weeklyCalendar.addSessionTitle", { day: selectedDay !== null ? DAYS[selectedDay] : "" })}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -576,7 +580,7 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
                   onChange={() => setSessionMode("session")}
                   className="accent-primary"
                 />
-                Séance
+                {t("planning.weeklyCalendar.modeSession")}
               </Label>
               <Label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -585,7 +589,7 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
                   onChange={() => setSessionMode("match")}
                   className="accent-primary"
                 />
-                Match
+                {t("planning.weeklyCalendar.modeMatch")}
               </Label>
               {isRugby && (
                 <Label className="flex items-center gap-2 cursor-pointer">
@@ -597,7 +601,7 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
                   />
                   <span className="flex items-center gap-1">
                     <Target className="h-3.5 w-3.5" />
-                    Précision
+                    {t("planning.weeklyCalendar.modePrecision")}
                   </span>
                 </Label>
               )}
@@ -606,11 +610,11 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
             {sessionMode === "match" && (
               <>
                 <div className="space-y-2">
-                  <Label>Adversaire *</Label>
+                  <Label>{t("planning.weeklyCalendar.opponentLabel")}</Label>
                   <Input
                     value={matchOpponent}
                     onChange={(e) => setMatchOpponent(e.target.value)}
-                    placeholder="Nom de l'équipe adverse"
+                    placeholder={t("planning.weeklyCalendar.opponentPlaceholder")}
                   />
                 </div>
                 <div className="flex items-center gap-4">
@@ -621,7 +625,7 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
                       onChange={() => setIsHomeMatch(true)}
                       className="accent-primary"
                     />
-                    Domicile
+                    {t("planning.weeklyCalendar.home")}
                   </Label>
                   <Label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -630,7 +634,7 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
                       onChange={() => setIsHomeMatch(false)}
                       className="accent-primary"
                     />
-                    Extérieur
+                    {t("planning.weeklyCalendar.away")}
                   </Label>
                 </div>
               </>
@@ -639,7 +643,7 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
             {sessionMode === "precision" && (
               <div className="space-y-3">
                 <div className="space-y-2">
-                  <Label>Thématique de précision *</Label>
+                  <Label>{t("planning.weeklyCalendar.precisionThemeLabel")}</Label>
                   <Select value={precisionCategory} onValueChange={setPrecisionCategory}>
                     <SelectTrigger>
                       <SelectValue />
@@ -657,7 +661,7 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
                 <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-2">
                   {precisionCategory === "buteur" && (
                     <>
-                      <p className="text-xs font-medium text-primary">🎯 Exercices disponibles sur le terrain :</p>
+                      <p className="text-xs font-medium text-primary">{t("planning.weeklyCalendar.precisionAvailableExercises")}</p>
                       <div className="flex items-center gap-3 flex-wrap">
                         {EXERCISE_CATEGORIES.find(c => c.key === "buteur")?.exercises.map(ex => (
                           <span key={ex.value} className="flex items-center gap-1.5 text-xs">
@@ -669,23 +673,23 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
                         ))}
                       </div>
                       <p className="text-[10px] text-muted-foreground">
-                        Les 3 types de tir seront disponibles simultanément sur la cartographie, comme en match.
+                        {t("planning.weeklyCalendar.precisionKickTypesHint")}
                       </p>
                     </>
                   )}
                   {precisionCategory === "zone_kicks" && (
                     <p className="text-xs text-muted-foreground">
-                      🦶 Coups de pied de zone : coup d'envoi, renvoi en-but, renvoi 22m, coup de pied tactique.
+                      {t("planning.weeklyCalendar.precisionZoneKicksHint")}
                     </p>
                   )}
                   {precisionCategory === "lineout" && (
                     <p className="text-xs text-muted-foreground">
-                      📏 Touche : saisie des lancers par zone (devant/milieu/fond × hauteur).
+                      {t("planning.weeklyCalendar.precisionLineoutHint")}
                     </p>
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  La cartographie s'ouvrira automatiquement après la création pour saisir les stats joueur par joueur.
+                  {t("planning.weeklyCalendar.precisionAutoOpenHint")}
                 </p>
               </div>
             )}
@@ -693,13 +697,13 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
             {sessionMode === "session" && (
               <>
                 <div className="space-y-2">
-                  <Label>Template (optionnel)</Label>
+                  <Label>{t("planning.weeklyCalendar.templateLabel")}</Label>
                   <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Choisir un template" />
+                      <SelectValue placeholder={t("planning.weeklyCalendar.templatePlaceholder")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">Aucun template</SelectItem>
+                      <SelectItem value="none">{t("planning.weeklyCalendar.noTemplate")}</SelectItem>
                       {templates?.map((t) => (
                         <SelectItem key={t.id} value={t.id}>
                           {t.name}
@@ -711,11 +715,11 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
 
                 {(!selectedTemplateId || selectedTemplateId === "none") && (
                   <div className="space-y-2">
-                    <Label>Titre personnalisé</Label>
+                    <Label>{t("planning.weeklyCalendar.customTitleLabel")}</Label>
                     <Input
                       value={newItemTitle}
                       onChange={(e) => setNewItemTitle(e.target.value)}
-                      placeholder="Ex: Entraînement collectif"
+                      placeholder={t("planning.weeklyCalendar.customTitlePlaceholder")}
                     />
                   </div>
                 )}
@@ -724,7 +728,7 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Heure</Label>
+                <Label>{t("planning.weeklyCalendar.timeLabel")}</Label>
                 <Input
                   type="time"
                   value={newItemTime}
@@ -732,18 +736,18 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
                 />
               </div>
               <div className="space-y-2">
-                <Label>Lieu</Label>
+                <Label>{t("planning.weeklyCalendar.locationLabel")}</Label>
                 <Input
                   value={newItemLocation}
                   onChange={(e) => setNewItemLocation(e.target.value)}
-                  placeholder="Terrain principal"
+                  placeholder={t("planning.weeklyCalendar.locationPlaceholder")}
                 />
               </div>
             </div>
 
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={resetAddDialog}>
-                Annuler
+                {t("planning.weeklyCalendar.cancel")}
               </Button>
               <Button 
                 onClick={() => addPlanningItem.mutate()}
@@ -754,7 +758,7 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
                   addPlanningItem.isPending
                 }
               >
-                Ajouter
+                {t("planning.weeklyCalendar.add")}
               </Button>
             </div>
           </div>
@@ -768,7 +772,7 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Target className="h-5 w-5 text-primary" />
-                Saisie de précision
+                {t("planning.weeklyCalendar.precisionTrackerTitle")}
                 {precisionItemDate && (
                   <span className="text-sm font-normal text-muted-foreground ml-2">
                     — {format(new Date(precisionItemDate), "d MMMM yyyy", { locale: fr })}

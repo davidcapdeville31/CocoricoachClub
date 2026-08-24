@@ -8,6 +8,7 @@ import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   open: boolean;
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export function SessionDetailDialog({ open, onOpenChange, session, exercises, playerId }: Props) {
+  const { t } = useTranslation();
   const sessionId = session?.id;
   const trainingType = String(session?.training_type || "").toLowerCase();
   const isBowling = trainingType.startsWith("bowling");
@@ -137,7 +139,7 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
           {rawNotes && (
             <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
               <p className="text-xs uppercase tracking-wide font-semibold text-primary mb-1.5">
-                Consignes du coach
+                {t('athleteSpace.components.sessionDetailDialog.coachInstructions')}
               </p>
               <p className="text-sm whitespace-pre-line text-foreground/90">{rawNotes}</p>
             </div>
@@ -157,13 +159,13 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant="secondary" className="gap-1">
                     <Activity className="h-3 w-3" />
-                    RPE moyen {avgRpe.toFixed(1)}/10
+                    {t('athleteSpace.components.sessionDetailDialog.avgRpe', { rpe: avgRpe.toFixed(1) })}
                   </Badge>
                   {totalDuration > 0 && (
-                    <Badge variant="outline">{totalDuration} min</Badge>
+                    <Badge variant="outline">{t('athleteSpace.components.sessionDetailDialog.minutes', { count: totalDuration })}</Badge>
                   )}
                   <span className="text-xs text-muted-foreground">
-                    sur {rpes!.length} bloc{rpes!.length > 1 ? "s" : ""}
+{t('athleteSpace.components.sessionDetailDialog.onBlocks', { count: rpes!.length, plural: rpes!.length > 1 ? 's' : '' })}
                   </span>
                 </div>
               )}
@@ -172,18 +174,18 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant="secondary" className="gap-1">
                     <Trophy className="h-3 w-3" />
-                    {bowlingByType._total} bloc{bowlingByType._total > 1 ? "s" : ""} bowling
+{t('athleteSpace.components.sessionDetailDialog.bowlingBlocks', { count: bowlingByType._total, plural: bowlingByType._total > 1 ? 's' : '' })}
                   </Badge>
                   {bowlingByType.games > 0 && (
-                    <Badge variant="outline">{bowlingByType.games} partie(s)</Badge>
+                    <Badge variant="outline">{t('athleteSpace.components.sessionDetailDialog.games', { count: bowlingByType.games })}</Badge>
                   )}
                   {bowlingByType.technical > 0 && (
-                    <Badge variant="outline">{bowlingByType.technical} technique</Badge>
+                    <Badge variant="outline">{t('athleteSpace.components.sessionDetailDialog.technical', { count: bowlingByType.technical })}</Badge>
                   )}
                   {bowlingByType.tactical > 0 && (
                     <Badge variant="outline" className="gap-1">
                       <Target className="h-3 w-3" />
-                      {bowlingByType.tactical} tactique
+                      {t('athleteSpace.components.sessionDetailDialog.tactical', { count: bowlingByType.tactical })}
                     </Badge>
                   )}
                 </div>
@@ -192,7 +194,7 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
               {isBowling && (bowlingBlocks?.length || 0) > 0 && (
                 <Collapsible>
                   <CollapsibleTrigger className="group flex w-full items-center justify-between gap-2 rounded-md border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-left text-xs font-semibold text-emerald-700 transition hover:bg-emerald-500/10 dark:text-emerald-300">
-                    <span>Voir le détail de mes blocs ({bowlingBlocks!.length})</span>
+                    <span>{t('athleteSpace.components.sessionDetailDialog.viewBlockDetails', { count: bowlingBlocks!.length })}</span>
                     <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
                   </CollapsibleTrigger>
                   <CollapsibleContent className="mt-2 space-y-2">
@@ -202,7 +204,7 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
                       const isTact = b.block_type === "tactical";
                       const isGame = b.block_type === "games";
                       const Icon = isTech ? Wrench : isGame ? Gamepad2 : Target;
-                      const label = isTech ? "Technique" : isGame ? "Parties" : "Tactique";
+                      const label = isTech ? t('athleteSpace.components.sessionDetailDialog.technicalLabel') : isGame ? t('athleteSpace.components.sessionDetailDialog.gamesLabel') : t('athleteSpace.components.sessionDetailDialog.tacticalLabel');
                       return (
                         <div
                           key={b.id}
@@ -210,7 +212,7 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
                         >
                           <div className="flex items-center gap-2 font-medium">
                             <Icon className="h-3.5 w-3.5 text-primary" />
-                            <span>Bloc {idx + 1} — {label}</span>
+                            <span>{t('athleteSpace.components.sessionDetailDialog.block', { n: idx + 1, label })}</span>
                             {c.duration_min ? (
                               <Badge variant="outline" className="ml-auto text-[10px]">
                                 {c.duration_min} min
@@ -222,13 +224,13 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
                             <div className="space-y-1 text-xs text-muted-foreground pl-5">
                               {(c.theme || c.custom_theme) && (
                                 <p>
-                                  <span className="text-foreground/70">Thème : </span>
+                                  <span className="text-foreground/70">{t('athleteSpace.components.sessionDetailDialog.theme')}</span>
                                   {c.custom_theme || c.theme}
                                 </p>
                               )}
                               {ballName(c.ball_id) && (
                                 <p>
-                                  <span className="text-foreground/70">Boule : </span>
+                                  <span className="text-foreground/70">{t('athleteSpace.components.sessionDetailDialog.ball')}</span>
                                   {ballName(c.ball_id)}
                                 </p>
                               )}
@@ -284,21 +286,21 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
                                 return (
                                   <div key={p.id || i} className="rounded border bg-surface-sunken px-2 py-1.5">
                                     <div className="flex items-center justify-between font-medium">
-                                      <span>Partie {i + 1}</span>
+                                      <span>{t('athleteSpace.components.sessionDetailDialog.part', { n: i + 1 })}</span>
                                       <span className="font-mono text-foreground">{s.totalScore ?? "—"}</span>
                                     </div>
                                     <div className="mt-1 grid grid-cols-2 gap-x-3 gap-y-0.5 text-muted-foreground">
                                       {typeof s.strikes === "number" && (
-                                        <span>Strikes : {s.strikes} ({s.strikePercentage ?? 0}%)</span>
+                                        <span>{t('athleteSpace.components.sessionDetailDialog.strikes', { count: s.strikes, pct: s.strikePercentage ?? 0 })}</span>
                                       )}
                                       {typeof s.spares === "number" && (
-                                        <span>Spares : {s.spares} ({s.sparePercentage ?? 0}%)</span>
+                                        <span>{t('athleteSpace.components.sessionDetailDialog.spares', { count: s.spares, pct: s.sparePercentage ?? 0 })}</span>
                                       )}
                                       {typeof s.pocketCount === "number" && (
-                                        <span>Pocket : {s.pocketCount} ({s.pocketPercentage ?? 0}%)</span>
+                                        <span>{t('athleteSpace.components.sessionDetailDialog.pocket', { count: s.pocketCount, pct: s.pocketPercentage ?? 0 })}</span>
                                       )}
                                       {typeof s.splitCount === "number" && (
-                                        <span>Splits : {s.splitCount}</span>
+                                        <span>{t('athleteSpace.components.sessionDetailDialog.splits', { count: s.splitCount })}</span>
                                       )}
                                     </div>
                                   </div>
@@ -314,13 +316,13 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
               )}
 
               <p className="text-[11px] text-muted-foreground">
-                Cliquez sur « Remplir les données » pour modifier votre saisie.
+                {t('athleteSpace.components.sessionDetailDialog.description')}
               </p>
             </div>
           ) : playerId ? (
             <div className="rounded-lg border border-dashed bg-muted/30 p-3 text-center">
               <p className="text-xs text-muted-foreground">
-                Vous n'avez pas encore saisi vos données pour cette séance.
+                {t('athleteSpace.components.sessionDetailDialog.noDataYet')}
               </p>
             </div>
           ) : null}
@@ -328,13 +330,13 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
           {exercises.length > 0 ? (
             <div>
               <p className="text-xs uppercase tracking-wide font-semibold text-muted-foreground mb-2">
-                Contenu de la séance ({exercises.length} exercice{exercises.length > 1 ? "s" : ""})
+                {t('athleteSpace.components.sessionDetailDialog.sessionContent', { count: exercises.length, plural: exercises.length > 1 ? 's' : '' })}
               </p>
               <GroupedExerciseList exercises={exercises} maxHeight="60vh" />
             </div>
           ) : !rawNotes && !hasAthleteData ? (
             <p className="text-sm text-muted-foreground italic text-center py-6">
-              Aucun détail fourni par le coach pour cette séance.
+              {t('athleteSpace.components.sessionDetailDialog.noDetail')}
             </p>
           ) : null}
         </div>

@@ -15,6 +15,7 @@ import { fr } from "date-fns/locale";
 import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 import { sleepScoreToHours } from "@/lib/sleepConversion";
 import { aggregateWellnessByPeriod, type WellnessPeriod } from "@/lib/wellness/aggregatePeriod";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   playerId: string;
@@ -37,16 +38,19 @@ const METRIC_DASH: Record<string, string | undefined> = {
   stress_level: "8 4",
 };
 
-const METRIC_LABELS: Record<string, string> = {
-  sleep_quality: "Sommeil",
-  general_fatigue: "Fatigue",
-  soreness_upper_body: "Douleurs haut",
-  soreness_lower_body: "Douleurs bas",
-  stress_level: "Stress",
-  recovery_score: "Récupération",
-};
+function getMetricLabels(t: (k: string) => string): Record<string, string> {
+  return {
+    sleep_quality: t("athleteSpace.components.wellnessHistory.metrics.sleep"),
+    general_fatigue: t("athleteSpace.components.wellnessHistory.metrics.fatigue"),
+    soreness_upper_body: t("athleteSpace.components.wellnessHistory.metrics.sorenessUpper"),
+    soreness_lower_body: t("athleteSpace.components.wellnessHistory.metrics.sorenessLower"),
+    stress_level: t("athleteSpace.components.wellnessHistory.metrics.stress"),
+    recovery_score: t("athleteSpace.components.wellnessHistory.metrics.recovery"),
+  };
+}
 
 export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
+  const { t } = useTranslation();
   const [period, setPeriod] = useState<WellnessPeriod>("day");
   const [recoveryPeriod, setRecoveryPeriod] = useState<WellnessPeriod>("day");
   const [visibleMetrics, setVisibleMetrics] = useState<Record<string, boolean>>({
@@ -56,6 +60,7 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
     soreness_lower_body: true,
     stress_level: true,
   });
+  const METRIC_LABELS = getMetricLabels(t);
   const toggleMetric = (key: string) =>
     setVisibleMetrics((p) => ({ ...p, [key]: !p[key] }));
 
@@ -142,20 +147,20 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
                     </button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="max-w-xs text-xs leading-relaxed">
-                    <p className="font-semibold mb-1">Score de récupération (0-100%)</p>
-                    <p>Synthèse globale de ta forme du jour, calculée à partir de tes 5 réponses wellness (sommeil, fatigue générale, fatigue haut/bas du corps, stress).</p>
-                    <p className="mt-1 text-muted-foreground">Plus c'est haut, mieux tu récupères. 80%+ = top forme · 60-80% = correct · &lt;60% = vigilance.</p>
+                    <p className="font-semibold mb-1">{t('athleteSpace.components.wellnessHistory.recoveryScoreInfoTitle')}</p>
+                    <p>{t('athleteSpace.components.wellnessHistory.recoveryScoreInfoBody')}</p>
+                    <p className="mt-1 text-muted-foreground">{t('athleteSpace.components.wellnessHistory.recoveryScoreInfoFooter')}</p>
                   </TooltipContent>
                 </UITooltip>
               </TooltipProvider>
             </div>
-            <p className="text-[10px] text-muted-foreground">Récupération actuelle</p>
+            <p className="text-[10px] text-muted-foreground">{t('athleteSpace.components.wellnessHistory.currentRecovery')}</p>
           </CardContent>
         </Card>
         <Card className="bg-gradient-card">
           <CardContent className="py-3 text-center">
             <p className="text-2xl font-bold text-primary">{avgSleep}h</p>
-            <p className="text-[10px] text-muted-foreground">Sommeil moyen</p>
+            <p className="text-[10px] text-muted-foreground">{t('athleteSpace.components.wellnessHistory.avgSleep')}</p>
           </CardContent>
         </Card>
       </div>
@@ -166,8 +171,8 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <CardTitle className="text-sm flex items-center gap-2">
               <TrendingUp className="h-4 w-4" style={{ color: NAV_COLORS.sante.base }} />
-              Score de récupération
-              <Badge variant="secondary" className="text-[10px]">{wellnessHistory.length} jours</Badge>
+              {t('athleteSpace.components.wellnessHistory.recoveryScore')}
+              <Badge variant="secondary" className="text-[10px]">{t('athleteSpace.components.wellnessHistory.days', { count: wellnessHistory.length })}</Badge>
             </CardTitle>
             <ToggleGroup
               type="single"
@@ -176,14 +181,14 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
               onValueChange={(v) => v && setRecoveryPeriod(v as WellnessPeriod)}
               className="h-7"
             >
-              <ToggleGroupItem value="day" className="h-7 px-2 text-[11px]">Jour</ToggleGroupItem>
-              <ToggleGroupItem value="week" className="h-7 px-2 text-[11px]">Semaine</ToggleGroupItem>
-              <ToggleGroupItem value="month" className="h-7 px-2 text-[11px]">Mois</ToggleGroupItem>
+              <ToggleGroupItem value="day" className="h-7 px-2 text-[11px]">{t('athleteSpace.components.wellnessHistory.day')}</ToggleGroupItem>
+              <ToggleGroupItem value="week" className="h-7 px-2 text-[11px]">{t('athleteSpace.components.wellnessHistory.week')}</ToggleGroupItem>
+              <ToggleGroupItem value="month" className="h-7 px-2 text-[11px]">{t('athleteSpace.components.wellnessHistory.month')}</ToggleGroupItem>
             </ToggleGroup>
           </div>
           <p className="text-[11px] text-muted-foreground mt-1.5 leading-snug">
-            Indicateur global (0-100%) de ta capacité de récupération, calculé à partir de tes réponses wellness :
-            <span className="font-medium text-foreground"> sommeil + (6 − fatigue générale) + (6 − fatigue haut) + (6 − fatigue bas) + (6 − stress)</span>, le tout divisé par 5 et ramené sur 100. Plus la courbe est haute, mieux tu récupères.
+            {t('athleteSpace.components.wellnessHistory.recoveryFormula')}
+            <span className="font-medium text-foreground">{t('athleteSpace.components.wellnessHistory.recoveryFormulaDetail')}</span>{t('athleteSpace.components.wellnessHistory.recoveryFormulaEnd')}
           </p>
         </CardHeader>
         <CardContent>
@@ -222,7 +227,7 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <CardTitle className="text-sm flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              Détail des métriques
+              {t('athleteSpace.components.wellnessHistory.detailMetrics')}
             </CardTitle>
             <ToggleGroup
               type="single"
@@ -231,9 +236,9 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
               onValueChange={(v) => v && setPeriod(v as WellnessPeriod)}
               className="h-7"
             >
-              <ToggleGroupItem value="day" className="h-7 px-2 text-[11px]">Jour</ToggleGroupItem>
-              <ToggleGroupItem value="week" className="h-7 px-2 text-[11px]">Semaine</ToggleGroupItem>
-              <ToggleGroupItem value="month" className="h-7 px-2 text-[11px]">Mois</ToggleGroupItem>
+              <ToggleGroupItem value="day" className="h-7 px-2 text-[11px]">{t('athleteSpace.components.wellnessHistory.day')}</ToggleGroupItem>
+              <ToggleGroupItem value="week" className="h-7 px-2 text-[11px]">{t('athleteSpace.components.wellnessHistory.week')}</ToggleGroupItem>
+              <ToggleGroupItem value="month" className="h-7 px-2 text-[11px]">{t('athleteSpace.components.wellnessHistory.month')}</ToggleGroupItem>
             </ToggleGroup>
           </div>
           <div className="flex flex-wrap gap-1.5 mt-2">
@@ -267,7 +272,7 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
             if (activeKeys.length === 0) {
               return (
                 <p className="text-sm text-muted-foreground text-center py-12">
-                  Sélectionne au moins une métrique à afficher.
+                  {t('athleteSpace.components.wellnessHistory.selectMetric')}
                 </p>
               );
             }

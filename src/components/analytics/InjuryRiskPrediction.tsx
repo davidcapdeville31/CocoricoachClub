@@ -8,6 +8,7 @@ import { AlertTriangle, TrendingUp, Activity, Shield } from "lucide-react";
 import { Loader2 } from "lucide-react";
 import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { Trans, useTranslation } from "react-i18next";
 
 interface InjuryRiskPredictionProps {
   categoryId: string;
@@ -26,6 +27,7 @@ interface PlayerRisk {
 }
 
 export function InjuryRiskPrediction({ categoryId }: InjuryRiskPredictionProps) {
+  const { t } = useTranslation();
   const { allowedIds, isFiltering } = useSeasonFilteredPlayerIds(categoryId);
   const { isDateInActiveSeason, activeSeasonEnd } = useSeasonRosterFilter();
   const scopeKey = isFiltering ? `season:${activeSeasonEnd ?? "x"}` : "all";
@@ -160,18 +162,18 @@ export function InjuryRiskPrediction({ categoryId }: InjuryRiskPredictionProps) 
 
       if (awcr > 1.5) {
         riskScore += 25;
-        factors.push(`AWCR élevé (${awcr.toFixed(2)})`);
+        factors.push(t("workload.injuryRisk.factors.awcrHigh", { value: awcr.toFixed(2) }));
       } else if (awcr < 0.8 && awcr > 0) {
         riskScore += 15;
-        factors.push(`AWCR faible (${awcr.toFixed(2)})`);
+        factors.push(t("workload.injuryRisk.factors.awcrLow", { value: awcr.toFixed(2) }));
       }
       if (ewmaRatio > 1.5) {
         riskScore += 20;
-        factors.push(`EWMA élevé (${ewmaRatio.toFixed(2)})`);
+        factors.push(t("workload.injuryRisk.factors.ewmaHigh", { value: ewmaRatio.toFixed(2) }));
       }
       if (acuteLoad > 2000) {
         riskScore += 15;
-        factors.push(`Charge aiguë élevée (${Math.round(acuteLoad)})`);
+        factors.push(t("workload.injuryRisk.factors.highAcuteLoad", { value: Math.round(acuteLoad) }));
       }
       if (playerAwcr.length >= 2) {
         const prevAcute = Number(playerAwcr[1].acute_load || 0);
@@ -179,7 +181,7 @@ export function InjuryRiskPrediction({ categoryId }: InjuryRiskPredictionProps) 
           const variation = Math.abs(acuteLoad - prevAcute) / prevAcute;
           if (variation > 0.3) {
             riskScore += 15;
-            factors.push(`Variation de charge ${(variation * 100).toFixed(0)}%`);
+            factors.push(t("workload.injuryRisk.factors.loadVariation", { value: (variation * 100).toFixed(0) }));
           }
         }
       }
@@ -195,15 +197,15 @@ export function InjuryRiskPrediction({ categoryId }: InjuryRiskPredictionProps) 
         const hasPain = wellness.some(w => w.has_specific_pain);
         if (hasPain) {
           riskScore += 20;
-          factors.push("Douleur signalée (Wellness)");
+          factors.push(t("workload.injuryRisk.factors.painReported"));
         }
         if (avgFatigue >= 4) {
           riskScore += 12;
-          factors.push(`Fatigue élevée (${avgFatigue.toFixed(1)}/5)`);
+          factors.push(t("workload.injuryRisk.factors.highFatigue", { value: avgFatigue.toFixed(1) }));
         }
         if (avgSoreness >= 4) {
           riskScore += 8;
-          factors.push(`Courbatures importantes (${avgSoreness.toFixed(1)}/5)`);
+          factors.push(t("workload.injuryRisk.factors.highSoreness", { value: avgSoreness.toFixed(1) }));
         }
       }
 
@@ -217,7 +219,7 @@ export function InjuryRiskPrediction({ categoryId }: InjuryRiskPredictionProps) 
         if (avgBase > 0 && avgRecent < avgBase * 0.9) {
           const drop = ((avgBase - avgRecent) / avgBase) * 100;
           riskScore += 15;
-          factors.push(`HRV en baisse (-${drop.toFixed(0)}%)`);
+          factors.push(t("workload.injuryRisk.factors.hrvDropping", { value: drop.toFixed(0) }));
         }
       }
 
@@ -230,7 +232,7 @@ export function InjuryRiskPrediction({ categoryId }: InjuryRiskPredictionProps) 
         const avgBaseHsr = baseline.reduce((s, g) => s + Number(g.high_speed_distance_m || 0), 0) / baseline.length;
         if (avgBaseHsr > 0 && avgRecentHsr > avgBaseHsr * 1.3) {
           riskScore += 12;
-          factors.push(`Pic HSR détecté (+${(((avgRecentHsr / avgBaseHsr) - 1) * 100).toFixed(0)}%)`);
+          factors.push(t("workload.injuryRisk.factors.hsrSpike", { value: (((avgRecentHsr / avgBaseHsr) - 1) * 100).toFixed(0) }));
         }
       }
 
@@ -246,7 +248,7 @@ export function InjuryRiskPrediction({ categoryId }: InjuryRiskPredictionProps) 
           tonnage.reduce((s, t) => s + Number(t.tonnage || 0), 0) / 4;
         if (monthAvgWeek > 0 && lastWeek > monthAvgWeek * 1.4) {
           riskScore += 10;
-          factors.push(`Pic tonnage musculation (+${(((lastWeek / monthAvgWeek) - 1) * 100).toFixed(0)}%)`);
+          factors.push(t("workload.injuryRisk.factors.tonnageSpike", { value: (((lastWeek / monthAvgWeek) - 1) * 100).toFixed(0) }));
         }
       }
 
@@ -255,10 +257,10 @@ export function InjuryRiskPrediction({ categoryId }: InjuryRiskPredictionProps) 
       const activeInjuries = playerInjuries.filter(i => i.status === "active");
       if (activeInjuries.length > 0) {
         riskScore += 35;
-        factors.push("Blessure active");
+        factors.push(t("workload.injuryRisk.factors.activeInjury"));
       } else if (playerInjuries.length > 0) {
         riskScore += 10;
-        factors.push(`Antécédents (${playerInjuries.length})`);
+        factors.push(t("workload.injuryRisk.factors.history", { count: playerInjuries.length }));
       }
 
       let riskLevel: PlayerRisk["riskLevel"];
@@ -272,7 +274,7 @@ export function InjuryRiskPrediction({ categoryId }: InjuryRiskPredictionProps) 
         name: fullName,
         riskLevel,
         riskScore: Math.min(riskScore, 100),
-        factors: factors.length > 0 ? factors : ["Aucun facteur de risque détecté"],
+        factors: factors.length > 0 ? factors : [t("workload.injuryRisk.factors.noFactor")],
         awcr,
         ewmaRatio,
         acuteLoad,
@@ -285,7 +287,7 @@ export function InjuryRiskPrediction({ categoryId }: InjuryRiskPredictionProps) 
       name: fullName,
       riskLevel: "low",
       riskScore: 0,
-      factors: ["Données insuffisantes"],
+      factors: [t("workload.injuryRisk.factors.insufficientData")],
     };
   };
 
@@ -303,13 +305,13 @@ export function InjuryRiskPrediction({ categoryId }: InjuryRiskPredictionProps) 
   const getRiskBadge = (level: PlayerRisk["riskLevel"]) => {
     switch (level) {
       case "very_high":
-        return <Badge variant="destructive" className="gap-1"><AlertTriangle className="h-3 w-3" />Très Élevé</Badge>;
+        return <Badge variant="destructive" className="gap-1"><AlertTriangle className="h-3 w-3" />{t("workload.injuryRisk.riskLevel.veryHigh")}</Badge>;
       case "high":
-        return <Badge variant="destructive" className="gap-1"><TrendingUp className="h-3 w-3" />Élevé</Badge>;
+        return <Badge variant="destructive" className="gap-1"><TrendingUp className="h-3 w-3" />{t("workload.injuryRisk.riskLevel.high")}</Badge>;
       case "moderate":
-        return <Badge variant="secondary" className="gap-1"><Activity className="h-3 w-3" />Modéré</Badge>;
+        return <Badge variant="secondary" className="gap-1"><Activity className="h-3 w-3" />{t("workload.injuryRisk.riskLevel.moderate")}</Badge>;
       case "low":
-        return <Badge variant="default" className="gap-1"><Shield className="h-3 w-3" />Faible</Badge>;
+        return <Badge variant="default" className="gap-1"><Shield className="h-3 w-3" />{t("workload.injuryRisk.riskLevel.low")}</Badge>;
     }
   };
 
@@ -317,11 +319,13 @@ export function InjuryRiskPrediction({ categoryId }: InjuryRiskPredictionProps) 
     <div className="space-y-4">
       <Alert>
         <AlertTriangle className="h-4 w-4" />
-        <AlertTitle>Prédiction de Risque de Blessure (multi-sources)</AlertTitle>
+        <AlertTitle>{t("workload.injuryRisk.alertTitle")}</AlertTitle>
         <AlertDescription>
-          Algorithme déterministe corrélant <strong>AWCR + EWMA</strong>, <strong>Wellness</strong> (fatigue, douleur, courbatures),{" "}
-          <strong>HRV</strong> (chute &gt; 10%), <strong>GPS</strong> (pic HSR) et <strong>Tonnage musculation</strong> (pic hebdomadaire).
-          Plus les sources sont renseignées, plus le score est fiable. Aucune IA externe utilisée.
+          <Trans
+            i18nKey="workload.injuryRisk.alertDesc"
+            t={t}
+            components={[<strong key="0" />, <strong key="1" />, <strong key="2" />, <strong key="3" />, <strong key="4" />]}
+          />
         </AlertDescription>
       </Alert>
 
@@ -337,22 +341,22 @@ export function InjuryRiskPrediction({ categoryId }: InjuryRiskPredictionProps) 
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="text-sm space-y-1">
-                  <p><strong>Score de risque:</strong> {risk.riskScore}/100</p>
+                  <p><strong>{t("workload.injuryRisk.riskScore")}</strong> {risk.riskScore}/100</p>
                   {risk.awcr !== undefined && (
-                    <p><strong>AWCR:</strong> {risk.awcr.toFixed(2)}</p>
+                    <p><strong>{t("workload.injuryRisk.awcr")}</strong> {risk.awcr.toFixed(2)}</p>
                   )}
                   {risk.ewmaRatio !== undefined && risk.ewmaRatio > 0 && (
-                    <p><strong>EWMA:</strong> {risk.ewmaRatio.toFixed(2)}</p>
+                    <p><strong>{t("workload.injuryRisk.ewma")}</strong> {risk.ewmaRatio.toFixed(2)}</p>
                   )}
                   {risk.acuteLoad !== undefined && (
-                    <p><strong>Charge aiguë:</strong> {Math.round(risk.acuteLoad)}</p>
+                    <p><strong>{t("workload.injuryRisk.acuteLoad")}</strong> {Math.round(risk.acuteLoad)}</p>
                   )}
                   {risk.chronicLoad !== undefined && (
-                    <p><strong>Charge chronique:</strong> {Math.round(risk.chronicLoad)}</p>
+                    <p><strong>{t("workload.injuryRisk.chronicLoad")}</strong> {Math.round(risk.chronicLoad)}</p>
                   )}
                 </div>
                 <div>
-                  <p className="text-sm font-medium mb-2">Facteurs de risque:</p>
+                  <p className="text-sm font-medium mb-2">{t("workload.injuryRisk.riskFactorsTitle")}</p>
                   <ul className="text-sm space-y-1">
                     {risk.factors.map((factor, idx) => (
                       <li key={idx} className="flex items-start gap-2">
@@ -370,7 +374,7 @@ export function InjuryRiskPrediction({ categoryId }: InjuryRiskPredictionProps) 
         <Card>
           <CardContent className="py-8">
             <p className="text-muted-foreground text-center">
-              Aucune donnée disponible pour l'analyse de risque
+              {t("workload.injuryRisk.noData")}
             </p>
           </CardContent>
         </Card>

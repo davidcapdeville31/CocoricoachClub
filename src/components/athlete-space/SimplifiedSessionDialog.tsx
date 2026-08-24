@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { getTrainingTypesForSport } from "@/lib/constants/trainingTypes";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   open: boolean;
@@ -55,6 +56,7 @@ export function SimplifiedSessionDialog({
   sportType,
   lockedTrainingType,
 }: Props) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
 
   // Types de séance disponibles pour ce sport, hors bowling (flow dédié).
@@ -92,24 +94,24 @@ export function SimplifiedSessionDialog({
 
   const submitMutation = useMutation({
     mutationFn: async () => {
-      if (!trainingType) throw new Error("Choisissez un type de séance");
+      if (!trainingType) throw new Error(t('athleteSpace.components.simplifiedSessionDialog.chooseSessionType'));
       if (!durationMin || durationMin <= 0) {
-        throw new Error("Renseignez une durée > 0");
+        throw new Error(t('athleteSpace.components.simplifiedSessionDialog.durationRequired'));
       }
       if (!rpe || rpe < 1 || rpe > 10) {
-        throw new Error("Le RPE doit être entre 1 et 10");
+        throw new Error(t('athleteSpace.components.simplifiedSessionDialog.rpeRequired'));
       }
       const { data: sessionData } = await supabase.auth.getSession();
       const accessToken = sessionData?.session?.access_token;
       if (!accessToken) {
-        throw new Error("Session expirée. Reconnectez-vous puis réessayez.");
+        throw new Error(t('athleteSpace.components.simplifiedSessionDialog.sessionExpired'));
       }
       const start = "09:00";
       const end = computeEndTime(start, durationMin);
       const notesPayload = [
         "<!--SIMPLIFIED_SESSION-->",
-        notes.trim() || `Séance ${currentTypeLabel} (mode simplifié)`,
-        `Durée : ${durationMin} min · RPE : ${rpe}/10`,
+        notes.trim() || t('athleteSpace.components.simplifiedSessionDialog.defaultDescription', { type: currentTypeLabel }),
+        t('athleteSpace.components.simplifiedSessionDialog.durationRpe', { duration: durationMin, rpe }),
       ].join("\n");
 
       const { data, error } = await supabase.functions.invoke(
@@ -130,7 +132,7 @@ export function SimplifiedSessionDialog({
       );
       if (error) throw error;
       if (!data?.success || !data?.session_id) {
-        throw new Error(data?.error || "Erreur lors de la création");
+        throw new Error(data?.error || t('athleteSpace.components.simplifiedSessionDialog.createError'));
       }
       return data.session_id as string;
     },
@@ -140,10 +142,10 @@ export function SimplifiedSessionDialog({
       qc.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
       qc.invalidateQueries({ queryKey: ["training-stats"] });
       qc.invalidateQueries({ queryKey: ["athlete-calendar-sessions", categoryId] });
-      toast.success("Séance ajoutée");
+      toast.success(t('athleteSpace.components.simplifiedSessionDialog.added'));
       onOpenChange(false);
     },
-    onError: (e: any) => toast.error(e?.message || "Impossible d'enregistrer"),
+    onError: (e: any) => toast.error(e?.message || t('athleteSpace.components.simplifiedSessionDialog.saveError')),
   });
 
   const rpeColors = [
@@ -165,7 +167,7 @@ export function SimplifiedSessionDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-emerald-600" />
-            Séance — mode simplifié
+            {t('athleteSpace.components.simplifiedSessionDialog.title')}
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
             {format(date, "EEEE d MMMM yyyy", { locale: fr })}
@@ -175,10 +177,10 @@ export function SimplifiedSessionDialog({
         <div className="space-y-4">
           {!lockedTrainingType && trainingTypes.length > 0 && (
             <div className="space-y-1.5">
-              <Label>Type de séance</Label>
+              <Label>{t('athleteSpace.components.simplifiedSessionDialog.sessionType')}</Label>
               <Select value={trainingType} onValueChange={setTrainingType}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Choisir le type" />
+                  <SelectValue placeholder={t('athleteSpace.components.simplifiedSessionDialog.chooseType')} />
                 </SelectTrigger>
                 <SelectContent>
                   {trainingTypes.map((t) => (
@@ -192,10 +194,10 @@ export function SimplifiedSessionDialog({
           )}
 
           <div className="space-y-1.5">
-            <Label htmlFor="simpl-notes">Description de la séance</Label>
+            <Label htmlFor="simpl-notes">{t('athleteSpace.components.simplifiedSessionDialog.description')}</Label>
             <Textarea
               id="simpl-notes"
-              placeholder="Ex : contenu, exercices clés, sensations…"
+              placeholder={t('athleteSpace.components.simplifiedSessionDialog.descriptionPlaceholder')}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={4}
@@ -204,7 +206,7 @@ export function SimplifiedSessionDialog({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="simpl-duration">Durée (minutes)</Label>
+              <Label htmlFor="simpl-duration">{t('athleteSpace.components.simplifiedSessionDialog.duration')}</Label>
               <Input
                 id="simpl-duration"
                 type="number"
@@ -215,7 +217,7 @@ export function SimplifiedSessionDialog({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="simpl-rpe">RPE ressenti (1-10)</Label>
+              <Label htmlFor="simpl-rpe">{t('athleteSpace.components.simplifiedSessionDialog.rpe')}</Label>
               <Input
                 id="simpl-rpe"
                 type="number"
@@ -251,13 +253,13 @@ export function SimplifiedSessionDialog({
             })}
           </div>
           <p className="text-xs text-muted-foreground">
-            La durée et le RPE alimentent automatiquement ta charge d'entraînement.
+            {t('athleteSpace.components.simplifiedSessionDialog.loadInfo')}
           </p>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Annuler
+            {t('athleteSpace.components.simplifiedSessionDialog.cancel')}
           </Button>
           <Button
             onClick={() => submitMutation.mutate()}
@@ -267,7 +269,7 @@ export function SimplifiedSessionDialog({
             {submitMutation.isPending ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : null}
-            Valider la séance
+            {t('athleteSpace.components.simplifiedSessionDialog.submit')}
           </Button>
         </DialogFooter>
       </DialogContent>

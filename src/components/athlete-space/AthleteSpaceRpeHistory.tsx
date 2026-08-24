@@ -9,6 +9,7 @@ import { BarChart3, Activity, Dumbbell } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   playerId: string;
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export function AthleteSpaceRpeHistory({ playerId, categoryId }: Props) {
+  const { t } = useTranslation();
   const { data: rpeHistory = [], isLoading } = useQuery({
     queryKey: ["athlete-space-rpe-history", playerId],
     queryFn: async () => {
@@ -99,19 +101,19 @@ export function AthleteSpaceRpeHistory({ playerId, categoryId }: Props) {
         <Card className="bg-gradient-card">
           <CardContent className="py-3 text-center">
             <p className={`text-2xl font-bold ${getRpeColor(parseFloat(avgRpe))}`}>{avgRpe}</p>
-            <p className="text-[10px] text-muted-foreground">RPE moyen</p>
+            <p className="text-[10px] text-muted-foreground">{t('athleteSpace.components.rpeHistory.avgRpe')}</p>
           </CardContent>
         </Card>
         <Card className="bg-gradient-card">
           <CardContent className="py-3 text-center">
             <p className="text-2xl font-bold text-primary">{avgLoad}</p>
-            <p className="text-[10px] text-muted-foreground">Charge moy.</p>
+            <p className="text-[10px] text-muted-foreground">{t('athleteSpace.components.rpeHistory.avgLoad')}</p>
           </CardContent>
         </Card>
         <Card className="bg-gradient-card">
           <CardContent className="py-3 text-center">
             <p className={`text-2xl font-bold ${getRpeColor(maxRpe)}`}>{maxRpe}</p>
-            <p className="text-[10px] text-muted-foreground">RPE max</p>
+            <p className="text-[10px] text-muted-foreground">{t('athleteSpace.components.rpeHistory.maxRpe')}</p>
           </CardContent>
         </Card>
       </div>
@@ -121,8 +123,8 @@ export function AthleteSpaceRpeHistory({ playerId, categoryId }: Props) {
         <CardHeader className="pb-2">
           <CardTitle className="text-sm flex items-center gap-2">
             <Activity className="h-4 w-4 text-accent" />
-            Évolution RPE
-            <Badge variant="secondary" className="text-[10px]">{rpeHistory.length} séances</Badge>
+            {t('athleteSpace.components.rpeHistory.rpeEvolution')}
+            <Badge variant="secondary" className="text-[10px]">{t('athleteSpace.components.rpeHistory.sessions', { count: rpeHistory.length })}</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -158,7 +160,7 @@ export function AthleteSpaceRpeHistory({ playerId, categoryId }: Props) {
         <CardHeader className="pb-2">
           <CardTitle className="text-sm flex items-center gap-2">
             <BarChart3 className="h-4 w-4 text-primary" />
-            Charge d'entraînement (RPE × Durée)
+            {t('athleteSpace.components.rpeHistory.trainingLoad')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -192,9 +194,9 @@ export function AthleteSpaceRpeHistory({ playerId, categoryId }: Props) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
               <Dumbbell className="h-4 w-4 text-primary" />
-              Tonnage musculation
+              {t('athleteSpace.components.rpeHistory.tonnage')}
               <Badge variant="secondary" className="text-[10px]">
-                {totalTonnage.toLocaleString()} kg cumulés
+                {t('athleteSpace.components.rpeHistory.tonnageCumulated', { total: totalTonnage.toLocaleString() })}
               </Badge>
             </CardTitle>
           </CardHeader>
