@@ -442,18 +442,18 @@ function CategoryDetailsContent() {
                 value="overview" 
                 colorKey="overview"
                 icon={<LayoutDashboard className="h-5 w-5" />}
-               label="Décisions"
-               shortLabel="Décisions"
-               tooltip="Vue d'ensemble : indicateurs clés, alertes, tâches prioritaires et résumé de l'activité récente"
+               label={t("nav.overview.label")}
+                  shortLabel={t("nav.overview.short")}
+               tooltip={t("nav.overview.tooltip")}
               />
               {canSeeMenu("administratif") && (
                 <ColoredTabTrigger
                   value="admin" 
                   colorKey="admin"
                   icon={<Shield className="h-5 w-5" />}
-                  label="Admin"
-                  shortLabel="Admin"
-                  tooltip="Gestion des documents, licences, certificats médicaux et pièces administratives des athlètes"
+                  label={t("nav.admin.label")}
+                  shortLabel={t("nav.admin.short")}
+                  tooltip={t("nav.admin.tooltip")}
                 />
               )}
               {canSeeMenu("academique") && isAcademy && (
@@ -461,9 +461,9 @@ function CategoryDetailsContent() {
                   value="academy" 
                   colorKey="effectif"
                   icon={<GraduationCap className="h-5 w-5" />}
-                  label="Académie"
-                  shortLabel="Acad"
-                  tooltip="Suivi scolaire : notes, moyennes, absences et statistiques académiques de chaque athlète"
+                  label={t("nav.academy.label")}
+                  shortLabel={t("nav.academy.short")}
+                  tooltip={t("nav.academy.tooltip")}
                 />
               )}
               {canSeeMenu("effectif") && (
@@ -471,9 +471,9 @@ function CategoryDetailsContent() {
                   value="effectif" 
                   colorKey="effectif"
                   icon={<Users className="h-5 w-5" />}
-                  label="Effectif"
-                  shortLabel="Équipe"
-                  tooltip="Liste des athlètes, fiches individuelles, profils athlétiques et données biométriques"
+                  label={t("nav.effectif.label")}
+                  shortLabel={t("nav.effectif.short")}
+                  tooltip={t("nav.effectif.tooltip")}
                 />
               )}
               {canSeeMenu("planification") && (
@@ -481,10 +481,10 @@ function CategoryDetailsContent() {
                   value="planification" 
                   colorKey="planification"
                   icon={<Calendar className="h-5 w-5" />}
-                  label="Planification"
-                  shortLabel="Planning"
+                  label={t("nav.planification.label")}
+                  shortLabel={t("nav.planification.short")}
                   badge={athleteSessionsBadge}
-                  tooltip="Calendrier annuel et hebdomadaire : organisation des séances, compétitions et objectifs de saison"
+                  tooltip={t("nav.planification.tooltip")}
                 />
               )}
               {canSeeMenu("programmation") && (
@@ -492,9 +492,9 @@ function CategoryDetailsContent() {
                   value="programmation" 
                   colorKey="programmation"
                   icon={<FileCode className="h-5 w-5" />}
-                  label="Programmation"
-                  shortLabel="Prog"
-                  tooltip="Création et structuration des programmes d'entraînement : blocs, semaines et séances types"
+                  label={t("nav.programmation.label")}
+                  shortLabel={t("nav.programmation.short")}
+                  tooltip={t("nav.programmation.tooltip")}
                 />
               )}
               {canSeeMenu("performance") && (
@@ -502,10 +502,10 @@ function CategoryDetailsContent() {
                   value="performance" 
                   colorKey="performance"
                   icon={<Zap className="h-5 w-5" />}
-                  label="Workload"
-                  shortLabel="Workload"
+                  label={t("nav.performance.label")}
+                  shortLabel={t("nav.performance.short")}
                   badge={workloadBadge}
-                  tooltip="Monitoring de la charge (EWMA/AWCR), suivi HRV, préparation physique et évolution des tests"
+                  tooltip={t("nav.performance.tooltip")}
                 />
               )}
               {canSeeMenu("sante") && (
@@ -513,8 +513,9 @@ function CategoryDetailsContent() {
                   value="sante" 
                   colorKey="sante"
                   icon={<Heart className="h-5 w-5" />}
-                  label="Santé"
-                  tooltip="Bien-être (wellness), blessures, récupération, cycle menstruel et prévention des risques"
+                  label={t("nav.sante.label")}
+                  shortLabel={t("nav.sante.short")}
+                  tooltip={t("nav.sante.tooltip")}
                 />
               )}
               {canSeeMenu("competition") && (
@@ -522,9 +523,9 @@ function CategoryDetailsContent() {
                   value="competition" 
                   colorKey="competition"
                   icon={<Trophy className="h-5 w-5" />}
-                  label="Compétition"
-                  shortLabel="Compét"
-                  tooltip="Gestion des matchs/compétitions, saisie des résultats et gestion des rencontres"
+                  label={t("nav.competition.label")}
+                  shortLabel={t("nav.competition.short")}
+                  tooltip={t("nav.competition.tooltip")}
                 />
               )}
               {canSeeMenu("competition") && (
@@ -532,9 +533,9 @@ function CategoryDetailsContent() {
                   value="stats" 
                   colorKey="competition"
                   icon={<BarChart3 className="h-5 w-5" />}
-                  label="Stats"
-                  shortLabel="Stats"
-                  tooltip="Statistiques individuelles et collectives cumulées"
+                  label={t("nav.stats.label")}
+                  shortLabel={t("nav.stats.short")}
+                  tooltip={t("nav.stats.tooltip")}
                 />
               )}
               {isBowling && (
@@ -542,8 +543,9 @@ function CategoryDetailsContent() {
                   value="arsenal" 
                   colorKey="performance"
                   icon={<CircleDot className="h-5 w-5" />}
-                  label="Arsenal"
-                  tooltip="Inventaire des boules de bowling : marque, modèle, caractéristiques techniques et surface"
+                  label={t("nav.arsenal.label")}
+                  shortLabel={t("nav.arsenal.short")}
+                  tooltip={t("nav.arsenal.tooltip")}
                 />
               )}
               {isJudo && (
@@ -551,9 +553,9 @@ function CategoryDetailsContent() {
                   value="opponents-bank"
                   colorKey="performance"
                   icon={<Users className="h-5 w-5" />}
-                  label="Liste adversaires"
-                  shortLabel="Adversaires"
-                  tooltip="Banque commune des adversaires du club : profil, latéralité, style, palmarès, photo — partagée entre coachs et athlètes"
+                  label={t("nav.opponents.label")}
+                  shortLabel={t("nav.opponents.short")}
+                  tooltip={t("nav.opponents.tooltip")}
                 />
               )}
               {showGpsTab && (
@@ -561,8 +563,9 @@ function CategoryDetailsContent() {
                   value="gps" 
                   colorKey="gps"
                   icon={<MapPin className="h-5 w-5" />}
-                  label="GPS"
-                  tooltip="Données GPS des séances : distance, vitesse, accélérations et charge mécanique externe"
+                  label={t("nav.gps.label")}
+                  shortLabel={t("nav.gps.short")}
+                  tooltip={t("nav.gps.tooltip")}
                 />
               )}
               {showVideoTab && (
@@ -570,9 +573,9 @@ function CategoryDetailsContent() {
                   value="video" 
                   colorKey="video"
                   icon={<Video className="h-5 w-5" />}
-                  label="Vidéo"
-                  shortLabel="Vidéo"
-                  tooltip="Import et découpage de vidéos de matchs et entraînements, clips et annotations"
+                  label={t("nav.video.label")}
+                  shortLabel={t("nav.video.short")}
+                  tooltip={t("nav.video.tooltip")}
                 />
               )}
               {canSeeMenu("messagerie") && (
@@ -580,10 +583,10 @@ function CategoryDetailsContent() {
                   value="communication" 
                   colorKey="communication"
                   icon={<MessageSquare className="h-5 w-5" />}
-                  label="Chat"
-                  shortLabel="Chat"
+                  label={t("nav.communication.label")}
+                  shortLabel={t("nav.communication.short")}
                   badge={unreadMessagesCount}
-                  tooltip="Messagerie interne : échanges avec le staff et les athlètes, discussions de groupe"
+                  tooltip={t("nav.communication.tooltip")}
                 />
               )}
             </ColoredNavTabsList>
