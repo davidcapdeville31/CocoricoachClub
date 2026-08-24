@@ -17,6 +17,8 @@ import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { CategoryCoverUpload, LogoHoverActions } from "@/components/category/CategoryCoverUpload";
 import { resolveHeaderBackgroundUrl } from "@/lib/constants/headerBackgrounds";
 import { CustomizeBrandingButton } from "@/components/branding/CustomizeBrandingButton";
+import { LanguageSwitcher } from "@/components/language/LanguageSwitcher";
+import { useTranslation } from "react-i18next";
 import { ClubBrandingProvider } from "@/contexts/ClubBrandingContext";
 import { GlobalPlayerSearch } from "@/components/search/GlobalPlayerSearch";
 import { EditableCategoryName } from "@/components/category/EditableCategoryName";
@@ -403,12 +405,13 @@ function CategoryDetailsContent() {
                   backgroundOnly
                 />
                 <SnapshotCategoryButton categoryId={categoryId} categoryName={category?.name} />
+                <LanguageSwitcher />
                 <Button
                   variant="outline"
                   size="icon"
                   onClick={() => handleTabChange("settings")}
-                  title="Paramètres"
-                  aria-label="Paramètres"
+                  title={t("header.settings")}
+                  aria-label={t("header.settings")}
                   className="h-8 w-8"
                 >
                   <Settings className="h-3.5 w-3.5" />
@@ -417,8 +420,8 @@ function CategoryDetailsContent() {
                   variant="outline"
                   size="icon"
                   onClick={signOut}
-                  title="Déconnexion"
-                  aria-label="Déconnexion"
+                  title={t("header.logout")}
+                  aria-label={t("header.logout")}
                   className="h-8 w-8"
                 >
                   <LogOut className="h-3.5 w-3.5" />
