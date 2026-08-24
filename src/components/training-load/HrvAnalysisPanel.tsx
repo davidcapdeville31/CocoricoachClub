@@ -42,6 +42,7 @@ import {
 } from "@/lib/hrvCalculations";
 import { EWMAResult } from "@/lib/trainingLoadCalculations";
 import { InfoHint } from "./InfoHint";
+import { Trans, useTranslation } from "react-i18next";
 
 interface HrvAnalysisPanelProps {
   hrvRecords: any[];
@@ -51,6 +52,7 @@ interface HrvAnalysisPanelProps {
 }
 
 export function HrvAnalysisPanel({ hrvRecords, loadData, playerId, isLoading }: HrvAnalysisPanelProps) {
+  const { t } = useTranslation();
   const [viewTab, setViewTab] = useState("trend");
 
   // Transform HRV records to daily data
@@ -138,19 +140,18 @@ export function HrvAnalysisPanel({ hrvRecords, loadData, playerId, isLoading }: 
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Heart className="h-5 w-5 text-destructive" />
-            Analyse HRV
+            t("workload.hrvPanel.title")
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
             <Heart className="h-12 w-12 mb-4 opacity-50" />
-            <p className="font-medium">Aucune donnée HRV disponible</p>
+            <p className="font-medium">{t("workload.hrvPanel.noData")}</p>
             <p className="text-sm mt-1">
-              Utilisez le bouton HRV pour saisir les données de variabilité cardiaque
+              {t("workload.hrvPanel.noDataDesc")}
             </p>
             <p className="text-xs mt-3 max-w-md text-center">
-              💡 La HRV se mesure le matin au réveil, allongé, avant de se lever. 
-              La baseline fiable se construit sur 4 à 6 semaines.
+              {t("workload.hrvPanel.tip")}
             </p>
           </div>
         </CardContent>
@@ -165,12 +166,12 @@ export function HrvAnalysisPanel({ hrvRecords, loadData, playerId, isLoading }: 
         <Card className="bg-gradient-card shadow-sm">
           <CardContent className="p-3">
             <div className="flex items-center gap-1">
-              <p className="text-xs text-muted-foreground">HRV actuel</p>
+              <p className="text-xs text-muted-foreground">{t("workload.hrvPanel.kpi.hrvCurrent")}</p>
               <InfoHint
-                title="HRV — Variabilité de la fréquence cardiaque"
-                what="C'est la variation du temps entre deux battements de cœur, mesurée en millisecondes (ms). Plus elle est élevée, mieux l'organisme récupère et s'adapte."
-                how="Mesurée généralement le matin au repos avec une ceinture cardio, une montre ou une appli (RMSSD en ms)."
-                why="Une HRV stable ou en hausse = athlète bien récupéré. Une HRV qui chute fortement = signe de fatigue, stress ou maladie. À comparer à la baseline personnelle."
+                title={t("workload.hrvPanel.kpi.hrvCurrentHint.title")}
+                what={t("workload.hrvPanel.kpi.hrvCurrentHint.what")}
+                how={t("workload.hrvPanel.kpi.hrvCurrentHint.how")}
+                why={t("workload.hrvPanel.kpi.hrvCurrentHint.why")}
               />
             </div>
             <p className="text-xl font-bold">
@@ -178,7 +179,7 @@ export function HrvAnalysisPanel({ hrvRecords, loadData, playerId, isLoading }: 
             </p>
             {latest?.baselineMean != null && (
               <p className="text-[10px] text-muted-foreground">
-                Baseline: {latest.baselineMean} ms ({latest.baselineDays}j)
+                {t("workload.hrvPanel.kpi.baseline", { mean: latest.baselineMean, days: latest.baselineDays })}
               </p>
             )}
           </CardContent>
@@ -187,12 +188,12 @@ export function HrvAnalysisPanel({ hrvRecords, loadData, playerId, isLoading }: 
         <Card className="bg-gradient-card shadow-sm">
           <CardContent className="p-3">
             <div className="flex items-center gap-1">
-              <p className="text-xs text-muted-foreground">CV% (7j)</p>
+              <p className="text-xs text-muted-foreground">{t("workload.hrvPanel.kpi.cv")}</p>
               <InfoHint
-                title="CV% — Coefficient de variation sur 7 jours"
-                what="Indique à quel point la HRV varie d'un jour à l'autre sur la dernière semaine. C'est la stabilité de la récupération."
-                how="CV% = (écart-type des HRV / moyenne des HRV) × 100, calculé sur les 7 derniers jours."
-                why="< 5% = athlète stable et bien adapté · 5-8% = phase d'adaptation, vigilance · > 8% = instabilité, risque de surcharge ou fatigue."
+                title={t("workload.hrvPanel.kpi.cvHint.title")}
+                what={t("workload.hrvPanel.kpi.cvHint.what")}
+                how={t("workload.hrvPanel.kpi.cvHint.how")}
+                why={t("workload.hrvPanel.kpi.cvHint.why")}
               />
             </div>
             <p className={`text-xl font-bold ${getCvStatusColor(latest?.cvStatus ?? null)}`}>
@@ -209,12 +210,12 @@ export function HrvAnalysisPanel({ hrvRecords, loadData, playerId, isLoading }: 
         <Card className="bg-gradient-card shadow-sm">
           <CardContent className="p-3">
             <div className="flex items-center gap-1">
-              <p className="text-xs text-muted-foreground">Score HRV</p>
+              <p className="text-xs text-muted-foreground">{t("workload.hrvPanel.kpi.score")}</p>
               <InfoHint
-                title="Score HRV"
-                what="Score synthétique (0 à 10 environ) qui compare la HRV du jour à la baseline personnelle de l'athlète."
-                how="Calculé à partir de l'écart entre la HRV actuelle et la moyenne habituelle (z-score normalisé)."
-                why="Score élevé = forme du jour supérieure à l'habitude · score bas = signe de fatigue, à confirmer avec le wellness avant d'adapter la séance."
+                title={t("workload.hrvPanel.kpi.scoreHint.title")}
+                what={t("workload.hrvPanel.kpi.scoreHint.what")}
+                how={t("workload.hrvPanel.kpi.scoreHint.how")}
+                why={t("workload.hrvPanel.kpi.scoreHint.why")}
               />
             </div>
             <p className={`text-xl font-bold ${getHrvScoreColor(latest?.hrvScoreStatus ?? null)}`}>
@@ -230,7 +231,7 @@ export function HrvAnalysisPanel({ hrvRecords, loadData, playerId, isLoading }: 
 
         <Card className="bg-gradient-card shadow-sm">
           <CardContent className="p-3">
-            <p className="text-xs text-muted-foreground">Risque combiné</p>
+            <p className="text-xs text-muted-foreground">{t("workload.hrvPanel.kpi.combinedRisk")}</p>
             {latestCorrelation ? (
               <>
                 <p className={`text-xl font-bold ${latestCorrelation.color}`}>
@@ -253,10 +254,10 @@ export function HrvAnalysisPanel({ hrvRecords, loadData, playerId, isLoading }: 
           <Info className="h-4 w-4 text-yellow-500 mt-0.5 flex-shrink-0" />
           <div>
             <p className="font-medium text-yellow-600 dark:text-yellow-400">
-              Baseline en construction ({latest.baselineDays}/28 jours minimum recommandés)
+              {t("workload.hrvPanel.baselineWarning.title", { days: latest.baselineDays })}
             </p>
             <p className="text-xs text-muted-foreground">
-              Les scores sont calculés mais leur fiabilité augmentera avec plus de données (idéal: 60 jours).
+              {t("workload.hrvPanel.baselineWarning.desc")}
             </p>
           </div>
         </div>
@@ -267,15 +268,15 @@ export function HrvAnalysisPanel({ hrvRecords, loadData, playerId, isLoading }: 
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2">
             <Heart className="h-5 w-5 text-destructive" />
-            Analyse HRV
+            {t("workload.hrvPanel.title")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <Tabs value={viewTab} onValueChange={setViewTab}>
             <TabsList className="grid w-full max-w-md grid-cols-3 mb-4">
-              <TabsTrigger value="trend">Tendance</TabsTrigger>
-              <TabsTrigger value="correlation">Corrélation</TabsTrigger>
-              <TabsTrigger value="table">Tableau</TabsTrigger>
+              <TabsTrigger value="trend">{t("workload.hrvPanel.tabs.trend")}</TabsTrigger>
+              <TabsTrigger value="correlation">{t("workload.hrvPanel.tabs.correlation")}</TabsTrigger>
+              <TabsTrigger value="table">{t("workload.hrvPanel.tabs.table")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="trend">
@@ -284,8 +285,8 @@ export function HrvAnalysisPanel({ hrvRecords, loadData, playerId, isLoading }: 
                 <ComposedChart data={trendChartData}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis dataKey="dateFormatted" className="text-xs" />
-                  <YAxis yAxisId="left" className="text-xs" label={{ value: "ms", angle: -90, position: "insideLeft", style: { fontSize: 10 } }} />
-                  <YAxis yAxisId="right" orientation="right" className="text-xs" label={{ value: "Score / CV%", angle: 90, position: "insideRight", style: { fontSize: 10 } }} />
+                  <YAxis yAxisId="left" className="text-xs" label={{ value: t("workload.hrvPanel.chart.msAxis"), angle: -90, position: "insideLeft", style: { fontSize: 10 } }} />
+                  <YAxis yAxisId="right" orientation="right" className="text-xs" label={{ value: t("workload.hrvPanel.chart.scoreCvAxis"), angle: 90, position: "insideRight", style: { fontSize: 10 } }} />
                   <Tooltip
                     content={({ active, payload }) => {
                       if (!active || !payload?.length) return null;
@@ -294,10 +295,10 @@ export function HrvAnalysisPanel({ hrvRecords, loadData, playerId, isLoading }: 
                       return (
                         <div className="rounded-lg border bg-background p-3 shadow-lg text-sm space-y-1">
                           <p className="font-medium">{format(parseISO(d.date), "EEEE d MMMM", { locale: fr })}</p>
-                          {d.hrvMs != null && <p>HRV: <span className="font-semibold">{d.hrvMs} ms</span></p>}
-                          {d.baselineMean != null && <p className="text-xs text-muted-foreground">Baseline: {d.baselineMean} ms</p>}
-                          {d.cvPercent != null && <p>CV%: <span className={`font-semibold ${getCvStatusColor(d.cvStatus)}`}>{d.cvPercent}%</span> ({getCvStatusLabel(d.cvStatus)})</p>}
-                          {d.hrvScore != null && <p>Score: <span className={`font-semibold ${getHrvScoreColor(d.hrvScoreStatus)}`}>{d.hrvScore.toFixed(2)}</span> ({getHrvScoreLabel(d.hrvScoreStatus)})</p>}
+                          {d.hrvMs != null && <p>{t("workload.hrvPanel.chart.tooltipHrv", { value: d.hrvMs })}</p>}
+                          {d.baselineMean != null && <p className="text-xs text-muted-foreground">{t("workload.hrvPanel.chart.tooltipBaseline", { value: d.baselineMean })}</p>}
+                          {d.cvPercent != null && <p>{t("workload.hrvPanel.chart.tooltipCv", { value: d.cvPercent })} <span className={`font-semibold ${getCvStatusColor(d.cvStatus)}`}></span> ({getCvStatusLabel(d.cvStatus)})</p>}
+                          {d.hrvScore != null && <p>{t("workload.hrvPanel.chart.tooltipScore", { value: d.hrvScore.toFixed(2) })} ({getHrvScoreLabel(d.hrvScoreStatus)})</p>}
                         </div>
                       );
                     }}
@@ -314,7 +315,7 @@ export function HrvAnalysisPanel({ hrvRecords, loadData, playerId, isLoading }: 
                     fillOpacity={0.2}
                     strokeDasharray="4 4"
                     strokeWidth={1}
-                    name="Baseline (moy)"
+                    name={t("workload.hrvPanel.chart.baselineMean")}
                   />
 
                   <Line
@@ -324,7 +325,7 @@ export function HrvAnalysisPanel({ hrvRecords, loadData, playerId, isLoading }: 
                     stroke="hsl(280, 67%, 55%)"
                     strokeWidth={2}
                     dot={{ r: 3 }}
-                    name="HRV (ms)"
+                    name={t("workload.hrvPanel.chart.hrvMs")}
                     connectNulls
                   />
 
@@ -336,7 +337,7 @@ export function HrvAnalysisPanel({ hrvRecords, loadData, playerId, isLoading }: 
                     strokeWidth={1.5}
                     strokeDasharray="4 4"
                     dot={{ r: 2 }}
-                    name="CV% (7j)"
+                    name={t("workload.hrvPanel.chart.cvSeries")}
                     connectNulls
                   />
 
@@ -347,7 +348,7 @@ export function HrvAnalysisPanel({ hrvRecords, loadData, playerId, isLoading }: 
                     stroke="hsl(142, 76%, 36%)"
                     strokeWidth={1.5}
                     dot={{ r: 2 }}
-                    name="Score HRV"
+                    name={t("workload.hrvPanel.chart.hrvScoreSeries")}
                     connectNulls
                   />
 
@@ -360,8 +361,8 @@ export function HrvAnalysisPanel({ hrvRecords, loadData, playerId, isLoading }: 
 
               {/* Legend info */}
               <div className="mt-3 flex flex-wrap gap-3 text-xs text-muted-foreground">
-                <span>CV% : <span className="text-green-500">&lt;5% stable</span> · <span className="text-yellow-500">5-8% adaptation</span> · <span className="text-red-500">&gt;8% instable</span></span>
-                <span>Score : <span className="text-green-500">&gt;+1 optimal</span> · <span className="text-primary">-1 à +1 normal</span> · <span className="text-orange-500">&lt;-1 sous-récup</span> · <span className="text-red-500">&lt;-2 surmenage</span></span>
+                <Trans i18nKey="workload.hrvPanel.legendInfo.cv" t={t} components={[<span className="text-green-500" key="0" />, <span className="text-yellow-500" key="1" />, <span className="text-red-500" key="2" />]} />
+                <Trans i18nKey="workload.hrvPanel.legendInfo.score" t={t} components={[<span className="text-green-500" key="0" />, <span className="text-primary" key="1" />, <span className="text-orange-500" key="2" />, <span className="text-red-500" key="3" />]} />
               </div>
             </TabsContent>
 
@@ -382,8 +383,8 @@ export function HrvAnalysisPanel({ hrvRecords, loadData, playerId, isLoading }: 
                           return (
                             <div className="rounded-lg border bg-background p-3 shadow-lg text-sm space-y-1">
                               <p className="font-medium">{format(parseISO(d.date), "EEEE d MMMM", { locale: fr })}</p>
-                              <p>Ratio charge: <span className="font-semibold">{d.acwr?.toFixed(2)}</span></p>
-                              {d.hrvScore != null && <p>Score HRV: <span className="font-semibold">{d.hrvScore.toFixed(2)}</span></p>}
+                              <p>{t("workload.hrvPanel.chart.tooltipRatio", { value: d.acwr?.toFixed(2) })}</p>
+                              {d.hrvScore != null && <p>{t("workload.hrvPanel.chart.tooltipHrvScore", { value: d.hrvScore.toFixed(2) })}</p>}
                               <p className={`font-medium mt-1 ${d.color}`}>{getCorrelationRiskLabel(d.riskLevel)}</p>
                               <p className="text-xs">{d.recommendation}</p>
                             </div>
@@ -403,7 +404,7 @@ export function HrvAnalysisPanel({ hrvRecords, loadData, playerId, isLoading }: 
                         stroke="hsl(var(--primary))"
                         strokeWidth={2}
                         dot={{ r: 3 }}
-                        name="Ratio charge"
+                        name={t("workload.hrvPanel.chart.ratioCharge")}
                         connectNulls
                       />
                       <Line
@@ -413,7 +414,7 @@ export function HrvAnalysisPanel({ hrvRecords, loadData, playerId, isLoading }: 
                         stroke="hsl(280, 67%, 55%)"
                         strokeWidth={2}
                         dot={{ r: 3 }}
-                        name="Score HRV"
+                        name={t("workload.hrvPanel.chart.hrvScoreSeries")}
                         connectNulls
                       />
                     </ComposedChart>
@@ -429,8 +430,8 @@ export function HrvAnalysisPanel({ hrvRecords, loadData, playerId, isLoading }: 
               ) : (
                 <div className="text-center py-12 text-muted-foreground">
                   <AlertTriangle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p>Données de charge et HRV nécessaires pour la corrélation</p>
-                  <p className="text-xs mt-1">Ajoutez des entrées RPE et HRV pour voir l'analyse croisée</p>
+                  <p>{t("workload.hrvPanel.correlationEmpty.title")}</p>
+                  <p className="text-xs mt-1">{t("workload.hrvPanel.correlationEmpty.desc")}</p>
                 </div>
               )}
             </TabsContent>
@@ -440,13 +441,13 @@ export function HrvAnalysisPanel({ hrvRecords, loadData, playerId, isLoading }: 
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>HRV (ms)</TableHead>
-                      <TableHead>FC repos</TableHead>
-                      <TableHead>CV% (7j)</TableHead>
-                      <TableHead>Score</TableHead>
-                      <TableHead>Statut</TableHead>
-                      <TableHead>Baseline</TableHead>
+                      <TableHead>{t("workload.hrvPanel.table.date")}</TableHead>
+                      <TableHead>{t("workload.hrvPanel.table.hrvMs")}</TableHead>
+                      <TableHead>{t("workload.hrvPanel.table.restingHr")}</TableHead>
+                      <TableHead>{t("workload.hrvPanel.table.cv")}</TableHead>
+                      <TableHead>{t("workload.hrvPanel.table.score")}</TableHead>
+                      <TableHead>{t("workload.hrvPanel.table.status")}</TableHead>
+                      <TableHead>{t("workload.hrvPanel.table.baseline")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>

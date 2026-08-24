@@ -8,6 +8,7 @@ import { Bell } from "lucide-react";
 import { SessionVignette } from "./SessionVignette";
 import { MatchVignette } from "./MatchVignette";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
+import { useTranslation } from "react-i18next";
 
 interface Session {
   id: string;
@@ -81,6 +82,7 @@ export function CalendarDayCell({
   onShowAllEvents,
   playerNamesMap,
 }: CalendarDayCellProps) {
+  const { t } = useTranslation();
   const dateStr = format(day, "yyyy-MM-dd");
   const { setNodeRef, isOver } = useDroppable({
     id: dateStr,
@@ -206,7 +208,7 @@ export function CalendarDayCell({
               }
             }}
           >
-            +{sessions.length + matches.length - 3} autre(s)
+            {t("planning:calendarViews.moreEvents", { count: sessions.length + matches.length - 3 })}
           </div>
         )}
       </div>
