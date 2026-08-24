@@ -60,7 +60,7 @@ export function LanguageSwitcher({ compact = true, className }: Props) {
               <span aria-hidden>{opt.flag}</span>
               <span className="flex-1 text-left">{t(opt.labelKey)}</span>
               {defaultLanguage === opt.value && (
-                <Star className="h-3.5 w-3.5 text-primary" title={t("language.isDefault")} />
+                <Star className="h-3.5 w-3.5 text-primary" aria-label={t("language.isDefault")} />
               )}
               {language === opt.value && <Check className="h-4 w-4 text-primary" />}
             </button>
