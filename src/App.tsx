@@ -8,6 +8,8 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { OfflineSyncProvider } from "@/contexts/OfflineSyncContext";
 import { PublicAccessProvider, usePublicAccess } from "@/contexts/PublicAccessContext";
 import { FieldModeProvider } from "@/contexts/FieldModeContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
+import "@/i18n";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import PWAUpdatePrompt from "@/components/PWAUpdatePrompt";
 import PullToRefresh from "@/components/PullToRefresh";
@@ -155,6 +157,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <AuthProvider>
+            <LanguageProvider>
             <PublicAccessProvider>
               <OfflineSyncProvider>
                 <ViewerModeBanner />
@@ -201,6 +204,7 @@ const App = () => (
                 </MaintenanceGate>
               </OfflineSyncProvider>
             </PublicAccessProvider>
+            </LanguageProvider>
           </AuthProvider>
         </BrowserRouter>
       </FieldModeProvider>
