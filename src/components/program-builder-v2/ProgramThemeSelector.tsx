@@ -137,6 +137,10 @@ export function ProgramThemeSelector({
     onError: (err: any) => toast.error(err?.message ?? "Suppression impossible"),
   });
 
+  const { tc } = useContentTranslation(
+    useMemo(() => (themes ?? []).map((t) => t.name), [themes]),
+  );
+
   const selected = useMemo(
     () => (themes ?? []).find((t) => t.id === value) ?? null,
     [themes, value],
