@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useContentTranslation } from "@/hooks/use-content-translation";
@@ -89,6 +89,13 @@ export function ExerciseLibrarySection() {
     },
     enabled: !!user,
   });
+
+  const { tc } = useContentTranslation(
+    useMemo(
+      () => (exercises ?? []).flatMap((e: any) => [e.name, e.description]),
+      [exercises],
+    ),
+  );
 
   const handleDelete = async (id: string) => {
     try {

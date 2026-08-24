@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -105,6 +105,13 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
       return data;
     },
   });
+
+  const { tc } = useContentTranslation(
+    useMemo(
+      () => (objectives ?? []).flatMap((o: any) => [o.title, o.description]),
+      [objectives],
+    ),
+  );
 
   const addMutation = useMutation({
     mutationFn: async () => {
