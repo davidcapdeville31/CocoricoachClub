@@ -146,6 +146,8 @@ const hasVideoAnalysis = (sportType: string | undefined) => {
 
 function CategoryDetailsContent() {
   const { categoryId } = useParams();
+  const { t } = useTranslation();
+
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
