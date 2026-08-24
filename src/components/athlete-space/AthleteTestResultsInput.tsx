@@ -92,8 +92,8 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
   }, [sessionId, playerId]);
 
 
-  const handleSendOne = async (t: TestRef) => {
-    const key = `${t.test_category}::${t.test_type}`;
+  const handleSendOne = async (test: TestRef) => {
+    const key = `${test.test_category}::${test.test_type}`;
     const raw = value[key];
     if (raw == null || raw === "") {
       toast.error(t('athleteSpace.components.testResultsInput.enterFirst'));
@@ -114,10 +114,10 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
       category_id: categoryId,
       training_session_id: sessionId,
       test_date: sessionDate || new Date().toISOString().slice(0, 10),
-      test_category: t.test_category,
-      test_type: t.test_type,
+      test_category: test.test_category,
+      test_type: test.test_type,
       result_value: v,
-      result_unit: t.result_unit || null,
+      result_unit: test.result_unit || null,
       submitted_via: "athlete" as const,
       validation_status: "pending" as const,
     });
@@ -140,21 +140,21 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
         {t('athleteSpace.components.testResultsInput.title')}
       </Label>
       <div className="space-y-2">
-        {tests.map((t, idx) => {
-          const key = `${t.test_category}::${t.test_type}`;
+        {tests.map((test, idx) => {
+          const key = `${test.test_category}::${test.test_type}`;
           const existing = pending.find(
-            (p) => p.test_category === t.test_category && p.test_type === t.test_type,
+            (p) => p.test_category === test.test_category && p.test_type === test.test_type,
           );
           const staffRow = staffSaved.find(
-            (p) => p.test_category === t.test_category && p.test_type === t.test_type,
+            (p) => p.test_category === test.test_category && p.test_type === test.test_type,
           );
-          const testLabel = labelizeTestType(t.test_type, customMap);
-          const unit = t.result_unit || (t.test_type?.startsWith("custom:") ? customMap[t.test_type]?.unit || "" : "");
+          const testLabel = labelizeTestType(test.test_type, customMap);
+          const unit = test.result_unit || (test.test_type?.startsWith("custom:") ? customMap[test.test_type]?.unit || "" : "");
           return (
             <div key={idx} className="flex items-center gap-2 flex-wrap">
               <span className="text-xs flex-1 min-w-[140px] font-medium">
                 {testLabel}
-                <span className="text-muted-foreground ml-1">({labelize(t.test_category)})</span>
+                <span className="text-muted-foreground ml-1">({labelize(test.test_category)})</span>
               </span>
               {staffRow ? (
                 <Badge variant="default" className="text-[10px] gap-1" title={t('athleteSpace.components.testResultsInput.title')}>
@@ -166,7 +166,7 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
                   className="text-[10px] gap-1"
                 >
                   {existing.validation_status === "pending" && <Clock className="h-3 w-3" />}
-                  {existing.result_value} {existing.result_unit || t.result_unit || ""}
+                  {existing.result_value} {existing.result_unit || test.result_unit || ""}
                   {existing.validation_status === "pending" && t('athleteSpace.components.testResultsInput.pending')}
                   {existing.validation_status === "validated" && t('athleteSpace.components.testResultsInput.validated')}
                   {existing.validation_status === "rejected" && t('athleteSpace.components.testResultsInput.rejected')}
@@ -189,7 +189,7 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
                       size="sm"
                       variant="default"
                       className="h-8 px-2"
-                      onClick={() => handleSendOne(t)}
+                      onClick={() => handleSendOne(test)}
                       disabled={submittingKey === key}
                     >
                       {submittingKey === key ? (

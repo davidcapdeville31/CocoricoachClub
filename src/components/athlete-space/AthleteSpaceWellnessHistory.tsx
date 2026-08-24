@@ -60,6 +60,7 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
     soreness_lower_body: true,
     stress_level: true,
   });
+  const METRIC_LABELS = getMetricLabels(t);
   const toggleMetric = (key: string) =>
     setVisibleMetrics((p) => ({ ...p, [key]: !p[key] }));
 

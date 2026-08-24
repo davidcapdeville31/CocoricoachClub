@@ -13,6 +13,7 @@ import { format, addDays, addWeeks, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Copy, Loader2 } from "lucide-react";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
+import { useTranslation } from "react-i18next";
 
 const MAX_DUPLICATED_SESSIONS = 80;
 const DB_TIMEOUT_MS = 25_000;
@@ -80,6 +81,7 @@ const WEEKDAYS = [
 ];
 
 export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId }: Props) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const { notify } = useSessionNotifications();
   const [mode, setMode] = useState<"single" | "recurring">("single");
@@ -131,10 +133,10 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
 
   const duplicateMutation = useMutation({
     mutationFn: async () => {
-      if (!session) throw new Error("Séance manquante");
-      if (targetDates.length === 0) throw new Error("Aucune date sélectionnée");
+      if (!session) throw new Error(t("planning.calendarDialogs.duplicateSession.toasts.sessionMissing"));
+      if (targetDates.length === 0) throw new Error(t("planning.calendarDialogs.duplicateSession.toasts.noDateSelected"));
       if (targetDates.length > MAX_DUPLICATED_SESSIONS) {
-        throw new Error(`Limite de ${MAX_DUPLICATED_SESSIONS} séances par duplication. Réduis le nombre de semaines ou de jours.`);
+        throw new Error(t("planning.calendarDialogs.duplicateSession.toasts.recurrenceLimit", { max: MAX_DUPLICATED_SESSIONS }));
       }
 
       // 1) Load source session, blocks and participants once
@@ -144,7 +146,7 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
           .select("*")
           .eq("id", session.id)
           .single(),
-        "Chargement de la séance source"
+        t("planning.calendarDialogs.duplicateSession.toasts.loadingSource")
       );
       if (srcErr) throw srcErr;
 
@@ -155,14 +157,14 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
             .select("*")
             .eq("training_session_id", session.id)
             .order("block_order"),
-          "Chargement des blocs"
+          t("planning.calendarDialogs.duplicateSession.toasts.loadingBlocks")
         ),
         withTimeout(
           supabase
             .from("event_participants")
             .select("player_id")
             .eq("training_session_id", session.id),
-          "Chargement des athlètes convoqués"
+          t("planning.calendarDialogs.duplicateSession.toasts.loadingParticipants")
         ),
         withTimeout(
           supabase
@@ -170,7 +172,7 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
             .select("club_id")
             .eq("id", categoryId)
             .maybeSingle(),
-          "Chargement de la catégorie"
+          t("planning.calendarDialogs.duplicateSession.toasts.loadingCategory")
         ),
       ]);
       if (blocksErr) throw blocksErr;
@@ -210,12 +212,12 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
             .from("training_sessions")
             .insert(payloadChunk as any)
             .select("id, session_date"),
-          "Création des séances"
+          t("planning.calendarDialogs.duplicateSession.toasts.creatingSessions")
         );
         if (error) throw error;
         if (data) newSessions.push(...data);
       }
-      if (!newSessions || newSessions.length === 0) throw new Error("Aucune séance créée");
+      if (!newSessions || newSessions.length === 0) throw new Error(t("planning.calendarDialogs.duplicateSession.toasts.noSessionCreated"));
 
       // 2) Bulk insert blocks & participants in parallel (single insert each)
       const allBlockRows: any[] = [];
@@ -237,14 +239,14 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
       for (const blockChunk of chunkArray(allBlockRows, CHILD_INSERT_CHUNK_SIZE)) {
         const { error } = await withTimeout(
           supabase.from("training_session_blocks").insert(blockChunk),
-          "Duplication des blocs"
+          t("planning.calendarDialogs.duplicateSession.toasts.duplicatingBlocks")
         );
         if (error) throw error;
       }
       for (const participantChunk of chunkArray(allPartRows, CHILD_INSERT_CHUNK_SIZE)) {
         const { error } = await withTimeout(
           supabase.from("event_participants").insert(participantChunk),
-          "Duplication des athlètes convoqués"
+          t("planning.calendarDialogs.duplicateSession.toasts.duplicatingParticipants")
         );
         if (error) throw error;
       }
@@ -276,13 +278,13 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
       qc.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
       toast.success(
         count > 1
-          ? `${count} séances dupliquées ✅`
-          : "Séance dupliquée ✅",
+          ? t("planning.calendarDialogs.duplicateSession.toasts.multipleDuplicated", { count })
+          : t("planning.calendarDialogs.duplicateSession.toasts.singleDuplicated"),
       );
       onOpenChange(false);
     },
     onError: (e: any) => {
-      toast.error(e?.message || "Erreur lors de la duplication");
+      toast.error(e?.message || t("planning.calendarDialogs.duplicateSession.toasts.duplicateError"));
     },
   });
 
@@ -293,11 +295,11 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
   const handleSubmit = () => {
     if (duplicateMutation.isPending) return;
     if (targetDates.length === 0) {
-      toast.error("Sélectionne au moins une date");
+      toast.error(t("planning.calendarDialogs.duplicateSession.toasts.selectAtLeastOneDate"));
       return;
     }
     if (targetDates.length > MAX_DUPLICATED_SESSIONS) {
-      toast.error(`Maximum ${MAX_DUPLICATED_SESSIONS} séances par duplication`);
+      toast.error(t("planning.calendarDialogs.duplicateSession.toasts.maxLimitReached", { max: MAX_DUPLICATED_SESSIONS }));
       return;
     }
     duplicateMutation.mutate();
@@ -314,39 +316,39 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
 
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Copy className="h-5 w-5" /> Dupliquer la séance
+            <Copy className="h-5 w-5" /> {t("planning.calendarDialogs.duplicateSession.title")}
           </DialogTitle>
           <DialogDescription>
-            Recrée la séance (blocs + athlètes) à une nouvelle date, avec une récurrence optionnelle.
+            {t("planning.calendarDialogs.duplicateSession.description")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <Label>Date</Label>
+              <Label>{t("planning.calendarDialogs.duplicateSession.date")}</Label>
               <Input type="date" value={targetDate} onChange={(e) => setTargetDate(e.target.value)} />
             </div>
             <div>
-              <Label>Début</Label>
+              <Label>{t("planning.calendarDialogs.duplicateSession.start")}</Label>
               <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
             </div>
             <div>
-              <Label>Fin</Label>
+              <Label>{t("planning.calendarDialogs.duplicateSession.end")}</Label>
               <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
             </div>
           </div>
 
           <div>
-            <Label>Récurrence</Label>
+            <Label>{t("planning.calendarDialogs.duplicateSession.recurrence")}</Label>
             <RadioGroup value={mode} onValueChange={(v) => setMode(v as any)} className="mt-2 flex gap-4">
               <div className="flex items-center gap-2">
                 <RadioGroupItem value="single" id="dup-single" />
-                <Label htmlFor="dup-single" className="cursor-pointer">Une seule fois</Label>
+                <Label htmlFor="dup-single" className="cursor-pointer">{t("planning.calendarDialogs.duplicateSession.once")}</Label>
               </div>
               <div className="flex items-center gap-2">
                 <RadioGroupItem value="recurring" id="dup-recurring" />
-                <Label htmlFor="dup-recurring" className="cursor-pointer">Récurrente</Label>
+                <Label htmlFor="dup-recurring" className="cursor-pointer">{t("planning.calendarDialogs.duplicateSession.recurring")}</Label>
               </div>
             </RadioGroup>
           </div>
@@ -354,7 +356,7 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
           {mode === "recurring" && (
             <div className="space-y-3 rounded-lg border p-3 bg-muted/30">
               <div>
-                <Label className="text-xs">Jours de la semaine</Label>
+                <Label className="text-xs">{t("planning.calendarDialogs.duplicateSession.weekdaysLabel")}</Label>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {WEEKDAYS.map((w) => (
                     <button
@@ -373,7 +375,7 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
                 </div>
               </div>
               <div>
-                <Label htmlFor="dup-occ" className="text-xs">Nombre de semaines</Label>
+                <Label htmlFor="dup-occ" className="text-xs">{t("planning.calendarDialogs.duplicateSession.weeksCount")}</Label>
                 <Input
                   id="dup-occ"
                   type="number"
@@ -388,7 +390,7 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
           )}
 
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Séances qui seront créées</span>
+            <span className="text-muted-foreground">{t("planning.calendarDialogs.duplicateSession.sessionsToCreate")}</span>
             <Badge variant="secondary">{targetDates.length}</Badge>
           </div>
           {targetDates.length > 0 && (
@@ -401,10 +403,10 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t("planning.calendarDialogs.duplicateSession.cancel")}</Button>
           <Button onClick={handleSubmit}>
             {duplicateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Dupliquer
+            {t("planning.calendarDialogs.duplicateSession.duplicate")}
           </Button>
         </DialogFooter>
       </DialogContent>
