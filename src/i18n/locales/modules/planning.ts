@@ -342,6 +342,7 @@ export const planningFr = {
         duplicateError: "Erreur lors de la duplication",
         selectAtLeastOneDate: "Sélectionne au moins une date",
         maxLimitReached: "Maximum {{max}} séances par duplication",
+        timeout: "{{label}} prend trop de temps. Réessaie avec moins de récurrences.",
       },
     },
     editAdminEvent: {
@@ -936,6 +937,7 @@ export const planningEn = {
         duplicateError: "Error while duplicating",
         selectAtLeastOneDate: "Select at least one date",
         maxLimitReached: "Maximum {{max}} sessions per duplication",
+        timeout: "{{label}} is taking too long. Try again with fewer recurrences.",
       },
     },
     editAdminEvent: {
