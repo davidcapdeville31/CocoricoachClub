@@ -25,7 +25,6 @@ import {
 import { Plus, Upload, X, Image as ImageIcon, Video } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { 
-import { translateOnSave } from "@/lib/i18n/contentTranslation";
   EXERCISE_CATEGORIES, 
   DIFFICULTY_LEVELS, 
   getSubcategoriesForCategory,
