@@ -473,6 +473,8 @@ export const JUDO_COMPETITIONS: CompetitionCategory[] = [
       "Tournoi régional",
       "Tournoi national",
       "Tournoi international",
+      "Tournoi excellence",
+      "Tournoi labellisé A",
     ],
   },
   {
