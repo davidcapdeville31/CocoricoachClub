@@ -17,6 +17,7 @@ import { MatchLineupDialog } from "./matches/MatchLineupDialog";
 import { EditMatchDialog } from "./matches/EditMatchDialog";
 import { DailySessionsDialog } from "./DailySessionsDialog";
 import { format, isSameDay, startOfWeek, addDays } from "date-fns";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { SeasonObjectivesSection } from "@/components/planning/SeasonObjectivesSection";
 import { BowlingTrainingStats } from "@/components/bowling/BowlingTrainingStats";
@@ -43,6 +44,7 @@ interface CalendarTabProps {
 }
 
 export function CalendarTab({ categoryId }: CalendarTabProps) {
+  const { t } = useTranslation();
   const athleteSessionsBadge = useUnreadAthleteSessionsCount(categoryId);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [addSessionDate, setAddSessionDate] = useState<string | undefined>();
@@ -134,7 +136,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
 
         }
       );
-      toast.success("PDF exporté avec succès");
+      t("planning.calendarTab.toasts.pdfExported")
     }
   };
 
@@ -142,7 +144,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
   const handlePrint = () => {
     // Use the calendar ref if available, otherwise fall back to PDF export
     if (calendarContentRef.current) {
-      printElement(calendarContentRef.current, "Calendrier Global");
+      printElement(calendarContentRef.current, t("planning.calendarTab.tabs.global"))
     } else {
       // Fallback: export PDF which works without ref
       handleExportPdf();
@@ -214,7 +216,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
       return { previousSessions };
     },
     onSuccess: async ({ sessionId, newDate }) => {
-      toast.success("Séance décalée avec succès");
+      t("planning.calendarTab.toasts.sessionRescheduled")
       setIsDailyDialogOpen(false);
 
       // 🔔 Notify athletes of schedule change
@@ -241,7 +243,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
       if (context?.previousSessions) {
         queryClient.setQueryData(["training_sessions", categoryId], context.previousSessions);
       }
-      toast.error("Erreur lors du décalage de la séance");
+      t("planning.calendarTab.toasts.sessionRescheduleError")
     },
     onSettled: () => {
       // Always refetch after error or success
@@ -382,7 +384,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
       return { previousSessions };
     },
     onSuccess: ({ sessionId, sessionInfo, participantIds }) => {
-      toast.success("Séance supprimée avec succès");
+      t("planning.calendarTab.toasts.sessionDeleted")
 
       // 🔔 Notify athletes of cancellation (participants captured before delete)
       if (sessionInfo && participantIds.length > 0) {
@@ -402,7 +404,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
       if (context?.previousSessions) {
         queryClient.setQueryData(["sessions", categoryId], context.previousSessions);
       }
-      toast.error("Erreur lors de la suppression de la séance");
+      t("planning.calendarTab.toasts.sessionDeleteError")
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["sessions", categoryId] });
@@ -431,13 +433,13 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
       return { previousMatches };
     },
     onSuccess: () => {
-      toast.success("Match supprimé avec succès");
+      t("planning.calendarTab.toasts.matchDeleted")
     },
     onError: (error, variables, context) => {
       if (context?.previousMatches) {
         queryClient.setQueryData(["matches", categoryId], context.previousMatches);
       }
-      toast.error("Erreur lors de la suppression du match");
+      t("planning.calendarTab.toasts.matchDeleteError")
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["matches", categoryId] });
@@ -454,7 +456,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
   const isLoading = isLoadingSessions || isLoadingMatches || isLoadingPlanning;
 
   if (isLoading) {
-    return <p className="text-muted-foreground">Chargement...</p>;
+    return <p className="text-muted-foreground">{t("planning.calendarTab.loading")}</p>;
   }
 
   const isBowling = (sportType || "").toLowerCase().includes("bowling");
@@ -467,29 +469,29 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
       </div>
       {activeSeasonOnly && activeSeasonName && (
         <p className="text-xs text-muted-foreground italic -mt-3">
-          Calendrier filtré sur la saison active : {activeSeasonName}.
+{t("planning.calendarTab.filteredBySeason", { seasonName: activeSeasonName })}
         </p>
       )}
       <Tabs defaultValue="annual" className="space-y-4">
         <div className="flex justify-center">
           <ColoredSubTabsList colorKey="planification" className="inline-flex w-max">
-          <ColoredSubTabsTrigger value="annual" colorKey="planification" icon={<LayoutGrid className="h-4 w-4" />} tooltip="Planification annuelle : cycles de périodisation, macrocycles et calendrier des compétitions sur l'année">
-            <span className="hidden sm:inline">Vue Annuelle</span>
-            <span className="sm:hidden">Annuel</span>
+          <ColoredSubTabsTrigger value="annual" colorKey="planification" icon={<LayoutGrid className="h-4 w-4" />} tooltip={t("planning.calendarTab.tooltips.annual")}>
+            <span className="hidden sm:inline">{t("planning.calendarTab.tabs.annual")}</span>
+            <span className="sm:hidden">{t("planning.calendarTab.tabs.annualShort")}</span>
           </ColoredSubTabsTrigger>
-          <ColoredSubTabsTrigger value="global" colorKey="planification" icon={<CalendarIcon className="h-4 w-4" />} tooltip="Calendrier hebdomadaire interactif avec les séances, matchs et événements jour par jour">
+          <ColoredSubTabsTrigger value="global" colorKey="planification" icon={<CalendarIcon className="h-4 w-4" />} tooltip={t("planning.calendarTab.tooltips.global")}>
             <span className="relative inline-flex items-center">
-              <span className="hidden sm:inline">Calendrier Global</span>
-              <span className="sm:hidden">Global</span>
+              <span className="hidden sm:inline">{t("planning.calendarTab.tabs.global")}</span>
+              <span className="sm:hidden">{t("planning.calendarTab.tabs.globalShort")}</span>
               {athleteSessionsBadge > 0 && (
                 <span className="absolute -top-1.5 -right-2 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background animate-pulse" />
               )}
             </span>
           </ColoredSubTabsTrigger>
           {!isViewer && (
-            <ColoredSubTabsTrigger value="objectives" colorKey="planification" icon={<Target className="h-4 w-4" />} tooltip="Définir et suivre les objectifs de saison pour l'équipe et chaque athlète">
-              <span className="hidden sm:inline">Objectifs</span>
-              <span className="sm:hidden">Obj.</span>
+            <ColoredSubTabsTrigger value="objectives" colorKey="planification" icon={<Target className="h-4 w-4" />} tooltip={t("planning.calendarTab.tooltips.objectives")}>
+              <span className="hidden sm:inline">{t("planning.calendarTab.tabs.objectives")}</span>
+              <span className="sm:hidden">{t("planning.calendarTab.tabs.objectivesShort")}</span>
             </ColoredSubTabsTrigger>
           )}
           </ColoredSubTabsList>
