@@ -16,18 +16,13 @@ import { Calendar, Clock, MapPin, ChevronLeft } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface EditAdminEventDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   session: any | null;
 }
-
-const TYPE_LABEL: Record<string, string> = {
-  medical: "Rendez-vous médical",
-  video_analyse: "Analyse vidéo",
-  reunion: "Réunion d'équipe",
-};
 
 function parseNotes(raw: string | null) {
   const safe = raw || "";
@@ -45,6 +40,7 @@ function parseNotes(raw: string | null) {
 }
 
 export function EditAdminEventDialog({ open, onOpenChange, session }: EditAdminEventDialogProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [title, setTitle] = useState("");
   const [startTime, setStartTime] = useState("09:00");
@@ -52,10 +48,13 @@ export function EditAdminEventDialog({ open, onOpenChange, session }: EditAdminE
   const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
 
-  const dialogTitle = useMemo(
-    () => TYPE_LABEL[session?.training_type] || "Événement",
-    [session?.training_type]
-  );
+  const dialogTitle = useMemo(() => {
+    const type = session?.training_type;
+    if (type === "medical") return t("planning.calendarDialogs.editAdminEvent.types.medical");
+    if (type === "video_analyse") return t("planning.calendarDialogs.editAdminEvent.types.video_analyse");
+    if (type === "reunion") return t("planning.calendarDialogs.editAdminEvent.types.reunion");
+    return t("planning.calendarDialogs.editAdminEvent.types.default");
+  }, [session?.training_type, t]);
 
   useEffect(() => {
     if (!session) return;
@@ -85,10 +84,10 @@ export function EditAdminEventDialog({ open, onOpenChange, session }: EditAdminE
       queryClient.invalidateQueries({ queryKey: ["training_sessions"] });
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
       queryClient.invalidateQueries({ queryKey: ["today_sessions"] });
-      toast.success("Événement mis à jour");
+      toast.success(t("planning.calendarDialogs.editAdminEvent.toasts.updated"));
       onOpenChange(false);
     },
-    onError: () => toast.error("Erreur lors de la mise à jour"),
+    onError: () => toast.error(t("planning.calendarDialogs.editAdminEvent.toasts.updateError")),
   });
 
   if (!session) return null;
@@ -117,14 +116,14 @@ export function EditAdminEventDialog({ open, onOpenChange, session }: EditAdminE
 
         <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="edit-title">Titre</Label>
+            <Label htmlFor="edit-title">{t("planning.calendarDialogs.editAdminEvent.titleLabel")}</Label>
             <Input id="edit-title" value={title} onChange={(e) => setTitle(e.target.value)} />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="edit-start" className="flex items-center gap-1">
-                <Clock className="h-3 w-3" /> Début
+                <Clock className="h-3 w-3" /> {t("planning.calendarDialogs.editAdminEvent.start")}
               </Label>
               <Input
                 id="edit-start"
@@ -135,7 +134,7 @@ export function EditAdminEventDialog({ open, onOpenChange, session }: EditAdminE
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-end" className="flex items-center gap-1">
-                <Clock className="h-3 w-3" /> Fin
+                <Clock className="h-3 w-3" /> {t("planning.calendarDialogs.editAdminEvent.end")}
               </Label>
               <Input
                 id="edit-end"
@@ -148,23 +147,23 @@ export function EditAdminEventDialog({ open, onOpenChange, session }: EditAdminE
 
           <div className="space-y-2">
             <Label htmlFor="edit-location" className="flex items-center gap-1">
-              <MapPin className="h-3 w-3" /> Lieu (optionnel)
+              <MapPin className="h-3 w-3" /> {t("planning.calendarDialogs.editAdminEvent.locationOptional")}
             </Label>
             <Input
               id="edit-location"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              placeholder="Salle de réunion, cabinet..."
+              placeholder={t("planning.calendarDialogs.editAdminEvent.locationPlaceholder")}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="edit-notes">Notes (optionnel)</Label>
+            <Label htmlFor="edit-notes">{t("planning.calendarDialogs.editAdminEvent.notesOptional")}</Label>
             <Textarea
               id="edit-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Informations complémentaires..."
+              placeholder={t("planning.calendarDialogs.editAdminEvent.notesPlaceholder")}
               rows={2}
             />
           </div>
@@ -172,10 +171,10 @@ export function EditAdminEventDialog({ open, onOpenChange, session }: EditAdminE
 
         <DialogFooter className="px-6 py-4 border-t shrink-0">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Annuler
+            {t("planning.calendarDialogs.editAdminEvent.cancel")}
           </Button>
           <Button onClick={() => updateEvent.mutate()} disabled={updateEvent.isPending}>
-            {updateEvent.isPending ? "Mise à jour..." : "Mettre à jour"}
+            {updateEvent.isPending ? t("planning.calendarDialogs.editAdminEvent.updating") : t("planning.calendarDialogs.editAdminEvent.update")}
           </Button>
         </DialogFooter>
       </DialogContent>
