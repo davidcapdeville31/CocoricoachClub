@@ -281,10 +281,11 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
           .insert({ custom_test_id: created.id, category_id: categoryId });
         if (linkErr) throw linkErr;
       }
+
+      void translateOnSave([trimmedName, description, objectives]);
     },
     onSuccess: () => {
       toast.success("Test mis à jour");
-      void translateOnSave([trimmedName, description, objectives]);
       queryClient.invalidateQueries({ queryKey: ["custom_tests_list", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["custom-test-categories", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["custom-tests", categoryId] });
