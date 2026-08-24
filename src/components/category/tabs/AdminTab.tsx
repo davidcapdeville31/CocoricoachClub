@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ClipboardCheck, Users, UserSearch, FolderOpen, BarChart3, Trophy } from "lucide-react";
 import { AttendanceTab } from "@/components/category/attendance/AttendanceTab";
@@ -17,6 +18,7 @@ interface AdminTabProps {
 }
 
 export function AdminTab({ categoryId }: AdminTabProps) {
+  const { t } = useTranslation();
   return (
     <Tabs defaultValue="attendance" className="space-y-4">
       <div className="flex justify-end">
@@ -29,56 +31,56 @@ export function AdminTab({ categoryId }: AdminTabProps) {
             value="attendance" 
             colorKey="admin"
             icon={<ClipboardCheck className="h-4 w-4" />}
-            tooltip="Suivi des présences aux séances et matchs : historique, taux et statistiques de participation"
+            tooltip={t("subnav.admin.attendanceTooltip")}
           >
-            <span className="hidden sm:inline">Présences</span>
-            <span className="sm:hidden">Prés</span>
+            <span className="hidden sm:inline">{t("subnav.admin.attendance")}</span>
+            <span className="sm:hidden">{t("subnav.admin.attendanceShort")}</span>
           </ColoredSubTabsTrigger>
           <ColoredSubTabsTrigger
             value="match_attendance"
             colorKey="admin"
             icon={<Trophy className="h-4 w-4" />}
-            tooltip="Présences aux compétitions : réponses présent/absent des athlètes convoqués"
+            tooltip={t("subnav.admin.matchAttendanceTooltip")}
           >
-            <span className="hidden sm:inline">Présences compétitions</span>
-            <span className="sm:hidden">Compét</span>
+            <span className="hidden sm:inline">{t("subnav.admin.matchAttendance")}</span>
+            <span className="sm:hidden">{t("subnav.admin.matchAttendanceShort")}</span>
           </ColoredSubTabsTrigger>
           <ColoredSubTabsTrigger 
 
             value="recruitment" 
             colorKey="admin"
             icon={<UserSearch className="h-4 w-4" />}
-            tooltip="Gestion du recrutement : fiches prospects, évaluations et suivi des candidatures"
+            tooltip={t("subnav.admin.recruitmentTooltip")}
           >
-            <span className="hidden sm:inline">Recrutement</span>
-            <span className="sm:hidden">Recru</span>
+            <span className="hidden sm:inline">{t("subnav.admin.recruitment")}</span>
+            <span className="sm:hidden">{t("subnav.admin.recruitmentShort")}</span>
           </ColoredSubTabsTrigger>
           <ColoredSubTabsTrigger 
             value="documents" 
             colorKey="admin"
             icon={<FolderOpen className="h-4 w-4" />}
-            tooltip="Centralisation des documents administratifs : licences, certificats médicaux, autorisations"
+            tooltip={t("subnav.admin.documentsTooltip")}
           >
-            <span className="hidden sm:inline">Documents & Certificats</span>
-            <span className="sm:hidden">Docs</span>
+            <span className="hidden sm:inline">{t("subnav.admin.documents")}</span>
+            <span className="sm:hidden">{t("subnav.admin.documentsShort")}</span>
           </ColoredSubTabsTrigger>
           <ColoredSubTabsTrigger 
             value="reports" 
             colorKey="admin"
             icon={<BarChart3 className="h-4 w-4" />}
-            tooltip="Rapports synthétiques : bilans de saison, statistiques générales et exports"
+            tooltip={t("subnav.admin.reportsTooltip")}
           >
-            <span className="hidden sm:inline">Rapports</span>
-            <span className="sm:hidden">Rapp</span>
+            <span className="hidden sm:inline">{t("subnav.admin.reports")}</span>
+            <span className="sm:hidden">{t("subnav.admin.reportsShort")}</span>
           </ColoredSubTabsTrigger>
           <ColoredSubTabsTrigger 
             value="staff" 
             colorKey="admin"
             icon={<Users className="h-4 w-4" />}
-            tooltip="Gestion du staff : rôles, permissions et invitations des membres de l'encadrement"
+            tooltip={t("subnav.admin.staffTooltip")}
           >
-            <span className="hidden sm:inline">Staff & Rôles</span>
-            <span className="sm:hidden">Staff</span>
+            <span className="hidden sm:inline">{t("subnav.admin.staff")}</span>
+            <span className="sm:hidden">{t("subnav.admin.staffShort")}</span>
           </ColoredSubTabsTrigger>
         </ColoredSubTabsList>
       </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import * as React from "react";
 import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
@@ -38,6 +39,7 @@ function PerformanceDisabledMessage() {
 }
 
 export function PerformanceTab({ categoryId, sportType }: PerformanceTabProps) {
+  const { t } = useTranslation();
   const { isViewer } = useViewerModeContext();
   const pendingCount = usePendingWeightLogsCount(categoryId);
   const pendingTestsCount = usePendingTestResultsCount(categoryId);
@@ -66,28 +68,28 @@ export function PerformanceTab({ categoryId, sportType }: PerformanceTabProps) {
             value="training-load" 
             colorKey="performance"
             icon={<Zap className="h-4 w-4" />}
-            tooltip="Monitoring de la charge interne (sRPE) et externe (HRV), ratios EWMA et AWCR pour prévenir les blessures"
+            tooltip={t("subnav.performance.trainingLoadTooltip")}
           >
-            <span className="hidden sm:inline">Charge d'entraînement</span>
-            <span className="sm:hidden">Charge</span>
+            <span className="hidden sm:inline">{t("subnav.performance.trainingLoad")}</span>
+            <span className="sm:hidden">{t("subnav.performance.trainingLoadShort")}</span>
           </ColoredSubTabsTrigger>
           <ColoredSubTabsTrigger 
             value="physical-prep" 
             colorKey="performance"
             icon={<Dumbbell className="h-4 w-4" />}
-            tooltip="Disponibilité des athlètes, alertes de risque de blessure et analyses prédictives par IA"
+            tooltip={t("subnav.performance.availabilityTooltip")}
           >
-            <span className="hidden sm:inline">Disponibilité & Alertes</span>
-            <span className="sm:hidden">Dispo</span>
+            <span className="hidden sm:inline">{t("subnav.performance.availability")}</span>
+            <span className="sm:hidden">{t("subnav.performance.availabilityShort")}</span>
           </ColoredSubTabsTrigger>
           <ColoredSubTabsTrigger 
             value="evolution-tests" 
             colorKey="performance"
             icon={<BarChart3 className="h-4 w-4" />}
-            tooltip="Graphiques d'évolution des tests physiques, comparaisons entre athlètes et suivi du tonnage de musculation"
+            tooltip={t("subnav.performance.evolutionTestsTooltip")}
           >
-            <span className="hidden sm:inline">Évolution Tests / Muscu</span>
-            <span className="sm:hidden">Tests</span>
+            <span className="hidden sm:inline">{t("subnav.performance.evolutionTests")}</span>
+            <span className="sm:hidden">{t("subnav.performance.evolutionTestsShort")}</span>
             {totalPending > 0 && (
               <span className="ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold">
                 {totalPending}
