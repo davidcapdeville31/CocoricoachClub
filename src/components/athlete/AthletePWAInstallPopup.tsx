@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Download, Smartphone, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from "react-i18next";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -15,6 +16,7 @@ interface AthletePWAInstallPopupProps {
 }
 
 export function AthletePWAInstallPopup({ playerId }: AthletePWAInstallPopupProps) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [showPopup, setShowPopup] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
@@ -132,9 +134,9 @@ export function AthletePWAInstallPopup({ playerId }: AthletePWAInstallPopupProps
           <div className="mx-auto mb-4 w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
             <Smartphone className="h-10 w-10 text-primary-foreground" />
           </div>
-          <DialogTitle className="text-2xl">Installe l'application 📱</DialogTitle>
+          <DialogTitle className="text-2xl">{t("athleteSpace:components.pwaInstall.title")}</DialogTitle>
           <DialogDescription className="text-base mt-2">
-            Pour un accès rapide et recevoir les notifications de ton équipe, installe l'application sur ton téléphone.
+            {t("athleteSpace:components.pwaInstall.description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -144,8 +146,8 @@ export function AthletePWAInstallPopup({ playerId }: AthletePWAInstallPopupProps
               <span className="text-lg">⚡</span>
             </div>
             <div>
-              <p className="font-medium text-sm">Accès instantané</p>
-              <p className="text-xs text-muted-foreground">Lance l'app directement depuis ton écran d'accueil</p>
+              <p className="font-medium text-sm">{t("athleteSpace:components.pwaInstall.instantAccess")}</p>
+              <p className="text-xs text-muted-foreground">{t("athleteSpace:components.pwaInstall.instantAccessDesc")}</p>
             </div>
           </div>
 
@@ -154,8 +156,8 @@ export function AthletePWAInstallPopup({ playerId }: AthletePWAInstallPopupProps
               <span className="text-lg">🔔</span>
             </div>
             <div>
-              <p className="font-medium text-sm">Notifications push</p>
-              <p className="text-xs text-muted-foreground">Reçois les rappels de séances et questionnaires</p>
+              <p className="font-medium text-sm">{t("athleteSpace:components.pwaInstall.pushNotifications")}</p>
+              <p className="text-xs text-muted-foreground">{t("athleteSpace:components.pwaInstall.pushNotificationsDesc")}</p>
             </div>
           </div>
 
@@ -164,8 +166,8 @@ export function AthletePWAInstallPopup({ playerId }: AthletePWAInstallPopupProps
               <span className="text-lg">📴</span>
             </div>
             <div>
-              <p className="font-medium text-sm">Mode hors-ligne</p>
-              <p className="text-xs text-muted-foreground">Consulte tes données même sans connexion</p>
+              <p className="font-medium text-sm">{t("athleteSpace:components.pwaInstall.offlineMode")}</p>
+              <p className="text-xs text-muted-foreground">{t("athleteSpace:components.pwaInstall.offlineModeDesc")}</p>
             </div>
           </div>
         </div>
@@ -173,16 +175,16 @@ export function AthletePWAInstallPopup({ playerId }: AthletePWAInstallPopupProps
         <div className="flex flex-col gap-2">
           <Button onClick={handleInstall} className="w-full" size="lg">
             <Download className="mr-2 h-5 w-5" />
-            Installer l'application
+            {t("athleteSpace:components.pwaInstall.install")}
           </Button>
           <Button onClick={handleLater} variant="ghost" className="w-full">
-            Plus tard
+            {t("athleteSpace:components.pwaInstall.later")}
           </Button>
           <button
             onClick={handleNeverShow}
             className="text-xs text-muted-foreground hover:text-foreground transition-colors mx-auto"
           >
-            Ne plus afficher
+            {t("athleteSpace:components.pwaInstall.neverShow")}
           </button>
         </div>
       </DialogContent>

@@ -17,6 +17,7 @@ import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
+import { useTranslation } from "react-i18next";
 
 interface AthleteSpaceDocumentsProps {
   playerId: string;
@@ -25,29 +26,12 @@ interface AthleteSpaceDocumentsProps {
   viewerMode?: "athlete" | "staff";
 }
 
-const DOCUMENT_TYPES: { value: string; label: string }[] = [
-  { value: "license", label: "Licence sportive" },
-  { value: "medical_certificate", label: "Certificat médical" },
-  { value: "medical_return_training", label: "Certificat de reprise à l'entraînement" },
-  { value: "medical_return_competition", label: "Certificat de reprise à la compétition" },
-  { value: "identity", label: "Pièce d'identité" },
-  { value: "contract", label: "Contrat" },
-  { value: "insurance", label: "Assurance" },
-  { value: "parental_authorization", label: "Autorisation parentale" },
-  { value: "image_rights", label: "Droit à l'image" },
-  { value: "custom", label: "Autre (personnalisé)" },
-];
+// DOCUMENT_TYPES labels are built inside the component via t()
 
 const ACCEPTED_FILE_TYPES = ".pdf,.jpg,.jpeg,.png,.webp,.heic,.gif,.bmp,.tiff,.tif";
 const MAX_FILE_SIZE_MB = 10;
 
-const ROLE_LABEL: Record<string, string> = {
-  athlete: "Athlète",
-  staff: "Coach",
-  coach: "Coach",
-  admin: "Admin",
-  legacy: "Auteur non renseigné",
-};
+// ROLE_LABEL is built inside the component via t()
 
 function getFileIcon(url: string | null) {
   if (!url) return <FileText className="h-5 w-5 text-muted-foreground" />;
@@ -59,6 +43,26 @@ function getFileIcon(url: string | null) {
 }
 
 export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athlete" }: AthleteSpaceDocumentsProps) {
+  const { t } = useTranslation();
+  const DOCUMENT_TYPES: { value: string; label: string }[] = [
+    { value: "license", label: t("athleteSpace.documents.types.license") },
+    { value: "medical_certificate", label: t("athleteSpace.documents.types.medicalCertificate") },
+    { value: "medical_return_training", label: t("athleteSpace.documents.types.medicalReturnTraining") },
+    { value: "medical_return_competition", label: t("athleteSpace.documents.types.medicalReturnCompetition") },
+    { value: "identity", label: t("athleteSpace.documents.types.identity") },
+    { value: "contract", label: t("athleteSpace.documents.types.contract") },
+    { value: "insurance", label: t("athleteSpace.documents.types.insurance") },
+    { value: "parental_authorization", label: t("athleteSpace.documents.types.parentalAuthorization") },
+    { value: "image_rights", label: t("athleteSpace.documents.types.imageRights") },
+    { value: "custom", label: t("athleteSpace.documents.types.custom") },
+  ];
+  const ROLE_LABEL: Record<string, string> = {
+    athlete: t("athleteSpace.documents.role.athlete"),
+    staff: t("athleteSpace.documents.role.staff"),
+    coach: t("athleteSpace.documents.role.coach"),
+    admin: t("athleteSpace.documents.role.admin"),
+    legacy: t("athleteSpace.documents.role.legacy"),
+  };
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -151,11 +155,11 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
 
   const addDocumentMutation = useMutation({
     mutationFn: async () => {
-      if (!user?.id) throw new Error("Non authentifié");
-      if (!selectedFile) throw new Error("Fichier requis");
-      if (!formData.title.trim()) throw new Error("Titre requis");
+      if (!user?.id) throw new Error(t("athleteSpace.documents.notAuthenticated"));
+      if (!selectedFile) throw new Error(t("athleteSpace.documents.fileRequired"));
+      if (!formData.title.trim()) throw new Error(t("athleteSpace.documents.titleRequired"));
       if (formData.document_type === "custom" && !customDocumentType.trim())
-        throw new Error("Nom du type requis");
+        throw new Error(t("athleteSpace.documents.customTypeRequired"));
 
       setIsUploading(true);
       const fileUrl = await uploadFile(selectedFile);
@@ -182,9 +186,9 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
       queryClient.invalidateQueries({ queryKey: ["athlete-team-documents", categoryId] });
       setShowAddDialog(false);
       resetForm();
-      toast.success("Document ajouté");
+      toast.success(t("athleteSpace.documents.documentAdded"));
     },
-    onError: (e: any) => toast.error(e.message || "Erreur lors de l'ajout"),
+    onError: (e: any) => toast.error(e.message || t("athleteSpace.documents.addError")),
     onSettled: () => setIsUploading(false),
   });
 
@@ -199,18 +203,18 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["athlete-personal-documents", categoryId, playerId] });
       queryClient.invalidateQueries({ queryKey: ["athlete-team-documents", categoryId] });
-      toast.success("Document supprimé");
+      toast.success(t("athleteSpace.documents.documentDeleted"));
     },
-    onError: (e: any) => toast.error(e.message || "Suppression impossible"),
+    onError: (e: any) => toast.error(e.message || t("athleteSpace.documents.deleteError")),
   });
 
   const updateDocumentMutation = useMutation({
     mutationFn: async () => {
-      if (!editingDoc) throw new Error("Document introuvable");
-      if (viewerMode !== "staff") throw new Error("Modification réservée au staff");
-      if (!formData.title.trim()) throw new Error("Titre requis");
+      if (!editingDoc) throw new Error(t("athleteSpace.documents.documentNotFound"));
+      if (viewerMode !== "staff") throw new Error(t("athleteSpace.documents.editReservedToStaff"));
+      if (!formData.title.trim()) throw new Error(t("athleteSpace.documents.titleRequired"));
       if (formData.document_type === "custom" && !customDocumentType.trim()) {
-        throw new Error("Nom du type requis");
+        throw new Error(t("athleteSpace.documents.customTypeRequired"));
       }
 
       const { error } = await supabase
@@ -229,9 +233,9 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
       queryClient.invalidateQueries({ queryKey: ["athlete-team-documents", categoryId] });
       setEditingDoc(null);
       resetForm();
-      toast.success("Document modifié");
+      toast.success(t("athleteSpace.documents.documentUpdated"));
     },
-    onError: (e: any) => toast.error(e.message || "Modification impossible"),
+    onError: (e: any) => toast.error(e.message || t("athleteSpace.documents.updateError")),
   });
 
   const resetForm = () => {
@@ -245,7 +249,7 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-      toast.error(`Fichier trop volumineux (max ${MAX_FILE_SIZE_MB} Mo)`);
+      toast.error(t("athleteSpace.documents.fileTooLarge", { maxSize: MAX_FILE_SIZE_MB }));
       e.target.value = "";
       return;
     }
@@ -287,7 +291,7 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
       document.body.removeChild(a);
       URL.revokeObjectURL(blobUrl);
     } catch {
-      toast.error("Erreur lors du téléchargement");
+      toast.error(t("athleteSpace.documents.downloadError"));
     }
   };
 
@@ -306,7 +310,7 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
       }
       window.open(url, "_blank", "noopener,noreferrer");
     } catch {
-      toast.error("Impossible d'ouvrir le document");
+      toast.error(t("athleteSpace.documents.viewError"));
     }
   };
 
@@ -337,14 +341,14 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
       return (
         <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
           <UserCircle className="h-3 w-3" />
-          Auteur non renseigné · Ajouté le {date}
+          {t("athleteSpace.documents.unspecifiedAuthor", { date })}
         </p>
       );
     }
     return (
       <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
         <UserCircle className="h-3 w-3" />
-        Ajouté par {name || "Utilisateur"}
+        {t("athleteSpace.documents.addedBy", { name: name || t("athleteSpace.documents.addedByFallbackUser") })}
         {roleLabel ? ` (${roleLabel})` : ""} le {date}
       </p>
     );
@@ -389,7 +393,7 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
                       {doc.expiry_date && (
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          Expire le {format(new Date(doc.expiry_date), "dd MMM yyyy", { locale: fr })}
+                          {t("athleteSpace.documents.expiresOn", { date: format(new Date(doc.expiry_date), "dd MMM yyyy", { locale: fr }) })}
                         </span>
                       )}
                     </div>
@@ -406,10 +410,10 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
                         variant="outline"
                         size="sm"
                         onClick={() => handleView(doc.file_url)}
-                        title="Voir"
+                        title={t("athleteSpace.documents.view")}
                       >
                         <Eye className="h-4 w-4 sm:mr-1" />
-                        <span className="hidden sm:inline">Voir</span>
+                        <span className="hidden sm:inline">{t("athleteSpace.documents.view")}</span>
                       </Button>
                       <Button
                         variant="outline"
@@ -417,7 +421,7 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
                         onClick={() => handleDownload(doc.file_url, doc.title)}
                       >
                         <Download className="h-4 w-4 sm:mr-1" />
-                        <span className="hidden sm:inline">Télécharger</span>
+                        <span className="hidden sm:inline">{t("athleteSpace.documents.download")}</span>
                       </Button>
                     </>
                   )}
@@ -426,7 +430,7 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
                       variant="ghost"
                       size="icon"
                       onClick={() => openEditDialog(doc)}
-                      title="Modifier"
+                      title={t("athleteSpace.documents.edit")}
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
@@ -437,7 +441,7 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
                       size="icon"
                       className="text-destructive hover:text-destructive"
                       onClick={() => {
-                        if (confirm("Supprimer ce document ?")) deleteDocumentMutation.mutate(doc);
+                        if (confirm(t("athleteSpace.documents.confirmDelete"))) deleteDocumentMutation.mutate(doc);
                       }}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -465,14 +469,14 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
               className="gap-1.5 rounded-lg font-semibold transition-all data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
             >
               <User className="h-3.5 w-3.5" />
-              Mes documents ({personalDocuments?.length || 0})
+              {t("athleteSpace.documents.myDocuments", { count: personalDocuments?.length || 0 })}
             </TabsTrigger>
             <TabsTrigger
               value="team"
               className="gap-1.5 rounded-lg font-semibold transition-all data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
             >
               <Users className="h-3.5 w-3.5" />
-              Documents d'équipe ({teamDocuments?.length || 0})
+              {t("athleteSpace.documents.teamDocuments", { count: teamDocuments?.length || 0 })}
             </TabsTrigger>
           </TabsList>
 
@@ -484,16 +488,16 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
             size="sm"
           >
             <Plus className="h-4 w-4 mr-1" />
-            Ajouter un document
+            {t("athleteSpace.documents.addDocument")}
           </Button>
         </div>
 
         <TabsContent value="personal" className="mt-4">
-          {renderDocumentList(personalDocuments, personalLoading, "Aucun document personnel")}
+          {renderDocumentList(personalDocuments, personalLoading, t("athleteSpace.documents.noPersonalDocuments"))}
         </TabsContent>
 
         <TabsContent value="team" className="mt-4">
-          {renderDocumentList(teamDocuments, teamLoading, "Aucun document d'équipe")}
+          {renderDocumentList(teamDocuments, teamLoading, t("athleteSpace.documents.noTeamDocuments"))}
         </TabsContent>
       </Tabs>
 
@@ -506,11 +510,11 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Nouveau document</DialogTitle>
+            <DialogTitle>{t("athleteSpace.documents.newDocument")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Fichier (PDF, image) *</Label>
+              <Label>{t("athleteSpace.documents.fileLabel")}</Label>
               <div
                 className="mt-1 border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
                 onClick={() => fileInputRef.current?.click()}
@@ -535,9 +539,9 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
                 ) : (
                   <div className="space-y-2">
                     <Upload className="h-8 w-8 mx-auto text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">Cliquez pour sélectionner un fichier</p>
+                    <p className="text-sm text-muted-foreground">{t("athleteSpace.documents.clickToSelectFile")}</p>
                     <p className="text-xs text-muted-foreground">
-                      PDF, JPG, PNG, WEBP, GIF • Max {MAX_FILE_SIZE_MB} Mo
+                      {t("athleteSpace.documents.acceptedFormats", { maxSize: MAX_FILE_SIZE_MB })}
                     </p>
                   </div>
                 )}
@@ -545,7 +549,7 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
             </div>
 
             <div>
-              <Label>Visibilité *</Label>
+              <Label>{t("athleteSpace.documents.visibility")}</Label>
               <Select
                 value={formData.scope}
                 onValueChange={(v: "personal" | "team") => setFormData({ ...formData, scope: v })}
@@ -554,14 +558,14 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="personal">Mes documents (personnel)</SelectItem>
-                  <SelectItem value="team">Documents d'équipe</SelectItem>
+                  <SelectItem value="personal">{t("athleteSpace.documents.visibilityPersonal")}</SelectItem>
+                  <SelectItem value="team">{t("athleteSpace.documents.visibilityTeam")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <Label>Type de document *</Label>
+              <Label>{t("athleteSpace.documents.documentType")}</Label>
               <Select
                 value={formData.document_type}
                 onValueChange={(v) => {
@@ -573,9 +577,9 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {DOCUMENT_TYPES.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>
-                      {t.label}
+                  {DOCUMENT_TYPES.map((docType) => (
+                    <SelectItem key={docType.value} value={docType.value}>
+                      {docType.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -585,22 +589,22 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
                   className="mt-2"
                   value={customDocumentType}
                   onChange={(e) => setCustomDocumentType(e.target.value)}
-                  placeholder="Nom du type personnalisé"
+                  placeholder={t("athleteSpace.documents.customTypePlaceholder")}
                 />
               )}
             </div>
 
             <div>
-              <Label>Titre *</Label>
+              <Label>{t("athleteSpace.documents.titleLabel")}</Label>
               <Input
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                placeholder="Ex: Licence 2024-2025"
+                placeholder={t("athleteSpace.documents.titlePlaceholder")}
               />
             </div>
 
             <div>
-              <Label>Date d'expiration</Label>
+              <Label>{t("athleteSpace.documents.expiryDate")}</Label>
               <Input
                 type="date"
                 value={formData.expiry_date}
@@ -609,11 +613,11 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
             </div>
 
             <div>
-              <Label>Notes</Label>
+              <Label>{t("athleteSpace.documents.notes")}</Label>
               <Textarea
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="Notes additionnelles..."
+                placeholder={t("athleteSpace.documents.notesPlaceholder")}
                 rows={2}
               />
             </div>
@@ -626,10 +630,10 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
               {isUploading ? (
                 <>
                   <Upload className="h-4 w-4 mr-2 animate-pulse" />
-                  Envoi en cours...
+                  {t("athleteSpace.documents.uploading")}
                 </>
               ) : (
-                "Ajouter"
+                t("athleteSpace.documents.submit")
               )}
             </Button>
           </div>
@@ -647,11 +651,11 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Modifier le document</DialogTitle>
+            <DialogTitle>{t("athleteSpace.documents.editDocument")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Type de document *</Label>
+              <Label>{t("athleteSpace.documents.documentType")}</Label>
               <Select
                 value={formData.document_type}
                 onValueChange={(v) => {
@@ -661,8 +665,8 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {DOCUMENT_TYPES.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                  {DOCUMENT_TYPES.map((docType) => (
+                    <SelectItem key={docType.value} value={docType.value}>{docType.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -671,13 +675,13 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
                   className="mt-2"
                   value={customDocumentType}
                   onChange={(e) => setCustomDocumentType(e.target.value)}
-                  placeholder="Nom du type personnalisé"
+                  placeholder={t("athleteSpace.documents.customTypePlaceholder")}
                 />
               )}
             </div>
 
             <div>
-              <Label>Titre *</Label>
+              <Label>{t("athleteSpace.documents.titleLabel")}</Label>
               <Input
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
@@ -685,7 +689,7 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
             </div>
 
             <div>
-              <Label>Date d'expiration</Label>
+              <Label>{t("athleteSpace.documents.expiryDate")}</Label>
               <Input
                 type="date"
                 value={formData.expiry_date}
@@ -694,7 +698,7 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
             </div>
 
             <div>
-              <Label>Notes</Label>
+              <Label>{t("athleteSpace.documents.notes")}</Label>
               <Textarea
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
@@ -706,7 +710,7 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
               onClick={() => updateDocumentMutation.mutate()}
               className="w-full"
             >
-              {updateDocumentMutation.isPending ? "Enregistrement..." : "Enregistrer"}
+              {updateDocumentMutation.isPending ? t("athleteSpace.documents.saving") : t("athleteSpace.documents.save")}
             </Button>
           </div>
         </DialogContent>

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -86,6 +87,7 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
+  const { t } = useTranslation();
   const [period, setPeriod] = useState<PeriodKey>("season");
   const [customFrom, setCustomFrom] = useState<Date | undefined>(undefined);
   const [customTo, setCustomTo] = useState<Date | undefined>(undefined);
@@ -232,8 +234,8 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
   const periodLabel =
     period === "custom"
       ? customFrom && customTo
-        ? `du ${format(customFrom, "dd/MM/yyyy")} au ${format(customTo, "dd/MM/yyyy")}`
-        : "période personnalisée"
+        ? t("health.injuryStatsPanel.customPeriodRange", { from: format(customFrom, "dd/MM/yyyy"), to: format(customTo, "dd/MM/yyyy") })
+        : t("health.injuryStatsPanel.customPeriodLabel")
       : PERIOD_LABELS[period].toLowerCase();
 
   const filteredInjuries = useMemo(
@@ -270,22 +272,22 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
       const wb = new ExcelJS.Workbook();
 
       // Sheet 1: Résumé
-      const ws0 = wb.addWorksheet("Résumé");
+      const ws0 = wb.addWorksheet(t("health.injuryStatsPanel.excel.sheetSummary"));
       ws0.columns = [{ width: 32 }, { width: 22 }, { width: 16 }, { width: 16 }, { width: 16 }, { width: 16 }];
-      const r0 = addBrandedHeader(ws0, "Statistiques blessures & maladies", branding, [
-        ["Période", periodLabel],
+      const r0 = addBrandedHeader(ws0, t("health.injuryStatsPanel.excel.title"), branding, [
+        [t("health.injuryStatsPanel.excel.period"), periodLabel],
       ]);
       styleDataHeaderRow(ws0, r0, 2, branding.headerColor);
-      ws0.getRow(r0).values = ["Indicateur", "Valeur"];
+      ws0.getRow(r0).values = [t("health.injuryStatsPanel.excel.indicator"), t("health.injuryStatsPanel.excel.value")];
       const summary: [string, string | number][] = [
-        ["Disponibilité athlètes", `${stats.availabilityPct.toFixed(1)}%`],
-        ["Indispo blessures (jours)", stats.injuryDays],
-        ["Nombre de blessures", stats.total],
-        ["Durée moy. blessure (jours)", stats.avgDuration],
-        ["Indispo maladies (jours)", stats.illnessDays],
-        ["Nombre de maladies", stats.illTotal],
-        ["Durée moy. maladie (jours)", stats.illAvgDuration],
-        ["Rechutes détectées", stats.relapses.length],
+        [t("health.injuryStatsPanel.excel.availability"), `${stats.availabilityPct.toFixed(1)}%`],
+        [t("health.injuryStatsPanel.excel.injuryDays"), stats.injuryDays],
+        [t("health.injuryStatsPanel.excel.injuryCount"), stats.total],
+        [t("health.injuryStatsPanel.excel.avgInjuryDuration"), stats.avgDuration],
+        [t("health.injuryStatsPanel.excel.illnessDays"), stats.illnessDays],
+        [t("health.injuryStatsPanel.excel.illnessCount"), stats.illTotal],
+        [t("health.injuryStatsPanel.excel.avgIllnessDuration"), stats.illAvgDuration],
+        [t("health.injuryStatsPanel.excel.relapsesDetected"), stats.relapses.length],
       ];
       summary.forEach((row, i) => {
         const r = ws0.getRow(r0 + 1 + i);
@@ -295,11 +297,11 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
 
       // Sheet 2: Répartition
       if (stats.distribution.length > 0) {
-        const wsR = wb.addWorksheet("Répartition");
+        const wsR = wb.addWorksheet(t("health.injuryStatsPanel.excel.sheetDistribution"));
         wsR.columns = [{ width: 24 }, { width: 14 }, { width: 14 }];
-        const sr = addBrandedHeader(wsR, "Répartition par type de blessure", branding);
+        const sr = addBrandedHeader(wsR, t("health.injuryStatsPanel.excel.distributionTitle"), branding);
         styleDataHeaderRow(wsR, sr, 3, branding.headerColor);
-        wsR.getRow(sr).values = ["Type", "Nombre", "%"];
+        wsR.getRow(sr).values = [t("health.injuryStatsPanel.excel.type"), t("health.injuryStatsPanel.excel.number"), "%"];
         stats.distribution.forEach((d, i) => {
           wsR.getRow(sr + 1 + i).values = [TYPE_LABELS[d.key] || d.key, d.n, `${d.pct.toFixed(1)}%`];
         });
@@ -308,13 +310,13 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
 
       // Sheet 3: Blessures
       if (filteredInjuries.length > 0) {
-        const ws1 = wb.addWorksheet("Blessures");
+        const ws1 = wb.addWorksheet(t("health.injuryStatsPanel.excel.sheetInjuries"));
         ws1.columns = [
           { width: 24 }, { width: 28 }, { width: 18 }, { width: 14 }, { width: 14 }, { width: 14 },
         ];
-        const sr = addBrandedHeader(ws1, "Détail des blessures", branding);
+        const sr = addBrandedHeader(ws1, t("health.injuryStatsPanel.excel.injuriesDetailTitle"), branding);
         styleDataHeaderRow(ws1, sr, 6, branding.headerColor);
-        ws1.getRow(sr).values = ["Athlète", "Type", "Catégorie", "Date", "Retour", "Durée (j)"];
+        ws1.getRow(sr).values = [t("health.injuryStatsPanel.excel.athlete"), t("health.injuryStatsPanel.excel.type"), t("health.injuryStatsPanel.excel.category"), t("health.injuryStatsPanel.excel.date"), t("health.injuryStatsPanel.excel.returnDate"), t("health.injuryStatsPanel.excel.durationDays")];
         filteredInjuries.forEach((i: any, idx: number) => {
           ws1.getRow(sr + 1 + idx).values = [
             i.players?.name || "-",
@@ -330,13 +332,13 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
 
       // Sheet 4: Maladies
       if (filteredIllnesses.length > 0) {
-        const ws2 = wb.addWorksheet("Maladies");
+        const ws2 = wb.addWorksheet(t("health.injuryStatsPanel.excel.sheetIllnesses"));
         ws2.columns = [
           { width: 24 }, { width: 28 }, { width: 14 }, { width: 14 }, { width: 14 },
         ];
-        const sr = addBrandedHeader(ws2, "Détail des maladies", branding);
+        const sr = addBrandedHeader(ws2, t("health.injuryStatsPanel.excel.illnessesDetailTitle"), branding);
         styleDataHeaderRow(ws2, sr, 5, branding.headerColor);
-        ws2.getRow(sr).values = ["Athlète", "Type", "Date", "Retour", "Durée (j)"];
+        ws2.getRow(sr).values = [t("health.injuryStatsPanel.excel.athlete"), t("health.injuryStatsPanel.excel.type"), t("health.injuryStatsPanel.excel.date"), t("health.injuryStatsPanel.excel.returnDate"), t("health.injuryStatsPanel.excel.durationDays")];
         filteredIllnesses.forEach((i: any, idx: number) => {
           ws2.getRow(sr + 1 + idx).values = [
             i.players?.name || "-",
@@ -351,11 +353,11 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
 
       // Sheet 5: Rechutes
       if (stats.relapses.length > 0) {
-        const ws3 = wb.addWorksheet("Rechutes");
+        const ws3 = wb.addWorksheet(t("health.injuryStatsPanel.excel.sheetRelapses"));
         ws3.columns = [{ width: 24 }, { width: 28 }, { width: 14 }];
-        const sr = addBrandedHeader(ws3, "Rechutes détectées", branding);
+        const sr = addBrandedHeader(ws3, t("health.injuryStatsPanel.excel.relapsesTitle"), branding);
         styleDataHeaderRow(ws3, sr, 3, branding.headerColor);
-        ws3.getRow(sr).values = ["Athlète", "Blessure", "Occurrences"];
+        ws3.getRow(sr).values = [t("health.injuryStatsPanel.excel.athlete"), t("health.injuryStatsPanel.excel.injury"), t("health.injuryStatsPanel.excel.occurrences")];
         stats.relapses.forEach((r, i) => {
           ws3.getRow(sr + 1 + i).values = [r.player, r.type, r.count];
         });
@@ -364,10 +366,10 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
 
       addFooter(ws0, r0 + summary.length + 1, 2, branding.footerText);
       await downloadWorkbook(wb, `stats-blessures-maladies-${format(new Date(), "yyyy-MM-dd")}.xlsx`);
-      toast.success("Export Excel téléchargé !");
+      toast.success(t("health.injuryStatsPanel.excel.toastSuccess"));
     } catch (e) {
       console.error(e);
-      toast.error("Erreur lors de l'export Excel");
+      toast.error(t("health.injuryStatsPanel.excel.toastError"));
     }
   };
 
@@ -384,10 +386,10 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
       doc.rect(0, 0, pageW, 28, "F");
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(15);
-      doc.text("Statistiques blessures & maladies", 14, 12);
+      doc.text(t("health.injuryStatsPanel.pdf.title"), 14, 12);
       doc.setFontSize(9);
       doc.text(`${clubName || ""} • ${categoryName || ""} • ${seasonName || ""}`, 14, 19);
-      doc.text(`Période : ${periodLabel}`, 14, 25);
+      doc.text(t("health.injuryStatsPanel.pdf.period", { period: periodLabel }), 14, 25);
       doc.text(format(new Date(), "dd/MM/yyyy"), pageW - 14, 25, { align: "right" });
 
       let y = 36;
@@ -421,28 +423,28 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
       };
 
       // Résumé
-      section("Indicateurs clés");
+      section(t("health.injuryStatsPanel.pdf.keyIndicators"));
       const kpis: [string, string][] = [
-        ["Disponibilité athlètes", `${stats.availabilityPct.toFixed(1)}%`],
-        ["Indispo blessures", `${stats.injuryDays} j (${stats.total} • moy. ${stats.avgDuration}j)`],
-        ["Indispo maladies", `${stats.illnessDays} j (${stats.illTotal} • moy. ${stats.illAvgDuration}j)`],
-        ["Rechutes détectées", String(stats.relapses.length)],
+        [t("health.injuryStatsPanel.pdf.availability"), `${stats.availabilityPct.toFixed(1)}%`],
+        [t("health.injuryStatsPanel.pdf.injuryUnavailability"), t("health.injuryStatsPanel.pdf.injuryUnavailabilityValue", { days: stats.injuryDays, count: stats.total, avg: stats.avgDuration })],
+        [t("health.injuryStatsPanel.pdf.illnessUnavailability"), t("health.injuryStatsPanel.pdf.illnessUnavailabilityValue", { days: stats.illnessDays, count: stats.illTotal, avg: stats.illAvgDuration })],
+        [t("health.injuryStatsPanel.pdf.relapsesDetected"), String(stats.relapses.length)],
       ];
       kpis.forEach(([k, v]) => drawRow([k, v], [16, 90]));
       y += 4;
 
       // Répartition
       if (stats.distribution.length > 0) {
-        section("Répartition par type de blessure");
-        drawHeader(["Type", "Nombre", "%"], [16, 90, 130]);
+        section(t("health.injuryStatsPanel.pdf.distributionTitle"));
+        drawHeader([t("health.injuryStatsPanel.pdf.type"), t("health.injuryStatsPanel.pdf.number"), "%"], [16, 90, 130]);
         stats.distribution.forEach((d) => drawRow([TYPE_LABELS[d.key] || d.key, String(d.n), `${d.pct.toFixed(1)}%`], [16, 90, 130]));
         y += 4;
       }
 
       // Blessures
       if (filteredInjuries.length > 0) {
-        section("Détail des blessures");
-        drawHeader(["Athlète", "Type", "Date", "Retour", "Durée"], [16, 70, 125, 150, 180]);
+        section(t("health.injuryStatsPanel.pdf.injuriesDetailTitle"));
+        drawHeader([t("health.injuryStatsPanel.pdf.athlete"), t("health.injuryStatsPanel.pdf.type"), t("health.injuryStatsPanel.pdf.date"), t("health.injuryStatsPanel.pdf.returnDate"), t("health.injuryStatsPanel.pdf.duration")], [16, 70, 125, 150, 180]);
         filteredInjuries.forEach((i: any) =>
           drawRow(
             [
@@ -450,7 +452,7 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
               (i.injury_type || "-").substring(0, 28),
               fmtDate(i.injury_date),
               fmtDate(i.actual_return_date),
-              `${daysBetween(i.injury_date, i.actual_return_date)} j`,
+              t("health.injuryStatsPanel.pdf.durationValue", { days: daysBetween(i.injury_date, i.actual_return_date) }),
             ],
             [16, 70, 125, 150, 180]
           )
@@ -460,8 +462,8 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
 
       // Maladies
       if (filteredIllnesses.length > 0) {
-        section("Détail des maladies");
-        drawHeader(["Athlète", "Type", "Date", "Retour", "Durée"], [16, 70, 125, 150, 180]);
+        section(t("health.injuryStatsPanel.pdf.illnessesDetailTitle"));
+        drawHeader([t("health.injuryStatsPanel.pdf.athlete"), t("health.injuryStatsPanel.pdf.type"), t("health.injuryStatsPanel.pdf.date"), t("health.injuryStatsPanel.pdf.returnDate"), t("health.injuryStatsPanel.pdf.duration")], [16, 70, 125, 150, 180]);
         filteredIllnesses.forEach((i: any) =>
           drawRow(
             [
@@ -469,7 +471,7 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
               (i.illness_type || "-").substring(0, 28),
               fmtDate(i.illness_date),
               fmtDate(i.actual_return_date),
-              `${daysBetween(i.illness_date, i.actual_return_date)} j`,
+              t("health.injuryStatsPanel.pdf.durationValue", { days: daysBetween(i.illness_date, i.actual_return_date) }),
             ],
             [16, 70, 125, 150, 180]
           )
@@ -479,16 +481,16 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
 
       // Rechutes
       if (stats.relapses.length > 0) {
-        section("Rechutes détectées");
-        drawHeader(["Athlète", "Blessure", "Occurrences"], [16, 90, 160]);
-        stats.relapses.forEach((r) => drawRow([r.player, r.type.substring(0, 30), `${r.count}×`], [16, 90, 160]));
+        section(t("health.injuryStatsPanel.pdf.relapsesTitle"));
+        drawHeader([t("health.injuryStatsPanel.pdf.athlete"), t("health.injuryStatsPanel.excel.injury"), t("health.injuryStatsPanel.excel.occurrences")], [16, 90, 160]);
+        stats.relapses.forEach((r) => drawRow([r.player, r.type.substring(0, 30), t("health.injuryStatsPanel.pdf.occurrencesValue", { count: r.count })], [16, 90, 160]));
       }
 
       doc.save(`stats-blessures-maladies-${format(new Date(), "yyyy-MM-dd")}.pdf`);
-      toast.success("Export PDF téléchargé !");
+      toast.success(t("health.injuryStatsPanel.pdf.toastSuccess"));
     } catch (e) {
       console.error(e);
-      toast.error("Erreur lors de l'export PDF");
+      toast.error(t("health.injuryStatsPanel.pdf.toastError"));
     }
   };
 
@@ -498,16 +500,16 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <CardTitle className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-primary" />
-            Statistiques des blessures
+            {t("health.injuryStatsPanel.title")}
           </CardTitle>
           <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" size="sm" onClick={handleExportExcel} className="gap-1">
               <FileSpreadsheet className="h-4 w-4" />
-              <span className="hidden sm:inline">Excel</span>
+              <span className="hidden sm:inline">{t("health.injuryStatsPanel.excelButton")}</span>
             </Button>
             <Button variant="outline" size="sm" onClick={handleExportPdf} className="gap-1">
               <Download className="h-4 w-4" />
-              <span className="hidden sm:inline">PDF</span>
+              <span className="hidden sm:inline">{t("health.injuryStatsPanel.pdfButton")}</span>
             </Button>
             <Select value={period} onValueChange={(v) => setPeriod(v as PeriodKey)}>
               <SelectTrigger className="w-[200px]">
@@ -533,7 +535,7 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {customFrom ? format(customFrom, "dd/MM/yyyy") : "Du..."}
+                      {customFrom ? format(customFrom, "dd/MM/yyyy") : t("health.injuryStatsPanel.fromPlaceholder")}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -557,7 +559,7 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {customTo ? format(customTo, "dd/MM/yyyy") : "Au..."}
+                      {customTo ? format(customTo, "dd/MM/yyyy") : t("health.injuryStatsPanel.toPlaceholder")}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -580,7 +582,7 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="bg-surface">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Disponibilité athlètes</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("health.injuryStatsPanel.kpis.availability")}</CardTitle>
               <ShieldCheck className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
@@ -588,55 +590,55 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
                 {stats.availabilityPct.toFixed(1)}%
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Sur {periodLabel}
+                {t("health.injuryStatsPanel.kpis.overPeriod", { period: periodLabel })}
               </p>
             </CardContent>
           </Card>
 
           <Card className="bg-surface">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Indispo blessures</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("health.injuryStatsPanel.kpis.injuryUnavailability")}</CardTitle>
               <Activity className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-destructive">{stats.injuryDays} j</div>
               <p className="text-xs text-muted-foreground mt-1">
-                Cumul équipe — {stats.total} blessure{stats.total > 1 ? "s" : ""} • moy. {stats.avgDuration}j
+                {t("health.injuryStatsPanel.kpis.teamTotalInjuries", { count: stats.total, plural: stats.total > 1 ? "s" : "", avg: stats.avgDuration })}
               </p>
             </CardContent>
           </Card>
 
           <Card className="bg-surface">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Indispo maladies</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("health.injuryStatsPanel.kpis.illnessUnavailability")}</CardTitle>
               <Thermometer className="h-4 w-4 text-orange-500" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-orange-500">{stats.illnessDays} j</div>
               <p className="text-xs text-muted-foreground mt-1">
-                Cumul équipe — {stats.illTotal} maladie{stats.illTotal > 1 ? "s" : ""} • moy. {stats.illAvgDuration}j
+                {t("health.injuryStatsPanel.kpis.teamTotalIllnesses", { count: stats.illTotal, plural: stats.illTotal > 1 ? "s" : "", avg: stats.illAvgDuration })}
               </p>
             </CardContent>
           </Card>
 
           <Card className="bg-surface">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Rechutes détectées</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("health.injuryStatsPanel.kpis.relapsesDetected")}</CardTitle>
               <Repeat className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-destructive">{stats.relapses.length}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                Même blessure ≥ 2 fois / athlète
+                {t("health.injuryStatsPanel.kpis.relapsesHint")}
               </p>
             </CardContent>
           </Card>
         </div>
 
         <div>
-          <h3 className="text-sm font-semibold mb-3">Répartition par type de blessure</h3>
+          <h3 className="text-sm font-semibold mb-3">{t("health.injuryStatsPanel.distributionTitle")}</h3>
           {stats.total === 0 ? (
-            <p className="text-sm text-muted-foreground">Aucune blessure sur cette période.</p>
+            <p className="text-sm text-muted-foreground">{t("health.injuryStatsPanel.noInjuriesInPeriod")}</p>
           ) : (
             <div className="space-y-2">
               {stats.distribution.map(({ key, n, pct }) => (
@@ -645,7 +647,7 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
                     <div className="flex items-center gap-2">
                       <Badge className={TYPE_COLORS[key]}>{TYPE_LABELS[key] || key}</Badge>
                       <span className="text-muted-foreground">
-                        {n} blessure{n > 1 ? "s" : ""}
+                        {t("health.injuryStatsPanel.injuriesCount", { count: n, plural: n > 1 ? "s" : "" })}
                       </span>
                     </div>
                     <span className="font-semibold">{pct.toFixed(1)}%</span>
@@ -665,11 +667,11 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
         <div>
           <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
             <Repeat className="h-4 w-4" />
-            Détail des rechutes
+            {t("health.injuryStatsPanel.relapsesDetailTitle")}
           </h3>
           {stats.relapses.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Aucune rechute détectée sur cette période.
+              {t("health.injuryStatsPanel.noRelapses")}
             </p>
           ) : (
             <div className="space-y-2">
@@ -682,7 +684,7 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
                     <div className="font-medium">{r.player}</div>
                     <div className="text-sm text-muted-foreground">{r.type}</div>
                   </div>
-                  <Badge variant="destructive">{r.count}× sur la période</Badge>
+                  <Badge variant="destructive">{t("health.injuryStatsPanel.relapsesOnPeriod", { count: r.count })}</Badge>
                 </div>
               ))}
             </div>

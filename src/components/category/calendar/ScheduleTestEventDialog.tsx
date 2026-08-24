@@ -36,6 +36,7 @@ import {
 } from "@/components/category/tests/customTestCatalog";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface ScheduleTestEventDialogProps {
   open: boolean;
@@ -63,6 +64,7 @@ export function ScheduleTestEventDialog({
 }: ScheduleTestEventDialogProps) {
   const queryClient = useQueryClient();
   const { notify } = useSessionNotifications();
+  const { t } = useTranslation();
   const isEditMode = !!editSessionId;
 
   const [startTime, setStartTime] = useState("09:00");
@@ -297,7 +299,7 @@ export function ScheduleTestEventDialog({
 
   const addCurrentTest = () => {
     if (!selectedCategory || !activeTest) {
-      toast.error("Sélectionnez une catégorie et un test");
+      toast.error(t("planning:calendarDialogs.scheduleTest.toasts.selectAtLeastOneTest"));
       return;
     }
     const test = selectedCategory.tests.find((t) => t.value === activeTest);
@@ -411,16 +413,16 @@ export function ScheduleTestEventDialog({
       let title = "";
 
       if (mode === "battery") {
-        if (!selectedBattery) throw new Error("Sélectionnez une batterie");
+        if (!selectedBattery) throw new Error(t("planning:calendarDialogs.scheduleTest.toasts.selectBattery"));
         testsMeta = (selectedBattery.items || []).map((it: any) => ({
           test_category: it.test_category,
           test_type: it.test_name,
           result_unit: it.unit || "",
         }));
-        title = `Batterie : ${selectedBattery.name}`;
+        title = t("planning:calendarDialogs.scheduleTest.batteryTitle", { name: selectedBattery.name });
       } else {
         if (selectedTestsList.length === 0)
-          throw new Error("Sélectionnez au moins un test");
+          throw new Error(t("planning:calendarDialogs.scheduleTest.toasts.selectAtLeastOneTest"));
         testsMeta = selectedTestsList.map((t) => ({
           test_category: t.test_category,
           test_type: t.test_type,
@@ -428,12 +430,12 @@ export function ScheduleTestEventDialog({
         }));
         title =
           selectedTestsList.length === 1
-            ? `Test : ${selectedTestsList[0].test_label}`
-            : `Batterie de ${selectedTestsList.length} tests`;
+            ? t("planning:calendarDialogs.scheduleTest.testTitle", { label: selectedTestsList[0].test_label })
+            : t("planning:calendarDialogs.scheduleTest.multiTestTitle", { count: selectedTestsList.length });
       }
 
       if (selectedPlayers.length === 0)
-        throw new Error("Sélectionnez au moins un athlète");
+        throw new Error(t("planning:calendarDialogs.scheduleTest.toasts.selectAtLeastOneAthlete"));
 
       const noteContent = `${title}${notes ? `\n${notes}` : ""}`;
       const fullNotes = `${noteContent}\n<!--TESTS:${JSON.stringify(testsMeta)}-->`;
@@ -491,7 +493,7 @@ export function ScheduleTestEventDialog({
       queryClient.invalidateQueries({ queryKey: ["sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["test-session-edit", editSessionId] });
-      toast.success(isEditMode ? "Test mis à jour" : "Test planifié au calendrier");
+      toast.success(isEditMode ? t("planning:calendarDialogs.scheduleTest.toasts.updated") : t("planning:calendarDialogs.scheduleTest.toasts.planned"));
 
       if (session?.id && !isEditMode) {
         notify({
@@ -507,7 +509,7 @@ export function ScheduleTestEventDialog({
       onOpenChange(false);
     },
     onError: (e: any) => {
-      toast.error(e?.message || "Erreur lors de la planification");
+      toast.error(e?.message || t("planning:calendarDialogs.scheduleTest.toasts.planError"));
     },
   });
 
@@ -517,7 +519,7 @@ export function ScheduleTestEventDialog({
         <DialogHeader className="shrink-0 border-b border-border/60 px-6 pt-6 pb-4">
           <DialogTitle className="flex items-center gap-2 text-xl">
             <ClipboardList className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-            {isEditMode ? "Modifier le test physique" : "Planifier un test physique"}
+            {isEditMode ? t("planning:calendarDialogs.scheduleTest.editTitle") : t("planning:calendarDialogs.scheduleTest.createTitle")}
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
             {format(date, "EEEE d MMMM yyyy", { locale: fr })}
@@ -528,7 +530,7 @@ export function ScheduleTestEventDialog({
           {/* Time slot */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label>Heure de début</Label>
+              <Label>{t("planning:calendarDialogs.scheduleTest.startTime")}</Label>
               <Input
                 type="time"
                 value={startTime}
@@ -536,7 +538,7 @@ export function ScheduleTestEventDialog({
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Heure de fin</Label>
+              <Label>{t("planning:calendarDialogs.scheduleTest.endTime")}</Label>
               <Input
                 type="time"
                 value={endTime}
@@ -550,7 +552,7 @@ export function ScheduleTestEventDialog({
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="individual" className="gap-2">
                 <ClipboardList className="h-4 w-4" />
-                Tests à la carte
+                {t("planning:calendarDialogs.scheduleTest.individualTests")}
                 {selectedTestsList.length > 0 && (
                   <Badge variant="secondary" className="ml-1">
                     {selectedTestsList.length}
@@ -559,7 +561,7 @@ export function ScheduleTestEventDialog({
               </TabsTrigger>
               <TabsTrigger value="battery" className="gap-2">
                 <Layers className="h-4 w-4" />
-                Batterie de tests
+                {t("planning:calendarDialogs.scheduleTest.testBattery")}
                 {selectedBatteryId && (
                   <Badge variant="secondary" className="ml-1">1</Badge>
                 )}
@@ -570,7 +572,7 @@ export function ScheduleTestEventDialog({
               {/* Category + Test selectors with favorite toggle */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Thématique</Label>
+                  <Label className="text-xs">{t("planning:calendarDialogs.scheduleTest.theme")}</Label>
                   <div className="flex items-center gap-2">
                     <Select
                       value={activeCategory}
@@ -580,7 +582,7 @@ export function ScheduleTestEventDialog({
                       }}
                     >
                       <SelectTrigger className="flex-1 bg-muted/40">
-                        <SelectValue placeholder="Choisir une thématique" />
+                        <SelectValue placeholder={t("planning:calendarDialogs.scheduleTest.chooseTheme")} />
                       </SelectTrigger>
                       <SelectContent className="max-h-[320px]">
                         {orderedCategories.map((cat) => {
@@ -607,8 +609,8 @@ export function ScheduleTestEventDialog({
                         onClick={() => toggleFavorite(activeCategory)}
                         title={
                           favoriteCategories.has(activeCategory)
-                            ? "Retirer des favoris"
-                            : "Ajouter aux favoris"
+                            ? t("planning:calendarDialogs.scheduleTest.removeFavorite")
+                            : t("planning:calendarDialogs.scheduleTest.addFavorite")
                         }
                       >
                         <Star
@@ -628,17 +630,17 @@ export function ScheduleTestEventDialog({
               {/* Tests list for selected category */}
               {!selectedCategory ? (
                 <div className="rounded-2xl border-2 border-dashed bg-muted/20 p-6 text-center text-sm text-muted-foreground">
-                  Sélectionnez d'abord une thématique pour afficher les tests disponibles.
+                  {t("planning:calendarDialogs.scheduleTest.chooseThemeFirst")}
                 </div>
               ) : (selectedCategory.tests || []).length === 0 ? (
                 <div className="rounded-2xl border-2 border-dashed bg-muted/20 p-6 text-center text-sm text-muted-foreground">
-                  Aucun test dans cette thématique.
+                  {t("planning:calendarDialogs.scheduleTest.noTestInTheme")}
                 </div>
               ) : (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label className="text-xs">
-                      Tests disponibles
+                      {t("planning:calendarDialogs.scheduleTest.availableTests")}
                       <span className="text-muted-foreground ml-1">
                         ({selectedCategory.tests.length})
                       </span>
@@ -651,7 +653,7 @@ export function ScheduleTestEventDialog({
                         className="h-7 text-xs"
                         onClick={() => setSelectedTests({})}
                       >
-                        Tout désélectionner
+                        {t("planning:calendarDialogs.scheduleTest.deselectAll")}
                       </Button>
                     )}
                   </div>
@@ -702,9 +704,9 @@ export function ScheduleTestEventDialog({
                   </ScrollArea>
                   {selectedTestsList.length > 0 && (
                     <p className="text-xs text-muted-foreground">
-                      <strong>{selectedTestsList.length}</strong> test
-                      {selectedTestsList.length > 1 ? "s" : ""} sélectionné
-                      {selectedTestsList.length > 1 ? "s" : ""}.
+                      {selectedTestsList.length > 1
+                        ? t("planning:calendarDialogs.scheduleTest.selectedTestsCountPlural", { count: selectedTestsList.length })
+                        : t("planning:calendarDialogs.scheduleTest.selectedTestsCountSingular", { count: selectedTestsList.length })}
                     </p>
                   )}
                 </div>
@@ -716,8 +718,8 @@ export function ScheduleTestEventDialog({
               {(batteries?.length ?? 0) === 0 ? (
                 <div className="text-center py-10 text-sm text-muted-foreground border-2 border-dashed rounded-2xl">
                   <Layers className="h-8 w-8 mx-auto mb-2 opacity-40" />
-                  Aucune batterie disponible.<br />
-                  Créez-en une dans <strong>Programmation → Tests</strong>.
+                  {t("planning:calendarDialogs.scheduleTest.noBatteryAvailable")}<br />
+                  {t("planning:calendarDialogs.scheduleTest.createBatteryHint")} <strong>{t("planning:calendarDialogs.scheduleTest.programmingTestsPath")}</strong>.
                 </div>
               ) : (
                 <ScrollArea className="h-[260px] rounded-2xl border bg-muted/20 p-2">
@@ -746,7 +748,7 @@ export function ScheduleTestEventDialog({
                               )}
                               <div className="flex flex-wrap gap-1.5 mt-2">
                                 <Badge variant="secondary" className="text-[10px]">
-                                  {b.items?.length || 0} tests
+                                  {t("planning:calendarDialogs.scheduleTest.testsCountBadge", { count: b.items?.length || 0 })}
                                 </Badge>
                                 {(b.items || []).slice(0, 4).map((it: any, i: number) => (
                                   <Badge key={i} variant="outline" className="text-[10px]">
@@ -775,7 +777,7 @@ export function ScheduleTestEventDialog({
             <div className="flex items-center justify-between">
               <Label className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-primary" />
-                Athlètes concernés
+                {t("planning:calendarDialogs.scheduleTest.concernedAthletes")}
                 <Badge variant="secondary">
                   {selectedPlayers.length}/{players?.length || 0}
                 </Badge>
@@ -787,7 +789,7 @@ export function ScheduleTestEventDialog({
                   onCheckedChange={handleSelectAll}
                 />
                 <Label htmlFor="select-all-players" className="text-xs cursor-pointer">
-                  Tout l'effectif
+                  {t("planning:calendarDialogs.scheduleTest.fullRoster")}
                 </Label>
               </div>
             </div>
@@ -819,9 +821,9 @@ export function ScheduleTestEventDialog({
 
           {/* Optional notes */}
           <div className="space-y-1.5">
-            <Label>Notes (optionnel)</Label>
+            <Label>{t("planning:calendarDialogs.scheduleTest.notesOptional")}</Label>
             <Input
-              placeholder="Lieu, consignes particulières..."
+              placeholder={t("planning:calendarDialogs.scheduleTest.notesPlaceholder")}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
@@ -830,12 +832,12 @@ export function ScheduleTestEventDialog({
 
         <DialogFooter className="shrink-0 border-t border-border/60 px-6 py-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Annuler
+            {t("planning:calendarDialogs.scheduleTest.cancel")}
           </Button>
           <Button onClick={() => schedule.mutate()} disabled={schedule.isPending}>
             {schedule.isPending
-              ? (isEditMode ? "Mise à jour..." : "Planification...")
-              : (isEditMode ? "Enregistrer les modifications" : "Planifier au calendrier")}
+              ? (isEditMode ? t("planning:calendarDialogs.scheduleTest.updating") : t("planning:calendarDialogs.scheduleTest.planning"))
+              : (isEditMode ? t("planning:calendarDialogs.scheduleTest.saveChanges") : t("planning:calendarDialogs.scheduleTest.planSchedule"))}
           </Button>
         </DialogFooter>
       </DialogContent>

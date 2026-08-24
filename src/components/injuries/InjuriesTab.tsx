@@ -41,12 +41,14 @@ import { InjuryLibraryDialog } from "@/components/category/programs/InjuryLibrar
 import { toast } from "sonner";
 import { INJURY_STATUS, INJURY_STATUS_LABELS } from "@/lib/constants/injury";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
+import { useTranslation } from "react-i18next";
 
 interface InjuriesTabProps {
   categoryId: string;
 }
 
 export function InjuriesTab({ categoryId }: InjuriesTabProps) {
+  const { t } = useTranslation();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
   const [editingInjury, setEditingInjury] = useState<any>(null);
@@ -94,12 +96,12 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
       queryClient.invalidateQueries({ queryKey: ["injuries", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["recovering-injuries-no-protocol", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["active-rehab-protocols", categoryId] });
-      toast.success("Statut mis à jour");
+      toast.success(t("health.injuriesTab.toastStatusUpdated"));
     },
     onError: (error: any) => {
       console.error("Erreur mutation complète:", error);
-      const errorMessage = error?.message || "Erreur inconnue";
-      toast.error(`Erreur: ${errorMessage}`);
+      const errorMessage = error?.message || t("health.injuriesTab.toastUnknownError");
+      toast.error(`${t("health.injuriesTab.toastErrorPrefix")}${errorMessage}`);
     },
   });
 
@@ -112,10 +114,10 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
       queryClient.invalidateQueries({ queryKey: ["injuries", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["recovering-injuries-no-protocol", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["active-rehab-protocols", categoryId] });
-      toast.success("Blessure supprimée");
+      toast.success(t("health.injuriesTab.toastDeleted"));
     },
     onError: (error: any) => {
-      toast.error(`Erreur: ${error?.message || "suppression impossible"}`);
+      toast.error(`${t("health.injuriesTab.toastErrorPrefix")}${error?.message || t("health.injuriesTab.toastDeleteError")}`);
     },
   });
 
@@ -156,7 +158,7 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
   const recoveredInjuries = injuries?.filter((i) => i.status === INJURY_STATUS.HEALED).length || 0;
 
   if (isLoading) {
-    return <div className="text-muted-foreground">Chargement...</div>;
+    return <div className="text-muted-foreground">{t("health.injuriesTab.loading")}</div>;
   }
 
   return (
@@ -165,7 +167,7 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-gradient-card shadow-md">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Blessures Actives</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("health.injuriesTab.stats.activeInjuries")}</CardTitle>
             <Activity className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
@@ -175,7 +177,7 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
 
         <Card className="bg-gradient-card shadow-md">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">En Réathlétisation</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("health.injuriesTab.stats.inRehab")}</CardTitle>
             <TrendingUp className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
@@ -185,7 +187,7 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
 
         <Card className="bg-gradient-card shadow-md">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Guérisons</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("health.injuriesTab.stats.recovered")}</CardTitle>
             <Activity className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
@@ -202,20 +204,20 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Historique des Blessures</CardTitle>
+              <CardTitle>{t("health.injuriesTab.tableTitle")}</CardTitle>
               <p className="text-sm text-muted-foreground mt-1">
-                Suivi médical et réathlétisation
+                {t("health.injuriesTab.tableSubtitle")}
               </p>
             </div>
             <div className="flex gap-2 flex-wrap">
               <Button variant="outline" onClick={() => setShowLibrary(true)}>
                 <Library className="h-4 w-4 mr-2" />
-                Bibliothèque blessures
+                {t("health.injuriesTab.library")}
               </Button>
               {!isViewer && (
                 <Button onClick={() => setIsDialogOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Ajouter une blessure
+                  {t("health.injuriesTab.addInjury")}
                 </Button>
               )}
             </div>
@@ -229,14 +231,14 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Joueur</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Début</TableHead>
-                      <TableHead>Gravité</TableHead>
-                      <TableHead>Statut</TableHead>
-                      <TableHead>Retour estimé</TableHead>
-                      <TableHead>Retour réel</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead>{t("health.injuriesTab.table.player")}</TableHead>
+                      <TableHead>{t("health.injuriesTab.table.type")}</TableHead>
+                      <TableHead>{t("health.injuriesTab.table.start")}</TableHead>
+                      <TableHead>{t("health.injuriesTab.table.severity")}</TableHead>
+                      <TableHead>{t("health.injuriesTab.table.status")}</TableHead>
+                      <TableHead>{t("health.injuriesTab.table.estimatedReturn")}</TableHead>
+                      <TableHead>{t("health.injuriesTab.table.actualReturn")}</TableHead>
+                      <TableHead>{t("health.injuriesTab.table.actions")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -292,7 +294,7 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                                   <SelectItem value={INJURY_STATUS.HEALED}>{INJURY_STATUS_LABELS[INJURY_STATUS.HEALED]}</SelectItem>
                                 </SelectContent>
                               </Select>
-                              <Button variant="ghost" size="icon" onClick={() => setEditingInjury(injury)} title="Modifier">
+                              <Button variant="ghost" size="icon" onClick={() => setEditingInjury(injury)} title={t("health.injuriesTab.table.actions")}>
                                 <Pencil className="h-4 w-4" />
                               </Button>
                               <AlertDialog>
@@ -302,27 +304,25 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                                     variant="ghost"
                                     size="icon"
                                     className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                    title="Supprimer la blessure"
+                                    title={t("health.injuriesTab.delete")}
                                   >
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                   <AlertDialogHeader>
-                                    <AlertDialogTitle>Supprimer cette blessure ?</AlertDialogTitle>
+                                    <AlertDialogTitle>{t("health.injuriesTab.deleteDialogTitle")}</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                      Cette action est irréversible. La blessure « {injury.injury_type} » du{" "}
-                                      {new Date(injury.injury_date).toLocaleDateString("fr-FR")} sera
-                                      définitivement supprimée, ainsi que les données de réhabilitation associées.
+                                      {t("health.injuriesTab.deleteDialogDescription", { type: injury.injury_type, date: new Date(injury.injury_date).toLocaleDateString("fr-FR") })}
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
-                                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                    <AlertDialogCancel>{t("health.injuriesTab.cancel")}</AlertDialogCancel>
                                     <AlertDialogAction
                                       onClick={() => deleteInjury.mutate(injury.id)}
                                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                     >
-                                      Supprimer
+                                      {t("health.injuriesTab.delete")}
                                     </AlertDialogAction>
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
@@ -363,13 +363,13 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
                       <div>
-                        <span className="block uppercase tracking-wide">Début</span>
+                        <span className="block uppercase tracking-wide">{t("health.injuriesTab.table.start")}</span>
                         <span className="text-foreground">
                           {new Date(injury.injury_date).toLocaleDateString("fr-FR")}
                         </span>
                       </div>
                       <div>
-                        <span className="block uppercase tracking-wide">Retour estimé</span>
+                        <span className="block uppercase tracking-wide">{t("health.injuriesTab.table.estimatedReturn")}</span>
                         <span className="text-foreground">
                           {injury.estimated_return_date
                             ? new Date(injury.estimated_return_date).toLocaleDateString("fr-FR")
@@ -377,7 +377,7 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                         </span>
                       </div>
                       <div>
-                        <span className="block uppercase tracking-wide">Retour réel</span>
+                        <span className="block uppercase tracking-wide">{t("health.injuriesTab.table.actualReturn")}</span>
                         <span className={injury.actual_return_date ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-foreground"}>
                           {injury.actual_return_date
                             ? new Date(injury.actual_return_date).toLocaleDateString("fr-FR")
@@ -443,7 +443,7 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
 
           ) : (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">Aucune blessure enregistrée</p>
+              <p className="text-muted-foreground">{t("health.injuriesTab.empty")}</p>
               {!isViewer && (
                 <Button
                   variant="outline"
@@ -451,7 +451,7 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                   onClick={() => setIsDialogOpen(true)}
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Ajouter la première blessure
+                  {t("health.injuriesTab.addFirstInjury")}
                 </Button>
               )}
             </div>

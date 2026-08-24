@@ -16,19 +16,20 @@ import { toast } from "sonner";
 import { AddIllnessDialog } from "./AddIllnessDialog";
 import { EditIllnessDialog } from "./EditIllnessDialog";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
+import { useTranslation } from "react-i18next";
 
 
 interface IllnessHistoryCardProps {
   categoryId: string;
 }
 
-const STATUS = {
-  active: "Active",
-  recovering: "En convalescence",
-  healed: "Guérie",
-};
-
 export function IllnessHistoryCard({ categoryId }: IllnessHistoryCardProps) {
+  const { t } = useTranslation();
+  const STATUS: Record<string, string> = {
+    active: t("health.illnessHistoryCard.status.active"),
+    recovering: t("health.illnessHistoryCard.status.recovering"),
+    healed: t("health.illnessHistoryCard.status.healed"),
+  };
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const qc = useQueryClient();
@@ -65,9 +66,9 @@ export function IllnessHistoryCard({ categoryId }: IllnessHistoryCardProps) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["illnesses", categoryId] });
       qc.invalidateQueries({ queryKey: ["illness-stats", categoryId] });
-      toast.success("Statut mis à jour");
+      toast.success(t("health.illnessHistoryCard.toastStatusUpdated"));
     },
-    onError: (e: any) => toast.error(`Erreur: ${e?.message || "mise à jour impossible"}`),
+    onError: (e: any) => toast.error(`${t("health.illnessHistoryCard.toastErrorPrefix")}${e?.message || t("health.illnessHistoryCard.toastUpdateError")}`),
   });
 
   const del = useMutation({
@@ -78,7 +79,7 @@ export function IllnessHistoryCard({ categoryId }: IllnessHistoryCardProps) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["illnesses", categoryId] });
       qc.invalidateQueries({ queryKey: ["illness-stats", categoryId] });
-      toast.success("Maladie supprimée");
+      toast.success(t("health.illnessHistoryCard.toastDeleted"));
     },
   });
 
@@ -105,32 +106,32 @@ export function IllnessHistoryCard({ categoryId }: IllnessHistoryCardProps) {
         <div className="flex justify-between items-center flex-wrap gap-2">
           <CardTitle className="flex items-center gap-2">
             <Thermometer className="h-5 w-5 text-primary" />
-            Historique des maladies
+            {t("health.illnessHistoryCard.title")}
           </CardTitle>
           {!isViewer && (
             <Button onClick={() => setOpen(true)} size="sm">
               <Plus className="h-4 w-4 mr-2" />
-              Ajouter une maladie
+              {t("health.illnessHistoryCard.addIllness")}
             </Button>
           )}
         </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">Chargement...</p>
+          <p className="text-sm text-muted-foreground">{t("health.illnessHistoryCard.loading")}</p>
         ) : illnesses && illnesses.length > 0 ? (
           <>
             <div className="hidden md:block overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Athlète</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Gravité</TableHead>
-                    <TableHead>Statut</TableHead>
-                    <TableHead>Retour estimé</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t("health.illnessHistoryCard.table.athlete")}</TableHead>
+                    <TableHead>{t("health.illnessHistoryCard.table.type")}</TableHead>
+                    <TableHead>{t("health.illnessHistoryCard.table.date")}</TableHead>
+                    <TableHead>{t("health.illnessHistoryCard.table.severity")}</TableHead>
+                    <TableHead>{t("health.illnessHistoryCard.table.status")}</TableHead>
+                    <TableHead>{t("health.illnessHistoryCard.table.estimatedReturn")}</TableHead>
+                    <TableHead>{t("health.illnessHistoryCard.table.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -148,12 +149,12 @@ export function IllnessHistoryCard({ categoryId }: IllnessHistoryCardProps) {
                             <Select value={i.status} onValueChange={(v) => updateStatus.mutate({ id: i.id, status: v })}>
                               <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="active">Active</SelectItem>
-                                <SelectItem value="recovering">En convalescence</SelectItem>
-                                <SelectItem value="healed">Guérie</SelectItem>
+                                <SelectItem value="active">{t("health.illnessHistoryCard.status.active")}</SelectItem>
+                                <SelectItem value="recovering">{t("health.illnessHistoryCard.status.recovering")}</SelectItem>
+                                <SelectItem value="healed">{t("health.illnessHistoryCard.status.healed")}</SelectItem>
                               </SelectContent>
                             </Select>
-                            <Button variant="ghost" size="icon" onClick={() => setEditing(i)} title="Modifier">
+                            <Button variant="ghost" size="icon" onClick={() => setEditing(i)} title={t("health.illnessHistoryCard.title")}>
                               <Pencil className="h-4 w-4" />
                             </Button>
                             <AlertDialog>
@@ -165,12 +166,12 @@ export function IllnessHistoryCard({ categoryId }: IllnessHistoryCardProps) {
                               </AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader>
-                                  <AlertDialogTitle>Supprimer cette maladie ?</AlertDialogTitle>
-                                  <AlertDialogDescription>Action irréversible.</AlertDialogDescription>
+                                  <AlertDialogTitle>{t("health.illnessHistoryCard.deleteDialogTitle")}</AlertDialogTitle>
+                                  <AlertDialogDescription>{t("health.illnessHistoryCard.deleteDialogDescription")}</AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
-                                  <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => del.mutate(i.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Supprimer</AlertDialogAction>
+                                  <AlertDialogCancel>{t("health.illnessHistoryCard.cancel")}</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => del.mutate(i.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">{t("health.illnessHistoryCard.delete")}</AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>
                             </AlertDialog>
@@ -204,9 +205,9 @@ export function IllnessHistoryCard({ categoryId }: IllnessHistoryCardProps) {
                       <Select value={i.status} onValueChange={(v) => updateStatus.mutate({ id: i.id, status: v })}>
                         <SelectTrigger className="flex-1 h-9"><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="active">Active</SelectItem>
-                          <SelectItem value="recovering">En convalescence</SelectItem>
-                          <SelectItem value="healed">Guérie</SelectItem>
+                          <SelectItem value="active">{t("health.illnessHistoryCard.status.active")}</SelectItem>
+                          <SelectItem value="recovering">{t("health.illnessHistoryCard.status.recovering")}</SelectItem>
+                          <SelectItem value="healed">{t("health.illnessHistoryCard.status.healed")}</SelectItem>
                         </SelectContent>
                       </Select>
                       <AlertDialog>
@@ -217,12 +218,12 @@ export function IllnessHistoryCard({ categoryId }: IllnessHistoryCardProps) {
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Supprimer cette maladie ?</AlertDialogTitle>
-                            <AlertDialogDescription>Action irréversible.</AlertDialogDescription>
+                            <AlertDialogTitle>{t("health.illnessHistoryCard.deleteDialogTitle")}</AlertDialogTitle>
+                            <AlertDialogDescription>{t("health.illnessHistoryCard.deleteDialogDescription")}</AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Annuler</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => del.mutate(i.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Supprimer</AlertDialogAction>
+                            <AlertDialogCancel>{t("health.illnessHistoryCard.cancel")}</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => del.mutate(i.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">{t("health.illnessHistoryCard.delete")}</AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
@@ -233,7 +234,7 @@ export function IllnessHistoryCard({ categoryId }: IllnessHistoryCardProps) {
             </div>
           </>
         ) : (
-          <p className="text-center text-muted-foreground py-6">Aucune maladie enregistrée</p>
+          <p className="text-center text-muted-foreground py-6">{t("health.illnessHistoryCard.empty")}</p>
         )}
       </CardContent>
       <AddIllnessDialog open={open} onOpenChange={setOpen} categoryId={categoryId} />

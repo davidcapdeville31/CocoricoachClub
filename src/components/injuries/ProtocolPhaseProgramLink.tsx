@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Layers, Plus, ExternalLink, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import { ProgramBuilderDialog } from "@/components/category/programs/ProgramBuilderDialog";
+import { useTranslation } from "react-i18next";
 
 interface ProtocolPhaseProgramLinkProps {
   categoryId: string;
@@ -20,6 +21,7 @@ export function ProtocolPhaseProgramLink({
   phaseName,
   onProgramLinked,
 }: ProtocolPhaseProgramLinkProps) {
+  const { t } = useTranslation();
   const [isBuilderOpen, setIsBuilderOpen] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
 
@@ -84,7 +86,7 @@ export function ProtocolPhaseProgramLink({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Layers className="h-4 w-4 text-primary" />
-          <span className="text-sm font-medium">Programme de réathlétisation</span>
+          <span className="text-sm font-medium">{t("health.protocolPhaseProgramLink.title")}</span>
         </div>
       </div>
 
@@ -96,16 +98,16 @@ export function ProtocolPhaseProgramLink({
                 <p className="font-medium text-sm">{program.name}</p>
                 <div className="flex gap-2 mt-1">
                   <Badge variant="outline" className="text-xs">
-                    {Object.keys(blocks).length} bloc(s)
+                    {t("health.protocolPhaseProgramLink.blocksUnit", { count: Object.keys(blocks).length })}
                   </Badge>
                   <Badge variant="outline" className="text-xs">
-                    {totalWeeks} semaine(s)
+                    {t("health.protocolPhaseProgramLink.weeksUnit", { count: totalWeeks })}
                   </Badge>
                   <Badge variant="outline" className="text-xs">
-                    {totalSessions} séance(s)
+                    {t("health.protocolPhaseProgramLink.sessionsUnit", { count: totalSessions })}
                   </Badge>
                   <Badge variant="outline" className="text-xs">
-                    {totalExercises} exercice(s)
+                    {t("health.protocolPhaseProgramLink.exercisesUnit", { count: totalExercises })}
                   </Badge>
                 </div>
               </div>
@@ -145,11 +147,11 @@ export function ProtocolPhaseProgramLink({
                     {(weeks as any[]).sort((a, b) => a.week_number - b.week_number).map((week: any) => (
                       <div key={week.id} className="pl-4">
                         <p className="text-xs text-muted-foreground">
-                          Semaine {week.week_number} — {week.program_sessions?.length || 0} séance(s)
+                          {t("health.protocolPhaseProgramLink.weekLabel", { number: week.week_number, count: week.program_sessions?.length || 0 })}
                         </p>
                         {week.program_sessions?.sort((a: any, b: any) => a.session_number - b.session_number).map((session: any) => (
                           <p key={session.id} className="text-xs pl-4 text-muted-foreground/80">
-                            • {session.name || `Séance ${session.session_number}`} ({session.program_exercises?.length || 0} exercices)
+                            • {session.name || t("health.protocolPhaseProgramLink.sessionFallback", { number: session.session_number })} {t("health.protocolPhaseProgramLink.sessionExercisesUnit", { count: session.program_exercises?.length || 0 })}
                           </p>
                         ))}
                       </div>
@@ -168,7 +170,7 @@ export function ProtocolPhaseProgramLink({
           onClick={() => setIsBuilderOpen(true)}
         >
           <Plus className="h-4 w-4" />
-          Créer le programme d'exercices (Blocs / Semaines / Séances)
+          {t("health.protocolPhaseProgramLink.createProgram")}
         </Button>
       )}
 

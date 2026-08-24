@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Trash2, Search, Dumbbell, Pencil, Save, Image, Video } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface PlayerRehabExerciseEditorProps {
   playerRehabProtocolId: string;
@@ -45,6 +46,7 @@ export function PlayerRehabExerciseEditor({
   categoryId,
   disabled,
 }: PlayerRehabExerciseEditorProps) {
+  const { t } = useTranslation();
   const [editing, setEditing] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -104,7 +106,7 @@ export function PlayerRehabExerciseEditor({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["player-rehab-exercises", playerRehabProtocolId, phaseNumber] });
       setSearchOpen(false);
-      toast.success("Exercice ajouté");
+      toast.success(t("health.playerRehabExerciseEditor.toastAdded"));
     },
   });
 
@@ -150,7 +152,7 @@ export function PlayerRehabExerciseEditor({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["player-rehab-exercises", playerRehabProtocolId, phaseNumber] });
-      toast.success("Exercice supprimé");
+      toast.success(t("health.playerRehabExerciseEditor.toastDeleted"));
     },
   });
 
@@ -170,12 +172,12 @@ export function PlayerRehabExerciseEditor({
         <div className="flex items-center justify-between">
           <Label className="text-xs font-medium flex items-center gap-1">
             <Dumbbell className="h-3 w-3" />
-            Exercices ({exercises?.length || 0})
+            {t("health.playerRehabExerciseEditor.exercisesCount", { count: exercises?.length || 0 })}
           </Label>
           {!disabled && (
             <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => setEditing(true)}>
               <Pencil className="h-3 w-3" />
-              Modifier
+              {t("health.playerRehabExerciseEditor.edit")}
             </Button>
           )}
         </div>
@@ -192,7 +194,7 @@ export function PlayerRehabExerciseEditor({
               </div>
               {ex.description && <p className="text-sm text-muted-foreground">{ex.description}</p>}
               <div className="flex gap-4 mt-1 text-xs text-muted-foreground">
-                {ex.sets && <span>{ex.sets} séries</span>}
+                {ex.sets && <span>{t("health.playerRehabExerciseEditor.setsUnit", { count: ex.sets })}</span>}
                 {ex.reps && <span>{ex.reps}</span>}
                 {ex.frequency && <span>{ex.frequency}</span>}
               </div>
@@ -200,7 +202,7 @@ export function PlayerRehabExerciseEditor({
           </div>
         ))}
         {(!exercises || exercises.length === 0) && (
-          <p className="text-xs text-muted-foreground italic py-2">Aucun exercice pour cette phase</p>
+          <p className="text-xs text-muted-foreground italic py-2">{t("health.playerRehabExerciseEditor.empty")}</p>
         )}
       </div>
     );
@@ -212,21 +214,21 @@ export function PlayerRehabExerciseEditor({
       <div className="flex items-center justify-between">
         <Label className="text-xs font-medium flex items-center gap-1">
           <Dumbbell className="h-3 w-3" />
-          Exercices ({exercises?.length || 0}) — Mode édition
+          {t("health.playerRehabExerciseEditor.editModeTitle", { count: exercises?.length || 0 })}
         </Label>
         <div className="flex gap-1">
           <Popover open={searchOpen} onOpenChange={setSearchOpen}>
             <PopoverTrigger asChild>
               <Button variant="outline" size="sm" className="h-7 text-xs gap-1">
                 <Search className="h-3 w-3" />
-                Bibliothèque
+                {t("health.playerRehabExerciseEditor.library")}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-80 p-0" align="end">
               <Command>
-                <CommandInput placeholder="Rechercher un exercice..." value={searchQuery} onValueChange={setSearchQuery} />
+                <CommandInput placeholder={t("health.playerRehabExerciseEditor.searchPlaceholder")} value={searchQuery} onValueChange={setSearchQuery} />
                 <CommandList className="max-h-60">
-                  <CommandEmpty>Aucun exercice trouvé</CommandEmpty>
+                  <CommandEmpty>{t("health.playerRehabExerciseEditor.noExerciseFound")}</CommandEmpty>
                   {Object.entries(groupedLibrary).map(([category, exs]) => (
                     <CommandGroup key={category} heading={category}>
                       {exs.map((ex) => (
@@ -246,11 +248,11 @@ export function PlayerRehabExerciseEditor({
           </Popover>
           <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => addCustom.mutate()}>
             <Plus className="h-3 w-3" />
-            Manuel
+            {t("health.playerRehabExerciseEditor.manual")}
           </Button>
           <Button variant="default" size="sm" className="h-7 text-xs gap-1" onClick={() => setEditing(false)}>
             <Save className="h-3 w-3" />
-            Terminé
+            {t("health.playerRehabExerciseEditor.done")}
           </Button>
         </div>
       </div>
@@ -261,18 +263,18 @@ export function PlayerRehabExerciseEditor({
             <Input
               value={exercise.name}
               onChange={(e) => updateExercise.mutate({ id: exercise.id, field: "name", value: e.target.value })}
-              placeholder="Nom de l'exercice"
+              placeholder={t("health.playerRehabExerciseEditor.namePlaceholder")}
               className="h-7 text-sm font-medium"
             />
             <Input
               value={exercise.description || ""}
               onChange={(e) => updateExercise.mutate({ id: exercise.id, field: "description", value: e.target.value })}
-              placeholder="Description / consignes"
+              placeholder={t("health.playerRehabExerciseEditor.descriptionPlaceholder")}
               className="h-7 text-xs"
             />
             <div className="grid grid-cols-3 gap-1.5">
               <div className="flex items-center gap-1">
-                <span className="text-xs text-muted-foreground whitespace-nowrap">Séries:</span>
+                <span className="text-xs text-muted-foreground whitespace-nowrap">{t("health.playerRehabExerciseEditor.sets")}</span>
                 <Input
                   type="number"
                   value={exercise.sets || ""}
@@ -281,7 +283,7 @@ export function PlayerRehabExerciseEditor({
                 />
               </div>
               <div className="flex items-center gap-1">
-                <span className="text-xs text-muted-foreground whitespace-nowrap">Reps:</span>
+                <span className="text-xs text-muted-foreground whitespace-nowrap">{t("health.playerRehabExerciseEditor.reps")}</span>
                 <Input
                   value={exercise.reps || ""}
                   onChange={(e) => updateExercise.mutate({ id: exercise.id, field: "reps", value: e.target.value })}
@@ -289,7 +291,7 @@ export function PlayerRehabExerciseEditor({
                 />
               </div>
               <div className="flex items-center gap-1">
-                <span className="text-xs text-muted-foreground whitespace-nowrap">Fréq:</span>
+                <span className="text-xs text-muted-foreground whitespace-nowrap">{t("health.playerRehabExerciseEditor.frequency")}</span>
                 <Input
                   value={exercise.frequency || ""}
                   onChange={(e) => updateExercise.mutate({ id: exercise.id, field: "frequency", value: e.target.value })}
@@ -311,7 +313,7 @@ export function PlayerRehabExerciseEditor({
 
       {(!exercises || exercises.length === 0) && (
         <p className="text-xs text-muted-foreground italic py-2">
-          Ajoutez des exercices depuis la bibliothèque ou manuellement.
+          {t("health.playerRehabExerciseEditor.emptyEdit")}
         </p>
       )}
     </div>

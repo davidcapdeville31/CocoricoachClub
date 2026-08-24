@@ -27,19 +27,14 @@ import { Calendar, Users, User, TrendingUp, Flag, Plus, Trash2 } from "lucide-re
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   playerId: string;
   categoryId: string;
 }
 
-const goalTypeLabels: Record<string, string> = {
-  team: "Équipe",
-  physical: "Physique",
-  tactical: "Tactique",
-  technical: "Technique",
-  mental: "Mental",
-};
+// goalTypeLabels are built inside the component via t()
 
 const goalTypeColors: Record<string, string> = {
   team: "bg-blue-500",
@@ -49,16 +44,25 @@ const goalTypeColors: Record<string, string> = {
   mental: "bg-sky-500",
 };
 
-const statusLabels: Record<string, string> = {
-  pending: "À faire",
-  in_progress: "En cours",
-  completed: "Terminé",
-};
+// statusLabels are built inside the component via t()
 
 const currentYear = new Date().getFullYear();
 
 export function AthleteSpaceObjectives({ playerId, categoryId }: Props) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const goalTypeLabels: Record<string, string> = {
+    team: t("athleteSpace.objectives.goalType.team"),
+    physical: t("athleteSpace.objectives.goalType.physical"),
+    tactical: t("athleteSpace.objectives.goalType.tactical"),
+    technical: t("athleteSpace.objectives.goalType.technical"),
+    mental: t("athleteSpace.objectives.goalType.mental"),
+  };
+  const statusLabels: Record<string, string> = {
+    pending: t("athleteSpace.objectives.status.pending"),
+    in_progress: t("athleteSpace.objectives.status.in_progress"),
+    completed: t("athleteSpace.objectives.status.completed"),
+  };
   const [dialogOpen, setDialogOpen] = useState(false);
 
   // Form state
@@ -150,11 +154,11 @@ export function AthleteSpaceObjectives({ playerId, categoryId }: Props) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["athlete-personal-objectives"] });
-      toast.success("Objectif ajouté");
+      toast.success(t("athleteSpace.objectives.objectiveAdded"));
       setDialogOpen(false);
       resetForm();
     },
-    onError: (e: any) => toast.error(e?.message || "Erreur lors de l'ajout"),
+    onError: (e: any) => toast.error(e?.message || t("athleteSpace.objectives.addError")),
   });
 
   const updateMutation = useMutation({
@@ -169,7 +173,7 @@ export function AthleteSpaceObjectives({ playerId, categoryId }: Props) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["athlete-personal-objectives"] });
     },
-    onError: (e: any) => toast.error(e?.message || "Erreur de mise à jour"),
+    onError: (e: any) => toast.error(e?.message || t("athleteSpace.objectives.updateError")),
   });
 
   const deleteMutation = useMutation({
@@ -179,9 +183,9 @@ export function AthleteSpaceObjectives({ playerId, categoryId }: Props) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["athlete-personal-objectives"] });
-      toast.success("Objectif supprimé");
+      toast.success(t("athleteSpace.objectives.objectiveDeleted"));
     },
-    onError: (e: any) => toast.error(e?.message || "Erreur lors de la suppression"),
+    onError: (e: any) => toast.error(e?.message || t("athleteSpace.objectives.deleteError")),
   });
 
   const teamCompletedCount = teamGoals.filter(g => g.status === "completed").length;
@@ -200,16 +204,16 @@ export function AthleteSpaceObjectives({ playerId, categoryId }: Props) {
             <div>
               <CardTitle className="text-base flex items-center gap-2">
                 <User className="h-4 w-4 text-primary" />
-                Mes Objectifs Personnels
+                {t("athleteSpace.objectives.myPersonalObjectives")}
               </CardTitle>
               {totalPersonal > 0 && (
                 <div className="flex items-center gap-3 mt-1 flex-wrap">
                   <Badge variant="secondary" className="text-xs gap-1">
                     <TrendingUp className="h-3 w-3" />
-                    {personalCompletedCount}/{totalPersonal} terminés
+                    {t("athleteSpace.objectives.completedCount", { completed: personalCompletedCount, total: totalPersonal })}
                   </Badge>
                   <Badge variant="outline" className="text-xs">
-                    Progression: {personalProgress}%
+                    {t("athleteSpace.objectives.progress", { percent: personalProgress })}
                   </Badge>
                 </div>
               )}
@@ -218,16 +222,16 @@ export function AthleteSpaceObjectives({ playerId, categoryId }: Props) {
               <DialogTrigger asChild>
                 <Button size="sm" className="shrink-0">
                   <Plus className="h-4 w-4 mr-1" />
-                  Ajouter
+                  {t("athleteSpace.objectives.add")}
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-h-[85vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Nouvel objectif personnel</DialogTitle>
+                  <DialogTitle>{t("athleteSpace.objectives.newPersonalObjective")}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
-                    <Label>Type</Label>
+                    <Label>{t("athleteSpace.objectives.type")}</Label>
                     <Select value={formGoalType} onValueChange={setFormGoalType}>
                       <SelectTrigger className="mt-1">
                         <SelectValue />
@@ -242,25 +246,25 @@ export function AthleteSpaceObjectives({ playerId, categoryId }: Props) {
                     </Select>
                   </div>
                   <div>
-                    <Label>Titre</Label>
+                    <Label>{t("athleteSpace.objectives.title")}</Label>
                     <Input
                       value={formTitle}
                       onChange={e => setFormTitle(e.target.value)}
-                      placeholder="Ex: Améliorer ma moyenne strike à 70%"
+                      placeholder={t("athleteSpace.objectives.titlePlaceholder")}
                       className="mt-1"
                     />
                   </div>
                   <div>
-                    <Label>Description (optionnel)</Label>
+                    <Label>{t("athleteSpace.objectives.descriptionOptional")}</Label>
                     <Textarea
                       value={formDescription}
                       onChange={e => setFormDescription(e.target.value)}
-                      placeholder="Détails..."
+                      placeholder={t("athleteSpace.objectives.descriptionPlaceholder")}
                       className="mt-1"
                     />
                   </div>
                   <div>
-                    <Label>Date cible (optionnel)</Label>
+                    <Label>{t("athleteSpace.objectives.targetDateOptional")}</Label>
                     <Input
                       type="date"
                       value={formTargetDate}
@@ -271,38 +275,38 @@ export function AthleteSpaceObjectives({ playerId, categoryId }: Props) {
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
                     <Switch checked={formIsMeasurable} onCheckedChange={setFormIsMeasurable} />
                     <div>
-                      <Label className="text-sm font-medium">Objectif mesurable (KPI)</Label>
-                      <p className="text-xs text-muted-foreground">Suivi automatique de la progression</p>
+                      <Label className="text-sm font-medium">{t("athleteSpace.objectives.measurableGoal")}</Label>
+                      <p className="text-xs text-muted-foreground">{t("athleteSpace.objectives.measurableGoalDesc")}</p>
                     </div>
                   </div>
                   {formIsMeasurable && (
                     <div className="space-y-3 p-3 rounded-lg border border-accent/30">
                       <div>
-                        <Label className="text-xs">Métrique</Label>
+                        <Label className="text-xs">{t("athleteSpace.objectives.metric")}</Label>
                         <Input
                           value={formMetricName}
                           onChange={e => setFormMetricName(e.target.value)}
-                          placeholder="Ex: Moyenne strikes"
+                          placeholder={t("athleteSpace.objectives.metricPlaceholder")}
                           className="mt-1 h-8"
                         />
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <Label className="text-xs">Valeur cible</Label>
+                          <Label className="text-xs">{t("athleteSpace.objectives.targetValue")}</Label>
                           <Input
                             type="number"
                             value={formTargetValue}
                             onChange={e => setFormTargetValue(e.target.value)}
-                            placeholder="Ex: 70"
+                            placeholder={t("athleteSpace.objectives.targetValuePlaceholder")}
                             className="mt-1 h-8"
                           />
                         </div>
                         <div>
-                          <Label className="text-xs">Unité</Label>
+                          <Label className="text-xs">{t("athleteSpace.objectives.unit")}</Label>
                           <Input
                             value={formMetricUnit}
                             onChange={e => setFormMetricUnit(e.target.value)}
-                            placeholder="Ex: %"
+                            placeholder={t("athleteSpace.objectives.unitPlaceholder")}
                             className="mt-1 h-8"
                           />
                         </div>
@@ -312,14 +316,14 @@ export function AthleteSpaceObjectives({ playerId, categoryId }: Props) {
                   <Button
                     onClick={() => {
                       if (!formTitle.trim()) {
-                        toast.error("Veuillez saisir un titre");
+                        toast.error(t("athleteSpace.objectives.titleRequired"));
                         return;
                       }
                       addMutation.mutate();
                     }}
                     className="w-full"
                   >
-                    Ajouter l'objectif
+                    {t("athleteSpace.objectives.addObjective")}
                   </Button>
                 </div>
               </DialogContent>
@@ -329,7 +333,7 @@ export function AthleteSpaceObjectives({ playerId, categoryId }: Props) {
         <CardContent>
           {personalObjectives.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
-              Aucun objectif personnel défini. Clique sur "Ajouter" pour en créer un.
+              {t("athleteSpace.objectives.noPersonalObjectives")}
             </p>
           ) : (
             <div className="space-y-3">
@@ -365,7 +369,7 @@ export function AthleteSpaceObjectives({ playerId, categoryId }: Props) {
                       </div>
                       <Progress value={obj.progress_percentage || 0} className="h-1.5" />
                       <div className="flex gap-2 items-center mt-1">
-                        <Label className="text-xs shrink-0">Valeur actuelle:</Label>
+                        <Label className="text-xs shrink-0">{t("athleteSpace.objectives.currentValue")}</Label>
                         <Input
                           type="number"
                           className="w-20 h-7 text-xs"
@@ -378,7 +382,7 @@ export function AthleteSpaceObjectives({ playerId, categoryId }: Props) {
                   ) : (
                     <div className="space-y-1">
                       <div className="flex justify-between text-xs">
-                        <span>Progression</span>
+                        <span>{t("athleteSpace.objectives.progressLabel")}</span>
                         <span>{obj.progress_percentage || 0}%</span>
                       </div>
                       <Progress value={obj.progress_percentage || 0} className="h-1.5" />
@@ -395,9 +399,9 @@ export function AthleteSpaceObjectives({ playerId, categoryId }: Props) {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="pending">À faire</SelectItem>
-                            <SelectItem value="in_progress">En cours</SelectItem>
-                            <SelectItem value="completed">Terminé</SelectItem>
+                            <SelectItem value="pending">{t("athleteSpace.objectives.status.pending")}</SelectItem>
+                            <SelectItem value="in_progress">{t("athleteSpace.objectives.status.in_progress")}</SelectItem>
+                            <SelectItem value="completed">{t("athleteSpace.objectives.status.completed")}</SelectItem>
                           </SelectContent>
                         </Select>
                         <Input
@@ -415,7 +419,7 @@ export function AthleteSpaceObjectives({ playerId, categoryId }: Props) {
                   {obj.target_date && (
                     <p className="text-[10px] text-muted-foreground flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      Échéance: {format(new Date(obj.target_date), "d MMMM yyyy", { locale: fr })}
+                      {t("athleteSpace.objectives.deadline", { date: format(new Date(obj.target_date), "d MMMM yyyy", { locale: fr }) })}
                     </p>
                   )}
                   <Badge variant="outline" className="text-[10px]">
@@ -433,18 +437,18 @@ export function AthleteSpaceObjectives({ playerId, categoryId }: Props) {
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Users className="h-4 w-4 text-accent" />
-            Objectifs d'Équipe
+            {t("athleteSpace.objectives.teamObjectives")}
           </CardTitle>
           {teamGoals.length > 0 && (
             <Badge variant="secondary" className="text-xs gap-1 w-fit mt-1">
-              {teamCompletedCount}/{teamGoals.length} terminés
+              {t("athleteSpace.objectives.completedCount", { completed: teamCompletedCount, total: teamGoals.length })}
             </Badge>
           )}
         </CardHeader>
         <CardContent>
           {teamGoals.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
-              Aucun objectif d'équipe défini pour cette saison.
+              {t("athleteSpace.objectives.noTeamObjectives")}
             </p>
           ) : (
             <div className="space-y-3">
@@ -464,7 +468,7 @@ export function AthleteSpaceObjectives({ playerId, categoryId }: Props) {
                   )}
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs">
-                      <span>Progression</span>
+                      <span>{t("athleteSpace.objectives.progressLabel")}</span>
                       <span>{goal.progress_percentage || 0}%</span>
                     </div>
                     <Progress value={goal.progress_percentage || 0} className="h-1.5" />
@@ -472,7 +476,7 @@ export function AthleteSpaceObjectives({ playerId, categoryId }: Props) {
                   {goal.target_date && (
                     <p className="text-[10px] text-muted-foreground flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      Échéance: {format(new Date(goal.target_date), "d MMMM yyyy", { locale: fr })}
+                      {t("athleteSpace.objectives.deadline", { date: format(new Date(goal.target_date), "d MMMM yyyy", { locale: fr }) })}
                     </p>
                   )}
                   <Badge variant="outline" className="text-[10px]">
@@ -490,7 +494,7 @@ export function AthleteSpaceObjectives({ playerId, categoryId }: Props) {
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Flag className="h-4 w-4 text-warning" />
-            Tests prévus
+            {t("athleteSpace.objectives.plannedTests")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -500,7 +504,7 @@ export function AthleteSpaceObjectives({ playerId, categoryId }: Props) {
                 <div key={reminder.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
                   <div>
                     <p className="text-sm font-medium">{reminder.test_type}</p>
-                    <p className="text-xs text-muted-foreground">Tous les {reminder.frequency_weeks} semaines</p>
+                    <p className="text-xs text-muted-foreground">{t("athleteSpace.objectives.frequencyWeeks", { n: reminder.frequency_weeks })}</p>
                   </div>
                   {reminder.start_date && (
                     <Badge variant="outline" className="whitespace-nowrap">
@@ -512,7 +516,7 @@ export function AthleteSpaceObjectives({ playerId, categoryId }: Props) {
             </div>
           ) : (
             <p className="text-sm text-muted-foreground text-center py-4">
-              Aucun test prévu pour le moment.
+              {t("athleteSpace.objectives.noPlannedTests")}
             </p>
           )}
         </CardContent>

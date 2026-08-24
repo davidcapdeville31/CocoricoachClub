@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ZoomIn, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface TapingDetailEditorProps {
   tapingInstructions: string[];
@@ -20,12 +21,13 @@ export function TapingDetailEditor({
   onInstructionsChange,
   onDiagramUrlChange,
 }: TapingDetailEditorProps) {
+  const { t } = useTranslation();
   const [viewingImage, setViewingImage] = useState(false);
 
   return (
     <div className="space-y-3 p-3 border rounded-lg bg-muted/30">
       <Label className="text-sm font-medium flex items-center gap-2">
-        🏷️ Taping / Strapping
+        {t("health.tapingDetailEditor.title")}
       </Label>
 
       {/* Existing diagram preview (if any) — kept for backward compatibility */}
@@ -61,7 +63,7 @@ export function TapingDetailEditor({
       {/* Detailed instructions */}
       <div className="space-y-1">
         <Label className="text-xs text-muted-foreground">
-          Instructions détaillées (une par ligne)
+          {t("health.tapingDetailEditor.instructionsLabel")}
         </Label>
         <Textarea
           value={tapingInstructions.join("\n")}
@@ -70,7 +72,7 @@ export function TapingDetailEditor({
               e.target.value.split("\n").filter((c) => c.trim())
             )
           }
-          placeholder={`Ex:\n1. Préparer la peau (raser si nécessaire, nettoyer)\n2. Appliquer le pré-tape ou spray adhésif\n3. Poser l'ancre au niveau de...\n4. Appliquer la bande en tension de 50% vers...\n5. Lisser pour activer l'adhésif`}
+          placeholder={t("health.tapingDetailEditor.instructionsPlaceholder")}
           rows={6}
           className="text-sm"
         />

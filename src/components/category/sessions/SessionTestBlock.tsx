@@ -15,6 +15,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useTranslation } from "react-i18next";
 
 export interface SessionTest {
   id: string;
@@ -43,6 +44,7 @@ export function SessionTestBlock({
   playerSelectionMode,
   hideResults = false,
 }: SessionTestBlockProps) {
+  const { t } = useTranslation();
   const [expandedTestId, setExpandedTestId] = useState<string | null>(null);
   // Track hierarchical selection state per test
   const [testSelections, setTestSelections] = useState<Record<string, { group: string; zone: string }>>({});
@@ -110,7 +112,7 @@ export function SessionTestBlock({
   const getTestLabel = (test: SessionTest): string => {
     const category = filteredTestCategories.find(c => c.value === test.test_category);
     const testOption = category?.tests.find(t => t.value === test.test_type);
-    if (!category || !testOption) return "Test non configuré";
+    if (!category || !testOption) return t("planning:calendarDialogs.sessionForm.testNotConfigured");
     const groupLabel = category.group ? `${category.groupLabel} > ${category.label}` : category.label;
     return `${groupLabel} - ${testOption.label}`;
   };
@@ -137,13 +139,13 @@ export function SessionTestBlock({
             <ClipboardCheck className="h-6 w-6 text-emerald-600" />
           </div>
           <div>
-            <h4 className="font-medium text-emerald-700 dark:text-emerald-400">Tests de performance</h4>
+            <h4 className="font-medium text-emerald-700 dark:text-emerald-400">{t("planning:calendarDialogs.sessionForm.performanceTests")}</h4>
             <p className="text-sm text-muted-foreground mt-1">
-              Ajoutez des tests qui seront automatiquement enregistrés dans les statistiques des athlètes
+              {t("planning:calendarDialogs.sessionForm.addTestsHint")}
             </p>
           </div>
           <Button type="button" onClick={addTest} variant="outline" className="border-emerald-500 text-emerald-600 hover:bg-emerald-50">
-            <Plus className="h-4 w-4 mr-2" /> Ajouter un test
+            <Plus className="h-4 w-4 mr-2" /> {t("planning:calendarDialogs.sessionForm.addTest")}
           </Button>
         </div>
       </div>
@@ -155,13 +157,13 @@ export function SessionTestBlock({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <ClipboardCheck className="h-5 w-5 text-emerald-600" />
-          <span className="font-medium">Tests de performance</span>
+          <span className="font-medium">{t("planning:calendarDialogs.sessionForm.performanceTests")}</span>
           <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">
             {tests.length} test{tests.length > 1 ? "s" : ""}
           </Badge>
         </div>
         <Button type="button" onClick={addTest} variant="outline" size="sm" className="border-emerald-500 text-emerald-600 hover:bg-emerald-50">
-          <Plus className="h-4 w-4 mr-1" /> Ajouter
+          <Plus className="h-4 w-4 mr-1" /> {t("planning:calendarDialogs.sessionForm.add")}
         </Button>
       </div>
 
@@ -185,12 +187,12 @@ export function SessionTestBlock({
                   {test.test_type ? (
                     <span className="font-medium truncate">{getTestLabel(test)}</span>
                   ) : (
-                    <span className="text-muted-foreground italic">Cliquez pour configurer...</span>
+                    <span className="text-muted-foreground italic">{t("planning:calendarDialogs.sessionForm.clickToConfigure")}</span>
                   )}
                   {test.test_type && (
                     <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="outline" className="text-xs">{test.result_unit || "valeur"}</Badge>
-                      <span className="text-xs text-muted-foreground">{filledCount}/{effectivePlayers.length} résultats</span>
+                      <Badge variant="outline" className="text-xs">{test.result_unit || t("planning:calendarDialogs.sessionForm.value")}</Badge>
+                      <span className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.resultsCount", { count: `${filledCount}/${effectivePlayers.length}` })}</span>
                     </div>
                   )}
                 </div>
@@ -216,9 +218,9 @@ export function SessionTestBlock({
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <Label className="text-xs flex items-center gap-2">
-                          <Users className="h-3.5 w-3.5" /> Résultats des athlètes ({test.result_unit || "valeur"})
+                          <Users className="h-3.5 w-3.5" /> {t("planning:calendarDialogs.sessionForm.athleteResults", { unit: test.result_unit || t("planning:calendarDialogs.sessionForm.value") })}
                         </Label>
-                        <span className="text-xs text-muted-foreground">{filledCount}/{effectivePlayers.length} saisis</span>
+                        <span className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.savedCount", { count: `${filledCount}/${effectivePlayers.length}` })}</span>
                       </div>
                       <ScrollArea className="max-h-48">
                         <div className="grid grid-cols-2 gap-2 pr-2">
@@ -229,7 +231,7 @@ export function SessionTestBlock({
                                 <AvatarFallback className="text-xs">{(player.first_name || player.name).slice(0, 2).toUpperCase()}</AvatarFallback>
                               </Avatar>
                               <span className="text-sm truncate flex-1">{player.first_name ? `${player.first_name} ${player.name}` : player.name}</span>
-                              <Input type="number" step="0.01" placeholder={test.result_unit || "valeur"} className="h-7 w-20 text-xs" value={test.player_results[player.id] || ""} onChange={(e) => updatePlayerResult(test.id, player.id, e.target.value)} />
+                              <Input type="number" step="0.01" placeholder={test.result_unit || t("planning:calendarDialogs.sessionForm.value")} className="h-7 w-20 text-xs" value={test.player_results[player.id] || ""} onChange={(e) => updatePlayerResult(test.id, player.id, e.target.value)} />
                             </div>
                           ))}
                         </div>
@@ -240,14 +242,14 @@ export function SessionTestBlock({
                   {hideResults && test.test_type && (
                     <div className="text-center py-3 text-sm text-muted-foreground border rounded-lg bg-emerald-50/50 dark:bg-emerald-900/10">
                       <ClipboardCheck className="h-6 w-6 mx-auto mb-1 text-emerald-600" />
-                      Les résultats seront saisis après la séance via "Retour/Commentaire"
+                      {t("planning:calendarDialogs.sessionForm.resultsAfterFeedbackHint")}
                     </div>
                   )}
 
                   {!hideResults && test.test_type && effectivePlayers.length === 0 && (
                     <div className="text-center py-4 text-sm text-muted-foreground border rounded-lg bg-muted/30">
                       <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      Aucun athlète sélectionné.
+                      {t("planning:calendarDialogs.sessionForm.noAthleteSelected")}
                     </div>
                   )}
                 </div>
@@ -260,8 +262,7 @@ export function SessionTestBlock({
       <div className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/50 p-3 rounded-lg">
         <Info className="h-4 w-4 shrink-0 mt-0.5" />
         <span>
-          Les tests ajoutés ici seront automatiquement enregistrés dans l'onglet "Tests" et 
-          apparaîtront dans les statistiques de chaque athlète après l'enregistrement de la séance.
+          {t("planning:calendarDialogs.sessionForm.testsAutoSavedHint")}
         </span>
       </div>
     </div>

@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils";
 import { ReadOnlyMethodCard } from "@/components/program-builder-v2/ReadOnlyMethodCard";
 import { parseV2MethodConfig } from "@/lib/program-builder-v2/parseV2MethodConfig";
 import { getMethodColors } from "@/components/program-builder-v2/shared/MethodGroupWrapper";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 
 // ============= Notes encoding (status + comment in a single `notes` column) =============
 const STATUS_TAGS: Record<"skipped" | "adapted", string> = {
@@ -58,26 +60,26 @@ function getPrescribedRounds(
 
   if (method === "circuit") {
     const n = Number(cfg.repsPerRound) || 0;
-    if (n > 0) return { count: n, label: "Tour" };
+    if (n > 0) return { count: n, label: i18n.t("athleteSpace:components.weightLogInput.roundLabels.tour") };
   }
   if (method === "emom") {
     const e = cfg.emomConfig;
     if (e?.totalMinutes && e?.intervalMinutes) {
       const n = Math.max(1, Math.floor(Number(e.totalMinutes) / Number(e.intervalMinutes)));
-      return { count: n, label: "Round" };
+      return { count: n, label: i18n.t("athleteSpace:components.weightLogInput.roundLabels.round") };
     }
   }
   if (method === "tabata") {
     const n = Number(cfg.tabataConfig?.rounds) || 0;
-    if (n > 0) return { count: n, label: "Round" };
+    if (n > 0) return { count: n, label: i18n.t("athleteSpace:components.weightLogInput.roundLabels.round") };
   }
   if (method === "five_by_five") {
-    return { count: 5, label: "Série" };
+    return { count: 5, label: i18n.t("athleteSpace:components.weightLogInput.series") };
   }
 
   const prescribed = Number(ex?.sets) || 0;
-  if (prescribed > 1) return { count: prescribed, label: "Série" };
-  return { count: 1, label: "Série" };
+  if (prescribed > 1) return { count: prescribed, label: i18n.t("athleteSpace:components.weightLogInput.series") };
+  return { count: 1, label: i18n.t("athleteSpace:components.weightLogInput.series") };
 }
 
 export type ExerciseStatus = "done" | "skipped" | "adapted";
@@ -145,14 +147,17 @@ const SPECIAL_AUTO_METHODS = new Set([
   "pyramid_full",
 ]);
 
-const METHOD_LABELS: Record<string, string> = {
-  drop_set: "Drop Set",
-  cluster: "Cluster",
-  rest_pause: "Rest-Pause",
-  pyramid_up: "Pyramide ↑",
-  pyramid_down: "Pyramide ↓",
-  pyramid_full: "Pyramide complète",
-};
+function getMethodLabel(method: string): string {
+  const labels: Record<string, string> = {
+    drop_set: i18n.t("athleteSpace:components.weightLogInput.methodLabels.dropSet"),
+    cluster: i18n.t("athleteSpace:components.weightLogInput.methodLabels.cluster"),
+    rest_pause: i18n.t("athleteSpace:components.weightLogInput.methodLabels.restPause"),
+    pyramid_up: i18n.t("athleteSpace:components.weightLogInput.methodLabels.pyramidUp"),
+    pyramid_down: i18n.t("athleteSpace:components.weightLogInput.methodLabels.pyramidDown"),
+    pyramid_full: i18n.t("athleteSpace:components.weightLogInput.methodLabels.pyramidFull"),
+  };
+  return labels[method] || method;
+}
 
 /**
  * Build the initial special series from the prescribed drop_sets / cluster_sets
@@ -168,7 +173,7 @@ function buildSpecialSeries(
     return clusterSets.map((s, i) => ({
       weight: baseWeight ? String(baseWeight) : "",
       reps: String(s.reps ?? ""),
-      label: `Cluster ${i + 1}`,
+      label: i18n.t("athleteSpace:components.weightLogInput.specialLabels.cluster", { n: i + 1 }),
     }));
   }
 
@@ -177,7 +182,7 @@ function buildSpecialSeries(
     return Array.from({ length: 3 }, (_, i) => ({
       weight: baseWeight ? String(baseWeight) : "",
       reps: "",
-      label: i === 0 ? "Set" : `Reprise ${i}`,
+      label: i === 0 ? i18n.t("athleteSpace:components.weightLogInput.specialLabels.set") : i18n.t("athleteSpace:components.weightLogInput.specialLabels.reprise", { n: i }),
     }));
   }
 
@@ -190,8 +195,8 @@ function buildSpecialSeries(
         reps: String(s.reps ?? ""),
         label:
           method === "drop_set"
-            ? i === 0 ? "Charge max" : `Drop ${i}`
-            : `Niveau ${i + 1}`,
+            ? i === 0 ? i18n.t("athleteSpace:components.weightLogInput.specialLabels.chargeMax") : i18n.t("athleteSpace:components.weightLogInput.specialLabels.drop", { n: i })
+            : i18n.t("athleteSpace:components.weightLogInput.specialLabels.niveau", { n: i + 1 }),
       };
     });
   }
@@ -203,15 +208,16 @@ function buildSpecialSeries(
       return {
         weight: w ? String(w) : "",
         reps: "",
-        label: i === 0 ? "Charge max" : `Drop ${i} (−${i * 20}%)`,
+        label: i === 0 ? i18n.t("athleteSpace:components.weightLogInput.specialLabels.chargeMax") : i18n.t("athleteSpace:components.weightLogInput.specialLabels.dropPct", { n: i, pct: i * 20 }),
       };
     });
   }
 
-  return [{ weight: baseWeight ? String(baseWeight) : "", reps: "", label: "Série" }];
+  return [{ weight: baseWeight ? String(baseWeight) : "", reps: "", label: i18n.t("athleteSpace:components.weightLogInput.series") }];
 }
 
 export function AthleteWeightLogInput({ sessionId, playerId, value, onChange, trainingType }: Props) {
+  const { t } = useTranslation();
   // Fetch prescribed exercises (now includes set_type, method, drop_sets, cluster_sets)
   const { data: rawExercises = [] } = useQuery({
     queryKey: ["athlete-weight-log-exercises", sessionId, playerId],
@@ -338,7 +344,7 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange, tr
       const method = (ex?.method || ex?.set_type || "normal") as string;
       const { count, label } = ex
         ? getPrescribedRounds(method, ex)
-        : { count: parseInt(current.sets) || 3, label: "Série" };
+        : { count: parseInt(current.sets) || 3, label: t("athleteSpace:components.weightLogInput.series") };
       const setsNum = count > 1 ? count : (parseInt(current.sets) || 3);
       updateEntry(exerciseName, {
         mode: "detailed",
@@ -366,7 +372,7 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange, tr
         <div className="rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 p-4 text-center">
           <Dumbbell className="h-6 w-6 text-primary mx-auto mb-2" />
           <p className="text-sm text-muted-foreground">
-            Aucun exercice musculation prévu pour cette séance.
+            {t("athleteSpace:components.weightLogInput.noExercises")}
           </p>
         </div>
       );
@@ -378,13 +384,13 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange, tr
     <div className="space-y-3 rounded-lg border border-primary/30 bg-primary/5 p-3">
       <div className="flex items-center gap-2">
         <Dumbbell className="h-4 w-4 text-primary" />
-        <Label className="text-sm font-semibold">Mes charges soulevées</Label>
+        <Label className="text-sm font-semibold">{t("athleteSpace:components.weightLogInput.title")}</Label>
         <Badge variant="outline" className="text-[10px] ml-auto">
-          {gymExercises.length} exercice{gymExercises.length > 1 ? "s" : ""}
+          {t("athleteSpace:components.weightLogInput.exercises", { count: gymExercises.length, plural: gymExercises.length > 1 ? "s" : "" })}
         </Badge>
       </div>
       <p className="text-xs text-muted-foreground">
-        Renseigne ce que tu as réellement soulevé pour alimenter ton tonnage.
+        {t("athleteSpace:components.weightLogInput.subtitle")}
       </p>
 
       {gymExercises.map((ex: any) => {
@@ -396,9 +402,9 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange, tr
         if (existing) {
           const statusBadge =
             existing.status === "skipped"
-              ? <Badge variant="outline" className="text-[10px] border-destructive/40 text-destructive">Non fait</Badge>
+              ? <Badge variant="outline" className="text-[10px] border-destructive/40 text-destructive">{t("athleteSpace:components.weightLogInput.notFinished")}</Badge>
               : existing.status === "adapted"
-                ? <Badge variant="outline" className="text-[10px] border-warning/40 text-warning">Adapté</Badge>
+                ? <Badge variant="outline" className="text-[10px] border-warning/40 text-warning">{t("athleteSpace:components.weightLogInput.adapted")}</Badge>
                 : null;
           return (
             <div
@@ -455,13 +461,13 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange, tr
                 {isSpecial && (
                   <Badge className={cn("text-white border-0 text-[10px] h-5 px-2 gap-1", colors.iconBg)}>
                     <Zap className="h-2.5 w-2.5" />
-                    {METHOD_LABELS[method] || method}
+                    {getMethodLabel(method)}
                   </Badge>
                 )}
                 {ex.sets && ex.reps && !isSpecial && (
                   <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                    Prescrit : {ex.sets}×{ex.reps}
-                    {ex.weight_kg ? ` @${ex.weight_kg}kg` : ""}
+                    {t("athleteSpace:components.weightLogInput.prescribed", { sets: ex.sets, reps: ex.reps })}
+                    {ex.weight_kg ? t("athleteSpace:components.weightLogInput.atWeight", { weight: ex.weight_kg }) : ""}
                   </span>
                 )}
               </div>
@@ -475,21 +481,21 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange, tr
                   active={(entry.status ?? "done") === "done"}
                   onClick={() => updateEntry(ex.exercise_name, { ...entry, status: "done" })}
                   icon={<Check className="h-3 w-3" />}
-                  label="Fait"
+                  label={t("athleteSpace:components.weightLogInput.done")}
                   activeClass="bg-status-optimal/15 text-status-optimal border-status-optimal/40"
                 />
                 <StatusPill
                   active={entry.status === "adapted"}
                   onClick={() => updateEntry(ex.exercise_name, { ...entry, status: "adapted" })}
                   icon={<Wrench className="h-3 w-3" />}
-                  label="Adapté"
+                  label={t("athleteSpace:components.weightLogInput.adapted")}
                   activeClass="bg-warning/15 text-warning border-warning/40"
                 />
                 <StatusPill
                   active={entry.status === "skipped"}
                   onClick={() => updateEntry(ex.exercise_name, { ...entry, status: "skipped" })}
                   icon={<SkipForward className="h-3 w-3" />}
-                  label="Non fait"
+                  label={t("athleteSpace:components.weightLogInput.skipped")}
                   activeClass="bg-destructive/15 text-destructive border-destructive/40"
                 />
                 <div className="ml-auto" />
@@ -501,7 +507,7 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange, tr
                     onClick={() => toggleMode(ex.exercise_name, ex)}
                     className="h-6 px-2 text-[10px]"
                   >
-                    {entry.mode === "quick" ? "Détaillé" : "Rapide"}
+                    {entry.mode === "quick" ? t("athleteSpace:components.weightLogInput.detailedLabel") : t("athleteSpace:components.weightLogInput.quickLabel")}
                   </Button>
                 )}
               </div>
@@ -509,7 +515,7 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange, tr
               {entry.status !== "skipped" && (
                 <>
                   <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Mes charges réelles
+                    {t("athleteSpace:components.weightLogInput.myRealLoads")}
                   </Label>
 
                   {entry.mode === "quick" && (
@@ -541,10 +547,10 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange, tr
                 onChange={(e) => updateEntry(ex.exercise_name, { ...entry, comment: e.target.value })}
                 placeholder={
                   entry.status === "skipped"
-                    ? "Raison (douleur, fatigue, matériel manquant...)"
+                    ? t("athleteSpace:components.weightLogInput.commentSkippedPlaceholder")
                     : entry.status === "adapted"
-                      ? "Adaptation effectuée (charge réduite, variante...)"
-                      : "Commentaire (optionnel)"
+                      ? t("athleteSpace:components.weightLogInput.commentAdaptedPlaceholder")
+                      : t("athleteSpace:components.weightLogInput.commentDefaultPlaceholder")
                 }
                 rows={2}
                 maxLength={300}
@@ -596,6 +602,7 @@ function QuickModeRow({
   entry: WeightLogQuickEntry;
   onChange: (next: WeightLogQuickEntry) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
       <Input
@@ -609,7 +616,7 @@ function QuickModeRow({
       <span className="text-xs text-muted-foreground">kg</span>
       <Input
         type="number"
-        placeholder="Séries"
+        placeholder={t("athleteSpace:components.weightLogInput.seriesPlaceholder")}
         className="h-8 w-16 text-xs ml-2"
         value={entry.sets}
         onChange={(e) => onChange({ ...entry, sets: e.target.value })}
@@ -634,12 +641,13 @@ function DetailedModeRows({
   entry: WeightLogDetailedEntry;
   onChange: (next: WeightLogDetailedEntry) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-1.5">
       {entry.series.map((serie, idx) => (
         <div key={idx} className="flex items-center gap-1.5">
           <span className="text-[10px] text-muted-foreground w-14 shrink-0">
-            {(entry.seriesLabel || "Série")} {idx + 1}
+            {(entry.seriesLabel || t("athleteSpace:components.weightLogInput.series"))} {idx + 1}
           </span>
           <Input
             type="number"
@@ -691,7 +699,7 @@ function DetailedModeRows({
         }}
       >
         <Plus className="h-3 w-3 mr-1" />
-        Ajouter une série
+        {t("athleteSpace:components.weightLogInput.addSeries")}
       </Button>
     </div>
   );
@@ -704,24 +712,25 @@ function SpecialModeRows({
   entry: WeightLogSpecialEntry;
   onChange: (next: WeightLogSpecialEntry) => void;
 }) {
+  const { t } = useTranslation();
   const helpText: Record<string, string> = {
-    drop_set: "Charge max → drops à charge dégressive jusqu'à l'échec.",
-    cluster: "Mini-séries entrecoupées de courtes pauses, charge identique.",
-    rest_pause: "Set principal jusqu'à l'échec, puis reprises courtes après pause de 15 s.",
-    pyramid_up: "Charge croissante × reps décroissantes.",
-    pyramid_down: "Charge décroissante × reps croissantes.",
-    pyramid_full: "Pyramide ascendante puis descendante.",
+    drop_set: t("athleteSpace:components.weightLogInput.methodHelp.dropSet"),
+    cluster: t("athleteSpace:components.weightLogInput.methodHelp.cluster"),
+    rest_pause: t("athleteSpace:components.weightLogInput.methodHelp.restPause"),
+    pyramid_up: t("athleteSpace:components.weightLogInput.methodHelp.pyramidUp"),
+    pyramid_down: t("athleteSpace:components.weightLogInput.methodHelp.pyramidDown"),
+    pyramid_full: t("athleteSpace:components.weightLogInput.methodHelp.pyramidFull"),
   };
 
   return (
     <div className="space-y-1.5">
       <p className="text-[10px] text-muted-foreground italic">
-        {helpText[entry.method] || "Saisis le poids et les reps de chaque sous-série."}
+        {helpText[entry.method] || t("athleteSpace:components.weightLogInput.methodHelp.default")}
       </p>
       {entry.series.map((serie, idx) => (
         <div key={idx} className="flex items-center gap-1.5">
           <span className="text-[10px] text-muted-foreground w-20 shrink-0 truncate">
-            {serie.label || `Set ${idx + 1}`}
+            {serie.label || t("athleteSpace:components.weightLogInput.set", { n: idx + 1 })}
           </span>
           <Input
             type="number"
@@ -772,18 +781,20 @@ function SpecialModeRows({
           className="h-7 text-[11px] w-full"
           onClick={() => {
             const last = entry.series[entry.series.length - 1] || { weight: "", reps: "" };
-            const labelPrefix = entry.method === "drop_set" ? "Drop" : "Reprise";
+            const label = entry.method === "drop_set"
+              ? t("athleteSpace:components.weightLogInput.specialLabels.drop", { n: entry.series.length })
+              : t("athleteSpace:components.weightLogInput.specialLabels.reprise", { n: entry.series.length });
             onChange({
               ...entry,
               series: [
                 ...entry.series,
-                { ...last, label: `${labelPrefix} ${entry.series.length}` },
+                { ...last, label },
               ],
             });
           }}
         >
           <Plus className="h-3 w-3 mr-1" />
-          Ajouter {entry.method === "drop_set" ? "un drop" : "une reprise"}
+          {entry.method === "drop_set" ? t("athleteSpace:components.weightLogInput.addDrop") : t("athleteSpace:components.weightLogInput.addResume")}
         </Button>
       )}
     </div>

@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
+import { useTranslation } from "react-i18next";
 
 interface AddIllnessDialogProps {
   open: boolean;
@@ -29,30 +30,31 @@ interface AddIllnessDialogProps {
   playerId?: string;
 }
 
-const COMMON_ILLNESSES = [
-  "Grippe",
-  "Gastro-entérite",
-  "COVID-19",
-  "Angine",
-  "Rhinopharyngite",
-  "Bronchite",
-  "Sinusite",
-  "Otite",
-  "Fièvre",
-  "Fatigue / surmenage",
-  "Migraine",
-  "Allergie",
-  "Mononucléose",
-  "Autre",
-];
-
-const SEVERITY = [
-  { value: "légère", label: "Légère" },
-  { value: "modérée", label: "Modérée" },
-  { value: "grave", label: "Grave" },
+const ILLNESS_KEYS = [
+  "flu",
+  "gastro",
+  "covid",
+  "angina",
+  "rhinopharyngitis",
+  "bronchitis",
+  "sinusitis",
+  "otitis",
+  "fever",
+  "fatigue",
+  "migraine",
+  "allergy",
+  "mononucleosis",
+  "other",
 ];
 
 export function AddIllnessDialog({ open, onOpenChange, categoryId, playerId }: AddIllnessDialogProps) {
+  const { t } = useTranslation();
+  const COMMON_ILLNESSES = ILLNESS_KEYS.map((key) => t(`health.addIllnessDialog.illnesses.${key}`));
+  const SEVERITY = [
+    { value: "légère", label: t("health.addIllnessDialog.severity.mild") },
+    { value: "modérée", label: t("health.addIllnessDialog.severity.moderate") },
+    { value: "grave", label: t("health.addIllnessDialog.severity.severe") },
+  ];
   const qc = useQueryClient();
   const guard = useSeasonGuard(categoryId);
   const [selectedPlayerId, setSelectedPlayerId] = useState(playerId || "");
@@ -97,13 +99,13 @@ export function AddIllnessDialog({ open, onOpenChange, categoryId, playerId }: A
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["illnesses", categoryId] });
       qc.invalidateQueries({ queryKey: ["illness-stats", categoryId] });
-      toast.success("Maladie enregistrée");
+      toast.success(t("health.addIllnessDialog.toastSuccess"));
       reset();
       onOpenChange(false);
     },
     onError: (e: any) => {
       if (typeof e?.message === "string" && e.message.startsWith("guard:")) return;
-      toast.error(`Erreur: ${e?.message || "enregistrement impossible"}`);
+      toast.error(`${t("health.addIllnessDialog.toastErrorPrefix")}${e?.message || t("health.addIllnessDialog.toastGenericError")}`);
     },
   });
 
@@ -120,8 +122,8 @@ export function AddIllnessDialog({ open, onOpenChange, categoryId, playerId }: A
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const finalType = illnessType === "Autre" ? customType : illnessType;
-    if (!selectedPlayerId) return toast.error("Sélectionnez un athlète");
-    if (!finalType) return toast.error("Précisez la maladie");
+    if (!selectedPlayerId) return toast.error(t("health.addIllnessDialog.toastPlayerRequired"));
+    if (!finalType) return toast.error(t("health.addIllnessDialog.toastTypeRequired"));
     add.mutate();
   };
 
@@ -129,15 +131,15 @@ export function AddIllnessDialog({ open, onOpenChange, categoryId, playerId }: A
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Enregistrer une maladie</DialogTitle>
+          <DialogTitle>{t("health.addIllnessDialog.title")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             {!playerId && (
               <div className="space-y-2">
-                <Label>Athlète *</Label>
+                <Label>{t("health.addIllnessDialog.athlete")}</Label>
                 <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId}>
-                  <SelectTrigger><SelectValue placeholder="Sélectionner un athlète" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t("health.addIllnessDialog.selectAthletePlaceholder")} /></SelectTrigger>
                   <SelectContent>
                     {players?.map((p: any) => (
                       <SelectItem key={p.id} value={p.id}>
@@ -150,9 +152,9 @@ export function AddIllnessDialog({ open, onOpenChange, categoryId, playerId }: A
             )}
 
             <div className="space-y-2">
-              <Label>Type de maladie *</Label>
+              <Label>{t("health.addIllnessDialog.illnessType")}</Label>
               <Select value={illnessType} onValueChange={setIllnessType}>
-                <SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t("health.addIllnessDialog.selectPlaceholder")} /></SelectTrigger>
                 <SelectContent>
                   {COMMON_ILLNESSES.map((t) => (
                     <SelectItem key={t} value={t}>{t}</SelectItem>
@@ -163,7 +165,7 @@ export function AddIllnessDialog({ open, onOpenChange, categoryId, playerId }: A
                 <Input
                   value={customType}
                   onChange={(e) => setCustomType(e.target.value)}
-                  placeholder="Décrire la maladie..."
+                  placeholder={t("health.addIllnessDialog.customTypePlaceholder")}
                   className="mt-2"
                 />
               )}
@@ -171,11 +173,11 @@ export function AddIllnessDialog({ open, onOpenChange, categoryId, playerId }: A
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Date de début *</Label>
+                <Label>{t("health.addIllnessDialog.startDate")}</Label>
                 <Input type="date" value={illnessDate} onChange={(e) => setIllnessDate(e.target.value)} required />
               </div>
               <div className="space-y-2">
-                <Label>Gravité *</Label>
+                <Label>{t("health.addIllnessDialog.severityLabel")}</Label>
                 <Select value={severity} onValueChange={setSeverity}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -188,20 +190,20 @@ export function AddIllnessDialog({ open, onOpenChange, categoryId, playerId }: A
             </div>
 
             <div className="space-y-2">
-              <Label>Date de retour estimée</Label>
+              <Label>{t("health.addIllnessDialog.estimatedReturnDate")}</Label>
               <Input type="date" value={estimatedReturn} onChange={(e) => setEstimatedReturn(e.target.value)} />
             </div>
 
             <div className="space-y-2">
-              <Label>Description</Label>
-              <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} placeholder="Symptômes, contexte..." />
+              <Label>{t("health.addIllnessDialog.description")}</Label>
+              <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} placeholder={t("health.addIllnessDialog.descriptionPlaceholder")} />
             </div>
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t("health.addIllnessDialog.cancel")}</Button>
             <Button type="submit" disabled={add.isPending}>
-              {add.isPending ? "Enregistrement..." : "Enregistrer"}
+              {add.isPending ? t("health.addIllnessDialog.saving") : t("health.addIllnessDialog.save")}
             </Button>
           </DialogFooter>
         </form>
