@@ -2962,6 +2962,39 @@ export type Database = {
         }
         Relationships: []
       }
+      content_translations: {
+        Row: {
+          created_at: string
+          id: string
+          source_hash: string
+          source_lang: string
+          source_text: string
+          target_lang: string
+          translated_text: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          source_hash: string
+          source_lang: string
+          source_text: string
+          target_lang: string
+          translated_text: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          source_hash?: string
+          source_lang?: string
+          source_text?: string
+          target_lang?: string
+          translated_text?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       conversation_participants: {
         Row: {
           conversation_id: string
