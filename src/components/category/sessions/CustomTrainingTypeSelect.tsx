@@ -75,7 +75,6 @@ export function CustomTrainingTypeSelect({
 
       if (error) throw error;
       return data;
-      void translateOnSave([name]);
     },
     enabled: !!categoryId,
   });
