@@ -208,6 +208,7 @@ export const planningFr = {
       addError: "Erreur lors de l'ajout",
       sessionDeleted: "Séance supprimée",
       deleteError: "Erreur lors de la suppression",
+      pdfExported: "PDF exporté avec succès",
     },
   },
   calendarDialogs: {
@@ -801,6 +802,7 @@ export const planningEn = {
       addError: "Error while adding",
       sessionDeleted: "Session deleted",
       deleteError: "Error while deleting",
+      pdfExported: "PDF exported successfully",
     },
   },
   calendarDialogs: {
