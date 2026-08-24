@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, type CSSProperties } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { subDays } from "date-fns";
@@ -64,6 +65,7 @@ const parseLocalDate = (value: string | null): Date | undefined => {
 };
 
 export function WellnessTab({ categoryId, view }: WellnessTabProps) {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const urlWellnessDate = searchParams.get("wellnessDate");
   const initialDate = parseLocalDate(urlWellnessDate) || new Date();
@@ -236,7 +238,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
   );
 
   if (isLoading) {
-    return <div className="text-muted-foreground">Chargement...</div>;
+    return <div className="text-muted-foreground">{t("health.wellness.loading")}</div>;
   }
 
   const calculateWellnessScore = (entry: any) => {
@@ -313,14 +315,14 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
         return q.is_sleep_duration ? sleepScoreLabel(raw) : String(raw);
       }),
       calculateWellnessScore(entry).replace(".", ","),
-      entry.has_specific_pain ? (entry.pain_location || "Oui") : "Non",
+      entry.has_specific_pain ? (entry.pain_location || t("health.wellness.csv.yes")) : t("health.wellness.csv.no"),
     ]);
     const headers = [
-      "Joueur",
-      "Date",
+      t("health.wellness.csv.player"),
+      t("health.wellness.csv.date"),
       ...activeQuestions.map((q) => q.label),
-      "Score moyen",
-      "Douleur spécifique",
+      t("health.wellness.csv.averageScore"),
+      t("health.wellness.csv.specificPain"),
     ];
     const period = [
       filterFrom ? format(filterFrom, "yyyy-MM-dd") : null,
@@ -336,11 +338,11 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
         {!view && (
           <div className="flex justify-center overflow-x-auto -mx-4 px-4 pb-2">
             <ColoredSubTabsList colorKey="sante" className="inline-flex w-max">
-              <ColoredSubTabsTrigger value="tracking" colorKey="sante">Suivi Wellness</ColoredSubTabsTrigger>
-              <ColoredSubTabsTrigger value="pain-stats" colorKey="sante">Statistiques Douleurs</ColoredSubTabsTrigger>
-              <ColoredSubTabsTrigger value="risk" colorKey="sante">Risque Blessure (EWMA + AWCR + Wellness)</ColoredSubTabsTrigger>
+              <ColoredSubTabsTrigger value="tracking" colorKey="sante">{t("health.wellness.tabs.tracking")}</ColoredSubTabsTrigger>
+              <ColoredSubTabsTrigger value="pain-stats" colorKey="sante">{t("health.wellness.tabs.painStats")}</ColoredSubTabsTrigger>
+              <ColoredSubTabsTrigger value="risk" colorKey="sante">{t("health.wellness.tabs.risk")}</ColoredSubTabsTrigger>
               {isFeminine && (
-                <ColoredSubTabsTrigger value="menstrual" colorKey="sante">Cycle Menstruel</ColoredSubTabsTrigger>
+                <ColoredSubTabsTrigger value="menstrual" colorKey="sante">{t("health.wellness.tabs.menstrual")}</ColoredSubTabsTrigger>
               )}
             </ColoredSubTabsList>
           </div>
@@ -352,10 +354,10 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
               <Button
                 variant="outline"
                 onClick={() => setIsCustomizeOpen(true)}
-                title="Personnaliser les questions, le barème et les natures de douleur"
+                title={t("health.wellness.customizeTooltip")}
               >
                 <Settings2 className="h-4 w-4 mr-2" />
-                Personnaliser Wellness
+                {t("health.wellness.customizeButton")}
               </Button>
             </div>
           )}
@@ -363,19 +365,19 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
             <CardHeader>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <CardTitle>Wellness & Soreness</CardTitle>
+                  <CardTitle>{t("health.wellness.cardTitle")}</CardTitle>
                   <CardDescription>
-                    Suivi du bien-être et des douleurs musculaires des joueurs
+                    {t("health.wellness.cardDescription")}
                   </CardDescription>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   {/* Player filter */}
                   <Select value={filterPlayerId} onValueChange={setFilterPlayerId}>
                     <SelectTrigger className="w-[200px]">
-                      <SelectValue placeholder="Tous les athlètes" />
+                      <SelectValue placeholder={t("health.wellness.allAthletes")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Tous les athlètes</SelectItem>
+                      <SelectItem value="all">{t("health.wellness.allAthletes")}</SelectItem>
                       {playersList.map(p => (
                         <SelectItem key={p.id} value={p.id}>{p.label}</SelectItem>
                       ))}
@@ -392,7 +394,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                         )}
                       >
                         <Calendar className="mr-2 h-4 w-4" />
-                        {filterFrom ? format(filterFrom, "dd MMM yyyy", { locale: fr }) : "Date de début"}
+                        {filterFrom ? format(filterFrom, "dd MMM yyyy", { locale: fr }) : t("health.wellness.startDate")}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="end">
@@ -408,7 +410,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                       />
                     </PopoverContent>
                   </Popover>
-                  <span className="text-sm text-muted-foreground">à</span>
+                  <span className="text-sm text-muted-foreground">{t("health.wellness.to")}</span>
                   {/* Date range: to */}
                   <Popover>
                     <PopoverTrigger asChild>
@@ -420,7 +422,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                         )}
                       >
                         <Calendar className="mr-2 h-4 w-4" />
-                        {filterTo ? format(filterTo, "dd MMM yyyy", { locale: fr }) : "Date de fin"}
+                        {filterTo ? format(filterTo, "dd MMM yyyy", { locale: fr }) : t("health.wellness.endDate")}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="end">
@@ -441,7 +443,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                       variant="ghost"
                       size="icon"
                       onClick={() => { setFilterFrom(undefined); setFilterTo(undefined); setFilterPlayerId("all"); }}
-                      title="Effacer les filtres"
+                      title={t("health.wellness.clearFilters")}
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -450,10 +452,10 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                     variant="outline"
                     onClick={handleExportCsv}
                     disabled={!filteredWellnessData || filteredWellnessData.length === 0}
-                    title="Exporter les wellness affichés en CSV"
+                    title={t("health.wellness.exportCsvTooltip")}
                   >
                     <Download className="h-4 w-4 mr-2" />
-                    Exporter CSV
+                    {t("health.wellness.exportCsv")}
                   </Button>
                   {!isViewer && (
 
@@ -461,7 +463,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                       <WellnessReminderButton categoryId={categoryId} />
                       <Button onClick={() => setIsDialogOpen(true)}>
                         <Plus className="h-4 w-4 mr-2" />
-                        Nouvelle entrée
+                        {t("health.wellness.newEntry")}
                       </Button>
                     </>
                   )}
@@ -471,7 +473,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
             <CardContent>
         {!filteredWellnessData || filteredWellnessData.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            <p>{hasActiveFilter ? "Aucune donnée wellness pour les filtres sélectionnés." : "Aucune donnée wellness enregistrée."}</p>
+            <p>{hasActiveFilter ? t("health.wellness.emptyFiltered") : t("health.wellness.emptyNone")}</p>
             {!isViewer && !hasActiveFilter && (
               <Button 
                 variant="outline" 
@@ -479,7 +481,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                 onClick={() => setIsDialogOpen(true)}
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Ajouter la première entrée
+                {t("health.wellness.addFirstEntry")}
               </Button>
             )}
           </div>
@@ -489,15 +491,15 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
               <Table className="min-w-max">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="whitespace-nowrap">Joueur</TableHead>
-                    <TableHead className="whitespace-nowrap">Date</TableHead>
+                    <TableHead className="whitespace-nowrap">{t("health.wellness.table.player")}</TableHead>
+                    <TableHead className="whitespace-nowrap">{t("health.wellness.table.date")}</TableHead>
                     {activeQuestions.map((q) => (
                       <TableHead key={q.key} className="text-center whitespace-nowrap">
                         {q.emoji ? `${q.emoji} ` : ""}{q.label}
                       </TableHead>
                     ))}
-                    <TableHead className="text-center whitespace-nowrap">Score Moyen</TableHead>
-                    <TableHead className="whitespace-nowrap">Douleur Spécifique</TableHead>
+                    <TableHead className="text-center whitespace-nowrap">{t("health.wellness.table.averageScore")}</TableHead>
+                    <TableHead className="whitespace-nowrap">{t("health.wellness.table.specificPain")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -508,7 +510,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                           {[entry.players?.first_name, entry.players?.name].filter(Boolean).join(" ")}
                           {entry.auto_filled && (
                             <Badge variant="outline" className="text-[10px] text-muted-foreground">
-                              Auto
+                              {t("health.wellness.table.auto")}
                             </Badge>
                           )}
                         </span>
@@ -544,10 +546,10 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                         {entry.has_specific_pain ? (
                           <div className="flex items-center gap-2 text-destructive">
                             <AlertTriangle className="h-4 w-4" />
-                            <span className="text-sm">{entry.pain_location || "Oui"}</span>
+                            <span className="text-sm">{entry.pain_location || t("health.wellness.table.yes")}</span>
                           </div>
                         ) : (
-                          <span className="text-muted-foreground text-sm">Non</span>
+                          <span className="text-muted-foreground text-sm">{t("health.wellness.table.no")}</span>
                         )}
                       </TableCell>
                     </TableRow>
@@ -557,7 +559,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
             </div>
 
             <div className="mt-6 p-4 bg-muted rounded-lg">
-              <h4 className="font-medium mb-2">Légende des couleurs (échelle 1-5)</h4>
+              <h4 className="font-medium mb-2">{t("health.wellness.legend.title")}</h4>
               <div className="flex flex-wrap gap-3 text-sm">
                 {scale.map((s) => (
                   <div key={s.value} className="flex items-center gap-2">
@@ -567,13 +569,11 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                 ))}
               </div>
               <p className="text-xs text-muted-foreground mt-2">
-                La couleur suit l'échelle personnalisée de la catégorie. Pour les questions à
-                orientation positive (ex. qualité du sommeil, heures de sommeil), la valeur est
-                inversée : 5 = optimal (vert), 1 = dégradé (rouge).
+                {t("health.wellness.legend.explanation")}
               </p>
               {activeQuestions.some((q) => !q.inverted && !q.is_sleep_duration) && (
                 <p className="text-xs text-muted-foreground mt-1">
-                  Questions positives :{" "}
+                  {t("health.wellness.legend.positiveQuestions")}{" "}
                   {activeQuestions.filter((q) => !q.inverted && !q.is_sleep_duration).map((q) => q.label).join(" • ")}
                 </p>
               )}
@@ -609,9 +609,9 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
     <Dialog open={isCustomizeOpen} onOpenChange={setIsCustomizeOpen}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Personnaliser le Wellness</DialogTitle>
+          <DialogTitle>{t("health.wellness.customizeDialog.title")}</DialogTitle>
           <DialogDescription>
-            Gérez la fréquence et les questions du wellness pour cette catégorie. Les modifications sont appliquées uniquement à cette catégorie.
+            {t("health.wellness.customizeDialog.description")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">

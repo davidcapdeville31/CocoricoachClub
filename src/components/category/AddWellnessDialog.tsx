@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -45,6 +46,7 @@ const SLEEP_RANGES: { label: string; value: number }[] = [
 ];
 
 export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnessDialogProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const guard = useSeasonGuard(categoryId);
   const [playerId, setPlayerId] = useState("");
@@ -125,7 +127,7 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
     mutationFn: async () => {
       if (!guard.assertPlayer(playerId)) throw new Error("guard:player");
       if (!guard.assertDate(date)) throw new Error("guard:date");
-      const playerName = players?.find(p => p.id === playerId)?.name || "Athlète";
+      const playerName = players?.find(p => p.id === playerId)?.name || t("health.addWellness.defaultAthleteName");
 
       const activePainEntries = hasSpecificPain ? painEntries : [];
       const firstPain = activePainEntries[0];
@@ -195,7 +197,7 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
           category_id: categoryId,
           measurement_date: date,
           weight_kg: w,
-          notes: "Saisie via wellness",
+          notes: t("health.addWellness.bodyWeightNote"),
         });
         if (bcError) console.error("Body composition save error:", bcError);
       }
@@ -206,7 +208,7 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
       queryClient.invalidateQueries({ queryKey: ["wellness_tracking", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["wellness_decision", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["wellness_existing", categoryId, date] });
-      toast.success(`Wellness enregistré pour ${playerName}`);
+      toast.success(t("health.addWellness.toastSuccess", { name: playerName }));
       const currentDate = date;
       resetForm();
       setDate(currentDate);
@@ -214,9 +216,9 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
     onError: (error: any) => {
       if (typeof error?.message === "string" && error.message.startsWith("guard:")) return;
       if (error.code === "23505") {
-        toast.error("Une entrée existe déjà pour ce joueur à cette date");
+        toast.error(t("health.addWellness.toastDuplicate"));
       } else {
-        toast.error("Erreur lors de l'enregistrement");
+        toast.error(t("health.addWellness.toastError"));
       }
     },
   });
@@ -224,7 +226,7 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!playerId) {
-      toast.error("Veuillez sélectionner un athlète");
+      toast.error(t("health.addWellness.toastPlayerRequired"));
       return;
     }
     addWellness.mutate();
@@ -303,15 +305,15 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Nouvelle entrée Wellness & Soreness</DialogTitle>
+          <DialogTitle>{t("health.addWellness.title")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Joueur</Label>
+              <Label>{t("health.addWellness.player")}</Label>
               <Select value={playerId} onValueChange={setPlayerId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner..." />
+                  <SelectValue placeholder={t("health.addWellness.selectPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
                 {availablePlayers?.map((player) => (
@@ -321,14 +323,14 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
                   ))}
                   {availablePlayers?.length === 0 && (
                     <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                      Tous les athlètes ont déjà rempli leur wellness
+                      {t("health.addWellness.allPlayersFilled")}
                     </div>
                   )}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Date</Label>
+              <Label>{t("health.addWellness.date")}</Label>
               <Input
                 type="date"
                 value={date}
@@ -338,7 +340,7 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
           </div>
 
           <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
-            <h4 className="font-medium">Wellness</h4>
+            <h4 className="font-medium">{t("health.addWellness.sectionTitle")}</h4>
 
             {activeQuestions.map(q => {
               if (q.is_sleep_duration) {
@@ -372,7 +374,7 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
 
           <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
             <div className="flex items-center justify-between">
-              <Label htmlFor="specific-pain">Douleur(s) spécifique(s) / aiguë(s) ?</Label>
+              <Label htmlFor="specific-pain">{t("health.addWellness.specificPainLabel")}</Label>
               <Switch
                 id="specific-pain"
                 checked={hasSpecificPain}
@@ -393,7 +395,7 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
           {/* Poids du corps (optionnel) — met à jour l'anthropométrie */}
           <div className="space-y-2 p-4 bg-muted/50 rounded-lg">
             <Label htmlFor="wellness-weight" className="flex items-center gap-1.5">
-              ⚖️ Poids du corps (kg) — optionnel
+              {t("health.addWellness.weightLabel")}
             </Label>
             <Input
               id="wellness-weight"
@@ -401,13 +403,13 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
               step="0.1"
               min="20"
               max="250"
-              placeholder="Ex: 82.5"
+              placeholder={t("health.addWellness.weightPlaceholder")}
               value={weightKg}
               onChange={(e) => setWeightKg(e.target.value)}
               className="max-w-[180px]"
             />
             <p className="text-xs text-muted-foreground">
-              Enregistré dans le suivi anthropométrique — utilisé pour les tests en ratio du poids de corps.
+              {t("health.addWellness.weightHint")}
             </p>
           </div>
 
@@ -416,25 +418,25 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
 
           {/* Notes / Commentaires section */}
           <div className="space-y-2">
-            <Label htmlFor="wellness-notes">Notes / Commentaires du coach</Label>
+            <Label htmlFor="wellness-notes">{t("health.addWellness.notesLabel")}</Label>
             <Textarea
               id="wellness-notes"
-              placeholder="Ex: Mauvaise nuit suite à un voyage, stress lié à un examen, fatigue post-compétition..."
+              placeholder={t("health.addWellness.notesPlaceholder")}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="min-h-[80px]"
             />
             <p className="text-xs text-muted-foreground">
-              Notez les raisons des scores élevés ou tout contexte important
+              {t("health.addWellness.notesHint")}
             </p>
           </div>
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Annuler
+              {t("health.addWellness.cancel")}
             </Button>
             <Button type="submit" disabled={addWellness.isPending}>
-              Enregistrer
+              {t("health.addWellness.save")}
             </Button>
           </div>
         </form>

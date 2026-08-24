@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useSeasonFilteredPlayerIds, makePlayerIdFilter } from "@/hooks/use-season-filtered-players";
@@ -17,6 +18,7 @@ interface ConcussionProtocolTabProps {
 }
 
 export function ConcussionProtocolTab({ categoryId, sportType = "XV" }: ConcussionProtocolTabProps) {
+  const { t } = useTranslation();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const queryClient = useQueryClient();
   
@@ -42,7 +44,7 @@ export function ConcussionProtocolTab({ categoryId, sportType = "XV" }: Concussi
         const { data: pl } = await supabase.from("players").select("id, name").in("id", ids);
         names = Object.fromEntries((pl || []).map((p: any) => [p.id, p.name]));
       }
-      return (data || []).map((p: any) => ({ ...p, players: { name: names[p.player_id] || "Athlète" } }));
+      return (data || []).map((p: any) => ({ ...p, players: { name: names[p.player_id] || t("health.concussionTab.defaultPlayerName") } }));
     },
   });
   const protocols = useMemo(
@@ -67,11 +69,11 @@ export function ConcussionProtocolTab({ categoryId, sportType = "XV" }: Concussi
     [playersRaw, allowedIds],
   );
 
-  if (isLoading) return <p>Chargement...</p>;
+  if (isLoading) return <p>{t("health.concussionTab.loading")}</p>;
   if (protocolsError) {
     return (
       <p className="text-destructive text-sm">
-        Impossible de charger les protocoles commotion : {(protocolsError as any)?.message}
+        {t("health.concussionTab.loadError", { message: (protocolsError as any)?.message })}
       </p>
     );
   }
@@ -88,10 +90,10 @@ export function ConcussionProtocolTab({ categoryId, sportType = "XV" }: Concussi
         <CardHeader className="flex flex-row items-center justify-between">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-destructive" />
-            <CardTitle>Protocole Commotion Cérébrale</CardTitle>
+            <CardTitle>{t("health.concussionTab.cardTitle")}</CardTitle>
           </div>
           <Button size="sm" onClick={() => setIsDialogOpen(true)} disabled={!hasProtocol}>
-            <Plus className="h-4 w-4 mr-1" /> Signaler
+            <Plus className="h-4 w-4 mr-1" /> {t("health.concussionTab.report")}
           </Button>
         </CardHeader>
         <CardContent>
@@ -100,7 +102,7 @@ export function ConcussionProtocolTab({ categoryId, sportType = "XV" }: Concussi
               <div className="flex items-start gap-3">
                 <Info className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div>
-                  <h4 className="font-semibold mb-1">Pas de protocole officiel</h4>
+                  <h4 className="font-semibold mb-1">{t("health.concussionTab.noOfficialProtocolTitle")}</h4>
                   <p className="text-sm text-muted-foreground">
                     {protocol.notes}
                   </p>
@@ -109,7 +111,7 @@ export function ConcussionProtocolTab({ categoryId, sportType = "XV" }: Concussi
             </div>
           ) : (
             <div className="bg-muted/50 p-4 rounded-lg mb-6">
-              <h4 className="font-semibold mb-2">Protocole de retour au jeu ({protocol.federation})</h4>
+              <h4 className="font-semibold mb-2">{t("health.concussionTab.returnToPlayProtocol", { federation: protocol.federation })}</h4>
               <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
                 {protocol.phases.map((phase) => (
                   <li key={phase.phase}>{phase.name} - {phase.description}</li>
@@ -124,7 +126,7 @@ export function ConcussionProtocolTab({ categoryId, sportType = "XV" }: Concussi
           {activeProtocols.length > 0 && (
             <div className="space-y-4 mb-6">
               <div className="flex items-center gap-2">
-                <Badge variant="destructive">Actifs</Badge>
+                <Badge variant="destructive">{t("health.concussionTab.active")}</Badge>
                 <span className="text-sm text-muted-foreground">({activeProtocols.length})</span>
               </div>
               {activeProtocols.map((protocol: any) => (
@@ -138,7 +140,7 @@ export function ConcussionProtocolTab({ categoryId, sportType = "XV" }: Concussi
               <div className="flex items-center gap-2">
                 <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-600">
                   <Clock className="h-3 w-3 mr-1" />
-                  En récupération
+                  {t("health.concussionTab.recovery")}
                 </Badge>
                 <span className="text-sm text-muted-foreground">({recoveryProtocols.length})</span>
               </div>
@@ -153,7 +155,7 @@ export function ConcussionProtocolTab({ categoryId, sportType = "XV" }: Concussi
               <div className="flex items-center gap-2">
                 <Badge variant="secondary" className="bg-green-500/20 text-green-600">
                   <CheckCircle className="h-3 w-3 mr-1" />
-                  Retour validé
+                  {t("health.concussionTab.cleared")}
                 </Badge>
                 <span className="text-sm text-muted-foreground">({clearedProtocols.length})</span>
               </div>
@@ -165,7 +167,7 @@ export function ConcussionProtocolTab({ categoryId, sportType = "XV" }: Concussi
 
           {protocols?.length === 0 && (
             <p className="text-muted-foreground text-sm text-center py-4">
-              Aucun protocole commotion enregistré
+              {t("health.concussionTab.empty")}
             </p>
           )}
         </CardContent>

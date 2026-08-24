@@ -28,17 +28,20 @@ import {
 } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { useTranslation } from "react-i18next";
 
 interface PlayerObjectivesSectionProps {
   categoryId: string;
 }
 
-const goalTypeLabels: Record<string, string> = {
-  physical: "Physique",
-  tactical: "Tactique",
-  technical: "Technique",
-  mental: "Mental",
-};
+function useGoalTypeLabels(t: (k: string) => string): Record<string, string> {
+  return {
+    physical: t("planning.objectives.goalTypes.physical"),
+    tactical: t("planning.objectives.goalTypes.tactical"),
+    technical: t("planning.objectives.goalTypes.technical"),
+    mental: t("planning.objectives.goalTypes.mental"),
+  };
+}
 
 const goalTypeColors: Record<string, string> = {
   physical: "bg-emerald-500",
@@ -47,15 +50,20 @@ const goalTypeColors: Record<string, string> = {
   mental: "bg-sky-500",
 };
 
-const statusLabels: Record<string, string> = {
-  pending: "À faire",
-  in_progress: "En cours",
-  completed: "Terminé",
-};
+function useStatusLabels(t: (k: string) => string): Record<string, string> {
+  return {
+    pending: t("planning.objectives.status.pending"),
+    in_progress: t("planning.objectives.status.inProgress"),
+    completed: t("planning.objectives.status.completed"),
+  };
+}
 
 const currentYear = new Date().getFullYear();
 
 export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionProps) {
+  const { t } = useTranslation();
+  const goalTypeLabels = useGoalTypeLabels(t);
+  const statusLabels = useStatusLabels(t);
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string>("all");
@@ -116,10 +124,10 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
   const addMutation = useMutation({
     mutationFn: async () => {
       if (formPlayerIds.length === 0) {
-        throw new Error("Sélectionnez au moins un athlète");
+        throw new Error(t("planning.objectives.selectAtLeastOne"));
       }
       if (!formTitle.trim()) {
-        throw new Error("Le titre est obligatoire");
+        throw new Error(t("planning.objectives.titleRequired"));
       }
       const { data: { user } } = await supabase.auth.getUser();
       const rows = formPlayerIds.map((pid) => ({
@@ -143,11 +151,11 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
     },
     onSuccess: (count) => {
       queryClient.invalidateQueries({ queryKey: ["player-objectives"] });
-      toast.success(count && count > 1 ? `Objectif de groupe ajouté pour ${count} athlètes` : "Objectif ajouté");
+      toast.success(count && count > 1 ? t("planning.objectives.groupGoalAdded", { count }) : t("planning.objectives.toasts.goalAdded"));
       setDialogOpen(false);
       resetForm();
     },
-    onError: (e: any) => toast.error(e?.message || "Erreur lors de l'ajout"),
+    onError: (e: any) => toast.error(e?.message || t("planning.objectives.toasts.addError")),
   });
 
   const updateMutation = useMutation({
@@ -161,7 +169,7 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["player-objectives"] });
-      toast.success("Objectif mis à jour");
+      toast.success(t("planning.objectives.toasts.goalUpdated"));
     },
   });
 
@@ -172,7 +180,7 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["player-objectives"] });
-      toast.success("Objectif supprimé");
+      toast.success(t("planning.objectives.toasts.goalDeleted"));
     },
   });
 
@@ -190,7 +198,7 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
 
   const getPlayerName = (obj: any) => {
     const p = obj.players;
-    if (!p) return "Inconnu";
+    if (!p) return t("planning.objectives.unknown");
     return p.first_name ? `${p.first_name} ${p.name}` : p.name;
   };
 
@@ -202,17 +210,17 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
         <div>
           <h3 className="text-lg font-bold flex items-center gap-2">
             <User className="h-5 w-5 text-primary" />
-            Objectifs
+            {t("planning.objectives.title")}
           </h3>
-          <p className="text-sm text-muted-foreground">Objectifs individuels ou de groupe</p>
+          <p className="text-sm text-muted-foreground">{t("planning.objectives.individualOrGroup")}</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Tous les joueurs" />
+              <SelectValue placeholder={t("planning.objectives.allPlayers")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tous les joueurs</SelectItem>
+              <SelectItem value="all">{t("planning.objectives.allPlayers")}</SelectItem>
               {players.map(p => (
                 <SelectItem key={p.id} value={p.id}>
                   {p.first_name ? `${p.first_name} ${p.name}` : p.name}
@@ -224,22 +232,22 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
             <DialogTrigger asChild>
               <Button size="sm">
                 <Plus className="h-4 w-4 mr-1" />
-                Objectif
+                {t("planning.objectives.objectiveLabel")}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-h-[85vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Nouvel Objectif</DialogTitle>
+                <DialogTitle>{t("planning.objectives.newObjective")}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
                   <div className="flex items-center justify-between">
                     <Label className="flex items-center gap-2">
                       <Users className="h-4 w-4" />
-                      Athlètes concernés
+                      {t("planning.objectives.concernedAthletes")}
                       {formPlayerIds.length > 1 && (
                         <Badge variant="secondary" className="text-[10px]">
-                          Objectif de groupe · {formPlayerIds.length}
+                          {t("planning.objectives.groupGoalCount", { count: formPlayerIds.length })}
                         </Badge>
                       )}
                     </Label>
@@ -254,12 +262,12 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
                         )
                       }
                     >
-                      {formPlayerIds.length === players.length ? "Tout décocher" : "Tout cocher"}
+                      {formPlayerIds.length === players.length ? t("planning.objectives.uncheckAll") : t("planning.objectives.checkAll")}
                     </Button>
                   </div>
                   <div className="mt-1 max-h-48 overflow-y-auto rounded-lg border p-2 space-y-1">
                     {players.length === 0 && (
-                      <p className="text-xs text-muted-foreground p-2">Aucun athlète dans cette catégorie</p>
+                      <p className="text-xs text-muted-foreground p-2">{t("planning.objectives.noAthleteInCategory")}</p>
                     )}
                     {players.map((p) => {
                       const checked = formPlayerIds.includes(p.id);
@@ -285,7 +293,7 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
                   </div>
                 </div>
                 <div>
-                  <Label>Type</Label>
+                  <Label>{t("planning.objectives.type")}</Label>
                   <Select value={formGoalType} onValueChange={setFormGoalType}>
                     <SelectTrigger className="mt-1">
                       <SelectValue />
@@ -298,40 +306,40 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
                   </Select>
                 </div>
                 <div>
-                  <Label>Titre</Label>
-                  <Input value={formTitle} onChange={e => setFormTitle(e.target.value)} placeholder="Ex: Améliorer le taux de pénalités à 80%" className="mt-1" />
+                  <Label>{t("planning.objectives.titleLabel")}</Label>
+                  <Input value={formTitle} onChange={e => setFormTitle(e.target.value)} placeholder={t("planning.objectives.titlePlaceholder")} className="mt-1" />
                 </div>
                 <div>
-                  <Label>Description (optionnel)</Label>
-                  <Textarea value={formDescription} onChange={e => setFormDescription(e.target.value)} placeholder="Détails..." className="mt-1" />
+                  <Label>{t("planning.objectives.descriptionOptional")}</Label>
+                  <Textarea value={formDescription} onChange={e => setFormDescription(e.target.value)} placeholder={t("planning.objectives.detailsPlaceholder")} className="mt-1" />
                 </div>
                 <div>
-                  <Label>Date cible (optionnel)</Label>
+                  <Label>{t("planning.objectives.targetDateOptional")}</Label>
                   <Input type="date" value={formTargetDate} onChange={e => setFormTargetDate(e.target.value)} className="mt-1" />
                 </div>
 
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
                   <Switch checked={formIsMeasurable} onCheckedChange={setFormIsMeasurable} />
                   <div>
-                    <Label className="text-sm font-medium">Objectif mesurable (KPI)</Label>
-                    <p className="text-xs text-muted-foreground">Suivi automatique de la progression</p>
+                    <Label className="text-sm font-medium">{t("planning.objectives.measurableGoal")}</Label>
+                    <p className="text-xs text-muted-foreground">{t("planning.objectives.autoProgressTracking")}</p>
                   </div>
                 </div>
 
                 {formIsMeasurable && (
                   <div className="space-y-3 p-3 rounded-lg border border-accent/30">
                     <div>
-                      <Label className="text-xs">Métrique</Label>
-                      <Input value={formMetricName} onChange={e => setFormMetricName(e.target.value)} placeholder="Ex: Taux de réussite pénalités" className="mt-1 h-8" />
+                      <Label className="text-xs">{t("planning.objectives.metric")}</Label>
+                      <Input value={formMetricName} onChange={e => setFormMetricName(e.target.value)} placeholder={t("planning.objectives.metricPlaceholder")} className="mt-1 h-8" />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <Label className="text-xs">Valeur cible</Label>
-                        <Input type="number" value={formTargetValue} onChange={e => setFormTargetValue(e.target.value)} placeholder="Ex: 80" className="mt-1 h-8" />
+                        <Label className="text-xs">{t("planning.objectives.targetValue")}</Label>
+                        <Input type="number" value={formTargetValue} onChange={e => setFormTargetValue(e.target.value)} placeholder={t("planning.objectives.targetValuePlaceholder")} className="mt-1 h-8" />
                       </div>
                       <div>
-                        <Label className="text-xs">Unité</Label>
-                        <Input value={formMetricUnit} onChange={e => setFormMetricUnit(e.target.value)} placeholder="Ex: %" className="mt-1 h-8" />
+                        <Label className="text-xs">{t("planning.objectives.unit")}</Label>
+                        <Input value={formMetricUnit} onChange={e => setFormMetricUnit(e.target.value)} placeholder={t("planning.objectives.unitPlaceholder")} className="mt-1 h-8" />
                       </div>
                     </div>
                   </div>
@@ -339,8 +347,8 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
 
                 <Button onClick={() => addMutation.mutate()} className="w-full">
                   {formPlayerIds.length > 1
-                    ? `Ajouter l'objectif pour ${formPlayerIds.length} athlètes`
-                    : "Ajouter l'objectif"}
+                    ? t("planning.objectives.addObjectiveForCount", { count: formPlayerIds.length })
+                    : t("planning.objectives.addObjective")}
                 </Button>
               </div>
             </DialogContent>
@@ -351,10 +359,10 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
       {/* Stats */}
       <div className="flex gap-3">
         <Badge variant="secondary" className="gap-1">
-          <Target className="h-3 w-3" /> {objectives.length} objectifs
+          <Target className="h-3 w-3" /> {t("planning.objectives.objectivesCount", { count: objectives.length })}
         </Badge>
         <Badge variant="secondary" className="gap-1 text-status-optimal">
-          <TrendingUp className="h-3 w-3" /> {completedCount} terminés
+          <TrendingUp className="h-3 w-3" /> {t("planning.objectives.completedCount", { count: completedCount })}
         </Badge>
       </div>
 
@@ -363,7 +371,7 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
         <Card>
           <CardContent className="py-8">
             <p className="text-muted-foreground text-center text-sm">
-              Aucun objectif défini. Cliquez sur "Objectif" pour en créer un.
+              {t("planning.objectives.noObjectivesHint")}
             </p>
           </CardContent>
         </Card>
@@ -386,7 +394,7 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
                       variant="ghost"
                       size="icon"
                       className="h-6 w-6"
-                      title="Supprimer l'objectif"
+                      title={t("planning.objectives.deleteObjective")}
                       onClick={() => setDeleteTarget(obj)}
                     >
                       <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive" />
@@ -406,7 +414,7 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
                     </div>
                     <Progress value={obj.progress_percentage || 0} className="h-1.5" />
                     <div className="flex gap-2 items-center mt-1">
-                      <Label className="text-xs shrink-0">Valeur actuelle:</Label>
+                      <Label className="text-xs shrink-0">{t("planning.objectives.currentValue")}</Label>
                       <Input
                         type="number"
                         className="w-20 h-7 text-xs"
@@ -419,7 +427,7 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
                 ) : (
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs">
-                      <span>Progression</span>
+                      <span>{t("planning.objectives.progress")}</span>
                       <span>{obj.progress_percentage || 0}%</span>
                     </div>
                     <Progress value={obj.progress_percentage || 0} className="h-1.5" />
@@ -436,9 +444,9 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="pending">À faire</SelectItem>
-                          <SelectItem value="in_progress">En cours</SelectItem>
-                          <SelectItem value="completed">Terminé</SelectItem>
+                          <SelectItem value="pending">{t("planning.objectives.status.pending")}</SelectItem>
+                          <SelectItem value="in_progress">{t("planning.objectives.status.inProgress")}</SelectItem>
+                          <SelectItem value="completed">{t("planning.objectives.status.completed")}</SelectItem>
                         </SelectContent>
                       </Select>
                       <Input
@@ -456,7 +464,7 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
 
                 {obj.target_date && (
                   <p className="text-[10px] text-muted-foreground">
-                    Échéance: {format(new Date(obj.target_date), "d MMM yyyy", { locale: fr })}
+                    {t("planning.objectives.deadline")}: {format(new Date(obj.target_date), "d MMM yyyy", { locale: fr })}
                   </p>
                 )}
               </CardContent>
@@ -468,13 +476,13 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer cet objectif ?</AlertDialogTitle>
+            <AlertDialogTitle>{t("planning.objectives.confirmDeleteObjectiveTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              « {deleteTarget?.title} » sera définitivement supprimé. Cette action est irréversible.
+              {t("planning.objectives.confirmDeleteObjectiveDesc", { title: deleteTarget?.title })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogCancel>{t("planning.objectives.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => {
@@ -482,7 +490,7 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
                 setDeleteTarget(null);
               }}
             >
-              Supprimer
+              {t("planning.objectives.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -15,6 +15,7 @@ import { getTestLabel } from "@/lib/constants/testCategories";
 import { parseTestsFromNotes } from "@/lib/utils/sessionNotes";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 import { PlayerMedalsSection } from "@/components/player/PlayerMedalsSection";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   playerId: string;
@@ -24,6 +25,7 @@ interface Props {
 }
 
 export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportType }: Props) {
+  const { t } = useTranslation();
   const { data: awcrData } = useQuery({
     queryKey: ["athlete-space-awcr", playerId],
     queryFn: async () => {
@@ -128,13 +130,14 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
         }
         rows.forEach((c: any) => { customMap[`custom:${String(c.id).toLowerCase()}`] = c.name; });
       }
-      const resolve = (t: string) => {
-        if (/^custom:/i.test(t || "")) {
-          const id = t.slice("custom:".length).toLowerCase();
-          return customMap[`custom:${id}`] || "Test personnalisé";
+      const resolve = (code: string) => {
+        if (/^custom:/i.test(code || "")) {
+          const id = code.slice("custom:".length).toLowerCase();
+          return customMap[`custom:${id}`] || t("athleteSpace.dashboard.customTest");
         }
-        return getTestLabel(t) || t;
+        return getTestLabel(code) || code;
       };
+
 
       return sameDay.map((session: any) => {
         let testLabel: string | null = null;
@@ -151,7 +154,7 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
           const legacy = (session.notes || "").match(/Test auto-planifi[ée]\s*:\s*([^\n<]+)/i);
           if (legacy) testLabel = legacy[1].trim().replace(/custom:[0-9a-f-]{32,36}/gi, (code: string) => resolve(code));
         }
-        return { ...session, testLabel: testLabel || "Test" };
+        return { ...session, testLabel: testLabel || t("athleteSpace.dashboard.test") };
       });
     },
     enabled: !!categoryId,
@@ -217,9 +220,9 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
       (todayWellness.soreness_lower_body || 0) >= 4
     );
 
-    if (hasInjury || ratioAlert) return { label: "Adaptation", color: "bg-destructive text-destructive-foreground", icon: AlertTriangle };
-    if (wellnessLow) return { label: "À surveiller", color: "bg-warning text-warning-foreground", icon: Activity };
-    return { label: "OK", color: "bg-status-optimal text-white", icon: CheckCircle2 };
+    if (hasInjury || ratioAlert) return { label: t("athleteSpace.dashboard.status.adaptation"), color: "bg-destructive text-destructive-foreground", icon: AlertTriangle };
+    if (wellnessLow) return { label: t("athleteSpace.dashboard.status.toWatch"), color: "bg-warning text-warning-foreground", icon: Activity };
+    return { label: t("athleteSpace.dashboard.status.ok"), color: "bg-status-optimal text-white", icon: CheckCircle2 };
   };
 
   const dayStatus = getDayStatus();
@@ -227,34 +230,34 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
   const getFeedback = (): string[] => {
     const msgs: string[] = [];
     if (!latestEwma) {
-      msgs.push("📊 Commence à enregistrer tes séances pour recevoir un suivi personnalisé.");
+      msgs.push(`📊 ${t("athleteSpace.dashboard.feedback.startTracking")}`);
       return msgs;
     }
 
     if (latestEwma.ratio >= 0.85 && latestEwma.ratio <= 1.3) {
-      msgs.push("✅ Ta charge d'entraînement est cohérente avec ta capacité. Continue comme ça !");
+      msgs.push(`✅ ${t("athleteSpace.dashboard.feedback.consistent")}`);
     } else if (latestEwma.ratio > 1.5) {
-      msgs.push("⚠️ Attention : surcharge détectée. Pense à optimiser ta récupération (sommeil, nutrition, hydratation).");
+      msgs.push(`⚠️ ${t("athleteSpace.dashboard.feedback.overload")}`);
     } else if (latestEwma.ratio > 1.3) {
-      msgs.push("🔶 Ta charge augmente. Reste attentif à tes sensations et communique avec ton staff.");
+      msgs.push(`🔶 ${t("athleteSpace.dashboard.feedback.increasing")}`);
     } else if (latestEwma.ratio < 0.8) {
-      msgs.push("📉 Charge en baisse — risque de désentraînement. Parle à ton préparateur physique.");
+      msgs.push(`📉 ${t("athleteSpace.dashboard.feedback.decreasing")}`);
     }
 
     const last3 = ewmaResults.slice(-3);
     if (last3.length === 3 && last3.every(r => r.ratio > 1.3)) {
-      msgs.push("🚨 Surcharge détectée sur 3 semaines consécutives. Une période de récupération est recommandée.");
+      msgs.push(`🚨 ${t("athleteSpace.dashboard.feedback.overload3weeks")}`);
     }
 
     if (todayWellness) {
       if ((todayWellness.sleep_quality || 0) >= 4) {
-        msgs.push("😴 Ton sommeil était insuffisant. Essaye de dormir 8h+ cette nuit.");
+        msgs.push(`😴 ${t("athleteSpace.dashboard.feedback.poorSleep")}`);
       }
       if ((todayWellness.general_fatigue || 0) >= 4) {
-        msgs.push("🔋 Niveau de fatigue élevé. Privilégie la récupération active aujourd'hui.");
+        msgs.push(`🔋 ${t("athleteSpace.dashboard.feedback.highFatigue")}`);
       }
     } else {
-      msgs.push("💡 N'oublie pas de remplir ton wellness quotidien pour un suivi optimal.");
+      msgs.push(`💡 ${t("athleteSpace.dashboard.feedback.fillWellness")}`);
     }
 
     return msgs;
@@ -284,7 +287,7 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
         <CardContent className="py-2.5 px-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="text-[11px] text-muted-foreground whitespace-nowrap">Statut</span>
+              <span className="text-[11px] text-muted-foreground whitespace-nowrap">{t("athleteSpace.dashboard.statusLabel")}</span>
               <Badge className={`text-xs px-2 py-0.5 ${dayStatus.color}`}>
                 <dayStatus.icon className="h-3 w-3 mr-1" />
                 {dayStatus.label}
@@ -318,9 +321,9 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
                 <CalendarIcon className="h-6 w-6" style={{ color: NAV_COLORS.video.base }} />
               </div>
               <div className="flex-1">
-                <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-medium">Prochain match</p>
+                <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-medium">{t("athleteSpace.dashboard.nextMatch")}</p>
                 <p className="font-bold text-base" style={{ color: NAV_COLORS.video.base }}>
-                  {nextMatch.opponent || "Compétition"}
+                  {nextMatch.opponent || t("athleteSpace.dashboard.competition")}
                 </p>
                 <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
@@ -340,7 +343,7 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
               </div>
               {nextMatch.is_home !== null && (
                 <Badge variant="outline" className="text-xs" style={{ borderColor: NAV_COLORS.video.base, color: NAV_COLORS.video.base }}>
-                  {nextMatch.is_home ? "Dom." : "Ext."}
+                  {nextMatch.is_home ? t("athleteSpace.dashboard.home") : t("athleteSpace.dashboard.away")}
                 </Badge>
               )}
             </div>
@@ -352,19 +355,19 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Card className="shadow-sm border-2" style={{ borderColor: `${NAV_COLORS.sante.base}40`, backgroundColor: `${NAV_COLORS.sante.base}08` }}>
           <CardContent className="pt-4 pb-3 px-4">
-            <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-medium">Charge 7j</p>
+            <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-medium">{t("athleteSpace.dashboard.load7d")}</p>
             <p className="text-xl font-bold" style={{ color: NAV_COLORS.sante.base }}>{latestEwma ? Math.round(latestEwma.acute) : "—"}</p>
           </CardContent>
         </Card>
         <Card className="shadow-sm border-2" style={{ borderColor: `${NAV_COLORS.programmation.base}40`, backgroundColor: `${NAV_COLORS.programmation.base}08` }}>
           <CardContent className="pt-4 pb-3 px-4">
-            <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-medium">Charge 28j</p>
+            <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-medium">{t("athleteSpace.dashboard.load28d")}</p>
             <p className="text-xl font-bold" style={{ color: NAV_COLORS.programmation.base }}>{latestEwma ? Math.round(latestEwma.chronic) : "—"}</p>
           </CardContent>
         </Card>
         <Card className="shadow-sm border-2" style={{ borderColor: `${NAV_COLORS.video.base}40`, backgroundColor: `${NAV_COLORS.video.base}08` }}>
           <CardContent className="pt-4 pb-3 px-4">
-            <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-medium">Blessures</p>
+            <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-medium">{t("athleteSpace.dashboard.injuries")}</p>
             <p className={`text-xl font-bold`} style={{ color: injuries && injuries.length > 0 ? NAV_COLORS.video.base : NAV_COLORS.sante.base }}>
               {injuries?.length || 0}
             </p>
@@ -373,7 +376,7 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
         <Card className="shadow-sm border-2" style={{ borderColor: `${NAV_COLORS.planification.base}40`, backgroundColor: `${NAV_COLORS.planification.base}08` }}>
           <CardContent className="pt-4 pb-3 px-4">
             <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-medium">
-              {nextTests && nextTests.length > 1 ? `Prochains tests (${nextTests.length})` : "Prochain test"}
+              {nextTests && nextTests.length > 1 ? t("athleteSpace.dashboard.nextTestsCount", { count: nextTests.length }) : t("athleteSpace.dashboard.nextTest")}
             </p>
             {nextTests && nextTests.length > 0 ? (
               <div className="space-y-1 mt-0.5">
@@ -402,7 +405,7 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2" style={{ color: NAV_COLORS.planification.base }}>
               <CalendarIcon className="h-4 w-4" />
-              Séances à venir
+              {t("athleteSpace.dashboard.upcomingSessions")}
             </CardTitle>
           </CardHeader>
           <CardContent>

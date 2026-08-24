@@ -20,6 +20,7 @@ import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { getMainSportFromType, MAIN_SPORTS } from "@/lib/constants/sportTypes";
+import { useTranslation } from "react-i18next";
 
 interface AnnualPlanningViewProps {
   categoryId: string;
@@ -50,16 +51,24 @@ interface PeriodizationCycle {
 
 type ViewMode = "timeline" | "heatmap" | "chart";
 
-const VIEW_MODES: { value: ViewMode; label: string; shortLabel: string; icon: React.ReactNode }[] = [
-  { value: "timeline", label: "Vue planification", shortLabel: "Planification", icon: <Clock className="h-4 w-4" /> },
-  { value: "heatmap", label: "Vue charge", shortLabel: "Charge", icon: <BarChart3 className="h-4 w-4" /> },
-  { value: "chart", label: "Volume / Intensité", shortLabel: "Volume / Intensité", icon: <Activity className="h-4 w-4" /> },
-];
+function useViewModes(t: (k: string) => string): { value: ViewMode; label: string; shortLabel: string; icon: React.ReactNode }[] {
+  return [
+    { value: "timeline", label: t("planning.annualView.viewModes.timeline"), shortLabel: t("planning.annualView.viewModes.timeline"), icon: <Clock className="h-4 w-4" /> },
+    { value: "heatmap", label: t("planning.annualView.viewModes.heatmap"), shortLabel: t("planning.annualView.viewModes.heatmap"), icon: <BarChart3 className="h-4 w-4" /> },
+    { value: "chart", label: t("planning.annualView.viewModes.chart"), shortLabel: t("planning.annualView.viewModes.chart"), icon: <Activity className="h-4 w-4" /> },
+  ];
+}
 
-const MONTH_LABELS = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+function useMonthLabels(t: (k: string, o?: Record<string, unknown>) => unknown): string[] {
+  return t("planning.annualView.months", { returnObjects: true }) as unknown as string[];
+}
+
 const START_MONTH_STORAGE_PREFIX = "planning-start-month:";
 
 export function AnnualPlanningView({ categoryId, readOnly = false }: AnnualPlanningViewProps) {
+  const { t } = useTranslation();
+  const VIEW_MODES = useViewModes(t);
+  const MONTH_LABELS = useMonthLabels(t);
   const { isViewer: isViewerFromCtx } = useViewerModeContext();
   const isViewer = readOnly || isViewerFromCtx;
   const queryClient = useQueryClient();
@@ -110,7 +119,7 @@ export function AnnualPlanningView({ categoryId, readOnly = false }: AnnualPlann
       ? `${ps.getFullYear()}`
       : sameYear
         ? `${MONTH_LABELS[startMonth]} ${ps.getFullYear()}`
-        : `${MONTH_LABELS[startMonth]} ${ps.getFullYear()} à ${MONTH_LABELS[pe.getMonth()]} ${pe.getFullYear()}`;
+        : t("planning.annualView.periodLabelRange", { startMonth: MONTH_LABELS[startMonth], startYear: ps.getFullYear(), endMonth: MONTH_LABELS[pe.getMonth()], endYear: pe.getFullYear() });
     return { periodStart: ps, periodEnd: pe, periodLabel: label };
   }, [selectedYear, startMonth]);
 
@@ -140,12 +149,12 @@ export function AnnualPlanningView({ categoryId, readOnly = false }: AnnualPlann
     seededRef.current = true;
     const seedDefaults = async () => {
       const mainSport = getMainSportFromType(categoryData.rugby_type);
-      const sportLabel = MAIN_SPORTS.find(s => s.value === mainSport)?.label ?? "Sport";
+      const sportLabel = MAIN_SPORTS.find(s => s.value === mainSport)?.label ?? t("planning.annualView.defaultCategories.sport");
       const defaults = [
         { name: sportLabel, color: "#3b82f6", sort_order: 0 },
-        { name: "Préparation Physique", color: "#ef4444", sort_order: 1 },
-        { name: "Préparation Mentale", color: "#22c55e", sort_order: 2 },
-        { name: "Compétitions", color: "#d4a017", sort_order: 100 },
+        { name: t("planning.annualView.defaultCategories.physical"), color: "#ef4444", sort_order: 1 },
+        { name: t("planning.annualView.defaultCategories.mental"), color: "#22c55e", sort_order: 2 },
+        { name: t("planning.annualView.defaultCategories.competitions"), color: "#d4a017", sort_order: 100 },
       ];
       let added = false;
       for (const d of defaults) {
@@ -244,9 +253,9 @@ export function AnnualPlanningView({ categoryId, readOnly = false }: AnnualPlann
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["periodization_cycles", categoryId] });
-      toast.success("Tous les cycles ont été supprimés");
+      toast.success(t("planning.annualView.toasts.allCyclesDeleted"));
     },
-    onError: () => toast.error("Erreur lors de la suppression"),
+    onError: () => toast.error(t("planning.annualView.toasts.deleteError")),
   });
 
   const handleAddCycle = (periodizationCategoryId: string) => {
@@ -281,10 +290,10 @@ export function AnnualPlanningView({ categoryId, readOnly = false }: AnnualPlann
         cycles,
         matches,
       });
-      toast.success("PDF généré avec succès");
+      toast.success(t("planning.annualView.toasts.pdfSuccess"));
     } catch (e) {
       console.error(e);
-      toast.error("Erreur lors de la génération du PDF");
+      toast.error(t("planning.annualView.toasts.pdfError"));
     }
   }, [periodStart, startMonth, periodLabel, categoryData, categories, cycles, matches]);
 
@@ -298,17 +307,17 @@ export function AnnualPlanningView({ categoryId, readOnly = false }: AnnualPlann
               <Calendar className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h2 className="text-lg font-bold tracking-tight">Planification {periodLabel}</h2>
+              <h2 className="text-lg font-bold tracking-tight">{t("planning.annualView.headerTitle", { periodLabel })}</h2>
               <p className="text-xs text-muted-foreground">
-                {categories.length} thématique{categories.length > 1 ? "s" : ""} · {cycles.length} cycle{cycles.length > 1 ? "s" : ""}
+                {t("planning.annualView.themeCycleCount", { themeCount: categories.length, cycleCount: cycles.length })}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
             {/* Start month selector */}
-            <div className="flex items-center gap-1.5 bg-muted/50 rounded-lg px-2 py-0.5" title="Mois de départ de la planification (saison personnalisée)">
-              <span className="text-[11px] font-medium text-muted-foreground">Début :</span>
+            <div className="flex items-center gap-1.5 bg-muted/50 rounded-lg px-2 py-0.5" title={t("planning.annualView.startMonthTooltip")}>
+              <span className="text-[11px] font-medium text-muted-foreground">{t("planning.annualView.startLabel")}</span>
               <Select value={String(startMonth)} onValueChange={(v) => setStartMonth(parseInt(v, 10))}>
                 <SelectTrigger className="h-7 w-[110px] text-xs border-0 bg-transparent shadow-none focus:ring-0">
                   <SelectValue />
@@ -327,7 +336,7 @@ export function AnnualPlanningView({ categoryId, readOnly = false }: AnnualPlann
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <Button variant="ghost" size="sm" className="h-7 px-2 text-xs font-semibold" onClick={() => setSelectedYear(new Date())}>
-                Aujourd'hui
+                {t("planning.annualView.today")}
               </Button>
               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setSelectedYear(addYears(selectedYear, 1))}>
                 <ChevronRight className="h-4 w-4" />
@@ -360,10 +369,10 @@ export function AnnualPlanningView({ categoryId, readOnly = false }: AnnualPlann
               className="h-8 gap-1 text-xs"
               onClick={handleExportPdf}
               disabled={categories.length === 0}
-              title="Exporter la planification annuelle en PDF (paysage A4, 2 pages)"
+              title={t("planning.annualView.exportPdfTooltip")}
             >
               <Download className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Exporter PDF</span>
+              <span className="hidden sm:inline">{t("planning.annualView.exportPdf")}</span>
             </Button>
 
             {/* Actions */}
@@ -375,19 +384,19 @@ export function AnnualPlanningView({ categoryId, readOnly = false }: AnnualPlann
                     size="sm"
                     className="h-8 gap-1 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
                     onClick={() => {
-                      if (confirm(`Supprimer tous les cycles de la période ${periodLabel} ? Cette action est irréversible.`)) {
+                      if (confirm(t("planning.annualView.confirmDeleteAllCycles", { periodLabel }))) {
                         deleteAllCycles.mutate();
                       }
                     }}
                     disabled={deleteAllCycles.isPending}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">Supprimer la planification</span>
+                    <span className="hidden sm:inline">{t("planning.annualView.deleteAllCycles")}</span>
                   </Button>
                 )}
                 <Button variant="outline" size="sm" className="h-8 gap-1 text-xs" onClick={() => setAddCategoryOpen(true)}>
                   <Settings2 className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Ligne</span>
+                  <span className="hidden sm:inline">{t("planning.annualView.line")}</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -396,12 +405,12 @@ export function AnnualPlanningView({ categoryId, readOnly = false }: AnnualPlann
                   onClick={() => setAddCompetitionsOpen(true)}
                 >
                   <Trophy className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Ajouter les compétitions</span>
-                  <span className="sm:hidden">Compét.</span>
+                  <span className="hidden sm:inline">{t("planning.annualView.addCompetitions")}</span>
+                  <span className="sm:hidden">{t("planning.annualView.addCompetitionsShort")}</span>
                 </Button>
                 <Button size="sm" className="h-8 gap-1 text-xs" onClick={() => { setAddCyclePreselectedCategory(null); setAddCycleOpen(true); }}>
                   <Plus className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Cycle</span>
+                  <span className="hidden sm:inline">{t("planning.annualView.cycle")}</span>
                 </Button>
               </div>
             )}
@@ -415,13 +424,13 @@ export function AnnualPlanningView({ categoryId, readOnly = false }: AnnualPlann
               <div className="inline-flex p-4 rounded-full bg-muted/50 mb-4">
                 <Calendar className="h-8 w-8 text-muted-foreground/50" />
               </div>
-              <p className="text-sm text-muted-foreground mb-1">Aucune thématique configurée</p>
+              <p className="text-sm text-muted-foreground mb-1">{t("planning.annualView.noThemeConfigured")}</p>
               <p className="text-xs text-muted-foreground/70 mb-4">
-                Créez vos premières lignes (Technique, Tactique, Physique...) pour structurer votre saison
+                {t("planning.annualView.noThemeDescription")}
               </p>
               {!isViewer && (
                 <Button variant="outline" size="sm" onClick={() => setAddCategoryOpen(true)}>
-                  <Plus className="h-4 w-4 mr-1" /> Créer une thématique
+                  <Plus className="h-4 w-4 mr-1" /> {t("planning.annualView.createTheme")}
                 </Button>
               )}
             </div>
@@ -472,14 +481,14 @@ export function AnnualPlanningView({ categoryId, readOnly = false }: AnnualPlann
       <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
         <div className="px-4 py-3 border-b bg-gradient-to-r from-muted/20 to-transparent">
           <h3 className="text-sm font-bold tracking-tight text-muted-foreground">
-            Calendrier {periodLabel}
+            {t("planning.annualView.calendarTitle", { periodLabel })}
           </h3>
         </div>
         <div className="p-4 space-y-3">
           {/* Quick-assign toolbar */}
           {!isViewer && (
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs text-muted-foreground mr-1 font-medium">Assignation rapide :</span>
+              <span className="text-xs text-muted-foreground mr-1 font-medium">{t("planning.annualView.quickAssign")}</span>
               {categories.map((cat) => (
                 <div key={cat.id} className="relative group/chip flex items-center">
                   <button
@@ -501,13 +510,13 @@ export function AnnualPlanningView({ categoryId, readOnly = false }: AnnualPlann
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (confirm(`Supprimer la ligne "${cat.name}" et tous ses cycles ?`)) {
+                      if (confirm(t("planning.annualView.confirmDeleteLine", { name: cat.name }))) {
                         deleteCycleCategory.mutate(cat.id);
                         if (activeCategoryId === cat.id) setActiveCategoryId(null);
                       }
                     }}
                     className="absolute -top-1.5 -right-1.5 z-10 h-4 w-4 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover/chip:opacity-100 transition-opacity hover:scale-110"
-                    title="Supprimer cette ligne"
+                    title={t("planning.annualView.deleteLine")}
                   >
                     <span className="text-[10px] font-bold leading-none">✕</span>
                   </button>
@@ -518,11 +527,11 @@ export function AnnualPlanningView({ categoryId, readOnly = false }: AnnualPlann
                 className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border-2 border-dashed border-muted-foreground/30 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
               >
                 <Plus className="h-3 w-3" />
-                Ajouter
+                {t("planning.annualView.add")}
               </button>
               {activeCategoryId && (
                 <span className="text-[10px] text-muted-foreground italic ml-2">
-                  Sélectionnez une période dans le calendrier
+                  {t("planning.annualView.selectPeriod")}
                 </span>
               )}
             </div>
@@ -545,7 +554,7 @@ export function AnnualPlanningView({ categoryId, readOnly = false }: AnnualPlann
         <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
           <div className="px-4 py-3 border-b bg-gradient-to-r from-primary/5 to-transparent">
             <h3 className="text-sm font-bold tracking-tight text-muted-foreground flex items-center gap-2">
-              🎿 Import Calendrier FIS
+              🎿 {t("planning.annualView.fisImport")}
             </h3>
           </div>
           <div className="p-4">

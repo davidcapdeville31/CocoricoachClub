@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import i18n from "i18next";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Heart, Smile, Apple, Activity, Dumbbell, LayoutDashboard, Brain, AlertTriangle } from "lucide-react";
 import { MedicalRecordsTab } from "@/components/health/MedicalRecordsTab";
@@ -39,7 +40,7 @@ class SanteErrorBoundary extends React.Component<
     if (this.state.hasError) {
       return (
         <div className="p-4 text-destructive">
-          <p className="font-bold">Erreur dans le module Santé</p>
+          <p className="font-bold">{i18n.t("health.errorBoundary.title")}</p>
           <p className="text-sm">{this.state.error?.message}</p>
           <pre className="text-xs mt-2 overflow-auto max-h-40">{this.state.error?.stack}</pre>
         </div>

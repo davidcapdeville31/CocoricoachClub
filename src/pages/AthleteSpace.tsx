@@ -176,7 +176,7 @@ export default function AthleteSpace() {
 
       if (error) {
         console.error("AthleteSpace: players query error", error);
-        setLoadError(`Erreur de chargement: ${error.message}`);
+        setLoadError(t("athleteSpace.shell.loadingErrorPrefix", { message: error.message }));
         return;
       }
 
@@ -197,7 +197,7 @@ export default function AthleteSpace() {
           setShowPlayerSelector(true);
           return;
         }
-        setLoadError("Aucun profil joueur trouvé pour ce compte. Contacte ton staff pour vérifier ton invitation.");
+        setLoadError(t("athleteSpace.shell.noPlayerProfile"));
         return;
       }
 
@@ -271,7 +271,7 @@ export default function AthleteSpace() {
       setShowCategorySelector(true);
     } catch (err: any) {
       console.error("Error fetching athlete data:", err);
-      setLoadError(`Erreur inattendue: ${err?.message || "Contacte ton staff."}`);
+      setLoadError(t("athleteSpace.shell.unexpectedError", { message: err?.message || t("athleteSpace.shell.contactStaff") }));
     } finally {
       setIsLoading(false);
     }
@@ -307,7 +307,7 @@ export default function AthleteSpace() {
             <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
               <Shield className="h-6 w-6 text-destructive" />
             </div>
-            <h2 className="text-lg font-semibold">Problème de chargement</h2>
+            <h2 className="text-lg font-semibold">{t("athleteSpace.shell.loadingProblem")}</h2>
             <p className="text-sm text-muted-foreground">{loadError}</p>
             <div className="flex gap-2 justify-center">
               <Button variant="outline" onClick={() => { setLoadError(null); setIsLoading(true); fetchAthleteData(); }}>
@@ -315,7 +315,7 @@ export default function AthleteSpace() {
               </Button>
               <Button variant="ghost" onClick={() => signOut()}>
                 <LogOut className="h-4 w-4 mr-2" />
-                Déconnexion
+                {t("athleteSpace.shell.signOut")}
               </Button>
             </div>
           </CardContent>
@@ -335,8 +335,8 @@ export default function AthleteSpace() {
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <div>
-                <h1 className="text-base font-semibold">Espace Athlète</h1>
-                <Badge variant="outline" className="text-[10px] h-5 border-primary text-primary">Vue Admin</Badge>
+                <h1 className="text-base font-semibold">{t("athleteSpace.shell.title")}</h1>
+                <Badge variant="outline" className="text-[10px] h-5 border-primary text-primary">{t("athleteSpace.shell.adminView")}</Badge>
               </div>
             </div>
           </div>
@@ -348,13 +348,13 @@ export default function AthleteSpace() {
                 <User className="h-5 w-5" />
                 {t("athlete.selectAthlete")}
               </CardTitle>
-              <CardDescription>Choisissez un athlète pour consulter son espace personnel</CardDescription>
+              <CardDescription>{t("athleteSpace.shell.selectAthleteDesc")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Rechercher par nom, catégorie ou club..."
+                  placeholder={t("athleteSpace.shell.searchPlaceholder")}
                   value={playerSearch}
                   onChange={(e) => setPlayerSearch(e.target.value)}
                   className="pl-9"
@@ -378,7 +378,7 @@ export default function AthleteSpace() {
                   </Button>
                 ))}
                 {filteredPlayers.length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-8">Aucun athlète trouvé</p>
+                  <p className="text-sm text-muted-foreground text-center py-8">{t("athleteSpace.shell.noAthleteFound")}</p>
                 )}
               </div>
             </CardContent>
@@ -392,7 +392,7 @@ export default function AthleteSpace() {
   if (showCategorySelector && !athleteInfo) {
     const displayName = allAthleteEntries[0]?.player_first_name
       ? `${allAthleteEntries[0].player_first_name} ${allAthleteEntries[0].player_name}`
-      : allAthleteEntries[0]?.player_name || "Athlète";
+      : allAthleteEntries[0]?.player_name || t("athleteSpace.shell.athleteFallback");
 
     return (
       <div className="min-h-screen bg-background">
@@ -403,8 +403,8 @@ export default function AthleteSpace() {
                 <User className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h1 className="text-base font-semibold">Bonjour {displayName} 👋</h1>
-                <p className="text-xs text-muted-foreground">Choisissez votre catégorie</p>
+                <h1 className="text-base font-semibold">{t("athleteSpace.shell.greeting", { name: displayName })}</h1>
+                <p className="text-xs text-muted-foreground">{t("athleteSpace.shell.chooseCategory")}</p>
               </div>
             </div>
             <Button variant="ghost" size="icon" onClick={() => signOut()}>
@@ -413,7 +413,7 @@ export default function AthleteSpace() {
           </div>
         </header>
         <main className="max-w-3xl mx-auto px-4 py-6">
-          <h2 className="text-lg font-semibold mb-4">Mes catégories</h2>
+          <h2 className="text-lg font-semibold mb-4">{t("athleteSpace.shell.myCategories")}</h2>
           <div className="grid gap-3">
             {allAthleteEntries.map((entry) => (
               <Card
@@ -502,7 +502,7 @@ export default function AthleteSpace() {
               <h1 className="text-sm sm:text-base font-semibold leading-tight truncate">{displayName}</h1>
               <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
                 {isSuperAdminView && (
-                  <Badge variant="outline" className="text-[10px] h-5 border-primary text-primary shrink-0">Vue Admin</Badge>
+                  <Badge variant="outline" className="text-[10px] h-5 border-primary text-primary shrink-0">{t("athleteSpace.shell.adminView")}</Badge>
                 )}
                 <Badge variant="secondary" className="text-[10px] h-5 truncate min-w-0 max-w-[140px] sm:max-w-none">{athleteInfo.category_name}</Badge>
                 <span className="text-xs text-muted-foreground truncate hidden sm:inline">{athleteInfo.club_name}</span>
@@ -827,8 +827,8 @@ export default function AthleteSpace() {
                   </TabsTrigger>
                   <TabsTrigger value="annual" className="gap-2">
                     <LayoutDashboard className="h-4 w-4" />
-                    <span className="hidden sm:inline">Planification annuelle</span>
-                    <span className="sm:hidden">Planif.</span>
+                    <span className="hidden sm:inline">{t("athleteSpace.shell.annualPlanning")}</span>
+                    <span className="sm:hidden">{t("athleteSpace.shell.annualPlanningShort")}</span>
                   </TabsTrigger>
                 </TabsList>
               </div>
@@ -863,8 +863,8 @@ export default function AthleteSpace() {
                     className="gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
                   >
                     <Trophy className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">Stats de compétition</span>
-                    <span className="sm:hidden">Compét.</span>
+                    <span className="hidden sm:inline">{t("athlete.competitionStats")}</span>
+                    <span className="sm:hidden">{t("athleteSpace.shell.competitionShort")}</span>
                   </TabsTrigger>
                   <TabsTrigger
                     value="training"
@@ -872,8 +872,8 @@ export default function AthleteSpace() {
                     className="gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
                   >
                     <Target className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">Stats d'entraînement</span>
-                    <span className="sm:hidden">Entr.</span>
+                    <span className="hidden sm:inline">{t("athlete.trainingStats")}</span>
+                    <span className="sm:hidden">{t("athleteSpace.shell.trainingShort")}</span>
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="competition">
@@ -914,7 +914,7 @@ export default function AthleteSpace() {
                     className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md relative"
                   >
                     <Medal className="h-3.5 w-3.5" />
-                    Minimas / Records
+                    {t("athleteSpace.shell.minimasRecords")}
                     {recordNotifCount > 0 && (
                       <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background" />
                     )}

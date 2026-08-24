@@ -3,6 +3,7 @@ import { format, startOfYear, endOfYear, eachMonthOfInterval, startOfMonth, endO
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useTranslation } from "react-i18next";
 
 interface PeriodizationCategory {
   id: string;
@@ -41,6 +42,7 @@ const CYCLE_TYPE_ICONS: Record<string, string> = {
 };
 
 export function AnnualGlobalView({ year, categories, cycles, sessions, matches }: AnnualGlobalViewProps) {
+  const { t } = useTranslation();
   const yearStart = startOfYear(new Date(year, 0, 1));
   const yearEnd = endOfYear(new Date(year, 0, 1));
   const months = eachMonthOfInterval({ start: yearStart, end: yearEnd });
@@ -91,7 +93,7 @@ export function AnnualGlobalView({ year, categories, cycles, sessions, matches }
           <thead>
             <tr>
               <th className="text-left text-[11px] font-bold uppercase tracking-wider text-muted-foreground p-2 w-36 min-w-[144px]">
-                Thématique
+                {t("planning.annualGlobal.theme")}
               </th>
               {months.map((month, i) => {
                 const isCurrentMonth = today.getMonth() === i && today.getFullYear() === year;
@@ -155,7 +157,7 @@ export function AnnualGlobalView({ year, categories, cycles, sessions, matches }
             {/* Summary rows */}
             <tr className="border-t-2 border-border/40">
               <td className="p-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Séances</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("planning.annualGlobal.sessions")}</span>
               </td>
               {sessionCounts.map((count, i) => (
                 <td key={i} className="p-1 border-l border-border/15 text-center">
@@ -169,7 +171,7 @@ export function AnnualGlobalView({ year, categories, cycles, sessions, matches }
             </tr>
             <tr>
               <td className="p-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Matchs</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("planning.annualGlobal.matches")}</span>
               </td>
               {matchCounts.map((count, i) => (
                 <td key={i} className="p-1 border-l border-border/15 text-center">

@@ -4,6 +4,7 @@ import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { getCompetitionColor } from "@/lib/constants/competitionColors";
+import { useTranslation } from "react-i18next";
 
 
 interface PeriodizationCycle {
@@ -32,6 +33,7 @@ interface YearCalendarGridProps {
 const WEEKDAY_LABELS = ["L", "M", "M", "J", "V", "S", "D"];
 
 export function YearCalendarGrid({ year, periodStart, periodEnd, cycles, sessions, matches, onDateRangeSelect, activeCategoryColor }: YearCalendarGridProps) {
+  const { t } = useTranslation();
   const [dragStart, setDragStart] = useState<string | null>(null);
   const [dragEnd, setDragEnd] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -196,7 +198,7 @@ export function YearCalendarGrid({ year, periodStart, periodEnd, cycles, session
                               <span>{c.name}</span>
                             </div>
                           ))}
-                          {hasSession && <p className="text-muted-foreground mt-0.5">📋 Séance programmée</p>}
+                          {hasSession && <p className="text-muted-foreground mt-0.5">📋 {t("planning.yearCalendarGrid.sessionScheduled")}</p>}
                           {matchInfo && (
                             <p className="text-muted-foreground mt-0.5">
                               {matchInfo.is_finalized ? "✅" : "⚔️"} vs {matchInfo.opponent}

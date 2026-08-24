@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -19,37 +20,38 @@ interface AddConcussionProtocolDialogProps {
   players: { id: string; name: string }[];
 }
 
-const COMMON_SYMPTOMS = [
-  "Maux de tête",
-  "Vertiges",
-  "Nausées",
-  "Vision floue",
-  "Sensibilité à la lumière",
-  "Sensibilité au bruit",
-  "Confusion",
-  "Perte de mémoire",
-  "Difficultés de concentration",
-  "Fatigue",
-  "Troubles du sommeil",
-  "Irritabilité",
+const getCommonSymptoms = (t: (k: string) => string) => [
+  t("health.addConcussionDialog.symptomsList.headache"),
+  t("health.addConcussionDialog.symptomsList.dizziness"),
+  t("health.addConcussionDialog.symptomsList.nausea"),
+  t("health.addConcussionDialog.symptomsList.blurredVision"),
+  t("health.addConcussionDialog.symptomsList.lightSensitivity"),
+  t("health.addConcussionDialog.symptomsList.noiseSensitivity"),
+  t("health.addConcussionDialog.symptomsList.confusion"),
+  t("health.addConcussionDialog.symptomsList.memoryLoss"),
+  t("health.addConcussionDialog.symptomsList.concentrationDifficulty"),
+  t("health.addConcussionDialog.symptomsList.fatigue"),
+  t("health.addConcussionDialog.symptomsList.sleepDisorders"),
+  t("health.addConcussionDialog.symptomsList.irritability"),
 ];
 
-const REST_RECOMMENDATIONS = {
+const getRestRecommendations = (t: (k: string) => string) => ({
   1: {
     minDays: 7,
-    description: "Première commotion - Repos minimum de 7 jours avant de commencer le protocole de retour au jeu.",
+    description: t("health.addConcussionDialog.restRecommendations.first"),
   },
   2: {
     minDays: 14,
-    description: "Deuxième commotion - Repos minimum de 14 jours recommandé. Consultation spécialisée conseillée.",
+    description: t("health.addConcussionDialog.restRecommendations.second"),
   },
   3: {
     minDays: 21,
-    description: "Troisième commotion ou plus - Repos minimum de 21 jours. Consultation neurologique OBLIGATOIRE avant tout retour au jeu.",
+    description: t("health.addConcussionDialog.restRecommendations.thirdOrMore"),
   },
-};
+});
 
 export function AddConcussionProtocolDialog({ open, onOpenChange, categoryId, players }: AddConcussionProtocolDialogProps) {
+  const { t } = useTranslation();
   const [playerId, setPlayerId] = useState("");
   const [incidentDate, setIncidentDate] = useState(new Date().toISOString().split("T")[0]);
   const [description, setDescription] = useState("");
@@ -73,6 +75,8 @@ export function AddConcussionProtocolDialog({ open, onOpenChange, categoryId, pl
     enabled: !!playerId,
   });
 
+  const COMMON_SYMPTOMS = getCommonSymptoms(t);
+  const REST_RECOMMENDATIONS = getRestRecommendations(t);
   const concussionNumber = (previousConcussions?.length || 0) + 1;
   const restRecommendation = REST_RECOMMENDATIONS[Math.min(concussionNumber, 3) as 1 | 2 | 3];
 
@@ -98,12 +102,12 @@ export function AddConcussionProtocolDialog({ open, onOpenChange, categoryId, pl
         const k = String(q.queryKey?.[0] ?? "");
         return k.includes("injur") || k.includes("availability") || k.includes("blessure") || k.includes("health");
       }});
-      toast.success("Protocole commotion créé");
+      toast.success(t("health.addConcussionDialog.toastSuccess"));
       resetForm();
       onOpenChange(false);
     },
     onError: () => {
-      toast.error("Erreur lors de la création");
+      toast.error(t("health.addConcussionDialog.toastError"));
     },
   });
 
@@ -123,7 +127,7 @@ export function AddConcussionProtocolDialog({ open, onOpenChange, categoryId, pl
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!playerId) {
-      toast.error("Veuillez sélectionner un joueur");
+      toast.error(t("health.addConcussionDialog.toastPlayerRequired"));
       return;
     }
     mutation.mutate();
@@ -135,14 +139,14 @@ export function AddConcussionProtocolDialog({ open, onOpenChange, categoryId, pl
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Signaler une commotion cérébrale</DialogTitle>
+          <DialogTitle>{t("health.addConcussionDialog.title")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label>Joueur *</Label>
+            <Label>{t("health.addConcussionDialog.player")}</Label>
             <Select value={playerId} onValueChange={setPlayerId}>
               <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un joueur" />
+                <SelectValue placeholder={t("health.addConcussionDialog.selectPlayerPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
                 {players.map((player) => (
@@ -159,18 +163,18 @@ export function AddConcussionProtocolDialog({ open, onOpenChange, categoryId, pl
             <Alert variant={concussionNumber >= 3 ? "destructive" : "default"} className={concussionNumber === 2 ? "border-yellow-500 bg-yellow-500/10" : ""}>
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle className="flex items-center gap-2">
-                {concussionNumber >= 3 ? "⚠️ ALERTE CRITIQUE" : "⚠️ Attention"}
-                {" - "}Commotion n°{concussionNumber} pour {selectedPlayer?.name}
+                {concussionNumber >= 3 ? t("health.addConcussionDialog.criticalAlert") : t("health.addConcussionDialog.attentionAlert")}
+                {t("health.addConcussionDialog.concussionCountFor", { number: concussionNumber, name: selectedPlayer?.name })}
               </AlertTitle>
               <AlertDescription className="mt-2 space-y-2">
                 <p className="font-medium">{restRecommendation.description}</p>
                 <div className="text-sm mt-2">
-                  <p className="font-semibold">Historique des commotions :</p>
+                  <p className="font-semibold">{t("health.addConcussionDialog.historyTitle")}</p>
                   <ul className="list-disc list-inside mt-1">
                     {previousConcussions.map((c: any, idx: number) => (
                       <li key={c.id}>
                         {new Date(c.incident_date).toLocaleDateString("fr-FR")}
-                        {c.status === "cleared" ? " (retour validé)" : c.status === "recovery" ? " (en récupération)" : " (actif)"}
+                        {c.status === "cleared" ? t("health.addConcussionDialog.statusCleared") : c.status === "recovery" ? t("health.addConcussionDialog.statusRecovery") : t("health.addConcussionDialog.statusActive")}
                       </li>
                     ))}
                   </ul>
@@ -183,7 +187,7 @@ export function AddConcussionProtocolDialog({ open, onOpenChange, categoryId, pl
           {playerId && previousConcussions && previousConcussions.length === 0 && (
             <Alert>
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Première commotion enregistrée</AlertTitle>
+              <AlertTitle>{t("health.addConcussionDialog.firstConcussionTitle")}</AlertTitle>
               <AlertDescription>
                 {restRecommendation.description}
               </AlertDescription>
@@ -191,21 +195,21 @@ export function AddConcussionProtocolDialog({ open, onOpenChange, categoryId, pl
           )}
 
           <div className="space-y-2">
-            <Label>Date de l'incident</Label>
+            <Label>{t("health.addConcussionDialog.incidentDate")}</Label>
             <Input type="date" value={incidentDate} onChange={(e) => setIncidentDate(e.target.value)} />
           </div>
 
           <div className="space-y-2">
-            <Label>Description de l'incident</Label>
+            <Label>{t("health.addConcussionDialog.incidentDescription")}</Label>
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Décrivez les circonstances de l'incident..."
+              placeholder={t("health.addConcussionDialog.incidentDescriptionPlaceholder")}
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Symptômes observés</Label>
+            <Label>{t("health.addConcussionDialog.symptomsObserved")}</Label>
             <div className="grid grid-cols-2 gap-2">
               {COMMON_SYMPTOMS.map((symptom) => (
                 <div key={symptom} className="flex items-center space-x-2">
@@ -223,16 +227,16 @@ export function AddConcussionProtocolDialog({ open, onOpenChange, categoryId, pl
           </div>
 
           <div className="space-y-2">
-            <Label>Notes médicales</Label>
+            <Label>{t("health.addConcussionDialog.medicalNotes")}</Label>
             <Textarea
               value={medicalNotes}
               onChange={(e) => setMedicalNotes(e.target.value)}
-              placeholder="Notes du médecin ou observations..."
+              placeholder={t("health.addConcussionDialog.medicalNotesPlaceholder")}
             />
           </div>
 
           <Button type="submit" className="w-full" disabled={mutation.isPending}>
-            {mutation.isPending ? "Création..." : "Créer le protocole"}
+            {mutation.isPending ? t("health.addConcussionDialog.creating") : t("health.addConcussionDialog.createProtocol")}
           </Button>
         </form>
       </DialogContent>
