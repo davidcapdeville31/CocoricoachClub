@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { AthleteSpaceRpeHistory } from "./AthleteSpaceRpeHistory";
 import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -85,7 +86,7 @@ const formatFrNumber = (value: number, digits = 2) => {
 const formatBodyWeightRatioResult = (rawValue: unknown, playerWeight?: number | null) => {
   const value = Number(rawValue);
   if (!Number.isFinite(value)) return String(rawValue ?? "");
-  if (!playerWeight || playerWeight <= 0) return `ratio ${formatFrNumber(value, 2)} (${t("athleteSpace.rpe.missingWeight")})`;
+  if (!playerWeight || playerWeight <= 0) return `ratio ${formatFrNumber(value, 2)} (${i18n.t("athleteSpace.rpe.missingWeight")})`;
 
   const loadKg = value >= 5 ? value : value * playerWeight;
   const ratio = value >= 5 ? loadKg / playerWeight : value;
