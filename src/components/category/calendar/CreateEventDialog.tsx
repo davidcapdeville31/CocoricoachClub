@@ -31,6 +31,7 @@ import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
+import { useTranslation } from "react-i18next";
 
 export interface EditingMentalSession {
   id: string;
@@ -65,11 +66,9 @@ interface CreateEventDialogProps {
 }
 
 
-const EVENT_TYPES = [
+const EVENT_TYPE_META = [
   {
     id: "session",
-    label: "Séance musculation / course",
-    description: "Programme d'exercices avec charges et séries",
     icon: Dumbbell,
     iconColor: "text-emerald-700 dark:text-emerald-300",
     iconBgColor: "bg-emerald-100 dark:bg-emerald-500/15",
@@ -79,8 +78,6 @@ const EVENT_TYPES = [
   },
   {
     id: "field_session",
-    label: "Séance terrain",
-    description: "Blocs thématiques (collectif, technique, fitness game...)",
     icon: Dumbbell,
     iconColor: "text-lime-700 dark:text-lime-300",
     iconBgColor: "bg-lime-100 dark:bg-lime-500/15",
@@ -90,8 +87,6 @@ const EVENT_TYPES = [
   },
   {
     id: "match",
-    label: "Match / Compétition",
-    description: "Ajouter un match ou une compétition officielle",
     icon: Swords,
     iconColor: "text-rose-700 dark:text-rose-300",
     iconBgColor: "bg-rose-100 dark:bg-rose-500/15",
@@ -101,8 +96,6 @@ const EVENT_TYPES = [
   },
   {
     id: "medical",
-    label: "Rendez-vous médical",
-    description: "Consultation, bilan de santé, suivi kiné",
     icon: Stethoscope,
     iconColor: "text-sky-700 dark:text-sky-300",
     iconBgColor: "bg-sky-100 dark:bg-sky-500/15",
@@ -112,8 +105,6 @@ const EVENT_TYPES = [
   },
   {
     id: "video",
-    label: "Analyse vidéo",
-    description: "Session d'analyse vidéo collective ou individuelle",
     icon: Video,
     iconColor: "text-purple-700 dark:text-purple-300",
     iconBgColor: "bg-purple-100 dark:bg-purple-500/15",
@@ -123,8 +114,6 @@ const EVENT_TYPES = [
   },
   {
     id: "test",
-    label: "Test physique",
-    description: "Évaluation et tests de performance",
     icon: ClipboardList,
     iconColor: "text-amber-700 dark:text-amber-300",
     iconBgColor: "bg-amber-100 dark:bg-amber-500/15",
@@ -134,8 +123,6 @@ const EVENT_TYPES = [
   },
   {
     id: "team_meeting",
-    label: "Réunion d'équipe",
-    description: "Briefing, débriefing, réunion tactique",
     icon: Users,
     iconColor: "text-indigo-700 dark:text-indigo-300",
     iconBgColor: "bg-indigo-100 dark:bg-indigo-500/15",
@@ -145,8 +132,6 @@ const EVENT_TYPES = [
   },
   {
     id: "mental",
-    label: "Séance mental",
-    description: "Préparation mentale, sophrologie, visualisation",
     icon: Brain,
     iconColor: "text-fuchsia-700 dark:text-fuchsia-300",
     iconBgColor: "bg-fuchsia-100 dark:bg-fuchsia-500/15",
@@ -155,6 +140,17 @@ const EVENT_TYPES = [
     useExistingDialog: false,
   },
 ];
+
+const EVENT_TYPE_KEY_MAP: Record<string, string> = {
+  session: "session",
+  field_session: "fieldSession",
+  match: "match",
+  medical: "medical",
+  video: "video",
+  test: "test",
+  team_meeting: "teamMeeting",
+  mental: "mental",
+};
 
 export function CreateEventDialog({
   open,
@@ -172,6 +168,7 @@ export function CreateEventDialog({
   athletePlayerId,
   editingMentalSession,
 }: CreateEventDialogProps) {
+  const { t } = useTranslation();
 
   const [step, setStep] = useState<"type" | "bowling_mode" | "session_mode" | "details">("type");
   const [selectedType, setSelectedType] = useState<string | null>(null);
@@ -193,7 +190,7 @@ export function CreateEventDialog({
     if (open && editingMentalSession) {
       setStep("details");
       setSelectedType("mental");
-      setTitle(editingMentalSession.title || "Séance mental");
+      setTitle(editingMentalSession.title || t("planning.calendarDialogs.createEvent.defaultTitles.mental"));
       setMentalDuration(editingMentalSession.durationMin || 30);
       setMentalTheme(editingMentalSession.theme || "");
       setNotes(editingMentalSession.notes || "");
@@ -248,24 +245,24 @@ export function CreateEventDialog({
   });
 
   const getFieldSessionLabel = (sport: string | undefined): string => {
-    if (!sport) return "Séance terrain";
+    if (!sport) return t("planning.calendarDialogs.createEvent.fieldSessionLabels.default");
     const map: Record<string, string> = {
-      rugby: "Séance rugby",
-      football: "Séance football",
-      handball: "Séance handball",
-      volleyball: "Séance volley",
-      basketball: "Séance basket",
-      judo: "Séance judo",
-      bowling: "Séance bowling",
-      aviron: "Séance aviron",
-      athletisme: "Séance athlétisme",
-      crossfit: "Séance CrossFit",
-      padel: "Séance padel",
-      natation: "Séance natation",
-      surf: "Séance surf",
-      ski: "Séance ski / snow",
-      triathlon: "Séance triathlon",
-      tennis: "Séance tennis",
+      rugby: t("planning.calendarDialogs.createEvent.fieldSessionLabels.rugby"),
+      football: t("planning.calendarDialogs.createEvent.fieldSessionLabels.football"),
+      handball: t("planning.calendarDialogs.createEvent.fieldSessionLabels.handball"),
+      volleyball: t("planning.calendarDialogs.createEvent.fieldSessionLabels.volleyball"),
+      basketball: t("planning.calendarDialogs.createEvent.fieldSessionLabels.basketball"),
+      judo: t("planning.calendarDialogs.createEvent.fieldSessionLabels.judo"),
+      bowling: t("planning.calendarDialogs.createEvent.fieldSessionLabels.bowling"),
+      aviron: t("planning.calendarDialogs.createEvent.fieldSessionLabels.aviron"),
+      athletisme: t("planning.calendarDialogs.createEvent.fieldSessionLabels.athletisme"),
+      crossfit: t("planning.calendarDialogs.createEvent.fieldSessionLabels.crossfit"),
+      padel: t("planning.calendarDialogs.createEvent.fieldSessionLabels.padel"),
+      natation: t("planning.calendarDialogs.createEvent.fieldSessionLabels.natation"),
+      surf: t("planning.calendarDialogs.createEvent.fieldSessionLabels.surf"),
+      ski: t("planning.calendarDialogs.createEvent.fieldSessionLabels.ski"),
+      triathlon: t("planning.calendarDialogs.createEvent.fieldSessionLabels.triathlon"),
+      tennis: t("planning.calendarDialogs.createEvent.fieldSessionLabels.tennis"),
     };
     const main = (() => {
       if (["XV","7","XIII","touch","15","academie","national_team"].includes(sport)) return "rugby";
@@ -273,7 +270,7 @@ export function CreateEventDialog({
       const prefixes = Object.keys(map);
       return prefixes.find(p => sport === p || sport.startsWith(p + "_")) || "rugby";
     })();
-    return map[main] || "Séance terrain";
+    return map[main] || t("planning.calendarDialogs.createEvent.fieldSessionLabels.default");
   };
 
   const fieldSessionLabel = getFieldSessionLabel(categorySport);
@@ -281,14 +278,25 @@ export function CreateEventDialog({
     const s = (categorySport || "").toLowerCase();
     return s === "bowling" || s.startsWith("bowling_");
   })();
-  const eventTypes = EVENT_TYPES
-    .filter((t) => !allowedTypeIds || allowedTypeIds.includes(t.id))
-    .map((t) => {
-      if (t.id === "field_session") return { ...t, label: fieldSessionLabel };
-      if (t.id === "match" && isBowlingCategory) {
-        return { ...t, label: "Compétition", description: "Ajouter une compétition" };
+  const eventTypes = EVENT_TYPE_META
+    .filter((et) => !allowedTypeIds || allowedTypeIds.includes(et.id))
+    .map((et) => {
+      if (et.id === "field_session") {
+        return { ...et, label: fieldSessionLabel, description: t(`planning.calendarDialogs.createEvent.types.${EVENT_TYPE_KEY_MAP[et.id]}.description`) };
       }
-      return t;
+      if (et.id === "match" && isBowlingCategory) {
+        return {
+          ...et,
+          label: t("planning.calendarDialogs.createEvent.types.matchBowling.label"),
+          description: t("planning.calendarDialogs.createEvent.types.matchBowling.description"),
+        };
+      }
+      const key = EVENT_TYPE_KEY_MAP[et.id];
+      return {
+        ...et,
+        label: t(`planning.calendarDialogs.createEvent.types.${key}.label`),
+        description: t(`planning.calendarDialogs.createEvent.types.${key}.description`),
+      };
     });
 
 
@@ -319,7 +327,7 @@ export function CreateEventDialog({
   })();
 
   const handleTypeSelect = (typeId: string) => {
-    const eventType = EVENT_TYPES.find(t => t.id === typeId);
+    const eventType = EVENT_TYPE_META.find(et => et.id === typeId);
 
     // Bowling: insert a mode picker (Simplifié / Avancé) before opening the editor
     if (typeId === "field_session" && isBowlingSport) {
@@ -361,10 +369,10 @@ export function CreateEventDialog({
       setSelectedType(typeId);
       setStep("details");
       // Set default title based on type
-      if (typeId === "medical") setTitle("Rendez-vous médical");
-      if (typeId === "video") setTitle("Analyse vidéo");
-      if (typeId === "team_meeting") setTitle("Réunion d'équipe");
-      if (typeId === "mental") setTitle("Séance mental");
+      if (typeId === "medical") setTitle(t("planning.calendarDialogs.createEvent.defaultTitles.medical"));
+      if (typeId === "video") setTitle(t("planning.calendarDialogs.createEvent.defaultTitles.video"));
+      if (typeId === "team_meeting") setTitle(t("planning.calendarDialogs.createEvent.defaultTitles.teamMeeting"));
+      if (typeId === "mental") setTitle(t("planning.calendarDialogs.createEvent.defaultTitles.mental"));
     }
   };
 
@@ -458,7 +466,7 @@ export function CreateEventDialog({
         const accessToken = sessionData?.session?.access_token;
 
         if (!accessToken) {
-          throw new Error("Session expirée. Reconnectez-vous puis réessayez.");
+          throw new Error(t("planning.calendarDialogs.createEvent.toasts.sessionExpired"));
         }
 
         const { data: payload, error: invokeError } = await supabase.functions.invoke("athlete-create-session", {
@@ -479,7 +487,7 @@ export function CreateEventDialog({
 
         if (invokeError) throw invokeError;
         if (!payload?.success || !payload?.session_id) {
-          throw new Error(payload?.error || "Erreur lors de la création de l'événement");
+          throw new Error(payload?.error || t("planning.calendarDialogs.createEvent.toasts.genericCreateError"));
         }
 
         session = { id: payload.session_id };
@@ -549,23 +557,23 @@ export function CreateEventDialog({
       queryClient.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
-      toast.success(editingMentalSession ? "Séance mise à jour" : "Événement créé avec succès");
+      toast.success(editingMentalSession ? t("planning.calendarDialogs.createEvent.toasts.sessionUpdated") : t("planning.calendarDialogs.createEvent.toasts.eventCreated"));
       handleClose(false);
     },
     onError: (error: any) => {
-      toast.error(error?.message || "Erreur lors de la création de l'événement");
+      toast.error(error?.message || t("planning.calendarDialogs.createEvent.toasts.createError"));
     },
   });
 
   const handleSubmit = () => {
     if (!title.trim()) {
-      toast.error("Veuillez saisir un titre");
+      toast.error(t("planning.calendarDialogs.createEvent.toasts.titleRequired"));
       return;
     }
     createEvent.mutate();
   };
 
-  const selectedEventType = EVENT_TYPES.find(t => t.id === selectedType);
+  const selectedEventType = eventTypes.find(et => et.id === selectedType);
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -579,11 +587,11 @@ export function CreateEventDialog({
             )}
             <Calendar className="h-5 w-5 text-primary" />
             {step === "type"
-              ? "Ajouter un événement"
+              ? t("planning.calendarDialogs.addEvent.title")
               : step === "bowling_mode"
-                ? "Nouvelle séance bowling"
+                ? t("planning.calendarDialogs.createEvent.bowlingModeTitle")
                 : step === "session_mode"
-                  ? "Nouvelle séance musculation"
+                  ? t("planning.calendarDialogs.createEvent.sessionModeTitle")
                   : selectedEventType?.label}
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
@@ -628,7 +636,7 @@ export function CreateEventDialog({
           ) : step === "bowling_mode" ? (
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Choisis le mode de création de la séance bowling.
+                {t("planning.calendarDialogs.createEvent.chooseBowlingMode")}
               </p>
               <Card
                 className="cursor-pointer border border-border/70 border-l-4 border-l-cyan-500 bg-card/95 transition-all duration-200 hover:scale-[1.01] hover:bg-accent/50 hover:shadow-md hover:border-cyan-400 dark:bg-card dark:hover:bg-muted/70"
@@ -644,10 +652,10 @@ export function CreateEventDialog({
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-foreground">
-                        Mode simplifié
+                        {t("planning.calendarDialogs.createEvent.simplifiedMode")}
                       </p>
                       <p className="mt-0.5 text-xs text-muted-foreground dark:text-foreground/80">
-                        Création rapide d'une séance bowling (à venir).
+                        {t("planning.calendarDialogs.createEvent.bowlingSimplifiedDesc")}
                       </p>
                     </div>
                   </div>
@@ -672,10 +680,10 @@ export function CreateEventDialog({
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-foreground">
-                        Mode avancé
+                        {t("planning.calendarDialogs.createEvent.advancedMode")}
                       </p>
                       <p className="mt-0.5 text-xs text-muted-foreground dark:text-foreground/80">
-                        Blocs thématiques, configuration DTN, lancers, objectifs détaillés...
+                        {t("planning.calendarDialogs.createEvent.bowlingAdvancedDesc")}
                       </p>
                     </div>
                   </div>
@@ -685,7 +693,7 @@ export function CreateEventDialog({
           ) : step === "session_mode" ? (
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Choisis le mode de création de ta séance.
+                {t("planning.calendarDialogs.createEvent.chooseSessionMode")}
               </p>
               <Card
                 className="cursor-pointer border border-border/70 border-l-4 border-l-emerald-500 bg-card/95 transition-all duration-200 hover:scale-[1.01] hover:bg-accent/50 hover:shadow-md hover:border-emerald-400 dark:bg-card dark:hover:bg-muted/70"
@@ -701,10 +709,10 @@ export function CreateEventDialog({
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-foreground">
-                        Mode simplifié
+                        {t("planning.calendarDialogs.createEvent.simplifiedMode")}
                       </p>
                       <p className="mt-0.5 text-xs text-muted-foreground dark:text-foreground/80">
-                        Saisie rapide : type, description, durée et RPE. Alimente automatiquement ta charge d'entraînement.
+                        {t("planning.calendarDialogs.createEvent.sessionSimplifiedDesc")}
                       </p>
                     </div>
                   </div>
@@ -730,10 +738,10 @@ export function CreateEventDialog({
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-foreground">
-                        Programme complet
+                        {t("planning.calendarDialogs.createEvent.fullProgram")}
                       </p>
                       <p className="mt-0.5 text-xs text-muted-foreground dark:text-foreground/80">
-                        Exercices détaillés avec séries, répétitions et charges.
+                        {t("planning.calendarDialogs.createEvent.fullProgramDesc")}
                       </p>
                     </div>
                   </div>
@@ -744,12 +752,12 @@ export function CreateEventDialog({
             <div className="space-y-4">
               {/* Event details form */}
               <div className="space-y-2">
-                <Label htmlFor="title">Titre</Label>
+                <Label htmlFor="title">{t("planning.calendarDialogs.createEvent.titleLabel")}</Label>
                 <Input
                   id="title"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Nom de l'événement"
+                  placeholder={t("planning.calendarDialogs.createEvent.titlePlaceholder")}
                 />
               </div>
 
@@ -757,7 +765,7 @@ export function CreateEventDialog({
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="mentalDuration" className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" /> Temps de travail (minutes)
+                      <Clock className="h-3 w-3" /> {t("planning.calendarDialogs.createEvent.workDuration")}
                     </Label>
                     <Input
                       id="mentalDuration"
@@ -770,23 +778,15 @@ export function CreateEventDialog({
                   </div>
                   <div className="space-y-2">
                     <Label className="flex items-center gap-1">
-                      <Brain className="h-3 w-3" /> Thématique
+                      <Brain className="h-3 w-3" /> {t("planning.calendarDialogs.createEvent.theme")}
                     </Label>
                     <Select value={mentalTheme} onValueChange={setMentalTheme}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Choisir une thématique" />
+                        <SelectValue placeholder={t("planning.calendarDialogs.createEvent.chooseTheme")} />
                       </SelectTrigger>
                       <SelectContent>
-                        {[
-                          "Respiration",
-                          "Visualisation",
-                          "Routines",
-                          "Confiance en soi",
-                          "Gestion des émotions",
-                          "Concentration",
-                          "Récupération",
-                        ].map((t) => (
-                          <SelectItem key={t} value={t}>{t}</SelectItem>
+                        {(t("planning.calendarDialogs.createEvent.mentalThemes", { returnObjects: true }) as string[]).map((theme) => (
+                          <SelectItem key={theme} value={theme}>{theme}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -796,7 +796,7 @@ export function CreateEventDialog({
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="startTime" className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" /> Début
+                      <Clock className="h-3 w-3" /> {t("planning.calendarDialogs.createEvent.start")}
                     </Label>
                     <Input
                       id="startTime"
@@ -807,7 +807,7 @@ export function CreateEventDialog({
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="endTime" className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" /> Fin
+                      <Clock className="h-3 w-3" /> {t("planning.calendarDialogs.createEvent.end")}
                     </Label>
                     <Input
                       id="endTime"
@@ -822,24 +822,24 @@ export function CreateEventDialog({
               {selectedType !== "mental" && (
                 <div className="space-y-2">
                   <Label htmlFor="location" className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" /> Lieu (optionnel)
+                    <MapPin className="h-3 w-3" /> {t("planning.calendarDialogs.createEvent.locationOptional")}
                   </Label>
                   <Input
                     id="location"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    placeholder="Salle de réunion, cabinet..."
+                    placeholder={t("planning.calendarDialogs.createEvent.locationPlaceholder")}
                   />
                 </div>
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="notes">Notes (optionnel)</Label>
+                <Label htmlFor="notes">{t("planning.calendarDialogs.createEvent.notesOptional")}</Label>
                 <Textarea
                   id="notes"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Informations complémentaires..."
+                  placeholder={t("planning.calendarDialogs.createEvent.notesPlaceholder")}
                   rows={2}
                 />
               </div>
@@ -851,7 +851,7 @@ export function CreateEventDialog({
 
                 <div className="flex items-center justify-between">
                   <Label className="flex items-center gap-1">
-                    <Users className="h-3 w-3" /> Participants
+                    <Users className="h-3 w-3" /> {t("planning.calendarDialogs.createEvent.participants")}
                   </Label>
                   <div
                     className="flex items-center gap-2 cursor-pointer"
@@ -864,7 +864,7 @@ export function CreateEventDialog({
                       className="pointer-events-none"
                     />
                     <span className="text-xs pointer-events-none">
-                      Tous
+                      {t("planning.calendarDialogs.createEvent.all")}
                     </span>
                   </div>
                 </div>
@@ -907,7 +907,7 @@ export function CreateEventDialog({
                 
                 {selectedPlayers.length > 0 && (
                   <Badge variant="secondary" className="w-fit">
-                    {selectedPlayers.length} participant{selectedPlayers.length > 1 ? "s" : ""} sélectionné{selectedPlayers.length > 1 ? "s" : ""}
+                    {t("planning.calendarDialogs.createEvent.participantsSelected", { count: selectedPlayers.length, plural: selectedPlayers.length > 1 ? "s" : "" })}
                   </Badge>
                 )}
               </div>
@@ -920,10 +920,10 @@ export function CreateEventDialog({
         {step === "details" && (
           <DialogFooter className="px-6 py-4 border-t shrink-0">
             <Button variant="outline" onClick={() => handleClose(false)}>
-              Annuler
+              {t("planning.calendarDialogs.createEvent.cancel")}
             </Button>
             <Button onClick={handleSubmit} disabled={createEvent.isPending}>
-              {createEvent.isPending ? (editingMentalSession ? "Mise à jour..." : "Création...") : (editingMentalSession ? "Mettre à jour" : "Créer l'événement")}
+              {createEvent.isPending ? (editingMentalSession ? t("planning.calendarDialogs.createEvent.updating") : t("planning.calendarDialogs.createEvent.creating")) : (editingMentalSession ? t("planning.calendarDialogs.createEvent.update") : t("planning.calendarDialogs.createEvent.createEvent"))}
             </Button>
           </DialogFooter>
         )}
