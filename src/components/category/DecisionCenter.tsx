@@ -1761,7 +1761,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
              onOpenChange={(open) => { if (!open) setNotifySession(null); }}
              athletes={notifySession.athletes}
              eventType="session"
-             defaultSubject={`Mise à jour : ${getTrainingTypeLabel(notifySession.session.training_type)}`}
+             defaultSubject={t("decision.notify.sessionUpdateSubject", { session: getTrainingTypeLabel(notifySession.session.training_type) })}
              eventDetails={{
                date: notifySession.session.session_date,
                time: notifySession.session.session_start_time?.slice(0, 5),
@@ -1894,13 +1894,13 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <ClipboardCheck className="h-5 w-5 text-blue-600" />
-                Détail des présences — {format(new Date(), "dd MMMM yyyy", { locale: fr })}
+                {t("decision.dialogs.attendanceDetail.title", { date: format(new Date(), "dd MMMM yyyy", { locale: fr }) })}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-6">
               {todayAttendance.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-8">
-                  Aucune présence enregistrée pour aujourd'hui
+                  {t("decision.dialogs.attendanceDetail.none")}
                 </p>
               ) : (
                 (() => {
@@ -1931,7 +1931,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                         <div className="flex items-center gap-2 pb-2 border-b">
                           <Activity className="h-4 w-4 text-blue-600" />
                           <h4 className="font-semibold text-sm">
-                            {session ? getTrainingTypeLabel(session.training_type) : "Séance non définie"}
+                            {session ? getTrainingTypeLabel(session.training_type) : t("decision.dialogs.attendanceDetail.sessionUndefined")}
                           </h4>
                           {session?.session_start_time && (
                             <Badge variant="outline" className="text-xs ml-auto">
@@ -1943,10 +1943,10 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                         {/* Summary badges */}
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                           {[
-                            { label: "Présents", count: present, color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
-                            { label: "Retards", count: late, color: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400" },
-                            { label: "Absents", count: absent, color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" },
-                            { label: "Excusés", count: excused, color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" },
+                            { label: t("decision.dialogs.attendanceDetail.present"), count: present, color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
+                            { label: t("decision.dialogs.attendanceDetail.late"), count: late, color: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400" },
+                            { label: t("decision.dialogs.attendanceDetail.absent"), count: absent, color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" },
+                            { label: t("decision.dialogs.attendanceDetail.excused"), count: excused, color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" },
                           ].map(s => (
                             <div key={s.label} className={cn("rounded-lg p-2 text-center", s.color)}>
                               <p className="text-xl font-bold">{s.count}</p>
@@ -1967,11 +1967,11 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                                     {entry.status === "late" && <Clock className="h-4 w-4 text-orange-500 shrink-0 mt-0.5" />}
                                     {entry.status === "excused" && <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />}
                                     <div>
-                                      <span className="font-medium text-sm">{entry.players ? [entry.players.first_name, entry.players.name].filter(Boolean).join(" ") : "Inconnu"}</span>
+                                      <span className="font-medium text-sm">{entry.players ? [entry.players.first_name, entry.players.name].filter(Boolean).join(" ") : t("decision.common.unknown")}</span>
                                       {entry.status === "late" && (
                                         <div className="flex flex-col gap-0.5 mt-0.5">
                                           {entry.late_minutes && (
-                                            <span className="text-xs font-medium text-orange-600 dark:text-orange-400">+{entry.late_minutes} min de retard</span>
+                                            <span className="text-xs font-medium text-orange-600 dark:text-orange-400">{t("decision.dialogs.attendanceDetail.lateMinutesLong", { minutes: entry.late_minutes })}</span>
                                           )}
                                           {entry.late_reason && (
                                             <p className="text-xs text-muted-foreground">{entry.late_reason}</p>
@@ -1987,7 +1987,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                                     entry.status === "absent" ? "bg-red-500" :
                                     entry.status === "late" ? "bg-orange-500" : "bg-amber-500"
                                   )}>
-                                    {entry.status === "absent" ? "Absent" : entry.status === "late" ? `Retard${entry.late_minutes ? ` ${entry.late_minutes}min` : ""}` : "Excusé"}
+                                    {entry.status === "absent" ? t("decision.attendance.statusAbsent") : entry.status === "late" ? (entry.late_minutes ? t("decision.attendance.statusLateWithMinutes", { minutes: entry.late_minutes }) : t("decision.attendance.statusLate")) : t("decision.attendance.statusExcused")}
                                   </Badge>
                                 </div>
                               ))}
@@ -1997,12 +1997,12 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                         {/* Present list */}
                         {present > 0 && (
                           <div className="space-y-1">
-                            <h5 className="font-medium text-xs text-muted-foreground">Présents ({present})</h5>
+                            <h5 className="font-medium text-xs text-muted-foreground">{t("decision.dialogs.attendanceDetail.presentList", { count: present })}</h5>
                             <div className="flex flex-wrap gap-1.5">
                               {entries.filter(a => a.status === "present").map(entry => (
                                 <Badge key={entry.id} variant="outline" className="text-xs bg-green-50 dark:bg-green-900/20">
                                   <CheckCircle className="h-3 w-3 mr-1 text-green-600" />
-                                  {entry.players ? [entry.players.first_name, entry.players.name].filter(Boolean).join(" ") : "Inconnu"}
+                                  {entry.players ? [entry.players.first_name, entry.players.name].filter(Boolean).join(" ") : t("decision.common.unknown")}
                                 </Badge>
                               ))}
                             </div>
@@ -2012,7 +2012,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                         {/* Not marked */}
                         {notMarked.length > 0 && (
                           <div className="space-y-1">
-                            <h5 className="font-medium text-xs text-muted-foreground">Non pointés ({notMarked.length})</h5>
+                            <h5 className="font-medium text-xs text-muted-foreground">{t("decision.dialogs.attendanceDetail.notMarkedList", { count: notMarked.length })}</h5>
                             <div className="flex flex-wrap gap-1.5">
                               {notMarked.map(p => (
                                 <Badge key={p.id} variant="outline" className="text-xs text-muted-foreground">
@@ -2040,7 +2040,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
               if (!open) setRpeDialogSessionId(null);
             }}
             sessionId={rpeDialogSessionId}
-            sessionType={todaySessions.find(s => s.id === rpeDialogSessionId)?.training_type || "Séance"}
+            sessionType={todaySessions.find(s => s.id === rpeDialogSessionId)?.training_type || t("decision.common.session")}
             categoryId={categoryId}
           />
         )}
