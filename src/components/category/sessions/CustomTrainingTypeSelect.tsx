@@ -93,6 +93,7 @@ export function CustomTrainingTypeSelect({
         .single();
 
       if (error) throw error;
+      void translateOnSave([name.trim()]);
       return data;
     },
     onSuccess: (data) => {
