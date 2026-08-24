@@ -32,6 +32,8 @@ import { AthleteSpaceSettings } from "@/components/athlete-space/AthleteSpaceSet
 import { AthletePersonalInfoDialog } from "@/components/athlete-space/AthletePersonalInfoDialog";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { LanguageSwitcher } from "@/components/language/LanguageSwitcher";
+import { useTranslation } from "react-i18next";
 import { AthleteSpaceCalendar } from "@/components/athlete-space/AthleteSpaceCalendar";
 import { AthleteSpaceDocuments } from "@/components/athlete-space/AthleteSpaceDocuments";
 import { AthletePrecisionTracker } from "@/components/athlete-space/AthletePrecisionTracker";
@@ -305,7 +307,7 @@ export default function AthleteSpace() {
             <p className="text-sm text-muted-foreground">{loadError}</p>
             <div className="flex gap-2 justify-center">
               <Button variant="outline" onClick={() => { setLoadError(null); setIsLoading(true); fetchAthleteData(); }}>
-                Réessayer
+                {t("athlete.retry")}
               </Button>
               <Button variant="ghost" onClick={() => signOut()}>
                 <LogOut className="h-4 w-4 mr-2" />
@@ -340,7 +342,7 @@ export default function AthleteSpace() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5" />
-                Sélectionner un athlète
+                {t("athlete.selectAthlete")}
               </CardTitle>
               <CardDescription>Choisissez un athlète pour consulter son espace personnel</CardDescription>
             </CardHeader>
@@ -504,17 +506,18 @@ export default function AthleteSpace() {
             </div>
           </div>
           <div className="flex items-center gap-1 shrink-0">
+            {canSwitchLanguage && <LanguageSwitcher />}
             <NotificationBell variant="default" />
             <Button
               size="sm"
               className="px-2 sm:px-3 text-white border-0 shrink-0"
               style={{ backgroundColor: NAV_COLORS.effectif.base }}
               onClick={() => setShowPersonalInfoDialog(true)}
-              aria-label="Informations personnelles"
+              aria-label={t("athlete.personalInfo")}
             >
               <User className="h-4 w-4 sm:mr-1.5" />
-              <span className="hidden sm:inline">Informations personnelles</span>
-              <span className="sm:hidden text-xs font-medium">Infos</span>
+              <span className="hidden sm:inline">{t("athlete.personalInfo")}</span>
+              <span className="sm:hidden text-xs font-medium">{t("athlete.personalInfoShort")}</span>
             </Button>
             {!isSuperAdminView && (
               <Button variant="ghost" size="icon" onClick={() => signOut()}>
@@ -555,7 +558,7 @@ export default function AthleteSpace() {
                 }}
               >
                 <BarChart3 className="h-3.5 w-3.5" />
-                Accueil
+                {t("athlete.home")}
               </TabsTrigger>
               <TabsTrigger 
                 value="rpe"
@@ -568,7 +571,7 @@ export default function AthleteSpace() {
                 }}
               >
                 <Activity className="h-3.5 w-3.5" />
-                Charge
+                {t("athlete.load")}
               </TabsTrigger>
                <TabsTrigger 
                  value="wellness"
@@ -581,7 +584,7 @@ export default function AthleteSpace() {
                   }}
                 >
                   <Heart className="h-3.5 w-3.5" />
-                  Wellness
+                  {t("athlete.wellness")}
                </TabsTrigger>
                <TabsTrigger 
                  value="calendar"
@@ -594,7 +597,7 @@ export default function AthleteSpace() {
                   }}
                 >
                   <CalendarDays className="h-3.5 w-3.5" />
-                  Calendrier
+                  {t("athlete.calendar")}
                </TabsTrigger>
               <TabsTrigger 
                 value="performance"
@@ -607,7 +610,7 @@ export default function AthleteSpace() {
                 }}
               >
                 <BarChart3 className="h-3.5 w-3.5" />
-                Performance
+                {t("athlete.performance")}
               </TabsTrigger>
               <TabsTrigger
                  value="stats"
@@ -620,7 +623,7 @@ export default function AthleteSpace() {
                  }}
                >
                  <Trophy className="h-3.5 w-3.5" />
-                  Stats
+                  {t("athlete.stats")}
                  {recordNotifCount > 0 && (
                    <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background" />
                  )}
@@ -638,7 +641,7 @@ export default function AthleteSpace() {
                    }}
                  >
                    <CircleDot className="h-3.5 w-3.5" />
-                   Arsenal
+                   {t("athlete.arsenal")}
                  </TabsTrigger>
                )}
                {isSurf && (
@@ -653,7 +656,7 @@ export default function AthleteSpace() {
                    }}
                  >
                    <Waves className="h-3.5 w-3.5" />
-                   Équipement
+                   {t("athlete.equipment")}
                  </TabsTrigger>
                )}
                {isSki && (
@@ -668,7 +671,7 @@ export default function AthleteSpace() {
                    }}
                  >
                    <Waves className="h-3.5 w-3.5" />
-                   Matériel
+                   {t("athlete.material")}
                  </TabsTrigger>
                )}
                {isPadel && (
@@ -683,7 +686,7 @@ export default function AthleteSpace() {
                    }}
                  >
                    🏓
-                   Matériel
+                   {t("athlete.material")}
                  </TabsTrigger>
                 )}
                {isJudo && (
@@ -698,7 +701,7 @@ export default function AthleteSpace() {
                    }}
                  >
                    <Users className="h-3.5 w-3.5" />
-                   Adversaires
+                   {t("athlete.opponents")}
                  </TabsTrigger>
                )}
                <TabsTrigger 
@@ -712,7 +715,7 @@ export default function AthleteSpace() {
                   }}
                 >
                   <FileText className="h-3.5 w-3.5" />
-                  Documents
+                  {t("athlete.documents")}
                   {docNotifCount > 0 && (
                     <span className="absolute -top-1 -right-1 h-4 min-w-[16px] flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1">
                       {docNotifCount > 9 ? "9+" : docNotifCount}
@@ -732,7 +735,7 @@ export default function AthleteSpace() {
                     }}
                   >
                     <MessageSquare className="h-3.5 w-3.5" />
-                    Chat
+                    {t("athlete.chat")}
                     {unreadCount > 0 && (
                       <span className="absolute -top-1 -right-1 h-4 min-w-[16px] flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1">
                         {unreadCount > 9 ? "9+" : unreadCount}
@@ -752,7 +755,7 @@ export default function AthleteSpace() {
                     }}
                   >
                     <Settings className="h-3.5 w-3.5" />
-                    Paramètres
+                    {t("athlete.settings")}
                   </TabsTrigger>
                 )}
              </TabsList>
@@ -782,7 +785,7 @@ export default function AthleteSpace() {
                   className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   <Heart className="h-3.5 w-3.5" />
-                  Wellness
+                  {t("athlete.wellness")}
                 </TabsTrigger>
                 <TabsTrigger
                   value="health-sub"
@@ -790,7 +793,7 @@ export default function AthleteSpace() {
                   className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   <Shield className="h-3.5 w-3.5" />
-                  Santé
+                  {t("athlete.health")}
                 </TabsTrigger>
               </TabsList>
 
@@ -816,7 +819,7 @@ export default function AthleteSpace() {
                 <TabsList>
                   <TabsTrigger value="my-calendar" className="gap-2">
                     <CalendarDays className="h-4 w-4" />
-                    Calendrier
+                    {t("athlete.calendar")}
                   </TabsTrigger>
                   <TabsTrigger value="annual" className="gap-2">
                     <LayoutDashboard className="h-4 w-4" />
@@ -891,7 +894,7 @@ export default function AthleteSpace() {
                     className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
                   >
                     <Trophy className="h-3.5 w-3.5" />
-                    Stats de compétition
+                    {t("athlete.competitionStats")}
                   </TabsTrigger>
                   <TabsTrigger
                     value="training"
@@ -899,7 +902,7 @@ export default function AthleteSpace() {
                     className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
                   >
                     <Target className="h-3.5 w-3.5" />
-                    Stats d'entraînement
+                    {t("athlete.trainingStats")}
                   </TabsTrigger>
                   <TabsTrigger
                     value="records"
@@ -946,7 +949,7 @@ export default function AthleteSpace() {
                     className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
                   >
                     <Trophy className="h-3.5 w-3.5" />
-                    Stats de compétition
+                    {t("athlete.competitionStats")}
                   </TabsTrigger>
                   <TabsTrigger
                     value="training"
@@ -954,7 +957,7 @@ export default function AthleteSpace() {
                     className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
                   >
                     <Target className="h-3.5 w-3.5" />
-                    Stats d'entraînement
+                    {t("athlete.trainingStats")}
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="competition">
