@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useContentTranslation } from "@/hooks/use-content-translation";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -265,7 +266,7 @@ export function ExerciseLibrarySection() {
                               <div className="flex items-start justify-between">
                                 <div className="flex items-center gap-2">
                                   <Icon className={cn("h-4 w-4", styles.text)} />
-                                  <CardTitle className="text-base">{exercise.name}</CardTitle>
+                                  <CardTitle className="text-base">{tc(exercise.name)}</CardTitle>
                                 </div>
                                 {!exercise.is_system && (
                                   <Button
@@ -299,7 +300,7 @@ export function ExerciseLibrarySection() {
                             </CardHeader>
                             {exercise.description && (
                               <CardContent className="pt-2">
-                                <p className="text-sm text-muted-foreground">{exercise.description}</p>
+                                <p className="text-sm text-muted-foreground">{tc(exercise.description)}</p>
                               </CardContent>
                             )}
                             {exercise.youtube_url && (

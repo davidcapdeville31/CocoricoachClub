@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { translateOnSave } from "@/lib/i18n/contentTranslation";
+import { useContentTranslation } from "@/hooks/use-content-translation";
 import { Plus, Target, User, TrendingUp, Trash2, Users } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -367,7 +368,7 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     <div className={`w-2 h-2 rounded-full shrink-0 ${goalTypeColors[obj.goal_type] || "bg-muted"}`} />
-                    <span className="font-medium text-sm truncate">{obj.title}</span>
+                    <span className="font-medium text-sm truncate">{tc(obj.title)}</span>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     <Badge variant="outline" className="text-xs">{getPlayerName(obj)}</Badge>

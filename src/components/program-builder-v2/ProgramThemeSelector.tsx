@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { translateOnSave } from "@/lib/i18n/contentTranslation";
+import { useContentTranslation } from "@/hooks/use-content-translation";
 import { cn } from "@/lib/utils";
 
 const COLOR_OPTIONS = [
@@ -172,7 +173,7 @@ export function ProgramThemeSelector({
                     className="inline-block h-2.5 w-2.5 rounded-full"
                     style={{ backgroundColor: t.color }}
                   />
-                  {t.name}
+                  {tc(t.name)}
                   {!t.is_system && (
                     <span className="text-[10px] text-muted-foreground">(perso)</span>
                   )}
