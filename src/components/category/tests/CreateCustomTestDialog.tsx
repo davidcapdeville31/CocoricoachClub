@@ -20,6 +20,7 @@ import { TEST_UNIT_OPTIONS, getUnitByKind, type ScoringScale } from "@/lib/const
 import { ScoringScaleEditor } from "./ScoringScaleEditor";
 import { FormulaConfigEditor } from "./FormulaConfigEditor";
 import type { FormulaConfig } from "@/lib/tests/formulaEngine";
+import { translateOnSave } from "@/lib/i18n/contentTranslation";
 
 interface CreateCustomTestDialogProps {
   open: boolean;
@@ -245,6 +246,8 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
         .insert({ custom_test_id: customTest.id, category_id: categoryId });
 
       if (linkError) throw linkError;
+
+      void translateOnSave([trimmedName, description, objectives]);
     },
     onSuccess: () => {
       toast.success("Test créé avec succès");

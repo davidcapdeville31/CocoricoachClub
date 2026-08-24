@@ -145,6 +145,8 @@ export function QuickAddExerciseDialog({
         throw new Error(error.message || "Erreur lors de la création");
       }
       return data;
+      // Traduction automatique du contenu saisi (nom, description) à l'enregistrement
+      void translateOnSave([parsed.data.name, subcategory, parsed.data.description]);
     },
     
     onSuccess: (data) => {
