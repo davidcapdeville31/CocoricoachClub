@@ -28,6 +28,7 @@ import {
   METRICS_CONFIG,
   getRiskColor,
 } from "@/lib/trainingLoadCalculations";
+import { useTranslation } from "react-i18next";
 
 interface TrainingLoadChartProps {
   chartData: EWMAResult[];
@@ -42,7 +43,7 @@ interface TrainingLoadChartProps {
 }
 
 // Custom tooltip component
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label, t }: any) => {
   if (!active || !payload?.length) return null;
 
   const data = payload[0]?.payload as EWMAResult;
@@ -57,23 +58,23 @@ const CustomTooltip = ({ active, payload, label }: any) => {
       </p>
       <div className="space-y-1 text-sm">
         <div className="flex justify-between gap-4">
-          <span className="text-muted-foreground">Charge brute:</span>
+          <span className="text-muted-foreground">{t("workload.chart.tooltip.rawLoad")}</span>
           <span className="font-semibold">{data.rawValue}</span>
         </div>
         <div className="flex justify-between gap-4">
-          <span className="text-muted-foreground">EWMA Aiguë:</span>
+          <span className="text-muted-foreground">{t("workload.chart.tooltip.ewmaAcute")}</span>
           <span className="font-semibold">{data.acute}</span>
         </div>
         <div className="flex justify-between gap-4">
-          <span className="text-muted-foreground">EWMA Chronique:</span>
+          <span className="text-muted-foreground">{t("workload.chart.tooltip.ewmaChronic")}</span>
           <span className="font-semibold">{data.chronic}</span>
         </div>
         <div className="flex justify-between gap-4 pt-1 border-t">
-          <span className="text-muted-foreground">Ratio:</span>
+          <span className="text-muted-foreground">{t("workload.chart.tooltip.ratio")}</span>
           <span className={`font-bold ${riskColor}`}>{data.ratio.toFixed(2)}</span>
         </div>
         <div className="flex justify-between gap-4">
-          <span className="text-muted-foreground">Zone:</span>
+          <span className="text-muted-foreground">{t("workload.chart.tooltip.zone")}</span>
           <Badge 
             variant="secondary" 
             className={`text-xs ${
@@ -82,37 +83,37 @@ const CustomTooltip = ({ active, payload, label }: any) => {
               "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
             }`}
           >
-            {data.riskLevel === "optimal" ? "Optimale" : 
-             data.riskLevel === "warning" ? "Vigilance" : "Danger"}
+            {data.riskLevel === "optimal" ? t("workload.chart.tooltip.zoneOptimal") : 
+             data.riskLevel === "warning" ? t("workload.chart.tooltip.zoneWarning") : t("workload.chart.tooltip.zoneDanger")}
           </Badge>
         </div>
         {/* HRV data in tooltip */}
         {(data.hrvMs != null || data.avgHrBpm != null || data.maxHrBpm != null) && (
           <div className="pt-1 border-t space-y-1">
             <div className="flex items-center gap-1 text-xs font-medium text-destructive">
-              <Heart className="h-3 w-3" /> Données cardiaques
+              <Heart className="h-3 w-3" /> {t("workload.chart.tooltip.cardiacData")}
             </div>
             {data.hrvMs != null && (
               <div className="flex justify-between gap-4">
-                <span className="text-muted-foreground">HRV:</span>
+                <span className="text-muted-foreground">{t("workload.chart.tooltip.hrv")}</span>
                 <span className="font-semibold">{data.hrvMs} ms</span>
               </div>
             )}
             {data.restingHrBpm != null && (
               <div className="flex justify-between gap-4">
-                <span className="text-muted-foreground">FC repos:</span>
+                <span className="text-muted-foreground">{t("workload.chart.tooltip.restingHr")}</span>
                 <span className="font-semibold">{data.restingHrBpm} bpm</span>
               </div>
             )}
             {data.avgHrBpm != null && (
               <div className="flex justify-between gap-4">
-                <span className="text-muted-foreground">FC moy:</span>
+                <span className="text-muted-foreground">{t("workload.chart.tooltip.avgHr")}</span>
                 <span className="font-semibold">{data.avgHrBpm} bpm</span>
               </div>
             )}
             {data.maxHrBpm != null && (
               <div className="flex justify-between gap-4">
-                <span className="text-muted-foreground">FC max:</span>
+                <span className="text-muted-foreground">{t("workload.chart.tooltip.maxHr")}</span>
                 <span className="font-semibold">{data.maxHrBpm} bpm</span>
               </div>
             )}
@@ -134,6 +135,7 @@ export function TrainingLoadChart({
   showZones = true,
   height = 350,
 }: TrainingLoadChartProps) {
+  const { t } = useTranslation();
   const [viewMode, setViewMode] = useState<"ratio" | "loads">("ratio");
   const [showHrvOverlay, setShowHrvOverlay] = useState(true);
   const metricConfig = METRICS_CONFIG[selectedMetric];
@@ -172,7 +174,7 @@ export function TrainingLoadChart({
           <div>
             <CardTitle className="flex items-center gap-2">
               <Activity className="h-5 w-5 text-primary" />
-              Charge d'entraînement
+              {t("workload.chart.title")}
             </CardTitle>
           </div>
 
@@ -180,16 +182,16 @@ export function TrainingLoadChart({
             {metricConfig.isGps && (
               <Badge variant="secondary" className="gap-1">
                 <Satellite className="h-3 w-3" />
-                GPS
+                {t("workload.chart.gps")}
               </Badge>
             )}
             <Select value={selectedMetric} onValueChange={(v) => onMetricChange(v as MetricType)}>
               <SelectTrigger className="w-[220px]">
-                <SelectValue placeholder="Sélectionner métrique" />
+                <SelectValue placeholder={t("workload.chart.selectMetricPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
                 <div className="px-2 py-1 text-xs font-semibold text-muted-foreground">
-                  Charge interne
+                  {t("workload.chart.internalLoadGroup")}
                 </div>
                 {nonGpsMetrics.map(m => (
                   <SelectItem key={m} value={m}>
@@ -199,7 +201,7 @@ export function TrainingLoadChart({
                 {gpsMetrics.length > 0 && (
                   <>
                     <div className="px-2 py-1 text-xs font-semibold text-muted-foreground mt-2">
-                      Charge externe GPS
+                      {t("workload.chart.externalGpsGroup")}
                     </div>
                     {gpsMetrics.map(m => (
                       <SelectItem key={m} value={m}>
@@ -230,15 +232,15 @@ export function TrainingLoadChart({
               : "hsl(var(--primary))"
           }}
         >
-          {metricConfig.description || `${metricConfig.label} - Suivi de la charge d'entraînement basé sur ${metricConfig.isGps ? 'les données GPS' : 'la perception de l\'effort (RPE)'}.`}
+          {metricConfig.description || t("workload.chart.defaultDescription", { label: metricConfig.label, basis: metricConfig.isGps ? t("workload.chart.basisGps") : t("workload.chart.basisRpe") })}
         </div>
 
         {/* View mode toggle + HRV toggle */}
         <div className="flex items-center justify-between flex-wrap gap-2">
           <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "ratio" | "loads")}>
             <TabsList className="grid w-full max-w-xs grid-cols-2">
-              <TabsTrigger value="ratio">Ratio</TabsTrigger>
-              <TabsTrigger value="loads">Charges</TabsTrigger>
+              <TabsTrigger value="ratio">{t("workload.chart.viewMode.ratio")}</TabsTrigger>
+              <TabsTrigger value="loads">{t("workload.chart.viewMode.loads")}</TabsTrigger>
             </TabsList>
           </Tabs>
 
@@ -251,7 +253,7 @@ export function TrainingLoadChart({
               />
               <Label htmlFor="hrv-overlay" className="text-sm flex items-center gap-1 cursor-pointer">
                 <Heart className="h-3.5 w-3.5 text-destructive" />
-                FC / HRV
+                {t("workload.chart.hrvFcToggle")}
               </Label>
             </div>
           )}
@@ -260,8 +262,8 @@ export function TrainingLoadChart({
         {formattedData.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
             <Activity className="h-12 w-12 mb-4 opacity-50" />
-            <p>Aucune donnée de charge disponible</p>
-            <p className="text-sm">Ajoutez des entrées RPE pour visualiser les tendances</p>
+            <p>{t("workload.chart.noData")}</p>
+            <p className="text-sm">{t("workload.chart.noDataHint")}</p>
           </div>
         ) : (
           <>
@@ -285,7 +287,7 @@ export function TrainingLoadChart({
                       label={{ value: "bpm / ms", angle: 90, position: "insideRight", style: { fontSize: 10 } }}
                     />
                   )}
-                  <Tooltip content={<CustomTooltip />} />
+                  <Tooltip content={<CustomTooltip t={t} />} />
                   <Legend />
 
                   {/* Colored zones */}
@@ -312,7 +314,7 @@ export function TrainingLoadChart({
                     strokeWidth={2}
                     dot={{ r: 3 }}
                     activeDot={{ r: 6 }}
-                    name={selectedMetric.startsWith("awcr_") ? "Ratio AWCR" : "Ratio EWMA"}
+                    name={selectedMetric.startsWith("awcr_") ? t("workload.chart.seriesRatioAwcr") : t("workload.chart.seriesRatioEwma")}
                   />
 
                   {/* HRV overlay lines */}
@@ -327,7 +329,7 @@ export function TrainingLoadChart({
                         strokeDasharray="4 4"
                         dot={{ r: 2 }}
                         connectNulls
-                        name="FC moy (bpm)"
+                        name={t("workload.chart.seriesAvgHr")}
                       />
                       <Line
                         yAxisId="right"
@@ -337,7 +339,7 @@ export function TrainingLoadChart({
                         strokeWidth={1.5}
                         dot={{ r: 2 }}
                         connectNulls
-                        name="HRV (ms)"
+                        name={t("workload.chart.seriesHrv")}
                       />
                     </>
                   )}
@@ -358,7 +360,7 @@ export function TrainingLoadChart({
                       label={{ value: "bpm / ms", angle: 90, position: "insideRight", style: { fontSize: 10 } }}
                     />
                   )}
-                  <Tooltip content={<CustomTooltip />} />
+                  <Tooltip content={<CustomTooltip t={t} />} />
                   <Legend />
 
                   <Area
@@ -369,7 +371,7 @@ export function TrainingLoadChart({
                     stroke="hsl(var(--muted-foreground))"
                     fillOpacity={0.3}
                     strokeWidth={1}
-                    name="Chronique (28j)"
+                    name={t("workload.chart.seriesChronic")}
                   />
                   <Line
                     yAxisId="left"
@@ -378,7 +380,7 @@ export function TrainingLoadChart({
                     stroke="hsl(var(--primary))"
                     strokeWidth={2}
                     dot={{ r: 2 }}
-                    name="Aiguë (7j)"
+                    name={t("workload.chart.seriesAcute")}
                   />
                   <Line
                     yAxisId="left"
@@ -388,7 +390,7 @@ export function TrainingLoadChart({
                     strokeWidth={1}
                     strokeDasharray="4 4"
                     dot={{ r: 1 }}
-                    name="Charge brute"
+                    name={t("workload.chart.seriesRaw")}
                   />
 
                   {/* HRV overlay lines */}
@@ -403,7 +405,7 @@ export function TrainingLoadChart({
                         strokeDasharray="4 4"
                         dot={{ r: 2 }}
                         connectNulls
-                        name="FC moy (bpm)"
+                        name={t("workload.chart.seriesAvgHr")}
                       />
                       <Line
                         yAxisId="right"
@@ -413,7 +415,7 @@ export function TrainingLoadChart({
                         strokeWidth={1.5}
                         dot={{ r: 2 }}
                         connectNulls
-                        name="HRV (ms)"
+                        name={t("workload.chart.seriesHrv")}
                       />
                     </>
                   )}
@@ -425,25 +427,25 @@ export function TrainingLoadChart({
             <div className="mt-4 flex flex-wrap gap-4 text-xs text-muted-foreground">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded bg-green-500/30" />
-                <span>Zone optimale (0.85 - 1.30)</span>
+                <span>{t("workload.chart.legend.optimalZone")}</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded bg-yellow-500/30" />
-                <span>Zone vigilance</span>
+                <span>{t("workload.chart.legend.warningZone")}</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded bg-red-500/30" />
-                <span>Zone danger</span>
+                <span>{t("workload.chart.legend.dangerZone")}</span>
               </div>
               {dataHasHrv && showHrvOverlay && (
                 <>
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded" style={{ backgroundColor: "hsl(0, 84%, 60%)" }} />
-                    <span>FC moyenne</span>
+                    <span>{t("workload.chart.legend.avgHr")}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded" style={{ backgroundColor: "hsl(280, 67%, 55%)" }} />
-                    <span>HRV</span>
+                    <span>{t("workload.chart.legend.hrv")}</span>
                   </div>
                 </>
               )}
