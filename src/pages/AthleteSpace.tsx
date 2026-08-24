@@ -70,6 +70,10 @@ export default function AthleteSpace() {
   const [showPersonalInfoDialog, setShowPersonalInfoDialog] = useState(false);
   const [playerSearch, setPlayerSearch] = useState("");
   const { total: unreadCount } = useUnreadMessages(athleteInfo?.category_id || "");
+  const { t } = useTranslation();
+  // Sélecteur de langue : déploiement progressif, limité à la catégorie M14 pour l'instant
+  const canSwitchLanguage = /\b[mu]\s?-?14\b/i.test(athleteInfo?.category_name || "");
+
   const { count: recordNotifCount, markAsRead: markRecordNotifsRead } = useAthleteRecordNotifications(athleteInfo?.player_id);
   const { count: docNotifCount, markAsRead: markDocNotifsRead } = useAthleteDocumentNotifications(athleteInfo?.player_id);
 
