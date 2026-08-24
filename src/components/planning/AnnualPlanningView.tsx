@@ -59,9 +59,10 @@ function useViewModes(t: (k: string) => string): { value: ViewMode; label: strin
   ];
 }
 
-function useMonthLabels(t: (k: string) => string): string[] {
+function useMonthLabels(t: (k: string, o?: Record<string, unknown>) => unknown): string[] {
   return t("planning.annualView.months", { returnObjects: true }) as unknown as string[];
 }
+
 const START_MONTH_STORAGE_PREFIX = "planning-start-month:";
 
 export function AnnualPlanningView({ categoryId, readOnly = false }: AnnualPlanningViewProps) {

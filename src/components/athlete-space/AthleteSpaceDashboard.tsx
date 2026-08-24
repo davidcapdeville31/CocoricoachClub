@@ -130,13 +130,14 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
         }
         rows.forEach((c: any) => { customMap[`custom:${String(c.id).toLowerCase()}`] = c.name; });
       }
-      const resolve = (t: string) => {
-        if (/^custom:/i.test(t || "")) {
-          const id = t.slice("custom:".length).toLowerCase();
+      const resolve = (code: string) => {
+        if (/^custom:/i.test(code || "")) {
+          const id = code.slice("custom:".length).toLowerCase();
           return customMap[`custom:${id}`] || t("athleteSpace.dashboard.customTest");
         }
-        return getTestLabel(t) || t;
+        return getTestLabel(code) || code;
       };
+
 
       return sameDay.map((session: any) => {
         let testLabel: string | null = null;
