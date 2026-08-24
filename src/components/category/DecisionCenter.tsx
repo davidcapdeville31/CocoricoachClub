@@ -657,7 +657,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
              severity: "medium",
              playerId: player.id,
              playerName: getFullName(player),
-             message: `Retour prévu ${daysUntil === 0 ? "aujourd'hui" : `dans ${daysUntil}j`}`,
+             message: daysUntil === 0 ? t("decision.alerts.returnTodayMessage") : t("decision.alerts.returnInDaysMessage", { days: daysUntil }),
              action: "Valider reprise",
            });
          }
