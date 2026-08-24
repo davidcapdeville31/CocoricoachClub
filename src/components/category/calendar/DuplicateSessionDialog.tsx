@@ -26,6 +26,8 @@ function chunkArray<T>(items: T[], size: number): T[][] {
   return chunks;
 }
 
+import i18n from "@/i18n";
+
 async function withTimeout<T>(promise: PromiseLike<T>, label: string, timeoutMs = DB_TIMEOUT_MS): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
@@ -33,7 +35,7 @@ async function withTimeout<T>(promise: PromiseLike<T>, label: string, timeoutMs 
       Promise.resolve(promise),
       new Promise<never>((_, reject) => {
         timer = setTimeout(() => {
-          reject(new Error(`${label} prend trop de temps. Réessaie avec moins de récurrences.`));
+          reject(new Error(i18n.t("planning.calendarDialogs.duplicateSession.toasts.timeout", { label })));
         }, timeoutMs);
       }),
     ]);
@@ -71,17 +73,18 @@ interface Props {
 }
 
 const WEEKDAYS = [
-  { value: 1, label: "Lun" },
-  { value: 2, label: "Mar" },
-  { value: 3, label: "Mer" },
-  { value: 4, label: "Jeu" },
-  { value: 5, label: "Ven" },
-  { value: 6, label: "Sam" },
-  { value: 0, label: "Dim" },
+  { value: 1, key: "mon" },
+  { value: 2, key: "tue" },
+  { value: 3, key: "wed" },
+  { value: 4, key: "thu" },
+  { value: 5, key: "fri" },
+  { value: 6, key: "sat" },
+  { value: 0, key: "sun" },
 ];
 
 export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId }: Props) {
   const { t } = useTranslation();
+  const weekdaysI18n = t("planning.calendarDialogs.duplicateSession.weekdays", { returnObjects: true }) as { value: number; label: string }[];
   const qc = useQueryClient();
   const { notify } = useSessionNotifications();
   const [mode, setMode] = useState<"single" | "recurring">("single");
@@ -369,7 +372,7 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
                           : "bg-background hover:bg-muted"
                       }`}
                     >
-                      {w.label}
+                      {weekdaysI18n.find((wd) => wd.value === w.value)?.label ?? w.value}
                     </button>
                   ))}
                 </div>
