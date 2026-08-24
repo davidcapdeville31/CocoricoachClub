@@ -10,6 +10,7 @@ import { TRAINING_TYPE_COLORS, getTrainingTypeLabel } from "@/lib/constants/trai
 import { isIndividualSport } from "@/lib/constants/sportTypes";
 import { getCompetitionColor } from "@/lib/constants/competitionColors";
 import { printElement } from "@/lib/pdfExport";
+import { useTranslation } from "react-i18next";
 
 interface Session {
   id: string;
@@ -43,8 +44,6 @@ interface WeeklySessionsViewProps {
   playerNamesMap?: Record<string, string>;
 }
 
-const DAYS_OF_WEEK = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
-
 export function WeeklySessionsView({
   sessions,
   matches,
@@ -55,6 +54,8 @@ export function WeeklySessionsView({
   onViewMatch,
   playerNamesMap,
 }: WeeklySessionsViewProps) {
+  const { t } = useTranslation();
+  const DAYS_OF_WEEK = t("planning:calendarViews.daysFull", { returnObjects: true }) as string[];
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(currentWeek, { weekStartsOn: 1 });
   const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
@@ -77,7 +78,7 @@ export function WeeklySessionsView({
 
   const handlePrintWeekly = () => {
     if (weeklyCalendarRef.current) {
-      printElement(weeklyCalendarRef.current, `Planning Hebdomadaire - Semaine ${weekNumber}`);
+      printElement(weeklyCalendarRef.current, t("planning:calendarViews.weekly.printTitle", { number: weekNumber }));
     }
   };
 
@@ -87,7 +88,7 @@ export function WeeklySessionsView({
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
             <Calendar className="h-4 w-4" />
-            <span className="hidden sm:inline">Vue Hebdomadaire -</span> Semaine {weekNumber}
+            <span className="hidden sm:inline">{t("planning:calendarViews.weekly.titlePrefix")}</span> {t("planning:calendarViews.weekly.weekLabel", { number: weekNumber })}
           </CardTitle>
           <div className="flex items-center gap-1.5 sm:gap-2">
             <Button
@@ -95,7 +96,7 @@ export function WeeklySessionsView({
               size="icon"
               className="h-8 w-8"
               onClick={handlePrintWeekly}
-              title="Imprimer la semaine"
+              title={t("planning:calendarViews.weekly.printWeek")}
             >
               <Printer className="h-4 w-4" />
             </Button>

@@ -13,6 +13,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { LoadSummary, generateLoadRecommendation } from "@/lib/trainingLoadCalculations";
+import { useTranslation } from "react-i18next";
 
 interface PlayerAtRisk {
   id: string;
@@ -32,6 +33,7 @@ export function TrainingLoadAlerts({
   onPlayerClick,
   isLoading 
 }: TrainingLoadAlertsProps) {
+  const { t } = useTranslation();
   if (isLoading) {
     return (
       <Card className="bg-gradient-card shadow-md">
@@ -54,14 +56,14 @@ export function TrainingLoadAlerts({
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-lg">
             <Shield className="h-5 w-5 text-green-500" />
-            Alertes Charge
+            {t("workload.alerts.title")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center py-6 text-muted-foreground">
             <Shield className="h-10 w-10 mb-2 text-green-500" />
-            <p className="font-medium text-foreground">Tous les athlètes en zone optimale</p>
-            <p className="text-sm">Aucune alerte de surcharge ou sous-charge</p>
+            <p className="font-medium text-foreground">{t("workload.alerts.noneTitle")}</p>
+            <p className="text-sm">{t("workload.alerts.noneDesc")}</p>
           </div>
         </CardContent>
       </Card>
@@ -74,10 +76,10 @@ export function TrainingLoadAlerts({
         <CardTitle className="flex items-center justify-between">
           <span className="flex items-center gap-2 text-lg">
             <AlertTriangle className="h-5 w-5 text-orange-500" />
-            Alertes Charge
+            {t("workload.alerts.title")}
           </span>
           <Badge variant="destructive">
-            {playersAtRisk.length} athlète{playersAtRisk.length > 1 ? "s" : ""}
+            {t("workload.alerts.athleteCount", { count: playersAtRisk.length })}
           </Badge>
         </CardTitle>
       </CardHeader>
@@ -119,6 +121,7 @@ function AlertCard({
   severity: "warning" | "critical";
   onClick?: () => void;
 }) {
+  const { t } = useTranslation();
   const summary = player.summary;
   if (!summary) return null;
 
@@ -148,11 +151,9 @@ function AlertCard({
               )}
             </div>
             <p className="text-sm text-muted-foreground mt-1">
-              Ratio: <span className={severity === "critical" ? "text-red-500 font-semibold" : "text-yellow-500 font-semibold"}>
-                {summary.ewmaRatio.toFixed(2)}
-              </span>
+              {t("workload.alerts.ratioLabel", { value: summary.ewmaRatio.toFixed(2) })}
               {" • "}
-              {isOverload ? "Surcharge" : "Sous-charge"}
+              {isOverload ? t("workload.alerts.overload") : t("workload.alerts.underload")}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
               {recommendation.action}

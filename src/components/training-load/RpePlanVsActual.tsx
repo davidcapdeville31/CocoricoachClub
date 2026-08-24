@@ -42,6 +42,7 @@ import {
 } from "recharts";
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
+import { useTranslation } from "react-i18next";
 
 interface RpePlanVsActualProps {
   categoryId: string;
@@ -60,6 +61,7 @@ interface PlayerRpeComparison {
 }
 
 export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualProps) {
+  const { t } = useTranslation();
   const [periodDays, setPeriodDays] = useState(7);
   const [showDetails, setShowDetails] = useState(false);
   const [chartType, setChartType] = useState<"bar" | "line" | "area">("bar");
@@ -283,11 +285,10 @@ export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualPr
               </div>
               <div className="flex-1">
                 <h4 className="font-semibold text-red-700 dark:text-red-400">
-                  Alerte : {comparisonData.alert.count} athlètes en surcharge
+                  {t("workload.rpePlanVsActual.alertTitle", { count: comparisonData.alert.count })}
                 </h4>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {comparisonData.alert.count} athlètes ont un RPE réel supérieur de +2 ou plus par rapport au RPE prévu.
-                  Vérifiez leur récupération et ajustez les prochaines séances si nécessaire.
+                  {t("workload.rpePlanVsActual.alertDesc", { count: comparisonData.alert.count })}
                 </p>
                 <div className="flex flex-wrap gap-1 mt-2">
                   {comparisonData.alert.players.slice(0, 8).map(p => (
@@ -302,7 +303,7 @@ export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualPr
                   ))}
                   {comparisonData.alert.players.length > 8 && (
                     <Badge variant="secondary">
-                      +{comparisonData.alert.players.length - 8} autres
+                      {t("workload.rpePlanVsActual.others", { count: comparisonData.alert.players.length - 8 })}
                     </Badge>
                   )}
                 </div>
@@ -318,7 +319,7 @@ export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualPr
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-primary" />
-              RPE Prévisionnel vs Réel
+              {t("workload.rpePlanVsActual.title")}
             </CardTitle>
             <div className="flex items-center gap-2">
               <Select 
@@ -330,11 +331,11 @@ export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualPr
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">Hier</SelectItem>
-                  <SelectItem value="3">3 jours</SelectItem>
-                  <SelectItem value="7">7 jours</SelectItem>
-                  <SelectItem value="14">14 jours</SelectItem>
-                  <SelectItem value="28">28 jours</SelectItem>
+                  <SelectItem value="1">{t("workload.rpePlanVsActual.period.yesterday")}</SelectItem>
+                  <SelectItem value="3">{t("workload.rpePlanVsActual.period.days3")}</SelectItem>
+                  <SelectItem value="7">{t("workload.rpePlanVsActual.period.days7")}</SelectItem>
+                  <SelectItem value="14">{t("workload.rpePlanVsActual.period.days14")}</SelectItem>
+                  <SelectItem value="28">{t("workload.rpePlanVsActual.period.days28")}</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={chartType} onValueChange={(v) => setChartType(v as "bar" | "line" | "area")}>
@@ -342,9 +343,9 @@ export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualPr
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="bar">Barres</SelectItem>
-                  <SelectItem value="line">Courbes</SelectItem>
-                  <SelectItem value="area">Aires</SelectItem>
+                  <SelectItem value="bar">{t("workload.rpePlanVsActual.chartType.bar")}</SelectItem>
+                  <SelectItem value="line">{t("workload.rpePlanVsActual.chartType.line")}</SelectItem>
+                  <SelectItem value="area">{t("workload.rpePlanVsActual.chartType.area")}</SelectItem>
                 </SelectContent>
               </Select>
               <Button
@@ -353,7 +354,7 @@ export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualPr
                 onClick={() => setShowDetails(!showDetails)}
               >
                 <Eye className="h-4 w-4 mr-1" />
-                {showDetails ? "Masquer" : "Détails"}
+                {showDetails ? t("workload.rpePlanVsActual.hide") : t("workload.rpePlanVsActual.show")}
               </Button>
             </div>
           </div>
@@ -365,7 +366,7 @@ export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualPr
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div className="bg-muted/30 rounded-lg p-3 text-center">
                 <p className="text-2xl font-bold">{comparisonData.summary.totalEntries}</p>
-                <p className="text-xs text-muted-foreground">Entrées analysées</p>
+                <p className="text-xs text-muted-foreground">{t("workload.rpePlanVsActual.summary.totalEntries")}</p>
               </div>
               <div className={`rounded-lg p-3 text-center ${
                 comparisonData.summary.avgDifference > 1 
@@ -385,17 +386,17 @@ export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualPr
                     <Minus className="h-4 w-4 text-green-500" />
                   )}
                 </p>
-                <p className="text-xs text-muted-foreground">Écart moyen</p>
+                <p className="text-xs text-muted-foreground">{t("workload.rpePlanVsActual.summary.avgDifference")}</p>
               </div>
               <div className="bg-green-500/10 rounded-lg p-3 text-center">
                 <p className="text-2xl font-bold text-green-600">{comparisonData.summary.onTarget}</p>
-                <p className="text-xs text-muted-foreground">Dans la cible (±1)</p>
+                <p className="text-xs text-muted-foreground">{t("workload.rpePlanVsActual.summary.onTarget")}</p>
               </div>
               <div className="bg-amber-500/10 rounded-lg p-3 text-center">
                 <p className="text-2xl font-bold text-amber-600">
                   {comparisonData.summary.aboveTarget}
                 </p>
-                <p className="text-xs text-muted-foreground">Au-dessus</p>
+                <p className="text-xs text-muted-foreground">{t("workload.rpePlanVsActual.summary.aboveTarget")}</p>
               </div>
             </div>
           )}
@@ -414,16 +415,16 @@ export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualPr
                     return (
                       <div className="bg-background border rounded-lg p-3 shadow-lg">
                         <p className="font-medium">{data.name}</p>
-                        <p className="text-sm">Prévu: <span className="font-semibold">{data.planned}</span></p>
-                        <p className="text-sm">Réel: <span className="font-semibold">{data.actual}</span></p>
+                        <p className="text-sm">{t("workload.rpePlanVsActual.tooltip.planned", { value: data.planned })}</p>
+                        <p className="text-sm">{t("workload.rpePlanVsActual.tooltip.actual", { value: data.actual })}</p>
                         <p className={`text-sm font-bold ${data.difference > 1 ? "text-red-500" : data.difference < -1 ? "text-blue-500" : "text-green-500"}`}>
-                          Écart: {data.difference > 0 ? "+" : ""}{data.difference}
+                          {t("workload.rpePlanVsActual.tooltip.diff", { value: `${data.difference > 0 ? "+" : ""}${data.difference}` })}
                         </p>
                       </div>
                     );
                   }} />
-                  <Bar dataKey="planned" fill="hsl(var(--muted-foreground))" name="Prévu" opacity={0.5} />
-                  <Bar dataKey="actual" name="Réel">
+                  <Bar dataKey="planned" fill="hsl(var(--muted-foreground))" name={t("workload.rpePlanVsActual.seriesPlanned")} opacity={0.5} />
+                  <Bar dataKey="actual" name={t("workload.rpePlanVsActual.seriesActual")}>
                     {chartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={
                         entry.difference >= 2 ? "hsl(0, 84%, 60%)" :
@@ -442,8 +443,8 @@ export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualPr
                   <YAxis domain={[0, 10]} className="text-xs" />
                   <Tooltip />
                   <Legend />
-                  <Line type="monotone" dataKey="planned" stroke="hsl(var(--muted-foreground))" strokeWidth={2} strokeDasharray="5 5" name="Prévu" dot={{ r: 4 }} />
-                  <Line type="monotone" dataKey="actual" stroke="hsl(var(--primary))" strokeWidth={2} name="Réel" dot={{ r: 4 }} />
+                  <Line type="monotone" dataKey="planned" stroke="hsl(var(--muted-foreground))" strokeWidth={2} strokeDasharray="5 5" name={t("workload.rpePlanVsActual.seriesPlanned")} dot={{ r: 4 }} />
+                  <Line type="monotone" dataKey="actual" stroke="hsl(var(--primary))" strokeWidth={2} name={t("workload.rpePlanVsActual.seriesActual")} dot={{ r: 4 }} />
                 </LineChart>
               ) : (
                 <AreaChart data={chartData}>
@@ -452,23 +453,23 @@ export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualPr
                   <YAxis domain={[0, 10]} className="text-xs" />
                   <Tooltip />
                   <Legend />
-                  <Area type="monotone" dataKey="planned" fill="hsl(var(--muted))" stroke="hsl(var(--muted-foreground))" fillOpacity={0.3} name="Prévu" />
-                  <Area type="monotone" dataKey="actual" fill="hsl(var(--primary) / 0.2)" stroke="hsl(var(--primary))" fillOpacity={0.5} name="Réel" />
+                  <Area type="monotone" dataKey="planned" fill="hsl(var(--muted))" stroke="hsl(var(--muted-foreground))" fillOpacity={0.3} name={t("workload.rpePlanVsActual.seriesPlanned")} />
+                  <Area type="monotone" dataKey="actual" fill="hsl(var(--primary) / 0.2)" stroke="hsl(var(--primary))" fillOpacity={0.5} name={t("workload.rpePlanVsActual.seriesActual")} />
                 </AreaChart>
               )}
             </ResponsiveContainer>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <Users className="h-12 w-12 mb-4 opacity-50" />
-              <p>Aucune donnée de comparaison disponible</p>
-              <p className="text-sm">Ajoutez une intensité prévue lors de la création des séances</p>
+              <p>{t("workload.rpePlanVsActual.noData")}</p>
+              <p className="text-sm">{t("workload.rpePlanVsActual.noDataHint")}</p>
             </div>
           )}
 
           {/* Detailed list */}
           {showDetails && comparisonData.comparisons.length > 0 && (
             <div className="border-t pt-4">
-              <h4 className="text-sm font-medium mb-3">Détail par séance</h4>
+              <h4 className="text-sm font-medium mb-3">{t("workload.rpePlanVsActual.detailTitle")}</h4>
               <ScrollArea className="h-[200px]">
                 <div className="space-y-2">
                   {comparisonData.comparisons.slice(0, 30).map((c, idx) => (

@@ -10,6 +10,7 @@ import { fr } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useTranslation } from "react-i18next";
 import {
   getSessionTypeLabel,
   getObjectiveLabel,
@@ -26,6 +27,7 @@ interface TrainingLoadCalendarProps {
 type ViewMode = "week" | "month";
 
 export function TrainingLoadCalendar({ categoryId }: TrainingLoadCalendarProps) {
+  const { t } = useTranslation();
   const [viewMode, setViewMode] = useState<ViewMode>("week");
   const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -155,7 +157,7 @@ export function TrainingLoadCalendar({ categoryId }: TrainingLoadCalendarProps) 
         <div className="flex items-center justify-between flex-wrap gap-2">
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5 text-primary" />
-            Calendrier de charge
+            {t("workload.calendar.title")}
           </CardTitle>
           <div className="flex items-center gap-2">
             <Select value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
@@ -163,8 +165,8 @@ export function TrainingLoadCalendar({ categoryId }: TrainingLoadCalendarProps) 
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="week">Semaine</SelectItem>
-                <SelectItem value="month">Mois</SelectItem>
+                <SelectItem value="week">{t("workload.calendar.viewMode.week")}</SelectItem>
+                <SelectItem value="month">{t("workload.calendar.viewMode.month")}</SelectItem>
               </SelectContent>
             </Select>
             <div className="flex items-center gap-1">
@@ -172,7 +174,7 @@ export function TrainingLoadCalendar({ categoryId }: TrainingLoadCalendarProps) 
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <Button variant="outline" size="sm" onClick={() => setCurrentDate(new Date())}>
-                Aujourd'hui
+                {t("workload.calendar.today")}
               </Button>
               <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => navigate("next")}>
                 <ChevronRight className="h-4 w-4" />
@@ -189,7 +191,7 @@ export function TrainingLoadCalendar({ categoryId }: TrainingLoadCalendarProps) 
       <CardContent>
         <div className={viewMode === "week" ? "grid grid-cols-7 gap-2" : "grid grid-cols-7 gap-1"}>
           {/* Day headers */}
-          {["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map(d => (
+          {[t("workload.calendar.days.mon"), t("workload.calendar.days.tue"), t("workload.calendar.days.wed"), t("workload.calendar.days.thu"), t("workload.calendar.days.fri"), t("workload.calendar.days.sat"), t("workload.calendar.days.sun")].map(d => (
             <div key={d} className="text-xs font-medium text-muted-foreground text-center p-1">{d}</div>
           ))}
 
@@ -217,7 +219,7 @@ export function TrainingLoadCalendar({ categoryId }: TrainingLoadCalendarProps) 
                         <div className="space-y-1">
                           {data.summary.avgRpe !== null && (
                             <Badge variant="secondary" className="text-[10px] px-1 py-0">
-                              RPE {data.summary.avgRpe}
+                              {t("workload.calendar.rpeBadge", { value: data.summary.avgRpe })}
                             </Badge>
                           )}
                           {data.summary.intensities.slice(0, 1).map(i => (
@@ -234,12 +236,12 @@ export function TrainingLoadCalendar({ categoryId }: TrainingLoadCalendarProps) 
                               ))}
                               {data.summary.contactCharges.length > 0 && (
                                 <Badge variant="outline" className="text-[10px] px-1 py-0 block w-fit text-orange-600">
-                                  Contact: {getContactChargeLabel(data.summary.contactCharges[0])}
+                                  {t("workload.calendar.contactBadge", { value: getContactChargeLabel(data.summary.contactCharges[0]) })}
                                 </Badge>
                               )}
                               {data.summary.sessionTypes.length === 0 && data.summary.avgRpe === null && (
                                 <Badge variant="secondary" className="text-[10px] px-1 py-0">
-                                  {data.sessions.length} séance(s)
+                                  {t("workload.calendar.sessionsCount", { count: data.sessions.length })}
                                 </Badge>
                               )}
                             </>
@@ -255,24 +257,24 @@ export function TrainingLoadCalendar({ categoryId }: TrainingLoadCalendarProps) 
                     <TooltipContent className="max-w-xs">
                       <div className="space-y-1">
                         <p className="font-medium">{format(day, "EEEE d MMMM", { locale: fr })}</p>
-                        <p className="text-xs">{data.sessions.length} séance(s)</p>
+                        <p className="text-xs">{t("workload.calendar.sessionsCount", { count: data.sessions.length })}</p>
                         {data.summary.sessionTypes.length > 0 && (
-                          <p className="text-xs">Types: {data.summary.sessionTypes.map(getSessionTypeLabel).join(", ")}</p>
+                          <p className="text-xs">{t("workload.calendar.tooltip.types", { value: data.summary.sessionTypes.map(getSessionTypeLabel).join(", ") })}</p>
                         )}
                         {data.summary.objectives.length > 0 && (
-                          <p className="text-xs">Objectifs: {data.summary.objectives.map(getObjectiveLabel).join(", ")}</p>
+                          <p className="text-xs">{t("workload.calendar.tooltip.objectives", { value: data.summary.objectives.map(getObjectiveLabel).join(", ") })}</p>
                         )}
                         {data.summary.intensities.length > 0 && (
-                          <p className="text-xs">Intensité: {data.summary.intensities.map(getIntensityLabel).join(", ")}</p>
+                          <p className="text-xs">{t("workload.calendar.tooltip.intensity", { value: data.summary.intensities.map(getIntensityLabel).join(", ") })}</p>
                         )}
                         {data.summary.volumes.length > 0 && (
-                          <p className="text-xs">Volume: {data.summary.volumes.map(getVolumeLabel).join(", ")}</p>
+                          <p className="text-xs">{t("workload.calendar.tooltip.volume", { value: data.summary.volumes.map(getVolumeLabel).join(", ") })}</p>
                         )}
                         {data.summary.contactCharges.length > 0 && (
-                          <p className="text-xs">Contact: {data.summary.contactCharges.map(getContactChargeLabel).join(", ")}</p>
+                          <p className="text-xs">{t("workload.calendar.tooltip.contact", { value: data.summary.contactCharges.map(getContactChargeLabel).join(", ") })}</p>
                         )}
                         {data.summary.avgRpe !== null && (
-                          <p className="text-xs font-semibold">RPE moyen: {data.summary.avgRpe}/10</p>
+                          <p className="text-xs font-semibold">{t("workload.calendar.tooltip.avgRpe", { value: data.summary.avgRpe })}</p>
                         )}
                       </div>
                     </TooltipContent>

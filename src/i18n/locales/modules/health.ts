@@ -229,6 +229,11 @@ export const healthFr = {
       smartAlerts: "Alertes intelligentes: Recommandations personnalisées selon le contexte",
     },
   },
+  healthTab: {
+    dashboardCoach: "Dashboard Coach",
+    injuries: "Blessures",
+    concussionProtocol: "Protocole Commotion",
+  },
   coachDashboard: {
     title: "Dashboard Coach",
     subtitle: "Vue consolidée des indicateurs critiques",
@@ -498,6 +503,11 @@ export const healthEn = {
       criticalRisk: "Critical risk: Pain + (high ACWR or Wellness) or rapid deterioration",
       smartAlerts: "Smart alerts: Personalized recommendations based on context",
     },
+  },
+  healthTab: {
+    dashboardCoach: "Coach Dashboard",
+    injuries: "Injuries",
+    concussionProtocol: "Concussion Protocol",
   },
   coachDashboard: {
     title: "Coach Dashboard",

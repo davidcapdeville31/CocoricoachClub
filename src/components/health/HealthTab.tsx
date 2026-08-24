@@ -1,4 +1,5 @@
 import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { useTranslation } from "react-i18next";
 import { InjuriesTab } from "@/components/injuries/InjuriesTab";
 import { ConcussionProtocolTab } from "@/components/category/ConcussionProtocolTab";
 import { MedicalRecordsTab } from "./MedicalRecordsTab";
@@ -21,6 +22,7 @@ interface HealthTabProps {
 }
 
 export function HealthTab({ categoryId }: HealthTabProps) {
+  const { t } = useTranslation();
   const { isViewer } = useViewerModeContext();
 
   // Fetch category sport type
@@ -52,7 +54,7 @@ export function HealthTab({ categoryId }: HealthTabProps) {
               colorKey="sante"
               icon={<LayoutDashboard className="h-4 w-4" />}
             >
-              Dashboard Coach
+              {t("health.healthTab.dashboardCoach")}
             </ColoredSubTabsTrigger>
             
             {/* Blessures - Masqué en mode viewer */}
@@ -62,7 +64,7 @@ export function HealthTab({ categoryId }: HealthTabProps) {
                 colorKey="sante"
                 icon={<Activity className="h-4 w-4" />}
               >
-                Blessures
+                {t("health.healthTab.injuries")}
               </ColoredSubTabsTrigger>
             )}
             
@@ -73,7 +75,7 @@ export function HealthTab({ categoryId }: HealthTabProps) {
                 colorKey="sante"
                 icon={<Brain className="h-4 w-4" />}
               >
-                Protocole Commotion
+                {t("health.healthTab.concussionProtocol")}
               </ColoredSubTabsTrigger>
             )}
             
