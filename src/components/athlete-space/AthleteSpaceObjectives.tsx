@@ -2,6 +2,7 @@ import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -132,6 +133,12 @@ export function AthleteSpaceObjectives({ playerId, categoryId }: Props) {
       return data || [];
     },
   });
+
+  const reminderTestLabels = useCustomTestLabels(
+    (testReminders || []).map((r: any) => r.test_type)
+  );
+
+
 
   const addMutation = useMutation({
     mutationFn: async () => {
@@ -503,7 +510,7 @@ export function AthleteSpaceObjectives({ playerId, categoryId }: Props) {
               {testReminders.map((reminder) => (
                 <div key={reminder.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
                   <div>
-                    <p className="text-sm font-medium">{reminder.test_type}</p>
+                    <p className="text-sm font-medium">{labelizeTestType(reminder.test_type, reminderTestLabels)}</p>
                     <p className="text-xs text-muted-foreground">{t("athleteSpace.objectives.frequencyWeeks", { n: reminder.frequency_weeks })}</p>
                   </div>
                   {reminder.start_date && (

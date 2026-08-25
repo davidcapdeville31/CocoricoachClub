@@ -42,6 +42,9 @@ import { ParticipantsAttendanceList } from "@/components/category/attendance/Par
 import { ReadOnlyMethodCard } from "@/components/program-builder-v2/ReadOnlyMethodCard";
 import { parseV2MethodConfig, stripV2MethodTags } from "@/lib/program-builder-v2/parseV2MethodConfig";
 import { SessionAthleteEntriesPanel } from "./SessionAthleteEntriesPanel";
+import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
+import { formatCategoryLabel } from "@/components/category/tests/customTestCatalog";
+
 interface SessionDetailsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -130,6 +133,9 @@ export function SessionDetailsDialog({
         blocks: sessionBlocks || [],
         testCategories: TEST_CATEGORIES,
         seasonName,
+        customTestNames: Object.fromEntries(
+          Object.entries(customTestLabelMap).map(([k, v]) => [k.toLowerCase(), v.name])
+        ),
       });
     } catch {
       if (printRef.current) {
@@ -348,11 +354,12 @@ export function SessionDetailsDialog({
 
   const getCustomTest = (cat: string, testType: string) => {
     if (!customTestsDetails || !testType) return null;
-    // 1) Legacy support: test:<uuid>
-    if (testType.startsWith("test:")) {
-      const id = testType.slice(5);
+    // 1) Legacy support: test:<uuid> / custom:<uuid>
+    if (testType.startsWith("test:") || testType.startsWith("custom:")) {
+      const id = testType.split(":")[1];
       return customTestsDetails.find((c) => c.id === id) || null;
     }
+
     // 2) Standard: test_type stored as `custom_<slug>` and category matches custom_tests.test_category
     if (testType.startsWith("custom_")) {
       const slug = testType.slice(7);
@@ -368,14 +375,19 @@ export function SessionDetailsDialog({
   const isTestSession = session?.training_type === "test";
   const isInfoOnlySession = session?.training_type === "medical" || session?.training_type === "video_analyse";
 
+  // Fallback resolution for test_types stored as `custom:<uuid>` (works even
+  // when the custom test belongs to another club scope / RPC fallback needed)
+  const customTestLabelMap = useCustomTestLabels(testsMeta.map((t: any) => t.test_type));
+
   const getTestLabel = (cat: string, type: string) => {
     const c = TEST_CATEGORIES.find((x: any) => x.value === cat);
     const t = c?.tests.find((x: any) => x.value === type);
     return {
-      categoryLabel: c?.label || cat,
-      testLabel: t?.label || type,
+      categoryLabel: c?.label || formatCategoryLabel(cat || ""),
+      testLabel: t?.label || labelizeTestType(type || "", customTestLabelMap),
     };
   };
+
 
   // Calculate AWCR for a player
   const calculateAWCR = async (playerId: string, sessionDateStr: string, newLoad: number) => {

@@ -610,13 +610,21 @@ const groupExercisesForPdf = (exercises: any[]): { groupId: string | null; exerc
 };
 
 // Helper to resolve test label from TEST_CATEGORIES
-const resolveTestLabel = (testType: string, allCategories: any[]): string => {
+const resolveTestLabel = (
+  testType: string,
+  allCategories: any[],
+  customTestNames?: Record<string, string>,
+): string => {
   for (const cat of allCategories) {
     const found = cat.tests?.find((t: any) => t.value === testType);
     if (found) return found.label;
   }
+  if (/^custom:/i.test(testType || "")) {
+    return customTestNames?.[testType.toLowerCase()] || "Test personnalisé";
+  }
   return testType;
 };
+
 
 // Export session details to PDF with enhanced design
 export const exportSessionToPdf = async (
@@ -629,6 +637,7 @@ export const exportSessionToPdf = async (
     blocks?: any[];
     testCategories?: any[];
     seasonName?: string | null;
+    customTestNames?: Record<string, string>;
   }
 ): Promise<void> => {
   const pdf = new jsPDF({
@@ -936,7 +945,7 @@ export const exportSessionToPdf = async (
           pdf.setFont("helvetica", "bold");
           pdf.text(`${idx + 1}.`, margin + 3, yPos + 7);
           
-          const label = resolveTestLabel(test.test_type, testCats);
+          const label = resolveTestLabel(test.test_type, testCats, options?.customTestNames);
           pdf.setTextColor(...colors.dark);
           pdf.setFont("helvetica", "normal");
           pdf.text(label, margin + 12, yPos + 7);
