@@ -72,6 +72,15 @@ export function DailyCalendarView({
   const isToday = checkIsToday(day);
   const hasEvents = sessions.length > 0 || matches.length > 0;
 
+  // Readable names for tests embedded in test sessions
+  const allSessionTestTypes = sessions.flatMap((s) => parseTestsFromNotes(s.notes).map((tt) => tt.test_type));
+  const customTestLabels = useCustomTestLabels(allSessionTestTypes);
+  const testNameForSession = (session: Session) => {
+    const tests = parseTestsFromNotes(session.notes);
+    if (tests.length === 0) return "";
+    return tests.map((tt) => labelizeTestType(tt.test_type, customTestLabels)).join(" • ");
+  };
+
   // Fetch session blocks
   const sessionIds = sessions.map(s => s.id);
   const { data: sessionBlocks } = useQuery({
