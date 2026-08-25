@@ -51,6 +51,9 @@ export function ScheduleTestDialog({
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("09:30");
+  const [windowStart, setWindowStart] = useState("");
+  const [windowEnd, setWindowEnd] = useState("");
+
   const queryClient = useQueryClient();
   const { notify } = useSessionNotifications();
   const guard = useSeasonGuard(categoryId);
