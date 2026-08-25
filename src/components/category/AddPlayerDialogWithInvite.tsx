@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -42,6 +43,7 @@ export function AddPlayerDialogWithInvite({
   categoryId,
 }: AddPlayerDialogWithInviteProps) {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [playerEmail, setPlayerEmail] = useState("");
@@ -229,10 +231,10 @@ export function AddPlayerDialogWithInvite({
     try {
       await navigator.clipboard.writeText(link);
       setLinkCopied(true);
-      toast.success("Lien copié !");
+      toast.success(t("roster.addPlayerDialogInvite.toasts.linkCopied"));
       setTimeout(() => setLinkCopied(false), 2000);
     } catch {
-      toast.error("Impossible de copier le lien");
+      toast.error(t("roster.addPlayerDialogInvite.toasts.linkCopyError"));
     }
   };
 
@@ -294,7 +296,7 @@ export function AddPlayerDialogWithInvite({
 
     // Validate required fields
     if (!lastName.trim()) {
-      setValidationError("Le nom est obligatoire");
+      setValidationError(t("roster.addPlayerDialogInvite.validation.lastNameRequired"));
       return;
     }
 
@@ -316,31 +318,29 @@ export function AddPlayerDialogWithInvite({
     if (isAthletics) {
       // Athlétisme : multi-disciplines obligatoire (au moins 1 paire)
       if (disciplinePairs.length === 0) {
-        setValidationError(
-          "Ajoutez au moins une discipline (clique sur + après ton choix de discipline/spécialité)",
-        );
+        setValidationError(t("roster.addPlayerDialogInvite.validation.disciplinesRequired"));
         return;
       }
     } else if (hasDisciplines) {
       if (!discipline) {
-        setValidationError("Veuillez sélectionner une discipline");
+        setValidationError(t("roster.addPlayerDialogInvite.validation.disciplineRequired"));
         return;
       }
       if (discipline && availableSpecialties.length > 0 && !specialty) {
-        setValidationError("Veuillez sélectionner une spécialité");
+        setValidationError(t("roster.addPlayerDialogInvite.validation.specialtyRequired"));
         return;
       }
     }
 
     // Validate weight category for judo
     if (isJudo && !discipline) {
-      setValidationError("Veuillez sélectionner une catégorie de poids");
+      setValidationError(t("roster.addPlayerDialogInvite.validation.weightCategoryRequired"));
       return;
     }
 
     // Validate role for aviron
     if (isAviron && !position) {
-      setValidationError("Veuillez sélectionner un rôle");
+      setValidationError(t("roster.addPlayerDialogInvite.validation.roleRequired"));
       return;
     }
 
@@ -452,7 +452,7 @@ export function AddPlayerDialogWithInvite({
 
       // Auto-import FIS competition history
       if (isSki && fisCode.trim() && importFisHistory) {
-        setFisImportStatus("Récupération de l'historique FIS...");
+        setFisImportStatus(t("roster.addPlayerDialogInvite.toasts.fisImporting"));
         try {
           const sectorCode = (categoryData?.rugby_type || "").toLowerCase().includes("ski") ? "AL" : "SB";
           const fisData = await scrapeFisResults(fisCode.trim(), sectorCode);
@@ -460,15 +460,15 @@ export function AddPlayerDialogWithInvite({
             setFisImportStatus(`Import de ${fisData.results.length} résultats...`);
             const count = await importFisResultsForPlayer(player.id, categoryId, fisData);
             setFisImportStatus(null);
-            toast.success(`${count} résultat(s) FIS importé(s) automatiquement 🎿`);
+            toast.success(t("roster.addPlayerDialogInvite.toasts.fisImported", { count }));
           } else {
             setFisImportStatus(null);
-            toast.info("Aucun résultat FIS trouvé pour ce code");
+            toast.info(t("roster.addPlayerDialogInvite.toasts.fisNoResults"));
           }
         } catch (fisErr) {
           console.error("FIS import error:", fisErr);
           setFisImportStatus(null);
-          toast.warning("Athlète créé mais l'import FIS a échoué. Vous pourrez réessayer plus tard.");
+          toast.warning(t("roster.addPlayerDialogInvite.toasts.fisImportError"));
         }
       }
 
@@ -516,16 +516,16 @@ export function AddPlayerDialogWithInvite({
         if (sendError) {
           console.error("Error sending invitation:", sendError);
           setGeneratedLink(invitationLink);
-          toast.warning("Athlète ajouté mais erreur lors de l'envoi. Copiez le lien ci-dessous.");
+          toast.warning(t("roster.addPlayerDialogInvite.toasts.addedInviteError"));
         } else {
-          toast.success("Athlète ajouté et invitation envoyée ! 📧");
+          toast.success(t("roster.addPlayerDialogInvite.toasts.addedAndInvited"));
           resetForm();
           onOpenChange(false);
         }
         
         setIsInviting(false);
       } else {
-        toast.success("Athlète ajouté avec succès");
+        toast.success(t("roster.addPlayerDialogInvite.toasts.added"));
         resetForm();
         onOpenChange(false);
       }
@@ -537,8 +537,8 @@ export function AddPlayerDialogWithInvite({
         /row-level security|permission denied|violates row-level/i.test(msg);
       toast.error(
         isPermission
-          ? "Vous n'avez pas les droits pour ajouter un athlète dans cette catégorie. Demandez à un coach ou administrateur."
-          : (msg || "Erreur lors de l'ajout de l'athlète"),
+          ? t("roster.addPlayerDialogInvite.toasts.permissionError")
+          : (msg || t("roster.addPlayerDialogInvite.toasts.genericError")),
       );
       setIsInviting(false);
     }

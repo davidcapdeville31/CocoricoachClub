@@ -17,6 +17,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
+import { useTranslation } from "react-i18next";
 
 interface SessionAttendanceDialogProps {
   open: boolean;
@@ -34,11 +35,13 @@ interface SessionAttendanceDialogProps {
   onAttendanceSaved?: (presentPlayerIds: string[]) => void;
 }
 
+import i18n from "@/i18n";
+
 const ATTENDANCE_STATUS = [
-  { value: "present", label: "Présent", icon: CheckCircle2, color: "text-green-600", bgColor: "bg-green-100" },
-  { value: "absent", label: "Absent", icon: X, color: "text-red-600", bgColor: "bg-red-100" },
-  { value: "excused", label: "Excusé", icon: AlertCircle, color: "text-amber-600", bgColor: "bg-amber-100" },
-  { value: "late", label: "Retard", icon: Clock, color: "text-orange-600", bgColor: "bg-orange-100" },
+  { value: "present", label: () => i18n.t("adminAttendance.dialog.present"), icon: CheckCircle2, color: "text-green-600", bgColor: "bg-green-100" },
+  { value: "absent", label: () => i18n.t("adminAttendance.dialog.absent"), icon: X, color: "text-red-600", bgColor: "bg-red-100" },
+  { value: "excused", label: () => i18n.t("adminAttendance.dialog.excused"), icon: AlertCircle, color: "text-amber-600", bgColor: "bg-amber-100" },
+  { value: "late", label: () => i18n.t("adminAttendance.dialog.late"), icon: Clock, color: "text-orange-600", bgColor: "bg-orange-100" },
 ];
 
 interface PlayerAttendanceData {
@@ -55,6 +58,7 @@ export function SessionAttendanceDialog({
   categoryId,
   onAttendanceSaved 
 }: SessionAttendanceDialogProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const guard = useSeasonGuard(categoryId);
   const [attendance, setAttendance] = useState<Record<string, PlayerAttendanceData>>({});
@@ -158,12 +162,12 @@ export function SessionAttendanceDialog({
       
       const counts = getStatusCounts();
       const parts: string[] = [];
-      if (counts.present > 0) parts.push(`${counts.present} présent${counts.present > 1 ? 's' : ''}`);
-      if (counts.late > 0) parts.push(`${counts.late} retard${counts.late > 1 ? 's' : ''}`);
-      if (counts.absent > 0) parts.push(`${counts.absent} absent${counts.absent > 1 ? 's' : ''}`);
-      if (counts.excused > 0) parts.push(`${counts.excused} excusé${counts.excused > 1 ? 's' : ''}`);
+      if (counts.present > 0) parts.push(counts.present > 1 ? t("adminAttendance.dialog.presentCountPlural", { count: counts.present }) : t("adminAttendance.dialog.presentCount", { count: counts.present }));
+      if (counts.late > 0) parts.push(counts.late > 1 ? t("adminAttendance.dialog.lateCountPlural", { count: counts.late }) : t("adminAttendance.dialog.lateCount", { count: counts.late }));
+      if (counts.absent > 0) parts.push(counts.absent > 1 ? t("adminAttendance.dialog.absentCountPlural", { count: counts.absent }) : t("adminAttendance.dialog.absentCount", { count: counts.absent }));
+      if (counts.excused > 0) parts.push(counts.excused > 1 ? t("adminAttendance.dialog.excusedCountPlural", { count: counts.excused }) : t("adminAttendance.dialog.excusedCount", { count: counts.excused }));
       
-      toast.success(`Présences enregistrées : ${parts.join(', ')}`);
+      toast.success(t("adminAttendance.dialog.attendanceSaved", { summary: parts.join(', ') }));
 
       const presentPlayerIds = Object.entries(attendance)
         .filter(([_, data]) => data.status === "present")
@@ -177,7 +181,7 @@ export function SessionAttendanceDialog({
     },
     onError: (err: any) => {
       if (typeof err?.message === "string" && err.message.startsWith("guard:")) return;
-      toast.error("Erreur lors de l'enregistrement");
+      toast.error(t("adminAttendance.dialog.saveError"));
     },
   });
 
@@ -219,7 +223,7 @@ export function SessionAttendanceDialog({
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Appel - {format(new Date(session.session_date), "EEEE d MMMM", { locale: getDateLocale() })}
+            {t("adminAttendance.dialog.rollCall", { date: format(new Date(session.session_date), "EEEE d MMMM", { locale: getDateLocale() }) })}
           </DialogTitle>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Badge variant="outline">{session.training_type}</Badge>
@@ -236,24 +240,24 @@ export function SessionAttendanceDialog({
         <div className="flex gap-2 flex-wrap flex-shrink-0">
           <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
             <Check className="h-3 w-3 mr-1" />
-            {counts.present} présent{counts.present > 1 ? 's' : ''}
+            {counts.present > 1 ? t("adminAttendance.dialog.presentCountPlural", { count: counts.present }) : t("adminAttendance.dialog.presentCount", { count: counts.present })}
           </Badge>
           {counts.late > 0 && (
             <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100">
               <Clock className="h-3 w-3 mr-1" />
-              {counts.late} retard{counts.late > 1 ? 's' : ''}
+              {counts.late > 1 ? t("adminAttendance.dialog.lateCountPlural", { count: counts.late }) : t("adminAttendance.dialog.lateCount", { count: counts.late })}
             </Badge>
           )}
           {counts.absent > 0 && (
             <Badge className="bg-red-100 text-red-700 hover:bg-red-100">
               <X className="h-3 w-3 mr-1" />
-              {counts.absent} absent{counts.absent > 1 ? 's' : ''}
+              {counts.absent > 1 ? t("adminAttendance.dialog.absentCountPlural", { count: counts.absent }) : t("adminAttendance.dialog.absentCount", { count: counts.absent })}
             </Badge>
           )}
           {counts.excused > 0 && (
             <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">
               <AlertCircle className="h-3 w-3 mr-1" />
-              {counts.excused} excusé{counts.excused > 1 ? 's' : ''}
+              {counts.excused > 1 ? t("adminAttendance.dialog.excusedCountPlural", { count: counts.excused }) : t("adminAttendance.dialog.excusedCount", { count: counts.excused })}
             </Badge>
           )}
         </div>
@@ -262,7 +266,7 @@ export function SessionAttendanceDialog({
         <div className="flex flex-wrap items-center gap-2 p-3 bg-muted rounded-lg flex-shrink-0">
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => setAllStatus("present")}>
-              Tous présents
+              {t("adminAttendance.dialog.allPresent")}
             </Button>
           </div>
         </div>
@@ -319,7 +323,7 @@ export function SessionAttendanceDialog({
                               <SelectItem key={s.value} value={s.value}>
                                 <div className="flex items-center gap-2">
                                   <s.icon className={cn("h-4 w-4", s.color)} />
-                                  {s.label}
+                                  {s.label()}
                                 </div>
                               </SelectItem>
                             ))}
@@ -334,7 +338,7 @@ export function SessionAttendanceDialog({
                         <div className="flex items-center gap-2">
                           <Input
                             type="number"
-                            placeholder="Minutes de retard"
+                            placeholder={t("adminAttendance.dialog.lateMinutesPlaceholder")}
                             value={playerData.lateMinutes || ""}
                             onChange={(e) =>
                               setAttendance({
@@ -344,7 +348,7 @@ export function SessionAttendanceDialog({
                             }
                             className="w-32 bg-background"
                           />
-                          <span className="text-sm text-muted-foreground">min</span>
+                          <span className="text-sm text-muted-foreground">{t("adminAttendance.dialog.minutesUnit")}</span>
                           <div className="flex items-center gap-2 ml-4">
                             <Switch
                               id={`justified-${player.id}`}
@@ -357,12 +361,12 @@ export function SessionAttendanceDialog({
                               }
                             />
                             <Label htmlFor={`justified-${player.id}`} className="text-sm">
-                              {playerData.lateJustified ? "Justifié ✓" : "Non justifié"}
+                              {playerData.lateJustified ? t("adminAttendance.dialog.justifiedLabel") : t("adminAttendance.dialog.unjustifiedLabel")}
                             </Label>
                           </div>
                         </div>
                         <Input
-                          placeholder="Raison du retard (optionnel)..."
+                          placeholder={t("adminAttendance.dialog.lateReasonPlaceholder")}
                           value={playerData.reason}
                           onChange={(e) =>
                             setAttendance({
@@ -379,7 +383,7 @@ export function SessionAttendanceDialog({
                     {(playerData.status === "absent" || playerData.status === "excused") && (
                       <div className="mt-2">
                         <Input
-                          placeholder="Raison (optionnel)..."
+                          placeholder={t("adminAttendance.dialog.reasonPlaceholder")}
                           value={playerData.reason}
                           onChange={(e) =>
                             setAttendance({
@@ -400,10 +404,10 @@ export function SessionAttendanceDialog({
 
         <DialogFooter className="flex-shrink-0 pt-4 border-t">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Annuler
+            {t("adminAttendance.dialog.cancel")}
           </Button>
           <Button onClick={() => saveAttendance.mutate()} disabled={saveAttendance.isPending}>
-            {saveAttendance.isPending ? "Enregistrement..." : "Enregistrer"}
+            {saveAttendance.isPending ? t("adminAttendance.dialog.saving") : t("adminAttendance.dialog.save")}
           </Button>
         </DialogFooter>
       </DialogContent>
