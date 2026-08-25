@@ -163,6 +163,16 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
         {t('athleteSpace.components.testResultsInput.title')}
       </Label>
       {isAbsent && <AthleteAbsentLockNotice />}
+      {testWindow && (
+        <p className="text-[11px] rounded-md bg-primary/10 border border-primary/20 px-2 py-1.5 text-primary">
+          {t('athleteSpace.components.testResultsInput.windowNotice', {
+            start: formatDay(testWindow.start),
+            end: formatDay(testWindow.end),
+          })}
+        </p>
+      )}
+
+
 
       <div className="space-y-2">
         {tests.map((test, idx) => {
