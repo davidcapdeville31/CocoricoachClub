@@ -133,6 +133,12 @@ export function AthleteSpaceObjectives({ playerId, categoryId }: Props) {
     },
   });
 
+  const reminderTestLabels = useCustomTestLabels(
+    (testReminders || []).map((r: any) => r.test_type)
+  );
+
+
+
   const addMutation = useMutation({
     mutationFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
