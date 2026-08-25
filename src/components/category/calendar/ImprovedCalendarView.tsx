@@ -992,39 +992,45 @@ export function ImprovedCalendarView({
           </DialogHeader>
           <ScrollArea className="max-h-[65vh] pr-2">
             <div className="space-y-2">
-              {allEventsDay && getMatchesForDay(allEventsDay).map((match) => (
-                <MatchVignette
-                  key={match.id}
-                  match={match}
-                  sportType={sportType}
-                  creatorName={
-                    (match as any).created_by_player_id && playerNamesMap
-                      ? playerNamesMap[(match as any).created_by_player_id] ?? null
-                      : null
-                  }
-                  isViewer={isViewer}
-                  onClick={() => { setAllEventsDay(null); onViewMatch?.(match); }}
-                  onNotify={() => { setAllEventsDay(null); setNotifyMatch(match); }}
-                  onStats={() => { setAllEventsDay(null); onStatsMatch?.(match); }}
-                  onEdit={onEditMatch ? () => { setAllEventsDay(null); onEditMatch(match); } : undefined}
-                  onDelete={() => { setAllEventsDay(null); onDeleteMatch?.(match.id); }}
-                />
-              ))}
-              {allEventsDay && getSessionsForDay(allEventsDay).map((session) => (
-                <SessionVignette
-                  key={session.id}
-                  session={session}
-                  onPreview={() => { setAllEventsDay(null); onViewSession?.(session); }}
-                  onEdit={() => { setAllEventsDay(null); onEditSession?.(session); }}
-                  onFeedback={() => { setAllEventsDay(null); setFeedbackSession(session); }}
-                  onDelete={() => { setAllEventsDay(null); setDeleteSessionId(session.id); }}
-                  onNotify={() => { setAllEventsDay(null); setNotifySession(session); }}
-                  onDuplicate={() => { setAllEventsDay(null); setDuplicateSession(session); }}
-                  isViewer={isViewer}
-                  isDraggable={false}
-                  playerName={session.created_by_player_id && playerNamesMap ? playerNamesMap[session.created_by_player_id] : null}
-                />
-              ))}
+              {allEventsDay && (() => {
+                const dialogMatches = getMatchesForDay(allEventsDay).map((m) => ({ type: "match" as const, data: m, time: m.match_time || "00:00" }));
+                const dialogSessions = getSessionsForDay(allEventsDay).map((s) => ({ type: "session" as const, data: s, time: s.session_start_time || "00:00" }));
+                const dialogEvents = [...dialogMatches, ...dialogSessions].sort((a, b) => a.time.localeCompare(b.time));
+                return dialogEvents.map((event) =>
+                  event.type === "match" ? (
+                    <MatchVignette
+                      key={event.data.id}
+                      match={event.data}
+                      sportType={sportType}
+                      creatorName={
+                        (event.data as any).created_by_player_id && playerNamesMap
+                          ? playerNamesMap[(event.data as any).created_by_player_id] ?? null
+                          : null
+                      }
+                      isViewer={isViewer}
+                      onClick={() => { setAllEventsDay(null); onViewMatch?.(event.data); }}
+                      onNotify={() => { setAllEventsDay(null); setNotifyMatch(event.data); }}
+                      onStats={() => { setAllEventsDay(null); onStatsMatch?.(event.data); }}
+                      onEdit={onEditMatch ? () => { setAllEventsDay(null); onEditMatch(event.data); } : undefined}
+                      onDelete={() => { setAllEventsDay(null); onDeleteMatch?.(event.data.id); }}
+                    />
+                  ) : (
+                    <SessionVignette
+                      key={event.data.id}
+                      session={event.data}
+                      onPreview={() => { setAllEventsDay(null); onViewSession?.(event.data); }}
+                      onEdit={() => { setAllEventsDay(null); onEditSession?.(event.data); }}
+                      onFeedback={() => { setAllEventsDay(null); setFeedbackSession(event.data); }}
+                      onDelete={() => { setAllEventsDay(null); setDeleteSessionId(event.data.id); }}
+                      onNotify={() => { setAllEventsDay(null); setNotifySession(event.data); }}
+                      onDuplicate={() => { setAllEventsDay(null); setDuplicateSession(event.data); }}
+                      isViewer={isViewer}
+                      isDraggable={false}
+                      playerName={event.data.created_by_player_id && playerNamesMap ? playerNamesMap[event.data.created_by_player_id] : null}
+                    />
+                  )
+                );
+              })()}
             </div>
           </ScrollArea>
         </DialogContent>
