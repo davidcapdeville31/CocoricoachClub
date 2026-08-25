@@ -173,6 +173,33 @@ export function ScheduleTestDialog({
               />
             </div>
           </div>
+
+          <div className="space-y-2 rounded-lg border border-border p-3">
+            <Label className="text-sm">Fenêtre de passage (optionnel)</Label>
+            <p className="text-[11px] text-muted-foreground">
+              Si tu planifies le même test sur plusieurs séances, définis une période : chaque
+              athlète ne pourra saisir son résultat qu'une seule fois dans cette fenêtre.
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs">Du</Label>
+                <Input
+                  type="date"
+                  value={windowStart}
+                  onChange={(e) => setWindowStart(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Au</Label>
+                <Input
+                  type="date"
+                  value={windowEnd}
+                  onChange={(e) => setWindowEnd(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
         </div>
 
         <DialogFooter>
