@@ -19,6 +19,7 @@ import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
 import { CalendarDayCell } from "./CalendarDayCell";
+import { MatchVignette } from "./MatchVignette";
 import { SessionVignette } from "./SessionVignette";
 import { DuplicateSessionDialog } from "./DuplicateSessionDialog";
 import { SessionFeedbackDialog } from "./SessionFeedbackDialog";
@@ -32,6 +33,7 @@ import { ScheduleTestEventDialog } from "./ScheduleTestEventDialog";
 import { DailyCalendarView } from "./DailyCalendarView";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -133,6 +135,7 @@ export function ImprovedCalendarView({
   const [notifySession, setNotifySession] = useState<Session | null>(null);
   const [notifyMatch, setNotifyMatch] = useState<Match | null>(null);
   const [duplicateSession, setDuplicateSession] = useState<Session | null>(null);
+  const [allEventsDay, setAllEventsDay] = useState<Date | null>(null);
   
   // Filter states
   const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
@@ -651,7 +654,7 @@ export function ImprovedCalendarView({
                       sportType={sportType}
                       isViewer={isViewer}
                       onDayClick={handleDayClickWithAdd}
-                      onShowAllEvents={onDayClick}
+                      onShowAllEvents={(d) => setAllEventsDay(d)}
                       onPreviewSession={(session) => onViewSession?.(session)}
                       onEditSession={(session) => onEditSession?.(session)}
                       onFeedbackSession={(session) => setFeedbackSession(session)}
@@ -971,6 +974,54 @@ export function ImprovedCalendarView({
         session={duplicateSession}
         categoryId={categoryId}
       />
+
+      {/* All events of a day (when the cell is too small to show them all) */}
+      <Dialog open={!!allEventsDay} onOpenChange={(open) => !open && setAllEventsDay(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="capitalize">
+              {allEventsDay ? format(allEventsDay, "EEEE d MMMM yyyy", { locale: getDateLocale() }) : ""}
+            </DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="max-h-[65vh] pr-2">
+            <div className="space-y-2">
+              {allEventsDay && getMatchesForDay(allEventsDay).map((match) => (
+                <MatchVignette
+                  key={match.id}
+                  match={match}
+                  sportType={sportType}
+                  creatorName={
+                    (match as any).created_by_player_id && playerNamesMap
+                      ? playerNamesMap[(match as any).created_by_player_id] ?? null
+                      : null
+                  }
+                  isViewer={isViewer}
+                  onClick={() => { setAllEventsDay(null); onViewMatch?.(match); }}
+                  onNotify={() => { setAllEventsDay(null); setNotifyMatch(match); }}
+                  onStats={() => { setAllEventsDay(null); onStatsMatch?.(match); }}
+                  onEdit={onEditMatch ? () => { setAllEventsDay(null); onEditMatch(match); } : undefined}
+                  onDelete={() => { setAllEventsDay(null); onDeleteMatch?.(match.id); }}
+                />
+              ))}
+              {allEventsDay && getSessionsForDay(allEventsDay).map((session) => (
+                <SessionVignette
+                  key={session.id}
+                  session={session}
+                  onPreview={() => { setAllEventsDay(null); onViewSession?.(session); }}
+                  onEdit={() => { setAllEventsDay(null); onEditSession?.(session); }}
+                  onFeedback={() => { setAllEventsDay(null); setFeedbackSession(session); }}
+                  onDelete={() => { setAllEventsDay(null); setDeleteSessionId(session.id); }}
+                  onNotify={() => { setAllEventsDay(null); setNotifySession(session); }}
+                  onDuplicate={() => { setAllEventsDay(null); setDuplicateSession(session); }}
+                  isViewer={isViewer}
+                  isDraggable={false}
+                  playerName={session.created_by_player_id && playerNamesMap ? playerNamesMap[session.created_by_player_id] : null}
+                />
+              ))}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
