@@ -428,7 +428,7 @@ export function PlanTestsSection({ categoryId, sportType }: PlanTestsSectionProp
               {
                 test_category: "custom",
                 test_type: r.test_type || "",
-                label: r.test_type || "Test",
+                label: formatTestTypeLabel(r.test_type || "") || "Test",
                 category_label: "Tests",
               },
             ]) as TestRef[];

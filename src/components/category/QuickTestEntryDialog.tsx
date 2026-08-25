@@ -27,6 +27,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { getTestCategoriesForSport, TestCategory } from "@/lib/constants/testCategories";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
+import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
+import { formatCategoryLabel } from "@/components/category/tests/customTestCatalog";
 
 interface QuickTestEntryDialogProps {
   open: boolean;
@@ -73,6 +75,7 @@ export function QuickTestEntryDialog({
 
   const sportType = category?.rugby_type || "";
   const testCategories = useMemo(() => getTestCategoriesForSport(sportType), [sportType]);
+  const customTestLabels = useCustomTestLabels(testEntries.map((t) => t.test_type));
 
   // Fetch all category players as fallback
   const { data: allPlayers } = useQuery({
@@ -264,10 +267,12 @@ export function QuickTestEntryDialog({
   };
 
   const getTestLabel = (test: TestEntry): string => {
+    if (!test.test_type) return "Test non configuré";
     const cat = testCategories.find(c => c.value === test.test_category);
     const testOption = cat?.tests.find(t => t.value === test.test_type);
-    if (!cat || !testOption) return "Test non configuré";
-    return `${cat.label} - ${testOption.label}`;
+    const catLabel = cat?.label || formatCategoryLabel(test.test_category || "");
+    const testLabel = testOption?.label || labelizeTestType(test.test_type, customTestLabels);
+    return catLabel ? `${catLabel} - ${testLabel}` : testLabel;
   };
 
   const getFilledCount = (test: TestEntry): number => {
