@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { ClipboardList, Layers, Users, Star, Plus, X } from "lucide-react";
 import { format } from "date-fns";
+import { buildTestWindowMeta, parseTestWindowFromNotes } from "@/lib/utils/sessionNotes";
 import { toast } from "sonner";
 import {
   TEST_CATEGORIES,
