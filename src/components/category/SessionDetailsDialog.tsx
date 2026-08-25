@@ -133,6 +133,9 @@ export function SessionDetailsDialog({
         blocks: sessionBlocks || [],
         testCategories: TEST_CATEGORIES,
         seasonName,
+        customTestNames: Object.fromEntries(
+          Object.entries(customTestLabelMap).map(([k, v]) => [k.toLowerCase(), v.name])
+        ),
       });
     } catch {
       if (printRef.current) {

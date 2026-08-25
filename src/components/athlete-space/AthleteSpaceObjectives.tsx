@@ -503,7 +503,7 @@ export function AthleteSpaceObjectives({ playerId, categoryId }: Props) {
               {testReminders.map((reminder) => (
                 <div key={reminder.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
                   <div>
-                    <p className="text-sm font-medium">{reminder.test_type}</p>
+                    <p className="text-sm font-medium">{labelizeTestType(reminder.test_type, reminderTestLabels)}</p>
                     <p className="text-xs text-muted-foreground">{t("athleteSpace.objectives.frequencyWeeks", { n: reminder.frequency_weeks })}</p>
                   </div>
                   {reminder.start_date && (
