@@ -1334,6 +1334,10 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
 
                     <Button
                       onClick={() => {
+                        if (attendanceAbsent) {
+                          toast.error(t("athleteSpace.calendar.attendance.absentLockTitle"));
+                          return;
+                        }
                         const incomplete = countIncompleteWeightLogs(weightLogs);
                         if (incomplete > 0) {
                           const ok = window.confirm(
@@ -1346,6 +1350,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                       disabled={!duration || !isSpareStatsValid || submitRpe.isPending}
                       className="w-full"
                     >
+
                       <CheckCircle2 className="h-4 w-4 mr-2" />
                       {isPrecisionSession ? t("athleteSpace.rpe.validateRpeStats") : t("athleteSpace.rpe.validateRpe")}
                     </Button>
