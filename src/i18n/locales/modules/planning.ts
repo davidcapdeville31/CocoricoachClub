@@ -1570,6 +1570,7 @@ export const planningEn = {
         selectBattery: "Select a battery",
         selectAtLeastOneTest: "Select at least one test",
         selectAtLeastOneAthlete: "Select at least one athlete",
+        invalidWindow: "The end of the testing window must be after its start",
         updated: "Test updated",
         planned: "Test scheduled",
         planError: "Error while scheduling",
