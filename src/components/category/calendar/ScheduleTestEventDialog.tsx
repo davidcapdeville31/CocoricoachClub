@@ -472,7 +472,10 @@ export function ScheduleTestEventDialog({
         throw new Error(t("planning.calendarDialogs.scheduleTest.toasts.selectAtLeastOneAthlete"));
 
       const noteContent = `${title}${notes ? `\n${notes}` : ""}`;
-      const fullNotes = `${noteContent}\n<!--TESTS:${JSON.stringify(testsMeta)}-->`;
+      if (windowStart && windowEnd && windowEnd < windowStart) {
+        throw new Error(t("planning.calendarDialogs.scheduleTest.toasts.invalidWindow"));
+      }
+      const fullNotes = `${noteContent}\n<!--TESTS:${JSON.stringify(testsMeta)}-->${buildTestWindowMeta(windowStart, windowEnd)}`;
 
       let savedSessionId: string | null = null;
 
