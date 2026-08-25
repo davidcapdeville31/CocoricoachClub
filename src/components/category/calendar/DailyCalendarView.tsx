@@ -9,7 +9,8 @@ import { getCompetitionColor } from "@/lib/constants/competitionColors";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { getDisplayNotes } from "@/lib/utils/sessionNotes";
+import { getDisplayNotes, parseTestsFromNotes } from "@/lib/utils/sessionNotes";
+import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
 import { useTranslation } from "react-i18next";
 
 interface Session {
