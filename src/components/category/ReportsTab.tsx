@@ -2533,11 +2533,11 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
   const renderDateRange = (from: string, to: string, onFromChange: (v: string) => void, onToChange: (v: string) => void) => (
     <div className="grid grid-cols-2 gap-2">
       <div>
-        <Label className="text-xs text-muted-foreground">Du</Label>
+        <Label className="text-xs text-muted-foreground">{t("adminReports.common.from")}</Label>
         <Input type="date" value={from} onChange={e => onFromChange(e.target.value)} className="h-8 text-xs" />
       </div>
       <div>
-        <Label className="text-xs text-muted-foreground">Au</Label>
+        <Label className="text-xs text-muted-foreground">{t("adminReports.common.to")}</Label>
         <Input type="date" value={to} min={from || undefined} onChange={e => onToChange(e.target.value)} className="h-8 text-xs" />
       </div>
     </div>
@@ -2546,8 +2546,8 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">Rapports</h2>
-        <p className="text-muted-foreground">Générez et exportez des rapports en PDF ou Excel</p>
+        <h2 className="text-2xl font-bold">{t("adminReports.title")}</h2>
+        <p className="text-muted-foreground">{t("adminReports.subtitle")}</p>
       </div>
 
       <div className="flex flex-col gap-3">
@@ -2557,11 +2557,11 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
             <div className="flex items-start gap-3 md:w-72 shrink-0">
               <Users className="h-5 w-5 mt-0.5 text-primary" />
               <div>
-                <p className="font-semibold leading-tight">Vue d'Ensemble Effectif</p>
+                <p className="font-semibold leading-tight">{t("adminReports.squad.title")}</p>
                 <p className="text-xs text-muted-foreground">
                   {isIndividualSport
-                    ? "Synthèse : blessures, wellness, ratio EWMA"
-                    : "Synthèse globale avec Ratio EWMA"}
+                    ? t("adminReports.squad.subtitleIndividual")
+                    : t("adminReports.squad.subtitleTeam")}
                 </p>
               </div>
             </div>
@@ -2588,8 +2588,8 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
               <div className="flex items-start gap-3 md:w-72 shrink-0">
                 <Trophy className="h-5 w-5 mt-0.5 text-primary" />
                 <div>
-                  <p className="font-semibold leading-tight">Suivi Temps de Jeu</p>
-                  <p className="text-xs text-muted-foreground">Minutes, titularisations, remplacements, hors-groupe</p>
+                  <p className="font-semibold leading-tight">{t("adminReports.tdj.title")}</p>
+                  <p className="text-xs text-muted-foreground">{t("adminReports.tdj.subtitle")}</p>
                 </div>
               </div>
               <div className="flex-1 min-w-0">
@@ -2615,18 +2615,18 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
             <div className="flex items-start gap-3 md:w-72 shrink-0">
               <Calendar className="h-5 w-5 mt-0.5 text-primary" />
               <div>
-                <p className="font-semibold leading-tight">Bilan de Saison</p>
+                <p className="font-semibold leading-tight">{t("adminReports.season.title")}</p>
                 <p className="text-xs text-muted-foreground">
                   {isIndividualSport
-                    ? "Résumé des compétitions et performances"
+                    ? t("adminReports.season.subtitleIndividual")
                     : isRacketSport
-                    ? "Résumé des matchs et performances"
-                    : "Résumé complet de la saison en cours"}
+                    ? t("adminReports.season.subtitleRacket")
+                    : t("adminReports.season.subtitleTeam")}
                 </p>
               </div>
             </div>
             <div className="flex-1 min-w-0 text-sm text-muted-foreground">
-              Saison {new Date().getFullYear()}/{new Date().getFullYear() + 1} · {players.length} {athleteLabel.toLowerCase()} · {matches.length} {competitionLabel.toLowerCase()}
+              {t("adminReports.season.summaryLine", { yearStart: new Date().getFullYear(), yearEnd: new Date().getFullYear() + 1, playerCount: players.length, athleteLabel: athleteLabel.toLowerCase(), matchCount: matches.length, competitionLabel: competitionLabel.toLowerCase() })}
             </div>
             <div className="flex gap-2 md:w-56 shrink-0">
               <Button onClick={generateSeasonReport} className="flex-1" disabled={generatingReport === "season" || generatingReport === "season-csv"}>
@@ -2647,21 +2647,21 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
             <div className="flex items-start gap-3 md:w-72 shrink-0">
               <Trophy className="h-5 w-5 mt-0.5 text-primary" />
               <div>
-                <p className="font-semibold leading-tight">{isIndividualSport ? "Rapport de Compétition" : "Rapport de Match"}</p>
+                <p className="font-semibold leading-tight">{isIndividualSport ? t("adminReports.match.titleCompetition") : t("adminReports.match.title")}</p>
                 <p className="text-xs text-muted-foreground">
-                  {isIndividualSport ? "Détail par compétition et par athlète" : "Stats dynamiques selon vos préférences"}
+                  {isIndividualSport ? t("adminReports.match.subtitleCompetition") : t("adminReports.match.subtitle")}
                 </p>
               </div>
             </div>
             <div className="flex-1 min-w-0">
               <Select value={selectedMatch} onValueChange={setSelectedMatch}>
                 <SelectTrigger className="h-9">
-                  <SelectValue placeholder={isIndividualSport ? "Sélectionner une compétition" : "Sélectionner un match"} />
+                  <SelectValue placeholder={isIndividualSport ? t("adminReports.match.selectCompetition") : t("adminReports.match.selectMatch")} />
                 </SelectTrigger>
                 <SelectContent>
                   {matches.map((match) => (
                     <SelectItem key={match.id} value={match.id}>
-                      {isIndividualSport ? "" : "vs "}{match.opponent} ({format(new Date(match.match_date), "d MMM", { locale: getDateLocale() })})
+                      {isIndividualSport ? "" : t("adminReports.match.vsPrefix")}{match.opponent} ({format(new Date(match.match_date), "d MMM", { locale: getDateLocale() })})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -2686,8 +2686,8 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
             <div className="flex items-start gap-3 md:w-72 shrink-0">
               <ClipboardCheck className="h-5 w-5 mt-0.5 text-primary" />
               <div>
-                <p className="font-semibold leading-tight">Rapport de Présences</p>
-                <p className="text-xs text-muted-foreground">Taux de présence et retards</p>
+                <p className="font-semibold leading-tight">{t("adminReports.attendance.title")}</p>
+                <p className="text-xs text-muted-foreground">{t("adminReports.attendance.subtitle")}</p>
               </div>
             </div>
             <div className="flex-1 min-w-0">
