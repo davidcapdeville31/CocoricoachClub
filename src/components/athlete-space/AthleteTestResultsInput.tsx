@@ -8,6 +8,9 @@ import { FlaskConical, Clock, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
 import { useTranslation } from "react-i18next";
+import { useAthleteAttendanceLock } from "@/hooks/useAthleteAttendanceLock";
+import { AthleteAbsentLockNotice } from "./AthleteAbsentLockNotice";
+
 
 interface TestRef {
   test_category: string;
