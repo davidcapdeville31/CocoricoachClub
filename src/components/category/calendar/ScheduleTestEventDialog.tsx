@@ -280,13 +280,21 @@ export function ScheduleTestEventDialog({
         const next: Record<string, SelectedTest> = {};
         meta.forEach((m) => {
           const cat = mergedCategories.find((c) => c.value === m.test_category);
-          const t = cat?.tests.find((tt) => tt.value === m.test_type);
+          let t = cat?.tests.find((tt) => tt.value === m.test_type);
+          // Tests planned from the Tests catalog store `custom:<uuid>`: resolve their real name
+          const customId = /^custom:/i.test(m.test_type)
+            ? m.test_type.slice("custom:".length).toLowerCase()
+            : null;
+          const customInfo = customId ? customTestsById[customId] : undefined;
+          if (!t && customInfo) {
+            t = { value: m.test_type, label: customInfo.name, unit: customInfo.unit || "" } as any;
+          }
           const key = `${m.test_category}::${m.test_type}`;
           next[key] = {
             test_category: m.test_category,
-            test_category_label: cat?.label || m.test_category,
+            test_category_label: cat?.label || formatCategoryLabel(m.test_category),
             test_type: m.test_type,
-            test_label: t?.label || m.test_type,
+            test_label: t?.label || customInfo?.name || formatTestTypeLabel(m.test_type),
             result_unit: m.result_unit || t?.unit || "",
           };
         });
