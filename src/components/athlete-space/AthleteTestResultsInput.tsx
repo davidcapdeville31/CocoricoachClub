@@ -98,8 +98,13 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
 
 
   const handleSendOne = async (test: TestRef) => {
+    if (isAbsent) {
+      toast.error(t("athleteSpace.calendar.attendance.absentLockTitle"));
+      return;
+    }
     const key = `${test.test_category}::${test.test_type}`;
     const raw = value[key];
+
     if (raw == null || raw === "") {
       toast.error(t('athleteSpace.components.testResultsInput.enterFirst'));
       return;
