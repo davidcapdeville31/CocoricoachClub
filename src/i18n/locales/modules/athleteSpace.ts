@@ -623,6 +623,10 @@ export const athleteSpaceFr = {
       sendError: "Erreur d'envoi : {{message}}",
       sent: "Résultat envoyé au staff pour validation",
       staffValidated: "✓ staff",
+      windowNotice:
+        "Fenêtre de passage du {{start}} au {{end}} : un seul résultat par test sur toute la période.",
+      alreadySubmittedInWindow:
+        "Résultat déjà enregistré pour ce test sur cette période de passage.",
       pending: " — en attente",
       validated: " ✓",
       rejected: " ✕",
