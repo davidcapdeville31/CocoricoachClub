@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -29,6 +30,7 @@ export function DuplicatePlayerToCategoryDialog({
   categoryId,
   player,
 }: DuplicatePlayerToCategoryDialogProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [selected, setSelected] = useState<string[]>([]);
 
@@ -76,7 +78,7 @@ export function DuplicatePlayerToCategoryDialog({
 
   const duplicate = useMutation({
     mutationFn: async () => {
-      if (!player) throw new Error("Athlète introuvable");
+      if (!player) throw new Error(t("roster.duplicatePlayerToCategoryDialog.toasts.playerNotFound"));
       const targets = categories.filter((c: any) => selected.includes(c.id));
       const rows = targets.map((c: any) => ({
         player_id: player.id,
@@ -95,15 +97,15 @@ export function DuplicatePlayerToCategoryDialog({
       queryClient.invalidateQueries({ queryKey: ["existing-players-ids"] });
       toast.success(
         needsConsent
-          ? `Demande envoyée pour ${count} catégorie(s) — l'athlète doit accepter`
-          : `Athlète ajouté à ${count} catégorie(s)`
+          ? t("roster.duplicatePlayerToCategoryDialog.toasts.pendingApproval", { count })
+          : t("roster.duplicatePlayerToCategoryDialog.toasts.added", { count })
       );
       onOpenChange(false);
     },
     onError: (error: any) => {
       toast.error(error?.message?.includes("duplicate")
-        ? "L'athlète est déjà dans cette catégorie"
-        : `Erreur : ${error?.message ?? "inconnue"}`);
+        ? t("roster.duplicatePlayerToCategoryDialog.toasts.alreadyInCategory")
+        : t("roster.duplicatePlayerToCategoryDialog.toasts.genericError", { message: error?.message ?? t("roster.duplicatePlayerToCategoryDialog.toasts.unknownError") }));
     },
   });
 
@@ -116,11 +118,10 @@ export function DuplicatePlayerToCategoryDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CopyPlus className="h-5 w-5" />
-            Dupliquer dans une autre catégorie
+            {t("roster.duplicatePlayerToCategoryDialog.title")}
           </DialogTitle>
           <DialogDescription>
-            {fullName} conservera un profil unique : ses données (stats, RPE, wellness, tests) seront
-            visibles dans toutes les catégories sélectionnées.
+            {t("roster.duplicatePlayerToCategoryDialog.description", { name: fullName })}
           </DialogDescription>
         </DialogHeader>
 
@@ -131,7 +132,7 @@ export function DuplicatePlayerToCategoryDialog({
             </div>
           ) : categories.length === 0 ? (
             <p className="py-6 text-center text-sm text-muted-foreground">
-              Aucune autre catégorie disponible.
+              {t("roster.duplicatePlayerToCategoryDialog.noOtherCategory")}
             </p>
           ) : (
             <div className="space-y-1">
@@ -155,7 +156,7 @@ export function DuplicatePlayerToCategoryDialog({
                         <p className="truncate text-xs text-muted-foreground">{c.clubs.name}</p>
                       )}
                     </div>
-                    {already && <Badge variant="secondary">Déjà présent</Badge>}
+                    {already && <Badge variant="secondary">{t("roster.duplicatePlayerToCategoryDialog.alreadyPresent")}</Badge>}
                   </label>
                 );
               })}
@@ -165,19 +166,19 @@ export function DuplicatePlayerToCategoryDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Annuler
+            {t("roster.duplicatePlayerToCategoryDialog.cancel")}
           </Button>
           <Button
             onClick={() => {
               if (selected.length === 0) {
-                toast.error("Sélectionnez au moins une catégorie");
+                toast.error(t("roster.duplicatePlayerToCategoryDialog.toasts.selectAtLeastOne"));
                 return;
               }
               duplicate.mutate();
             }}
           >
             {duplicate.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Dupliquer
+            {t("roster.duplicatePlayerToCategoryDialog.duplicateButton")}
           </Button>
         </DialogFooter>
       </DialogContent>
