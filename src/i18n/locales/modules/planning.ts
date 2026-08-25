@@ -1532,6 +1532,11 @@ export const planningEn = {
       createTitle: "Schedule a physical test",
       startTime: "Start time",
       endTime: "End time",
+      windowLabel: "Testing window (optional)",
+      windowHint:
+        "If the same test is planned across several sessions, set a period: each athlete can only submit a result once inside that window.",
+      windowFrom: "From",
+      windowTo: "To",
       individualTests: "À la carte tests",
       testBattery: "Test battery",
       theme: "Theme",
