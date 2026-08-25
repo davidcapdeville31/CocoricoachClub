@@ -124,6 +124,28 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
     const key = `${test.test_category}::${test.test_type}`;
     const raw = value[key];
 
+    if (testWindow) {
+      // Safety net: one submission per test inside the testing window
+      const { pendingData, savedData } = await fetchState();
+      const already =
+        pendingData.some(
+          (p: any) =>
+            p.test_category === test.test_category &&
+            p.test_type === test.test_type &&
+            p.validation_status !== "rejected",
+        ) ||
+        savedData.some(
+          (p: any) => p.test_category === test.test_category && p.test_type === test.test_type,
+        );
+      if (already) {
+        toast.error(t('athleteSpace.components.testResultsInput.alreadySubmittedInWindow'));
+        setPending(pendingData);
+        setStaffSaved(savedData);
+        return;
+      }
+    }
+
+
     if (raw == null || raw === "") {
       toast.error(t('athleteSpace.components.testResultsInput.enterFirst'));
       return;
