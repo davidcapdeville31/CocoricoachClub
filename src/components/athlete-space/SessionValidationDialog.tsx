@@ -94,6 +94,11 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
 
   const handleSubmit = async () => {
     if (!session || !playerId || !categoryId) return;
+    if (isAbsent) {
+      toast.error(t("athleteSpace.calendar.attendance.absentLockTitle"));
+      return;
+    }
+
     if (!duration || duration <= 0) {
       toast.error(t("athleteSpace.components.sessionValidationDialog.durationRequired"));
       return;
