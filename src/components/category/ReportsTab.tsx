@@ -514,9 +514,9 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
 
       let yPos = drawPdfHeaderCustom(
         pdf,
-        `BILAN DE SAISON${sName ? ` - ${sName}` : ` ${new Date().getFullYear()}/${new Date().getFullYear() + 1}`}`,
+        `${t("adminReports.export.season.pdfTitle")}${sName ? ` - ${sName}` : ` ${new Date().getFullYear()}/${new Date().getFullYear() + 1}`}`,
         `${cn2 || category?.clubs?.name || ''} - ${catName2 || category?.name || ''}`,
-        `Généré le ${format(new Date(), "d MMMM yyyy", { locale: getDateLocale() })}`,
+        t("adminReports.export.common.generatedOn", { date: format(new Date(), "d MMMM yyyy", { locale: getDateLocale() }) }),
         pdfSettings,
         logoBase64
       );
@@ -528,20 +528,20 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       if (isIndividualSport) {
         // Individual sports: Athlètes, Compétitions, Podiums, Blessés
         const podiums = competitionRounds.filter((r: any) => r.ranking && r.ranking <= 3).length;
-        drawKpiCard(pdf, margin, yPos, cardWidth, cardHeight, String(players.length), "ATHLÈTES", defaultColors.primary);
-        drawKpiCard(pdf, margin + cardWidth + 5, yPos, cardWidth, cardHeight, String(matchesData.length), "COMPÉTITIONS", defaultColors.primary);
-        drawKpiCard(pdf, margin + (cardWidth + 5) * 2, yPos, cardWidth, cardHeight, String(podiums), "PODIUMS", podiums > 0 ? defaultColors.success : defaultColors.muted);
-        drawKpiCard(pdf, margin + (cardWidth + 5) * 3, yPos, cardWidth, cardHeight, String(activeInjuries), "BLESSÉS", activeInjuries > 0 ? defaultColors.danger : defaultColors.success);
+        drawKpiCard(pdf, margin, yPos, cardWidth, cardHeight, String(players.length), t("adminReports.export.season.kpiAthletes"), defaultColors.primary);
+        drawKpiCard(pdf, margin + cardWidth + 5, yPos, cardWidth, cardHeight, String(matchesData.length), t("adminReports.export.season.kpiCompetitions"), defaultColors.primary);
+        drawKpiCard(pdf, margin + (cardWidth + 5) * 2, yPos, cardWidth, cardHeight, String(podiums), t("adminReports.export.season.kpiPodiums"), podiums > 0 ? defaultColors.success : defaultColors.muted);
+        drawKpiCard(pdf, margin + (cardWidth + 5) * 3, yPos, cardWidth, cardHeight, String(activeInjuries), t("adminReports.export.season.kpiInjured"), activeInjuries > 0 ? defaultColors.danger : defaultColors.success);
       } else {
         // Team & racket sports: Joueurs, Matchs, Victoires, Blessés
         const wins = matchesData.filter((m: any) => 
           (m.is_home && (m.score_home || 0) > (m.score_away || 0)) ||
           (!m.is_home && (m.score_away || 0) > (m.score_home || 0))
         ).length;
-        drawKpiCard(pdf, margin, yPos, cardWidth, cardHeight, String(players.length), "JOUEURS", defaultColors.primary);
-        drawKpiCard(pdf, margin + cardWidth + 5, yPos, cardWidth, cardHeight, String(matchesData.length), "MATCHS", defaultColors.primary);
-        drawKpiCard(pdf, margin + (cardWidth + 5) * 2, yPos, cardWidth, cardHeight, String(wins), "VICTOIRES", defaultColors.success);
-        drawKpiCard(pdf, margin + (cardWidth + 5) * 3, yPos, cardWidth, cardHeight, String(activeInjuries), "BLESSÉS", activeInjuries > 0 ? defaultColors.danger : defaultColors.success);
+        drawKpiCard(pdf, margin, yPos, cardWidth, cardHeight, String(players.length), t("adminReports.export.season.kpiPlayers"), defaultColors.primary);
+        drawKpiCard(pdf, margin + cardWidth + 5, yPos, cardWidth, cardHeight, String(matchesData.length), t("adminReports.export.season.kpiMatches"), defaultColors.primary);
+        drawKpiCard(pdf, margin + (cardWidth + 5) * 2, yPos, cardWidth, cardHeight, String(wins), t("adminReports.export.season.kpiWins"), defaultColors.success);
+        drawKpiCard(pdf, margin + (cardWidth + 5) * 3, yPos, cardWidth, cardHeight, String(activeInjuries), t("adminReports.export.season.kpiInjured"), activeInjuries > 0 ? defaultColors.danger : defaultColors.success);
       }
 
       yPos += cardHeight + 15;
@@ -550,7 +550,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       pdf.setFontSize(12);
       pdf.setFont("helvetica", "bold");
       pdf.setTextColor(...defaultColors.dark);
-      pdf.text("BILAN SPORTIF", margin, yPos);
+      pdf.text(t("adminReports.export.season.sportSummaryTitle"), margin, yPos);
       yPos += 10;
 
       if (isIndividualSport) {
@@ -567,7 +567,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         pdf.setFont("helvetica", "bold");
         pdf.text(String(goldCount), margin + recordBoxWidth / 2 - 5, yPos + 10);
         pdf.setFontSize(8);
-        const goldLabel = baseSport === "bowling" ? "1ÈRES PLACES" : "MÉDAILLES D'OR";
+        const goldLabel = baseSport === "bowling" ? t("adminReports.export.season.firstPlaces") : t("adminReports.export.season.goldMedals");
         const goldLabelW = pdf.getTextWidth(goldLabel);
         pdf.text(goldLabel, margin + (recordBoxWidth - goldLabelW) / 2, yPos + 15);
 
@@ -576,7 +576,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         pdf.setFontSize(14);
         pdf.text(String(top3Count), margin + recordBoxWidth + 5 + recordBoxWidth / 2 - 5, yPos + 10);
         pdf.setFontSize(8);
-        const podLabel = "PODIUMS";
+        const podLabel = t("adminReports.export.season.podiumsLabel");
         const podLabelW = pdf.getTextWidth(podLabel);
         pdf.text(podLabel, margin + recordBoxWidth + 5 + (recordBoxWidth - podLabelW) / 2, yPos + 15);
 
@@ -585,7 +585,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         pdf.setFontSize(14);
         pdf.text(String(totalRounds), margin + (recordBoxWidth + 5) * 2 + recordBoxWidth / 2 - 5, yPos + 10);
         pdf.setFontSize(8);
-        const partLabel = "PARTICIPATIONS";
+        const partLabel = t("adminReports.export.season.participations");
         const partLabelW = pdf.getTextWidth(partLabel);
         pdf.text(partLabel, margin + (recordBoxWidth + 5) * 2 + (recordBoxWidth - partLabelW) / 2, yPos + 15);
       } else {
@@ -609,21 +609,21 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         pdf.setFont("helvetica", "bold");
         pdf.text(String(wins), margin + recordBoxWidth / 2 - 5, yPos + 10);
         pdf.setFontSize(8);
-        pdf.text("VICTOIRES", margin + recordBoxWidth / 2 - 15, yPos + 15);
+        pdf.text(t("adminReports.export.season.wins"), margin + recordBoxWidth / 2 - 15, yPos + 15);
 
         pdf.setFillColor(...defaultColors.muted);
         pdf.roundedRect(margin + recordBoxWidth + 5, yPos, recordBoxWidth, 18, 2, 2, 'F');
         pdf.setFontSize(14);
         pdf.text(String(draws), margin + recordBoxWidth + 5 + recordBoxWidth / 2 - 5, yPos + 10);
         pdf.setFontSize(8);
-        pdf.text("NULS", margin + recordBoxWidth + 5 + recordBoxWidth / 2 - 8, yPos + 15);
+        pdf.text(t("adminReports.export.season.draws"), margin + recordBoxWidth + 5 + recordBoxWidth / 2 - 8, yPos + 15);
 
         pdf.setFillColor(...defaultColors.danger);
         pdf.roundedRect(margin + (recordBoxWidth + 5) * 2, yPos, recordBoxWidth, 18, 2, 2, 'F');
         pdf.setFontSize(14);
         pdf.text(String(losses), margin + (recordBoxWidth + 5) * 2 + recordBoxWidth / 2 - 5, yPos + 10);
         pdf.setFontSize(8);
-        pdf.text("DÉFAITES", margin + (recordBoxWidth + 5) * 2 + recordBoxWidth / 2 - 14, yPos + 15);
+        pdf.text(t("adminReports.export.season.losses"), margin + (recordBoxWidth + 5) * 2 + recordBoxWidth / 2 - 14, yPos + 15);
       }
 
       yPos += 28;
@@ -632,17 +632,17 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       pdf.setFontSize(12);
       pdf.setFont("helvetica", "bold");
       pdf.setTextColor(...defaultColors.dark);
-      pdf.text("OBJECTIFS DE SAISON", margin, yPos);
+      pdf.text(t("adminReports.export.season.goalsTitle"), margin, yPos);
       yPos += 8;
 
       const goals = goalsRes.data || [];
       if (goals.length > 0) {
-        const goalHeaders = ["Objectif", "Progression", "Statut"];
+        const goalHeaders = [t("adminReports.export.season.goalHeaderObjective"), t("adminReports.export.season.goalHeaderProgress"), t("adminReports.export.season.goalHeaderStatus")];
         const goalColWidths = [100, 40, 40];
         yPos = drawTableHeaderPdf(pdf, goalHeaders, goalColWidths, yPos, margin, contentWidth);
 
         goals.forEach((goal: any, index: number) => {
-          const statusLabel = goal.status === 'completed' ? 'Atteint' : goal.status === 'in_progress' ? 'En cours' : 'En attente';
+          const statusLabel = goal.status === 'completed' ? t("adminReports.export.season.goalStatusCompleted") : goal.status === 'in_progress' ? t("adminReports.export.season.goalStatusInProgress") : t("adminReports.export.season.goalStatusPending");
           const statusColor = goal.status === 'completed' ? defaultColors.success : goal.status === 'in_progress' ? defaultColors.warning : defaultColors.muted;
           yPos = drawTableRowPdf(pdf, [
             goal.title,
@@ -654,7 +654,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       } else {
         pdf.setFontSize(9);
         pdf.setTextColor(...defaultColors.muted);
-        pdf.text("Aucun objectif défini", margin, yPos);
+        pdf.text(t("adminReports.export.season.noGoals"), margin, yPos);
         yPos += 10;
       }
 
@@ -665,11 +665,11 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       pdf.setTextColor(...defaultColors.dark);
 
       if (isIndividualSport) {
-        pdf.text("RÉSULTATS DES COMPÉTITIONS", margin, yPos);
+        pdf.text(t("adminReports.export.season.competitionsResultsTitle"), margin, yPos);
         yPos += 8;
 
         if (matchesData.length > 0) {
-          const compHeaders = ["Date", "Compétition", "Participants"];
+          const compHeaders = [t("adminReports.export.season.competitionHeaderDate"), t("adminReports.export.season.competitionHeaderName"), t("adminReports.export.season.competitionHeaderParticipants")];
           const compColWidths = [35, 85, 60];
           yPos = drawTableHeaderPdf(pdf, compHeaders, compColWidths, yPos, margin, contentWidth);
 
@@ -679,21 +679,21 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
             const uniquePlayerIds = new Set(matchRounds.map((r: any) => r.player_id));
             yPos = drawTableRowPdf(pdf, [
               format(new Date(match.match_date), "dd/MM/yy"),
-              match.opponent || 'Compétition',
-              `${uniquePlayerIds.size} athlète${uniquePlayerIds.size > 1 ? 's' : ''}`,
+              match.opponent || t("adminReports.export.season.competitionFallback"),
+              t("adminReports.export.season.athleteCount", { count: uniquePlayerIds.size }),
             ], compColWidths, yPos, index % 2 === 1, margin, contentWidth);
           });
         } else {
           pdf.setFontSize(9);
           pdf.setTextColor(...defaultColors.muted);
-          pdf.text("Aucune compétition enregistrée", margin, yPos);
+          pdf.text(t("adminReports.export.season.noCompetitions"), margin, yPos);
         }
       } else {
-        pdf.text("RÉSULTATS DES MATCHS", margin, yPos);
+        pdf.text(t("adminReports.export.season.matchesResultsTitle"), margin, yPos);
         yPos += 8;
 
         if (matchesData.length > 0) {
-          const matchHeaders = ["Date", "Adversaire", "Score", "Résultat"];
+          const matchHeaders = [t("adminReports.export.season.matchHeaderDate"), t("adminReports.export.season.matchHeaderOpponent"), t("adminReports.export.season.matchHeaderScore"), t("adminReports.export.season.matchHeaderResult")];
           const matchColWidths = [35, 70, 35, 40];
           yPos = drawTableHeaderPdf(pdf, matchHeaders, matchColWidths, yPos, margin, contentWidth);
 
@@ -706,7 +706,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
             if (match.score_home !== null && match.score_away !== null) {
               const isWin = (match.is_home && match.score_home > match.score_away) || (!match.is_home && match.score_away > match.score_home);
               const isLoss = (match.is_home && match.score_home < match.score_away) || (!match.is_home && match.score_away < match.score_home);
-              result = isWin ? 'Victoire' : isLoss ? 'Défaite' : 'Nul';
+              result = isWin ? t("adminReports.export.common.win") : isLoss ? t("adminReports.export.common.loss") : t("adminReports.export.common.draw");
               resultColor = isWin ? defaultColors.success : isLoss ? defaultColors.danger : defaultColors.muted;
             }
             
@@ -720,7 +720,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         } else {
           pdf.setFontSize(9);
           pdf.setTextColor(...defaultColors.muted);
-          pdf.text("Aucun match joué", margin, yPos);
+          pdf.text(t("adminReports.export.season.noMatches"), margin, yPos);
         }
       }
 
@@ -731,14 +731,14 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       pdf.setFontSize(12);
       pdf.setFont("helvetica", "bold");
       pdf.setTextColor(...defaultColors.dark);
-      pdf.text("BILAN MÉDICAL", margin, yPos);
+      pdf.text(t("adminReports.export.season.medicalTitle"), margin, yPos);
       yPos += 10;
 
       const recoveringCount = allInjuries.filter((i: any) => i.status === 'recovering').length;
       const injuryStats = [
-        { label: "Blessures totales", value: allInjuries.length, color: defaultColors.primary },
-        { label: "Actuellement blessés", value: activeInjuries, color: activeInjuries > 0 ? defaultColors.danger : defaultColors.success },
-        { label: "En réathlétisation", value: recoveringCount, color: defaultColors.warning },
+        { label: t("adminReports.export.season.totalInjuries"), value: allInjuries.length, color: defaultColors.primary },
+        { label: t("adminReports.export.season.currentlyInjured"), value: activeInjuries, color: activeInjuries > 0 ? defaultColors.danger : defaultColors.success },
+        { label: t("adminReports.export.season.recovering"), value: recoveringCount, color: defaultColors.warning },
       ];
 
       const statBoxWidth = (contentWidth - 10) / 3;
@@ -763,17 +763,17 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         pdf.setFontSize(10);
         pdf.setFont("helvetica", "bold");
         pdf.setTextColor(...defaultColors.dark);
-        pdf.text(`Détail des ${isIndividualSport ? 'athlètes' : 'joueurs'} blessés / en réathlétisation`, margin, yPos);
+        pdf.text(t("adminReports.export.season.injuryDetailTitle", { label: isIndividualSport ? t("adminReports.common.athletes").toLowerCase() : t("adminReports.common.players").toLowerCase() }), margin, yPos);
         yPos += 6;
 
-        const injHeaders = [isIndividualSport ? "Athlète" : "Joueur", "Blessure", "Statut", "Date", "Retour estimé"];
+        const injHeaders = [isIndividualSport ? t("adminReports.common.athlete") : t("adminReports.common.player"), t("adminReports.export.season.injHeaderInjury"), t("adminReports.export.season.injHeaderStatus"), t("adminReports.export.season.injHeaderDate"), t("adminReports.export.season.injHeaderExpectedReturn")];
         const injColWidths = [45, 40, 30, 30, 30];
         yPos = drawTableHeaderPdf(pdf, injHeaders, injColWidths, yPos, margin, contentWidth);
 
         injuredOrRecovering.forEach((injury: any, index: number) => {
           yPos = localCheckPageBreak(pdf, yPos, 10);
-          const playerFullName = [injury.players?.first_name, injury.players?.name].filter(Boolean).join(" ") || 'Inconnu';
-          const statusLabel = injury.status === 'active' ? 'Blessé' : 'Réathlétisation';
+          const playerFullName = [injury.players?.first_name, injury.players?.name].filter(Boolean).join(" ") || t("adminReports.export.common.unknown");
+          const statusLabel = injury.status === 'active' ? t("adminReports.export.season.statusInjured") : t("adminReports.export.season.statusRecovering");
           const statusColor = injury.status === 'active' ? defaultColors.danger : defaultColors.warning;
           yPos = drawTableRowPdf(pdf, [
             playerFullName,
@@ -806,7 +806,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
     
     try {
       const match = matches.find(m => m.id === selectedMatch);
-      if (!match) throw new Error("Match non trouvé");
+      if (!match) throw new Error(t("adminReports.export.common.matchNotFound"));
 
       const { settings: pdfSettings, logoBase64, seasonName: sn2 } = await preparePdfWithSettings(categoryId);
 
@@ -834,19 +834,19 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       const contentWidth = pageWidth - 2 * margin;
 
       // Determine result
-      let resultText = "Match";
+      let resultText = t("adminReports.export.match.resultDefault");
       let resultColor = defaultColors.primary;
       if (match.score_home !== null && match.score_away !== null) {
         const isWin = (match.is_home && match.score_home > match.score_away) || (!match.is_home && match.score_away > match.score_home);
         const isLoss = (match.is_home && match.score_home < match.score_away) || (!match.is_home && match.score_away < match.score_home);
-        resultText = isWin ? "VICTOIRE" : isLoss ? "DÉFAITE" : "MATCH NUL";
+        resultText = isWin ? t("adminReports.export.match.win") : isLoss ? t("adminReports.export.match.loss") : t("adminReports.export.match.draw");
         resultColor = isWin ? defaultColors.success : isLoss ? defaultColors.danger : defaultColors.muted;
       }
 
       let yPos = drawPdfHeaderCustom(
         pdf,
-        `RAPPORT DE MATCH`,
-        `vs ${match.opponent} - ${match.location || 'Lieu non défini'}`,
+        t("adminReports.export.match.pdfTitle"),
+        t("adminReports.export.match.vsLocation", { opponent: match.opponent, location: match.location || t("adminReports.export.match.noLocation") }),
         `${format(new Date(match.match_date), "EEEE d MMMM yyyy", { locale: getDateLocale() })}`,
         pdfSettings,
         logoBase64
@@ -873,13 +873,13 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       pdf.setFontSize(12);
       pdf.setFont("helvetica", "bold");
       pdf.setTextColor(...defaultColors.dark);
-      pdf.text("STATISTIQUES DU MATCH", margin, yPos);
+      pdf.text(t("adminReports.export.match.statsTitle"), margin, yPos);
       yPos += 10;
 
       const matchStatsData = [
-        { label: "Temps effectif", value: match.effective_play_time ? `${match.effective_play_time} min` : '-' },
-        { label: "Séq. la plus longue", value: match.longest_play_sequence ? `${match.longest_play_sequence} sec` : '-' },
-        { label: "Séq. moyenne", value: match.average_play_sequence ? `${match.average_play_sequence} sec` : '-' },
+        { label: t("adminReports.export.match.effectiveTime"), value: match.effective_play_time ? `${match.effective_play_time} min` : '-' },
+        { label: t("adminReports.export.match.longestSequence"), value: match.longest_play_sequence ? `${match.longest_play_sequence} sec` : '-' },
+        { label: t("adminReports.export.match.avgSequence"), value: match.average_play_sequence ? `${match.average_play_sequence} sec` : '-' },
       ];
 
       pdf.setFillColor(...defaultColors.light);
@@ -900,7 +900,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       pdf.setFontSize(12);
       pdf.setFont("helvetica", "bold");
       pdf.setTextColor(...defaultColors.dark);
-      pdf.text("COMPOSITION", margin, yPos);
+      pdf.text(t("adminReports.export.match.compositionTitle"), margin, yPos);
       yPos += 8;
 
       const starters = lineupsRes.data?.filter(l => l.is_starter) || [];
@@ -910,16 +910,16 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         pdf.setFontSize(10);
         pdf.setFont("helvetica", "bold");
         pdf.setTextColor(...defaultColors.success);
-        pdf.text("Titulaires", margin, yPos);
+        pdf.text(t("adminReports.export.match.starters"), margin, yPos);
         yPos += 6;
 
-        const lineupHeaders = ["Joueur", "Position", "Minutes"];
+        const lineupHeaders = [t("adminReports.export.match.headerPlayer"), t("adminReports.export.match.headerPosition"), t("adminReports.export.match.headerMinutes")];
         const lineupColWidths = [80, 50, 50];
         yPos = drawTableHeaderPdf(pdf, lineupHeaders, lineupColWidths, yPos, margin, contentWidth);
 
         starters.forEach((p, index) => {
           yPos = localCheckPageBreak(pdf, yPos, 10);
-          const fullName = [p.players?.first_name, p.players?.name].filter(Boolean).join(" ") || 'Inconnu';
+          const fullName = [p.players?.first_name, p.players?.name].filter(Boolean).join(" ") || t("adminReports.export.common.unknown");
           yPos = drawTableRowPdf(pdf, [
             fullName,
             p.position || p.players?.position || '-',
@@ -933,16 +933,16 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         pdf.setFontSize(10);
         pdf.setFont("helvetica", "bold");
         pdf.setTextColor(...defaultColors.warning);
-        pdf.text("Remplaçants", margin, yPos);
+        pdf.text(t("adminReports.export.match.substitutes"), margin, yPos);
         yPos += 6;
 
-        const subHeaders = ["Joueur", "Position", "Minutes"];
+        const subHeaders = [t("adminReports.export.match.headerPlayer"), t("adminReports.export.match.headerPosition"), t("adminReports.export.match.headerMinutes")];
         const subColWidths = [80, 50, 50];
         yPos = drawTableHeaderPdf(pdf, subHeaders, subColWidths, yPos, margin, contentWidth);
 
         subs.forEach((p, index) => {
           yPos = localCheckPageBreak(pdf, yPos, 10);
-          const fullName = [p.players?.first_name, p.players?.name].filter(Boolean).join(" ") || 'Inconnu';
+          const fullName = [p.players?.first_name, p.players?.name].filter(Boolean).join(" ") || t("adminReports.export.common.unknown");
           yPos = drawTableRowPdf(pdf, [
             fullName,
             p.position || p.players?.position || '-',
@@ -960,7 +960,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         pdf.setFontSize(12);
         pdf.setFont("helvetica", "bold");
         pdf.setTextColor(...defaultColors.dark);
-        pdf.text("STATISTIQUES JOUEURS", margin, yPos);
+        pdf.text(t("adminReports.export.match.playerStatsTitle"), margin, yPos);
         yPos += 8;
 
         // Get the stats to display based on preferences
@@ -987,11 +987,11 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
 
         // Group stats by main category, then by thematic sub-blocks (rugby, basket 3x3, etc.)
         const STAT_CATEGORY_LABELS: Record<string, string> = {
-          scoring: "Marque",
-          attack: "Attaque",
-          defense: "Défense",
-          general: "Général",
-          individual: "Individuel",
+          scoring: t("adminReports.export.match.categoryScoring"),
+          attack: t("adminReports.export.match.categoryAttack"),
+          defense: t("adminReports.export.match.categoryDefense"),
+          general: t("adminReports.export.match.categoryGeneral"),
+          individual: t("adminReports.export.match.categoryIndividual"),
         };
         const categoryOrder = ["scoring", "attack", "defense", "general", "individual"];
         const statsByCategory = new Map<string, StatField[]>();
@@ -1050,7 +1050,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
                 yPos = localCheckPageBreak(pdf, yPos, 20);
               }
 
-              const statHeaders = ["Joueur", ...pageStats.map((s) => s.shortLabel)];
+              const statHeaders = [t("adminReports.export.match.headerPlayer"), ...pageStats.map((s) => s.shortLabel)];
               const nameColWidth = 45;
               const statColWidth = Math.max(15, Math.floor((contentWidth - nameColWidth) / pageStats.length));
               const statColWidths = [nameColWidth, ...pageStats.map(() => statColWidth)];
@@ -1078,7 +1078,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
               playerStats.forEach((stat: any, index) => {
                 yPos = localCheckPageBreak(pdf, yPos, 10);
                 const sportData = stat.sport_data && typeof stat.sport_data === "object" ? (stat.sport_data as Record<string, any>) : {};
-                const playerName = [stat.players?.first_name, stat.players?.name].filter(Boolean).join(" ") || "Inconnu";
+                const playerName = [stat.players?.first_name, stat.players?.name].filter(Boolean).join(" ") || t("adminReports.export.common.unknown");
 
                 const values = [
                   playerName,
@@ -1122,7 +1122,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         pdf.setFontSize(12);
         pdf.setFont("helvetica", "bold");
         pdf.setTextColor(...defaultColors.dark);
-        pdf.text("CARTOGRAPHIE DES TIRS AU BUT", margin, yPos);
+        pdf.text(t("adminReports.export.match.kickingMapTitle"), margin, yPos);
         yPos += 8;
 
         // Draw rugby field
@@ -1185,11 +1185,11 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         // Success/fail legend
         pdf.setFillColor(34, 197, 94);
         pdf.circle(legendX + 2, yPos, 2, 'F');
-        pdf.text("Réussi", legendX + 6, yPos + 1.5);
+        pdf.text(t("adminReports.export.match.success"), legendX + 6, yPos + 1.5);
         legendX += 25;
         pdf.setFillColor(239, 68, 68);
         pdf.circle(legendX + 2, yPos, 2, 'F');
-        pdf.text("Raté", legendX + 6, yPos + 1.5);
+        pdf.text(t("adminReports.export.match.miss"), legendX + 6, yPos + 1.5);
         legendX += 20;
         
         // Type legend
@@ -1197,7 +1197,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
           pdf.setDrawColor(...color);
           pdf.setLineWidth(1);
           pdf.line(legendX, yPos - 1, legendX + 6, yPos - 1);
-          const typeLabel = type === "conversion" ? "Transfo." : type === "penalty" ? "Pénalité" : "Drop";
+          const typeLabel = type === "conversion" ? t("adminReports.export.match.kickTypeConversion") : type === "penalty" ? t("adminReports.export.match.kickTypePenalty") : t("adminReports.export.match.kickTypeDrop");
           pdf.setTextColor(...defaultColors.dark);
           pdf.text(typeLabel, legendX + 8, yPos + 1);
           legendX += 28;
@@ -1218,7 +1218,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         const kicksByPlayer = new Map<string, { name: string; total: number; success: number; byType: Record<string, { total: number; success: number }> }>();
         kickingAttempts.forEach((a: any) => {
           const pid = a.player_id;
-          const pName = a.players ? [a.players.first_name, a.players.name].filter(Boolean).join(" ") : "Inconnu";
+          const pName = a.players ? [a.players.first_name, a.players.name].filter(Boolean).join(" ") : t("adminReports.export.common.unknown");
           if (!kicksByPlayer.has(pid)) kicksByPlayer.set(pid, { name: pName, total: 0, success: 0, byType: {} });
           const pData = kicksByPlayer.get(pid)!;
           pData.total++;
@@ -1229,7 +1229,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         });
 
         if (kicksByPlayer.size > 0) {
-          const kickHeaders = ["Buteur", "Total", "Réussis", "%", "Transfo.", "Pénalités", "Drops"];
+          const kickHeaders = [t("adminReports.export.match.kickHeaderScorer"), t("adminReports.export.match.kickHeaderTotal"), t("adminReports.export.match.kickHeaderSuccessful"), t("adminReports.export.match.kickHeaderPct"), t("adminReports.export.match.kickHeaderConversions"), t("adminReports.export.match.kickHeaderPenalties"), t("adminReports.export.match.kickHeaderDrops")];
           const kickColWidths = [45, 20, 20, 20, 25, 25, 25];
           yPos = drawTableHeaderPdf(pdf, kickHeaders, kickColWidths, yPos, margin, contentWidth);
 
@@ -1263,14 +1263,14 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         pdf.setFontSize(12);
         pdf.setFont("helvetica", "bold");
         pdf.setTextColor(...defaultColors.dark);
-        pdf.text("ROUNDS / COMBATS DE COMPÉTITION", margin, yPos);
+        pdf.text(t("adminReports.export.match.roundsTitle"), margin, yPos);
         yPos += 8;
 
         // Group rounds by player
         const roundsByPlayer = new Map<string, { name: string; discipline?: string; rounds: any[] }>();
         competitionRounds.forEach((r: any) => {
           const pid = r.player_id;
-          const pName = [r.players?.first_name, r.players?.name].filter(Boolean).join(" ") || "Inconnu";
+          const pName = [r.players?.first_name, r.players?.name].filter(Boolean).join(" ") || t("adminReports.export.common.unknown");
           const disc = r.players?.specialty || r.players?.discipline;
           if (!roundsByPlayer.has(pid)) roundsByPlayer.set(pid, { name: pName, discipline: disc, rounds: [] });
           roundsByPlayer.get(pid)!.rounds.push(r);
@@ -1291,10 +1291,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
 
           const roundStatsDef = getStatsForSport(sportType, false, playerData.discipline);
           const fixedHeaders = isAthleticsReport
-            ? ["Phase", "Place", "Résultat"]
+            ? [t("adminReports.export.match.headerPhase"), t("adminReports.export.match.headerPlace"), t("adminReports.export.match.headerResult")]
             : isJudoReport
-            ? ["Round", "Adversaire", "Résultat"]
-            : ["Round", "Adversaire", "Résultat"];
+            ? [t("adminReports.export.match.headerRound"), t("adminReports.export.match.headerOpponent"), t("adminReports.export.match.headerResult")]
+            : [t("adminReports.export.match.headerRound"), t("adminReports.export.match.headerOpponent"), t("adminReports.export.match.headerResult")];
           const fixedColWidths = [28, 28, 20];
 
           // Paginate stats in groups of 6
@@ -1321,13 +1321,13 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
               const resultLabel = isJudoReport
                 ? (statData.combatResult === 1 ? 'V' : statData.combatResult === 0 ? 'D' : round.result || '-')
                 : isAthleticsReport
-                ? (round.result === 'qualified' ? 'Q' : round.result === 'eliminated' ? 'Élim.' : round.result || '-')
+                ? (round.result === 'qualified' ? t("adminReports.export.match.qualified") : round.result === 'eliminated' ? t("adminReports.export.match.eliminated") : round.result || '-')
                 : (round.result || '-');
 
               const fixedData = isAthleticsReport
                 ? [
-                    round.phase || `Épreuve ${round.round_number || idx + 1}`,
-                    round.ranking ? `${round.ranking}e` : '-',
+                    round.phase || t("adminReports.export.match.eventFallback", { n: round.round_number || idx + 1 }),
+                    round.ranking ? t("adminReports.export.match.rankingSuffix", { n: round.ranking }) : '-',
                     resultLabel,
                   ]
                 : [
@@ -1473,14 +1473,14 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
 
       // ========== PAGE 1: HEADER + EXECUTIVE SUMMARY ==========
       const dateRange = overviewDateFrom || overviewDateTo 
-        ? `\nPériode: ${overviewDateFrom ? format(new Date(overviewDateFrom), "dd/MM/yyyy") : "début"} - ${overviewDateTo ? format(new Date(overviewDateTo), "dd/MM/yyyy") : "aujourd'hui"}`
+        ? `\n${t("adminReports.export.squad.periodLabel", { from: overviewDateFrom ? format(new Date(overviewDateFrom), "dd/MM/yyyy") : t("adminReports.export.common.start"), to: overviewDateTo ? format(new Date(overviewDateTo), "dd/MM/yyyy") : t("adminReports.export.common.today") })}`
         : "";
       
       yPos = drawPdfHeaderCustom(
         pdf,
-        "VUE D'ENSEMBLE DE L'EFFECTIF",
+        t("adminReports.export.squad.pdfTitle"),
         `${cn3 || category?.clubs?.name || ''} - ${catName3 || category?.name || ''}${sn3 ? ` • ${sn3}` : ''}`,
-        `Généré le ${format(new Date(), "d MMMM yyyy", { locale: getDateLocale() })}${dateRange ? ` | ${dateRange.trim()}` : ""}`,
+        `${t("adminReports.export.common.generatedOn", { date: format(new Date(), "d MMMM yyyy", { locale: getDateLocale() }) })}${dateRange ? ` | ${dateRange.trim()}` : ""}`,
         pdfSettings,
         logoBase64
       );
@@ -1528,7 +1528,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       pdf.text(String(players.length), margin + cardWidth / 2 - 5, cardY + 12);
       pdf.setFontSize(8);
       pdf.setFont("helvetica", "normal");
-      pdf.text(isIndividualSport ? "ATHLÈTES" : "JOUEURS", margin + cardWidth / 2 - 12, cardY + 20);
+      pdf.text(isIndividualSport ? t("adminReports.export.squad.athletesLabel") : t("adminReports.export.squad.playersLabel"), margin + cardWidth / 2 - 12, cardY + 20);
 
       // Card 2: Active Injuries
       const injuryColor = activeInjuries.length > 0 ? colors.danger : colors.success;
@@ -1540,7 +1540,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       pdf.text(String(activeInjuries.length), margin + cardWidth + 5 + cardWidth / 2 - 5, cardY + 12);
       pdf.setFontSize(8);
       pdf.setFont("helvetica", "normal");
-      pdf.text("BLESSÉS", margin + cardWidth + 5 + cardWidth / 2 - 10, cardY + 20);
+      pdf.text(t("adminReports.export.squad.injuredLabel"), margin + cardWidth + 5 + cardWidth / 2 - 10, cardY + 20);
 
       // Card 3: High EWMA (was AWCR)
       const ewmaColor = highEwma > 0 ? colors.warning : colors.success;
@@ -1552,7 +1552,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       pdf.text(String(highEwma), margin + (cardWidth + 5) * 2 + cardWidth / 2 - 5, cardY + 12);
       pdf.setFontSize(8);
       pdf.setFont("helvetica", "normal");
-      pdf.text("EWMA ÉLEVÉ", margin + (cardWidth + 5) * 2 + cardWidth / 2 - 14, cardY + 20);
+      pdf.text(t("adminReports.export.squad.highEwma"), margin + (cardWidth + 5) * 2 + cardWidth / 2 - 14, cardY + 20);
 
       // Card 4: Players with pain
       const painColor = playersWithPain > 0 ? colors.warning : colors.success;
@@ -1564,34 +1564,34 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       pdf.text(String(playersWithPain), margin + (cardWidth + 5) * 3 + cardWidth / 2 - 5, cardY + 12);
       pdf.setFontSize(8);
       pdf.setFont("helvetica", "normal");
-      pdf.text("DOULEURS", margin + (cardWidth + 5) * 3 + cardWidth / 2 - 12, cardY + 20);
+      pdf.text(t("adminReports.export.squad.pain"), margin + (cardWidth + 5) * 3 + cardWidth / 2 - 12, cardY + 20);
 
       yPos = cardY + cardHeight + 15;
 
       // Legend
       pdf.setFontSize(8);
       pdf.setTextColor(...colors.muted);
-      pdf.text("Légende: ", margin, yPos);
+      pdf.text(t("adminReports.export.squad.legend"), margin, yPos);
       drawColoredBox(margin + 20, yPos - 4, 8, 6, colors.success, "");
       pdf.setTextColor(...colors.dark);
-      pdf.text("Bon", margin + 30, yPos);
+      pdf.text(t("adminReports.export.squad.good"), margin + 30, yPos);
       drawColoredBox(margin + 45, yPos - 4, 8, 6, colors.warning, "");
-      pdf.text("Attention", margin + 55, yPos);
+      pdf.text(t("adminReports.export.squad.warning"), margin + 55, yPos);
       drawColoredBox(margin + 80, yPos - 4, 8, 6, colors.danger, "");
-      pdf.text("Critique", margin + 90, yPos);
+      pdf.text(t("adminReports.export.squad.critical"), margin + 90, yPos);
       yPos += 15;
 
       // ========== INJURIES OVERVIEW ==========
       pdf.setFontSize(12);
       pdf.setFont("helvetica", "bold");
       pdf.setTextColor(...colors.dark);
-      pdf.text("BILAN MÉDICAL", margin, yPos);
+      pdf.text(t("adminReports.export.squad.medicalTitle"), margin, yPos);
       yPos += 8;
 
       const statusBoxWidth = (contentWidth - 10) / 3;
-      drawColoredBox(margin, yPos, statusBoxWidth, 15, colors.danger, `${activeInjuries.length} Actives`);
-      drawColoredBox(margin + statusBoxWidth + 5, yPos, statusBoxWidth, 15, colors.warning, `${recoveringInjuries.length} Réathlétisation`);
-      drawColoredBox(margin + (statusBoxWidth + 5) * 2, yPos, statusBoxWidth, 15, colors.success, `${allInjuries.filter(i => i.status === 'healed').length} Guéries`);
+      drawColoredBox(margin, yPos, statusBoxWidth, 15, colors.danger, `${activeInjuries.length} ${t("adminReports.export.squad.active")}`);
+      drawColoredBox(margin + statusBoxWidth + 5, yPos, statusBoxWidth, 15, colors.warning, `${recoveringInjuries.length} ${t("adminReports.export.squad.recovering")}`);
+      drawColoredBox(margin + (statusBoxWidth + 5) * 2, yPos, statusBoxWidth, 15, colors.success, `${allInjuries.filter(i => i.status === 'healed').length} ${t("adminReports.export.squad.healed")}`);
       yPos += 22;
 
       // Injury types
@@ -1602,10 +1602,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         pdf.setFontSize(10);
         pdf.setFont("helvetica", "bold");
         pdf.setTextColor(...colors.dark);
-        pdf.text("Types de blessures:", margin, yPos);
+        pdf.text(t("adminReports.export.squad.injuryTypesTitle"), margin, yPos);
         yPos += 6;
 
-        const injuryHeaders = ["Type", "Nombre", "%"];
+        const injuryHeaders = [t("adminReports.export.squad.injuryHeaderType"), t("adminReports.export.squad.injuryHeaderCount"), t("adminReports.export.squad.injuryHeaderPct")];
         const injuryColWidths = [100, 40, 40];
         yPos = drawTableHeader(injuryHeaders, injuryColWidths, yPos);
 
@@ -1628,7 +1628,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       pdf.setTextColor(...colors.white);
       pdf.setFontSize(16);
       pdf.setFont("helvetica", "bold");
-      pdf.text(isIndividualSport ? "TABLEAU COMPARATIF DES ATHLÈTES" : "TABLEAU COMPARATIF DES JOUEURS", margin, 16);
+      pdf.text(isIndividualSport ? t("adminReports.export.squad.comparativeTitleAthletes") : t("adminReports.export.squad.comparativeTitlePlayers"), margin, 16);
       
       yPos = 35;
       pdf.setTextColor(...colors.dark);
@@ -1662,7 +1662,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
 
       // Comparative table - Adapted per sport
       if (isIndividualSport) {
-        const compHeaders = [isIndividualSport ? "Athlète" : "Joueur", "Spécialité", "Bless.", "EWMA", "Compét."];
+        const compHeaders = [isIndividualSport ? t("adminReports.export.squad.headerAthlete") : t("adminReports.export.squad.headerPlayer"), t("adminReports.export.squad.headerSpecialty"), t("adminReports.export.squad.headerInjuriesShort"), t("adminReports.export.squad.headerEwma"), t("adminReports.export.squad.headerCompetitionsShort")];
         const compColWidths = [50, 40, 25, 30, 30];
         yPos = drawTableHeader(compHeaders, compColWidths, yPos);
 
@@ -1687,7 +1687,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
           yPos = drawTableRow(values, compColWidths, yPos, index % 2 === 1, rowColors);
         });
       } else {
-        const compHeaders = ["Joueur", "Pos.", "Bless.", "EWMA", "40m", "CMJ", "Matchs", "Min."];
+        const compHeaders = [t("adminReports.export.squad.headerPlayer"), t("adminReports.export.squad.headerPos"), t("adminReports.export.squad.headerInjuriesShort"), t("adminReports.export.squad.headerEwma"), t("adminReports.export.squad.headerSprint"), t("adminReports.export.squad.headerCmj"), t("adminReports.export.squad.headerMatches"), t("adminReports.export.squad.headerMinutesShort")];
         const compColWidths = [45, 25, 20, 25, 22, 22, 22, 22];
         yPos = drawTableHeader(compHeaders, compColWidths, yPos);
 
@@ -1727,7 +1727,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       pdf.setFontSize(12);
       pdf.setFont("helvetica", "bold");
       pdf.setTextColor(...colors.dark);
-      pdf.text("STATISTIQUES PHYSIQUES", margin, yPos);
+      pdf.text(t("adminReports.export.squad.physicalStatsTitle"), margin, yPos);
       yPos += 10;
 
       const sprintTimes = Object.values(bestSprintByPlayer);
@@ -1745,10 +1745,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
           pdf.setTextColor(...colors.dark);
           pdf.setFontSize(10);
           pdf.setFont("helvetica", "bold");
-          pdf.text("SPRINT 40M", margin + 5, yPos + 8);
+          pdf.text(t("adminReports.export.squad.sprint40"), margin + 5, yPos + 8);
           pdf.setFont("helvetica", "normal");
           pdf.setFontSize(9);
-          pdf.text(`Moyenne: ${avgSprint.toFixed(2)}s | Meilleur: ${bestSprint.toFixed(2)}s`, margin + 5, yPos + 18);
+          pdf.text(t("adminReports.export.squad.avgBest", { avg: avgSprint.toFixed(2), best: bestSprint.toFixed(2) }), margin + 5, yPos + 18);
         }
         
         if (cmjHeights.length > 0) {
@@ -1760,10 +1760,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
           pdf.setTextColor(...colors.dark);
           pdf.setFontSize(10);
           pdf.setFont("helvetica", "bold");
-          pdf.text("DÉTENTE CMJ", margin + (contentWidth - 5) / 2 + 10, yPos + 8);
+          pdf.text(t("adminReports.export.squad.cmjTitle"), margin + (contentWidth - 5) / 2 + 10, yPos + 8);
           pdf.setFont("helvetica", "normal");
           pdf.setFontSize(9);
-          pdf.text(`Moyenne: ${avgCmj.toFixed(1)}cm | Max: ${maxCmj.toFixed(1)}cm`, margin + (contentWidth - 5) / 2 + 10, yPos + 18);
+          pdf.text(t("adminReports.export.squad.avgMax", { avg: avgCmj.toFixed(1), max: maxCmj.toFixed(1) }), margin + (contentWidth - 5) / 2 + 10, yPos + 18);
         }
         yPos += 30;
       }
@@ -1774,7 +1774,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         pdf.setFontSize(10);
         pdf.setFont("helvetica", "bold");
         pdf.setTextColor(...colors.dark);
-        pdf.text("Distribution Ratio EWMA:", margin, yPos);
+        pdf.text(t("adminReports.export.squad.ewmaDistributionTitle"), margin, yPos);
         yPos += 8;
 
         const lowEwma = awcrEntries.filter((a: any) => (a.awcr || 0) < 0.85).length;
@@ -1784,15 +1784,15 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         pdf.roundedRect(margin, yPos, barWidth, 12, 2, 2, 'F');
         pdf.setTextColor(...colors.white);
         pdf.setFontSize(9);
-        pdf.text(`< 0.85: ${lowEwma} ${isIndividualSport ? 'athlètes' : 'joueurs'}`, margin + 5, yPos + 8);
+        pdf.text(t("adminReports.export.squad.ewmaLow", { count: lowEwma, label: isIndividualSport ? t("adminReports.export.common.athletesUnit") : t("adminReports.export.common.playersUnit") }), margin + 5, yPos + 8);
         
         pdf.setFillColor(...colors.success);
         pdf.roundedRect(margin + barWidth + 5, yPos, barWidth, 12, 2, 2, 'F');
-        pdf.text(`0.85-1.3: ${optimalEwma} ${isIndividualSport ? 'athlètes' : 'joueurs'}`, margin + barWidth + 10, yPos + 8);
+        pdf.text(t("adminReports.export.squad.ewmaOptimal", { count: optimalEwma, label: isIndividualSport ? t("adminReports.export.common.athletesUnit") : t("adminReports.export.common.playersUnit") }), margin + barWidth + 10, yPos + 8);
         
         pdf.setFillColor(...colors.danger);
         pdf.roundedRect(margin + (barWidth + 5) * 2, yPos, barWidth, 12, 2, 2, 'F');
-        pdf.text(`> 1.5: ${highEwma} ${isIndividualSport ? 'athlètes' : 'joueurs'}`, margin + (barWidth + 5) * 2 + 5, yPos + 8);
+        pdf.text(t("adminReports.export.squad.ewmaHigh", { count: highEwma, label: isIndividualSport ? t("adminReports.export.common.athletesUnit") : t("adminReports.export.common.playersUnit") }), margin + (barWidth + 5) * 2 + 5, yPos + 8);
         
         yPos += 20;
       }
@@ -1803,7 +1803,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       pdf.setFontSize(12);
       pdf.setFont("helvetica", "bold");
       pdf.setTextColor(...colors.dark);
-      pdf.text("TEMPS DE JEU", margin, yPos);
+      pdf.text(t("adminReports.export.squad.playingTimeTitle"), margin, yPos);
       yPos += 10;
 
       const playerTimeStats = players.map(p => ({
@@ -1813,7 +1813,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       })).sort((a, b) => b.minutes - a.minutes);
 
       if (playerTimeStats.some(p => p.minutes > 0)) {
-        const timeHeaders = ["Joueur", "Matchs", "Minutes", "Moy./Match"];
+        const timeHeaders = [t("adminReports.export.squad.headerPlayer"), t("adminReports.export.squad.headerMatches"), t("adminReports.export.squad.headerMinutesFull"), t("adminReports.export.squad.headerAvgPerMatch")];
         const timeColWidths = [80, 30, 35, 35];
         yPos = drawTableHeader(timeHeaders, timeColWidths, yPos);
 
@@ -1855,10 +1855,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       const filteredLineups = (matchLineupsRes.data || []).filter(l => categoryMatchIds.includes(l.match_id));
 
       const headers = [
-        "Nom", "Prénom", "Position", "Date naissance", "Poids (kg)", "Taille (cm)", "IMC",
-        "Blessures actives", "Sommeil", "Fatigue", "Stress", "Haut corps", "Bas corps", "Wellness moy.",
-        "Ratio EWMA", "Charge aiguë", "Charge chronique",
-        "Matchs joués", "Minutes jouées", "Min moy/match",
+        t("adminReports.export.squad.csvHeaderLastName"), t("adminReports.export.squad.csvHeaderFirstName"), t("adminReports.export.squad.csvHeaderPosition"), t("adminReports.export.squad.csvHeaderBirthDate"), t("adminReports.export.squad.csvHeaderWeight"), t("adminReports.export.squad.csvHeaderHeight"), t("adminReports.export.squad.csvHeaderBmi"),
+        t("adminReports.export.squad.csvHeaderActiveInjuries"), t("adminReports.export.squad.csvHeaderSleep"), t("adminReports.export.squad.csvHeaderFatigue"), t("adminReports.export.squad.csvHeaderStress"), t("adminReports.export.squad.csvHeaderUpperBody"), t("adminReports.export.squad.csvHeaderLowerBody"), t("adminReports.export.squad.csvHeaderAvgWellness"),
+        t("adminReports.export.squad.csvHeaderEwmaRatio"), t("adminReports.export.squad.csvHeaderAcuteLoad"), t("adminReports.export.squad.csvHeaderChronicLoad"),
+        t("adminReports.export.squad.csvHeaderMatchesPlayed"), t("adminReports.export.squad.csvHeaderMinutesPlayed"), t("adminReports.export.squad.csvHeaderAvgMinPerMatch"),
       ];
       const rows = players.map(player => {
         const playerInjuries = (injuriesRes.data || []).filter(i => i.player_id === player.id && i.status !== 'healed').length;
@@ -1898,10 +1898,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       });
 
       const workbook = new ExcelJS.Workbook();
-      const sheet = workbook.addWorksheet("Vue d'Ensemble Effectif");
-      const dataStart = addBrandedHeader(sheet, "VUE D'ENSEMBLE EFFECTIF", branding, [
-        ["Joueurs", `${players.length}`],
-        ["Matchs", `${matches.length}`],
+      const sheet = workbook.addWorksheet(t("adminReports.export.squad.csvSheetName"));
+      const dataStart = addBrandedHeader(sheet, t("adminReports.export.squad.csvPdfTitle"), branding, [
+        [t("adminReports.export.squad.csvExtraPlayers"), `${players.length}`],
+        [t("adminReports.export.squad.csvExtraMatches"), `${matches.length}`],
       ]);
       headers.forEach((h, i) => { sheet.getCell(dataStart, i + 1).value = h; });
       styleDataHeaderRow(sheet, dataStart, headers.length, branding.headerColor);
@@ -2033,7 +2033,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
     try {
       const branding = await getExcelBranding(categoryId);
       const match = matches.find(m => m.id === selectedMatch);
-      if (!match) throw new Error("Match non trouvé");
+      if (!match) throw new Error(t("adminReports.export.common.matchNotFound"));
 
       const [lineupsRes, statsRes, statPrefsRes, customStatsRes] = await Promise.all([
         supabase.from("match_lineups").select("*, players(name, first_name, position)").eq("match_id", selectedMatch),
@@ -2061,7 +2061,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         ? allAvailable.filter(s => enabledKeys.includes(s.key))
         : allFields;
 
-      const baseHeaders = ["Joueur", "Position", "Titulaire", "Minutes jouées"];
+      const baseHeaders = [t("adminReports.export.match.csvHeaderPlayer"), t("adminReports.export.match.csvHeaderPosition"), t("adminReports.export.match.csvHeaderStarter"), t("adminReports.export.match.csvHeaderMinutesPlayed")];
       const statHeaders = displayStats.map(s => s.label);
       const allHeaders = [...baseHeaders, ...statHeaders];
 
@@ -2072,18 +2072,18 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         return [
           fullName || "-",
           l.position || l.players?.position || "-",
-          l.is_starter ? "Oui" : "Non",
+          l.is_starter ? t("adminReports.export.common.yes") : t("adminReports.export.common.no"),
           l.minutes_played || 0,
           ...displayStats.map(s => sportData[s.key] ?? "-"),
         ];
       });
 
       const workbook = new ExcelJS.Workbook();
-      const sheet = workbook.addWorksheet("Rapport de Match");
-      const dataStart = addBrandedHeader(sheet, `RAPPORT DE MATCH — vs ${match.opponent}`, branding, [
-        ["Date", format(new Date(match.match_date), "dd/MM/yyyy")],
-        ["Score", `${match.score_home ?? "?"} - ${match.score_away ?? "?"}`],
-        ["Lieu", match.location || "-"],
+      const sheet = workbook.addWorksheet(t("adminReports.export.match.csvSheetName"));
+      const dataStart = addBrandedHeader(sheet, t("adminReports.export.match.csvPdfTitleWithOpponent", { opponent: match.opponent }), branding, [
+        [t("adminReports.export.common.date"), format(new Date(match.match_date), "dd/MM/yyyy")],
+        [t("adminReports.export.match.csvScore"), `${match.score_home ?? "?"} - ${match.score_away ?? "?"}`],
+        [t("adminReports.export.match.csvLocation"), match.location || "-"],
       ]);
       allHeaders.forEach((h, i) => { sheet.getCell(dataStart, i + 1).value = h; });
       styleDataHeaderRow(sheet, dataStart, allHeaders.length, branding.headerColor);
@@ -2096,7 +2096,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       // TOTALS row
       const totalsRowIdx = dataStart + dataRows.length + 1;
       const tRow = sheet.getRow(totalsRowIdx);
-      tRow.getCell(1).value = 'TOTAL';
+      tRow.getCell(1).value = t("adminReports.export.common.total");
       tRow.getCell(1).font = { bold: true, color: { argb: 'FF1E293B' } };
       tRow.getCell(4).value = dataRows.reduce((sum, r) => sum + (Number(r[3]) || 0), 0);
       tRow.getCell(4).font = { bold: true };
@@ -2114,7 +2114,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       // AVERAGES row
       const avgRowIdx = totalsRowIdx + 1;
       const aRow = sheet.getRow(avgRowIdx);
-      aRow.getCell(1).value = 'MOYENNE';
+      aRow.getCell(1).value = t("adminReports.export.common.averageRowLabel");
       aRow.getCell(1).font = { bold: true, italic: true, color: { argb: 'FF1E293B' } };
       const playersWithMinutes = dataRows.filter(r => Number(r[3]) > 0).length || 1;
       aRow.getCell(4).value = Math.round(dataRows.reduce((sum, r) => sum + (Number(r[3]) || 0), 0) / playersWithMinutes);
@@ -2204,7 +2204,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
           if (session) {
             const dur = calcDuration(session);
             totalMinutes += dur;
-            const sType = session.training_type || 'Autre';
+            const sType = session.training_type || t("adminReports.export.attendance.otherType");
             minutesByType[sType] = (minutesByType[sType] || 0) + dur;
             const intensityVal = session.intensity || session.planned_intensity || 5;
             const intensityLabel = intensityVal >= 8 ? 'haute' : intensityVal >= 5 ? 'moyenne' : 'basse';
@@ -2227,14 +2227,14 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       const contentWidth = pageWidth - 2 * margin;
 
       const dateRange = attendanceDateFrom || attendanceDateTo 
-        ? ` | Période: ${attendanceDateFrom ? format(new Date(attendanceDateFrom), "dd/MM/yyyy") : "début"} - ${attendanceDateTo ? format(new Date(attendanceDateTo), "dd/MM/yyyy") : "aujourd'hui"}`
+        ? ` | ${t("adminReports.export.attendance.periodLabel", { from: attendanceDateFrom ? format(new Date(attendanceDateFrom), "dd/MM/yyyy") : t("adminReports.export.common.start"), to: attendanceDateTo ? format(new Date(attendanceDateTo), "dd/MM/yyyy") : t("adminReports.export.common.today") })}`
         : "";
 
       let yPos = drawPdfHeaderCustom(
         pdf,
-        "RAPPORT DE PRÉSENCES",
+        t("adminReports.export.attendance.pdfTitle"),
         `${cn4 || category?.clubs?.name || ''} - ${catName4 || category?.name || ''}${sn4 ? ` • ${sn4}` : ''}`,
-        `Généré le ${format(new Date(), "d MMMM yyyy", { locale: getDateLocale() })}${dateRange}`,
+        `${t("adminReports.export.common.generatedOn", { date: format(new Date(), "d MMMM yyyy", { locale: getDateLocale() }) })}${dateRange}`,
         pdfSettings,
         logoBase64
       );
@@ -2251,11 +2251,11 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       const cardWidth = (contentWidth - 20) / 5;
       const cardHeight = 22;
 
-      drawKpiCard(pdf, margin, yPos, cardWidth, cardHeight, String(totalSessions), "SÉANCES", defaultColors.primary);
-      drawKpiCard(pdf, margin + cardWidth + 5, yPos, cardWidth, cardHeight, `${avgRate}%`, "TAUX MOYEN", avgRate >= 80 ? defaultColors.success : avgRate >= 60 ? defaultColors.warning : defaultColors.danger);
-      drawKpiCard(pdf, margin + (cardWidth + 5) * 2, yPos, cardWidth, cardHeight, String(totalLate), "RETARDS", totalLate > 10 ? defaultColors.warning : defaultColors.success);
-      drawKpiCard(pdf, margin + (cardWidth + 5) * 3, yPos, cardWidth, cardHeight, String(totalAbsent), "ABSENCES", totalAbsent > 10 ? defaultColors.danger : defaultColors.success);
-      drawKpiCard(pdf, margin + (cardWidth + 5) * 4, yPos, cardWidth, cardHeight, `${Math.round(totalTrainMinutes / Math.max(players.length, 1))}`, "MIN MOY/JOUEUR", defaultColors.primary);
+      drawKpiCard(pdf, margin, yPos, cardWidth, cardHeight, String(totalSessions), t("adminReports.export.attendance.kpiSessions"), defaultColors.primary);
+      drawKpiCard(pdf, margin + cardWidth + 5, yPos, cardWidth, cardHeight, `${avgRate}%`, t("adminReports.export.attendance.kpiAvgRate"), avgRate >= 80 ? defaultColors.success : avgRate >= 60 ? defaultColors.warning : defaultColors.danger);
+      drawKpiCard(pdf, margin + (cardWidth + 5) * 2, yPos, cardWidth, cardHeight, String(totalLate), t("adminReports.export.attendance.kpiLate"), totalLate > 10 ? defaultColors.warning : defaultColors.success);
+      drawKpiCard(pdf, margin + (cardWidth + 5) * 3, yPos, cardWidth, cardHeight, String(totalAbsent), t("adminReports.export.attendance.kpiAbsences"), totalAbsent > 10 ? defaultColors.danger : defaultColors.success);
+      drawKpiCard(pdf, margin + (cardWidth + 5) * 4, yPos, cardWidth, cardHeight, `${Math.round(totalTrainMinutes / Math.max(players.length, 1))}`, t("adminReports.export.attendance.kpiAvgMinutesPerPlayer"), defaultColors.primary);
 
       yPos += cardHeight + 15;
 
@@ -2263,10 +2263,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       pdf.setFontSize(12);
       pdf.setFont("helvetica", "bold");
       pdf.setTextColor(...defaultColors.dark);
-      pdf.text("PRÉSENCES PAR JOUEUR", margin, yPos);
+      pdf.text(t("adminReports.export.attendance.byPlayerTitle"), margin, yPos);
       yPos += 8;
 
-      const attendHeaders = ["Joueur", "Prés.", "Retard", "Exc.", "Abs.", "Taux", "Min. total"];
+      const attendHeaders = [t("adminReports.export.attendance.headerPlayer"), t("adminReports.export.attendance.headerPresent"), t("adminReports.export.attendance.headerLate"), t("adminReports.export.attendance.headerExcused"), t("adminReports.export.attendance.headerAbsent"), t("adminReports.export.attendance.headerRate"), t("adminReports.export.attendance.headerTotalMin")];
       const attendColWidths = [48, 22, 22, 22, 22, 22, 26];
       yPos = drawTableHeaderPdf(pdf, attendHeaders, attendColWidths, yPos, margin, contentWidth);
 
@@ -2299,7 +2299,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       pdf.setFontSize(12);
       pdf.setFont("helvetica", "bold");
       pdf.setTextColor(...defaultColors.dark);
-      pdf.text("RÉPARTITION PAR TYPE DE SÉANCE", margin, yPos);
+      pdf.text(t("adminReports.export.attendance.byTypeTitle"), margin, yPos);
       yPos += 8;
 
       const calcSessionDuration = (s: any): number => {
@@ -2313,14 +2313,14 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
 
       const sessionsByType: Record<string, { count: number; totalMin: number }> = {};
       sessionsData.forEach(s => {
-        const t = s.training_type || 'Autre';
-        if (!sessionsByType[t]) sessionsByType[t] = { count: 0, totalMin: 0 };
-        sessionsByType[t].count++;
-        sessionsByType[t].totalMin += calcSessionDuration(s);
+        const sType2 = s.training_type || t("adminReports.export.attendance.otherType");
+        if (!sessionsByType[sType2]) sessionsByType[sType2] = { count: 0, totalMin: 0 };
+        sessionsByType[sType2].count++;
+        sessionsByType[sType2].totalMin += calcSessionDuration(s);
       });
 
       if (Object.keys(sessionsByType).length > 0) {
-        const typeHeaders = ["Type", "Séances", "Durée totale", "Durée moy."];
+        const typeHeaders = [t("adminReports.export.attendance.headerType"), t("adminReports.export.attendance.headerSessions"), t("adminReports.export.attendance.headerTotalDuration"), t("adminReports.export.attendance.headerAvgDuration")];
         const typeColWidths = [60, 40, 40, 40];
         yPos = drawTableHeaderPdf(pdf, typeHeaders, typeColWidths, yPos, margin, contentWidth);
 
@@ -2341,7 +2341,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       pdf.setFontSize(12);
       pdf.setFont("helvetica", "bold");
       pdf.setTextColor(...defaultColors.dark);
-      pdf.text("RÉPARTITION PAR INTENSITÉ", margin, yPos);
+      pdf.text(t("adminReports.export.attendance.byIntensityTitle"), margin, yPos);
       yPos += 8;
 
       const sessionsByIntensity: Record<string, number> = {};
@@ -2352,7 +2352,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       });
 
       if (Object.keys(sessionsByIntensity).length > 0) {
-        const intensityLabels: Record<string, string> = { haute: 'Haute', moyenne: 'Moyenne', basse: 'Basse', recovery: 'Récupération' };
+        const intensityLabels: Record<string, string> = { haute: t("adminReports.export.attendance.intensityHigh"), moyenne: t("adminReports.export.attendance.intensityMedium"), basse: t("adminReports.export.attendance.intensityLow"), recovery: t("adminReports.export.attendance.intensityRecovery") };
         const intensityColors: Record<string, [number, number, number]> = {
           haute: defaultColors.danger,
           moyenne: defaultColors.warning,
@@ -2360,7 +2360,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
           recovery: defaultColors.primary,
         };
         
-        const intHeaders = ["Intensité", "Séances", "%"];
+        const intHeaders = [t("adminReports.export.attendance.headerIntensity"), t("adminReports.export.attendance.headerSessions"), t("adminReports.export.attendance.headerPct")];
         const intColWidths = [60, 60, 60];
         yPos = drawTableHeaderPdf(pdf, intHeaders, intColWidths, yPos, margin, contentWidth);
 
@@ -2444,21 +2444,21 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         };
       }).sort((a, b) => b.rate - a.rate);
 
-      const headers = ["Joueur", "Position", "Présent", "Retard justifié", "Retard non just.", "Excusé", "Absent", "Total séances", "Taux (%)", "Min. entraîn."];
+      const headers = [t("adminReports.export.attendance.csvHeaderPlayer"), t("adminReports.export.attendance.csvHeaderPosition"), t("adminReports.export.attendance.csvHeaderPresent"), t("adminReports.export.attendance.csvHeaderLateJustified"), t("adminReports.export.attendance.csvHeaderLateUnjustified"), t("adminReports.export.attendance.csvHeaderExcused"), t("adminReports.export.attendance.csvHeaderAbsent"), t("adminReports.export.attendance.csvHeaderTotalSessions"), t("adminReports.export.attendance.csvHeaderRatePct"), t("adminReports.export.attendance.csvHeaderTrainingMin")];
 
       const workbook = new ExcelJS.Workbook();
-      const sheet = workbook.addWorksheet("Rapport de Présences");
+      const sheet = workbook.addWorksheet(t("adminReports.export.attendance.csvSheetName"));
       const avgRate = playerStats.length > 0 ? Math.round(playerStats.reduce((s, p) => s + p.rate, 0) / playerStats.length) : 0;
       const totalSessions = sessionsData.length;
       const totalTrainMin = playerStats.reduce((s, p) => s + p.totalMinutes, 0);
       const dateRangeLabel = attendanceDateFrom || attendanceDateTo
-        ? `${attendanceDateFrom || "début"} — ${attendanceDateTo || "aujourd'hui"}`
-        : "Toute la saison";
-      const dataStart = addBrandedHeader(sheet, "RAPPORT DE PRÉSENCES", branding, [
-        ["Séances", `${totalSessions}`],
-        ["Joueurs", `${playerStats.length}`],
-        ["Taux moyen", `${avgRate}%`],
-        ["Période", dateRangeLabel],
+        ? t("adminReports.export.common.periodRange", { from: attendanceDateFrom || t("adminReports.export.common.start"), to: attendanceDateTo || t("adminReports.export.common.today") })
+        : t("adminReports.export.common.entireSeason");
+      const dataStart = addBrandedHeader(sheet, t("adminReports.export.attendance.pdfTitle"), branding, [
+        [t("adminReports.export.attendance.csvExtraSessions"), `${totalSessions}`],
+        [t("adminReports.export.attendance.csvExtraPlayers"), `${playerStats.length}`],
+        [t("adminReports.export.attendance.csvExtraAvgRate"), `${avgRate}%`],
+        [t("adminReports.export.attendance.csvExtraPeriod"), dateRangeLabel],
       ]);
 
       headers.forEach((h, i) => { sheet.getCell(dataStart, i + 1).value = h; });
@@ -2477,7 +2477,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       // Totals row
       const totIdx2 = dataStart + playerStats.length + 1;
       const tRow2 = sheet.getRow(totIdx2);
-      tRow2.getCell(1).value = 'TOTAL / MOYENNE';
+      tRow2.getCell(1).value = t("adminReports.export.common.totalAverage");
       tRow2.getCell(1).font = { bold: true };
       tRow2.getCell(3).value = playerStats.reduce((s, p) => s + p.present, 0);
       tRow2.getCell(7).value = playerStats.reduce((s, p) => s + p.absent, 0);
@@ -2491,16 +2491,16 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       // Sheet 2: Sessions by type breakdown
       const sessionsByType: Record<string, { count: number; totalMin: number }> = {};
       sessionsData.forEach(s => {
-        const t = s.training_type || 'Autre';
-        if (!sessionsByType[t]) sessionsByType[t] = { count: 0, totalMin: 0 };
-        sessionsByType[t].count++;
-        sessionsByType[t].totalMin += calcDuration(s);
+        const sType3 = s.training_type || t("adminReports.export.attendance.otherType");
+        if (!sessionsByType[sType3]) sessionsByType[sType3] = { count: 0, totalMin: 0 };
+        sessionsByType[sType3].count++;
+        sessionsByType[sType3].totalMin += calcDuration(s);
       });
 
       if (Object.keys(sessionsByType).length > 0) {
-        const typeSheet = workbook.addWorksheet("Répartition séances");
-        const typeStart = addBrandedHeader(typeSheet, "RÉPARTITION PAR TYPE DE SÉANCE", branding, []);
-        const typeHeaders = ["Type", "Séances", "Durée totale (min)", "Durée moy. (min)", "% du total"];
+        const typeSheet = workbook.addWorksheet(t("adminReports.export.attendance.typeSheetName"));
+        const typeStart = addBrandedHeader(typeSheet, t("adminReports.export.attendance.typeSheetTitle"), branding, []);
+        const typeHeaders = [t("adminReports.export.attendance.typeHeaderType"), t("adminReports.export.attendance.typeHeaderSessions"), t("adminReports.export.attendance.typeHeaderTotalDurationMin"), t("adminReports.export.attendance.typeHeaderAvgDurationMin"), t("adminReports.export.attendance.typeHeaderPctTotal")];
         typeHeaders.forEach((h, i) => { typeSheet.getCell(typeStart, i + 1).value = h; });
         styleDataHeaderRow(typeSheet, typeStart, typeHeaders.length, branding.headerColor);
         
