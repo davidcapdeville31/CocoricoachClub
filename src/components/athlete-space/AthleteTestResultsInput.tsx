@@ -200,6 +200,7 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
               {staffRow ? (
                 <Badge variant="default" className="text-[10px] gap-1" title={t('athleteSpace.components.testResultsInput.title')}>
                   {staffRow.result_value} {staffRow.result_unit || unit} {t('athleteSpace.components.testResultsInput.staffValidated')}
+                  {testWindow && staffRow.test_date ? ` · ${formatDay(staffRow.test_date)}` : ""}
                 </Badge>
               ) : existing ? (
                 <Badge
@@ -211,8 +212,10 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
                   {existing.validation_status === "pending" && t('athleteSpace.components.testResultsInput.pending')}
                   {existing.validation_status === "validated" && t('athleteSpace.components.testResultsInput.validated')}
                   {existing.validation_status === "rejected" && t('athleteSpace.components.testResultsInput.rejected')}
+                  {testWindow && existing.test_date ? ` · ${formatDay(existing.test_date)}` : ""}
                 </Badge>
               ) : (
+
                 <>
                   <Input
                     type="number"
