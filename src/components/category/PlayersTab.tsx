@@ -1,4 +1,5 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
+import { translatePositionName } from "@/lib/i18n/positionLabels";
 import { useTranslation } from "react-i18next";
 import { useState, useMemo, useCallback } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -90,7 +91,7 @@ function PlayerInfoHover({ player, isSki }: { player: any; isSki: boolean }) {
     infoLines.push({ label: t("roster.playerInfoHover.fields.fisRanking"), value: String(player.fis_ranking) });
   }
   if (player.position) {
-    infoLines.push({ label: t("roster.playerInfoHover.fields.position"), value: player.position });
+    infoLines.push({ label: t("roster.playerInfoHover.fields.position"), value: translatePositionName(player.position) });
   }
   if (player.discipline) {
     infoLines.push({ label: t("roster.playerInfoHover.fields.discipline"), value: getDisciplineLabel(player.discipline) });
@@ -604,7 +605,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
         <div className="flex items-center gap-1 flex-wrap">
           {player.position ? (
             <Badge variant="secondary" className="font-normal">
-              {player.position}
+              {translatePositionName(player.position)}
             </Badge>
           ) : (
             <span className="text-muted-foreground text-sm">—</span>
@@ -675,7 +676,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                   </SelectItem>
                   {availableFilters.map((filter) => (
                     <SelectItem key={filter} value={filter}>
-                      {showDiscipline ? getDisciplineLabel(filter) : filter}
+                      {showDiscipline ? getDisciplineLabel(filter) : translatePositionName(filter)}
                     </SelectItem>
                   ))}
                 </SelectContent>

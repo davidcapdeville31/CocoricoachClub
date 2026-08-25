@@ -11,12 +11,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Check, X, HelpCircle, Filter, Trophy, Users } from "lucide-react";
 import { format, parseISO, subMonths, subDays, startOfMonth, endOfMonth } from "date-fns";
 import { ParticipantsAttendanceList } from "./ParticipantsAttendanceList";
+import { useTranslation } from "react-i18next";
 
 interface MatchAttendanceTabProps {
   categoryId: string;
 }
 
 export function MatchAttendanceTab({ categoryId }: MatchAttendanceTabProps) {
+  const { t } = useTranslation();
   const [detailMatchId, setDetailMatchId] = useState<string | null>(null);
   const [startDate, setStartDate] = useState(() => format(subMonths(new Date(), 1), "yyyy-MM-dd"));
   const [endDate, setEndDate] = useState(() => {
@@ -79,7 +81,7 @@ export function MatchAttendanceTab({ categoryId }: MatchAttendanceTabProps) {
     all.forEach((p: any) => {
       const name = p.players?.first_name
         ? `${p.players.first_name} ${p.players.name ?? ""}`.trim()
-        : p.players?.name || "Athlète";
+        : p.players?.name || t("adminAttendance.participants.defaultAthlete");
       const entry = map.get(p.player_id) || {
         id: p.player_id,
         name,
@@ -128,11 +130,11 @@ export function MatchAttendanceTab({ categoryId }: MatchAttendanceTabProps) {
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Période :</span>
+              <span className="text-sm font-medium">{t("adminAttendance.match.period")}</span>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-40" />
-              <span className="text-muted-foreground">au</span>
+              <span className="text-muted-foreground">{t("adminAttendance.match.to")}</span>
               <Input
                 type="date"
                 value={endDate}
@@ -142,10 +144,10 @@ export function MatchAttendanceTab({ categoryId }: MatchAttendanceTabProps) {
               />
             </div>
             <div className="flex gap-2 flex-wrap">
-              <Button variant="outline" size="sm" onClick={() => setDatePreset("week")}>7 jours</Button>
-              <Button variant="outline" size="sm" onClick={() => setDatePreset("month")}>Ce mois</Button>
-              <Button variant="outline" size="sm" onClick={() => setDatePreset("3months")}>3 mois</Button>
-              <Button variant="outline" size="sm" onClick={() => setDatePreset("season")}>Saison</Button>
+              <Button variant="outline" size="sm" onClick={() => setDatePreset("week")}>{t("adminAttendance.match.preset7d")}</Button>
+              <Button variant="outline" size="sm" onClick={() => setDatePreset("month")}>{t("adminAttendance.match.presetMonth")}</Button>
+              <Button variant="outline" size="sm" onClick={() => setDatePreset("3months")}>{t("adminAttendance.match.preset3m")}</Button>
+              <Button variant="outline" size="sm" onClick={() => setDatePreset("season")}>{t("adminAttendance.match.presetSeason")}</Button>
             </div>
           </div>
         </CardContent>
@@ -159,7 +161,7 @@ export function MatchAttendanceTab({ categoryId }: MatchAttendanceTabProps) {
                 <Trophy className="h-5 w-5 text-muted-foreground" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Compétitions</p>
+                <p className="text-sm text-muted-foreground">{t("adminAttendance.match.competitions")}</p>
                 <p className="text-2xl font-bold">{matches?.length || 0}</p>
               </div>
             </div>
@@ -172,7 +174,7 @@ export function MatchAttendanceTab({ categoryId }: MatchAttendanceTabProps) {
                 <Check className="h-5 w-5 text-emerald-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Présents</p>
+                <p className="text-sm text-muted-foreground">{t("adminAttendance.match.present")}</p>
                 <p className="text-2xl font-bold text-emerald-600">{presentCount}</p>
               </div>
             </div>
@@ -185,7 +187,7 @@ export function MatchAttendanceTab({ categoryId }: MatchAttendanceTabProps) {
                 <X className="h-5 w-5 text-rose-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Absents</p>
+                <p className="text-sm text-muted-foreground">{t("adminAttendance.match.absent")}</p>
                 <p className="text-2xl font-bold text-rose-600">{absentCount}</p>
               </div>
             </div>
@@ -198,7 +200,7 @@ export function MatchAttendanceTab({ categoryId }: MatchAttendanceTabProps) {
                 <HelpCircle className="h-5 w-5 text-muted-foreground" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Pas renseignés</p>
+                <p className="text-sm text-muted-foreground">{t("adminAttendance.match.noResponse")}</p>
                 <p className="text-2xl font-bold">{noResponseCount}</p>
               </div>
             </div>
@@ -210,20 +212,20 @@ export function MatchAttendanceTab({ categoryId }: MatchAttendanceTabProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Trophy className="h-5 w-5" />
-            Détail des réponses par compétition
+            {t("adminAttendance.match.detailByCompetition")}
           </CardTitle>
           <CardDescription>
-            Sélectionnez une compétition pour voir qui a répondu Présent, Absent ou n'a pas répondu.
+            {t("adminAttendance.match.selectCompetitionHint")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {!matches || matches.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">Aucune compétition sur cette période.</p>
+            <p className="text-sm text-muted-foreground text-center py-4">{t("adminAttendance.match.noCompetitionInPeriod")}</p>
           ) : (
             <>
               <Select value={detailMatchId ?? ""} onValueChange={(v) => setDetailMatchId(v || null)}>
                 <SelectTrigger className="w-full sm:w-[460px]">
-                  <SelectValue placeholder="Choisir une compétition…" />
+                  <SelectValue placeholder={t("adminAttendance.match.chooseCompetition")} />
                 </SelectTrigger>
                 <SelectContent>
                   {matches.map((m) => (
@@ -237,8 +239,8 @@ export function MatchAttendanceTab({ categoryId }: MatchAttendanceTabProps) {
               {detailMatch && (
                 <ParticipantsAttendanceList
                   participants={detailParticipants as any}
-                  title={`Convoqués — ${detailMatch.opponent}`}
-                  emptyLabel="Aucun athlète convoqué à cette compétition."
+                  title={t("adminAttendance.match.convocatedFor", { opponent: detailMatch.opponent })}
+                  emptyLabel={t("adminAttendance.match.noAthleteConvocated")}
                 />
               )}
             </>
@@ -250,26 +252,26 @@ export function MatchAttendanceTab({ categoryId }: MatchAttendanceTabProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Users className="h-5 w-5" />
-            Statistiques par athlète
+            {t("adminAttendance.match.playerStats")}
           </CardTitle>
           <CardDescription>
-            Du {format(parseISO(startDate), "dd/MM/yyyy")} au {format(parseISO(endDate), "dd/MM/yyyy")}
+            {t("adminAttendance.match.fromTo", { from: format(parseISO(startDate), "dd/MM/yyyy"), to: format(parseISO(endDate), "dd/MM/yyyy") })}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {playerStats.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">Aucune convocation sur cette période</p>
+            <p className="text-center text-muted-foreground py-8">{t("adminAttendance.match.noConvocationInPeriod")}</p>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Athlète</TableHead>
-                    <TableHead className="text-center">Présent</TableHead>
-                    <TableHead className="text-center">Absent</TableHead>
-                    <TableHead className="text-center">Sans réponse</TableHead>
-                    <TableHead className="text-center">Convocations</TableHead>
-                    <TableHead className="text-center">Taux</TableHead>
+                    <TableHead>{t("adminAttendance.match.athlete")}</TableHead>
+                    <TableHead className="text-center">{t("adminAttendance.match.present2")}</TableHead>
+                    <TableHead className="text-center">{t("adminAttendance.match.absent2")}</TableHead>
+                    <TableHead className="text-center">{t("adminAttendance.match.noResponse2")}</TableHead>
+                    <TableHead className="text-center">{t("adminAttendance.match.convocations")}</TableHead>
+                    <TableHead className="text-center">{t("adminAttendance.match.rate")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
