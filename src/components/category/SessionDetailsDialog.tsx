@@ -42,6 +42,9 @@ import { ParticipantsAttendanceList } from "@/components/category/attendance/Par
 import { ReadOnlyMethodCard } from "@/components/program-builder-v2/ReadOnlyMethodCard";
 import { parseV2MethodConfig, stripV2MethodTags } from "@/lib/program-builder-v2/parseV2MethodConfig";
 import { SessionAthleteEntriesPanel } from "./SessionAthleteEntriesPanel";
+import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
+import { formatCategoryLabel } from "@/components/category/tests/customTestCatalog";
+
 interface SessionDetailsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
