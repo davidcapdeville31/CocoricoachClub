@@ -883,10 +883,10 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Nom</TableHead>
+                    <TableHead>{t("roster.playersTab.columns.name")}</TableHead>
                     {hasAttributeColumn && <TableHead>{attributeColumnLabel}</TableHead>}
-                    {!isViewer && <TableHead>Inscription</TableHead>}
-                    <TableHead className="text-right">Actions</TableHead>
+                    {!isViewer && <TableHead>{t("roster.playersTab.columns.registration")}</TableHead>}
+                    <TableHead className="text-right">{t("roster.playersTab.columns.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -923,7 +923,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                             </Avatar>
                             <span>{fullName}</span>
                             {isArchived && (
-                              <Badge variant="warning" className="text-xs">Archivé</Badge>
+                              <Badge variant="warning" className="text-xs">{t("roster.playersTab.badges.archived")}</Badge>
                             )}
 
                             <PlayerInfoHover player={player} isSki={isSki} />
@@ -941,7 +941,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                                 return (
                                   <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300 gap-1">
                                     <Check className="h-3 w-3" />
-                                    Connecté
+                                    {t("roster.playersTab.badges.connected")}
                                   </Badge>
                                 );
                               }
@@ -961,7 +961,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                                         ? "text-destructive border-destructive/30" 
                                         : "text-amber-600 border-amber-300 dark:text-amber-400"
                                     }>
-                                      {status === "expired" ? "Expiré" : "En attente"}
+                                      {status === "expired" ? t("roster.playersTab.badges.expired") : t("roster.playersTab.badges.pending")}
                                     </Badge>
                                     {status === "pending" && (
                                       <Tooltip>
@@ -973,7 +973,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                                             onClick={() => {
                                               navigator.clipboard.writeText(link);
                                               setCopiedInviteId(inv.id);
-                                              toast.success("Lien d'inscription copié !");
+                                              toast.success(t("roster.playersTab.inviteLinkCopied"));
                                               setTimeout(() => setCopiedInviteId(null), 2000);
                                             }}
                                           >
@@ -984,7 +984,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                                             )}
                                           </Button>
                                         </TooltipTrigger>
-                                        <TooltipContent>Copier le lien d'inscription</TooltipContent>
+                                        <TooltipContent>{t("roster.playersTab.copyInviteLinkTooltip")}</TooltipContent>
                                       </Tooltip>
                                     )}
                                   </div>
@@ -999,7 +999,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                title="Dupliquer dans une autre catégorie"
+                                title={t("roster.playersTab.actions.duplicate")}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setDuplicatePlayer(player);
@@ -1012,7 +1012,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                title={isArchived ? "Réactiver" : "Archiver"}
+                                title={isArchived ? t("roster.playersTab.actions.unarchiveShort") : t("roster.playersTab.actions.archiveShort")}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   archivePlayer.mutate({ playerId: player.id, archive: !isArchived });
@@ -1031,7 +1031,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                                 size="icon"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  if (confirm(`Êtes-vous sûr de vouloir supprimer l'athlète ${fullName} ?`)) {
+                                  if (confirm(t("roster.playersTab.confirmDelete", { name: fullName }))) {
                                     deletePlayer.mutate(player.id);
                                   }
                                 }}
@@ -1049,8 +1049,8 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                               }}
                             >
                               <Eye className="h-4 w-4" />
-                              <span className="hidden sm:inline">Voir le profil complet</span>
-                              <span className="sm:hidden">Profil</span>
+                              <span className="hidden sm:inline">{t("roster.playersTab.actions.viewFullProfile")}</span>
+                              <span className="sm:hidden">{t("roster.playersTab.actions.profile")}</span>
                             </Button>
                           </div>
                         </TableCell>
