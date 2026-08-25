@@ -1,3 +1,4 @@
+import { getLocaleTag } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -116,7 +117,7 @@ function SnapshotsList() {
           <div className="flex-1 min-w-[200px]">
             <div className="font-semibold">{row.entity_name}</div>
             <div className="text-xs text-muted-foreground">
-              Enregistré le {new Date(row.created_at).toLocaleString("fr-FR")}
+              Enregistré le {new Date(row.created_at).toLocaleString(getLocaleTag())}
               {row.creator_email && <> par {row.creator_email}</>}
             </div>
             {row.notes && <div className="text-xs text-muted-foreground mt-1 italic">« {row.notes} »</div>}
@@ -319,7 +320,7 @@ export function SuperAdminArchives() {
                     <div className="font-semibold">{row.entity_name}</div>
                     <div className="text-xs text-muted-foreground">
                       {row.entity_type === "category" && row.club_name && <span>Club : {row.club_name} • </span>}
-                      Archivé le {new Date(row.archived_at).toLocaleString("fr-FR")}
+                      Archivé le {new Date(row.archived_at).toLocaleString(getLocaleTag())}
                       {row.archiver_email && <> par {row.archiver_email}</>}
                       {" • "}{row.snapshot_count} version{row.snapshot_count > 1 ? "s" : ""}
                     </div>

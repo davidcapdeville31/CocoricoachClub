@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +14,6 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileText, File, Image, Download, Eye, Users, User, Calendar, Plus, Upload, Trash2, UserCircle, Pencil } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
@@ -335,7 +335,7 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
     const name = author?.full_name || author?.email || null;
     const role = doc.created_by_role || (doc.created_by ? null : "legacy");
     const roleLabel = role ? ROLE_LABEL[role] || role : null;
-    const date = format(new Date(doc.created_at), "dd/MM/yyyy", { locale: fr });
+    const date = format(new Date(doc.created_at), "dd/MM/yyyy", { locale: getDateLocale() });
 
     if (!name && role === "legacy") {
       return (
@@ -393,7 +393,7 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
                       {doc.expiry_date && (
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          {t("athleteSpace.documents.expiresOn", { date: format(new Date(doc.expiry_date), "dd MMM yyyy", { locale: fr }) })}
+                          {t("athleteSpace.documents.expiresOn", { date: format(new Date(doc.expiry_date), "dd MMM yyyy", { locale: getDateLocale() }) })}
                         </span>
                       )}
                     </div>

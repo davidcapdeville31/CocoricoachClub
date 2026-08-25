@@ -1,3 +1,4 @@
+import { getLocaleTag } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -230,7 +231,7 @@ function ClubDetailsContent() {
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Créé le {new Date(category.created_at).toLocaleDateString("fr-FR")}
+                    Créé le {new Date(category.created_at).toLocaleDateString(getLocaleTag())}
                   </p>
                 </div>
 

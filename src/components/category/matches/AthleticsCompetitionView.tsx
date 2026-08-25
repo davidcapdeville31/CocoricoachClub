@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useMemo, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Activity, Trophy, Timer, Target, Wind, Thermometer, Download, FileSpreadsheet, MapPin, Calendar } from "lucide-react";
 import { format, parseISO } from "date-fns";
-import { fr } from "date-fns/locale";
 import { getDefaultUnitForDiscipline } from "@/lib/athletics/recordsHelpers";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
@@ -308,7 +308,7 @@ export function AthleticsCompetitionView({ categoryId, matchIds }: Props) {
       const synthRows: Array<Record<string, any>> = [
         { Indicateur: "Athlète", Valeur: athleteName },
         { Indicateur: "Compétition", Valeur: compName },
-        { Indicateur: "Date", Valeur: format(parseISO(selectedMatch.match_date), "dd/MM/yyyy", { locale: fr }) },
+        { Indicateur: "Date", Valeur: format(parseISO(selectedMatch.match_date), "dd/MM/yyyy", { locale: getDateLocale() }) },
         { Indicateur: "Lieu", Valeur: selectedMatch.location || "—" },
         { Indicateur: "Nombre d'épreuves", Valeur: sections.length },
         { Indicateur: "Nombre total de manches", Valeur: totalRaces },
@@ -381,9 +381,9 @@ export function AthleticsCompetitionView({ categoryId, matchIds }: Props) {
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
       doc.text(compName, margin, 18);
-      const subInfo = `${format(parseISO(selectedMatch.match_date), "dd/MM/yyyy", { locale: fr })}${selectedMatch.location ? ` • ${selectedMatch.location}` : ""}`;
+      const subInfo = `${format(parseISO(selectedMatch.match_date), "dd/MM/yyyy", { locale: getDateLocale() })}${selectedMatch.location ? ` • ${selectedMatch.location}` : ""}`;
       doc.text(subInfo, margin, 23);
-      doc.text(format(new Date(), "dd/MM/yyyy", { locale: fr }), pageWidth - margin, 23, { align: "right" });
+      doc.text(format(new Date(), "dd/MM/yyyy", { locale: getDateLocale() }), pageWidth - margin, 23, { align: "right" });
       y = 32;
       doc.setTextColor(0, 0, 0);
 
@@ -541,7 +541,7 @@ export function AthleticsCompetitionView({ categoryId, matchIds }: Props) {
                 <SelectContent>
                   {matches.map(m => (
                     <SelectItem key={m.id} value={m.id}>
-                      {m.competition || m.opponent} — {format(parseISO(m.match_date), "dd/MM/yy", { locale: fr })}
+                      {m.competition || m.opponent} — {format(parseISO(m.match_date), "dd/MM/yy", { locale: getDateLocale() })}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -572,7 +572,7 @@ export function AthleticsCompetitionView({ categoryId, matchIds }: Props) {
               </Badge>
               <Badge variant="outline" className="gap-1">
                 <Calendar className="h-3 w-3" />
-                {format(parseISO(selectedMatch.match_date), "dd/MM/yyyy", { locale: fr })}
+                {format(parseISO(selectedMatch.match_date), "dd/MM/yyyy", { locale: getDateLocale() })}
               </Badge>
               {selectedMatch.location && (
                 <Badge variant="outline" className="gap-1">

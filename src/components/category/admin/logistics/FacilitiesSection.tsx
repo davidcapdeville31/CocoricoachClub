@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +13,6 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Building2, Clock, Calendar, MapPin, Users, Trash2 } from "lucide-react";
 import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface FacilitiesSectionProps {
   categoryId: string;
@@ -357,8 +357,8 @@ export function FacilitiesSection({ categoryId }: FacilitiesSectionProps) {
           {weekDays.map((day) => (
             <div key={day.toISOString()} className="min-h-[120px]">
               <div className={`text-center p-2 rounded-t-lg font-medium text-sm ${isSameDay(day, new Date()) ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
-                <div>{format(day, "EEE", { locale: fr })}</div>
-                <div className="text-xs">{format(day, "d MMM", { locale: fr })}</div>
+                <div>{format(day, "EEE", { locale: getDateLocale() })}</div>
+                <div className="text-xs">{format(day, "d MMM", { locale: getDateLocale() })}</div>
               </div>
               <div className="border rounded-b-lg p-1 space-y-1 min-h-[80px]">
                 {getBookingsForDay(day).map((booking) => (

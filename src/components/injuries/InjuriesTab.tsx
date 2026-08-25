@@ -1,3 +1,4 @@
+import { getLocaleTag } from "@/lib/i18n/dateLocale";
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -249,7 +250,7 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                         </TableCell>
                         <TableCell>{injury.injury_type}</TableCell>
                         <TableCell>
-                          {new Date(injury.injury_date).toLocaleDateString("fr-FR")}
+                          {new Date(injury.injury_date).toLocaleDateString(getLocaleTag())}
                         </TableCell>
                         <TableCell>
                           <Badge className={getSeverityColor(injury.severity)}>
@@ -263,13 +264,13 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                         </TableCell>
                         <TableCell>
                           {injury.estimated_return_date
-                            ? new Date(injury.estimated_return_date).toLocaleDateString("fr-FR")
+                            ? new Date(injury.estimated_return_date).toLocaleDateString(getLocaleTag())
                             : "-"}
                         </TableCell>
                         <TableCell>
                           {injury.actual_return_date ? (
                             <span className="text-emerald-600 dark:text-emerald-400 font-medium">
-                              {new Date(injury.actual_return_date).toLocaleDateString("fr-FR")}
+                              {new Date(injury.actual_return_date).toLocaleDateString(getLocaleTag())}
                             </span>
                           ) : (
                             <span className="text-muted-foreground">—</span>
@@ -313,7 +314,7 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                                   <AlertDialogHeader>
                                     <AlertDialogTitle>{t("health.injuriesTab.deleteDialogTitle")}</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                      {t("health.injuriesTab.deleteDialogDescription", { type: injury.injury_type, date: new Date(injury.injury_date).toLocaleDateString("fr-FR") })}
+                                      {t("health.injuriesTab.deleteDialogDescription", { type: injury.injury_type, date: new Date(injury.injury_date).toLocaleDateString(getLocaleTag()) })}
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
@@ -365,14 +366,14 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                       <div>
                         <span className="block uppercase tracking-wide">{t("health.injuriesTab.table.start")}</span>
                         <span className="text-foreground">
-                          {new Date(injury.injury_date).toLocaleDateString("fr-FR")}
+                          {new Date(injury.injury_date).toLocaleDateString(getLocaleTag())}
                         </span>
                       </div>
                       <div>
                         <span className="block uppercase tracking-wide">{t("health.injuriesTab.table.estimatedReturn")}</span>
                         <span className="text-foreground">
                           {injury.estimated_return_date
-                            ? new Date(injury.estimated_return_date).toLocaleDateString("fr-FR")
+                            ? new Date(injury.estimated_return_date).toLocaleDateString(getLocaleTag())
                             : "-"}
                         </span>
                       </div>
@@ -380,7 +381,7 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                         <span className="block uppercase tracking-wide">{t("health.injuriesTab.table.actualReturn")}</span>
                         <span className={injury.actual_return_date ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-foreground"}>
                           {injury.actual_return_date
-                            ? new Date(injury.actual_return_date).toLocaleDateString("fr-FR")
+                            ? new Date(injury.actual_return_date).toLocaleDateString(getLocaleTag())
                             : "—"}
                         </span>
                       </div>
@@ -419,7 +420,7 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                               <AlertDialogTitle>Supprimer cette blessure ?</AlertDialogTitle>
                               <AlertDialogDescription>
                                 Cette action est irréversible. La blessure « {injury.injury_type} » du{" "}
-                                {new Date(injury.injury_date).toLocaleDateString("fr-FR")} sera
+                                {new Date(injury.injury_date).toLocaleDateString(getLocaleTag())} sera
                                 définitivement supprimée, ainsi que les données de réhabilitation associées.
                               </AlertDialogDescription>
                             </AlertDialogHeader>

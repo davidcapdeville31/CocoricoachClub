@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,7 +33,6 @@ import {
   Pause
 } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface ReturnToPlayProtocolProps {
   injuryId: string;
@@ -374,12 +374,12 @@ export function ReturnToPlayProtocol({
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="text-muted-foreground">Début: </span>
-              {protocol.started_at && format(new Date(protocol.started_at), "dd MMM yyyy", { locale: fr })}
+              {protocol.started_at && format(new Date(protocol.started_at), "dd MMM yyyy", { locale: getDateLocale() })}
             </div>
             {protocol.completed_at && (
               <div>
                 <span className="text-muted-foreground">Fin: </span>
-                {format(new Date(protocol.completed_at), "dd MMM yyyy", { locale: fr })}
+                {format(new Date(protocol.completed_at), "dd MMM yyyy", { locale: getDateLocale() })}
               </div>
             )}
           </div>
@@ -471,7 +471,7 @@ export function ReturnToPlayProtocol({
                       )}
                       {phaseData.completed_at && (
                         <p className="mt-1 text-muted-foreground">
-                          {format(new Date(phaseData.completed_at), "dd MMM yyyy à HH:mm", { locale: fr })}
+                          {format(new Date(phaseData.completed_at), "dd MMM yyyy à HH:mm", { locale: getDateLocale() })}
                         </p>
                       )}
                     </div>

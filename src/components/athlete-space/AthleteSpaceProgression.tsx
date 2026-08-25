@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +10,6 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { TrendingUp, Clock, Trophy, FlaskConical, Filter, Target } from "lucide-react";
 import i18n from "@/i18n";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
 import { BatteryRadarCharts } from "@/components/category/tests/GenericTestsSection";
 import { useCustomTestsMap } from "@/hooks/useCustomTestsMap";
@@ -220,7 +220,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
   const speedChartData = speedTests
     .filter(t => t.time_40m_seconds)
     .map(t => ({
-      date: format(new Date(t.test_date), "dd/MM", { locale: fr }),
+      date: format(new Date(t.test_date), "dd/MM", { locale: getDateLocale() }),
       temps: t.time_40m_seconds,
     }));
 
@@ -230,7 +230,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
     const key = t.test_name;
     if (!strengthByExercise[key]) strengthByExercise[key] = [];
     strengthByExercise[key].push({
-      date: format(new Date(t.test_date), "dd/MM", { locale: fr }),
+      date: format(new Date(t.test_date), "dd/MM", { locale: getDateLocale() }),
       value: t.weight_kg,
     });
   });
@@ -248,7 +248,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
     const categoryLabel = cat?.label || t.test_category?.replace(/_/g, " ") || "";
     
     genericByType[key].push({
-      date: format(new Date(t.test_date), "dd/MM", { locale: fr }),
+      date: format(new Date(t.test_date), "dd/MM", { locale: getDateLocale() }),
       value: t.result_value,
       unit: t.result_unit || "",
       label,
@@ -515,7 +515,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
                             </Badge>
                           )}
                           <p className="text-[10px] text-muted-foreground mt-0.5">
-                            {format(new Date(test.date), "dd MMM yy", { locale: fr })}
+                            {format(new Date(test.date), "dd MMM yy", { locale: getDateLocale() })}
                           </p>
                         </div>
                       );

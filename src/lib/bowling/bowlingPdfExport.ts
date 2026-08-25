@@ -1,6 +1,6 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import jsPDF from "jspdf";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import type { FrameData } from "@/components/athlete-portal/BowlingScoreSheet";
 
 interface ArsenalBallData {
@@ -378,7 +378,7 @@ export async function exportBowlingPdf(playerName: string, games: BowlingGameDat
   if (options?.location) subParts.push(options.location);
   if (options?.competitionDate) {
     try {
-      subParts.push(format(new Date(options.competitionDate), "dd MMMM yyyy", { locale: fr }));
+      subParts.push(format(new Date(options.competitionDate), "dd MMMM yyyy", { locale: getDateLocale() }));
     } catch { subParts.push(options.competitionDate); }
   }
 
@@ -393,7 +393,7 @@ export async function exportBowlingPdf(playerName: string, games: BowlingGameDat
   }
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
-  doc.text(`Rapport genere le ${format(new Date(), "dd MMMM yyyy", { locale: fr })} - ${games.length} parties`, textStartX, avatarBase64 ? 27 : 23);
+  doc.text(`Rapport genere le ${format(new Date(), "dd MMMM yyyy", { locale: getDateLocale() })} - ${games.length} parties`, textStartX, avatarBase64 ? 27 : 23);
 
   if (hasMedals) {
     let medalY = avatarBase64 ? 31 : 27;
@@ -991,7 +991,7 @@ export async function exportBowlingPdf(playerName: string, games: BowlingGameDat
 
     // Build bloc title: "Bloc N: Category, Phase, Date"
     const effectiveDate = roundDate || matchDate;
-    const dateStr = effectiveDate ? format(new Date(effectiveDate), "dd MMM yyyy", { locale: fr }) : "-";
+    const dateStr = effectiveDate ? format(new Date(effectiveDate), "dd MMM yyyy", { locale: getDateLocale() }) : "-";
     const catLabel = bowlingCategory ? (CATEGORY_LABELS[bowlingCategory] || bowlingCategory) : "";
     const phaseLabel = phase ? (PHASE_LABELS[phase] || phase) : "";
     const blocTitleParts = [`Bloc ${blocIndex + 1}`];

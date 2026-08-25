@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,7 +15,6 @@ import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { 
   Brain, 
   Target, 
@@ -285,7 +285,7 @@ export function MentalPerformanceSection({ categoryId }: MentalPerformanceSectio
                   />
                 </div>
                 <p className="text-xs text-muted-foreground mt-3 text-center">
-                  Dernière évaluation : {format(new Date(latestAssessment.assessment_date), "d MMMM yyyy", { locale: fr })}
+                  Dernière évaluation : {format(new Date(latestAssessment.assessment_date), "d MMMM yyyy", { locale: getDateLocale() })}
                 </p>
               </CardContent>
             </Card>
@@ -369,7 +369,7 @@ export function MentalPerformanceSection({ categoryId }: MentalPerformanceSectio
                                 {ASSESSMENT_TYPES.find(t => t.value === assessment.assessment_type)?.label || assessment.assessment_type}
                               </Badge>
                               <span className="text-sm text-muted-foreground">
-                                {format(new Date(assessment.assessment_date), "d MMMM yyyy", { locale: fr })}
+                                {format(new Date(assessment.assessment_date), "d MMMM yyyy", { locale: getDateLocale() })}
                               </span>
                             </div>
                             {assessment.assessed_by && (
@@ -468,7 +468,7 @@ export function MentalPerformanceSection({ categoryId }: MentalPerformanceSectio
                           )}
                           {goal.target_date && (
                             <p className="text-xs text-muted-foreground mt-2">
-                              Échéance : {format(new Date(goal.target_date), "d MMMM yyyy", { locale: fr })}
+                              Échéance : {format(new Date(goal.target_date), "d MMMM yyyy", { locale: getDateLocale() })}
                             </p>
                           )}
                         </div>
@@ -493,7 +493,7 @@ export function MentalPerformanceSection({ categoryId }: MentalPerformanceSectio
                                 {SESSION_TYPES.find(t => t.value === session.session_type)?.label || session.session_type}
                               </Badge>
                               <span className="text-sm">
-                                {format(new Date(session.session_date), "d MMMM yyyy", { locale: fr })}
+                                {format(new Date(session.session_date), "d MMMM yyyy", { locale: getDateLocale() })}
                               </span>
                               {session.duration_minutes && (
                                 <span className="text-sm text-muted-foreground">
@@ -518,7 +518,7 @@ export function MentalPerformanceSection({ categoryId }: MentalPerformanceSectio
                           )}
                           {session.next_session_date && (
                             <p className="text-xs text-muted-foreground mt-2">
-                              Prochaine séance : {format(new Date(session.next_session_date), "d MMMM yyyy", { locale: fr })}
+                              Prochaine séance : {format(new Date(session.next_session_date), "d MMMM yyyy", { locale: getDateLocale() })}
                             </p>
                           )}
                         </div>

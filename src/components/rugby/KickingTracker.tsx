@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +13,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Target, Trash2, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 
 interface KickingTrackerProps {
@@ -174,7 +174,7 @@ export function KickingTracker({ categoryId, sportType }: KickingTrackerProps) {
             <SelectContent>
               {matches.map(m => (
                 <SelectItem key={m.id} value={m.id}>
-                  vs {m.opponent} — {format(new Date(m.match_date), "dd/MM/yy", { locale: fr })}
+                  vs {m.opponent} — {format(new Date(m.match_date), "dd/MM/yy", { locale: getDateLocale() })}
                 </SelectItem>
               ))}
             </SelectContent>

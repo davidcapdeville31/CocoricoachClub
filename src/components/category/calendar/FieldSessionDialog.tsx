@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +13,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, Clock, MapPin, Users, Layers, ShieldCheck } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { getTrainingTypesForSport, getTrainingTypesGrouped } from "@/lib/constants/trainingTypes";
@@ -628,7 +628,7 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
             <Layers className="h-5 w-5 text-primary" />
             {isEdit ? `Modifier la ${sportLabel.toLowerCase()}` : `Nouvelle ${sportLabel.toLowerCase()}`}
           </DialogTitle>
-          <p className="text-sm text-muted-foreground">{format(date, "EEEE d MMMM yyyy", { locale: fr })}</p>
+          <p className="text-sm text-muted-foreground">{format(date, "EEEE d MMMM yyyy", { locale: getDateLocale() })}</p>
         </DialogHeader>
 
         <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 space-y-5">

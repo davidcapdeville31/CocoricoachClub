@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +7,6 @@ import { Plus, Calendar, Settings2, ChevronLeft, ChevronRight, Check, BarChart3,
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { exportAnnualPlanningToPdf } from "@/lib/pdfAnnualPlanning";
 import { format, startOfYear, endOfYear, addYears, subYears, addMonths, addDays } from "date-fns";
-import { fr } from "date-fns/locale";
 import { YearCalendarGrid } from "./YearCalendarGrid";
 import { AnnualTimelineView } from "./AnnualTimelineView";
 import { AnnualLoadHeatmap } from "./AnnualLoadHeatmap";

@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,10 +12,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { ClipboardCheck, Calendar, Users, TrendingUp, ChevronRight, Filter, Clock, AlertCircle, CheckCircle, Check, X, HelpCircle } from "lucide-react";
 import { format, startOfMonth, endOfMonth, subMonths, subDays, isWithinInterval, parseISO } from "date-fns";
-import { fr } from "date-fns/locale";
 import { SessionAttendanceDialog } from "./SessionAttendanceDialog";
 import { ParticipantsAttendanceList } from "./ParticipantsAttendanceList";
 
+import { useTranslation } from "react-i18next";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -24,6 +25,7 @@ interface AttendanceTabProps {
 }
 
 export function AttendanceTab({ categoryId }: AttendanceTabProps) {
+  const { t } = useTranslation();
   const { isViewer } = useViewerModeContext();
   const [selectedSession, setSelectedSession] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -230,7 +232,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Période :</span>
+              <span className="text-sm font-medium">{t("admin.attendance.period")}</span>
             </div>
             <div className="flex items-center gap-2">
               <Input
@@ -239,7 +241,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                 onChange={(e) => setStartDate(e.target.value)}
                 className="w-40"
               />
-              <span className="text-muted-foreground">au</span>
+              <span className="text-muted-foreground">{t("admin.attendance.to")}</span>
               <Input
                 type="date"
                 value={endDate}
@@ -250,16 +252,16 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
             </div>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => setDatePreset("week")}>
-                7 jours
+                {t("admin.attendance.preset7d")}
               </Button>
               <Button variant="outline" size="sm" onClick={() => setDatePreset("month")}>
-                Ce mois
+                {t("admin.attendance.presetMonth")}
               </Button>
               <Button variant="outline" size="sm" onClick={() => setDatePreset("3months")}>
-                3 mois
+                {t("admin.attendance.preset3m")}
               </Button>
               <Button variant="outline" size="sm" onClick={() => setDatePreset("season")}>
-                Saison
+                {t("admin.attendance.presetSeason")}
               </Button>
             </div>
           </div>
@@ -275,7 +277,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                 <Calendar className="h-5 w-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Séances</p>
+                <p className="text-sm text-muted-foreground">{t("admin.attendance.sessions")}</p>
                 <p className="text-2xl font-bold">{sessionsWithAttendance}/{totalFilteredSessions}</p>
               </div>
             </div>
@@ -288,7 +290,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                 <Users className="h-5 w-5 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Joueurs suivis</p>
+                <p className="text-sm text-muted-foreground">{t("admin.attendance.trackedPlayers")}</p>
                 <p className="text-2xl font-bold">{players?.length || 0}</p>
               </div>
             </div>
@@ -301,7 +303,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                 <TrendingUp className="h-5 w-5 text-amber-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Taux moyen</p>
+                <p className="text-sm text-muted-foreground">{t("admin.attendance.avgRate")}</p>
                 <p className={`text-2xl font-bold ${getRateColor(averageRate)}`}>{averageRate}%</p>
               </div>
             </div>
@@ -314,7 +316,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                 <Clock className="h-5 w-5 text-orange-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Retards</p>
+                <p className="text-sm text-muted-foreground">{t("admin.attendance.lateArrivals")}</p>
                 <div className="flex items-center gap-2">
                   <span className="text-2xl font-bold text-orange-600">{totalLate}</span>
                   <div className="text-xs">
@@ -357,12 +359,13 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
         return (
           <div className="space-y-4">
             <p className="text-xs text-muted-foreground">
-              Calcul basé sur les athlètes assignés à chaque séance de la période
-              (du {format(parseISO(startDate), "dd/MM/yyyy")} au {format(parseISO(endDate), "dd/MM/yyyy")}) :
-              {" "}chaque athlète compte une fois par séance — Présent, Absent ou Pas renseigné.
-              {" "}Total attendu : <strong>{totalParticipants} réponses</strong>.
+              {t("admin.attendance.responseStatsExplanation", {
+                from: format(parseISO(startDate), "dd/MM/yyyy"),
+                to: format(parseISO(endDate), "dd/MM/yyyy"),
+                total: totalParticipants,
+              })}
               {futureSessionsCount > 0 && (
-                <> Les séances à venir ({futureSessionsCount}) sont incluses : les athlètes n'ayant pas encore répondu sont comptés dans « Pas renseignés ».</>
+                <> {t("admin.attendance.futureSessionsNote", { count: futureSessionsCount })}</>
               )}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -373,7 +376,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                       <Check className="h-5 w-5 text-emerald-600" />
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">Présents</p>
+                      <p className="text-sm text-muted-foreground">{t("admin.attendance.present")}</p>
                       <p className="text-2xl font-bold text-emerald-600">{presentCount}</p>
                     </div>
                   </div>
@@ -386,7 +389,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                       <X className="h-5 w-5 text-rose-600" />
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">Absents</p>
+                      <p className="text-sm text-muted-foreground">{t("admin.attendance.absent")}</p>
                       <p className="text-2xl font-bold text-rose-600">{absentCount}</p>
                     </div>
                   </div>
@@ -399,7 +402,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                       <HelpCircle className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">Pas renseignés</p>
+                      <p className="text-sm text-muted-foreground">{t("admin.attendance.noResponse")}</p>
                       <p className="text-2xl font-bold">{noResponseCount}</p>
                     </div>
                   </div>
@@ -411,27 +414,27 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base">
                   <ClipboardCheck className="h-5 w-5" />
-                  Détail des réponses par séance
+                  {t("admin.attendance.detailBySession")}
                 </CardTitle>
                 <CardDescription>
-                  Sélectionnez une séance pour voir qui a répondu Présent, Absent ou n'a pas répondu.
+                  {t("admin.attendance.selectSessionHint")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {sessionOptions.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    Aucune séance sur cette période.
+                    {t("admin.attendance.noSessionsInPeriod")}
                   </p>
                 ) : (
                   <>
                     <Select value={detailSessionId ?? ""} onValueChange={(v) => setDetailSessionId(v || null)}>
                       <SelectTrigger className="w-full sm:w-[420px]">
-                        <SelectValue placeholder="Choisir une séance…" />
+                        <SelectValue placeholder={t("admin.attendance.chooseSession")} />
                       </SelectTrigger>
                       <SelectContent>
                         {sessionOptions.map((s) => (
                           <SelectItem key={s.id} value={s.id}>
-                            {format(parseISO(s.session_date), "dd MMM yyyy", { locale: fr })} — {getSessionLabel(s)}
+                            {format(parseISO(s.session_date), "dd MMM yyyy", { locale: getDateLocale() })} — {getSessionLabel(s)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -440,8 +443,8 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                     {detailSession && totalParticipants >= 0 && (
                       <ParticipantsAttendanceList
                         participants={detailParticipants as any}
-                        title={`Séance du ${format(parseISO(detailSession.session_date), "dd/MM/yyyy", { locale: fr })}`}
-                        emptyLabel="Aucun athlète attribué à cette séance."
+                        title={t("admin.attendance.sessionOn", { date: format(parseISO(detailSession.session_date), "dd/MM/yyyy", { locale: getDateLocale() }) })}
+                        emptyLabel={t("admin.attendance.noAthleteAssignedToSession")}
                       />
                     )}
                   </>
@@ -480,10 +483,10 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
               <div className="flex items-center gap-3">
                 <div className="text-center min-w-[60px]">
                   <p className="text-sm font-medium">
-                    {format(new Date(session.session_date), "dd MMM", { locale: fr })}
+                    {format(new Date(session.session_date), "dd MMM", { locale: getDateLocale() })}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {format(new Date(session.session_date), "EEE", { locale: fr })}
+                    {format(new Date(session.session_date), "EEE", { locale: getDateLocale() })}
                   </p>
                 </div>
                 <div>
@@ -819,7 +822,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                                             return (
                                               <div key={session.id} className="text-xs flex justify-between gap-2 border-b border-border/40 pb-1 last:border-0">
                                                 <div className="flex flex-col">
-                                                  <span>{format(parseISO(session.session_date), "dd/MM/yyyy", { locale: fr })} — {getSessionLabel(session)}</span>
+                                                  <span>{format(parseISO(session.session_date), "dd/MM/yyyy", { locale: getDateLocale() })} — {getSessionLabel(session)}</span>
                                                   {comment && <span className="italic text-muted-foreground">{comment}</span>}
                                                 </div>
                                                 <span className={`font-medium whitespace-nowrap ${statusLabel.cls}`}>{statusLabel.label}</span>

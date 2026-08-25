@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +13,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { BarChart3, Target, Trophy, CalendarIcon, Circle, Users, Download, FileSpreadsheet, Activity, Clock, Wrench, Filter } from "lucide-react";
 import { format, isAfter, isBefore, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from "date-fns";
-import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import ExcelJS from "exceljs";
@@ -641,7 +641,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
     if (globalPeriod === "day") {
       periodStart = startOfDay(now); periodEnd = endOfDay(now);
     } else if (globalPeriod === "week") {
-      periodStart = startOfWeek(now, { weekStartsOn: 1, locale: fr }); periodEnd = endOfWeek(now, { weekStartsOn: 1, locale: fr });
+      periodStart = startOfWeek(now, { weekStartsOn: 1, locale: getDateLocale() }); periodEnd = endOfWeek(now, { weekStartsOn: 1, locale: getDateLocale() });
     } else if (globalPeriod === "year") {
       periodStart = startOfYear(now); periodEnd = endOfYear(now);
     } else {
@@ -716,18 +716,18 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       const d = new Date(iso);
       if (globalPeriod === "day") {
         const day = startOfDay(d);
-        return { key: format(day, "yyyy-MM-dd"), label: format(day, "dd MMM", { locale: fr }), order: day.getTime() };
+        return { key: format(day, "yyyy-MM-dd"), label: format(day, "dd MMM", { locale: getDateLocale() }), order: day.getTime() };
       }
       if (globalPeriod === "week") {
-        const w = startOfWeek(d, { weekStartsOn: 1, locale: fr });
-        return { key: format(w, "yyyy-'S'II", { locale: fr }), label: format(w, "'S'II", { locale: fr }), order: w.getTime() };
+        const w = startOfWeek(d, { weekStartsOn: 1, locale: getDateLocale() });
+        return { key: format(w, "yyyy-'S'II", { locale: getDateLocale() }), label: format(w, "'S'II", { locale: getDateLocale() }), order: w.getTime() };
       }
       if (globalPeriod === "year") {
         const y = startOfYear(d);
         return { key: format(y, "yyyy"), label: format(y, "yyyy"), order: y.getTime() };
       }
       const m = startOfMonth(d);
-      return { key: format(m, "yyyy-MM"), label: format(m, "MMM yy", { locale: fr }), order: m.getTime() };
+      return { key: format(m, "yyyy-MM"), label: format(m, "MMM yy", { locale: getDateLocale() }), order: m.getTime() };
     };
 
     const buckets = new Map<string, { label: string; order: number; warmup: number; technical: number; tactical: number; games: number; mental: number; strength: number; total: number }>();
@@ -1003,7 +1003,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
               mode="single"
               selected={dateFrom}
               onSelect={setDateFrom}
-              locale={fr}
+              locale={getDateLocale()}
               initialFocus
               className={cn("p-3 pointer-events-auto")}
             />
@@ -1022,7 +1022,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
               mode="single"
               selected={dateTo}
               onSelect={setDateTo}
-              locale={fr}
+              locale={getDateLocale()}
               initialFocus
               className={cn("p-3 pointer-events-auto")}
             />
@@ -1401,7 +1401,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
                               disabled={filterByOilType !== null}
                             />
                             <span className="truncate flex-1">
-                              {m.matchDate ? format(new Date(m.matchDate), "dd MMM yyyy", { locale: fr }) : "—"}
+                              {m.matchDate ? format(new Date(m.matchDate), "dd MMM yyyy", { locale: getDateLocale() }) : "—"}
                               {m.patternName ? ` · ${m.patternName}` : ""}
                             </span>
                             {m.oilRatio ? (

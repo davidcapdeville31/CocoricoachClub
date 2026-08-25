@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,7 +34,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { fr } from "date-fns/locale";
 import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 import { cn } from "@/lib/utils";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
@@ -492,7 +492,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                           className="text-left text-sm font-medium hover:underline"
                           onClick={() => setSelectedDate(parseISO(s.session_date))}
                         >
-                          {format(parseISO(s.session_date), "EEE d MMM", { locale: fr })}
+                          {format(parseISO(s.session_date), "EEE d MMM", { locale: getDateLocale() })}
                           {s.session_start_time && ` · ${s.session_start_time.slice(0, 5)}`}
                           {" · "}
                           {getTrainingTypeLabel(s.training_type)}
@@ -533,7 +533,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                   prophylaxis: { boxShadow: `inset 0 -3px 0 0 ${PROPHYLAXIS_COLOR}` },
                   rehab: { boxShadow: `inset 3px 0 0 0 ${REHAB_COLOR}` },
                 }}
-                locale={fr}
+                locale={getDateLocale()}
                 weekStartsOn={1}
                 className="rounded-md border pointer-events-auto"
               />
@@ -578,7 +578,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
               {selectedDate ? (
                 <div>
                   <h3 className="font-semibold text-sm mb-2">
-                    {format(selectedDate, "EEEE d MMMM yyyy", { locale: fr })}
+                    {format(selectedDate, "EEEE d MMMM yyyy", { locale: getDateLocale() })}
                   </h3>
 
                   {!hasDayEvents ? (

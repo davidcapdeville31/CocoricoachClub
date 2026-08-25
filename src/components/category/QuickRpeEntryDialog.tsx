@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,7 +16,6 @@ import { Badge } from "@/components/ui/badge";
 import { Dumbbell } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 interface QuickRpeEntryDialogProps {
@@ -208,7 +208,7 @@ export function QuickRpeEntryDialog({
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            Saisie séance - {format(new Date(sessionDate), "PPP", { locale: fr })}
+            Saisie séance - {format(new Date(sessionDate), "PPP", { locale: getDateLocale() })}
           </DialogTitle>
         </DialogHeader>
 

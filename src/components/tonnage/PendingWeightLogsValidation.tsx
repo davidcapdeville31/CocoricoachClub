@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +10,6 @@ import { Label } from "@/components/ui/label";
 import { Check, X, Clock, Dumbbell, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
@@ -133,7 +133,7 @@ export function PendingWeightLogsValidation({ categoryId }: Props) {
                   <div className="font-medium truncate text-xs">{playerName}</div>
                   <div className="text-[11px] text-muted-foreground truncate">
                     {log.exercise_name} • {log.actual_weight_kg}kg × {log.actual_sets}×{log.actual_reps}
-                    {date && ` • ${format(new Date(date), "d MMM", { locale: fr })}`}
+                    {date && ` • ${format(new Date(date), "d MMM", { locale: getDateLocale() })}`}
                   </div>
                 </div>
                 <Button

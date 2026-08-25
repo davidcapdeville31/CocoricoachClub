@@ -1,10 +1,10 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Play, Copy, Eye, Edit, Trash2 } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
 interface ProgramCardProps {
@@ -163,7 +163,7 @@ export function ProgramCard({
         </div>
 
         <p className="text-xs text-muted-foreground">
-          Créé le {format(new Date(program.created_at), "dd MMM yyyy", { locale: fr })}
+          Créé le {format(new Date(program.created_at), "dd MMM yyyy", { locale: getDateLocale() })}
         </p>
       </CardContent>
     </Card>

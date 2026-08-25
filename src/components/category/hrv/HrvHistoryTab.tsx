@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +10,6 @@ import { Heart, Plus, Activity, Users } from "lucide-react";
 import { HrvEntryDialog } from "./HrvEntryDialog";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface HrvHistoryTabProps {
   categoryId: string;
@@ -125,7 +125,7 @@ export function HrvHistoryTab({ categoryId }: HrvHistoryTabProps) {
                         {record.players?.first_name} {record.players?.name}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {format(new Date(record.record_date), "d MMMM yyyy", { locale: fr })}
+                        {format(new Date(record.record_date), "d MMMM yyyy", { locale: getDateLocale() })}
                       </p>
                     </div>
                     <Badge variant="outline" className={typeColors[record.record_type] || ""}>

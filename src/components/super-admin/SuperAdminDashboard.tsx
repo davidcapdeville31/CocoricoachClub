@@ -1,10 +1,10 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Users, Building2, UserCheck, Clock, TrendingUp, AlertTriangle, Calendar, Gift, Ban, DollarSign, History } from "lucide-react";
 import { format, differenceInDays, addMonths } from "date-fns";
-import { fr } from "date-fns/locale";
 
 export function SuperAdminDashboard() {
   const { data: stats, isLoading } = useQuery({
@@ -267,7 +267,7 @@ export function SuperAdminDashboard() {
           <CardContent>
             <div className="text-2xl font-bold">{stats?.revenueThisMonth?.toFixed(2) || "0.00"} €</div>
             <p className="text-xs text-muted-foreground">
-              {format(new Date(), "MMMM yyyy", { locale: fr })}
+              {format(new Date(), "MMMM yyyy", { locale: getDateLocale() })}
             </p>
           </CardContent>
         </Card>
@@ -379,7 +379,7 @@ export function SuperAdminDashboard() {
                       <div>
                         <p className="font-medium text-sm">{payment.clients?.name || "Client"}</p>
                         <p className="text-xs text-muted-foreground">
-                          {payment.amount}€ - {format(new Date(payment.payment_date), "dd MMM yyyy", { locale: fr })}
+                          {payment.amount}€ - {format(new Date(payment.payment_date), "dd MMM yyyy", { locale: getDateLocale() })}
                         </p>
                       </div>
                       <Badge variant="destructive" className="text-xs">
@@ -403,7 +403,7 @@ export function SuperAdminDashboard() {
                         <div>
                           <p className="font-medium text-sm">{sub.clients?.name || "Client"}</p>
                           <p className="text-xs text-muted-foreground">
-                            Expire le {format(new Date(sub.end_date), "dd MMM yyyy", { locale: fr })}
+                            Expire le {format(new Date(sub.end_date), "dd MMM yyyy", { locale: getDateLocale() })}
                           </p>
                         </div>
                         <Badge variant="outline" className="bg-amber-100 text-amber-800 text-xs">

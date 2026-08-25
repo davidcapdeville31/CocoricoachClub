@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useMemo } from "react";
 import { useCategoryPlayers, useMultiMatchEvents, type MatchRow } from "@/hooks/analytics/useTeamSportsAnalytics";
 import { computeMatchAnalytics } from "@/lib/analytics/team-sports/eventAggregator";
@@ -8,7 +9,6 @@ import {
   type PlayerLite as SmartPlayerLite,
 } from "@/components/analytics/SmartStatsComparator";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface Props {
   categoryId: string;
@@ -84,7 +84,7 @@ export function CompareTab({ categoryId, matches }: Props) {
       { key: "all", label: "Toute la saison", hint: `${recent.length} matchs`, group: "Global" },
     ];
     for (const m of recent) {
-      const dateStr = m.match_date ? format(new Date(m.match_date), "d MMM yyyy", { locale: fr }) : "";
+      const dateStr = m.match_date ? format(new Date(m.match_date), "d MMM yyyy", { locale: getDateLocale() }) : "";
       const score = m.score_home != null && m.score_away != null ? ` (${m.score_home}-${m.score_away})` : "";
       list.push({
         key: `match:${m.id}`,

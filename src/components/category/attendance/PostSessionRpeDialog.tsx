@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,7 +16,6 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { format, differenceInMinutes, parse } from "date-fns";
-import { fr } from "date-fns/locale";
 import { Activity, Clock, Loader2, Users, ChevronRight, Heart, Target, Plus, Trash2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -424,7 +424,7 @@ export function PostSessionRpeDialog({
           <div className="flex items-center gap-2 text-sm text-muted-foreground pt-1">
             <Badge variant="outline">{session.training_type}</Badge>
             <span>•</span>
-            <span>{format(new Date(session.session_date), "EEEE d MMMM", { locale: fr })}</span>
+            <span>{format(new Date(session.session_date), "EEEE d MMMM", { locale: getDateLocale() })}</span>
             {session.session_start_time && (
               <>
                 <span>•</span>

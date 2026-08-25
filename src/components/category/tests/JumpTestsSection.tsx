@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +9,6 @@ import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AddJumpTestDialog } from "./AddJumpTestDialog";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 
 interface JumpTestsSectionProps {
@@ -107,7 +107,7 @@ export function JumpTestsSection({ categoryId }: JumpTestsSectionProps) {
               {tests.map((test: any) => (
                 <TableRow key={test.id}>
                   <TableCell className="font-medium">{test.players?.name}</TableCell>
-                  <TableCell>{format(new Date(test.test_date), "dd/MM/yyyy", { locale: fr })}</TableCell>
+                  <TableCell>{format(new Date(test.test_date), "dd/MM/yyyy", { locale: getDateLocale() })}</TableCell>
                   <TableCell>{TEST_TYPE_LABELS[test.test_type] || test.test_type}</TableCell>
                   <TableCell className="font-semibold">{test.result_cm} {TEST_TYPE_UNITS[test.test_type] || "cm"}</TableCell>
                   <TableCell className="max-w-[150px] truncate">{test.notes || "-"}</TableCell>

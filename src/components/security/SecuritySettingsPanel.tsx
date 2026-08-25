@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +14,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Shield, ShieldCheck, KeyRound, Clock, Smartphone, Eye, AlertTriangle, CheckCircle2, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { useUserSecuritySettings, useUpdateSecuritySettings } from "@/lib/security/hooks/useUserSecuritySettings";
 import { logSecurityEvent } from "@/lib/security/securityLogger";
 
@@ -317,7 +317,7 @@ export function SecuritySettingsPanel() {
                       <span className="truncate">{ev.event_type}</span>
                     </div>
                     <span className="text-xs text-muted-foreground whitespace-nowrap">
-                      {format(new Date(ev.created_at), "dd/MM HH:mm", { locale: fr })}
+                      {format(new Date(ev.created_at), "dd/MM HH:mm", { locale: getDateLocale() })}
                     </span>
                   </div>
                 )) : (

@@ -1,3 +1,4 @@
+import { getLocaleTag } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -106,7 +107,7 @@ export function StrengthTestsSection({ categoryId }: StrengthTestsSectionProps) 
               {tests?.map((test) => (
                 <TableRow key={test.id} className="animate-fade-in">
                   <TableCell className="font-medium">{test.players?.name}</TableCell>
-                  <TableCell>{new Date(test.test_date).toLocaleDateString("fr-FR")}</TableCell>
+                  <TableCell>{new Date(test.test_date).toLocaleDateString(getLocaleTag())}</TableCell>
                   <TableCell>{test.test_name}</TableCell>
                   <TableCell className="font-semibold text-primary">
                     {test.weight_kg} kg

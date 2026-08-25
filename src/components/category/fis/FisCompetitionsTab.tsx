@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Mountain, UserPlus, Calendar, MapPin, Trophy } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { CreateFisCompetitionDialog } from "./CreateFisCompetitionDialog";
 import { AddFisResultDialog } from "./AddFisResultDialog";
 import { getDisciplineLabel } from "@/lib/constants/skiDisciplines";
@@ -108,7 +108,7 @@ export function FisCompetitionsTab({ categoryId }: FisCompetitionsTabProps) {
                       <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          {format(new Date(comp.competition_date), "d MMM yyyy", { locale: fr })}
+                          {format(new Date(comp.competition_date), "d MMM yyyy", { locale: getDateLocale() })}
                         </span>
                         {comp.location && (
                           <span className="flex items-center gap-1">

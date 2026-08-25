@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -131,7 +132,6 @@ function GroupCardHeader({ theme, title, subtitle }: { theme: GroupTheme; title:
 import { KpiCard } from "@/components/category/datas/team-sports/shared/KpiCard";
 import { TrendIndicator } from "@/components/ui/trend-indicator";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import {
   summarizeTournamentRounds,
   JUDO_METRIC_GROUPS,
@@ -284,7 +284,7 @@ export function JudoCompetitionStats({ categoryId }: Props) {
   };
 
   const tournamentLabel = (t: JudoMatchRow) => {
-    const date = format(new Date(t.match_date), "d MMM yyyy", { locale: fr });
+    const date = format(new Date(t.match_date), "d MMM yyyy", { locale: getDateLocale() });
     // For judo individual competitions, opponent usually stores the actual tournament name.
     const name = t.opponent || t.competition || tournamentLevelLabel(t.tournament_level) || "Tournoi";
     const parts = [name, date];
@@ -692,7 +692,7 @@ function CombatsDetailSection({ tournaments }: { tournaments: JudoMatchRow[] }) 
                   </div>
                   <div className="text-[11px] text-muted-foreground mt-1 truncate">
                     {tournament.opponent || tournament.competition || "Tournoi"} ·{" "}
-                    {format(new Date(tournament.match_date), "d MMM yyyy", { locale: fr })}
+                    {format(new Date(tournament.match_date), "d MMM yyyy", { locale: getDateLocale() })}
                   </div>
                 </div>
               </div>

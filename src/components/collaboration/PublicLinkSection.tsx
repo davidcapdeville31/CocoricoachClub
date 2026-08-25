@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +12,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Copy, Link2, Trash2, Plus, Eye, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import {
   Dialog,
   DialogContent,
@@ -156,10 +156,10 @@ export function PublicLinkSection({ clubId, categoryId }: PublicLinkSectionProps
                       </p>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <Clock className="h-3 w-3" />
-                        Créé le {format(new Date(token.created_at), "d MMM yyyy", { locale: fr })}
+                        Créé le {format(new Date(token.created_at), "d MMM yyyy", { locale: getDateLocale() })}
                         {token.last_used_at && (
                           <span>
-                            • Utilisé le {format(new Date(token.last_used_at), "d MMM", { locale: fr })}
+                            • Utilisé le {format(new Date(token.last_used_at), "d MMM", { locale: getDateLocale() })}
                           </span>
                         )}
                       </div>

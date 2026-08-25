@@ -1,6 +1,6 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useMemo, useState, useCallback } from "react";
 import { format, startOfMonth, endOfMonth, getDay, eachDayOfInterval, isToday } from "date-fns";
-import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { getCompetitionColor } from "@/lib/constants/competitionColors";
@@ -114,7 +114,7 @@ export function YearCalendarGrid({ year, periodStart, periodEnd, cycles, session
         return (
           <div key={month.getTime()} className="border border-border rounded-lg p-2 bg-card">
             <h4 className="text-xs font-bold text-center mb-1.5 uppercase tracking-wider text-muted-foreground">
-              {format(month, "MMMM", { locale: fr })}
+              {format(month, "MMMM", { locale: getDateLocale() })}
             </h4>
             <div className="grid grid-cols-7 gap-px mb-0.5">
               {WEEKDAY_LABELS.map((label, i) => (
@@ -191,7 +191,7 @@ export function YearCalendarGrid({ year, periodStart, periodEnd, cycles, session
                       <Tooltip>
                         <TooltipTrigger asChild>{dayContent}</TooltipTrigger>
                         <TooltipContent side="top" className="text-xs max-w-[200px]">
-                          <p className="font-semibold">{format(day, "EEEE d MMMM", { locale: fr })}</p>
+                          <p className="font-semibold">{format(day, "EEEE d MMMM", { locale: getDateLocale() })}</p>
                           {activeCycles.map(c => (
                             <div key={c.id} className="flex items-center gap-1 mt-0.5">
                               <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: c.color }} />

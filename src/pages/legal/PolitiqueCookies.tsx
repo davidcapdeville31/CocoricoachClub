@@ -1,3 +1,4 @@
+import { getLocaleTag } from "@/lib/i18n/dateLocale";
 import { Card } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Cookie } from "lucide-react";
@@ -20,7 +21,7 @@ export default function PolitiqueCookies() {
           <Cookie className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold">Politique de cookies</h1>
         </div>
-        <p className="text-sm text-muted-foreground mb-8">Dernière mise à jour : {new Date().toLocaleDateString("fr-FR")}</p>
+        <p className="text-sm text-muted-foreground mb-8">Dernière mise à jour : {new Date().toLocaleDateString(getLocaleTag())}</p>
 
         <Card className="p-6 sm:p-8 space-y-6 prose prose-sm max-w-none">
           <section>

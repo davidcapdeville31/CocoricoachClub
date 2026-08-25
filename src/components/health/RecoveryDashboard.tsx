@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import i18n from "@/i18n";
@@ -18,7 +19,6 @@ import {
   Brain,
 } from "lucide-react";
 import { format, addDays, subDays } from "date-fns";
-import { fr } from "date-fns/locale";
 import {
   LineChart,
   Line,
@@ -253,7 +253,7 @@ export function RecoveryDashboard({ categoryId }: RecoveryDashboardProps) {
         );
       }, 0) / dayEntries.length;
       dailyData.push({
-        date: format(subDays(new Date(), i), "dd/MM", { locale: fr }),
+        date: format(subDays(new Date(), i), "dd/MM", { locale: getDateLocale() }),
         recovery: Math.round(avgRecovery),
         sleep: Math.round(avgSleep * 10) / 10,
         fatigue: Math.round(avgFatigue * 10) / 10,

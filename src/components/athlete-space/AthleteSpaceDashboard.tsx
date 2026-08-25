@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +7,6 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Activity, TrendingUp, AlertTriangle, CheckCircle2, MapPin, Calendar as CalendarIcon } from "lucide-react";
 import { calculateEWMASeries, transformToDailyLoadData } from "@/lib/trainingLoadCalculations";
 import { format, subDays, startOfWeek, endOfWeek, addWeeks } from "date-fns";
-import { fr } from "date-fns/locale";
 import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 import { AthleteSpaceRpe } from "./AthleteSpaceRpe";
 import { AthleteSpaceWellness } from "./AthleteSpaceWellness";
@@ -266,7 +266,7 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
   const feedback = getFeedback();
 
   const chartData = ewmaResults.slice(-14).map(r => ({
-    date: format(new Date(r.date), "dd/MM", { locale: fr }),
+    date: format(new Date(r.date), "dd/MM", { locale: getDateLocale() }),
     acute: Math.round(r.acute),
     chronic: Math.round(r.chronic),
   }));
@@ -328,7 +328,7 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
                 <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <CalendarIcon className="h-3 w-3" />
-                    {format(new Date(nextMatch.match_date), "EEEE d MMMM", { locale: fr })}
+                    {format(new Date(nextMatch.match_date), "EEEE d MMMM", { locale: getDateLocale() })}
                   </span>
                   {nextMatch.match_time && (
                     <span>{nextMatch.match_time.slice(0, 5)}</span>
@@ -386,7 +386,7 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
                       {t.testLabel}
                     </p>
                     <p className="text-[10px] text-muted-foreground">
-                      {format(new Date(t.session_date), "d MMM", { locale: fr })}
+                      {format(new Date(t.session_date), "d MMM", { locale: getDateLocale() })}
                       {t.session_start_time ? ` • ${t.session_start_time.slice(0, 5)}` : ""}
                     </p>
                   </div>
@@ -417,10 +417,10 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
                 >
                   <div className="flex flex-col items-center justify-center rounded-lg px-2 py-1 min-w-[48px]" style={{ backgroundColor: `${NAV_COLORS.planification.base}15` }}>
                     <span className="text-[10px] uppercase font-semibold leading-none" style={{ color: NAV_COLORS.planification.base }}>
-                      {format(new Date(s.session_date), "MMM", { locale: fr })}
+                      {format(new Date(s.session_date), "MMM", { locale: getDateLocale() })}
                     </span>
                     <span className="text-base font-bold leading-tight" style={{ color: NAV_COLORS.planification.base }}>
-                      {format(new Date(s.session_date), "d", { locale: fr })}
+                      {format(new Date(s.session_date), "d", { locale: getDateLocale() })}
                     </span>
                   </div>
                   <div className="flex-1 min-w-0">

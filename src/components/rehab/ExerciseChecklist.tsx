@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,7 +15,6 @@ import {
 import { toast } from "sonner";
 import { CheckCircle2, ChevronDown, Dumbbell, ListChecks } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface ExerciseChecklistProps {
   playerId: string;
@@ -188,7 +188,7 @@ export function ExerciseChecklist({
           Exercices du jour
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          {format(new Date(), "EEEE d MMMM yyyy", { locale: fr })}
+          {format(new Date(), "EEEE d MMMM yyyy", { locale: getDateLocale() })}
         </p>
       </CardHeader>
       <CardContent className="space-y-3">

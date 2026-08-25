@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,7 +18,6 @@ import { toast } from "sonner";
 import { Mail, Send, Loader2, Users, Trophy, Bell } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
 import { useTranslation } from "react-i18next";
 
@@ -130,7 +130,7 @@ export function MatchNotifyDialog({
       const results: { emailsSent: number; pushSent: number } = { emailsSent: 0, pushSent: 0 };
       const subject = isIndividual ? t("planning.calendarDialogs.matchNotify.individualSubject") : t("planning.calendarDialogs.matchNotify.matchSubject", { opponent: match.opponent });
       const eventDetails = {
-        date: format(new Date(match.match_date), "EEEE d MMMM yyyy", { locale: fr }),
+        date: format(new Date(match.match_date), "EEEE d MMMM yyyy", { locale: getDateLocale() }),
         time: match.match_time ? match.match_time.substring(0, 5) : undefined,
         location: match.location || undefined,
       };
@@ -207,7 +207,7 @@ export function MatchNotifyDialog({
             {t("planning.calendarDialogs.matchNotify.title")}
           </DialogTitle>
           <DialogDescription>
-            {isIndividual ? t("planning.calendarDialogs.matchNotify.individualDescription") : t("planning.calendarDialogs.matchNotify.matchDescription", { opponent: match.opponent })} - {format(new Date(match.match_date), "d MMMM yyyy", { locale: fr })}
+            {isIndividual ? t("planning.calendarDialogs.matchNotify.individualDescription") : t("planning.calendarDialogs.matchNotify.matchDescription", { opponent: match.opponent })} - {format(new Date(match.match_date), "d MMMM yyyy", { locale: getDateLocale() })}
           </DialogDescription>
         </DialogHeader>
 
@@ -281,7 +281,7 @@ export function MatchNotifyDialog({
           {/* Event details preview */}
           <div className="p-3 bg-accent/20 rounded-lg text-sm space-y-1">
             <p className="font-medium text-muted-foreground">{t("planning.calendarDialogs.matchNotify.detailsIncluded")}</p>
-            <p>📅 {format(new Date(match.match_date), "EEEE d MMMM yyyy", { locale: fr })}</p>
+            <p>📅 {format(new Date(match.match_date), "EEEE d MMMM yyyy", { locale: getDateLocale() })}</p>
             {match.match_time && <p>🕐 {match.match_time.substring(0, 5)}</p>}
             {match.location && <p>📍 {match.location}</p>}
           </div>

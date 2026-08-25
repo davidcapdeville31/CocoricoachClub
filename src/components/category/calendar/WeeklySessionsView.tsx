@@ -1,10 +1,10 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useMemo, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Calendar, Clock, Swords, Dumbbell, Printer, User } from "lucide-react";
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, eachDayOfInterval, isSameDay } from "date-fns";
-import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { TRAINING_TYPE_COLORS, getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
@@ -55,7 +55,7 @@ export function WeeklySessionsView({
   playerNamesMap,
 }: WeeklySessionsViewProps) {
   const { t } = useTranslation();
-  const DAYS_OF_WEEK = t("planning:calendarViews.daysFull", { returnObjects: true }) as string[];
+  const DAYS_OF_WEEK = t("planning.calendarViews.daysFull", { returnObjects: true }) as string[];
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(currentWeek, { weekStartsOn: 1 });
   const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
@@ -78,7 +78,7 @@ export function WeeklySessionsView({
 
   const handlePrintWeekly = () => {
     if (weeklyCalendarRef.current) {
-      printElement(weeklyCalendarRef.current, t("planning:calendarViews.weekly.printTitle", { number: weekNumber }));
+      printElement(weeklyCalendarRef.current, t("planning.calendarViews.weekly.printTitle", { number: weekNumber }));
     }
   };
 
@@ -88,7 +88,7 @@ export function WeeklySessionsView({
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
             <Calendar className="h-4 w-4" />
-            <span className="hidden sm:inline">{t("planning:calendarViews.weekly.titlePrefix")}</span> {t("planning:calendarViews.weekly.weekLabel", { number: weekNumber })}
+            <span className="hidden sm:inline">{t("planning.calendarViews.weekly.titlePrefix")}</span> {t("planning.calendarViews.weekly.weekLabel", { number: weekNumber })}
           </CardTitle>
           <div className="flex items-center gap-1.5 sm:gap-2">
             <Button
@@ -96,7 +96,7 @@ export function WeeklySessionsView({
               size="icon"
               className="h-8 w-8"
               onClick={handlePrintWeekly}
-              title={t("planning:calendarViews.weekly.printWeek")}
+              title={t("planning.calendarViews.weekly.printWeek")}
             >
               <Printer className="h-4 w-4" />
             </Button>
@@ -109,7 +109,7 @@ export function WeeklySessionsView({
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <span className="text-xs sm:text-sm font-medium min-w-[140px] sm:min-w-[180px] text-center">
-              {format(weekStart, "d", { locale: fr })} - {format(weekEnd, "d MMMM yyyy", { locale: fr })}
+              {format(weekStart, "d", { locale: getDateLocale() })} - {format(weekEnd, "d MMMM yyyy", { locale: getDateLocale() })}
             </span>
             <Button
               variant="outline"

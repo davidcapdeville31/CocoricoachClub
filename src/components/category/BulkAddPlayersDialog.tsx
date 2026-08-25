@@ -1,3 +1,4 @@
+import { getLocaleTag } from "@/lib/i18n/dateLocale";
 import { useState, useCallback } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -553,7 +554,7 @@ export function BulkAddPlayersDialog({
                     {/* Birth date */}
                     {athlete.dateNaissance && (
                       <span className="text-xs text-muted-foreground shrink-0">
-                        {new Date(athlete.dateNaissance).toLocaleDateString("fr-FR")}
+                        {new Date(athlete.dateNaissance).toLocaleDateString(getLocaleTag())}
                       </span>
                     )}
 

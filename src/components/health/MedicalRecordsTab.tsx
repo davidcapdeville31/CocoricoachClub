@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -35,7 +36,6 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Plus, Syringe, FileText, AlertTriangle, Calendar, Clock } from "lucide-react";
 import { format, differenceInDays, addDays } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface MedicalRecordsTabProps {
   categoryId: string;

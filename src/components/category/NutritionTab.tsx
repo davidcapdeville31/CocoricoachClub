@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +14,6 @@ import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { Plus, Utensils, Droplets, Apple, Beef, Wheat, Flame, User } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { NutritionObjectivesBanner, useNutritionObjectives } from "./nutrition/NutritionObjectivesBanner";
 
 interface NutritionTabProps {
@@ -364,7 +364,7 @@ export function NutritionTab({ categoryId }: NutritionTabProps) {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">
-                  Progression du {format(new Date(selectedDate), "d MMMM yyyy", { locale: fr })}
+                  Progression du {format(new Date(selectedDate), "d MMMM yyyy", { locale: getDateLocale() })}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -467,7 +467,7 @@ export function NutritionTab({ categoryId }: NutritionTabProps) {
           <Card>
             <CardHeader>
               <CardTitle className="text-base">
-                Détail des repas du {format(new Date(selectedDate), "d MMMM yyyy", { locale: fr })}
+                Détail des repas du {format(new Date(selectedDate), "d MMMM yyyy", { locale: getDateLocale() })}
               </CardTitle>
             </CardHeader>
             <CardContent>

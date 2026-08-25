@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -20,7 +21,6 @@ import {
   ComposedChart,
 } from "recharts";
 import { format, parseISO } from "date-fns";
-import { fr } from "date-fns/locale";
 import { Activity, Satellite, Heart } from "lucide-react";
 import { 
   MetricType, 
@@ -54,7 +54,7 @@ const CustomTooltip = ({ active, payload, label, t }: any) => {
   return (
     <div className="rounded-lg border bg-background p-3 shadow-lg">
       <p className="font-medium text-sm mb-2">
-        {format(parseISO(data.date), "EEEE d MMMM", { locale: fr })}
+        {format(parseISO(data.date), "EEEE d MMMM", { locale: getDateLocale() })}
       </p>
       <div className="space-y-1 text-sm">
         <div className="flex justify-between gap-4">
@@ -143,7 +143,7 @@ export function TrainingLoadChart({
   // Format data for chart
   const formattedData = chartData.map(d => ({
     ...d,
-    dateFormatted: format(parseISO(d.date), "dd/MM", { locale: fr }),
+    dateFormatted: format(parseISO(d.date), "dd/MM", { locale: getDateLocale() }),
   }));
 
   // Check if any data point has HRV values

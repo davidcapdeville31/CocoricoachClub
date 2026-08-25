@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,7 +28,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
 
 interface PlayerObjectivesSectionProps {
@@ -464,7 +464,7 @@ export function PlayerObjectivesSection({ categoryId }: PlayerObjectivesSectionP
 
                 {obj.target_date && (
                   <p className="text-[10px] text-muted-foreground">
-                    {t("planning.objectives.deadline")}: {format(new Date(obj.target_date), "d MMM yyyy", { locale: fr })}
+                    {t("planning.objectives.deadline")}: {format(new Date(obj.target_date), "d MMM yyyy", { locale: getDateLocale() })}
                   </p>
                 )}
               </CardContent>

@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,7 +6,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Calendar } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
 import { getStatCategories } from "@/lib/constants/sportStats";
@@ -194,7 +194,7 @@ export function PlayerMatchesTab({ playerId, categoryId, playerName, sportType =
                       <TableRow key={stat.id}>
                         <TableCell className="whitespace-nowrap">
                           {match?.match_date
-                            ? format(new Date(match.match_date), "dd/MM/yyyy", { locale: fr })
+                            ? format(new Date(match.match_date), "dd/MM/yyyy", { locale: getDateLocale() })
                             : "-"}
                         </TableCell>
                         <TableCell>

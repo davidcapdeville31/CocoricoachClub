@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +18,6 @@ import {
   type PrepareStep,
 } from "@/lib/matchPrepareCache";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 
 interface Props {
@@ -130,7 +130,7 @@ export function PrepareMatchButton({
         {lastPreparedAt ? (
           <span className="ml-auto inline-flex items-center gap-1 text-[10px] text-muted-foreground">
             <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-            {format(new Date(lastPreparedAt), "d MMM HH:mm", { locale: fr })}
+            {format(new Date(lastPreparedAt), "d MMM HH:mm", { locale: getDateLocale() })}
           </span>
         ) : (
           <Download className="ml-auto h-3 w-3 opacity-70" />

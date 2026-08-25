@@ -1,5 +1,5 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { format, startOfWeek, startOfMonth } from "date-fns";
-import { fr } from "date-fns/locale";
 
 export type WellnessPeriod = "day" | "week" | "month";
 
@@ -75,8 +75,8 @@ export function aggregateWellnessByPeriod(
         sleep_duration: w.sleep_duration ?? null,
       };
       return {
-        date: format(d, "dd/MM", { locale: fr }),
-        fullDate: format(d, "dd MMM yyyy", { locale: fr }),
+        date: format(d, "dd/MM", { locale: getDateLocale() }),
+        fullDate: format(d, "dd MMM yyyy", { locale: getDateLocale() }),
         ...point,
         recovery_score: computeRecoveryScore(point),
         count: 1,
@@ -112,12 +112,12 @@ export function aggregateWellnessByPeriod(
     return {
       date:
         period === "week"
-          ? `S${format(d, "I", { locale: fr })}`
-          : format(d, "MMM yy", { locale: fr }),
+          ? `S${format(d, "I", { locale: getDateLocale() })}`
+          : format(d, "MMM yy", { locale: getDateLocale() }),
       fullDate:
         period === "week"
-          ? `Semaine du ${format(d, "dd MMM yyyy", { locale: fr })}`
-          : format(d, "MMMM yyyy", { locale: fr }),
+          ? `Semaine du ${format(d, "dd MMM yyyy", { locale: getDateLocale() })}`
+          : format(d, "MMMM yyyy", { locale: getDateLocale() }),
       ...point,
       recovery_score: computeRecoveryScore(point),
       count: group.length,

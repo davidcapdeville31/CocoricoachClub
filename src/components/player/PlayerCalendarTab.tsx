@@ -1,3 +1,4 @@
+import { getLocaleTag } from "@/lib/i18n/dateLocale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -273,8 +274,8 @@ export function PlayerCalendarTab({ playerId, categoryId }: PlayerCalendarTabPro
                   <h3 className="font-semibold mb-2">
                     {dateRange?.from
                       ? dateRange.to
-                        ? `Événements du ${dateRange.from.toLocaleDateString("fr-FR")} au ${dateRange.to.toLocaleDateString("fr-FR")}`
-                        : `Événements du ${dateRange.from.toLocaleDateString("fr-FR")}`
+                        ? `Événements du ${dateRange.from.toLocaleDateString(getLocaleTag())} au ${dateRange.to.toLocaleDateString(getLocaleTag())}`
+                        : `Événements du ${dateRange.from.toLocaleDateString(getLocaleTag())}`
                       : "Tous les événements"}
                   </h3>
                   
@@ -294,7 +295,7 @@ export function PlayerCalendarTab({ playerId, categoryId }: PlayerCalendarTabPro
                                   <div>
                                     <p className="font-medium">{getTrainingTypeLabel(event.training_type)}</p>
                                     <p className="text-sm text-muted-foreground">
-                                      {event._date.toLocaleDateString("fr-FR", {
+                                      {event._date.toLocaleDateString(getLocaleTag(), {
                                         weekday: "long",
                                         year: "numeric",
                                         month: "long",
@@ -369,7 +370,7 @@ export function PlayerCalendarTab({ playerId, categoryId }: PlayerCalendarTabPro
                                   <div>
                                     <p className="font-medium">vs {event.opponent}</p>
                                     <p className="text-sm text-muted-foreground">
-                                      {event._date.toLocaleDateString("fr-FR", {
+                                      {event._date.toLocaleDateString(getLocaleTag(), {
                                         weekday: "long",
                                         year: "numeric",
                                         month: "long",
@@ -413,7 +414,7 @@ export function PlayerCalendarTab({ playerId, categoryId }: PlayerCalendarTabPro
                                       )}
                                     </div>
                                     <p className="text-sm text-muted-foreground">
-                                      {event._date.toLocaleDateString("fr-FR", {
+                                      {event._date.toLocaleDateString(getLocaleTag(), {
                                         weekday: "long",
                                         year: "numeric",
                                         month: "long",

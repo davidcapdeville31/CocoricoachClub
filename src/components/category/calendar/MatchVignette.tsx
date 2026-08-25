@@ -68,7 +68,7 @@ export function MatchVignette({
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    if (confirm(t("planning:calendarViews.vignette.deleteMatchConfirm"))) {
+    if (confirm(t("planning.calendarViews.vignette.deleteMatchConfirm"))) {
       onDelete?.();
     }
   };
@@ -95,7 +95,7 @@ export function MatchVignette({
           color.bg,
           color.bgHover
         )}
-        title={`${match.match_time ? formatTime(match.match_time) + " - " : ""}${compLabel ? compLabel + " · " : ""}${match.opponent}${creatorName ? " · " + t("planning:calendarViews.vignette.createdBy", { name: creatorName }) : ""}`}
+        title={`${match.match_time ? formatTime(match.match_time) + " - " : ""}${compLabel ? compLabel + " · " : ""}${match.opponent}${creatorName ? " · " + t("planning.calendarViews.vignette.createdBy", { name: creatorName }) : ""}`}
       >
         {/* Match content - hidden when hovered to show action buttons */}
         <div className={cn(
@@ -128,7 +128,7 @@ export function MatchVignette({
               <button
                 onClick={handleEditClick}
                 className="p-1.5 rounded-md hover:bg-white/20 transition-colors"
-                title={t("planning:calendarViews.vignette.editMatchTooltip")}
+                title={t("planning.calendarViews.vignette.editMatchTooltip")}
               >
                 <Pencil className="h-4 w-4" />
               </button>
@@ -137,7 +137,7 @@ export function MatchVignette({
               <button
                 onClick={handleNotifyClick}
                 className="p-1.5 rounded-md hover:bg-white/20 transition-colors"
-                title={t("planning:calendarViews.vignette.notify")}
+                title={t("planning.calendarViews.vignette.notify")}
               >
                 <Bell className="h-4 w-4" />
               </button>
@@ -146,7 +146,7 @@ export function MatchVignette({
               <button
                 onClick={handleStatsClick}
                 className="p-1.5 rounded-md hover:bg-white/20 transition-colors"
-                title={t("planning:calendarViews.vignette.statsTooltip")}
+                title={t("planning.calendarViews.vignette.statsTooltip")}
               >
                 <BarChart3 className="h-4 w-4" />
               </button>
@@ -155,7 +155,7 @@ export function MatchVignette({
               <button
                 onClick={handleDeleteClick}
                 className="p-1.5 rounded-md hover:bg-white/20 transition-colors flex items-center gap-1"
-                title={t("planning:calendarViews.vignette.deleteMatchTooltip")}
+                title={t("planning.calendarViews.vignette.deleteMatchTooltip")}
               >
                 <Trash2 className="h-4 w-4" />
               </button>

@@ -1,6 +1,6 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import jsPDF from "jspdf";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import type { AthleticsMinima, AthleticsRecord } from "./recordsHelpers";
 import { computeDelta } from "./recordsHelpers";
 import { getMinimaLevel } from "./minimaLevels";
@@ -84,7 +84,7 @@ export async function exportAthleticsMinimasReport(data: MatrixExportData) {
   pdf.text(`${data.clubName} • ${data.categoryName}`, margin, 19);
   pdf.setFontSize(8);
   pdf.text(
-    `Généré le ${format(new Date(), "dd MMMM yyyy 'à' HH:mm", { locale: fr })}`,
+    `Généré le ${format(new Date(), "dd MMMM yyyy 'à' HH:mm", { locale: getDateLocale() })}`,
     pageW - margin - 28,
     19,
     { align: "right" }

@@ -1,3 +1,4 @@
+import { getLocaleTag } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { useQuery } from "@tanstack/react-query";
@@ -221,7 +222,7 @@ export function AwcrTab({ categoryId }: AwcrTabProps) {
                   <TableRow key={entry.id} className="animate-fade-in">
                     <TableCell className="font-medium">{entry.players?.name}</TableCell>
                     <TableCell>
-                      {new Date(entry.session_date).toLocaleDateString("fr-FR")}
+                      {new Date(entry.session_date).toLocaleDateString(getLocaleTag())}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">

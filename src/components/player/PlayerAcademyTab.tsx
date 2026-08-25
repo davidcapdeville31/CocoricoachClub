@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,7 +17,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { GraduationCap, BookOpen, Clock, BarChart3, CalendarIcon, Plus, Pencil, Trash2 } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { PlayerAcademicStats } from "./PlayerAcademicStats";
@@ -250,7 +250,7 @@ export function PlayerAcademyTab({ playerId, categoryId, playerName, readOnly = 
                       <TableBody>
                         {academicData.filter(e => e.academic_grade || (e as any).grade_scale === "letter").map((entry) => (
                           <TableRow key={entry.id}>
-                            <TableCell>{format(new Date(entry.tracking_date), "dd MMM yyyy", { locale: fr })}</TableCell>
+                            <TableCell>{format(new Date(entry.tracking_date), "dd MMM yyyy", { locale: getDateLocale() })}</TableCell>
                             <TableCell>
                               {entry.academic_grade 
                                 ? `${entry.academic_grade}/${(entry as any).grade_scale || "20"}`
@@ -302,7 +302,7 @@ export function PlayerAcademyTab({ playerId, categoryId, playerName, readOnly = 
                       <TableBody>
                         {academicData.filter(e => e.school_absence_hours && e.school_absence_hours > 0 && !e.academic_grade).map((entry) => (
                           <TableRow key={entry.id}>
-                            <TableCell>{format(new Date(entry.tracking_date), "dd MMM yyyy", { locale: fr })}</TableCell>
+                            <TableCell>{format(new Date(entry.tracking_date), "dd MMM yyyy", { locale: getDateLocale() })}</TableCell>
                             <TableCell>{entry.school_absence_hours}h</TableCell>
                             <TableCell className="max-w-40 truncate">{entry.absence_reason || "-"}</TableCell>
                             {!isViewer && (
@@ -373,11 +373,11 @@ export function PlayerAcademyTab({ playerId, categoryId, playerName, readOnly = 
                   <PopoverTrigger asChild>
                     <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !gradeDate && "text-muted-foreground")}>
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {gradeDate ? format(gradeDate, "dd MMM yyyy", { locale: fr }) : "Choisir une date"}
+                      {gradeDate ? format(gradeDate, "dd MMM yyyy", { locale: getDateLocale() }) : "Choisir une date"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={gradeDate} onSelect={(d) => d && setGradeDate(d)} initialFocus className="p-3 pointer-events-auto" locale={fr} />
+                    <Calendar mode="single" selected={gradeDate} onSelect={(d) => d && setGradeDate(d)} initialFocus className="p-3 pointer-events-auto" locale={getDateLocale()} />
                   </PopoverContent>
                 </Popover>
               </div>

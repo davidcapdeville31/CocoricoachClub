@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +12,6 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
-import { fr } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -176,7 +176,7 @@ export function SuperAdminShieldButton({ variant = "default" }: { variant?: "her
                       <p className="text-xs text-muted-foreground mt-1">{inv.email}</p>
                       {inv.accepted_at && (
                         <p className="text-xs text-muted-foreground mt-1">
-                          {formatDistanceToNow(new Date(inv.accepted_at), { addSuffix: true, locale: fr })}
+                          {formatDistanceToNow(new Date(inv.accepted_at), { addSuffix: true, locale: getDateLocale() })}
                         </p>
                       )}
                     </div>

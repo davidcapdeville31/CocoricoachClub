@@ -1,7 +1,7 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { format, startOfYear, endOfYear, differenceInDays, startOfMonth, endOfMonth, eachMonthOfInterval, isWithinInterval, eachWeekOfInterval, startOfWeek, endOfWeek } from "date-fns";
-import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
@@ -201,7 +201,7 @@ export function AnnualTimelineView({
                     "text-[11px] font-semibold uppercase tracking-wider",
                     isCurrentMonth ? "text-primary" : "text-muted-foreground"
                   )}>
-                    {format(month, "MMM", { locale: fr })}
+                    {format(month, "MMM", { locale: getDateLocale() })}
                   </span>
                 </div>
               );
@@ -337,7 +337,7 @@ export function AnnualTimelineView({
                               <p className="text-[11px] font-medium" style={{ color: compColor.hex }}>{m.competition}</p>
                             )}
                             <p className="text-[10px] text-muted-foreground">
-                              {format(md, "EEEE dd MMMM yyyy", { locale: fr })}
+                              {format(md, "EEEE dd MMMM yyyy", { locale: getDateLocale() })}
                             </p>
                             {typeof m.is_home === "boolean" && (
                               <p className="text-[10px] font-medium flex items-center gap-1">
@@ -443,7 +443,7 @@ export function AnnualTimelineView({
                               <p className="font-bold text-sm">{cycle.name}</p>
                             </div>
                             <p className="text-xs text-muted-foreground">
-                              {format(new Date(cycle.start_date), "dd MMM yyyy", { locale: fr })} → {format(new Date(cycle.end_date), "dd MMM yyyy", { locale: fr })}
+                              {format(new Date(cycle.start_date), "dd MMM yyyy", { locale: getDateLocale() })} → {format(new Date(cycle.end_date), "dd MMM yyyy", { locale: getDateLocale() })}
                               <span className="ml-1 opacity-60">({pos.duration}j)</span>
                             </p>
                             {meta && (

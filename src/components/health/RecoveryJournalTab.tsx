@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -39,7 +40,6 @@ import {
   Activity,
 } from "lucide-react";
 import { format, subDays } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface RecoveryJournalTabProps {
   categoryId: string;
@@ -416,7 +416,7 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
                         {format(new Date(entry.entry_date), "dd")}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {format(new Date(entry.entry_date), "MMM", { locale: fr })}
+                        {format(new Date(entry.entry_date), "MMM", { locale: getDateLocale() })}
                       </p>
                     </div>
                     <div>

@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,7 +15,6 @@ import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/color
 import { toast } from "sonner";
 import { Plus, Utensils, Droplets, Apple, Beef, Wheat, Flame, Target, ClipboardList } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 
 interface PlayerNutritionTabProps {
@@ -469,7 +469,7 @@ export function PlayerNutritionTab({ playerId, categoryId, readOnly = false }: P
           <Card>
             <CardHeader>
               <CardTitle className="text-base">
-                Entrées du {format(new Date(selectedDate), "d MMMM yyyy", { locale: fr })}
+                Entrées du {format(new Date(selectedDate), "d MMMM yyyy", { locale: getDateLocale() })}
               </CardTitle>
             </CardHeader>
             <CardContent>

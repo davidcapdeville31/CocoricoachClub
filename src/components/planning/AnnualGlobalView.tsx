@@ -1,6 +1,6 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useMemo } from "react";
 import { format, startOfYear, endOfYear, eachMonthOfInterval, startOfMonth, endOfMonth, differenceInDays, isWithinInterval } from "date-fns";
-import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTranslation } from "react-i18next";
@@ -105,7 +105,7 @@ export function AnnualGlobalView({ year, categories, cycles, sessions, matches }
                       isCurrentMonth ? "text-primary bg-primary/5" : "text-muted-foreground"
                     )}
                   >
-                    {format(month, "MMM", { locale: fr })}
+                    {format(month, "MMM", { locale: getDateLocale() })}
                   </th>
                 );
               })}
@@ -138,7 +138,7 @@ export function AnnualGlobalView({ year, categories, cycles, sessions, matches }
                               <TooltipContent className="text-xs">
                                 <p className="font-semibold">{cycle.name}</p>
                                 <p className="text-muted-foreground">
-                                  {format(new Date(cycle.start_date), "dd MMM", { locale: fr })} → {format(new Date(cycle.end_date), "dd MMM", { locale: fr })}
+                                  {format(new Date(cycle.start_date), "dd MMM", { locale: getDateLocale() })} → {format(new Date(cycle.end_date), "dd MMM", { locale: getDateLocale() })}
                                 </p>
                                 {cycle.objective && <p className="mt-0.5">{cycle.objective}</p>}
                               </TooltipContent>

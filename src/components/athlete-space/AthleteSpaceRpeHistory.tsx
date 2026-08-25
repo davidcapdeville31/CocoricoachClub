@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +8,6 @@ import {
 } from "recharts";
 import { BarChart3, Activity, Dumbbell } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 import { useTranslation } from "react-i18next";
 
@@ -62,8 +62,8 @@ export function AthleteSpaceRpeHistory({ playerId, categoryId }: Props) {
   const tonnageChart = Array.from(tonnageByDate.entries())
     .sort((a, b) => a[0].localeCompare(b[0]))
     .map(([date, tonnage]) => ({
-      date: format(new Date(date), "dd/MM", { locale: fr }),
-      fullDate: format(new Date(date), "dd MMM yyyy", { locale: fr }),
+      date: format(new Date(date), "dd/MM", { locale: getDateLocale() }),
+      fullDate: format(new Date(date), "dd MMM yyyy", { locale: getDateLocale() }),
       tonnage: Math.round(tonnage),
     }));
   const totalTonnage = Math.round(
@@ -71,8 +71,8 @@ export function AthleteSpaceRpeHistory({ playerId, categoryId }: Props) {
   );
 
   const chartData = rpeHistory.map((r: any) => ({
-    date: format(new Date(r.session_date), "dd/MM", { locale: fr }),
-    fullDate: format(new Date(r.session_date), "dd MMM yyyy", { locale: fr }),
+    date: format(new Date(r.session_date), "dd/MM", { locale: getDateLocale() }),
+    fullDate: format(new Date(r.session_date), "dd MMM yyyy", { locale: getDateLocale() }),
     rpe: r.rpe,
     load: r.training_load || r.rpe * r.duration_minutes,
     duration: r.duration_minutes,

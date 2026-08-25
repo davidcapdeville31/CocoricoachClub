@@ -1,3 +1,4 @@
+import { getLocaleTag } from "@/lib/i18n/dateLocale";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -88,7 +89,7 @@ export function SpeedTestsTable({ categoryId, testType }: SpeedTestsTableProps) 
           {tests.map((test) => (
             <TableRow key={test.id} className="animate-fade-in">
               <TableCell className="font-medium">{test.players?.name}</TableCell>
-              <TableCell>{new Date(test.test_date).toLocaleDateString("fr-FR")}</TableCell>
+              <TableCell>{new Date(test.test_date).toLocaleDateString(getLocaleTag())}</TableCell>
               {isSprintTest ? (
                 <>
                   <TableCell>{test.time_40m_seconds?.toFixed(2)}</TableCell>

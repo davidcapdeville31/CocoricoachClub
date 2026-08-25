@@ -1,3 +1,4 @@
+import { getLocaleTag } from "@/lib/i18n/dateLocale";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -384,7 +385,7 @@ export function AddGatheringWellnessDialog({
                       <SelectContent>
                         {events?.map((event) => (
                           <SelectItem key={event.id} value={event.id}>
-                            {event.name} - {new Date(event.start_date).toLocaleDateString("fr-FR")}
+                            {event.name} - {new Date(event.start_date).toLocaleDateString(getLocaleTag())}
                           </SelectItem>
                         ))}
                       </SelectContent>

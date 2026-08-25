@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Check, X, Clock, FlaskConical } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 import { useSeasonGuard } from "@/hooks/use-season-guard";
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
@@ -99,7 +99,7 @@ export function PendingTestResultsValidation({ categoryId }: Props) {
                 <div className="font-medium truncate text-xs">{name}</div>
                 <div className="text-[11px] text-muted-foreground truncate">
                   {row.test_type?.replace(/_/g, " ")} • {row.result_value} {row.result_unit || ""}
-                  {row.test_date && ` • ${format(new Date(row.test_date), "d MMM", { locale: fr })}`}
+                  {row.test_date && ` • ${format(new Date(row.test_date), "d MMM", { locale: getDateLocale() })}`}
                 </div>
               </div>
               <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-success hover:text-success" title="Valider"

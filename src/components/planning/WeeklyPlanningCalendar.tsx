@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useEffect, useState, useMemo, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format, startOfWeek, addDays, addWeeks, subWeeks } from "date-fns";
-import { fr } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, Plus, X, Clock, MapPin, Download, Printer, Target, Trophy, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -340,7 +340,7 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
 
   const handlePrint = () => {
     if (calendarRef.current) {
-      printElement(calendarRef.current, t("planning.weeklyCalendar.printTitle", { date: format(currentWeekStart, "d MMMM yyyy", { locale: fr }) }));
+      printElement(calendarRef.current, t("planning.weeklyCalendar.printTitle", { date: format(currentWeekStart, "d MMMM yyyy", { locale: getDateLocale() }) }));
     }
   };
 
@@ -366,7 +366,7 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <span className="text-sm font-medium min-w-[200px] text-center">
-                {t("planning.weeklyCalendar.weekOf", { date: format(currentWeekStart, "d MMMM yyyy", { locale: fr }) })}
+                {t("planning.weeklyCalendar.weekOf", { date: format(currentWeekStart, "d MMMM yyyy", { locale: getDateLocale() }) })}
               </span>
               <Button variant="outline" size="icon" onClick={() => setCurrentWeekStart(addWeeks(currentWeekStart, 1))}>
                 <ChevronRight className="h-4 w-4" />
@@ -411,7 +411,7 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
                     <div>
                       <p className="text-xs font-medium">{day}</p>
                       <p className="text-xs text-muted-foreground">
-                        {format(addDays(currentWeekStart, index), "d MMM", { locale: fr })}
+                        {format(addDays(currentWeekStart, index), "d MMM", { locale: getDateLocale() })}
                       </p>
                     </div>
                     {!isViewer && (
@@ -775,7 +775,7 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
                 {t("planning.weeklyCalendar.precisionTrackerTitle")}
                 {precisionItemDate && (
                   <span className="text-sm font-normal text-muted-foreground ml-2">
-                    — {format(new Date(precisionItemDate), "d MMMM yyyy", { locale: fr })}
+                    — {format(new Date(precisionItemDate), "d MMMM yyyy", { locale: getDateLocale() })}
                   </span>
                 )}
               </DialogTitle>

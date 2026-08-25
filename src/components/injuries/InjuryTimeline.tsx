@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,7 +6,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Activity, CheckCircle, AlertTriangle, TrendingUp } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
-import { fr } from "date-fns/locale";
 import { INJURY_STATUS } from "@/lib/constants/injury";
 
 interface InjuryTimelineProps {
@@ -166,7 +166,7 @@ export function InjuryTimeline({ playerId, categoryId, limit = 10 }: InjuryTimel
 
                       <div className="flex flex-wrap gap-2 text-xs">
                         <span className="text-muted-foreground">
-                          {format(new Date(injury.injury_date), "d MMMM yyyy", { locale: fr })}
+                          {format(new Date(injury.injury_date), "d MMMM yyyy", { locale: getDateLocale() })}
                         </span>
                         <span className="text-muted-foreground">•</span>
                         <StatusBadge status={getSeverityStatus(injury.severity) as "optimal" | "attention" | "critical"}>
@@ -192,7 +192,7 @@ export function InjuryTimeline({ playerId, categoryId, limit = 10 }: InjuryTimel
 
                       {injury.estimated_return_date && injury.status !== INJURY_STATUS.HEALED && (
                         <p className="text-xs text-muted-foreground">
-                          Retour estimé: {format(new Date(injury.estimated_return_date), "d MMMM yyyy", { locale: fr })}
+                          Retour estimé: {format(new Date(injury.estimated_return_date), "d MMMM yyyy", { locale: getDateLocale() })}
                         </p>
                       )}
 

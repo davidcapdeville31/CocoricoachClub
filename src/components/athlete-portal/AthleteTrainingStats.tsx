@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,7 +8,6 @@ import { athletePortalHeaders, buildAthletePortalFunctionUrl } from "@/lib/athle
 import { SPARE_EXERCISE_TYPES } from "@/lib/constants/bowlingBallBrands";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 import { format, parseISO } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface AthleteTrainingStatsProps {
   token?: string;
@@ -89,7 +89,7 @@ export function AthleteTrainingStats({ token, playerId, categoryId }: AthleteTra
     .map((r) => {
       const stats = r.competition_round_stats[0]?.stat_data as Record<string, number>;
       return {
-        date: format(parseISO(r.created_at), "dd/MM", { locale: fr }),
+        date: format(parseISO(r.created_at), "dd/MM", { locale: getDateLocale() }),
         score: stats?.gameScore || 0,
         strikes: stats?.strikes || 0,
         spares: stats?.spares || 0,
@@ -114,7 +114,7 @@ export function AthleteTrainingStats({ token, playerId, categoryId }: AthleteTra
     .sort((a, b) => a.date.localeCompare(b.date))
     .map((d) => ({
       ...d,
-      date: format(parseISO(d.date), "dd/MM", { locale: fr }),
+      date: format(parseISO(d.date), "dd/MM", { locale: getDateLocale() }),
       rate: d.attempts > 0 ? Math.round((d.successes / d.attempts) * 100) : 0,
     }));
 

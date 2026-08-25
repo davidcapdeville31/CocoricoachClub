@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useMemo, useState } from "react";
 import type { MatchRow } from "@/hooks/analytics/useTeamSportsAnalytics";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, MapPin, Calendar, Trophy, BarChart3, Users, GitCompare } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface Props {
   matches: MatchRow[];
@@ -107,7 +107,7 @@ function MatchHistoryCard({ match, onOpen }: { match: MatchRow; onOpen: Props["o
         <div className="flex items-center gap-2 min-w-[120px]">
           <Calendar className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm font-medium">
-            {format(new Date(match.match_date), "d MMM yyyy", { locale: fr })}
+            {format(new Date(match.match_date), "d MMM yyyy", { locale: getDateLocale() })}
           </span>
         </div>
         <div className="flex-1 min-w-[200px]">

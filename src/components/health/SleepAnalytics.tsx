@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Moon, BedDouble, TrendingUp, TrendingDown, Minus, AlertTriangle } from "lucide-react";
 import { format, subDays } from "date-fns";
-import { fr } from "date-fns/locale";
 import {
   LineChart,
   Line,
@@ -94,7 +94,7 @@ export function SleepAnalytics({ categoryId }: SleepAnalyticsProps) {
   const dailyChartData = Object.entries(dailyMap)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([date, data]) => ({
-      date: format(new Date(date), "dd/MM", { locale: fr }),
+      date: format(new Date(date), "dd/MM", { locale: getDateLocale() }),
       qualité: Math.round(data.qualities.reduce((s, v) => s + v, 0) / data.count * 10) / 10,
       durée: Math.round(data.durations.reduce((s, v) => s + v, 0) / data.count * 10) / 10,
     }));

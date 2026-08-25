@@ -1,3 +1,4 @@
+import { getLocaleTag } from "@/lib/i18n/dateLocale";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -231,7 +232,7 @@ export function BowlingStatsComparator({ categoryId, allGames }: Props) {
     for (const c of competitions) {
       const count = allGames.filter((g) => g.matchId === c.matchId).length;
       const oil = oilByMatch.get(c.matchId);
-      const dateStr = c.date ? new Date(c.date).toLocaleDateString("fr-FR") : "";
+      const dateStr = c.date ? new Date(c.date).toLocaleDateString(getLocaleTag()) : "";
       list.push({
         key: `match:${c.matchId}`,
         label: `${c.label}${dateStr ? ` — ${dateStr}` : ""}`,

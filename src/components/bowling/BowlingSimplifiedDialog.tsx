@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useEffect, useMemo, useState } from "react";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import {
@@ -13,7 +14,6 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sparkles, Plus, Target, Wrench, Save, Circle, Users, Loader2, Droplet } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -820,7 +820,7 @@ export function BowlingSimplifiedDialog({
             {isEditMode ? "Remplir la séance bowling" : "Nouvelle séance bowling — Mode simplifié"}
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
-            {format(date, "EEEE d MMMM yyyy", { locale: fr })}
+            {format(date, "EEEE d MMMM yyyy", { locale: getDateLocale() })}
           </p>
         </DialogHeader>
 

@@ -1,8 +1,8 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, MapPin, Plane, Home, Trophy, X } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface Props {
   homeName: string;
@@ -82,7 +82,7 @@ export function MatchStatsHeader({
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-white/85">
             <span className="inline-flex items-center gap-1">
               <Calendar className="h-3 w-3" />
-              {format(dt, "EEEE d MMMM yyyy", { locale: fr })}
+              {format(dt, "EEEE d MMMM yyyy", { locale: getDateLocale() })}
               {matchTime ? ` · ${matchTime.slice(0, 5)}` : ""}
             </span>
             {location ? (

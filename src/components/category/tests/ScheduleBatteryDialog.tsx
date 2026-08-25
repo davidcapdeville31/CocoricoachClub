@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,7 +27,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { CalendarPlus, Plus, X, Users, Repeat } from "lucide-react";
 import { toast } from "sonner";
 import { format, addWeeks, isBefore, startOfDay } from "date-fns";
-import { fr } from "date-fns/locale";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
 
@@ -466,7 +466,7 @@ export function ScheduleBatteryDialog({
                   {recurringPreview.length > 0 && (
                     <p className="text-xs text-muted-foreground">
                       {recurringPreview.length} session{recurringPreview.length > 1 ? "s" : ""} prévue{recurringPreview.length > 1 ? "s" : ""} • Aperçu :{" "}
-                      {recurringPreview.slice(0, 4).map((d) => format(new Date(d), "dd MMM", { locale: fr })).join(", ")}
+                      {recurringPreview.slice(0, 4).map((d) => format(new Date(d), "dd MMM", { locale: getDateLocale() })).join(", ")}
                       {recurringPreview.length > 4 ? "…" : ""}
                     </p>
                   )}
@@ -516,7 +516,7 @@ export function ScheduleBatteryDialog({
                 {selectedPlayers.length} athlète{selectedPlayers.length > 1 ? "s" : ""} ·{" "}
                 {slots
                   .filter((s) => s.date)
-                  .map((s) => format(new Date(s.date), "d MMM", { locale: fr }))
+                  .map((s) => format(new Date(s.date), "d MMM", { locale: getDateLocale() }))
                   .join(", ")}
               </div>
             )}

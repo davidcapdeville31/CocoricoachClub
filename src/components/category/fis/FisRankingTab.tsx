@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { TrendingUp, TrendingDown, Target, Calculator, Trophy, Clock, AlertTriangle, Medal, History, Plus, Trash2, MapPin, CalendarDays, Globe } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
-import { fr } from "date-fns/locale";
 import { calculateTotalPoints, getBestResults, simulatePoints, determineScale, DISCIPLINE_F_VALUES } from "@/lib/fis/fisPointsEngine";
 import { calculateWsplPoints, calculateWsplRanking, WSPL_EVENT_CATEGORIES } from "@/lib/fis/wsplPointsEngine";
 import { Progress } from "@/components/ui/progress";
@@ -384,7 +384,7 @@ export function FisRankingTab({ categoryId }: FisRankingTabProps) {
                               {comp?.discipline && (
                                 <Badge variant="outline" className="text-[8px] py-0 px-1">{getDisciplineShort(comp.discipline)}</Badge>
                               )}
-                              <span>Expire le {r.expires_at ? format(new Date(r.expires_at), "d MMM yyyy", { locale: fr }) : "—"}</span>
+                              <span>Expire le {r.expires_at ? format(new Date(r.expires_at), "d MMM yyyy", { locale: getDateLocale() }) : "—"}</span>
                             </div>
                           </div>
                           <Badge variant="destructive" className="font-mono text-xs shrink-0">
@@ -576,7 +576,7 @@ export function FisRankingTab({ categoryId }: FisRankingTabProps) {
                             {obj.deadline && (
                               <span className="flex items-center gap-0.5">
                                 <CalendarDays className="h-2.5 w-2.5" />
-                                {format(new Date(obj.deadline), "d MMM yyyy", { locale: fr })}
+                                {format(new Date(obj.deadline), "d MMM yyyy", { locale: getDateLocale() })}
                               </span>
                             )}
                           </div>
@@ -686,7 +686,7 @@ export function FisRankingTab({ categoryId }: FisRankingTabProps) {
                           <div className="min-w-0">
                             <p className="truncate text-xs font-medium">{comp?.name || "—"}</p>
                             <p className="text-[10px] text-muted-foreground">
-                              {comp?.competition_date ? format(new Date(comp.competition_date), "d MMM yyyy", { locale: fr }) : ""}
+                              {comp?.competition_date ? format(new Date(comp.competition_date), "d MMM yyyy", { locale: getDateLocale() }) : ""}
                               {comp?.location ? ` • ${comp.location}` : ""}
                             </p>
                           </div>

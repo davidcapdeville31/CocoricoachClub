@@ -1,10 +1,10 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { ChevronDown, ChevronRight, Users } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { getLevelForPercent, type BatteryLevel } from "@/lib/constants/testUnits";
 import { cn } from "@/lib/utils";
 
@@ -167,7 +167,7 @@ export function BatteryResultsList({
                   )}
                   <span className="font-medium text-sm truncate">{g.playerName}</span>
                   <span className="text-[11px] text-muted-foreground shrink-0">
-                    {format(new Date(g.date), "dd/MM/yyyy", { locale: fr })}
+                    {format(new Date(g.date), "dd/MM/yyyy", { locale: getDateLocale() })}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">

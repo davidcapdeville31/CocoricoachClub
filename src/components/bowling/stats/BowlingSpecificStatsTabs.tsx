@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 // Bowling — "Stats Spécifiques" with 3 sub-tabs (Technique / Tactique / Parties).
 import { useMemo, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -11,7 +12,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon, Target, Wrench, Trophy, Filter, TrendingUp, Sparkles } from "lucide-react";
 import { format, isAfter, isBefore, startOfDay, endOfDay } from "date-fns";
-import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList, LineChart, Line, Legend } from "recharts";
 import {
@@ -312,22 +312,22 @@ export function BowlingSpecificStatsTabs({ playerId, categoryId }: Props) {
               <PopoverTrigger asChild>
                 <Button variant="outline" size="sm" className={cn("h-8 gap-2 text-xs", !dateFrom && "text-muted-foreground")}>
                   <CalendarIcon className="h-3 w-3" />
-                  {dateFrom ? format(dateFrom, "dd MMM", { locale: fr }) : "Du"}
+                  {dateFrom ? format(dateFrom, "dd MMM", { locale: getDateLocale() }) : "Du"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} locale={fr} initialFocus className={cn("p-3 pointer-events-auto")} />
+                <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} locale={getDateLocale()} initialFocus className={cn("p-3 pointer-events-auto")} />
               </PopoverContent>
             </Popover>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" size="sm" className={cn("h-8 gap-2 text-xs", !dateTo && "text-muted-foreground")}>
                   <CalendarIcon className="h-3 w-3" />
-                  {dateTo ? format(dateTo, "dd MMM", { locale: fr }) : "Au"}
+                  {dateTo ? format(dateTo, "dd MMM", { locale: getDateLocale() }) : "Au"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar mode="single" selected={dateTo} onSelect={setDateTo} locale={fr} initialFocus className={cn("p-3 pointer-events-auto")} />
+                <Calendar mode="single" selected={dateTo} onSelect={setDateTo} locale={getDateLocale()} initialFocus className={cn("p-3 pointer-events-auto")} />
               </PopoverContent>
             </Popover>
 

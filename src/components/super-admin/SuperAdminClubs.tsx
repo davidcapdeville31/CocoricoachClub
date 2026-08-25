@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/sonner";
 import { Building2, Pause, Play, ChevronDown, ChevronRight, FolderOpen, Gift, User, DollarSign, Archive } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 export function SuperAdminClubs() {
   const queryClient = useQueryClient();
@@ -269,7 +269,7 @@ export function SuperAdminClubs() {
             <div className="mb-3 text-sm text-muted-foreground">
               <p>Propriétaire: {club.profiles?.full_name || club.profiles?.email || "Inconnu"}</p>
               <p>Email: {club.profiles?.email || "-"}</p>
-              <p>Créé le: {format(new Date(club.created_at), "dd MMM yyyy", { locale: fr })}</p>
+              <p>Créé le: {format(new Date(club.created_at), "dd MMM yyyy", { locale: getDateLocale() })}</p>
               <p>Statut propriétaire: {ownerIsFree === true ? "🎁 Gratuit" : ownerIsFree === false ? "💰 Payant" : "Non défini"}</p>
             </div>
             

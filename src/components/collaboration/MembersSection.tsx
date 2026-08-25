@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,7 +34,6 @@ import {
 import { Trash2, Crown, Mail, FolderCog } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { getAppBaseUrl } from "@/lib/appUrl";
 import { useRealtimeMembers } from "@/hooks/useRealtimeMembers";
 import { useState } from "react";
@@ -272,7 +272,7 @@ export function MembersSection({ clubId, canManage }: MembersSectionProps) {
                     )}
                   </TableCell>
                   <TableCell>
-                    {format(new Date(member.created_at), "dd MMM yyyy", { locale: fr })}
+                    {format(new Date(member.created_at), "dd MMM yyyy", { locale: getDateLocale() })}
                   </TableCell>
                   {canManage && (
                     <TableCell>

@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,7 +21,6 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { Plus, Trash2, ClipboardCheck, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -335,7 +335,7 @@ export function QuickTestEntryDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ClipboardCheck className="h-5 w-5 text-amber-500" />
-            Saisie des tests - {format(new Date(sessionDate), "PPP", { locale: fr })}
+            Saisie des tests - {format(new Date(sessionDate), "PPP", { locale: getDateLocale() })}
           </DialogTitle>
         </DialogHeader>
 

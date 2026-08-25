@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,7 +38,6 @@ import { CreateThemeCategoryDialog } from "./CreateThemeCategoryDialog";
 import { EditCustomTestDialog, type EditableTest } from "./EditCustomTestDialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { UnifiedTestDialog } from "./UnifiedTestDialog";
 import { ScheduleTestDialog } from "./ScheduleTestDialog";
 import { TEST_CATEGORIES, getTestLabel, getTestCategoriesForSport, TestCategory } from "@/lib/constants/testCategories";
@@ -257,7 +257,7 @@ export function BatteryRadarCharts({
                 <div>
                   <CardTitle className="text-base">{g.playerName}</CardTitle>
                   <p className="text-xs text-muted-foreground">
-                    {g.batteryName} · {format(new Date(g.date), "dd/MM/yyyy", { locale: fr })}
+                    {g.batteryName} · {format(new Date(g.date), "dd/MM/yyyy", { locale: getDateLocale() })}
                   </p>
                 </div>
                 <div className="text-right">
@@ -955,7 +955,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
                       {singles.map((test: any) => (
                         <TableRow key={test.id} className="animate-fade-in">
                           <TableCell className="font-medium">{test.players?.name}</TableCell>
-                          <TableCell>{format(new Date(test.test_date), "dd/MM/yyyy", { locale: fr })}</TableCell>
+                          <TableCell>{format(new Date(test.test_date), "dd/MM/yyyy", { locale: getDateLocale() })}</TableCell>
                           <TableCell>
                             <span className="text-xs text-muted-foreground block">
                               {filteredTestCategories.find(c => c.value === test.test_category)?.label || formatCategoryLabel(test.test_category)}

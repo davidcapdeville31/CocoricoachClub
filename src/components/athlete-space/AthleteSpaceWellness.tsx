@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useEffect, useMemo } from "react";
 import { AthleteSpaceWellnessHistory } from "./AthleteSpaceWellnessHistory";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -22,7 +23,6 @@ import { getWellnessButtonClasses, getSleepHoursButtonClasses } from "@/lib/well
 import { useWellnessQuestions } from "@/lib/wellness/questionConfig";
 import { BodyPainSelector, type BodyPainEntry } from "@/components/wellness/BodyPainSelector";
 import { format, subDays, startOfDay } from "date-fns";
-import { fr } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
 
 
@@ -278,7 +278,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
       toast.success(
         isToday
           ? t("athleteSpace:wellness.savedToday")
-          : t("athleteSpace:wellness.savedDate", { date: format(selectedDate, "d MMM", { locale: fr }) }),
+          : t("athleteSpace:wellness.savedDate", { date: format(selectedDate, "d MMM", { locale: getDateLocale() }) }),
       );
       queryClient.invalidateQueries({ queryKey: ["athlete-space-wellness"] });
       queryClient.invalidateQueries({ queryKey: ["athlete-space-wellness-today"] });
@@ -312,8 +312,8 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
           >
             <CalendarIcon className="h-3.5 w-3.5" />
             {isToday
-              ? `${t("athleteSpace:wellness.today")} · ${format(selectedDate, "EEEE d MMM", { locale: fr })}`
-              : format(selectedDate, "EEEE d MMM yyyy", { locale: fr })}
+              ? `${t("athleteSpace:wellness.today")} · ${format(selectedDate, "EEEE d MMM", { locale: getDateLocale() })}`
+              : format(selectedDate, "EEEE d MMM yyyy", { locale: getDateLocale() })}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
@@ -334,7 +334,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                 "relative after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:h-1.5 after:w-1.5 after:rounded-full after:bg-status-optimal",
             }}
             initialFocus
-            locale={fr}
+            locale={getDateLocale()}
             className={cn("p-3 pointer-events-auto")}
           />
           <div className="px-3 pb-2 pt-1 flex items-center gap-2 text-[10px] text-muted-foreground border-t">
@@ -497,7 +497,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
             <span className="truncate" style={{ color: NAV_COLORS.sante.base }}>
               {isToday
                 ? t("athleteSpace:wellness.todayToFillTitle")
-                : t("athleteSpace:wellness.wellnessOfDay", { date: format(selectedDate, "EEEE d MMM", { locale: fr }) })}
+                : t("athleteSpace:wellness.wellnessOfDay", { date: format(selectedDate, "EEEE d MMM", { locale: getDateLocale() }) })}
             </span>
           </button>
           <div className="flex items-center gap-2 shrink-0">
@@ -730,7 +730,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
             style={{ backgroundColor: NAV_COLORS.sante.base }}
           >
             <CheckCircle2 className="h-4 w-4 mr-2" />
-            {isToday ? t("athleteSpace:wellness.saveToday") : t("athleteSpace:wellness.saveDate", { date: format(selectedDate, "d MMM", { locale: fr }) })}
+            {isToday ? t("athleteSpace:wellness.saveToday") : t("athleteSpace:wellness.saveDate", { date: format(selectedDate, "d MMM", { locale: getDateLocale() }) })}
           </Button>
         </CardContent>
       )}

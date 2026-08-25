@@ -1,9 +1,9 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, CalendarClock } from "lucide-react";
 import { differenceInDays, format, parseISO } from "date-fns";
-import { fr } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -65,7 +65,7 @@ export function InjuryReturnAlerts() {
           new Date()
         );
         const returnDate = format(parseISO(injury.estimated_return_date), "d MMMM yyyy", {
-          locale: fr,
+          locale: getDateLocale(),
         });
 
         return (

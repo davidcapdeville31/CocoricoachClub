@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -40,7 +41,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
     MapPin
   } from "lucide-react";
 import { format, addDays, subDays } from "date-fns";
-import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { 
   calculateWeightedWellnessScore, 
@@ -888,7 +888,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
          <div>
            <h2 className="text-2xl font-bold">Décisions</h2>
            <p className="text-muted-foreground text-sm">
-             {format(new Date(), "EEEE d MMMM yyyy", { locale: fr })}
+             {format(new Date(), "EEEE d MMMM yyyy", { locale: getDateLocale() })}
            </p>
          </div>
          <SeasonRosterFilterToggle />
@@ -1662,13 +1662,13 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                             : "bg-muted"
                         )}>
                           <span className="text-xs font-medium leading-none">
-                            {format(matchDate, "EEE", { locale: fr })}
+                            {format(matchDate, "EEE", { locale: getDateLocale() })}
                           </span>
                           <span className="text-lg font-bold leading-none">
                             {format(matchDate, "d")}
                           </span>
                           <span className="text-[10px] leading-none">
-                            {format(matchDate, "MMM", { locale: fr })}
+                            {format(matchDate, "MMM", { locale: getDateLocale() })}
                           </span>
                         </div>
                         <div className="min-w-0">
@@ -1894,7 +1894,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <ClipboardCheck className="h-5 w-5 text-blue-600" />
-                {t("decision.dialogs.attendanceDetail.title", { date: format(new Date(), "dd MMMM yyyy", { locale: fr }) })}
+                {t("decision.dialogs.attendanceDetail.title", { date: format(new Date(), "dd MMMM yyyy", { locale: getDateLocale() }) })}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-6">

@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,7 +31,6 @@ import {
 import { Plus, Trophy, Star } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -216,7 +216,7 @@ export function PlayerCapsSection({ categoryId }: PlayerCapsSectionProps) {
                     {data.caps.slice(0, 5).map((cap: any) => (
                       <TableRow key={cap.id}>
                         <TableCell>
-                          {format(new Date(cap.cap_date), "dd MMM yyyy", { locale: fr })}
+                          {format(new Date(cap.cap_date), "dd MMM yyyy", { locale: getDateLocale() })}
                         </TableCell>
                         <TableCell>{cap.competition || "-"}</TableCell>
                         <TableCell>{cap.opponent || "-"}</TableCell>

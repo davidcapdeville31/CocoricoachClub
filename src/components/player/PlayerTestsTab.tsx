@@ -1,3 +1,4 @@
+import { getLocaleTag } from "@/lib/i18n/dateLocale";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -203,7 +204,7 @@ export function PlayerTestsTab({ playerId, categoryId, sportType }: PlayerTestsT
     // Chart data: group by test_type over time
     const testTypes = [...new Set(tests.map(t => t.test_type))];
     const chartData = tests.reduce((acc, t) => {
-      const date = new Date(t.test_date).toLocaleDateString("fr-FR");
+      const date = new Date(t.test_date).toLocaleDateString(getLocaleTag());
       let existing = acc.find(item => item.date === date);
       if (!existing) {
         existing = { date };
@@ -269,7 +270,7 @@ export function PlayerTestsTab({ playerId, categoryId, sportType }: PlayerTestsT
                       const note = resolveNote(test);
                       return (
                         <TableRow key={test.id}>
-                          <TableCell>{new Date(test.test_date).toLocaleDateString("fr-FR")}</TableCell>
+                          <TableCell>{new Date(test.test_date).toLocaleDateString(getLocaleTag())}</TableCell>
                           <TableCell>{getTestLabel(test.test_category, test.test_type)}</TableCell>
                           <TableCell className="font-semibold text-primary">
                             {test.result_value} {test.result_unit || ""}

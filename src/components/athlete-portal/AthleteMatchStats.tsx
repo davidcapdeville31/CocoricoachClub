@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { Trophy, Calendar, CheckCircle2, MapPin, Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
-import { fr } from "date-fns/locale";
 import { athletePortalHeaders, buildAthletePortalFunctionUrl } from "@/lib/athletePortalClient";
 import { BowlingScoreSheet } from "./BowlingScoreSheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -184,7 +184,7 @@ export function AthleteMatchStats({ token, playerId, categoryId, sportType }: At
                     <div className="flex items-center gap-3">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span className="font-medium">
-                        {format(parseISO(match.match_date), "EEEE d MMMM", { locale: fr })}
+                        {format(parseISO(match.match_date), "EEEE d MMMM", { locale: getDateLocale() })}
                       </span>
                     </div>
                     {match.is_home ? (
@@ -466,7 +466,7 @@ export function AthleteMatchStats({ token, playerId, categoryId, sportType }: At
                   <div className="flex items-center gap-3">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                     <span>
-                      {format(parseISO(match.match_date), "d MMMM", { locale: fr })} - vs {match.opponent}
+                      {format(parseISO(match.match_date), "d MMMM", { locale: getDateLocale() })} - vs {match.opponent}
                     </span>
                   </div>
                 </div>

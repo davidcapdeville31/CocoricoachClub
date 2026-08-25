@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +13,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Trash2, Target, Trophy, BarChart3, Activity } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import {
   IMPLEMENT_LABELS,
   ImplementType,
@@ -199,7 +199,7 @@ export function AthleticsThrowingStats({ categoryId }: Props) {
     return Object.entries(byDate)
       .sort((a, b) => a[0].localeCompare(b[0]))
       .map(([date, vals]) => ({
-        date: format(new Date(date), "dd/MM/yy", { locale: fr }),
+        date: format(new Date(date), "dd/MM/yy", { locale: getDateLocale() }),
         ...vals,
       }));
   }, [filtered]);

@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -13,7 +14,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { 
   GraduationCap, 
   User, 
@@ -434,7 +434,7 @@ export function AcademicTab({ categoryId }: AcademicTabProps) {
                           <div>
                             <p className="font-medium">{grade.subject}</p>
                             <p className="text-xs text-muted-foreground">
-                              {format(new Date(grade.grade_date), "d MMMM yyyy", { locale: fr })}
+                              {format(new Date(grade.grade_date), "d MMMM yyyy", { locale: getDateLocale() })}
                               {grade.term && ` • ${grade.term}`}
                             </p>
                           </div>
@@ -459,7 +459,7 @@ export function AcademicTab({ categoryId }: AcademicTabProps) {
                         <div key={absence.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                           <div>
                             <p className="font-medium">
-                              {format(new Date(absence.absence_date), "d MMMM yyyy", { locale: fr })}
+                              {format(new Date(absence.absence_date), "d MMMM yyyy", { locale: getDateLocale() })}
                             </p>
                             <p className="text-xs text-muted-foreground">
                               {absence.reason || "Pas de motif renseigné"}

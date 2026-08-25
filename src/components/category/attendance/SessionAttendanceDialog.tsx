@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +14,6 @@ import {
   Users, Check, X, Clock, AlertCircle, CheckCircle2
 } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
@@ -219,7 +219,7 @@ export function SessionAttendanceDialog({
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Appel - {format(new Date(session.session_date), "EEEE d MMMM", { locale: fr })}
+            Appel - {format(new Date(session.session_date), "EEEE d MMMM", { locale: getDateLocale() })}
           </DialogTitle>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Badge variant="outline">{session.training_type}</Badge>

@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo } from "react";
 import { calculateWeightedRpe } from "@/lib/weightedRpeCalculations";
 import { useQuery } from "@tanstack/react-query";
@@ -23,7 +24,6 @@ import {
   Eye
 } from "lucide-react";
 import { format, subDays, parseISO } from "date-fns";
-import { fr } from "date-fns/locale";
 import {
   BarChart,
   Bar,
@@ -490,7 +490,7 @@ export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualPr
                       </div>
                       <div className="flex items-center gap-4 text-sm">
                         <span className="text-muted-foreground">
-                          {format(parseISO(c.sessionDate), "dd/MM", { locale: fr })}
+                          {format(parseISO(c.sessionDate), "dd/MM", { locale: getDateLocale() })}
                         </span>
                         <div className="flex items-center gap-2">
                           <span className="text-muted-foreground">{c.plannedRpe}</span>

@@ -1,10 +1,10 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo } from "react";
 import { DndContext, DragEndEvent, DragOverlay, pointerWithin } from "@dnd-kit/core";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Plus, Swords, Download, Printer } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, startOfWeek, endOfWeek, isSameDay } from "date-fns";
-import { fr } from "date-fns/locale";
 import { getTrainingTypeColor, getTrainingTypeLabel, TRAINING_TYPE_COLORS } from "@/lib/constants/trainingTypes";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
 import { cn } from "@/lib/utils";
@@ -79,7 +79,7 @@ export function MonthlyCalendarView({
   onRescheduleSession,
 }: MonthlyCalendarViewProps) {
   const { t } = useTranslation();
-  const DAYS_OF_WEEK = t("planning:calendarViews.daysShort", { returnObjects: true }) as string[];
+  const DAYS_OF_WEEK = t("planning.calendarViews.daysShort", { returnObjects: true }) as string[];
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [activeSession, setActiveSession] = useState<Session | null>(null);
   const [feedbackSession, setFeedbackSession] = useState<Session | null>(null);
@@ -148,25 +148,25 @@ export function MonthlyCalendarView({
           <div className="flex justify-between items-center flex-wrap gap-4">
             <CardTitle>
               {isIndividualSport(sportType || "") 
-                ? t("planning:calendarViews.titleCompetitions") 
-                : t("planning:calendarViews.titleMatches")}
+                ? t("planning.calendarViews.titleCompetitions") 
+                : t("planning.calendarViews.titleMatches")}
             </CardTitle>
             <div className="flex gap-2 flex-wrap">
-              <Button variant="outline" size="icon" onClick={onPrint} title={t("planning:calendarViews.print")}>
+              <Button variant="outline" size="icon" onClick={onPrint} title={t("planning.calendarViews.print")}>
                 <Printer className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="icon" onClick={onExportPdf} title={t("planning:calendarViews.exportPdf")}>
+              <Button variant="outline" size="icon" onClick={onExportPdf} title={t("planning.calendarViews.exportPdf")}>
                 <Download className="h-4 w-4" />
               </Button>
               {!isViewer && (
                 <>
                   <Button onClick={onAddMatch} variant="outline" className="gap-2">
                     <Swords className="h-4 w-4" />
-                    {isIndividualSport(sportType || "") ? t("planning:calendarViews.competition") : t("planning:calendarViews.match")}
+                    {isIndividualSport(sportType || "") ? t("planning.calendarViews.competition") : t("planning.calendarViews.match")}
                   </Button>
                   <Button onClick={onAddSession} className="gap-2">
                     <Plus className="h-4 w-4" />
-                    {t("planning:calendarViews.session")}
+                    {t("planning.calendarViews.session")}
                   </Button>
                 </>
               )}
@@ -184,7 +184,7 @@ export function MonthlyCalendarView({
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <h3 className="text-lg font-semibold capitalize">
-              {format(currentMonth, "MMMM yyyy", { locale: fr })}
+              {format(currentMonth, "MMMM yyyy", { locale: getDateLocale() })}
             </h3>
             <Button
               variant="outline"
@@ -270,15 +270,15 @@ export function MonthlyCalendarView({
       <AlertDialog open={!!deleteSessionId} onOpenChange={(open) => !open && setDeleteSessionId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("planning:calendarViews.deleteSessionTitle")}</AlertDialogTitle>
+            <AlertDialogTitle>{t("planning.calendarViews.deleteSessionTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("planning:calendarViews.deleteSessionDesc")}
+              {t("planning.calendarViews.deleteSessionDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t("planning:calendarViews.cancel")}</AlertDialogCancel>
+            <AlertDialogCancel>{t("planning.calendarViews.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              {t("planning:calendarViews.delete")}
+              {t("planning.calendarViews.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

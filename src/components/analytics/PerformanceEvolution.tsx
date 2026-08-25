@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +8,6 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
 } from "recharts";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { Loader2, LineChartIcon, BarChart3, AreaChartIcon, Users, User, X, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -361,7 +361,7 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
       });
       return Array.from(dateMap.entries())
         .map(([date, entry]) => ({
-          date: format(new Date(date), "dd/MM/yy", { locale: fr }),
+          date: format(new Date(date), "dd/MM/yy", { locale: getDateLocale() }),
           rawDate: date,
           moyenne: entry.count > 0 ? Number((entry.total / entry.count).toFixed(2)) : 0,
         }))
@@ -392,7 +392,7 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
     const sortedDates = Array.from(allDates).sort();
     return sortedDates.map(date => {
       const point: any = {
-        date: format(new Date(date), "dd/MM/yy", { locale: fr }),
+        date: format(new Date(date), "dd/MM/yy", { locale: getDateLocale() }),
         rawDate: date,
       };
       activePlayers.forEach(pid => {

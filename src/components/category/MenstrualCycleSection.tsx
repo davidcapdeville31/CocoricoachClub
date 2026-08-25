@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +14,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Calendar, Activity, Moon, Heart, AlertTriangle, Lightbulb } from "lucide-react";
 import { format, differenceInDays, addDays } from "date-fns";
-import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 
 interface MenstrualCycleSectionProps {
@@ -320,7 +320,7 @@ export function MenstrualCycleSection({ categoryId, playerId }: MenstrualCycleSe
                         <div className="text-right">
                           <p className="text-xs text-muted-foreground">Prochain cycle prévu</p>
                           <p className="text-sm font-medium">
-                            {format(addDays(new Date(cycle.cycle_start_date), cycle.cycle_length_days), "dd MMM", { locale: fr })}
+                            {format(addDays(new Date(cycle.cycle_start_date), cycle.cycle_length_days), "dd MMM", { locale: getDateLocale() })}
                           </p>
                         </div>
                       </div>
@@ -370,7 +370,7 @@ export function MenstrualCycleSection({ categoryId, playerId }: MenstrualCycleSe
                   <div>
                     <p className="font-medium">{s.players?.name}</p>
                     <p className="text-sm text-muted-foreground">
-                      {format(new Date(s.tracking_date), "dd MMM yyyy", { locale: fr })}
+                      {format(new Date(s.tracking_date), "dd MMM yyyy", { locale: getDateLocale() })}
                       {s.phase && ` • ${PHASE_INFO[s.phase as keyof typeof PHASE_INFO]?.name}`}
                     </p>
                   </div>

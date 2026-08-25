@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -40,7 +41,6 @@ import {
   Trophy
 } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
 import { PlayerRehabExerciseEditor } from "./PlayerRehabExerciseEditor";
 import i18n from "@/i18n";
@@ -519,7 +519,7 @@ export function PlayerRehabTracker({
                 >
                   <div>
                     <p className="text-sm font-medium">
-                      {format(new Date(log.completed_at!), "d MMM à HH:mm", { locale: fr })}
+                      {format(new Date(log.completed_at!), "d MMM à HH:mm", { locale: getDateLocale() })}
                     </p>
                     {log.notes && (
                       <p className="text-xs text-muted-foreground">{log.notes}</p>

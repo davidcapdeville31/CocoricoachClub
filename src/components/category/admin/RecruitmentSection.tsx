@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +14,6 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Search, User, Phone, Mail, MapPin, Calendar, Trash2, Pencil } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import {
   DndContext,
   DragOverlay,
@@ -559,7 +559,7 @@ export function RecruitmentSection({ categoryId }: RecruitmentSectionProps) {
                   <div>
                     <span className="text-muted-foreground">Né le:</span>
                     <p className="font-medium">
-                      {format(new Date(selectedProspect.birth_date), "d MMMM yyyy", { locale: fr })}
+                      {format(new Date(selectedProspect.birth_date), "d MMMM yyyy", { locale: getDateLocale() })}
                     </p>
                   </div>
                 )}
@@ -603,7 +603,7 @@ export function RecruitmentSection({ categoryId }: RecruitmentSectionProps) {
               {selectedProspect.last_contact && (
                 <div className="text-xs text-muted-foreground flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
-                  Dernier contact: {format(new Date(selectedProspect.last_contact), "d MMM yyyy", { locale: fr })}
+                  Dernier contact: {format(new Date(selectedProspect.last_contact), "d MMM yyyy", { locale: getDateLocale() })}
                 </div>
               )}
 

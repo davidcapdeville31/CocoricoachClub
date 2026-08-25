@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +10,6 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { FileText, Download, User, Calendar, Trophy, Loader2, Users, FileSpreadsheet, ClipboardCheck } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import jsPDF from "jspdf";
 import ExcelJS from "exceljs";
 import { getExcelBranding, addBrandedHeader, styleDataHeaderRow, addZebraRows, addFooter, downloadWorkbook } from "@/lib/excelExport";
@@ -257,14 +257,14 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       const contentWidth = pageWidth - 2 * margin;
 
       const dateRange = tdjDateFrom || tdjDateTo
-        ? `${tdjDateFrom ? format(new Date(tdjDateFrom), "d MMM yyyy", { locale: fr }) : "Début"} → ${tdjDateTo ? format(new Date(tdjDateTo), "d MMM yyyy", { locale: fr }) : "Aujourd'hui"}`
+        ? `${tdjDateFrom ? format(new Date(tdjDateFrom), "d MMM yyyy", { locale: getDateLocale() }) : "Début"} → ${tdjDateTo ? format(new Date(tdjDateTo), "d MMM yyyy", { locale: getDateLocale() }) : "Aujourd'hui"}`
         : "";
 
       let yPos = drawPdfHeaderCustom(
         pdf,
         `SUIVI TEMPS DE JEU${seasonName ? ` - ${seasonName}` : ""}`,
         `${cn1 || category?.clubs?.name || ''} - ${catName1 || category?.name || ''}`,
-        `${matchesData.length} matchs | ${format(new Date(), "d MMMM yyyy", { locale: fr })}${dateRange ? ` | ${dateRange}` : ""}`,
+        `${matchesData.length} matchs | ${format(new Date(), "d MMMM yyyy", { locale: getDateLocale() })}${dateRange ? ` | ${dateRange}` : ""}`,
         pdfSettings,
         logoBase64
       );
@@ -514,7 +514,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         pdf,
         `BILAN DE SAISON${sName ? ` - ${sName}` : ` ${new Date().getFullYear()}/${new Date().getFullYear() + 1}`}`,
         `${cn2 || category?.clubs?.name || ''} - ${catName2 || category?.name || ''}`,
-        `Généré le ${format(new Date(), "d MMMM yyyy", { locale: fr })}`,
+        `Généré le ${format(new Date(), "d MMMM yyyy", { locale: getDateLocale() })}`,
         pdfSettings,
         logoBase64
       );
@@ -845,7 +845,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         pdf,
         `RAPPORT DE MATCH`,
         `vs ${match.opponent} - ${match.location || 'Lieu non défini'}`,
-        `${format(new Date(match.match_date), "EEEE d MMMM yyyy", { locale: fr })}`,
+        `${format(new Date(match.match_date), "EEEE d MMMM yyyy", { locale: getDateLocale() })}`,
         pdfSettings,
         logoBase64
       );
@@ -1478,7 +1478,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         pdf,
         "VUE D'ENSEMBLE DE L'EFFECTIF",
         `${cn3 || category?.clubs?.name || ''} - ${catName3 || category?.name || ''}${sn3 ? ` • ${sn3}` : ''}`,
-        `Généré le ${format(new Date(), "d MMMM yyyy", { locale: fr })}${dateRange ? ` | ${dateRange.trim()}` : ""}`,
+        `Généré le ${format(new Date(), "d MMMM yyyy", { locale: getDateLocale() })}${dateRange ? ` | ${dateRange.trim()}` : ""}`,
         pdfSettings,
         logoBase64
       );
@@ -2232,7 +2232,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         pdf,
         "RAPPORT DE PRÉSENCES",
         `${cn4 || category?.clubs?.name || ''} - ${catName4 || category?.name || ''}${sn4 ? ` • ${sn4}` : ''}`,
-        `Généré le ${format(new Date(), "d MMMM yyyy", { locale: fr })}${dateRange}`,
+        `Généré le ${format(new Date(), "d MMMM yyyy", { locale: getDateLocale() })}${dateRange}`,
         pdfSettings,
         logoBase64
       );
@@ -2659,7 +2659,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
                 <SelectContent>
                   {matches.map((match) => (
                     <SelectItem key={match.id} value={match.id}>
-                      {isIndividualSport ? "" : "vs "}{match.opponent} ({format(new Date(match.match_date), "d MMM", { locale: fr })})
+                      {isIndividualSport ? "" : "vs "}{match.opponent} ({format(new Date(match.match_date), "d MMM", { locale: getDateLocale() })})
                     </SelectItem>
                   ))}
                 </SelectContent>

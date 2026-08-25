@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +26,6 @@ import {
   Area,
 } from "recharts";
 import { format, parseISO } from "date-fns";
-import { fr } from "date-fns/locale";
 import { Heart, Activity, AlertTriangle, TrendingUp, Info } from "lucide-react";
 import {
   HrvDailyData,
@@ -108,7 +108,7 @@ export function HrvAnalysisPanel({ hrvRecords, loadData, playerId, isLoading }: 
       .filter((h) => h.hrvMs != null)
       .map((h) => ({
         ...h,
-        dateFormatted: format(parseISO(h.date), "dd/MM", { locale: fr }),
+        dateFormatted: format(parseISO(h.date), "dd/MM", { locale: getDateLocale() }),
       }));
   }, [hrvAnalysis]);
 
@@ -116,7 +116,7 @@ export function HrvAnalysisPanel({ hrvRecords, loadData, playerId, isLoading }: 
   const correlationChartData = useMemo(() => {
     return correlations.map((c) => ({
       ...c,
-      dateFormatted: format(parseISO(c.date), "dd/MM", { locale: fr }),
+      dateFormatted: format(parseISO(c.date), "dd/MM", { locale: getDateLocale() }),
       hrvScore: hrvAnalysis.find((h) => h.date === c.date)?.hrvScore ?? null,
     }));
   }, [correlations, hrvAnalysis]);
@@ -294,7 +294,7 @@ export function HrvAnalysisPanel({ hrvRecords, loadData, playerId, isLoading }: 
                       if (!d) return null;
                       return (
                         <div className="rounded-lg border bg-background p-3 shadow-lg text-sm space-y-1">
-                          <p className="font-medium">{format(parseISO(d.date), "EEEE d MMMM", { locale: fr })}</p>
+                          <p className="font-medium">{format(parseISO(d.date), "EEEE d MMMM", { locale: getDateLocale() })}</p>
                           {d.hrvMs != null && <p>{t("workload.hrvPanel.chart.tooltipHrv", { value: d.hrvMs })}</p>}
                           {d.baselineMean != null && <p className="text-xs text-muted-foreground">{t("workload.hrvPanel.chart.tooltipBaseline", { value: d.baselineMean })}</p>}
                           {d.cvPercent != null && <p>{t("workload.hrvPanel.chart.tooltipCv", { value: d.cvPercent })} <span className={`font-semibold ${getCvStatusColor(d.cvStatus)}`}></span> ({getCvStatusLabel(d.cvStatus)})</p>}
@@ -382,7 +382,7 @@ export function HrvAnalysisPanel({ hrvRecords, loadData, playerId, isLoading }: 
                           if (!d) return null;
                           return (
                             <div className="rounded-lg border bg-background p-3 shadow-lg text-sm space-y-1">
-                              <p className="font-medium">{format(parseISO(d.date), "EEEE d MMMM", { locale: fr })}</p>
+                              <p className="font-medium">{format(parseISO(d.date), "EEEE d MMMM", { locale: getDateLocale() })}</p>
                               <p>{t("workload.hrvPanel.chart.tooltipRatio", { value: d.acwr?.toFixed(2) })}</p>
                               {d.hrvScore != null && <p>{t("workload.hrvPanel.chart.tooltipHrvScore", { value: d.hrvScore.toFixed(2) })}</p>}
                               <p className={`font-medium mt-1 ${d.color}`}>{getCorrelationRiskLabel(d.riskLevel)}</p>
@@ -458,7 +458,7 @@ export function HrvAnalysisPanel({ hrvRecords, loadData, playerId, isLoading }: 
                       .map((h) => (
                         <TableRow key={h.date}>
                           <TableCell className="text-sm">
-                            {format(parseISO(h.date), "dd/MM/yy", { locale: fr })}
+                            {format(parseISO(h.date), "dd/MM/yy", { locale: getDateLocale() })}
                           </TableCell>
                           <TableCell className="font-semibold">{h.hrvMs} ms</TableCell>
                           <TableCell>{h.restingHrBpm != null ? `${h.restingHrBpm} bpm` : "—"}</TableCell>

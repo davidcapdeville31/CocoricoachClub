@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useRef } from "react";
 import { getDisplayNotes } from "@/lib/utils/sessionNotes";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -31,7 +32,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { subDays } from "date-fns";
 import { 
   calculateWeightedWellnessScore, 
@@ -90,7 +90,7 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
 
   const handlePrint = () => {
     if (printRef.current) {
-      printElement(printRef.current, `Vue du Jour - ${format(new Date(), "PPP", { locale: fr })}`);
+      printElement(printRef.current, `Vue du Jour - ${format(new Date(), "PPP", { locale: getDateLocale() })}`);
     }
   };
 
@@ -403,7 +403,7 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
               Vue du Jour
             </h2>
             <p className={cn("text-sm", fieldMode ? "text-slate-400" : "text-muted-foreground")}>
-              {format(new Date(), "EEEE d MMMM yyyy", { locale: fr })}
+              {format(new Date(), "EEEE d MMMM yyyy", { locale: getDateLocale() })}
             </p>
           </div>
         </div>

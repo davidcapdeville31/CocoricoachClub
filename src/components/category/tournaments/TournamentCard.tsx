@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Trash2, Plus, Users } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -100,8 +100,8 @@ export function TournamentCard({ tournament, categoryId }: TournamentCardProps) 
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
-                  {format(startDate, "dd MMM", { locale: fr })} -{" "}
-                  {format(endDate, "dd MMM yyyy", { locale: fr })}
+                  {format(startDate, "dd MMM", { locale: getDateLocale() })} -{" "}
+                  {format(endDate, "dd MMM yyyy", { locale: getDateLocale() })}
                 </div>
                 {tournament.location && (
                   <div className="flex items-center gap-1">

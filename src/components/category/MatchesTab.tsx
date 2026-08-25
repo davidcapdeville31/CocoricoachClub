@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,6 @@ import { MatchCard } from "./matches/MatchCard";
 
 import { CategoryPhotosTab } from "./photos/CategoryPhotosTab";
 import { startOfDay, format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
@@ -121,7 +121,7 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
     sorted.forEach((m) => {
       const d = new Date(m.match_date);
       const key = `${d.getFullYear()}-${String(d.getMonth()).padStart(2, "0")}`;
-      const label = format(d, "MMMM yyyy", { locale: fr });
+      const label = format(d, "MMMM yyyy", { locale: getDateLocale() });
       if (!groups.has(key)) groups.set(key, { label, matches: [] });
       groups.get(key)!.matches.push(m);
     });

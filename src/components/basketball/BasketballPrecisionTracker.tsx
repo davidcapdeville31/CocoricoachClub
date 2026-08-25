@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,7 +24,6 @@ import { Badge } from "@/components/ui/badge";
 import { Target, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import {
   BASKETBALL_PRECISION_EXERCISES,
   getBasketballExerciseByValue,
@@ -272,7 +272,7 @@ export function BasketballPrecisionTracker({
                   <CardContent className="pt-4 space-y-2">
                     <p className="text-sm font-medium">
                       Saisies du{" "}
-                      {format(new Date(today), "d MMM yyyy", { locale: fr })}
+                      {format(new Date(today), "d MMM yyyy", { locale: getDateLocale() })}
                     </p>
                     {todayEntries.map((e: any) => {
                       const rate =

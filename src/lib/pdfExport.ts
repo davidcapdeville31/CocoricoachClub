@@ -1,7 +1,7 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 import { trainingTypeRgb, MATCH_RGB, tailwindClassToRgb } from "@/lib/pdf/trainingTypePdfColors";
@@ -377,7 +377,7 @@ export const exportElementToPdf = async (
   const contentWidth = pageWidth - margin * 2;
   const pageBottom = pageHeight - margin;
   const sectionGap = 4;
-  const exportedAt = format(new Date(), "dd/MM/yyyy HH:mm", { locale: fr });
+  const exportedAt = format(new Date(), "dd/MM/yyyy HH:mm", { locale: getDateLocale() });
 
   const drawHeader = () => drawPdfHeader(pdf, title, subtitle, exportedAt);
   let yPos = drawHeader();
@@ -487,7 +487,7 @@ export const exportWeeklyPlanningToPdf = (
     pdf,
     "Planning Hebdomadaire",
     categoryName,
-    `Semaine du ${format(weekStartDate, "dd MMMM yyyy", { locale: fr })}`
+    `Semaine du ${format(weekStartDate, "dd MMMM yyyy", { locale: getDateLocale() })}`
   );
   
   // Days columns
@@ -686,7 +686,7 @@ export const exportSessionToPdf = async (
   
   if (customSettings?.show_date !== false) {
     pdf.setFontSize(9);
-    pdf.text(format(sessionDate, "EEEE dd MMMM yyyy", { locale: fr }), xOffset, 33);
+    pdf.text(format(sessionDate, "EEEE dd MMMM yyyy", { locale: getDateLocale() }), xOffset, 33);
   }
   
   // Week badge
@@ -1169,7 +1169,7 @@ export const exportPeriodizationToPdf = (
     pdf,
     "Périodisation",
     categoryName,
-    format(new Date(), "dd/MM/yyyy", { locale: fr })
+    format(new Date(), "dd/MM/yyyy", { locale: getDateLocale() })
   );
   
   // Objectives
@@ -1282,7 +1282,7 @@ export const exportCalendarToPdf = async (
   }
 
   // Header : logo + nom du club + nom de la catégorie + saison
-  const monthYear = format(currentMonth, "MMMM yyyy", { locale: fr });
+  const monthYear = format(currentMonth, "MMMM yyyy", { locale: getDateLocale() });
   const subtitleParts = [meta?.clubName, meta?.categoryName || categoryName].filter(Boolean) as string[];
   const subtitle = subtitleParts.join(" — ");
   const dateLine = [

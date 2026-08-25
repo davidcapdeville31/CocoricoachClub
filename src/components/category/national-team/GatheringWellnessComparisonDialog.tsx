@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import {
   Dialog,
   DialogContent,
@@ -9,7 +10,6 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ArrowRight, ArrowUp, ArrowDown, Minus, Building2, User, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface GatheringWellnessComparisonDialogProps {
   open: boolean;
@@ -144,7 +144,7 @@ export function GatheringWellnessComparisonDialog({
               <CardContent>
                 <p className="text-lg font-semibold">
                   {preAssessment?.assessment_date
-                    ? format(new Date(preAssessment.assessment_date), "dd MMMM yyyy", { locale: fr })
+                    ? format(new Date(preAssessment.assessment_date), "dd MMMM yyyy", { locale: getDateLocale() })
                     : "Non rempli"}
                 </p>
                 {preAssessment?.filled_by && (
@@ -163,7 +163,7 @@ export function GatheringWellnessComparisonDialog({
               <CardContent>
                 <p className="text-lg font-semibold">
                   {dayOfAssessment?.assessment_date
-                    ? format(new Date(dayOfAssessment.assessment_date), "dd MMMM yyyy", { locale: fr })
+                    ? format(new Date(dayOfAssessment.assessment_date), "dd MMMM yyyy", { locale: getDateLocale() })
                     : "Non rempli"}
                 </p>
                 {dayOfAssessment?.filled_by && (

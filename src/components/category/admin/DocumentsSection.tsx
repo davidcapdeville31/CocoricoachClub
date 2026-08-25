@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +14,6 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, FileText, Calendar, AlertTriangle, Download, Trash2, Search, User, Upload, File, Image, Eye, Users, Pencil } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
-import { fr } from "date-fns/locale";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
 
@@ -701,7 +701,7 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
                         {doc.expiry_date && (
                           <span className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
-                            Expire le {format(new Date(doc.expiry_date), "d MMM yyyy", { locale: fr })}
+                            Expire le {format(new Date(doc.expiry_date), "d MMM yyyy", { locale: getDateLocale() })}
                           </span>
                         )}
                         {(() => {
@@ -709,7 +709,7 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
                           const name = author?.full_name || author?.email || null;
                           const role = doc.created_by_role || (doc.created_by ? null : "legacy");
                           const roleLabel = role ? ROLE_LABEL[role] || role : null;
-                          const date = format(new Date(doc.created_at), "dd/MM/yyyy", { locale: fr });
+                          const date = format(new Date(doc.created_at), "dd/MM/yyyy", { locale: getDateLocale() });
                           if (!name && role === "legacy") {
                             return <span className="text-xs">Auteur non renseigné · Ajouté le {date}</span>;
                           }

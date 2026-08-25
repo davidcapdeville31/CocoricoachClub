@@ -1,7 +1,7 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { getAppBaseUrl } from "@/lib/appUrl";
 
 export type SessionNotificationAction = "created" | "updated" | "cancelled";
@@ -209,7 +209,7 @@ export function useSessionNotifications() {
       // Format date
       let dateLabel = sessionDate;
       try {
-        dateLabel = format(new Date(sessionDate), "EEEE d MMMM", { locale: fr });
+        dateLabel = format(new Date(sessionDate), "EEEE d MMMM", { locale: getDateLocale() });
       } catch {
         // keep raw date
       }

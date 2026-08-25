@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
  import { useState } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
  import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -15,7 +16,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
  import { toast } from "@/components/ui/sonner";
 import { Plus, Edit, Pause, Play, Trash2, Building2, Mail, Video, MapPin, FolderOpen, Copy, Link, Check, GraduationCap, Search, CreditCard } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { InviteClientDialog } from "./InviteClientDialog";
 import { ClientCategoryOptionsDialog } from "./ClientCategoryOptionsDialog";
 import { CreateClientCategoriesSection, CategoryDraft } from "./CreateClientCategoriesSection";
@@ -987,7 +987,7 @@ export function SuperAdminClients() {
                      </div>
                    </TableCell>
                    <TableCell>
-                     {format(new Date(client.created_at), "dd MMM yyyy", { locale: fr })}
+                     {format(new Date(client.created_at), "dd MMM yyyy", { locale: getDateLocale() })}
                    </TableCell>
                       <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                         <TooltipProvider delayDuration={300}>

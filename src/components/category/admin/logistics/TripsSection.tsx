@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +14,6 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Bus, MapPin, Calendar, Clock, Users, Trash2, Hotel, Utensils } from "lucide-react";
 import { format, isPast, isFuture } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface TripsSectionProps {
   categoryId: string;
@@ -319,7 +319,7 @@ export function TripsSection({ categoryId }: TripsSectionProps) {
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <Calendar className="h-4 w-4" />
                         <span>
-                          {format(new Date(trip.departure_date), "EEEE d MMMM", { locale: fr })}
+                          {format(new Date(trip.departure_date), "EEEE d MMMM", { locale: getDateLocale() })}
                           {trip.departure_time && ` à ${trip.departure_time.slice(0, 5)}`}
                         </span>
                       </div>
@@ -328,7 +328,7 @@ export function TripsSection({ categoryId }: TripsSectionProps) {
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <Clock className="h-4 w-4" />
                           <span>
-                            Retour: {format(new Date(trip.return_date), "d MMM", { locale: fr })}
+                            Retour: {format(new Date(trip.return_date), "d MMM", { locale: getDateLocale() })}
                             {trip.return_time && ` à ${trip.return_time.slice(0, 5)}`}
                           </span>
                         </div>

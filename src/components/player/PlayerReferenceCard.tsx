@@ -1,9 +1,9 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { usePlayerReferences } from "@/hooks/use-performance-references";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Target, Zap, Gauge, Activity, TrendingUp, TrendingDown } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface PlayerReferenceCardProps {
   categoryId: string;
@@ -52,7 +52,7 @@ export function PlayerReferenceCard({
             {playerName && <span className="text-muted-foreground font-normal">- {playerName}</span>}
           </span>
           <Badge variant="outline" className="text-xs font-normal">
-            {format(new Date(activeRef.test_date), "d MMM yyyy", { locale: fr })}
+            {format(new Date(activeRef.test_date), "d MMM yyyy", { locale: getDateLocale() })}
           </Badge>
         </CardTitle>
       </CardHeader>

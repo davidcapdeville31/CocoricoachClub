@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,7 +29,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import { Plus, FileSpreadsheet, Users, Star, Clock, MapPin, Trash2, Edit, Send, Check } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { AthleteIdentityBadges } from "@/components/player/AthleteIdentityBadges";
 
 interface MatchSheetsSectionProps {
@@ -418,7 +418,7 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
                     <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Clock className="h-3.5 w-3.5" />
-                        {format(new Date(sheet.sheet_date), "dd/MM/yyyy", { locale: fr })}
+                        {format(new Date(sheet.sheet_date), "dd/MM/yyyy", { locale: getDateLocale() })}
                         {sheet.match_time && ` à ${sheet.match_time.slice(0, 5)}`}
                       </span>
                       {sheet.opponent && (

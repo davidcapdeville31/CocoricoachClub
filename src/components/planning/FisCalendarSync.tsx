@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { RefreshCw, Plus, Trash2, ExternalLink, Check, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import {
   Dialog,
   DialogContent,
@@ -260,7 +260,7 @@ export function FisCalendarSync({ categoryId }: FisCalendarSyncProps) {
                 </div>
                 {feed.last_synced_at && (
                   <p className="text-[10px] text-muted-foreground mt-0.5">
-                    Dernière sync : {format(new Date(feed.last_synced_at), "dd MMM yyyy HH:mm", { locale: fr })}
+                    Dernière sync : {format(new Date(feed.last_synced_at), "dd MMM yyyy HH:mm", { locale: getDateLocale() })}
                   </p>
                 )}
               </div>

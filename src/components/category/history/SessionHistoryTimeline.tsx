@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,7 +15,6 @@ import {
   MapPin, TestTube, Zap, TrendingUp, Moon, AlertTriangle, Target
 } from "lucide-react";
 import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
-import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { 
   calculateBlocksSummary, getSessionTypeLabel, getObjectiveLabel, 
@@ -473,7 +473,7 @@ export function SessionHistoryTimeline({ categoryId, playerId }: SessionHistoryT
                   <div className="flex items-center gap-2">
                     <div className="h-px flex-1 bg-border" />
                     <span className="text-sm font-medium text-muted-foreground px-2">
-                      {format(new Date(date), "EEEE d MMMM", { locale: fr })}
+                      {format(new Date(date), "EEEE d MMMM", { locale: getDateLocale() })}
                     </span>
                     <div className="h-px flex-1 bg-border" />
                   </div>

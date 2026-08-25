@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,7 +15,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -122,10 +122,10 @@ export function CyclesSection({ categoryId }: CyclesSectionProps) {
                   {cycle.training_periods ? cycle.training_periods.name : "—"}
                 </TableCell>
                 <TableCell>
-                  {format(new Date(cycle.start_date), "dd MMM", { locale: fr })}
+                  {format(new Date(cycle.start_date), "dd MMM", { locale: getDateLocale() })}
                 </TableCell>
                 <TableCell>
-                  {format(new Date(cycle.end_date), "dd MMM", { locale: fr })}
+                  {format(new Date(cycle.end_date), "dd MMM", { locale: getDateLocale() })}
                 </TableCell>
                 <TableCell>{cycle.target_intensity || "—"}</TableCell>
                 <TableCell className="max-w-xs truncate">

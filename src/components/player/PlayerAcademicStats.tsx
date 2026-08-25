@@ -1,3 +1,4 @@
+import { getLocaleTag } from "@/lib/i18n/dateLocale";
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -109,7 +110,7 @@ export function PlayerAcademicStats({ playerId, categoryId, playerName }: Player
     const chartData = allDates.map(date => {
       const row: Record<string, any> = {
         date,
-        label: new Date(date).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" }),
+        label: new Date(date).toLocaleDateString(getLocaleTag(), { day: "2-digit", month: "short" }),
       };
       subjects.forEach(subj => {
         const entry = subjectEntries[subj]?.find(e => e.date === date);
@@ -125,7 +126,7 @@ export function PlayerAcademicStats({ playerId, categoryId, playerName }: Player
     filteredData.forEach(e => {
       const d = new Date(e.tracking_date);
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-      const label = new Date(d.getFullYear(), d.getMonth()).toLocaleDateString("fr-FR", { month: "short", year: "2-digit" });
+      const label = new Date(d.getFullYear(), d.getMonth()).toLocaleDateString(getLocaleTag(), { month: "short", year: "2-digit" });
       if (!months[key]) months[key] = { grades: [], label, absences: 0 };
       months[key].absences += e.school_absence_hours || 0;
       const n = normalizeGrade(e.academic_grade, e.grade_scale);

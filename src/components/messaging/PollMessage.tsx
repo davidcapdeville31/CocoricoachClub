@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +10,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { BarChart3, Clock, Lock, CheckCircle2, ChevronDown, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface PollMessageProps {
   pollId: string;
@@ -149,7 +149,7 @@ export function PollMessage({ pollId, isOwnMessage }: PollMessageProps) {
         {poll.expires_at && !isClosed && (
           <span className="text-xs text-muted-foreground flex items-center gap-0.5">
             <Clock className="h-3 w-3" />
-            {format(new Date(poll.expires_at), "dd/MM HH:mm", { locale: fr })}
+            {format(new Date(poll.expires_at), "dd/MM HH:mm", { locale: getDateLocale() })}
           </span>
         )}
       </div>

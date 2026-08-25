@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { Trash2, Info, Send, Copy, Link2, Check, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import {
   Table,
   TableBody,
@@ -32,27 +32,31 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { getAppBaseUrl } from "@/lib/appUrl";
+import { Trans, useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 
 interface CategoryCollaborationTabProps {
   categoryId: string;
 }
 
 // Rôles disponibles alignés avec Super Admin / Admin Club
-const AVAILABLE_ROLES = [
-  { value: "admin", label: "Admin", description: "Accès complet à la gestion", variant: "default" as const },
-  { value: "coach", label: "Coach", description: "Gestion des entraînements et matchs", variant: "secondary" as const },
-  { value: "prepa_physique", label: "Préparateur Physique", description: "Suivi physique et charge", variant: "secondary" as const },
-  { value: "doctor", label: "Médecin", description: "Accès médical complet", variant: "secondary" as const },
-  { value: "physio", label: "Kinésithérapeute", description: "Blessures et récupération", variant: "secondary" as const },
-  { value: "mental_coach", label: "Préparateur Mental", description: "Wellness et suivi psychologique", variant: "secondary" as const },
-  { value: "administratif", label: "Administratif", description: "Documents et gestion administrative", variant: "secondary" as const },
-  { value: "athlete", label: "Athlète", description: "Accès joueur / sportif", variant: "secondary" as const },
-  { value: "viewer", label: "Viewer", description: "Consultation uniquement", variant: "outline" as const },
+const getAvailableRoles = () => [
+  { value: "admin", label: i18n.t("adminStaff.roles.admin.label"), description: i18n.t("adminStaff.roles.admin.description"), variant: "default" as const },
+  { value: "coach", label: i18n.t("adminStaff.roles.coach.label"), description: i18n.t("adminStaff.roles.coach.description"), variant: "secondary" as const },
+  { value: "prepa_physique", label: i18n.t("adminStaff.roles.prepa_physique.label"), description: i18n.t("adminStaff.roles.prepa_physique.description"), variant: "secondary" as const },
+  { value: "doctor", label: i18n.t("adminStaff.roles.doctor.label"), description: i18n.t("adminStaff.roles.doctor.description"), variant: "secondary" as const },
+  { value: "physio", label: i18n.t("adminStaff.roles.physio.label"), description: i18n.t("adminStaff.roles.physio.description"), variant: "secondary" as const },
+  { value: "mental_coach", label: i18n.t("adminStaff.roles.mental_coach.label"), description: i18n.t("adminStaff.roles.mental_coach.description"), variant: "secondary" as const },
+  { value: "administratif", label: i18n.t("adminStaff.roles.administratif.label"), description: i18n.t("adminStaff.roles.administratif.description"), variant: "secondary" as const },
+  { value: "athlete", label: i18n.t("adminStaff.roles.athlete.label"), description: i18n.t("adminStaff.roles.athlete.description"), variant: "secondary" as const },
+  { value: "viewer", label: i18n.t("adminStaff.roles.viewer.label"), description: i18n.t("adminStaff.roles.viewer.description"), variant: "outline" as const },
 ];
 
 export function CategoryCollaborationTab({ categoryId }: CategoryCollaborationTabProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const AVAILABLE_ROLES = getAvailableRoles();
 
   const { data: category, isLoading: categoryLoading } = useQuery({
     queryKey: ["category", categoryId],
@@ -221,10 +225,10 @@ export function CategoryCollaborationTab({ categoryId }: CategoryCollaborationTa
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["category-members", categoryId] });
-      toast.success("Membre retiré");
+      toast.success(t("adminStaff.collaboration.toasts.memberRemoved"));
     },
     onError: () => {
-      toast.error("Erreur lors de la suppression");
+      toast.error(t("adminStaff.collaboration.toasts.removeError"));
     },
   });
 
@@ -238,10 +242,10 @@ export function CategoryCollaborationTab({ categoryId }: CategoryCollaborationTa
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["category-members", categoryId] });
-      toast.success("Rôle modifié avec succès");
+      toast.success(t("adminStaff.collaboration.toasts.roleUpdated"));
     },
     onError: () => {
-      toast.error("Erreur lors de la modification du rôle");
+      toast.error(t("adminStaff.collaboration.toasts.roleUpdateError"));
     },
   });
 
@@ -258,13 +262,13 @@ export function CategoryCollaborationTab({ categoryId }: CategoryCollaborationTa
       if (data?.success) {
         queryClient.invalidateQueries({ queryKey: ["category-invitations", categoryId] });
         queryClient.invalidateQueries({ queryKey: ["club-invitations-for-category"] });
-        toast.success("Invitation renvoyée avec succès");
+        toast.success(t("adminStaff.collaboration.toasts.invitationResent"));
       } else {
-        toast.error(data?.error || "Erreur lors du renvoi");
+        toast.error(data?.error || t("adminStaff.collaboration.toasts.resendGenericError"));
       }
     },
     onError: () => {
-      toast.error("Erreur lors du renvoi de l'invitation");
+      toast.error(t("adminStaff.collaboration.toasts.resendError"));
     },
   });
 
@@ -307,10 +311,10 @@ export function CategoryCollaborationTab({ categoryId }: CategoryCollaborationTa
       queryClient.invalidateQueries({ queryKey: ["club-invitations-for-category"] });
       const link = getInvitationLink(data.token, data.type);
       navigator.clipboard.writeText(link);
-      toast.success("Invitation créée et lien copié dans le presse-papiers !");
+      toast.success(t("adminStaff.collaboration.toasts.invitationCreatedCopied"));
     },
     onError: () => {
-      toast.error("Erreur lors de la création de l'invitation");
+      toast.error(t("adminStaff.collaboration.toasts.invitationCreateError"));
     },
   });
 
@@ -319,6 +323,7 @@ export function CategoryCollaborationTab({ categoryId }: CategoryCollaborationTa
       value: role, label: role, description: "", variant: "outline" as const 
     };
   };
+
 
   const getRoleBadge = (role: string) => {
     const config = getRoleConfig(role);
@@ -358,7 +363,7 @@ export function CategoryCollaborationTab({ categoryId }: CategoryCollaborationTa
     const link = getInvitationLink(token, type);
     await navigator.clipboard.writeText(link);
     setCopiedId(memberId);
-    toast.success("Lien copié dans le presse-papiers");
+    toast.success(t("adminStaff.collaboration.toasts.linkCopied"));
     setTimeout(() => setCopiedId(null), 2000);
   };
 
@@ -393,10 +398,10 @@ export function CategoryCollaborationTab({ categoryId }: CategoryCollaborationTa
                 disabled={createInvitationMutation.isPending}
               >
                 <Plus className="h-3.5 w-3.5" />
-                Créer
+                {t("adminStaff.collaboration.actions.create")}
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Créer et copier un lien d'invitation</TooltipContent>
+            <TooltipContent>{t("adminStaff.collaboration.actions.createTooltip")}</TooltipContent>
           </Tooltip>
         </TooltipProvider>
       );
@@ -419,7 +424,7 @@ export function CategoryCollaborationTab({ categoryId }: CategoryCollaborationTa
                 <Send className="h-3.5 w-3.5" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Renvoyer l'invitation</TooltipContent>
+            <TooltipContent>{t("adminStaff.collaboration.actions.resendTooltip")}</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -436,7 +441,7 @@ export function CategoryCollaborationTab({ categoryId }: CategoryCollaborationTa
                 )}
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Copier le lien d'invitation</TooltipContent>
+            <TooltipContent>{t("adminStaff.collaboration.actions.copyLinkTooltip")}</TooltipContent>
           </Tooltip>
         </div>
       </TooltipProvider>
@@ -449,19 +454,18 @@ export function CategoryCollaborationTab({ categoryId }: CategoryCollaborationTa
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          Pour inviter de nouveaux membres, utilisez le menu <strong>Admin Club → Utilisateurs</strong>. 
-          Les rôles affichés ici reflètent les permissions définies au niveau du club.
+          <Trans i18nKey="adminStaff.collaboration.infoAlert" components={{ strong: <strong /> }} />
         </AlertDescription>
       </Alert>
 
       {/* Club Members with access Section */}
       <Card className="bg-gradient-card shadow-md">
         <CardHeader>
-          <CardTitle className="text-lg">Staff du Club (accès à cette catégorie)</CardTitle>
+          <CardTitle className="text-lg">{t("adminStaff.collaboration.clubStaff.title")}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground mb-4">
-            Ces membres ont accès via leur appartenance au club (Admin Club → Utilisateurs)
+            {t("adminStaff.collaboration.clubStaff.description")}
           </p>
           {clubMembersLoading ? (
             <Skeleton className="h-24 w-full" />
@@ -469,10 +473,10 @@ export function CategoryCollaborationTab({ categoryId }: CategoryCollaborationTa
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Membre</TableHead>
-                  <TableHead>Rôle Club</TableHead>
-                  <TableHead>Invitation</TableHead>
-                  <TableHead>Accès</TableHead>
+                  <TableHead>{t("adminStaff.collaboration.clubStaff.columns.member")}</TableHead>
+                  <TableHead>{t("adminStaff.collaboration.clubStaff.columns.role")}</TableHead>
+                  <TableHead>{t("adminStaff.collaboration.clubStaff.columns.invitation")}</TableHead>
+                  <TableHead>{t("adminStaff.collaboration.clubStaff.columns.access")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -480,7 +484,7 @@ export function CategoryCollaborationTab({ categoryId }: CategoryCollaborationTa
                   <TableRow key={member.id}>
                     <TableCell>
                       <div>
-                        <p className="font-medium">{member.profile?.full_name || "Utilisateur"}</p>
+                        <p className="font-medium">{member.profile?.full_name || t("adminStaff.collaboration.defaultUser")}</p>
                         <p className="text-sm text-muted-foreground">{member.profile?.email}</p>
                       </div>
                     </TableCell>
@@ -491,8 +495,8 @@ export function CategoryCollaborationTab({ categoryId }: CategoryCollaborationTa
                     <TableCell>
                       <Badge variant="outline" className="bg-secondary text-secondary-foreground border-border">
                         {!member.assigned_categories || member.assigned_categories.length === 0 
-                          ? "Toutes catégories" 
-                          : "Catégorie assignée"}
+                          ? t("adminStaff.collaboration.clubStaff.allCategories") 
+                          : t("adminStaff.collaboration.clubStaff.assignedCategory")}
                       </Badge>
                     </TableCell>
                   </TableRow>
@@ -501,7 +505,7 @@ export function CategoryCollaborationTab({ categoryId }: CategoryCollaborationTa
             </Table>
           ) : (
             <p className="text-center text-muted-foreground py-6">
-              Aucun membre du club avec accès à cette catégorie
+              {t("adminStaff.collaboration.clubStaff.empty")}
             </p>
           )}
         </CardContent>
@@ -510,11 +514,11 @@ export function CategoryCollaborationTab({ categoryId }: CategoryCollaborationTa
       {/* Category-specific Members Section */}
       <Card className="bg-gradient-card shadow-md">
         <CardHeader>
-          <CardTitle className="text-lg">Membres spécifiques à la catégorie</CardTitle>
+          <CardTitle className="text-lg">{t("adminStaff.collaboration.categoryMembers.title")}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground mb-4">
-            Ces membres ont un accès uniquement à cette catégorie (invités directement)
+            {t("adminStaff.collaboration.categoryMembers.description")}
           </p>
           {membersLoading ? (
             <Skeleton className="h-24 w-full" />
@@ -522,10 +526,10 @@ export function CategoryCollaborationTab({ categoryId }: CategoryCollaborationTa
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Membre</TableHead>
-                  <TableHead>Rôle</TableHead>
-                  <TableHead>Invitation</TableHead>
-                  <TableHead>Depuis</TableHead>
+                  <TableHead>{t("adminStaff.collaboration.categoryMembers.columns.member")}</TableHead>
+                  <TableHead>{t("adminStaff.collaboration.categoryMembers.columns.role")}</TableHead>
+                  <TableHead>{t("adminStaff.collaboration.categoryMembers.columns.invitation")}</TableHead>
+                  <TableHead>{t("adminStaff.collaboration.categoryMembers.columns.since")}</TableHead>
                   {canManage && <TableHead className="w-12"></TableHead>}
                 </TableRow>
               </TableHeader>
@@ -534,7 +538,7 @@ export function CategoryCollaborationTab({ categoryId }: CategoryCollaborationTa
                   <TableRow key={member.id}>
                     <TableCell>
                       <div>
-                        <p className="font-medium">{member.profile?.full_name || "Utilisateur"}</p>
+                        <p className="font-medium">{member.profile?.full_name || t("adminStaff.collaboration.defaultUser")}</p>
                         <p className="text-sm text-muted-foreground">{member.profile?.email}</p>
                       </div>
                     </TableCell>
@@ -568,7 +572,7 @@ export function CategoryCollaborationTab({ categoryId }: CategoryCollaborationTa
                       {renderInvitationActions(member, false)}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {format(new Date(member.created_at), "dd MMM yyyy", { locale: fr })}
+                      {format(new Date(member.created_at), "dd MMM yyyy", { locale: getDateLocale() })}
                     </TableCell>
                     {canManage && (
                       <TableCell>
@@ -587,7 +591,7 @@ export function CategoryCollaborationTab({ categoryId }: CategoryCollaborationTa
             </Table>
           ) : (
             <p className="text-center text-muted-foreground py-6">
-              Aucun membre spécifique à cette catégorie
+              {t("adminStaff.collaboration.categoryMembers.empty")}
             </p>
           )}
         </CardContent>

@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -5,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Calendar, Eye, Trophy } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { BowlingScoreSheet, type FrameData, type BowlingStats } from "@/components/athlete-portal/BowlingScoreSheet";
 import { getStatColor } from "@/lib/bowling/statColors";
 
@@ -87,7 +87,7 @@ export function BowlingGameHistory({ games, categoryId }: BowlingGameHistoryProp
                   </CardTitle>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Calendar className="h-3 w-3" />
-                    {matchDate ? format(new Date(matchDate), "dd MMM yyyy", { locale: fr }) : "-"}
+                    {matchDate ? format(new Date(matchDate), "dd MMM yyyy", { locale: getDateLocale() }) : "-"}
                   </div>
                 </div>
                 <div className="flex gap-3 text-xs">

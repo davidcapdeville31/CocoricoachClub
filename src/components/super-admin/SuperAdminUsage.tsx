@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Clock, Users, User, TrendingUp, Calendar } from "lucide-react";
 import { format, subDays, startOfMonth, endOfMonth, subMonths, parseISO } from "date-fns";
-import { fr } from "date-fns/locale";
 
 type PeriodFilter = "7d" | "30d" | "this_month" | "last_month" | "all";
 

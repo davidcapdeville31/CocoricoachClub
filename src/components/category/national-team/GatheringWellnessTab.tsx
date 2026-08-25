@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,7 +23,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Building2, User, Link2, Eye, ArrowLeftRight } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { AddGatheringWellnessDialog } from "./AddGatheringWellnessDialog";
 import { GatheringWellnessComparisonDialog } from "./GatheringWellnessComparisonDialog";
 
@@ -145,7 +145,7 @@ export function GatheringWellnessTab({ categoryId }: GatheringWellnessTabProps) 
                   {assessment.players?.name}
                 </TableCell>
                 <TableCell>
-                  {format(new Date(assessment.assessment_date), "dd MMM yyyy", { locale: fr })}
+                  {format(new Date(assessment.assessment_date), "dd MMM yyyy", { locale: getDateLocale() })}
                 </TableCell>
                 <TableCell>
                   {assessment.national_team_events?.name || "-"}

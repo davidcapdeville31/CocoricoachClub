@@ -208,7 +208,7 @@ export function CalendarDayCell({
               }
             }}
           >
-            {t("planning:calendarViews.moreEvents", { count: sessions.length + matches.length - 3 })}
+            {t("planning.calendarViews.moreEvents", { count: sessions.length + matches.length - 3 })}
           </div>
         )}
       </div>

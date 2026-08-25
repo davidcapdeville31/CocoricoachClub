@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo, useRef, useEffect } from "react";
 import { getDisplayNotes } from "@/lib/utils/sessionNotes";
 import { DndContext, DragEndEvent, DragOverlay, pointerWithin } from "@dnd-kit/core";
@@ -10,7 +11,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronLeft, ChevronRight, Plus, Download, Printer, Calendar as CalendarIcon, Filter, X } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, startOfWeek, endOfWeek, isSameDay, isSameMonth, addWeeks, subWeeks, addDays, subDays, parseISO } from "date-fns";
-import { fr } from "date-fns/locale";
 import { TRAINING_TYPE_COLORS, getTrainingTypesForSport, getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
 import { getCompetitionColor } from "@/lib/constants/competitionColors";
@@ -113,8 +113,8 @@ export function ImprovedCalendarView({
   onLineupMatch,
 }: ImprovedCalendarViewProps) {
   const { t } = useTranslation();
-  const DAYS_OF_WEEK = t("planning:calendarViews.daysShort", { returnObjects: true }) as string[];
-  const DAYS_OF_WEEK_FULL = t("planning:calendarViews.daysFull", { returnObjects: true }) as string[];
+  const DAYS_OF_WEEK = t("planning.calendarViews.daysShort", { returnObjects: true }) as string[];
+  const DAYS_OF_WEEK_FULL = t("planning.calendarViews.daysFull", { returnObjects: true }) as string[];
   const [viewMode, setViewMode] = useState<"month" | "week" | "day">("month");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [activeSession, setActiveSession] = useState<Session | null>(null);
@@ -207,7 +207,7 @@ export function ImprovedCalendarView({
   // Event types for filter (includes match)
   const eventTypeOptions = useMemo(() => {
     const types = trainingTypes.map(t => ({ value: t.value, label: t.label }));
-    types.push({ value: "match", label: isIndividualSport(sportType || "") ? t("planning:calendarViews.competition") : t("planning:calendarViews.match") });
+    types.push({ value: "match", label: isIndividualSport(sportType || "") ? t("planning.calendarViews.competition") : t("planning.calendarViews.match") });
     return types;
   }, [trainingTypes, sportType]);
 
@@ -410,10 +410,10 @@ export function ImprovedCalendarView({
               <CalendarIcon className="h-5 w-5 text-primary" />
               <span className="hidden sm:inline">
                 {isIndividualSport(sportType || "") 
-                  ? t("planning:calendarViews.titleCompetitions") 
-                  : t("planning:calendarViews.titleMatches")}
+                  ? t("planning.calendarViews.titleCompetitions") 
+                  : t("planning.calendarViews.titleMatches")}
               </span>
-              <span className="sm:hidden">{t("planning:calendarViews.titleShort")}</span>
+              <span className="sm:hidden">{t("planning.calendarViews.titleShort")}</span>
             </CardTitle>
             <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap" data-no-print>
               {/* Filters */}
@@ -421,7 +421,7 @@ export function ImprovedCalendarView({
                 <PopoverTrigger asChild>
                   <Button variant="outline" size="sm" className={cn("h-9 gap-2", hasActiveFilters && "border-primary text-primary")}>
                     <Filter className="h-4 w-4" />
-                    <span className="hidden sm:inline">{t("planning:calendarViews.filters.button")}</span>
+                    <span className="hidden sm:inline">{t("planning.calendarViews.filters.button")}</span>
                     {hasActiveFilters && (
                       <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
                         {selectedEventTypes.length + selectedPlayerIds.length}
@@ -432,18 +432,18 @@ export function ImprovedCalendarView({
                 <PopoverContent className="w-80" align="end">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-medium">{t("planning:calendarViews.filters.title")}</h4>
+                      <h4 className="font-medium">{t("planning.calendarViews.filters.title")}</h4>
                       {hasActiveFilters && (
                         <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 px-2 text-xs">
                           <X className="h-3 w-3 mr-1" />
-                          {t("planning:calendarViews.filters.clear")}
+                          {t("planning.calendarViews.filters.clear")}
                         </Button>
                       )}
                     </div>
                     
                     {/* Event Type Filter */}
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-muted-foreground">{t("planning:calendarViews.filters.eventType")}</label>
+                      <label className="text-sm font-medium text-muted-foreground">{t("planning.calendarViews.filters.eventType")}</label>
                       <ScrollArea className="h-32">
                         <div className="space-y-2">
                           {eventTypeOptions.map(type => (
@@ -461,7 +461,7 @@ export function ImprovedCalendarView({
                     
                     {/* Player Filter */}
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-muted-foreground">{t("planning:calendarViews.filters.player")}</label>
+                      <label className="text-sm font-medium text-muted-foreground">{t("planning.calendarViews.filters.player")}</label>
                       <ScrollArea className="h-40">
                         <div className="space-y-2">
                           {players?.map(player => (
@@ -486,16 +486,16 @@ export function ImprovedCalendarView({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="day">{t("planning:calendarViews.viewModes.day")}</SelectItem>
-                  <SelectItem value="week">{t("planning:calendarViews.viewModes.week")}</SelectItem>
-                  <SelectItem value="month">{t("planning:calendarViews.viewModes.month")}</SelectItem>
+                  <SelectItem value="day">{t("planning.calendarViews.viewModes.day")}</SelectItem>
+                  <SelectItem value="week">{t("planning.calendarViews.viewModes.week")}</SelectItem>
+                  <SelectItem value="month">{t("planning.calendarViews.viewModes.month")}</SelectItem>
                 </SelectContent>
               </Select>
               
-              <Button variant="outline" size="icon" className="h-9 w-9" onClick={onPrint} title={t("planning:calendarViews.print")}>
+              <Button variant="outline" size="icon" className="h-9 w-9" onClick={onPrint} title={t("planning.calendarViews.print")}>
                 <Printer className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => onExportPdf(currentDate)} title={t("planning:calendarViews.exportPdf")}>
+              <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => onExportPdf(currentDate)} title={t("planning.calendarViews.exportPdf")}>
                 <Download className="h-4 w-4" />
               </Button>
             </div>
@@ -506,7 +506,7 @@ export function ImprovedCalendarView({
             <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent px-3 py-2 text-xs sm:text-sm">
               <Plus className="h-4 w-4 shrink-0 text-primary" />
               <span className="text-muted-foreground">
-{t("planning:calendarViews.tipAddEvent")}
+{t("planning.calendarViews.tipAddEvent")}
               </span>
             </div>
           )}
@@ -524,15 +524,15 @@ export function ImprovedCalendarView({
             <div className="text-center">
               <h3 className="text-lg font-semibold capitalize">
                 {viewMode === "month" 
-                  ? format(currentDate, "MMMM yyyy", { locale: fr })
+                  ? format(currentDate, "MMMM yyyy", { locale: getDateLocale() })
                   : viewMode === "week"
                     ? `Semaine ${weekNumber}`
-                    : format(currentDate, "EEEE d MMMM yyyy", { locale: fr })
+                    : format(currentDate, "EEEE d MMMM yyyy", { locale: getDateLocale() })
                 }
               </h3>
               {viewMode === "week" && (
                 <p className="text-sm text-muted-foreground">
-                  {format(startOfWeek(currentDate, { weekStartsOn: 1 }), "d", { locale: fr })} - {format(endOfWeek(currentDate, { weekStartsOn: 1 }), "d MMMM yyyy", { locale: fr })}
+                  {format(startOfWeek(currentDate, { weekStartsOn: 1 }), "d", { locale: getDateLocale() })} - {format(endOfWeek(currentDate, { weekStartsOn: 1 }), "d MMMM yyyy", { locale: getDateLocale() })}
                 </p>
               )}
             </div>
@@ -711,7 +711,7 @@ export function ImprovedCalendarView({
                                 )}
                               </div>
                               <p className="font-semibold text-sm mt-0.5 truncate">
-                                {isIndividualSport(sportType || "") ? t("planning:calendarViews.competition") : `vs ${match.opponent}`}
+                                {isIndividualSport(sportType || "") ? t("planning.calendarViews.competition") : `vs ${match.opponent}`}
                               </p>
                               {match.location && (
                                 <p className="text-[10px] opacity-80 mt-0.5 truncate">{match.location}</p>
@@ -774,7 +774,7 @@ export function ImprovedCalendarView({
 
                         {!hasEvents && (
                           <p className="text-xs text-muted-foreground text-center py-4">
-                            {t("planning:calendarViews.noEvents")}
+                            {t("planning.calendarViews.noEvents")}
                           </p>
                         )}
                       </div>
@@ -908,15 +908,15 @@ export function ImprovedCalendarView({
       <AlertDialog open={!!deleteSessionId} onOpenChange={(open) => !open && setDeleteSessionId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("planning:calendarViews.deleteSessionTitle")}</AlertDialogTitle>
+            <AlertDialogTitle>{t("planning.calendarViews.deleteSessionTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("planning:calendarViews.deleteSessionDesc")}
+              {t("planning.calendarViews.deleteSessionDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t("planning:calendarViews.cancel")}</AlertDialogCancel>
+            <AlertDialogCancel>{t("planning.calendarViews.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              {t("planning:calendarViews.delete")}
+              {t("planning.calendarViews.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

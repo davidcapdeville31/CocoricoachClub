@@ -7,6 +7,13 @@ import { planningFr, planningEn } from "./locales/modules/planning";
 import { workloadFr, workloadEn } from "./locales/modules/workload";
 import { athleteSpaceFr, athleteSpaceEn } from "./locales/modules/athleteSpace";
 import { healthFr, healthEn } from "./locales/modules/health";
+import { adminFr, adminEn } from "./locales/modules/admin";
+import { academyFr, academyEn } from "./locales/modules/academy";
+import { rosterFr, rosterEn } from "./locales/modules/roster";
+import { adminAttendanceFr, adminAttendanceEn } from "./locales/modules/adminAttendance";
+import { adminRecruitDocsFr, adminRecruitDocsEn } from "./locales/modules/adminRecruitDocs";
+import { adminReportsFr, adminReportsEn } from "./locales/modules/adminReports";
+import { adminStaffFr, adminStaffEn } from "./locales/modules/adminStaff";
 
 const frResources = {
   ...fr,
@@ -15,6 +22,13 @@ const frResources = {
   workload: workloadFr,
   athleteSpace: athleteSpaceFr,
   health: healthFr,
+  admin: adminFr,
+  academy: academyFr,
+  roster: rosterFr,
+  adminAttendance: adminAttendanceFr,
+  adminRecruitDocs: adminRecruitDocsFr,
+  adminReports: adminReportsFr,
+  adminStaff: adminStaffFr,
 };
 
 const enResources = {
@@ -24,6 +38,13 @@ const enResources = {
   workload: workloadEn,
   athleteSpace: athleteSpaceEn,
   health: healthEn,
+  admin: adminEn,
+  academy: academyEn,
+  roster: rosterEn,
+  adminAttendance: adminAttendanceEn,
+  adminRecruitDocs: adminRecruitDocsEn,
+  adminReports: adminReportsEn,
+  adminStaff: adminStaffEn,
 };
 
 

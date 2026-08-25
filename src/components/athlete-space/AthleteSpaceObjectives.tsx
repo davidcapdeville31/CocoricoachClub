@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,7 +26,6 @@ import {
 } from "@/components/ui/select";
 import { Calendar, Users, User, TrendingUp, Flag, Plus, Trash2 } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
@@ -419,7 +419,7 @@ export function AthleteSpaceObjectives({ playerId, categoryId }: Props) {
                   {obj.target_date && (
                     <p className="text-[10px] text-muted-foreground flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      {t("athleteSpace.objectives.deadline", { date: format(new Date(obj.target_date), "d MMMM yyyy", { locale: fr }) })}
+                      {t("athleteSpace.objectives.deadline", { date: format(new Date(obj.target_date), "d MMMM yyyy", { locale: getDateLocale() }) })}
                     </p>
                   )}
                   <Badge variant="outline" className="text-[10px]">
@@ -476,7 +476,7 @@ export function AthleteSpaceObjectives({ playerId, categoryId }: Props) {
                   {goal.target_date && (
                     <p className="text-[10px] text-muted-foreground flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      {t("athleteSpace.objectives.deadline", { date: format(new Date(goal.target_date), "d MMMM yyyy", { locale: fr }) })}
+                      {t("athleteSpace.objectives.deadline", { date: format(new Date(goal.target_date), "d MMMM yyyy", { locale: getDateLocale() }) })}
                     </p>
                   )}
                   <Badge variant="outline" className="text-[10px]">
@@ -508,7 +508,7 @@ export function AthleteSpaceObjectives({ playerId, categoryId }: Props) {
                   </div>
                   {reminder.start_date && (
                     <Badge variant="outline" className="whitespace-nowrap">
-                      {format(new Date(reminder.start_date), "dd MMM", { locale: fr })}
+                      {format(new Date(reminder.start_date), "dd MMM", { locale: getDateLocale() })}
                     </Badge>
                   )}
                 </div>

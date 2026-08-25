@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +11,6 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { FileText, Download, Loader2, FileSpreadsheet, Calendar } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import jsPDF from "jspdf";
 import { generateCsv, downloadCsv } from "@/lib/csv";
 import ExcelJS from "exceljs";
@@ -1329,7 +1329,7 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
       yPos = localCheckPageBreak(pdf, yPos, 15, pdfSettings);
       pdf.setFontSize(7);
       pdf.setTextColor(...colors.muted);
-      pdf.text(`Généré le ${format(new Date(), "d MMMM yyyy à HH:mm", { locale: fr })}`, margin, yPos);
+      pdf.text(`Généré le ${format(new Date(), "d MMMM yyyy à HH:mm", { locale: getDateLocale() })}`, margin, yPos);
 
       const filename = `fiche_${[player?.first_name, player?.name].filter(Boolean).join('_').replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.pdf`;
       pdf.save(filename);

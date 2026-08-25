@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +13,6 @@ import {
 } from "@/components/ui/select";
 import { Trophy, Medal, BarChart3, Shield } from "lucide-react";
 import { format, parseISO } from "date-fns";
-import { fr } from "date-fns/locale";
 import {
   TOURNAMENT_LEVELS,
   SELECTION_TYPES,
@@ -156,7 +156,7 @@ export function AthleticsCompetitionAnalyticsTab({ categoryId }: Props) {
                       {s.bestPerformance && (
                         <p className="text-[11px] text-muted-foreground pl-6 truncate">
                           {s.bestPerformance.tournament} ·{" "}
-                          {format(parseISO(s.bestPerformance.date), "dd MMM yyyy", { locale: fr })}
+                          {format(parseISO(s.bestPerformance.date), "dd MMM yyyy", { locale: getDateLocale() })}
                         </p>
                       )}
                       <div className="flex items-center gap-2 text-sm">
@@ -208,7 +208,7 @@ export function AthleticsCompetitionAnalyticsTab({ categoryId }: Props) {
                       {s.bestPerformance && (
                         <p className="text-[11px] text-muted-foreground pl-6 truncate">
                           {s.bestPerformance.tournament} ·{" "}
-                          {format(parseISO(s.bestPerformance.date), "dd MMM yyyy", { locale: fr })}
+                          {format(parseISO(s.bestPerformance.date), "dd MMM yyyy", { locale: getDateLocale() })}
                         </p>
                       )}
                       <div className="flex items-center gap-2 text-sm">

@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useEffect, useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,7 +23,6 @@ import {
 } from "recharts";
 import { Target, Users, AlertTriangle, TrendingUp, TrendingDown, Minus, Calculator, Info } from "lucide-react";
 import { format, subDays } from "date-fns";
-import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { calculateWeightedRpe, checkTeamRpeAlert, type SessionBlock } from "@/lib/weightedRpeCalculations";
 import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -276,7 +276,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
         const diff = avgActual - data.weightedPlanned;
         return {
           id,
-          date: format(new Date(data.date), "dd/MM", { locale: fr }),
+          date: format(new Date(data.date), "dd/MM", { locale: getDateLocale() }),
           fullDate: data.date,
           planned: data.weightedPlanned, // Use weighted value for display
           originalPlanned: data.planned,
@@ -434,7 +434,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       "Statut",
     ];
     const rows = detailRows.map((r) => [
-      format(new Date(r.date), "dd/MM/yyyy", { locale: fr }),
+      format(new Date(r.date), "dd/MM/yyyy", { locale: getDateLocale() }),
       r.sessionType,
       r.theme,
       r.name,
@@ -646,7 +646,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
                   <SelectItem value="all">Tous les entraînements</SelectItem>
                   {sessionOptions.map((s) => (
                     <SelectItem key={s.id} value={s.id}>
-                      {format(new Date(s.session_date), "dd/MM/yyyy", { locale: fr })} · {s.training_type || "Séance"}
+                      {format(new Date(s.session_date), "dd/MM/yyyy", { locale: getDateLocale() })} · {s.training_type || "Séance"}
                     </SelectItem>
                   ))}
                 </SelectContent>

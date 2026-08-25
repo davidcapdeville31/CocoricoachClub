@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +12,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon, Trash2 } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { CycleFormFields } from "./CycleFormFields";
@@ -161,7 +161,7 @@ export function EditCycleDialog({ open, onOpenChange, cycle, categoryId, categor
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={startDate} onSelect={(d) => d && setStartDate(d)} initialFocus locale={fr} className="p-3 pointer-events-auto" />
+                  <Calendar mode="single" selected={startDate} onSelect={(d) => d && setStartDate(d)} initialFocus locale={getDateLocale()} className="p-3 pointer-events-auto" />
                 </PopoverContent>
               </Popover>
             </div>
@@ -181,7 +181,7 @@ export function EditCycleDialog({ open, onOpenChange, cycle, categoryId, categor
                     onSelect={(d) => d && setEndDate(d)}
                     disabled={(date) => date < startDate}
                     initialFocus
-                    locale={fr}
+                    locale={getDateLocale()}
                     className="p-3 pointer-events-auto"
                   />
                 </PopoverContent>

@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -51,7 +52,6 @@ const safeDiffDays = (dateLeft: Date | string | null | undefined, dateRight: Dat
   const d = typeof dateLeft === "string" ? new Date(dateLeft) : dateLeft;
   return isValid(d) ? differenceInDays(d, dateRight) : 0;
 };
-import { fr } from "date-fns/locale";
 
 interface CoachDashboardProps {
   categoryId: string;
@@ -445,7 +445,7 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
                     <Cake className="h-3 w-3 text-pink-500 shrink-0" />
                     <span className="truncate flex-1">{player.name}</span>
                     <span className="text-[9px] text-muted-foreground">
-                      {safeFormat(player.birth_date ? parseISO(player.birth_date) : null, "dd/MM", { locale: fr })}
+                      {safeFormat(player.birth_date ? parseISO(player.birth_date) : null, "dd/MM", { locale: getDateLocale() })}
                     </span>
                   </div>
                 ))}
@@ -508,7 +508,7 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
                     <div className="space-y-1 text-xs text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <span className="font-medium text-foreground">{t("health.coachDashboard.injuredOn")}</span>
-                        <span>{safeFormat(injury.injury_date, "EEEE dd MMMM yyyy", { locale: fr })}</span>
+                        <span>{safeFormat(injury.injury_date, "EEEE dd MMMM yyyy", { locale: getDateLocale() })}</span>
                       </div>
                       {daysOut !== null && (
                         <p>{t("health.coachDashboard.absentSince", { days: daysOut, plural: daysOut > 1 ? "s" : "" })}</p>
@@ -516,7 +516,7 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
                       {injury.estimated_return_date && (
                         <div className="flex items-center gap-1">
                           <span className="font-medium text-foreground">{t("health.coachDashboard.estimatedReturn")}</span>
-                          <span>{safeFormat(injury.estimated_return_date, "EEEE dd MMMM yyyy", { locale: fr })}</span>
+                          <span>{safeFormat(injury.estimated_return_date, "EEEE dd MMMM yyyy", { locale: getDateLocale() })}</span>
                         </div>
                       )}
                     </div>
@@ -561,7 +561,7 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
                     <div className="space-y-1 text-xs text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <span className="font-medium text-foreground">{t("health.coachDashboard.illOn")}</span>
-                        <span>{safeFormat(illness.illness_date, "EEEE dd MMMM yyyy", { locale: fr })}</span>
+                        <span>{safeFormat(illness.illness_date, "EEEE dd MMMM yyyy", { locale: getDateLocale() })}</span>
                       </div>
                       {daysOut !== null && (
                         <p>{t("health.coachDashboard.absentSince", { days: daysOut, plural: daysOut > 1 ? "s" : "" })}</p>
@@ -569,7 +569,7 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
                       {illness.estimated_return_date && (
                         <div className="flex items-center gap-1">
                           <span className="font-medium text-foreground">{t("health.coachDashboard.estimatedReturn")}</span>
-                          <span>{safeFormat(illness.estimated_return_date, "EEEE dd MMMM yyyy", { locale: fr })}</span>
+                          <span>{safeFormat(illness.estimated_return_date, "EEEE dd MMMM yyyy", { locale: getDateLocale() })}</span>
                         </div>
                       )}
                     </div>

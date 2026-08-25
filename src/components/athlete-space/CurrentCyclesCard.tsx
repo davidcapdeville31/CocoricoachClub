@@ -1,10 +1,10 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CalendarRange, Activity } from "lucide-react";
 import { format, differenceInCalendarDays } from "date-fns";
-import { fr } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
 
 interface Props {
@@ -88,8 +88,8 @@ export function CurrentCyclesCard({ categoryId }: Props) {
 
               <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
                 <span>
-                  {format(new Date(c.start_date), "d MMM", { locale: fr })} →{" "}
-                  {format(new Date(c.end_date), "d MMM yyyy", { locale: fr })}
+                  {format(new Date(c.start_date), "d MMM", { locale: getDateLocale() })} →{" "}
+                  {format(new Date(c.end_date), "d MMM yyyy", { locale: getDateLocale() })}
                 </span>
                 <span className="font-medium">
                   {daysLeft > 0

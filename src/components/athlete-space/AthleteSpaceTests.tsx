@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +7,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { FlaskConical, Filter } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
 import { collectLatestPlayerWeights } from "@/lib/benchmarks/playerWeights";
 import { useTranslation } from "react-i18next";
@@ -330,7 +330,7 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
                       return (
                         <TableRow key={test.id}>
                           <TableCell className="whitespace-nowrap text-xs">
-                            {format(new Date(test.test_date), "dd/MM/yyyy", { locale: fr })}
+                            {format(new Date(test.test_date), "dd/MM/yyyy", { locale: getDateLocale() })}
                           </TableCell>
                           <TableCell className="text-xs whitespace-nowrap">{cat?.label || resolveLabel(test.test_category)}</TableCell>
                           <TableCell className="text-xs whitespace-nowrap">{testDef?.label || resolveLabel(test.test_type)}</TableCell>
@@ -343,7 +343,7 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
                 {showSpeed && (selectedTest === "all" || selectedTest === "__sprint40__") && speedTests.slice().reverse().slice(0, 10).map((test: any) => (
                   <TableRow key={test.id}>
                     <TableCell className="whitespace-nowrap text-xs">
-                      {format(new Date(test.test_date), "dd/MM/yyyy", { locale: fr })}
+                      {format(new Date(test.test_date), "dd/MM/yyyy", { locale: getDateLocale() })}
                     </TableCell>
                     <TableCell className="text-xs whitespace-nowrap">{t("athleteSpace:tests.speed")}</TableCell>
                     <TableCell className="text-xs whitespace-nowrap">{t("athleteSpace:tests.sprint40")}</TableCell>
@@ -357,7 +357,7 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
                   .slice().reverse().slice(0, 10).map((test: any) => (
                   <TableRow key={test.id}>
                     <TableCell className="whitespace-nowrap text-xs">
-                      {format(new Date(test.test_date), "dd/MM/yyyy", { locale: fr })}
+                      {format(new Date(test.test_date), "dd/MM/yyyy", { locale: getDateLocale() })}
                     </TableCell>
                     <TableCell className="text-xs whitespace-nowrap">{t("athleteSpace:tests.strength")}</TableCell>
                     <TableCell className="text-xs whitespace-nowrap">{test.test_name}</TableCell>
