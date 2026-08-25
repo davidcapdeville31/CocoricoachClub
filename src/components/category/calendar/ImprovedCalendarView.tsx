@@ -681,6 +681,12 @@ export function ImprovedCalendarView({
                   const isToday = isSameDay(day, new Date());
                   const hasEvents = daySessions.length > 0 || dayMatches.length > 0;
 
+                  // Combine matches + sessions and sort chronologically
+                  const dayEvents = [
+                    ...dayMatches.map((m) => ({ type: "match" as const, data: m, time: m.match_time || "00:00" })),
+                    ...daySessions.map((s) => ({ type: "session" as const, data: s, time: s.session_start_time || "00:00" })),
+                  ].sort((a, b) => a.time.localeCompare(b.time));
+
                   return (
                     <div
                       key={index}
@@ -709,92 +715,93 @@ export function ImprovedCalendarView({
 
                       {/* Events */}
                       <div className="space-y-2">
-                        {/* Matches */}
-                        {dayMatches.map((match) => {
-                          const compColor = getCompetitionColor(match.competition);
-                          const compLabel = match.competition?.trim();
-                          return (
-                            <div
-                              key={match.id}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onViewMatch?.(match);
-                              }}
-                              className={cn(
-                                "p-2.5 rounded-lg text-white cursor-pointer transition-colors shadow-sm",
-                                compColor.bg,
-                                compColor.bgHover
-                              )}
-                            >
-                              <div className="flex items-center gap-2 text-xs font-medium">
-                                <span className="opacity-80">{match.match_time ? formatTime(match.match_time) : ""}</span>
-                                {compLabel && (
-                                  <span className="opacity-90 truncate">{compLabel}</span>
-                                )}
-                              </div>
-                              <p className="font-semibold text-sm mt-0.5 truncate">
-                                {isIndividualSport(sportType || "") ? t("planning.calendarViews.competition") : `vs ${match.opponent}`}
-                              </p>
-                              {match.location && (
-                                <p className="text-[10px] opacity-80 mt-0.5 truncate">{match.location}</p>
-                              )}
-                            </div>
-                          );
-                        })}
-
-
-                        {/* Sessions */}
-                        {daySessions.map((session) => {
-                          const bgColor = TRAINING_TYPE_COLORS[session.training_type] || "bg-primary";
-                          const displayNotes = session.notes ? getDisplayNotes(session.notes) : "";
-                          // For test sessions, extract test name from notes (e.g. "📋 Test VMA (1600m)")
-                          const isTest = session.training_type === "test";
-                          const testName = isTest
-                            ? (displayNotes.split("\n").find((l) => l.trim().startsWith("📋"))?.replace(/^📋\s*/, "").trim() ||
-                               sessionTestNames[session.id] ||
-                               "")
-                            : "";
-                          const titleLabel = isTest && testName
-                            ? testName
-                            : (trainingTypeLabels[session.training_type] || session.training_type);
-                          // Hide the test name line from the secondary notes preview to avoid duplication
-                          const secondaryNotes = isTest
-                            ? displayNotes.split("\n").filter((l) => !l.trim().startsWith("📋")).join(" • ").trim()
-                            : displayNotes;
-                          return (
-                            <div
-                              key={session.id}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onViewSession?.(session);
-                              }}
-                              className={cn(
-                                "p-2.5 rounded-lg cursor-pointer transition-all hover:shadow-md",
-                                bgColor,
-                                "text-white"
-                              )}
-                            >
-                              <div className="flex items-center gap-2 text-xs opacity-90">
-                                {isTest && <span className="font-semibold">🧪 Test</span>}
-                                {session.session_start_time && (
-                                  <span>{formatTime(session.session_start_time)}</span>
-                                )}
-                                {session.session_end_time && (
-                                  <span>→ {formatTime(session.session_end_time)}</span>
-                                )}
-                              </div>
-                              <p className="font-semibold text-sm mt-0.5 truncate">
-                                {session.created_by_player_id && playerNamesMap[session.created_by_player_id]
-                                  ? `${playerNamesMap[session.created_by_player_id]} · `
-                                  : ""}
-                                {titleLabel}
-                              </p>
-                              {secondaryNotes && (
-                                <p className="text-[10px] opacity-80 mt-0.5 line-clamp-1">{secondaryNotes}</p>
-                              )}
-                            </div>
-                          );
-                        })}
+                        {dayEvents.map((event) =>
+                          event.type === "match" ? (
+                            (() => {
+                              const match = event.data;
+                              const compColor = getCompetitionColor(match.competition);
+                              const compLabel = match.competition?.trim();
+                              return (
+                                <div
+                                  key={match.id}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onViewMatch?.(match);
+                                  }}
+                                  className={cn(
+                                    "p-2.5 rounded-lg text-white cursor-pointer transition-colors shadow-sm",
+                                    compColor.bg,
+                                    compColor.bgHover
+                                  )}
+                                >
+                                  <div className="flex items-center gap-2 text-xs font-medium">
+                                    <span className="opacity-80">{match.match_time ? formatTime(match.match_time) : ""}</span>
+                                    {compLabel && (
+                                      <span className="opacity-90 truncate">{compLabel}</span>
+                                    )}
+                                  </div>
+                                  <p className="font-semibold text-sm mt-0.5 truncate">
+                                    {isIndividualSport(sportType || "") ? t("planning.calendarViews.competition") : `vs ${match.opponent}`}
+                                  </p>
+                                  {match.location && (
+                                    <p className="text-[10px] opacity-80 mt-0.5 truncate">{match.location}</p>
+                                  )}
+                                </div>
+                              );
+                            })()
+                          ) : (
+                            (() => {
+                              const session = event.data;
+                              const bgColor = TRAINING_TYPE_COLORS[session.training_type] || "bg-primary";
+                              const displayNotes = session.notes ? getDisplayNotes(session.notes) : "";
+                              const isTest = session.training_type === "test";
+                              const testName = isTest
+                                ? (displayNotes.split("\n").find((l) => l.trim().startsWith("📋"))?.replace(/^📋\s*/, "").trim() ||
+                                   sessionTestNames[session.id] ||
+                                   "")
+                                : "";
+                              const titleLabel = isTest && testName
+                                ? testName
+                                : (trainingTypeLabels[session.training_type] || session.training_type);
+                              const secondaryNotes = isTest
+                                ? displayNotes.split("\n").filter((l) => !l.trim().startsWith("📋")).join(" • ").trim()
+                                : displayNotes;
+                              return (
+                                <div
+                                  key={session.id}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onViewSession?.(session);
+                                  }}
+                                  className={cn(
+                                    "p-2.5 rounded-lg cursor-pointer transition-all hover:shadow-md",
+                                    bgColor,
+                                    "text-white"
+                                  )}
+                                >
+                                  <div className="flex items-center gap-2 text-xs opacity-90">
+                                    {isTest && <span className="font-semibold">🧪 Test</span>}
+                                    {session.session_start_time && (
+                                      <span>{formatTime(session.session_start_time)}</span>
+                                    )}
+                                    {session.session_end_time && (
+                                      <span>→ {formatTime(session.session_end_time)}</span>
+                                    )}
+                                  </div>
+                                  <p className="font-semibold text-sm mt-0.5 truncate">
+                                    {session.created_by_player_id && playerNamesMap[session.created_by_player_id]
+                                      ? `${playerNamesMap[session.created_by_player_id]} · `
+                                      : ""}
+                                    {titleLabel}
+                                  </p>
+                                  {secondaryNotes && (
+                                    <p className="text-[10px] opacity-80 mt-0.5 line-clamp-1">{secondaryNotes}</p>
+                                  )}
+                                </div>
+                              );
+                            })()
+                          )
+                        )}
 
                         {!hasEvents && (
                           <p className="text-xs text-muted-foreground text-center py-4">
