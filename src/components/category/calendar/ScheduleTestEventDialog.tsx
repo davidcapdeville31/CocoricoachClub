@@ -584,6 +584,26 @@ export function ScheduleTestEventDialog({
             </div>
           </div>
 
+          {/* Test window (campaign) */}
+          <div className="space-y-2 rounded-lg border border-border p-3">
+            <Label className="text-sm">{t("planning.calendarDialogs.scheduleTest.windowLabel")}</Label>
+            <p className="text-[11px] text-muted-foreground">
+              {t("planning.calendarDialogs.scheduleTest.windowHint")}
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs">{t("planning.calendarDialogs.scheduleTest.windowFrom")}</Label>
+                <Input type="date" value={windowStart} onChange={(e) => setWindowStart(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">{t("planning.calendarDialogs.scheduleTest.windowTo")}</Label>
+                <Input type="date" value={windowEnd} onChange={(e) => setWindowEnd(e.target.value)} />
+              </div>
+            </div>
+          </div>
+
+
+
           {/* Test selection */}
           <Tabs value={mode} onValueChange={(v) => setMode(v as "individual" | "battery")}>
             <TabsList className="grid w-full grid-cols-2">
