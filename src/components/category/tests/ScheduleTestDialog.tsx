@@ -71,13 +71,15 @@ export function ScheduleTestDialog({
         })),
       );
 
+      const titleLine = `📋 ${targets.map((t) => t.testTypeLabel).join(" • ")}`;
+
       const { data, error } = await supabase.from("training_sessions").insert({
         category_id: categoryId,
         session_date: date,
         session_start_time: startTime,
         session_end_time: endTime,
         training_type: "test",
-        notes: `<!--TESTS:${testMeta}-->`,
+        notes: `${titleLine}\n<!--TESTS:${testMeta}-->`,
       }).select("id").single();
       if (error) throw error;
       return data;

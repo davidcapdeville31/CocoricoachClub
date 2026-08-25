@@ -1,6 +1,7 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo, useRef, useEffect } from "react";
-import { getDisplayNotes } from "@/lib/utils/sessionNotes";
+import { getDisplayNotes, parseTestsFromNotes } from "@/lib/utils/sessionNotes";
+import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
 import { DndContext, DragEndEvent, DragOverlay, pointerWithin } from "@dnd-kit/core";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -193,6 +194,22 @@ export function ImprovedCalendarView({
     },
     enabled: selectedPlayerIds.length > 0,
   });
+
+  // Resolve readable names for tests embedded in test sessions (<!--TESTS:...-->)
+  const allSessionTestTypes = useMemo(
+    () => sessions.flatMap((s) => parseTestsFromNotes(s.notes).map((t) => t.test_type)),
+    [sessions],
+  );
+  const customTestLabels = useCustomTestLabels(allSessionTestTypes);
+  const sessionTestNames = useMemo(() => {
+    const map: Record<string, string> = {};
+    sessions.forEach((s) => {
+      const tests = parseTestsFromNotes(s.notes);
+      if (tests.length === 0) return;
+      map[s.id] = tests.map((t) => labelizeTestType(t.test_type, customTestLabels)).join(" • ");
+    });
+    return map;
+  }, [sessions, customTestLabels]);
 
   // Build player names map for athlete-created sessions
   const playerNamesMap = useMemo(() => {
@@ -730,7 +747,9 @@ export function ImprovedCalendarView({
                           // For test sessions, extract test name from notes (e.g. "📋 Test VMA (1600m)")
                           const isTest = session.training_type === "test";
                           const testName = isTest
-                            ? (displayNotes.split("\n").find((l) => l.trim().startsWith("📋"))?.replace(/^📋\s*/, "").trim() || "")
+                            ? (displayNotes.split("\n").find((l) => l.trim().startsWith("📋"))?.replace(/^📋\s*/, "").trim() ||
+                               sessionTestNames[session.id] ||
+                               "")
                             : "";
                           const titleLabel = isTest && testName
                             ? testName

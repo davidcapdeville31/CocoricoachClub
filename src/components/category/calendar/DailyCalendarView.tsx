@@ -9,7 +9,8 @@ import { getCompetitionColor } from "@/lib/constants/competitionColors";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { getDisplayNotes } from "@/lib/utils/sessionNotes";
+import { getDisplayNotes, parseTestsFromNotes } from "@/lib/utils/sessionNotes";
+import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
 import { useTranslation } from "react-i18next";
 
 interface Session {
@@ -71,6 +72,15 @@ export function DailyCalendarView({
   const { t } = useTranslation();
   const isToday = checkIsToday(day);
   const hasEvents = sessions.length > 0 || matches.length > 0;
+
+  // Readable names for tests embedded in test sessions
+  const allSessionTestTypes = sessions.flatMap((s) => parseTestsFromNotes(s.notes).map((tt) => tt.test_type));
+  const customTestLabels = useCustomTestLabels(allSessionTestTypes);
+  const testNameForSession = (session: Session) => {
+    const tests = parseTestsFromNotes(session.notes);
+    if (tests.length === 0) return "";
+    return tests.map((tt) => labelizeTestType(tt.test_type, customTestLabels)).join(" • ");
+  };
 
   // Fetch session blocks
   const sessionIds = sessions.map(s => s.id);
@@ -343,6 +353,9 @@ export function DailyCalendarView({
                         )}>
                           {trainingTypeLabels[session.training_type] || session.training_type}
                         </span>
+                        {session.training_type === "test" && testNameForSession(session) && (
+                          <p className="text-sm font-semibold">{testNameForSession(session)}</p>
+                        )}
                         
                         {/* Show blocks if present */}
                         {hasBlocks && (
