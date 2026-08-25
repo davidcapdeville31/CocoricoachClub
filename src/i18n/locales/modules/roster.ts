@@ -468,7 +468,6 @@ export const rosterFr = {
       selectAtLeastOne: "Sélectionnez au moins une catégorie",
     },
   },
-};
 
   bulkAddPlayersDialog: {
     title: "Import Excel — Création en masse",
@@ -552,6 +551,8 @@ export const rosterFr = {
       selectAtLeastOne: "Sélectionnez au moins une catégorie",
     },
   },
+};
+
 export const rosterEn = {
   positions: {
     rugbyXv: {
