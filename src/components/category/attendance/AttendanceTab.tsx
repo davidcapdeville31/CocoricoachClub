@@ -153,6 +153,32 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
     },
   });
 
+  // Athlete-created private sessions are not roster-wide: never complete them with the roster
+  const isAthletePrivateSession = (session: AttendanceSession) =>
+    !!session.created_by_player_id || (session.notes || "").includes("[Séance athlète]");
+
+  // Some sessions (e.g. recurring test reminders) have no pre-created event_participants rows.
+  // Complete them with the roster so missing athletes count as "no response" instead of disappearing.
+  const completeWithRoster = (
+    session: AttendanceSession,
+    rows: EventParticipantRow[],
+  ): EventParticipantRow[] => {
+    if (isAthletePrivateSession(session)) return rows;
+    const responded = new Set(rows.map((r) => r.player_id));
+    const missing: EventParticipantRow[] = (players || [])
+      .filter((p) => !responded.has(p.id))
+      .map((p) => ({
+        training_session_id: session.id,
+        player_id: p.id,
+        attendance_status: "no_response" as const,
+        absence_comment: null,
+        responded_at: null,
+        players: { id: p.id, name: p.name },
+      }));
+    return [...rows, ...missing];
+  };
+
+
   // Filter sessions by date range
   const filteredSessions = sessions?.filter((session) => {
     const sessionDate = parseISO(session.session_date);
