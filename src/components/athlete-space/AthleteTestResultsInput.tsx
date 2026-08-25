@@ -10,6 +10,7 @@ import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabe
 import { useTranslation } from "react-i18next";
 import { useAthleteAttendanceLock } from "@/hooks/useAthleteAttendanceLock";
 import { AthleteAbsentLockNotice } from "./AthleteAbsentLockNotice";
+import { parseTestWindowFromNotes } from "@/lib/utils/sessionNotes";
 
 
 interface TestRef {
