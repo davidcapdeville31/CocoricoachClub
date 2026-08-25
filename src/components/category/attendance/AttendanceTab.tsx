@@ -15,7 +15,7 @@ import { exportAttendancePdf, exportAttendanceExcel, type AttendanceExportRow } 
 import { toast } from "sonner";
 import { format, startOfMonth, endOfMonth, subMonths, subDays, isWithinInterval, parseISO } from "date-fns";
 import { SessionAttendanceDialog } from "./SessionAttendanceDialog";
-import { ParticipantsAttendanceList } from "./ParticipantsAttendanceList";
+import { ParticipantsAttendanceList, type ParticipantWithAttendance } from "./ParticipantsAttendanceList";
 
 import { useTranslation } from "react-i18next";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
@@ -26,10 +26,56 @@ interface AttendanceTabProps {
   categoryId: string;
 }
 
+type AttendanceSession = {
+  id: string;
+  session_date: string;
+  training_type: string;
+  session_start_time?: string | null;
+  session_end_time?: string | null;
+  intensity?: number | null;
+  notes?: string | null;
+};
+
+type EventParticipantRow = ParticipantWithAttendance & {
+  id?: string;
+  training_session_id: string;
+};
+
+const EVENT_PARTICIPANTS_PAGE_SIZE = 1000;
+const EVENT_PARTICIPANTS_SELECT =
+  "id, training_session_id, player_id, attendance_status, absence_comment, responded_at, players:player_id(id, name, first_name, avatar_url)";
+
+async function fetchEventParticipantsBySessionIds(sessionIds: string[]): Promise<EventParticipantRow[]> {
+  if (sessionIds.length === 0) return [];
+
+  const rows: EventParticipantRow[] = [];
+  let from = 0;
+
+  while (true) {
+    const { data, error } = await supabase
+      .from("event_participants")
+      .select(EVENT_PARTICIPANTS_SELECT)
+      .in("training_session_id", sessionIds)
+      .order("training_session_id", { ascending: true })
+      .order("player_id", { ascending: true })
+      .range(from, from + EVENT_PARTICIPANTS_PAGE_SIZE - 1);
+
+    if (error) throw error;
+
+    const page = (data || []) as EventParticipantRow[];
+    rows.push(...page);
+
+    if (page.length < EVENT_PARTICIPANTS_PAGE_SIZE) break;
+    from += EVENT_PARTICIPANTS_PAGE_SIZE;
+  }
+
+  return rows;
+}
+
 export function AttendanceTab({ categoryId }: AttendanceTabProps) {
   const { t } = useTranslation();
   const { isViewer } = useViewerModeContext();
-  const [selectedSession, setSelectedSession] = useState<any>(null);
+  const [selectedSession, setSelectedSession] = useState<AttendanceSession | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detailSessionId, setDetailSessionId] = useState<string | null>(null);
   
@@ -93,13 +139,15 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
   const { data: eventParticipants } = useQuery({
     queryKey: ["event_participants_attendance", categoryId, sessionIds.join(",")],
     enabled: sessionIds.length > 0,
+    queryFn: () => fetchEventParticipantsBySessionIds(sessionIds),
+  });
+
+  const { data: detailEventParticipants, isLoading: detailParticipantsLoading } = useQuery({
+    queryKey: ["event_participants_attendance_detail", detailSessionId],
+    enabled: !!detailSessionId,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("event_participants")
-        .select("id, training_session_id, player_id, attendance_status, absence_comment, responded_at, players:player_id(id, name, first_name, avatar_url)")
-        .in("training_session_id", sessionIds);
-      if (error) throw error;
-      return data || [];
+      if (!detailSessionId) return [];
+      return fetchEventParticipantsBySessionIds([detailSessionId]);
     },
   });
 
@@ -161,26 +209,32 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
     };
   };
 
-  const handleOpenAttendance = (session: any) => {
+  const handleOpenAttendance = (session: AttendanceSession) => {
     setSelectedSession(session);
     setDialogOpen(true);
   };
 
 
-  const getSessionLabel = (session: any) => {
-    // Simplified display: just show "Séance" with time
+  const getSessionLabel = (session: AttendanceSession) => {
+    const cleanTitle = (session.notes || "")
+      .replace(/<!--[\s\S]*?-->/g, "")
+      .split("\n")
+      .map((line: string) => line.trim())
+      .find((line: string) => line && !line.startsWith("📋") && !line.startsWith("📍"));
+    const title = cleanTitle || session.training_type || "Séance";
+
     if (session.session_start_time && session.session_end_time) {
-      return `Séance ${session.session_start_time.slice(0, 5)} - ${session.session_end_time.slice(0, 5)}`;
+      return `${title} · ${session.session_start_time.slice(0, 5)} - ${session.session_end_time.slice(0, 5)}`;
     } else if (session.session_start_time) {
-      return `Séance ${session.session_start_time.slice(0, 5)}`;
+      return `${title} · ${session.session_start_time.slice(0, 5)}`;
     }
-    return "Séance";
+    return title;
   };
 
   const handleExportDetail = async (
     kind: "pdf" | "excel",
-    session: any,
-    participants: any[],
+    session: AttendanceSession,
+    participants: EventParticipantRow[],
   ) => {
     try {
       const rows: AttendanceExportRow[] = (participants || [])
@@ -223,8 +277,8 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
 
       if (kind === "pdf") await exportAttendancePdf(ctx);
       else await exportAttendanceExcel(ctx);
-    } catch (e: any) {
-      toast.error(e?.message || "Export error");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Export error");
     }
   };
 
@@ -405,7 +459,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
           .sort((a, b) => new Date(b.session_date).getTime() - new Date(a.session_date).getTime());
 
         const detailParticipants = detailSessionId
-          ? filteredParticipants.filter((p) => p.training_session_id === detailSessionId)
+          ? detailEventParticipants || []
           : [];
         const detailSession = detailSessionId
           ? sessionOptions.find((s) => s.id === detailSessionId)
@@ -520,9 +574,13 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                       </SelectContent>
                     </Select>
 
-                    {detailSession && totalParticipants >= 0 && (
+                    {detailSession && detailParticipantsLoading ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        {t("common.loading", { defaultValue: "Chargement..." })}
+                      </p>
+                    ) : detailSession && totalParticipants >= 0 && (
                       <ParticipantsAttendanceList
-                        participants={detailParticipants as any}
+                        participants={detailParticipants}
                         title={t("admin.attendance.sessionOn", { date: format(parseISO(detailSession.session_date), "dd/MM/yyyy", { locale: getDateLocale() }) })}
                         emptyLabel={t("admin.attendance.noAthleteAssignedToSession")}
                       />
@@ -546,7 +604,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
           new Date(a.session_date).getTime() - new Date(b.session_date).getTime()
         ) || [];
 
-        const renderSessionItem = (session: any) => {
+        const renderSessionItem = (session: AttendanceSession) => {
           const summary = getSessionAttendanceSummary(session.id, session.session_date);
           const hasAttendance = summary.total > 0;
           const isToday = session.session_date === today;
