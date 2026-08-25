@@ -133,6 +133,7 @@ export function ImprovedCalendarView({
   const [notifySession, setNotifySession] = useState<Session | null>(null);
   const [notifyMatch, setNotifyMatch] = useState<Match | null>(null);
   const [duplicateSession, setDuplicateSession] = useState<Session | null>(null);
+  const [allEventsDay, setAllEventsDay] = useState<Date | null>(null);
   
   // Filter states
   const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
