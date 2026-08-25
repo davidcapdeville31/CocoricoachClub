@@ -353,6 +353,9 @@ export function DailyCalendarView({
                         )}>
                           {trainingTypeLabels[session.training_type] || session.training_type}
                         </span>
+                        {session.training_type === "test" && testNameForSession(session) && (
+                          <p className="text-sm font-semibold">{testNameForSession(session)}</p>
+                        )}
                         
                         {/* Show blocks if present */}
                         {hasBlocks && (
