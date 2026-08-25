@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -27,6 +28,7 @@ export function LinkExistingPlayerDialog({
   onOpenChange,
   categoryId,
 }: LinkExistingPlayerDialogProps) {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const queryClient = useQueryClient();
 
@@ -89,7 +91,7 @@ export function LinkExistingPlayerDialog({
 
   const linkPlayer = useMutation({
     mutationFn: async ({ playerId, hasAccount }: { playerId: string; hasAccount: boolean }) => {
-      if (!category) throw new Error("Catégorie non trouvée");
+      if (!category) throw new Error(t("roster.linkExistingPlayerDialog.errors.categoryNotFound"));
 
       const { error } = await supabase
         .from("player_categories")
@@ -110,15 +112,15 @@ export function LinkExistingPlayerDialog({
       queryClient.invalidateQueries({ queryKey: ["search-players-to-link"] });
       toast.success(
         hasAccount
-          ? "Demande envoyée — l'athlète doit accepter"
-          : "Joueur rattaché à cette catégorie"
+          ? t("roster.linkExistingPlayerDialog.toasts.requestSent")
+          : t("roster.linkExistingPlayerDialog.toasts.linked")
       );
     },
     onError: (error: any) => {
       if (error.message?.includes("duplicate")) {
-        toast.error("Ce joueur est déjà dans cette catégorie");
+        toast.error(t("roster.linkExistingPlayerDialog.toasts.alreadyInCategory"));
       } else {
-        toast.error("Erreur lors du rattachement");
+        toast.error(t("roster.linkExistingPlayerDialog.toasts.error"));
       }
     },
   });
@@ -129,11 +131,10 @@ export function LinkExistingPlayerDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Link2 className="h-5 w-5 text-primary" />
-            Rattacher un joueur existant
+            {t("roster.linkExistingPlayerDialog.title")}
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
-            Rechercher un joueur déjà inscrit dans une autre catégorie ou un autre club pour le rattacher ici.
-            Il conservera son profil unique et sa charge sera visible globalement.
+            {t("roster.linkExistingPlayerDialog.description")}
           </p>
         </DialogHeader>
 
@@ -141,7 +142,7 @@ export function LinkExistingPlayerDialog({
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Rechercher par nom ou prénom (min. 2 caractères)..."
+              placeholder={t("roster.linkExistingPlayerDialog.searchPlaceholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9"
@@ -157,13 +158,13 @@ export function LinkExistingPlayerDialog({
 
             {!isSearching && search.length >= 2 && searchResults.length === 0 && (
               <p className="text-sm text-muted-foreground text-center py-8">
-                Aucun joueur trouvé
+                {t("roster.linkExistingPlayerDialog.noResults")}
               </p>
             )}
 
             {search.length < 2 && (
               <p className="text-sm text-muted-foreground text-center py-8">
-                Tape au moins 2 caractères pour rechercher
+                {t("roster.linkExistingPlayerDialog.minChars")}
               </p>
             )}
 
@@ -189,7 +190,7 @@ export function LinkExistingPlayerDialog({
                         <span className="text-xs text-muted-foreground">{clubName}</span>
                         {player.user_id && (
                           <Badge variant="outline" className="text-[10px] h-4 px-1.5 text-primary border-primary/30">
-                            Compte actif
+                            {t("roster.linkExistingPlayerDialog.activeAccount")}
                           </Badge>
                         )}
                       </div>
@@ -202,7 +203,7 @@ export function LinkExistingPlayerDialog({
                       className="gap-1.5"
                     >
                       <UserPlus className="h-3.5 w-3.5" />
-                      Rattacher
+                      {t("roster.linkExistingPlayerDialog.linkButton")}
                     </Button>
                   </div>
                 );
@@ -213,7 +214,7 @@ export function LinkExistingPlayerDialog({
 
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            Fermer
+            {t("roster.linkExistingPlayerDialog.close")}
           </Button>
         </DialogFooter>
       </DialogContent>

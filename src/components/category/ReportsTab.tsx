@@ -259,14 +259,14 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       const contentWidth = pageWidth - 2 * margin;
 
       const dateRange = tdjDateFrom || tdjDateTo
-        ? `${tdjDateFrom ? format(new Date(tdjDateFrom), "d MMM yyyy", { locale: getDateLocale() }) : "Début"} → ${tdjDateTo ? format(new Date(tdjDateTo), "d MMM yyyy", { locale: getDateLocale() }) : "Aujourd'hui"}`
+        ? `${tdjDateFrom ? format(new Date(tdjDateFrom), "d MMM yyyy", { locale: getDateLocale() }) : t("adminReports.export.common.start")} → ${tdjDateTo ? format(new Date(tdjDateTo), "d MMM yyyy", { locale: getDateLocale() }) : t("adminReports.export.common.today")}`
         : "";
 
       let yPos = drawPdfHeaderCustom(
         pdf,
-        `SUIVI TEMPS DE JEU${seasonName ? ` - ${seasonName}` : ""}`,
+        t("adminReports.export.tdj.pdfTitle") + (seasonName ? ` - ${seasonName}` : ""),
         `${cn1 || category?.clubs?.name || ''} - ${catName1 || category?.name || ''}`,
-        `${matchesData.length} matchs | ${format(new Date(), "d MMMM yyyy", { locale: getDateLocale() })}${dateRange ? ` | ${dateRange}` : ""}`,
+        `${t("adminReports.export.common.matchesCount", { count: matchesData.length })} | ${format(new Date(), "d MMMM yyyy", { locale: getDateLocale() })}${dateRange ? ` | ${dateRange}` : ""}`,
         pdfSettings,
         logoBase64
       );
@@ -277,11 +277,11 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       const totalMatchMinutes = playerTdj.reduce((s, p) => s + p.totalMinutes, 0);
       const avgMinutes = players.length > 0 ? Math.round(totalMatchMinutes / players.length) : 0;
 
-      drawKpiCard(pdf, margin, yPos, cardW, cardH, String(matchesData.length), "MATCHS", defaultColors.primary);
-      drawKpiCard(pdf, margin + cardW + 5, yPos, cardW, cardH, String(players.length), "JOUEURS", defaultColors.primary);
-      drawKpiCard(pdf, margin + (cardW + 5) * 2, yPos, cardW, cardH, String(totalMatchMinutes), "MIN TOTALES", defaultColors.success);
-      drawKpiCard(pdf, margin + (cardW + 5) * 3, yPos, cardW, cardH, String(avgMinutes), "MIN MOY/JOUEUR", defaultColors.warning);
-      drawKpiCard(pdf, margin + (cardW + 5) * 4, yPos, cardW, cardH, String(injuries.length), "BLESSURES", injuries.length > 5 ? defaultColors.danger : defaultColors.success);
+      drawKpiCard(pdf, margin, yPos, cardW, cardH, String(matchesData.length), t("adminReports.export.tdj.kpiMatches"), defaultColors.primary);
+      drawKpiCard(pdf, margin + cardW + 5, yPos, cardW, cardH, String(players.length), t("adminReports.export.tdj.kpiPlayers"), defaultColors.primary);
+      drawKpiCard(pdf, margin + (cardW + 5) * 2, yPos, cardW, cardH, String(totalMatchMinutes), t("adminReports.export.tdj.kpiTotalMinutes"), defaultColors.success);
+      drawKpiCard(pdf, margin + (cardW + 5) * 3, yPos, cardW, cardH, String(avgMinutes), t("adminReports.export.tdj.kpiAvgMinutes"), defaultColors.warning);
+      drawKpiCard(pdf, margin + (cardW + 5) * 4, yPos, cardW, cardH, String(injuries.length), t("adminReports.export.tdj.kpiInjuries"), injuries.length > 5 ? defaultColors.danger : defaultColors.success);
 
       yPos += cardH + 12;
 
@@ -289,10 +289,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       pdf.setFontSize(11);
       pdf.setFont("helvetica", "bold");
       pdf.setTextColor(...defaultColors.dark);
-      pdf.text("TOTAL DE LA SAISON", margin, yPos);
+      pdf.text(t("adminReports.export.tdj.tableTitle"), margin, yPos);
       yPos += 7;
 
-      const headers = ["Prénom / NOM", "Min. totales", "Titulaire", "Remplaçant", "Matchs joués", "Hors-groupe", "Blessé"];
+      const headers = [t("adminReports.export.tdj.headerName"), t("adminReports.export.tdj.headerTotalMinutes"), t("adminReports.export.tdj.headerStarter"), t("adminReports.export.tdj.headerSubstitute"), t("adminReports.export.tdj.headerMatchesPlayed"), t("adminReports.export.tdj.headerOutOfSquad"), t("adminReports.export.tdj.headerInjured")];
       const colWidths = [70, 35, 35, 35, 35, 35, 35];
       yPos = drawTableHeaderPdf(pdf, headers, colWidths, yPos, margin, contentWidth);
 
@@ -364,7 +364,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         if (minutes > 0) csvStatsMinutesMap.set(`${s.match_id}_${s.player_id}`, Number(minutes));
       });
 
-      const headers = ["Joueur", "Minutes totales", "Titulaire", "Remplaçant", "Matchs joués", "Hors-groupe", "Blessé"];
+      const headers = [t("adminReports.export.tdj.headerPlayer"), t("adminReports.export.tdj.totalMinutes"), t("adminReports.export.tdj.headerStarter"), t("adminReports.export.tdj.headerSubstitute"), t("adminReports.export.tdj.headerMatchesPlayed"), t("adminReports.export.tdj.headerOutOfSquad"), t("adminReports.export.tdj.headerInjured")];
       const rows = players.map(player => {
         const pl = lineups.filter(l => l.player_id === player.id);
         const totalMin = pl.reduce((s, l) => {
@@ -394,15 +394,15 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
 
       const workbook = new ExcelJS.Workbook();
       // Sheet 1: Summary
-      const sheet = workbook.addWorksheet("Suivi Temps de Jeu");
+      const sheet = workbook.addWorksheet(t("adminReports.export.tdj.sheetName"));
       const extraInfo: [string, string][] = [
-        ["Matchs analysés", `${matchesData.length}`],
-        ["Minutes totales", `${rows.reduce((s, r) => s + (r[1] as number), 0)}`],
+        [t("adminReports.export.tdj.matchesAnalyzed"), `${matchesData.length}`],
+        [t("adminReports.export.tdj.totalMinutes"), `${rows.reduce((s, r) => s + (r[1] as number), 0)}`],
       ];
       if (tdjDateFrom || tdjDateTo) {
-        extraInfo.push(["Période", `${tdjDateFrom || "début"} — ${tdjDateTo || "aujourd'hui"}`]);
+        extraInfo.push([t("adminReports.export.common.periodLabel"), t("adminReports.export.common.periodRange", { from: tdjDateFrom || t("adminReports.export.common.start"), to: tdjDateTo || t("adminReports.export.common.today") })]);
       }
-      const dataStart = addBrandedHeader(sheet, "SUIVI TEMPS DE JEU", branding, extraInfo);
+      const dataStart = addBrandedHeader(sheet, t("adminReports.export.tdj.pdfTitle"), branding, extraInfo);
 
       headers.forEach((h, i) => { sheet.getCell(dataStart, i + 1).value = h; });
       styleDataHeaderRow(sheet, dataStart, headers.length, branding.headerColor);
@@ -422,14 +422,14 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       // Totals row
       const totIdx = dataStart + rows.length + 1;
       const totRow = sheet.getRow(totIdx);
-      totRow.getCell(1).value = 'TOTAL / MOYENNE';
+      totRow.getCell(1).value = t("adminReports.export.common.totalAverage");
       totRow.getCell(1).font = { bold: true };
       const totalMin = rows.reduce((s, r) => s + (r[1] as number), 0);
       totRow.getCell(2).value = totalMin;
       totRow.getCell(2).font = { bold: true };
       const avgMin = rows.length > 0 ? Math.round(totalMin / rows.length) : 0;
-      totRow.getCell(3).value = `Moy: ${Math.round(rows.reduce((s, r) => s + (r[2] as number), 0) / Math.max(rows.length, 1))}`;
-      totRow.getCell(5).value = `Moy: ${Math.round(rows.reduce((s, r) => s + (r[4] as number), 0) / Math.max(rows.length, 1))}`;
+      totRow.getCell(3).value = t("adminReports.export.common.average", { value: Math.round(rows.reduce((s, r) => s + (r[2] as number), 0) / Math.max(rows.length, 1)) });
+      totRow.getCell(5).value = t("adminReports.export.common.average", { value: Math.round(rows.reduce((s, r) => s + (r[4] as number), 0) / Math.max(rows.length, 1)) });
       for (let i = 1; i <= headers.length; i++) {
         totRow.getCell(i).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE2E8F0' } };
       }
@@ -438,9 +438,9 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       headers.forEach((_, i) => { sheet.getColumn(i + 1).width = i === 0 ? 25 : 18; });
 
       // Sheet 2: Per-match detail
-      const detailSheet = workbook.addWorksheet("Détail par match");
-      const detailStart = addBrandedHeader(detailSheet, "DÉTAIL PAR MATCH", branding, []);
-      const detailHeaders = ["Match", "Date", "Joueur", "Titulaire", "Minutes"];
+      const detailSheet = workbook.addWorksheet(t("adminReports.export.tdj.detailSheetName"));
+      const detailStart = addBrandedHeader(detailSheet, t("adminReports.export.tdj.detailTitle"), branding, []);
+      const detailHeaders = [t("adminReports.export.tdj.detailHeaderMatch"), t("adminReports.export.tdj.detailHeaderDate"), t("adminReports.export.tdj.headerPlayer"), t("adminReports.export.tdj.headerStarter"), t("adminReports.export.match.headerMinutes")];
       detailHeaders.forEach((h, i) => { detailSheet.getCell(detailStart, i + 1).value = h; });
       styleDataHeaderRow(detailSheet, detailStart, detailHeaders.length, branding.headerColor);
 
@@ -455,7 +455,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
           r.getCell(1).value = m.opponent;
           r.getCell(2).value = format(new Date(m.match_date), "dd/MM/yyyy");
           r.getCell(3).value = pName;
-          r.getCell(4).value = l.is_starter ? "Oui" : "Non";
+          r.getCell(4).value = l.is_starter ? t("adminReports.export.common.yes") : t("adminReports.export.common.no");
           r.getCell(5).value = lineupMin;
           if (dRowIdx % 2 === 0) {
             for (let i = 1; i <= detailHeaders.length; i++) {
