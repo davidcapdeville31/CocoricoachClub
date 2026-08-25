@@ -50,9 +50,11 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
   const { t } = useTranslation();
   const tests = parseTestsFromNotes(notes);
   const customMap = useCustomTestLabels(tests.map((t) => t.test_type));
+  const { isAbsent } = useAthleteAttendanceLock(sessionId, playerId);
   const [pending, setPending] = useState<any[]>([]);
   const [staffSaved, setStaffSaved] = useState<any[]>([]);
   const [submittingKey, setSubmittingKey] = useState<string | null>(null);
+
 
   const reload = async () => {
     const [{ data: pendingData }, { data: savedData }] = await Promise.all([
