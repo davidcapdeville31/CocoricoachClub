@@ -141,14 +141,29 @@ export function ScheduleTestEventDialog({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("custom_tests")
-        .select("name, test_category, unit, is_time")
+        .select("id, name, test_category, unit, is_time")
         .eq("club_id", clubData?.club_id || "")
         .order("name");
       if (error) throw error;
-      return (data || []) as CustomTestCatalogItem[];
+      return (data || []) as Array<CustomTestCatalogItem & { id: string }>;
     },
     enabled: open && !!clubData?.club_id,
   });
+
+  // Map `custom:<uuid>` -> readable custom test info (tests planned from the Tests catalog)
+  const customTestsById = useMemo(() => {
+    const map: Record<string, { name: string; unit: string | null; test_category: string | null }> = {};
+    (customTests || []).forEach((ct: any) => {
+      if (ct?.id) {
+        map[String(ct.id).toLowerCase()] = {
+          name: ct.name,
+          unit: ct.unit ?? null,
+          test_category: ct.test_category ?? null,
+        };
+      }
+    });
+    return map;
+  }, [customTests]);
 
   // Fetch batteries for this category/club
   const { data: batteries } = useQuery({
