@@ -19,6 +19,7 @@ import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
 import { CalendarDayCell } from "./CalendarDayCell";
+import { MatchVignette } from "./MatchVignette";
 import { SessionVignette } from "./SessionVignette";
 import { DuplicateSessionDialog } from "./DuplicateSessionDialog";
 import { SessionFeedbackDialog } from "./SessionFeedbackDialog";
