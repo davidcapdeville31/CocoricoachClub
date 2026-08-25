@@ -47,6 +47,12 @@ function labelize(v: string) {
   return v.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+function formatDay(d: string) {
+  const [y, m, day] = d.split("-");
+  return day && m && y ? `${day}/${m}/${y}` : d;
+}
+
+
 export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onChange, categoryId, sessionDate }: Props) {
   const { t } = useTranslation();
   const tests = parseTestsFromNotes(notes);
