@@ -410,6 +410,8 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
     () => parsePrecisionExerciseFromNotes(selectedSessionData?.notes),
     [selectedSessionData?.notes]
   );
+  const { isAbsent: attendanceAbsent } = useAthleteAttendanceLock(selectedSession, playerId);
+
   const isBowlingPrecision = selectedSessionData?.training_type === "bowling_spare";
   const isBowlingGame = selectedSessionData?.training_type === "bowling_game" || selectedSessionData?.training_type === "bowling_practice";
   const isGenericPrecision = selectedSessionData?.training_type === "precision";
