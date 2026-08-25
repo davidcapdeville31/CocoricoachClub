@@ -372,14 +372,19 @@ export function SessionDetailsDialog({
   const isTestSession = session?.training_type === "test";
   const isInfoOnlySession = session?.training_type === "medical" || session?.training_type === "video_analyse";
 
+  // Fallback resolution for test_types stored as `custom:<uuid>` (works even
+  // when the custom test belongs to another club scope / RPC fallback needed)
+  const customTestLabelMap = useCustomTestLabels(testsMeta.map((t: any) => t.test_type));
+
   const getTestLabel = (cat: string, type: string) => {
     const c = TEST_CATEGORIES.find((x: any) => x.value === cat);
     const t = c?.tests.find((x: any) => x.value === type);
     return {
-      categoryLabel: c?.label || cat,
-      testLabel: t?.label || type,
+      categoryLabel: c?.label || formatCategoryLabel(cat || ""),
+      testLabel: t?.label || labelizeTestType(type || "", customTestLabelMap),
     };
   };
+
 
   // Calculate AWCR for a player
   const calculateAWCR = async (playerId: string, sessionDateStr: string, newLoad: number) => {
