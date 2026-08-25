@@ -637,6 +637,7 @@ export const exportSessionToPdf = async (
     blocks?: any[];
     testCategories?: any[];
     seasonName?: string | null;
+    customTestNames?: Record<string, string>;
   }
 ): Promise<void> => {
   const pdf = new jsPDF({
@@ -944,7 +945,7 @@ export const exportSessionToPdf = async (
           pdf.setFont("helvetica", "bold");
           pdf.text(`${idx + 1}.`, margin + 3, yPos + 7);
           
-          const label = resolveTestLabel(test.test_type, testCats);
+          const label = resolveTestLabel(test.test_type, testCats, options?.customTestNames);
           pdf.setTextColor(...colors.dark);
           pdf.setFont("helvetica", "normal");
           pdf.text(label, margin + 12, yPos + 7);
