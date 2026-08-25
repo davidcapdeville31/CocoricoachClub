@@ -242,6 +242,8 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
         </DialogHeader>
 
         <div className="space-y-4 py-2">
+          {isAbsent && <AthleteAbsentLockNotice />}
+
           {/* Exercise logs (reps / sets / weight) — feeds tonnage & training load */}
           {session && playerId && (
             <AthleteWeightLogInput
