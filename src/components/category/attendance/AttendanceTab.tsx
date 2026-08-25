@@ -177,6 +177,59 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
     return "Séance";
   };
 
+  const handleExportDetail = async (
+    kind: "pdf" | "excel",
+    session: any,
+    participants: any[],
+  ) => {
+    try {
+      const rows: AttendanceExportRow[] = (participants || [])
+        .map((p) => {
+          const pl = p.players || {};
+          const name = pl.first_name ? `${pl.first_name} ${pl.name ?? ""}`.trim() : pl.name || "-";
+          const status = (p.attendance_status === "present" || p.attendance_status === "absent"
+            ? p.attendance_status
+            : "no_response") as AttendanceExportRow["status"];
+          return {
+            name,
+            status,
+            comment: status === "absent" ? p.absence_comment : null,
+            respondedAt: p.responded_at ? format(new Date(p.responded_at), "dd/MM/yyyy HH:mm") : null,
+          };
+        })
+        .sort((a, b) => {
+          const order = { present: 0, absent: 1, no_response: 2 } as const;
+          return order[a.status] - order[b.status] || a.name.localeCompare(b.name);
+        });
+
+      const ctx = {
+        categoryId,
+        sessionLabel: getSessionLabel(session),
+        sessionDate: format(parseISO(session.session_date), "dd/MM/yyyy"),
+        rows,
+        labels: {
+          title: t("admin.attendance.detailBySession"),
+          athlete: t("adminAttendance.participants.defaultAthlete"),
+          status: t("admin.attendance.status", { defaultValue: "Statut" }),
+          reason: t("admin.attendance.reason", { defaultValue: "Motif" }),
+          respondedAt: t("admin.attendance.respondedAt", { defaultValue: "Réponse le" }),
+          present: t("admin.attendance.present"),
+          absent: t("admin.attendance.absent"),
+          noResponse: t("admin.attendance.noResponse"),
+          session: t("admin.attendance.sessionLabel", { defaultValue: "Séance" }),
+          date: t("admin.attendance.dateLabel", { defaultValue: "Date" }),
+        },
+      };
+
+      if (kind === "pdf") await exportAttendancePdf(ctx);
+      else await exportAttendanceExcel(ctx);
+    } catch (e: any) {
+      toast.error(e?.message || "Export error");
+    }
+  };
+
+
+
   const getRateColor = (rate: number) => {
     if (rate >= 90) return "text-green-600";
     if (rate >= 75) return "text-amber-600";
