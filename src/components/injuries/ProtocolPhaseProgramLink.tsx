@@ -59,7 +59,7 @@ export function ProtocolPhaseProgramLink({
 
   // Group weeks by block
   const blocks = program?.program_weeks?.reduce((acc: Record<string, any[]>, week: any) => {
-    const blockName = week.block_name || "Général";
+    const blockName = week.block_name || t("health.protocolPhaseProgramLink.generalBlockFallback");
     if (!acc[blockName]) acc[blockName] = [];
     acc[blockName].push(week);
     return acc;

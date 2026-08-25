@@ -134,6 +134,21 @@ export const planningFr = {
     add: "Ajouter",
     selectPeriod: "Sélectionnez une période dans le calendrier",
     fisImport: "Import Calendrier FIS",
+    pdf: {
+      title: "Planification annuelle {{periodLabel}}",
+      generatedOn: "Généré le {{date}}",
+      monthsShort: ["JANV.", "FÉVR.", "MARS", "AVRIL", "MAI", "JUIN", "JUIL.", "AOÛT", "SEPT.", "OCT.", "NOV.", "DÉC."],
+      daysInitials: ["D", "L", "M", "M", "J", "V", "S"],
+      averageAllCycles: "Moyenne de tous les cycles",
+      intensityScale: "Intensité de 0 à 10",
+      intensityLow: "Faible · récupération",
+      intensityModerate: "Modérée",
+      intensityHigh: "Élevée · maximale",
+      competitionsTitle: "COMPÉTITIONS",
+      competitionFallback: "Compétition",
+      legendTitle: "LÉGENDE",
+      legendCompetition: "Compétition",
+    },
   },
   objectives: {
     goalTypes: {
@@ -1089,6 +1104,21 @@ export const planningEn = {
     add: "Add",
     selectPeriod: "Select a period in the calendar",
     fisImport: "FIS Calendar Import",
+    pdf: {
+      title: "Annual planning {{periodLabel}}",
+      generatedOn: "Generated on {{date}}",
+      monthsShort: ["JAN.", "FEB.", "MAR.", "APR.", "MAY", "JUN.", "JUL.", "AUG.", "SEPT.", "OCT.", "NOV.", "DEC."],
+      daysInitials: ["S", "M", "T", "W", "T", "F", "S"],
+      averageAllCycles: "Average of all cycles",
+      intensityScale: "Intensity from 0 to 10",
+      intensityLow: "Low · recovery",
+      intensityModerate: "Moderate",
+      intensityHigh: "High · maximal",
+      competitionsTitle: "COMPETITIONS",
+      competitionFallback: "Competition",
+      legendTitle: "LEGEND",
+      legendCompetition: "Competition",
+    },
   },
   objectives: {
     goalTypes: {

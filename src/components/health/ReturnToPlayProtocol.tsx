@@ -33,6 +33,8 @@ import {
   Pause
 } from "lucide-react";
 import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 
 interface ReturnToPlayProtocolProps {
   injuryId: string;
@@ -43,74 +45,12 @@ interface ReturnToPlayProtocolProps {
 }
 
 // Phases du protocole de retour au jeu (basé sur les protocoles médicaux standard)
-const RTP_PHASES = [
-  {
-    phase: 1,
-    name: "Repos et récupération",
-    description: "Repos complet, gestion de la douleur",
-    checklist: [
-      "Absence de douleur au repos",
-      "Diminution de l'inflammation",
-      "Amplitude articulaire passive récupérée",
-      "Évaluation médicale validée"
-    ]
-  },
-  {
-    phase: 2,
-    name: "Mobilité et renforcement léger",
-    description: "Exercices de mobilité, renforcement isométrique",
-    checklist: [
-      "Amplitude articulaire active complète",
-      "Renforcement isométrique sans douleur",
-      "Marche normale sans boiterie",
-      "Exercices proprioceptifs de base"
-    ]
-  },
-  {
-    phase: 3,
-    name: "Renforcement progressif",
-    description: "Renforcement concentrique/excentrique, cardio léger",
-    checklist: [
-      "Force à 70% du membre sain",
-      "Exercices de renforcement dynamiques",
-      "Cardio basse intensité (vélo, natation)",
-      "Équilibre unipodal stable"
-    ]
-  },
-  {
-    phase: 4,
-    name: "Entraînement spécifique",
-    description: "Course, exercices spécifiques au rugby",
-    checklist: [
-      "Course en ligne droite sans douleur",
-      "Changements de direction progressifs",
-      "Exercices de sauts et réceptions",
-      "Force à 90% du membre sain"
-    ]
-  },
-  {
-    phase: 5,
-    name: "Entraînement avec contact limité",
-    description: "Participation progressive aux entraînements",
-    checklist: [
-      "Entraînement collectif sans opposition",
-      "Plaquages sur sacs",
-      "Sprints et accélérations",
-      "Tests fonctionnels validés"
-    ]
-  },
-  {
-    phase: 6,
-    name: "Retour complet",
-    description: "Entraînement complet et match",
-    checklist: [
-      "Entraînement complet avec contact",
-      "Validation médicale finale",
-      "Confiance du joueur",
-      "Feu vert du staff médical et technique"
-    ]
-  }
-];
+const RTP_PHASES = [1, 2, 3, 4, 5, 6].map((phase) => ({
+  phase,
+  get name() { return i18n.t(`health.returnToPlayProtocol.phases.phase${phase}.name`); },
+  get description() { return i18n.t(`health.returnToPlayProtocol.phases.phase${phase}.description`); },
+  get checklist() { return i18n.t(`health.returnToPlayProtocol.phases.phase${phase}.checklist`, { returnObjects: true }) as string[]; },
+}));
 
 export function ReturnToPlayProtocol({
   injuryId,
@@ -119,6 +59,7 @@ export function ReturnToPlayProtocol({
   playerName,
   injuryType,
 }: ReturnToPlayProtocolProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [isValidationOpen, setIsValidationOpen] = useState(false);
   const [validatingPhase, setValidatingPhase] = useState<number | null>(null);
@@ -191,10 +132,10 @@ export function ReturnToPlayProtocol({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rtp_protocol", injuryId] });
-      toast.success("Protocole de retour au jeu démarré");
+      toast.success(t("health.returnToPlayProtocol.toastCreateSuccess"));
     },
     onError: () => {
-      toast.error("Erreur lors de la création du protocole");
+      toast.error(t("health.returnToPlayProtocol.toastCreateError"));
     },
   });
 
@@ -283,10 +224,10 @@ export function ReturnToPlayProtocol({
       setValidatingPhase(null);
       setValidatedBy("");
       setValidationNotes("");
-      toast.success("Phase validée avec succès");
+      toast.success(t("health.returnToPlayProtocol.toastValidateSuccess"));
     },
     onError: () => {
-      toast.error("Erreur lors de la validation");
+      toast.error(t("health.returnToPlayProtocol.toastValidateError"));
     },
   });
 
@@ -315,22 +256,22 @@ export function ReturnToPlayProtocol({
     : 0;
 
   if (isLoading) {
-    return <div className="text-muted-foreground">Chargement...</div>;
+    return <div className="text-muted-foreground">{t("health.returnToPlayProtocol.loading")}</div>;
   }
 
   if (!protocol) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Protocole de Retour au Jeu</CardTitle>
+          <CardTitle className="text-lg">{t("health.returnToPlayProtocol.cardTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground mb-4">
-            Aucun protocole de retour au jeu n'est en cours pour cette blessure.
+            {t("health.returnToPlayProtocol.noProtocol")}
           </p>
           <Button onClick={() => createProtocol.mutate()} disabled={createProtocol.isPending}>
             <Play className="h-4 w-4 mr-2" />
-            {createProtocol.isPending ? "Création..." : "Démarrer le protocole"}
+            {createProtocol.isPending ? t("health.returnToPlayProtocol.creating") : t("health.returnToPlayProtocol.startProtocol")}
           </Button>
         </CardContent>
       </Card>
@@ -343,7 +284,7 @@ export function ReturnToPlayProtocol({
         <CardHeader>
           <div className="flex justify-between items-start">
             <div>
-              <CardTitle className="text-lg">Protocole de Retour au Jeu</CardTitle>
+              <CardTitle className="text-lg">{t("health.returnToPlayProtocol.cardTitle")}</CardTitle>
               <p className="text-sm text-muted-foreground mt-1">
                 {playerName} - {injuryType}
               </p>
@@ -353,10 +294,10 @@ export function ReturnToPlayProtocol({
               className={protocol.status === "completed" ? "bg-green-500" : ""}
             >
               {protocol.status === "completed"
-                ? "Terminé"
+                ? t("health.returnToPlayProtocol.statusCompleted")
                 : protocol.status === "suspended"
-                ? "Suspendu"
-                : `Phase ${protocol.current_phase}/6`}
+                ? t("health.returnToPlayProtocol.statusSuspended")
+                : t("health.returnToPlayProtocol.statusPhase", { current: protocol.current_phase, total: 6 })}
             </Badge>
           </div>
         </CardHeader>
@@ -364,7 +305,7 @@ export function ReturnToPlayProtocol({
           {/* Progress bar */}
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span>Progression globale</span>
+              <span>{t("health.returnToPlayProtocol.overallProgress")}</span>
               <span>{Math.round(overallProgress)}%</span>
             </div>
             <Progress value={overallProgress} className="h-3" />
@@ -373,12 +314,12 @@ export function ReturnToPlayProtocol({
           {/* Dates */}
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <span className="text-muted-foreground">Début: </span>
+              <span className="text-muted-foreground">{t("health.returnToPlayProtocol.start")}</span>
               {protocol.started_at && format(new Date(protocol.started_at), "dd MMM yyyy", { locale: getDateLocale() })}
             </div>
             {protocol.completed_at && (
               <div>
-                <span className="text-muted-foreground">Fin: </span>
+                <span className="text-muted-foreground">{t("health.returnToPlayProtocol.end")}</span>
                 {format(new Date(protocol.completed_at), "dd MMM yyyy", { locale: getDateLocale() })}
               </div>
             )}
@@ -462,11 +403,11 @@ export function ReturnToPlayProtocol({
                   {phaseData?.validated_by && (
                     <div className="text-sm bg-muted/50 p-3 rounded-lg">
                       <p>
-                        <strong>Validé par:</strong> {phaseData.validated_by}
+                        <strong>{t("health.returnToPlayProtocol.validatedBy")}</strong> {phaseData.validated_by}
                       </p>
                       {phaseData.validation_notes && (
                         <p className="mt-1">
-                          <strong>Notes:</strong> {phaseData.validation_notes}
+                          <strong>{t("health.returnToPlayProtocol.notes")}</strong> {phaseData.validation_notes}
                         </p>
                       )}
                       {phaseData.completed_at && (
@@ -487,14 +428,14 @@ export function ReturnToPlayProtocol({
                       className="w-full"
                     >
                       <ChevronRight className="h-4 w-4 mr-2" />
-                      Valider la phase {phase.phase}
+                      {t("health.returnToPlayProtocol.validatePhase", { phase: phase.phase })}
                     </Button>
                   )}
 
                   {status === "in_progress" && !isPhaseComplete(phase.phase) && (
                     <p className="text-sm text-amber-600 flex items-center gap-2">
                       <AlertTriangle className="h-4 w-4" />
-                      Complétez tous les critères pour valider cette phase
+                      {t("health.returnToPlayProtocol.completeAllCriteria")}
                     </p>
                   )}
                 </div>
@@ -508,35 +449,35 @@ export function ReturnToPlayProtocol({
       <Dialog open={isValidationOpen} onOpenChange={setIsValidationOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Valider la Phase {validatingPhase}</DialogTitle>
+            <DialogTitle>{t("health.returnToPlayProtocol.validationDialogTitle", { phase: validatingPhase })}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Validé par *</Label>
+              <Label>{t("health.returnToPlayProtocol.validatedByLabel")}</Label>
               <Input
                 value={validatedBy}
                 onChange={(e) => setValidatedBy(e.target.value)}
-                placeholder="Nom du médecin/kiné"
+                placeholder={t("health.returnToPlayProtocol.validatedByPlaceholder")}
               />
             </div>
             <div className="space-y-2">
-              <Label>Notes de validation</Label>
+              <Label>{t("health.returnToPlayProtocol.validationNotesLabel")}</Label>
               <Textarea
                 value={validationNotes}
                 onChange={(e) => setValidationNotes(e.target.value)}
-                placeholder="Observations, recommandations..."
+                placeholder={t("health.returnToPlayProtocol.validationNotesPlaceholder")}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsValidationOpen(false)}>
-              Annuler
+              {t("health.returnToPlayProtocol.cancel")}
             </Button>
             <Button
               onClick={() => validatingPhase && validatePhase.mutate(validatingPhase)}
               disabled={!validatedBy || validatePhase.isPending}
             >
-              {validatePhase.isPending ? "Validation..." : "Valider"}
+              {validatePhase.isPending ? t("health.returnToPlayProtocol.validating") : t("health.returnToPlayProtocol.validate")}
             </Button>
           </DialogFooter>
         </DialogContent>

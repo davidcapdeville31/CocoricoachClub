@@ -460,12 +460,12 @@ function EmomBlock({
             E5MOM
           </ToggleGroupItem>
         </ToggleGroup>
-        <p className="text-xs text-muted-foreground mt-1">Toutes les {emomInterval > 1 ? `${emomInterval} minutes` : "minutes"}</p>
+        <p className="text-xs text-muted-foreground mt-1">{emomInterval > 1 ? t("programmation.methodBlocks.everyNMinutes", { count: emomInterval }) : t("programmation.methodBlocks.everyMinute")}</p>
       </div>
 
       {/* Duration config */}
       <div>
-        <Label className="text-xs text-muted-foreground mb-2 block">Durée</Label>
+        <Label className="text-xs text-muted-foreground mb-2 block">{t("programmation.methodBlocks.duration")}</Label>
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <span className="text-sm">{t("planning.calendarDialogs.sessionForm.methodBlocks.totalDuration")}</span>
@@ -508,7 +508,7 @@ function EmomBlock({
                   <ExerciseInput
                     exercise={exercise}
                     exerciseIndex={index}
-                    placeholder={`Minute ${i + 1} - Nom de l'exercice`}
+                    placeholder={t("programmation.methodBlocks.minuteExerciseName", { index: i + 1 })}
                     onUpdateExercise={onUpdateExercise}
                     onSelectFromLibrary={onSelectFromLibrary}
                     filteredLibrary={filteredLibrary}
@@ -637,7 +637,7 @@ function PyramidBlock({
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        {isPyramidUp ? "Augmentation progressive de la charge" : "Diminution progressive de la charge"}
+        {isPyramidUp ? t("programmation.methodBlocks.pyramidIncreasing") : t("programmation.methodBlocks.pyramidDecreasing")}
       </p>
 
       {/* Exercise slot */}
@@ -667,11 +667,11 @@ function PyramidBlock({
         <div>
           <div className="flex items-center justify-between mb-3">
             <span className={cn("text-sm font-medium", isPyramidUp ? "text-emerald-600" : "text-teal-600")}>
-              Configuration des séries
+              {t("programmation.methodBlocks.setsConfiguration")}
             </span>
             <Button type="button" variant="outline" size="sm" onClick={addSet} className="h-7">
               <Plus className="h-3 w-3 mr-1" />
-              Série
+              {t("programmation.methodBlocks.addSetShort")}
             </Button>
           </div>
 
@@ -687,7 +687,7 @@ function PyramidBlock({
               >
                 <div className="flex items-center gap-3 flex-wrap">
                   <Badge className={cn("text-white", styleConfig.color)}>
-                    Série {setIndex + 1}
+                    {t("programmation.methodBlocks.seriesNumber", { index: setIndex + 1 })}
                   </Badge>
                   <div className="flex items-center gap-2">
                     <span className="text-sm">{t("planning.calendarDialogs.sessionForm.methodBlocks.reps")}</span>
@@ -992,7 +992,7 @@ function DeathByBlock({
             <span className="text-muted-foreground">→</span>
             <Badge className="bg-red-600 text-white">Min 10</Badge>
             <span>10 reps</span>
-            <span className="text-muted-foreground">→ ... jusqu'à l'échec</span>
+            <span className="text-muted-foreground">→ ... {t("programmation.methodBlocks.untilFailure")}</span>
           </div>
         </div>
       )}
@@ -1248,7 +1248,7 @@ function FiveByFiveBlock({
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        5 séries de 5 répétitions à 80-85% 1RM. Repos 3-5 min entre les séries.
+        {t("programmation.methodBlocks.fiveByFiveDescription")}
       </p>
 
       {/* Exercise slot */}
@@ -1367,7 +1367,7 @@ function IntermittentCardioBlock({
 
       {/* Intensity */}
       <div className="border rounded-lg p-3 bg-amber-50 dark:bg-amber-950/20 space-y-3">
-        <p className="text-sm font-medium text-amber-700 dark:text-amber-400">⚡ Intensité</p>
+        <p className="text-sm font-medium text-amber-700 dark:text-amber-400">⚡ {t("programmation.methodBlocks.intensityTitle")}</p>
         <div className="grid grid-cols-3 gap-3">
           <div>
             <Label className="text-xs text-muted-foreground">{t("planning.calendarDialogs.sessionForm.methodBlocks.type")}</Label>
@@ -1379,11 +1379,11 @@ function IntermittentCardioBlock({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="rpe">RPE (/10)</SelectItem>
-                <SelectItem value="vma">% VMA (%)</SelectItem>
-                <SelectItem value="fc">FC cible (bpm)</SelectItem>
+                <SelectItem value="rpe">{t("programmation.methodBlocks.rpeUnit")}</SelectItem>
+                <SelectItem value="vma">{t("programmation.methodBlocks.vmaUnit")}</SelectItem>
+                <SelectItem value="fc">{t("programmation.methodBlocks.targetHr")}</SelectItem>
                 <SelectItem value="watts">{t("planning.calendarDialogs.sessionForm.methodBlocks.watts")}</SelectItem>
-                <SelectItem value="rpm">RPM (tr/min)</SelectItem>
+                <SelectItem value="rpm">{t("programmation.methodBlocks.rpmUnit")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -1392,7 +1392,7 @@ function IntermittentCardioBlock({
             <Input type="number" min="1" max="10" className="h-8 text-sm" placeholder="8" />
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground">FC cible (bpm)</Label>
+            <Label className="text-xs text-muted-foreground">{t("programmation.methodBlocks.targetHr")}</Label>
             <Input type="number" min="60" max="220" className="h-8 text-sm" placeholder="160" />
           </div>
         </div>
@@ -1401,7 +1401,7 @@ function IntermittentCardioBlock({
       {/* Summary */}
       <div className={cn("px-4 py-3 rounded-lg text-sm font-medium", styleConfig.bgColor)}>
         <p className="text-muted-foreground text-xs mb-1">{t("planning.calendarDialogs.sessionForm.methodBlocks.preview")}</p>
-        <p>Intermittent: {reps} × ({Math.floor(workSeconds / 60)}:{String(workSeconds % 60).padStart(2, "0")}/{Math.floor(restSeconds / 60)}:{String(restSeconds % 60).padStart(2, "0")})</p>
+        <p>{t("programmation.methodBlocks.intermittentLabel")}: {reps} × ({Math.floor(workSeconds / 60)}:{String(workSeconds % 60).padStart(2, "0")}/{Math.floor(restSeconds / 60)}:{String(restSeconds % 60).padStart(2, "0")})</p>
         <p className="text-xs text-muted-foreground mt-1">≈ {totalMinutes} min total</p>
       </div>
     </div>
@@ -1436,7 +1436,7 @@ function FartlekBlock({
     <div className="space-y-4">
       {/* Structure type */}
       <div>
-        <Label className="text-xs text-muted-foreground mb-2 block">⚡ Type de structure</Label>
+        <Label className="text-xs text-muted-foreground mb-2 block">⚡ {t("programmation.methodBlocks.structureType")}</Label>
         <div className="grid grid-cols-2 gap-3">
           <button
             type="button"
@@ -1447,7 +1447,7 @@ function FartlekBlock({
             onClick={() => onUpdateBlockConfig(groupId, "emom_mode" as keyof BlockConfig, "free")}
           >
             <p className="font-medium text-sm">{t("planning.calendarDialogs.sessionForm.methodBlocks.freeFartlek")}</p>
-            <p className={cn("text-xs mt-1", !isStructured ? "text-green-100" : "text-muted-foreground")}>L'athlète varie les allures selon ses sensations</p>
+            <p className={cn("text-xs mt-1", !isStructured ? "text-green-100" : "text-muted-foreground")}>{t("programmation.methodBlocks.freeFartlekDesc")}</p>
           </button>
           <button
             type="button"
@@ -1458,7 +1458,7 @@ function FartlekBlock({
             onClick={() => onUpdateBlockConfig(groupId, "emom_mode" as keyof BlockConfig, "structured")}
           >
             <p className="font-medium text-sm">{t("planning.calendarDialogs.sessionForm.methodBlocks.structuredFartlek")}</p>
-            <p className={cn("text-xs mt-1", isStructured ? "text-green-100" : "text-muted-foreground")}>Phases d'effort et récupération définies</p>
+            <p className={cn("text-xs mt-1", isStructured ? "text-green-100" : "text-muted-foreground")}>{t("programmation.methodBlocks.structuredFartlekDesc")}</p>
           </button>
         </div>
       </div>
@@ -1482,7 +1482,7 @@ function FartlekBlock({
         <>
           {/* Effort phase */}
           <div className="border rounded-lg p-3 bg-red-50 dark:bg-red-950/20 space-y-3">
-            <p className="text-sm font-medium text-red-600 dark:text-red-400">🔥 Phase d'effort</p>
+            <p className="text-sm font-medium text-red-600 dark:text-red-400">🔥 {t("programmation.methodBlocks.effortPhase")}</p>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs text-muted-foreground">{t("planning.calendarDialogs.sessionForm.methodBlocks.effortDuration")}</Label>
@@ -1496,11 +1496,11 @@ function FartlekBlock({
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs text-muted-foreground">Allure (km/h ou min/km)</Label>
+                <Label className="text-xs text-muted-foreground">{t("programmation.methodBlocks.paceLabel")}</Label>
                 <Input type="text" className="h-8 text-sm" placeholder="ex: 14 km/h ou 4:15/km" />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">FC cible (bpm)</Label>
+                <Label className="text-xs text-muted-foreground">{t("programmation.methodBlocks.targetHr")}</Label>
                 <Input type="number" min="60" max="220" className="h-8 text-sm" placeholder="170" />
               </div>
             </div>
@@ -1508,7 +1508,7 @@ function FartlekBlock({
 
           {/* Recovery phase */}
           <div className="border rounded-lg p-3 bg-green-50 dark:bg-green-950/20 space-y-3">
-            <p className="text-sm font-medium text-green-600 dark:text-green-400">🌿 Phase de récupération</p>
+            <p className="text-sm font-medium text-green-600 dark:text-green-400">🌿 {t("programmation.methodBlocks.recoveryPhase")}</p>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs text-muted-foreground">{t("planning.calendarDialogs.sessionForm.methodBlocks.recoveryDuration")}</Label>
@@ -1522,11 +1522,11 @@ function FartlekBlock({
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs text-muted-foreground">Allure (km/h ou min/km)</Label>
+                <Label className="text-xs text-muted-foreground">{t("programmation.methodBlocks.paceLabel")}</Label>
                 <Input type="text" className="h-8 text-sm" placeholder="ex: 8 km/h ou 7:30/km" />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">FC cible (bpm)</Label>
+                <Label className="text-xs text-muted-foreground">{t("programmation.methodBlocks.targetHr")}</Label>
                 <Input type="number" min="60" max="220" className="h-8 text-sm" placeholder="130" />
               </div>
             </div>
@@ -1577,7 +1577,7 @@ function IsometricOvercomingBlock({
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Contraction maximale contre une résistance fixe immobile. Poussez ou tirez de toutes vos forces pendant la durée prescrite.
+        {t("programmation.methodBlocks.isometricMaxDesc")}
       </p>
       <div className="border rounded-xl p-4">
         <div className="flex items-center gap-2 mb-3">
@@ -1614,23 +1614,23 @@ function IsometricOvercomingBlock({
 
             {/* Isometric specific config */}
             <div className="border rounded-lg p-3 bg-stone-50 dark:bg-stone-900/20">
-              <p className="text-xs font-medium text-stone-700 dark:text-stone-400 mb-2">📐 Configuration isométrique</p>
+              <p className="text-xs font-medium text-stone-700 dark:text-stone-400 mb-2">📐 {t("programmation.methodBlocks.isometricConfigTitle")}</p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label className="text-xs text-muted-foreground">{t("planning.calendarDialogs.sessionForm.methodBlocks.jointAngle")}</Label>
-                  <Input className="h-8 text-xs" placeholder="Ex: 90° (mi-course)"
+                  <Input className="h-8 text-xs" placeholder={t("programmation.methodBlocks.jointAnglePlaceholder1")}
                     value={exercise.tempo || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "tempo", e.target.value)} />
                 </div>
                 <div>
                   <Label className="text-xs text-muted-foreground">{t("planning.calendarDialogs.sessionForm.methodBlocks.positionNotesLabel")}</Label>
-                  <Input className="h-8 text-xs" placeholder="Ex: Mi-course, position basse..."
+                  <Input className="h-8 text-xs" placeholder={t("programmation.methodBlocks.positionNotesPlaceholder1")}
                     value={exercise.notes || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "notes", e.target.value)} />
                 </div>
               </div>
             </div>
 
             <div className="border rounded-lg p-2 bg-stone-100 dark:bg-stone-800/30">
-              <p className="text-[11px] text-stone-600 dark:text-stone-400">💪 Effort maximal contre résistance immobile — pas de mouvement, contraction à 100%. Pas de charge mobile.</p>
+              <p className="text-[11px] text-stone-600 dark:text-stone-400">💪 {t("programmation.methodBlocks.isometricMaxHint")}</p>
             </div>
           </div>
         )}
@@ -1658,7 +1658,7 @@ function IsometricYieldingBlock({
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Maintien d'une charge à un angle articulaire spécifique. Résistez à la gravité le plus longtemps possible.
+        {t("programmation.methodBlocks.yieldingDesc")}
       </p>
       <div className="border rounded-xl p-4">
         <div className="flex items-center gap-2 mb-3">
@@ -1703,11 +1703,11 @@ function IsometricYieldingBlock({
 
             {/* Yielding specific: angle and position */}
             <div className="border rounded-lg p-3 bg-slate-50 dark:bg-slate-900/20">
-              <p className="text-xs font-medium text-slate-700 dark:text-slate-400 mb-2">📐 Position de maintien</p>
+              <p className="text-xs font-medium text-slate-700 dark:text-slate-400 mb-2">📐 {t("programmation.methodBlocks.holdPositionTitle")}</p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label className="text-xs text-muted-foreground">{t("planning.calendarDialogs.sessionForm.methodBlocks.jointAngle")}</Label>
-                  <Input className="h-8 text-xs" placeholder="Ex: 90°, 120°, mi-course..."
+                  <Input className="h-8 text-xs" placeholder={t("programmation.methodBlocks.jointAnglePlaceholder2")}
                     value={exercise.tempo || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "tempo", e.target.value)} />
                 </div>
                 <div>
@@ -1718,13 +1718,13 @@ function IsometricYieldingBlock({
               </div>
               <div className="mt-2">
                 <Label className="text-xs text-muted-foreground">{t("planning.calendarDialogs.sessionForm.methodBlocks.positionNotes")}</Label>
-                <Input className="h-8 text-xs" placeholder="Ex: Pause en bas du squat, coudes à 90°..."
+                <Input className="h-8 text-xs" placeholder={t("programmation.methodBlocks.positionNotesPlaceholder2")}
                   value={exercise.notes || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "notes", e.target.value)} />
               </div>
             </div>
 
             <div className="border rounded-lg p-2 bg-slate-100 dark:bg-slate-800/30">
-              <p className="text-[11px] text-slate-600 dark:text-slate-400">⏱ Maintenez la charge à l'angle prescrit — le temps sous tension est la variable clé</p>
+              <p className="text-[11px] text-slate-600 dark:text-slate-400">⏱ {t("programmation.methodBlocks.yieldingHint")}</p>
             </div>
           </div>
         )}
@@ -1752,7 +1752,7 @@ function IsoMaxBlock({
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Contraction isométrique maximale contre une charge très lourde (85-100% 1RM). Maintenez le plus longtemps possible.
+        {t("programmation.methodBlocks.isoMaxLoadedDesc")}
       </p>
       <div className="border rounded-xl p-4">
         <div className="flex items-center gap-2 mb-3">
@@ -1797,11 +1797,11 @@ function IsoMaxBlock({
 
             {/* Iso Max specific: angle and position */}
             <div className="border rounded-lg p-3 bg-zinc-50 dark:bg-zinc-900/20">
-              <p className="text-xs font-medium text-zinc-700 dark:text-zinc-400 mb-2">📐 Position isométrique</p>
+              <p className="text-xs font-medium text-zinc-700 dark:text-zinc-400 mb-2">📐 {t("programmation.methodBlocks.isoPositionTitle")}</p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label className="text-xs text-muted-foreground">{t("planning.calendarDialogs.sessionForm.methodBlocks.jointAngle")}</Label>
-                  <Input className="h-8 text-xs" placeholder="Ex: 90°, point de blocage..."
+                  <Input className="h-8 text-xs" placeholder={t("programmation.methodBlocks.jointAnglePlaceholder3")}
                     value={exercise.tempo || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "tempo", e.target.value)} />
                 </div>
                 <div>
@@ -1812,13 +1812,13 @@ function IsoMaxBlock({
               </div>
               <div className="mt-2">
                 <Label className="text-xs text-muted-foreground">{t("planning.calendarDialogs.sessionForm.methodBlocks.positionNotes")}</Label>
-                <Input className="h-8 text-xs" placeholder="Ex: Maintien au point de blocage, sticking point..."
+                <Input className="h-8 text-xs" placeholder={t("programmation.methodBlocks.positionNotesPlaceholder3")}
                   value={exercise.notes || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "notes", e.target.value)} />
               </div>
             </div>
 
             <div className="border rounded-lg p-2 bg-zinc-100 dark:bg-zinc-800/30">
-              <p className="text-[11px] text-zinc-600 dark:text-zinc-400">🔥 Charge lourde (85-100% 1RM) — maintenez la contraction maximale le plus longtemps possible</p>
+              <p className="text-[11px] text-zinc-600 dark:text-zinc-400">🔥 {t("programmation.methodBlocks.isoMaxLoadedHint")}</p>
             </div>
           </div>
         )}
@@ -1844,16 +1844,16 @@ function SuperPletnevBlock({
   if (!exercise) return null;
 
   const phases = [
-    { label: "Excentrique", desc: "Phase négative lente et contrôlée" },
-    { label: "Explosif", desc: "Phase concentrique explosive" },
-    { label: "Isométrie", desc: "Maintien statique 3-5s" },
-    { label: "Concentrique", desc: "Phase positive contrôlée" },
+    { label: t("programmation.methodBlocks.phaseEccentric"), desc: t("programmation.methodBlocks.phaseEccentricDesc") },
+    { label: t("programmation.methodBlocks.phaseExplosive"), desc: t("programmation.methodBlocks.phaseExplosiveDesc") },
+    { label: t("programmation.methodBlocks.phaseIsometric"), desc: t("programmation.methodBlocks.phaseIsometricDesc") },
+    { label: t("programmation.methodBlocks.phaseConcentric"), desc: t("programmation.methodBlocks.phaseConcentricDesc") },
   ];
 
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Méthode de contraste avancée : excentrique lent, explosif, isométrie, concentrique. 4 phases par répétition.
+        {t("programmation.methodBlocks.superPletnevDesc")}
       </p>
       <div className="border rounded-xl p-4">
         <div className="flex items-center gap-2 mb-3">
@@ -1893,7 +1893,7 @@ function SuperPletnevBlock({
               </div>
             </div>
             <div className="border rounded-lg p-3 bg-violet-50 dark:bg-violet-900/20">
-              <p className="text-xs font-medium text-violet-700 dark:text-violet-400 mb-2">⚡ 4 phases par répétition :</p>
+              <p className="text-xs font-medium text-violet-700 dark:text-violet-400 mb-2">⚡ {t("programmation.methodBlocks.fourPhasesPerRep")}</p>
               <div className="grid grid-cols-4 gap-2">
                 {phases.map((phase, i) => (
                   <div key={i} className="text-center p-1.5 bg-violet-100 dark:bg-violet-800/30 rounded">
@@ -1934,12 +1934,12 @@ function CombineHalteroBlock({
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Enchaînement de mouvements d'haltérophilie (épaulé, arraché, jeté) dans une même série sans reposer la barre.
+        {t("programmation.methodBlocks.complexDesc")}
       </p>
       <div className="border rounded-xl p-4">
         <div className="flex items-center gap-2 mb-3">
           <Dumbbell className="h-4 w-4 text-muted-foreground shrink-0" />
-          <ExerciseInput exercise={exercise} exerciseIndex={exerciseIndex} placeholder="Ex: Épaulé + Jeté..."
+          <ExerciseInput exercise={exercise} exerciseIndex={exerciseIndex} placeholder={t("programmation.methodBlocks.complexExercisePlaceholder")}
             onUpdateExercise={onUpdateExercise} onSelectFromLibrary={onSelectFromLibrary}
             filteredLibrary={filteredLibrary} searchQuery={searchQuery} setSearchQuery={setSearchQuery}
             showLibraryFor={showLibraryFor} setShowLibraryFor={setShowLibraryFor} />
@@ -1974,11 +1974,11 @@ function CombineHalteroBlock({
               </div>
             </div>
             <div className="border rounded-lg p-3 bg-amber-50 dark:bg-amber-900/20">
-              <p className="text-xs font-medium text-amber-700 dark:text-amber-400">🏋️ Enchaînez les mouvements sans reposer la barre — ex: Épaulé + Front Squat + Jeté</p>
+              <p className="text-xs font-medium text-amber-700 dark:text-amber-400">🏋️ {t("programmation.methodBlocks.complexHint")}</p>
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground">Notes (détail des mouvements)</Label>
-              <Input className="h-8 text-xs" placeholder="Épaulé + Front Squat + Jeté"
+              <Label className="text-xs text-muted-foreground">{t("programmation.methodBlocks.movementDetailNotes")}</Label>
+              <Input className="h-8 text-xs" placeholder={t("programmation.methodBlocks.movementDetailPlaceholder")}
                 value={exercise.notes || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "notes", e.target.value)} />
             </div>
           </div>
@@ -2067,7 +2067,7 @@ function StatoDynamiqueBlock({
 
             {/* Isometric hold config */}
             <div className="border rounded-lg p-3 bg-amber-50 dark:bg-amber-950/20">
-              <p className="text-xs font-medium text-amber-700 dark:text-amber-400 mb-2">⏱ Phase isométrique</p>
+              <p className="text-xs font-medium text-amber-700 dark:text-amber-400 mb-2">⏱ {t("programmation.methodBlocks.isometricPhaseTitle")}</p>
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <Label className="text-xs text-muted-foreground">{t("planning.calendarDialogs.sessionForm.methodBlocks.holdDuration")}</Label>
@@ -2077,7 +2077,7 @@ function StatoDynamiqueBlock({
                 </div>
                 <div>
                   <Label className="text-xs text-muted-foreground">{t("planning.calendarDialogs.sessionForm.methodBlocks.jointAngle")}</Label>
-                  <Input className="h-8 text-xs" placeholder="Ex: 90°, mi-course..."
+                  <Input className="h-8 text-xs" placeholder={t("programmation.methodBlocks.jointAnglePlaceholder2")}
                     value={exercise.notes || ""}
                     onChange={(e) => onUpdateExercise(exerciseIndex, "notes", e.target.value)} />
                 </div>
@@ -2127,7 +2127,7 @@ function DropSetBlock({
     const newSets = [...dropSets];
     const last = newSets[newSets.length - 1];
     newSets.push({
-      reps: "Échec",
+      reps: t("programmation.methodBlocks.failurePlaceholder"),
       percentage: Math.max((last?.percentage || 80) - 20, 20),
     });
     onUpdateMultipleFields(exerciseIndex, {
@@ -2154,7 +2154,7 @@ function DropSetBlock({
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Série de départ puis drops successifs (-20% de charge à chaque drop), tous menés <strong>jusqu'à l'échec musculaire</strong>. Aucun temps de repos entre les drops.
+        {t("programmation.methodBlocks.dropSetDescPart1")} <strong>{t("programmation.methodBlocks.dropSetDescStrong")}</strong>. {t("programmation.methodBlocks.dropSetDescPart2")}
       </p>
 
       {/* Exercise slot */}
@@ -2184,11 +2184,11 @@ function DropSetBlock({
         <div>
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-medium text-red-600">
-              Configuration du Drop Set
+              {t("programmation.methodBlocks.dropSetConfigTitle")}
             </span>
             <Button type="button" variant="outline" size="sm" onClick={addDrop} className="h-7">
               <Plus className="h-3 w-3 mr-1" />
-              Drop
+              {t("programmation.methodBlocks.addDropButton")}
             </Button>
           </div>
 
@@ -2204,13 +2204,13 @@ function DropSetBlock({
               >
                 <div className="flex items-center gap-3 flex-wrap">
                   <Badge className={cn("text-white", styleConfig.color)}>
-                    {idx === 0 ? "Série de départ" : `Drop ${idx}`}
+                    {idx === 0 ? t("programmation.methodBlocks.startingSeries") : t("programmation.methodBlocks.dropNumber", { index: idx })}
                   </Badge>
                   <div className="flex items-center gap-2">
                     <span className="text-sm">{t("planning.calendarDialogs.sessionForm.methodBlocks.reps")}</span>
                     <Input
                       className="h-8 w-24 text-sm"
-                      placeholder="Échec"
+                      placeholder={t("programmation.methodBlocks.failurePlaceholder")}
                       value={set.reps}
                       onChange={(e) => updateDrop(idx, "reps", e.target.value)}
                     />
@@ -2385,8 +2385,8 @@ export function TrainingMethodBlock(props: TrainingMethodBlockProps) {
           </Badge>
           <span className="text-sm text-muted-foreground">
             {isFlexibleMethod 
-              ? `${filledExercises.length} exercice${filledExercises.length > 1 ? "s" : ""}`
-              : `${filledExercises.length}/${minExercises} exercices`
+              ? t("programmation.methodBlocks.exerciseCount", { count: filledExercises.length })
+              : t("programmation.methodBlocks.exerciseCountOfMin", { count: filledExercises.length, min: minExercises })
             }
           </span>
         </div>

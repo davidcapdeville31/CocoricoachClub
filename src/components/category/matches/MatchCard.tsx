@@ -44,6 +44,7 @@ import { SportMatchStatsDialog } from "./SportMatchStatsDialog";
 import { ManualRugbyStatsDialog } from "./ManualRugbyStatsDialog";
 import { MatchStatsDialog } from "./stats/MatchStatsDialog";
 import { StatPreferencesDialog } from "@/components/category/settings/StatPreferencesDialog";
+import { useTranslation } from "react-i18next";
 import { ClipboardEdit, Settings2 } from "lucide-react";
 import { CompetitionRoundsDialog } from "./CompetitionRoundsDialog";
 import { AggregatedRoundStatsDialog } from "./AggregatedRoundStatsDialog";
@@ -135,6 +136,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
   const [scoreHome, setScoreHome] = useState(match.score_home?.toString() || "");
   const [scoreAway, setScoreAway] = useState(match.score_away?.toString() || "");
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   const navigate = useNavigate();
 
@@ -270,7 +272,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
   // Export available for team sports + Judo + Athletics (per user request).
   // Sub-matches/parents are kept consistent so the menu always appears.
   const canExport = (isTeamSport || isJudo || isAthletics) && !isSubMatch;
-  const competitionLabel = match.competition || match.opponent || "Compétition";
+  const competitionLabel = match.competition || match.opponent || t("competition.card.defaultCompetitionLabel");
   const compTag = getCompetitionTag(match.competition_tag);
   // Check if match is within 3 days (for pre-competition form)
   const fisMatchDate = new Date(match.match_date);
@@ -308,7 +310,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
     },
     onSuccess: async ({ participantIds }) => {
       queryClient.invalidateQueries({ queryKey: ["matches", categoryId] });
-      toast.success(isIndividual ? "Compétition supprimée" : "Match supprimé");
+      toast.success(isIndividual ? t("competition.card.deleteSuccessCompetition") : t("competition.card.deleteSuccessMatch"));
 
       // 🔔 Notifier les athlètes convoqués (bell + email)
       if (participantIds.length === 0) return;
@@ -322,9 +324,9 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
           try { return format(new Date(match.match_date), "EEEE d MMMM", { locale: getDateLocale() }); }
           catch { return match.match_date; }
         })();
-        const title = isIndividual ? "Compétition annulée" : "Match annulé";
-        const opponentLabel = match.competition || match.opponent || (isIndividual ? "Compétition" : "Match");
-        const message = `${opponentLabel} — ${dateLabel}\nCette ${isIndividual ? "compétition" : "rencontre"} a été annulée.`;
+        const title = isIndividual ? t("competition.card.notifTitleCompetitionCancelled") : t("competition.card.notifTitleMatchCancelled");
+        const opponentLabel = match.competition || match.opponent || (isIndividual ? t("competition.terms.competitionCapital") : t("competition.terms.matchCapital"));
+        const message = t("competition.card.notifMessage", { opponentLabel, dateLabel, itemLabel: isIndividual ? t("competition.card.cancelledCompetition") : t("competition.card.cancelledMatch") });
 
         // Cloche in-app
         const userIds = Array.from(new Set((athleteRows ?? []).map((r: any) => r.user_id).filter(Boolean))) as string[];
@@ -368,7 +370,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
       }
     },
     onError: () => {
-      toast.error("Erreur lors de la suppression");
+      toast.error(t("competition.card.deleteError"));
     },
   });
 
@@ -385,11 +387,11 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["matches", categoryId] });
-      toast.success("Score mis à jour");
+      toast.success(t("competition.card.scoreUpdated"));
       setIsEditingScore(false);
     },
     onError: () => {
-      toast.error("Erreur lors de la mise à jour");
+      toast.error(t("competition.card.updateError"));
     },
   });
 
@@ -445,10 +447,10 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
     onSuccess: (_, finalized) => {
       queryClient.invalidateQueries({ queryKey: ["matches", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["awcr_tracking"] });
-      toast.success(finalized ? "Compétition finalisée" : "Compétition réouverte");
+      toast.success(finalized ? t("competition.card.finalizedCompetition") : t("competition.card.reopenedCompetition"));
     },
     onError: () => {
-      toast.error("Erreur lors de la mise à jour");
+      toast.error(t("competition.card.updateError"));
     },
   });
 
@@ -510,7 +512,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
               )}
               <span className="font-medium text-sm truncate">
                 {isIndividual
-                  ? (match.competition || match.opponent || "Compétition")
+                  ? (match.competition || match.opponent || t("competition.card.defaultCompetitionLabel"))
                   : `${match.is_home ? "vs" : "@"} ${match.opponent}`}
               </span>
               <span className="text-xs text-muted-foreground whitespace-nowrap hidden sm:inline">
@@ -541,34 +543,34 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
               )}
               {isTrainingMatch && (
                 <Badge variant="outline" className="text-xs border-muted-foreground/50 text-muted-foreground">
-                  🎳 Entraînement — Scores via Planification
+                  {t("competition.card.trainingBadge")}
                 </Badge>
               )}
               {isFinalized && (
                 <Badge variant="default" className="text-xs bg-primary">
                   <CheckCircle2 className="h-3 w-3 mr-1" />
-                  Finalisé
+                  {t("competition.card.finalizedBadge")}
                 </Badge>
               )}
               {!isIndividual && (
                 <Badge variant={match.is_home ? "default" : "secondary"} className="text-xs">
                   {match.is_home ? (
-                    <><Home className="h-3 w-3 mr-1" /> Domicile</>
+                    <><Home className="h-3 w-3 mr-1" /> {t("competition.card.home")}</>
                   ) : (
-                    <><Plane className="h-3 w-3 mr-1" /> Extérieur</>
+                    <><Plane className="h-3 w-3 mr-1" /> {t("competition.card.away")}</>
                   )}
                 </Badge>
               )}
               {isPast && !isFinalized && (
                 <Badge variant="outline" className="text-xs">
-                  Terminé
+                  {t("competition.card.finished")}
                 </Badge>
               )}
             </div>
 
             <h4 className="font-semibold text-lg">
               {isIndividual 
-                ? (match.competition || match.opponent || "Compétition")
+                ? (match.competition || match.opponent || t("competition.card.defaultCompetitionLabel"))
                 : `${match.is_home ? "vs" : "@"} ${match.opponent}`
               }
             </h4>
@@ -579,7 +581,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                 {match.end_date && match.end_date !== match.match_date && (
                   <> → {format(new Date(match.end_date), "EEEE d MMMM yyyy", { locale: getDateLocale() })}</>
                 )}
-                {match.match_time && ` à ${match.match_time.slice(0, 5)}`}
+                {match.match_time && t("competition.card.atTime", { time: match.match_time.slice(0, 5) })}
               </p>
               {/* For individual sports, show event name if different from competition */}
               {isIndividual && match.opponent && match.opponent !== match.competition && (
@@ -626,13 +628,13 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
               {/* Age category */}
               {match.age_category && (
                 <p className="text-xs text-muted-foreground/80">
-                  Catégorie : {match.age_category}
+                  {t("competition.card.ageCategory", { value: match.age_category })}
                 </p>
               )}
               {/* Distance for individual sports */}
               {isIndividual && match.distance_meters && match.distance_meters > 0 && (
                 <p className="text-xs text-muted-foreground/80">
-                  Distance : {match.distance_meters >= 1000 ? `${(match.distance_meters / 1000).toFixed(1)} km` : `${match.distance_meters} m`}
+                  {t("competition.card.distance", { value: match.distance_meters >= 1000 ? `${(match.distance_meters / 1000).toFixed(1)} km` : `${match.distance_meters} m` })}
                 </p>
               )}
               {/* Pair display for Padel / Tennis doubles */}
@@ -640,17 +642,17 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                 <p className="flex items-center gap-1">
                   <Users className="h-3 w-3" />
                   <span className="font-medium">
-                    Paire : {lineupPlayers.map((lp: any) => {
+                    {t("competition.card.pair", { names: lineupPlayers.map((lp: any) => {
                       const p = lp.players;
                       return [p?.first_name, p?.name].filter(Boolean).join(" ");
-                    }).join(" & ")}
+                    }).join(" & ") })}
                   </span>
                 </p>
               )}
               {/* Tennis format badge */}
               {isTennis && match.match_format && (
                 <Badge variant="outline" className="text-xs w-fit">
-                  {match.match_format === "simple" ? "Simple" : match.match_format === "double" ? "Double" : "Double Mixte"}
+                  {match.match_format === "simple" ? t("competition.card.simple") : match.match_format === "double" ? t("competition.card.double") : t("competition.card.doubleMixed")}
                 </Badge>
               )}
               {/* Inline stats badges */}
@@ -658,18 +660,18 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                 {lineupCount !== undefined && lineupCount > 0 && (
                   <Badge variant="outline" className="text-[10px] gap-1 py-0">
                     <Users className="h-2.5 w-2.5" />
-                    {lineupCount} {isIndividual ? "participant(s)" : "joueur(s)"}
+                    {lineupCount} {isIndividual ? t("competition.card.participantsUnit", { count: lineupCount }) : t("competition.card.playersUnit")}
                   </Badge>
                 )}
                 {hasRoundBasedStats && roundsCount !== undefined && roundsCount > 0 && (() => {
                   const st = sportType.toLowerCase();
                   const unitLabel = st.includes("judo")
-                    ? "combat"
+                    ? t("competition.card.unitFight")
                     : st.includes("aviron")
-                    ? "course"
+                    ? t("competition.card.unitRace")
                     : st.includes("athletisme") || st.includes("athlétisme")
-                    ? "résultat"
-                    : "partie";
+                    ? t("competition.card.unitResult")
+                    : t("competition.card.unitGame");
                   return (
                     <Badge variant="outline" className="text-[10px] gap-1 py-0">
                       <BarChart3 className="h-2.5 w-2.5" />
@@ -679,7 +681,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                 })()}
                 {match.notes && (
                   <Badge variant="outline" className="text-[10px] gap-1 py-0 text-muted-foreground">
-                    📝 Note
+                    {t("competition.card.note")}
                   </Badge>
                 )}
               </div>
@@ -692,7 +694,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                       type="number"
                       value={scoreHome}
                       onChange={(e) => setScoreHome(e.target.value)}
-                      placeholder="Nous"
+                      placeholder={t("competition.card.placeholderUs")}
                       className="w-16 h-8"
                       min={0}
                     />
@@ -701,7 +703,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                       type="number"
                       value={scoreAway}
                       onChange={(e) => setScoreAway(e.target.value)}
-                      placeholder="Eux"
+                      placeholder={t("competition.card.placeholderThem")}
                       className="w-16 h-8"
                       min={0}
                     />
@@ -729,7 +731,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                         </span>
                       );
                     })() : (
-                      <span className="text-muted-foreground text-sm">Score non renseigné</span>
+                      <span className="text-muted-foreground text-sm">{t("competition.card.scoreNotSet")}</span>
                     )}
                     <Button
                       size="icon"
@@ -759,7 +761,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                   }}
                 >
                   <Play className="h-5 w-5 fill-white" />
-                  Démarrer (temps réel)
+                  {t("competition.card.startLive")}
                 </Button>
                 <Button
                   size="sm"
@@ -769,7 +771,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                   onClick={(e) => { stopCardAction(e); setIsManualRugbyOpen(true); }}
                 >
                   <ClipboardEdit className="h-4 w-4" />
-                  Saisie manuelle
+                  {t("competition.card.manualEntry")}
                 </Button>
                 <Button
                   size="sm"
@@ -777,10 +779,10 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                   className="w-full gap-2 text-xs"
                   onPointerDown={stopCardAction}
                   onClick={(e) => { stopCardAction(e); setIsMatchStatPrefsOpen(true); }}
-                  title="Choisir les stats à afficher pour ce match uniquement"
+                  title={t("competition.card.customizeStatsTitle")}
                 >
                   <Settings2 className="h-3.5 w-3.5" />
-                  Personnaliser les stats de ce match
+                  {t("competition.card.customizeStats")}
                 </Button>
               </>
             )}
@@ -788,7 +790,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
             <div className="flex items-center gap-1.5 w-full">
               <Button variant="outline" size="sm" className="gap-1.5 text-xs flex-1 justify-start" onPointerDown={stopCardAction} onClick={(e) => { stopCardAction(e); setIsEditOpen(true); }}>
                 <Edit2 className="h-3.5 w-3.5" />
-                Modifier
+                {t("competition.card.edit")}
               </Button>
               <Button
                 variant="outline"
@@ -796,14 +798,14 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                 className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
                 onPointerDown={stopCardAction}
                 onClick={(e) => { stopCardAction(e); setIsDeleteOpen(true); }}
-                title={isIndividual ? "Supprimer la compétition" : "Supprimer le match"}
+                title={isIndividual ? t("competition.card.deleteCompetitionTitle") : t("competition.card.deleteMatchTitle")}
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
             </div>
             <Button variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start" onPointerDown={stopCardAction} onClick={(e) => { stopCardAction(e); setIsLineupOpen(true); }}>
               <Users className="h-3.5 w-3.5" />
-              {isIndividual ? `Participants (${lineupCount || 0})` : `Composition (${lineupCount || 0})`}
+              {isIndividual ? t("competition.card.participantsCount", { count: lineupCount || 0 }) : t("competition.card.lineupCount", { count: lineupCount || 0 })}
             </Button>
             {(isTeamSport || isJudo) && !isFinalized && (
               <PrepareMatchButton matchId={match.id} isJudo={isJudo} />
@@ -813,16 +815,16 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                 {isTrainingMatch && !sportType.toLowerCase().includes("bowling") ? (
                   <Button variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start opacity-50 cursor-not-allowed" disabled>
                     <Lock className="h-3.5 w-3.5" />
-                    {`Épreuves (${roundsCount || 0})`}
+                    {t("competition.card.eventsLocked", { count: roundsCount || 0 })}
                   </Button>
                 ) : (
                   <Button type="button" variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start relative z-20" onPointerDown={stopCardAction} onClick={(e) => { stopCardAction(e); setIsRoundsOpen(true); }}>
                     <Swords className="h-3.5 w-3.5" />
-                    {sportType.toLowerCase().includes("judo") ? `Combats (${roundsCount || 0})` : 
-                     sportType.toLowerCase().includes("bowling") ? `Parties (${roundsCount || 0})` : 
-                     sportType.toLowerCase().includes("aviron") ? `Courses (${roundsCount || 0})` : 
-                     (sportType.toLowerCase().includes("athletisme") || sportType.toLowerCase().includes("athlétisme")) ? `Ajouter résultats (${roundsCount || 0})` :
-                     `Épreuves (${roundsCount || 0})`}
+                    {sportType.toLowerCase().includes("judo") ? t("competition.card.fights", { count: roundsCount || 0 }) : 
+                     sportType.toLowerCase().includes("bowling") ? t("competition.card.games", { count: roundsCount || 0 }) : 
+                     sportType.toLowerCase().includes("aviron") ? t("competition.card.races", { count: roundsCount || 0 }) : 
+                     (sportType.toLowerCase().includes("athletisme") || sportType.toLowerCase().includes("athlétisme")) ? t("competition.card.addResults", { count: roundsCount || 0 }) :
+                     t("competition.card.events", { count: roundsCount || 0 })}
                   </Button>
                 )}
               </>
@@ -830,7 +832,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
             {canHaveSubMatches && (
               <Button variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start" onPointerDown={stopCardAction} onClick={(e) => { stopCardAction(e); setIsAddSubMatchOpen(true); }}>
                 <Plus className="h-3.5 w-3.5" />
-                Ajouter un match
+                {t("competition.card.addMatch")}
               </Button>
             )}
             {/* Secondary actions menu */}
@@ -838,14 +840,14 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="gap-1.5 text-xs w-full justify-start text-muted-foreground">
                   <Settings className="h-3.5 w-3.5" />
-                  Plus
+                  {t("competition.card.more")}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 {isFinalized ? (
                   <DropdownMenuItem onClick={() => finalizeMatch.mutate(false)}>
                     <X className="h-4 w-4 mr-2" />
-                    Réouvrir
+                    {t("competition.card.reopen")}
                   </DropdownMenuItem>
                 ) : (
                   <DropdownMenuItem 
@@ -853,30 +855,30 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                     className="text-primary"
                   >
                     <CheckCircle2 className="h-4 w-4 mr-2" />
-                    Finaliser
+                    {t("competition.card.finalize")}
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setIsMedalsOpen(true)} className="text-amber-600 dark:text-amber-400">
                   <Award className="h-4 w-4 mr-2" />
-                  Médailles & palmarès
+                  {t("competition.card.medals")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setIsNotifyOpen(true)} className="text-primary">
                   <Bell className="h-4 w-4 mr-2" />
-                  Notifier les athlètes
+                  {t("competition.card.notifyAthletes")}
                 </DropdownMenuItem>
                 {canExport && (
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setExportScope("single"); setTimeout(() => setIsExportOpen(true), 0); }}>
                       <Download className="h-4 w-4 mr-2" />
-                      Exporter ce match (PDF / Excel)
+                      {t("competition.card.exportThisMatch")}
                     </DropdownMenuItem>
                     {hasSubMatches && (
                       <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setExportScope("competition"); setTimeout(() => setIsExportOpen(true), 0); }}>
                         <FileSpreadsheet className="h-4 w-4 mr-2" />
-                        Exporter toute la compétition ({(subMatches?.length || 0) + 1})
+                        {t("competition.card.exportWholeCompetition", { count: (subMatches?.length || 0) + 1 })}
                       </DropdownMenuItem>
                     )}
                   </>
@@ -884,14 +886,14 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
                   onClick={() => {
-                    if (confirm(isIndividual ? "Supprimer cette compétition ?" : "Supprimer ce match ?")) {
+                    if (confirm(isIndividual ? t("competition.card.confirmDeleteCompetition") : t("competition.card.confirmDeleteMatch"))) {
                       deleteMatch.mutate();
                     }
                   }}
                   className="text-destructive"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Supprimer
+                  {t("competition.card.delete")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -940,7 +942,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
               <Button variant="ghost" size="sm" className="w-full mt-3 gap-2 justify-between">
                 <span className="flex items-center gap-2">
                   <Trophy className="h-4 w-4" />
-                  {subMatches?.length} match{subMatches && subMatches.length > 1 ? "s" : ""} dans {hasTournamentBracket ? "ce tournoi" : "cette compétition"}
+                  {t("competition.card.subMatchesCount", { count: subMatches?.length || 0, container: hasTournamentBracket ? t("competition.card.thisTournament") : t("competition.card.thisCompetition") })}
                 </span>
                 {isSubMatchesExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
               </Button>
@@ -972,19 +974,19 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {isIndividual ? "Supprimer cette compétition ?" : "Supprimer ce match ?"}
+              {isIndividual ? t("competition.card.confirmDeleteCompetition") : t("competition.card.confirmDeleteMatch")}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Cette action est irréversible. Toutes les données associées (composition, statistiques, épreuves) seront également supprimées.
+              {t("competition.card.deleteDialogDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogCancel>{t("competition.card.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteMatch.mutate()}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Supprimer
+              {t("competition.card.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1026,8 +1028,8 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
           onOpenChange={setIsManualRugbyOpen}
           matchId={match.id}
           isHome={match.is_home}
-          opponentName={match.opponent || "Adversaire"}
-          clubName="Notre équipe"
+          opponentName={match.opponent || t("competition.card.opponentDefault")}
+          clubName={t("competition.card.ourTeamDefault")}
           categoryId={categoryId}
           sportType={category?.rugby_type || "rugby_xv"}
         />
@@ -1087,8 +1089,8 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
         athletes={players || []}
         eventType="match"
         defaultSubject={isIndividual 
-          ? `Compétition: ${match.competition || match.opponent || "Compétition"}`
-          : `Match ${match.is_home ? "vs" : "@"} ${match.opponent}`
+          ? t("competition.card.notifySubjectCompetition", { name: match.competition || match.opponent || t("competition.card.defaultCompetitionLabel") })
+          : t("competition.card.notifySubjectMatch", { prefix: match.is_home ? "vs" : "@", opponent: match.opponent })
         }
         eventDetails={{
           date: format(new Date(match.match_date), "EEEE d MMMM yyyy", { locale: getDateLocale() }),
@@ -1102,7 +1104,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
         <Dialog open={isMatchSheetOpen} onOpenChange={setIsMatchSheetOpen}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Feuille de match — {match.opponent}</DialogTitle>
+              <DialogTitle>{t("competition.card.matchSheetTitle", { opponent: match.opponent })}</DialogTitle>
             </DialogHeader>
             <MatchSheetsSection categoryId={categoryId} preSelectedMatchId={match.id} />
           </DialogContent>
@@ -1115,7 +1117,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
         onOpenChange={setIsMedalsOpen}
         matchId={match.id}
         categoryId={categoryId}
-        competitionName={isIndividual ? (match.competition || match.opponent || "Compétition") : `${match.is_home ? "vs" : "@"} ${match.opponent}`}
+        competitionName={isIndividual ? (match.competition || match.opponent || t("competition.card.defaultCompetitionLabel")) : `${match.is_home ? "vs" : "@"} ${match.opponent}`}
         competitionDate={match.match_date}
       />
       {canExport && isExportOpen && (
@@ -1128,8 +1130,8 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
             ? [match.id, ...(subMatches || []).map(s => s.id)]
             : [match.id]}
           title={exportScope === "competition"
-            ? `${competitionLabel} (${(subMatches?.length || 0) + 1} matchs)`
-            : `vs ${match.opponent || competitionLabel}`}
+            ? t("competition.card.exportTitleCompetition", { label: competitionLabel, count: (subMatches?.length || 0) + 1 })
+            : t("competition.card.exportTitleSingle", { opponent: match.opponent || competitionLabel })}
           subtitle={format(new Date(match.match_date), "EEEE d MMMM yyyy", { locale: getDateLocale() })}
         />
       )}

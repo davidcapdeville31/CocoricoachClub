@@ -1,4 +1,5 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -21,6 +22,7 @@ interface InjuryAlert {
 
 export function InjuryReturnAlerts() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   
   const { data: upcomingReturns } = useQuery({
     queryKey: ["injury-return-alerts"],
@@ -72,23 +74,23 @@ export function InjuryReturnAlerts() {
           <Alert key={injury.id} className="bg-warning/10 border-warning">
             <AlertCircle className="h-4 w-4 text-warning" />
             <AlertTitle className="flex items-center justify-between">
-              <span className="font-semibold">Retour de blessure imminent</span>
+              <span className="font-semibold">{t("health.injuryReturnAlerts.title")}</span>
               <CalendarClock className="h-4 w-4" />
             </AlertTitle>
             <AlertDescription className="space-y-2">
               <p>
-                <span className="font-medium">{injury.players.name}</span> devrait
-                revenir dans{" "}
+                <span className="font-medium">{injury.players.name}</span>
+                {t("health.injuryReturnAlerts.returnsIn")}
                 <span className="font-semibold text-warning">
                   {daysUntilReturn === 0
-                    ? "aujourd'hui"
+                    ? t("health.injuryReturnAlerts.today")
                     : daysUntilReturn === 1
-                    ? "1 jour"
-                    : `${daysUntilReturn} jours`}
+                    ? t("health.injuryReturnAlerts.oneDay")
+                    : t("health.injuryReturnAlerts.daysCount", { days: daysUntilReturn })}
                 </span>
               </p>
               <p className="text-sm text-muted-foreground">
-                Blessure : {injury.injury_type} • Retour estimé : {returnDate}
+                {t("health.injuryReturnAlerts.injuryLabel", { type: injury.injury_type, date: returnDate })}
               </p>
               <Button
                 variant="outline"
@@ -96,7 +98,7 @@ export function InjuryReturnAlerts() {
                 className="mt-2"
                 onClick={() => navigate(`/players/${injury.player_id}`)}
               >
-                Voir le profil de l'athlète
+                {t("health.injuryReturnAlerts.viewProfile")}
               </Button>
             </AlertDescription>
           </Alert>

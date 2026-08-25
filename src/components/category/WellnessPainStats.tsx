@@ -6,12 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { AlertTriangle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface WellnessPainStatsProps {
   categoryId: string;
 }
 
 export function WellnessPainStats({ categoryId }: WellnessPainStatsProps) {
+  const { t } = useTranslation();
   const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
   const keepPlayer = makePlayerIdFilter(allowedIds);
 
@@ -32,7 +34,7 @@ export function WellnessPainStats({ categoryId }: WellnessPainStatsProps) {
     [painDataRaw, allowedIds],
   );
 
-  if (isLoading) return <div className="text-muted-foreground text-sm">Chargement...</div>;
+  if (isLoading) return <div className="text-muted-foreground text-sm">{t("health.wellnessPainStats.loading")}</div>;
 
   const totalPains = painData?.length || 0;
 
@@ -40,8 +42,8 @@ export function WellnessPainStats({ categoryId }: WellnessPainStatsProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Statistiques des douleurs</CardTitle>
-          <CardDescription>Aucune douleur signalée pour le moment</CardDescription>
+          <CardTitle className="text-base">{t("health.wellnessPainStats.title")}</CardTitle>
+          <CardDescription>{t("health.wellnessPainStats.noPain")}</CardDescription>
         </CardHeader>
       </Card>
     );
@@ -50,13 +52,13 @@ export function WellnessPainStats({ categoryId }: WellnessPainStatsProps) {
   // Infer zone from location label when pain_zone is missing (legacy entries
   // or alternative entry paths that didn't persist the zone).
   const inferZone = (loc?: string | null): string => {
-    if (!loc) return "Non classé";
+    if (!loc) return t("health.wellnessPainStats.unclassified");
     const s = loc.toLowerCase();
-    if (/(t[êe]te|nuque|cr[âa]ne|cervical)/.test(s)) return "Tête";
-    if (/(abdomen|abdo|oblique|ventre)/.test(s)) return "Abdomen";
-    if (/(épaule|epaule|pectoral|trap[èe]ze|dorsal|bras|biceps|triceps|coude|avant-bras|poignet|main|nuque)/.test(s)) return "Haut du corps";
-    if (/(hanche|adducteur|cuisse|quadriceps|ischio|fessier|genou|tibia|mollet|cheville|tendon|achille|talon|pied|lombaire|dos)/.test(s)) return "Bas du corps";
-    return "Non classé";
+    if (/(t[êe]te|nuque|cr[âa]ne|cervical)/.test(s)) return t("health.wellnessPainStats.zoneHead");
+    if (/(abdomen|abdo|oblique|ventre)/.test(s)) return t("health.wellnessPainStats.zoneAbdomen");
+    if (/(épaule|epaule|pectoral|trap[èe]ze|dorsal|bras|biceps|triceps|coude|avant-bras|poignet|main|nuque)/.test(s)) return t("health.wellnessPainStats.zoneUpperBody");
+    if (/(hanche|adducteur|cuisse|quadriceps|ischio|fessier|genou|tibia|mollet|cheville|tendon|achille|talon|pied|lombaire|dos)/.test(s)) return t("health.wellnessPainStats.zoneLowerBody");
+    return t("health.wellnessPainStats.unclassified");
   };
 
   // Count by zone
@@ -65,7 +67,7 @@ export function WellnessPainStats({ categoryId }: WellnessPainStatsProps) {
 
   painData?.forEach(entry => {
     const rawZone = (entry as any).pain_zone as string | null | undefined;
-    const location = entry.pain_location || "Non précisé";
+    const location = entry.pain_location || t("health.wellnessPainStats.unspecified");
     const zone = rawZone && rawZone.trim().length > 0 ? rawZone : inferZone(entry.pain_location);
 
     zoneCounts[zone] = (zoneCounts[zone] || 0) + 1;
@@ -81,16 +83,16 @@ export function WellnessPainStats({ categoryId }: WellnessPainStatsProps) {
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-destructive" />
-            Statistiques des douleurs
+            {t("health.wellnessPainStats.title")}
           </CardTitle>
           <CardDescription>
-            {totalPains} douleur{totalPains > 1 ? "s" : ""} signalée{totalPains > 1 ? "s" : ""} au total
+            {t("health.wellnessPainStats.countTotal", { count: totalPains })}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* By zone */}
           <div>
-            <h4 className="text-sm font-semibold mb-3">Par zone du corps</h4>
+            <h4 className="text-sm font-semibold mb-3">{t("health.wellnessPainStats.byZone")}</h4>
             <div className="space-y-3">
               {sortedZones.map(([zone, count]) => {
                 const pct = Math.round((count / totalPains) * 100);
@@ -111,7 +113,7 @@ export function WellnessPainStats({ categoryId }: WellnessPainStatsProps) {
 
           {/* By specific location */}
           <div>
-            <h4 className="text-sm font-semibold mb-3">Top localisations précises</h4>
+            <h4 className="text-sm font-semibold mb-3">{t("health.wellnessPainStats.topLocations")}</h4>
             <div className="space-y-3">
               {sortedLocations.map(([location, count]) => {
                 const pct = Math.round((count / totalPains) * 100);

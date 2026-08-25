@@ -21,6 +21,7 @@ import {
 } from "@/lib/wellnessCalculations";
 import { useWellnessQuestions } from "@/lib/wellness/questionConfig";
 import { PlayerRecoveryScore } from "./PlayerRecoveryScore";
+import { useTranslation } from "react-i18next";
 
 interface PlayerWellnessTabProps {
   playerId: string;
@@ -34,6 +35,7 @@ const getScoreBadge = (score: number) => {
 };
 
 export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabProps) {
+  const { t } = useTranslation();
   const [chartPeriod, setChartPeriod] = useState<"day" | "week" | "month">("day");
   const [visibleSeries, setVisibleSeries] = useState<Record<"wellness" | "fatigue" | "soreness" | "stress", boolean>>({
     wellness: true,
@@ -42,10 +44,10 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
     stress: true,
   });
   const SERIES_META: { key: "wellness" | "fatigue" | "soreness" | "stress"; label: string; color: string }[] = [
-    { key: "soreness", label: "Douleurs", color: "#f59e0b" },
-    { key: "fatigue", label: "Fatigue", color: "#dc2626" },
-    { key: "wellness", label: "Score Global", color: "#1e3a8a" },
-    { key: "stress", label: "Stress", color: "#7c3aed" },
+    { key: "soreness", label: t("health.playerWellnessTab.seriesLabels.soreness"), color: "#f59e0b" },
+    { key: "fatigue", label: t("health.playerWellnessTab.seriesLabels.fatigue"), color: "#dc2626" },
+    { key: "wellness", label: t("health.playerWellnessTab.seriesLabels.wellness"), color: "#1e3a8a" },
+    { key: "stress", label: t("health.playerWellnessTab.seriesLabels.stress"), color: "#7c3aed" },
   ];
   const toggleSeries = (key: "wellness" | "fatigue" | "soreness" | "stress") =>
     setVisibleSeries((p) => ({ ...p, [key]: !p[key] }));
@@ -93,7 +95,7 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
   });
 
   if (isLoading) {
-    return <div className="text-muted-foreground">Chargement...</div>;
+    return <div className="text-muted-foreground">{t("health.playerWellnessTab.loading")}</div>;
   }
 
   // Prepare chart data using weighted scores, with period aggregation
@@ -174,13 +176,13 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
   const getRiskBadge = () => {
     switch (riskLevel) {
       case "critical":
-        return <Badge variant="destructive" className="bg-red-600">Critique</Badge>;
+        return <Badge variant="destructive" className="bg-red-600">{t("health.playerWellnessTab.riskBadges.critical")}</Badge>;
       case "high":
-        return <Badge variant="destructive">Élevé</Badge>;
+        return <Badge variant="destructive">{t("health.playerWellnessTab.riskBadges.high")}</Badge>;
       case "medium":
-        return <Badge variant="secondary" className="bg-yellow-500 text-white">Modéré</Badge>;
+        return <Badge variant="secondary" className="bg-yellow-500 text-white">{t("health.playerWellnessTab.riskBadges.medium")}</Badge>;
       default:
-        return <Badge className="bg-green-500">Faible</Badge>;
+        return <Badge className="bg-green-500">{t("health.playerWellnessTab.riskBadges.low")}</Badge>;
     }
   };
 
@@ -199,12 +201,12 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
   };
 
   const getTrendLabel = () => {
-    if (!trendResult) return "Données insuffisantes";
+    if (!trendResult) return t("health.playerWellnessTab.trendLabels.insufficientData");
     switch (trendResult.trend) {
-      case "rapid_decline": return "Détérioration rapide";
-      case "declining": return "En baisse";
-      case "improving": return "En amélioration";
-      default: return "Stable";
+      case "rapid_decline": return t("health.playerWellnessTab.trendLabels.rapidDecline");
+      case "declining": return t("health.playerWellnessTab.trendLabels.declining");
+      case "improving": return t("health.playerWellnessTab.trendLabels.improving");
+      default: return t("health.playerWellnessTab.trendLabels.stable");
     }
   };
 
@@ -212,13 +214,13 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
     if (!trendResult) return null;
     switch (trendResult.trend) {
       case "rapid_decline":
-        return <Badge variant="destructive">⚠️ Chute rapide</Badge>;
+        return <Badge variant="destructive">{t("health.playerWellnessTab.trendBadges.rapidDecline")}</Badge>;
       case "declining":
-        return <Badge variant="secondary" className="bg-orange-500 text-white">En baisse</Badge>;
+        return <Badge variant="secondary" className="bg-orange-500 text-white">{t("health.playerWellnessTab.trendBadges.declining")}</Badge>;
       case "improving":
-        return <Badge className="bg-green-500">En hausse</Badge>;
+        return <Badge className="bg-green-500">{t("health.playerWellnessTab.trendBadges.improving")}</Badge>;
       default:
-        return <Badge variant="outline">Stable</Badge>;
+        return <Badge variant="outline">{t("health.playerWellnessTab.trendBadges.stable")}</Badge>;
     }
   };
 
@@ -258,39 +260,39 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5" />
-            Évaluation du Risque
+            {t("health.playerWellnessTab.riskEvaluationTitle")}
           </CardTitle>
-          <CardDescription>Basé sur Wellness pondéré + AWCR + Tendances</CardDescription>
+          <CardDescription>{t("health.playerWellnessTab.riskEvaluationDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between mb-4">
-            <span className="text-lg font-medium">Niveau de risque actuel:</span>
+            <span className="text-lg font-medium">{t("health.playerWellnessTab.currentRiskLevel")}</span>
             {getRiskBadge()}
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
             <div className="p-3 bg-muted rounded-lg">
-              <div className="text-sm text-muted-foreground">AWCR actuel</div>
+              <div className="text-sm text-muted-foreground">{t("health.playerWellnessTab.kpis.currentAwcr")}</div>
               <div className="text-xl font-bold">
                 {latestAwcr?.awcr?.toFixed(2) ?? "N/A"}
               </div>
             </div>
             <div className="p-3 bg-muted rounded-lg">
-              <div className="text-sm text-muted-foreground">Wellness (pondéré)</div>
+              <div className="text-sm text-muted-foreground">{t("health.playerWellnessTab.kpis.weightedWellness")}</div>
               <div className="text-xl font-bold">
                 {currentScore?.toFixed(2) ?? "N/A"}/5
               </div>
             </div>
             <div className="p-3 bg-muted rounded-lg">
               <div className="text-sm text-muted-foreground flex items-center gap-1">
-                Tendance {getTrendIcon()}
+                {t("health.playerWellnessTab.kpis.trend")} {getTrendIcon()}
               </div>
               <div className="text-lg font-medium">
                 {getTrendLabel()}
               </div>
             </div>
             <div className="p-3 bg-muted rounded-lg">
-              <div className="text-sm text-muted-foreground">Évolution</div>
+              <div className="text-sm text-muted-foreground">{t("health.playerWellnessTab.kpis.evolution")}</div>
               <div className="mt-1">
                 {getTrendBadge()}
               </div>
@@ -301,7 +303,7 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
             <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
               <div className="flex items-center gap-2 text-destructive font-medium">
                 <AlertTriangle className="h-4 w-4" />
-                Douleur signalée
+                {t("health.playerWellnessTab.painReported")}
               </div>
               {latestWellness.pain_location && (
                 <p className="text-sm mt-1">{latestWellness.pain_location}</p>
@@ -311,7 +313,7 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
 
           {/* Wellness Weights Info */}
           <div className="mt-4 p-3 bg-muted/50 rounded-lg text-xs text-muted-foreground">
-            <strong>Score pondéré:</strong> Fatigue générale (22%) + Douleurs bas du corps (22%) + Douleurs haut du corps (18%) + Stress (14%) + Sommeil qualité/durée (24%)
+<span dangerouslySetInnerHTML={{ __html: t("health.playerWellnessTab.weightsInfo") }} />
           </div>
         </CardContent>
       </Card>
@@ -323,7 +325,7 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5" />
-                Évolution Wellness (Score Pondéré)
+                {t("health.playerWellnessTab.chart.title")}
               </CardTitle>
               <ToggleGroup
                 type="single"
@@ -331,9 +333,9 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
                 value={chartPeriod}
                 onValueChange={(v) => v && setChartPeriod(v as "day" | "week" | "month")}
               >
-                <ToggleGroupItem value="day" className="px-3">Jour</ToggleGroupItem>
-                <ToggleGroupItem value="week" className="px-3">Semaine</ToggleGroupItem>
-                <ToggleGroupItem value="month" className="px-3">Mois</ToggleGroupItem>
+                <ToggleGroupItem value="day" className="px-3">{t("health.playerWellnessTab.chart.day")}</ToggleGroupItem>
+                <ToggleGroupItem value="week" className="px-3">{t("health.playerWellnessTab.chart.week")}</ToggleGroupItem>
+                <ToggleGroupItem value="month" className="px-3">{t("health.playerWellnessTab.chart.month")}</ToggleGroupItem>
               </ToggleGroup>
             </div>
           </CardHeader>
@@ -376,7 +378,7 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
                     domain={[1, 5]}
                     ticks={[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]}
                     tick={{ fontSize: 12 }}
-                    label={{ value: '1 = Optimal · 5 = Mauvais', angle: -90, position: 'insideLeft', style: { fontSize: 11, fill: 'hsl(var(--muted-foreground))' } }}
+                    label={{ value: t('health.playerWellnessTab.chart.yAxisLabel'), angle: -90, position: 'insideLeft', style: { fontSize: 11, fill: 'hsl(var(--muted-foreground))' } }}
                   />
                   <Tooltip
                     contentStyle={{
@@ -398,7 +400,7 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
                   <Line
                     type="monotone"
                     dataKey="wellness"
-                    name="Score Global"
+                    name={t("health.playerWellnessTab.seriesLabels.wellness")}
                     hide={!visibleSeries.wellness}
                     stroke="#1e3a8a"
                     strokeWidth={4}
@@ -408,7 +410,7 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
                   <Line
                     type="monotone"
                     dataKey="fatigue"
-                    name="Fatigue"
+                    name={t("health.playerWellnessTab.seriesLabels.fatigue")}
                     hide={!visibleSeries.fatigue}
                     stroke="#dc2626"
                     strokeWidth={3}
@@ -418,7 +420,7 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
                   <Line
                     type="monotone"
                     dataKey="soreness"
-                    name="Douleurs"
+                    name={t("health.playerWellnessTab.seriesLabels.soreness")}
                     hide={!visibleSeries.soreness}
                     stroke="#f59e0b"
                     strokeWidth={3}
@@ -429,7 +431,7 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
                   <Line
                     type="monotone"
                     dataKey="stress"
-                    name="Stress"
+                    name={t("health.playerWellnessTab.seriesLabels.stress")}
                     hide={!visibleSeries.stress}
                     stroke="#7c3aed"
                     strokeWidth={3}
@@ -448,27 +450,27 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
       {/* History Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Historique Wellness</CardTitle>
+          <CardTitle>{t("health.playerWellnessTab.history.title")}</CardTitle>
         </CardHeader>
         <CardContent>
           {!wellnessData || wellnessData.length === 0 ? (
             <p className="text-muted-foreground text-center py-4">
-              Aucune donnée wellness enregistrée.
+              {t("health.playerWellnessTab.history.empty")}
             </p>
           ) : (
             <div className="rounded-md border overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead className="text-center">Sommeil Q.</TableHead>
-                    <TableHead className="text-center">Sommeil D.</TableHead>
-                    <TableHead className="text-center">Fatigue</TableHead>
-                    <TableHead className="text-center">Stress</TableHead>
-                    <TableHead className="text-center">Soreness H.</TableHead>
-                    <TableHead className="text-center">Soreness B.</TableHead>
-                    <TableHead className="text-center">Score Pondéré</TableHead>
-                    <TableHead>Douleur</TableHead>
+                    <TableHead>{t("health.playerWellnessTab.history.date")}</TableHead>
+                    <TableHead className="text-center">{t("health.playerWellnessTab.history.sleepQuality")}</TableHead>
+                    <TableHead className="text-center">{t("health.playerWellnessTab.history.sleepDuration")}</TableHead>
+                    <TableHead className="text-center">{t("health.playerWellnessTab.history.fatigue")}</TableHead>
+                    <TableHead className="text-center">{t("health.playerWellnessTab.history.stress")}</TableHead>
+                    <TableHead className="text-center">{t("health.playerWellnessTab.history.sorenessUpper")}</TableHead>
+                    <TableHead className="text-center">{t("health.playerWellnessTab.history.sorenessLower")}</TableHead>
+                    <TableHead className="text-center">{t("health.playerWellnessTab.history.weightedScore")}</TableHead>
+                    <TableHead>{t("health.playerWellnessTab.history.pain")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -506,10 +508,10 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
                           {entry.has_specific_pain ? (
                             <div className="flex items-center gap-1 text-destructive">
                               <AlertTriangle className="h-4 w-4" />
-                              <span className="text-xs">{entry.pain_location || "Oui"}</span>
+                              <span className="text-xs">{entry.pain_location || t("health.playerWellnessTab.history.painYes")}</span>
                             </div>
                           ) : (
-                            <span className="text-muted-foreground text-xs">Non</span>
+                            <span className="text-muted-foreground text-xs">{t("health.playerWellnessTab.history.painNo")}</span>
                           )}
                         </TableCell>
                       </TableRow>

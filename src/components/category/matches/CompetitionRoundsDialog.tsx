@@ -1,4 +1,5 @@
 import { getLocaleTag } from "@/lib/i18n/dateLocale";
+import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -155,6 +156,7 @@ export function CompetitionRoundsDialog({
   categoryId,
   sportType,
 }: CompetitionRoundsDialogProps) {
+  const { t } = useTranslation();
   const [playerRoundsData, setPlayerRoundsData] = useState<PlayerRounds[]>([]);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string>("");
   const [selectedPlayerId2, setSelectedPlayerId2] = useState<string>("");
@@ -1097,7 +1099,7 @@ export function CompetitionRoundsDialog({
             className="w-full gap-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground"
           >
             <Plus className="h-4 w-4" />
-            Ajouter une épreuve
+            {t("competition.rounds.addEvent")}
           </Button>
         </div>
       );
@@ -1117,7 +1119,7 @@ export function CompetitionRoundsDialog({
                     onClick={() => unlockBowlingRound(player.entryKey, round.round_number)}
                   >
                     <Lock className="h-3 w-3" />
-                    Modifier
+                    {t("competition.card.edit")}
                   </Button>
                 </div>
               )}
@@ -1154,7 +1156,7 @@ export function CompetitionRoundsDialog({
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   <div className="col-span-2">
-                    <Label className="text-xs">Date & heure de l'épreuve</Label>
+                    <Label className="text-xs">{t("competition.rounds.eventDateTime")}</Label>
                     <Input
                       type="datetime-local"
                       value={round.roundDate || (matchData?.match_date ? `${matchData.match_date.split("T")[0]}T10:00` : "")}
@@ -1164,7 +1166,7 @@ export function CompetitionRoundsDialog({
                     />
                   </div>
                   <div>
-                    <Label className="text-xs">Classement</Label>
+                    <Label className="text-xs">{t("competition.rounds.ranking")}</Label>
                     <Input
                       type="number"
                       min={1}
@@ -1185,7 +1187,7 @@ export function CompetitionRoundsDialog({
                   return (
                 <div className={`grid grid-cols-1 ${showTopPerf ? "sm:grid-cols-3" : "sm:grid-cols-2"} gap-3`}>
                   <div>
-                    <Label className="text-xs">Résultat</Label>
+                    <Label className="text-xs">{t("competition.rounds.result")}</Label>
                     <Select
                       value={round.result}
                       onValueChange={(value) => updateRound(player.entryKey, round.round_number, { result: value })}
@@ -1195,16 +1197,16 @@ export function CompetitionRoundsDialog({
                         <SelectValue placeholder="Qualification ?" />
                       </SelectTrigger>
                       <SelectContent className="z-[200]">
-                        <SelectItem value="qualified">Qualifié(e)</SelectItem>
-                        <SelectItem value="eliminated">Éliminé(e)</SelectItem>
-                        <SelectItem value="dns">DNS</SelectItem>
-                        <SelectItem value="dnf">DNF</SelectItem>
+                        <SelectItem value="qualified">{t("competition.rounds.qualified")}</SelectItem>
+                        <SelectItem value="eliminated">{t("competition.rounds.eliminated")}</SelectItem>
+                        <SelectItem value="dns">{t("competition.rounds.dns")}</SelectItem>
+                        <SelectItem value="dnf">{t("competition.rounds.dnf")}</SelectItem>
                         <SelectItem value="dq">DQ</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
-                    <Label className="text-xs">Tour de compétition</Label>
+                    <Label className="text-xs">{t("competition.rounds.competitionRound")}</Label>
                     <Select
                       value={round.phase || ""}
                       onValueChange={(value) => updateRound(player.entryKey, round.round_number, { phase: value })}
@@ -1224,7 +1226,7 @@ export function CompetitionRoundsDialog({
                   </div>
                   {showTopPerf && (
                     <div>
-                      <Label className="text-xs">Performance (temps)</Label>
+                      <Label className="text-xs">{t("competition.rounds.performanceTime")}</Label>
                       <Input
                         type="number"
                         step="0.01"
@@ -1258,7 +1260,7 @@ export function CompetitionRoundsDialog({
                     />
                   </div>
                   <div>
-                    <Label className="text-xs">Sens du vent</Label>
+                    <Label className="text-xs">{t("competition.rounds.windDirection")}</Label>
                     <Select
                       value={(round as any).wind_direction || ""}
                       onValueChange={(value) => updateRound(player.entryKey, round.round_number, { wind_direction: value } as any)}
@@ -1268,17 +1270,17 @@ export function CompetitionRoundsDialog({
                         <SelectValue placeholder="Choisir..." />
                       </SelectTrigger>
                       <SelectContent className="z-[200]">
-                        <SelectItem value="face">Vent de face</SelectItem>
-                        <SelectItem value="dos">Vent de dos</SelectItem>
-                        <SelectItem value="lateral_gauche">Latéral gauche</SelectItem>
-                        <SelectItem value="lateral_droit">Latéral droit</SelectItem>
-                        <SelectItem value="nul">Vent nul</SelectItem>
-                        <SelectItem value="variable">Variable</SelectItem>
+                        <SelectItem value="face">{t("competition.rounds.windFront")}</SelectItem>
+                        <SelectItem value="dos">{t("competition.rounds.windBack")}</SelectItem>
+                        <SelectItem value="lateral_gauche">{t("competition.rounds.lateralLeft")}</SelectItem>
+                        <SelectItem value="lateral_droit">{t("competition.rounds.lateralRight")}</SelectItem>
+                        <SelectItem value="nul">{t("competition.rounds.windNull")}</SelectItem>
+                        <SelectItem value="variable">{t("competition.rounds.variable")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
-                    <Label className="text-xs">Température (°C)</Label>
+                    <Label className="text-xs">{t("competition.rounds.temperature")}</Label>
                     <Input
                       type="number"
                       onWheel={blurOnWheel}
@@ -1290,7 +1292,7 @@ export function CompetitionRoundsDialog({
                     />
                   </div>
                   <div className="flex flex-col">
-                    <Label className="text-xs">Record personnel</Label>
+                    <Label className="text-xs">{t("competition.rounds.personalRecord")}</Label>
                     <Button
                       type="button"
                       variant={(round as any).is_personal_record ? "default" : "outline"}
@@ -1341,7 +1343,7 @@ export function CompetitionRoundsDialog({
                               <div className="rounded-md border border-border/40 p-2 bg-muted/30">
                                 <div className="flex items-center justify-between mb-1.5">
                                   <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                                    Essais
+                                    {t("competition.rounds.attempts")}
                                   </p>
                                   {!round.isLocked && visibleAttemptCount < 6 && (
                                     <Button
@@ -1356,7 +1358,7 @@ export function CompetitionRoundsDialog({
                                         }))
                                       }
                                     >
-                                      <Plus className="h-3 w-3" /> Essai
+                                      <Plus className="h-3 w-3" /> {t("competition.rounds.attempt")}
                                     </Button>
                                   )}
                                 </div>
@@ -1414,7 +1416,7 @@ export function CompetitionRoundsDialog({
                 })()}
 
                 <div>
-                  <Label className="text-xs">Notes</Label>
+                  <Label className="text-xs">{t("competition.rounds.notes")}</Label>
                   <Input
                     value={round.notes}
                     onChange={(e) => updateRound(player.entryKey, round.round_number, { notes: e.target.value })}
@@ -1447,7 +1449,7 @@ export function CompetitionRoundsDialog({
               className="w-full gap-2 border-dashed"
             >
               <Plus className="h-4 w-4" />
-              Ajouter une épreuve
+              {t("competition.rounds.addEvent")}
             </Button>
           </div>
         ))}
@@ -1488,7 +1490,7 @@ export function CompetitionRoundsDialog({
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
                 <div className="p-3 rounded-lg border bg-card">
                   <p className="text-2xl font-bold">{total}</p>
-                  <p className="text-xs text-muted-foreground">Épreuves</p>
+                  <p className="text-xs text-muted-foreground">{t("competition.rounds.eventsLabel")}</p>
                 </div>
                 {bestPerfDisplay && (
                   <div className="p-3 rounded-lg border border-emerald-500/30 bg-emerald-500/5">
@@ -1499,12 +1501,12 @@ export function CompetitionRoundsDialog({
                 {bestRanking.length > 0 && (
                   <div className="p-3 rounded-lg border border-primary/20 bg-primary/5">
                     <p className="text-2xl font-bold">{Math.min(...bestRanking)}e</p>
-                    <p className="text-xs text-muted-foreground">Meilleur classement</p>
+                    <p className="text-xs text-muted-foreground">{t("competition.rounds.bestRanking")}</p>
                   </div>
                 )}
                 <div className="p-3 rounded-lg border bg-muted/30">
                   <p className="text-2xl font-bold">{qualified}/{total}</p>
-                  <p className="text-xs text-muted-foreground">Qualifications</p>
+                  <p className="text-xs text-muted-foreground">{t("competition.rounds.qualifications")}</p>
                 </div>
               </div>
 
@@ -1554,7 +1556,7 @@ export function CompetitionRoundsDialog({
 
               {Object.keys(aggregated).length > 0 && (
                 <div className="space-y-3">
-                  <h4 className="font-medium">Statistiques cumulées</h4>
+                  <h4 className="font-medium">{t("competition.rounds.cumulativeStats")}</h4>
                   {pCats.map((cat) => {
                     const categoryStats = pStats.filter((s) => s.category === cat.key && aggregated[s.key] !== undefined);
                     if (categoryStats.length === 0) return null;
@@ -1602,7 +1604,7 @@ export function CompetitionRoundsDialog({
                 className="-ml-2 mr-1 h-8 gap-1.5 px-2"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-                Retour
+                {t("competition.rounds.back")}
               </Button>
             )}
             {isAviron ? <Ship className="h-5 w-5" /> : isJudo ? <Swords className="h-5 w-5" /> : <Circle className="h-5 w-5" />}
@@ -1629,7 +1631,7 @@ export function CompetitionRoundsDialog({
                 Athlètes inscrits ({playerRoundsData.length})
               </Label>
               <p className="text-[10px] text-muted-foreground italic">
-                Cliquez sur un athlète pour saisir ses résultats
+                {t("competition.rounds.clickAthleteToEnter")}
               </p>
             </div>
             {playerRoundsData.length === 0 ? (
@@ -1723,11 +1725,11 @@ export function CompetitionRoundsDialog({
                                         <TabsList className="grid w-full grid-cols-2">
                                           <TabsTrigger value="rounds" className="gap-2">
                                             <Target className="h-4 w-4" />
-                                            Épreuves
+                                            {t("competition.rounds.eventsLabel")}
                                           </TabsTrigger>
                                           <TabsTrigger value="summary" className="gap-2">
                                             <BarChart3 className="h-4 w-4" />
-                                            Résumé
+                                            {t("competition.rounds.summary")}
                                           </TabsTrigger>
                                         </TabsList>
                                         <TabsContent value="rounds" className="mt-0">
@@ -1818,7 +1820,7 @@ export function CompetitionRoundsDialog({
                   </SelectTrigger>
                   <SelectContent className="z-[200]">
                     <SelectItem value="__none__">
-                      <span className="text-muted-foreground">Aucun</span>
+                      <span className="text-muted-foreground">{t("competition.rounds.none")}</span>
                     </SelectItem>
                     {playerRoundsData
                       .filter((p) => !slot.excluded.includes(p.entryKey))
@@ -1850,13 +1852,13 @@ export function CompetitionRoundsDialog({
               {isAviron && (
                 <TabsTrigger value="crew" className="gap-2">
                   <Users className="h-4 w-4" />
-                  Équipage
+                  {t("competition.rounds.crew")}
                 </TabsTrigger>
               )}
               {isBowling && (
                 <TabsTrigger value="oil" className="gap-2">
                   <Droplet className="h-4 w-4" />
-                  Huilage
+                  {t("competition.rounds.oiling")}
                 </TabsTrigger>
               )}
               <TabsTrigger value="rounds" className="gap-2">
@@ -1865,7 +1867,7 @@ export function CompetitionRoundsDialog({
               </TabsTrigger>
               <TabsTrigger value="summary" className="gap-2">
                 <BarChart3 className="h-4 w-4" />
-                Résumé
+                {t("competition.rounds.summary")}
               </TabsTrigger>
               {!isBowling && (
                 <TabsTrigger value="history" className="gap-2">
@@ -1888,7 +1890,7 @@ export function CompetitionRoundsDialog({
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-3 gap-4">
                       <div className="space-y-2">
-                        <Label>Type de bateau</Label>
+                        <Label>{t("competition.rounds.boatType")}</Label>
                         <Select 
                           value={selectedPlayer.boat_type || ""} 
                           onValueChange={(v) => updatePlayerCrewInfo(selectedPlayer.playerId, "boat_type", v)}
@@ -1906,7 +1908,7 @@ export function CompetitionRoundsDialog({
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label>Rôle</Label>
+                        <Label>{t("competition.rounds.role")}</Label>
                         <Select 
                           value={selectedPlayer.crew_role || ""} 
                           onValueChange={(v) => updatePlayerCrewInfo(selectedPlayer.playerId, "crew_role", v)}
@@ -1924,7 +1926,7 @@ export function CompetitionRoundsDialog({
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label>Position (siège)</Label>
+                        <Label>{t("competition.rounds.seatPosition")}</Label>
                         <Input
                           type="number"
                           min={1}
@@ -2157,7 +2159,7 @@ export function CompetitionRoundsDialog({
                                 }}
                               >
                                 <Plus className="h-3 w-3" />
-                                Ajouter une partie
+                                {t("competition.rounds.addGame")}
                               </Button>
                             </div>
                             <Button
@@ -2194,7 +2196,7 @@ export function CompetitionRoundsDialog({
                               }}
                             >
                               <Plus className="h-3.5 w-3.5" />
-                              Nouvelle épreuve
+                              {t("competition.rounds.newEvent")}
                             </Button>
                           </>
                         )}
@@ -2272,7 +2274,7 @@ export function CompetitionRoundsDialog({
                               onClick={() => unlockBowlingRound(selectedPlayer.entryKey, round.round_number)}
                             >
                               <Lock className="h-3 w-3" />
-                              Modifier
+                              {t("competition.card.edit")}
                             </Button>
                           </div>
                         )}
@@ -2311,7 +2313,7 @@ export function CompetitionRoundsDialog({
                           {phases.length > 0 && !isBowling && (
                             <div className="grid grid-cols-2 gap-3">
                               <div>
-                                <Label className="text-xs">Phase</Label>
+                                <Label className="text-xs">{t("competition.rounds.phase")}</Label>
                                 <Select
                                   value={round.phase}
                                   onValueChange={(value) => updateRound(selectedPlayer.entryKey, round.round_number, { phase: value })}
@@ -2331,7 +2333,7 @@ export function CompetitionRoundsDialog({
                               </div>
                               {isAviron && (
                                 <div>
-                                  <Label className="text-xs">Couloir</Label>
+                                  <Label className="text-xs">{t("competition.rounds.lane")}</Label>
                                   <Input
                                     type="number"
                                     min={1}
@@ -2352,7 +2354,7 @@ export function CompetitionRoundsDialog({
                           {isAviron && (
                             <div className="grid grid-cols-3 gap-3">
                               <div>
-                                <Label className="text-xs">Vent</Label>
+                                <Label className="text-xs">{t("competition.rounds.wind")}</Label>
                                 <Input
                                   value={round.wind_conditions || ""}
                                   onChange={(e) => updateRound(selectedPlayer.entryKey, round.round_number, { wind_conditions: e.target.value })}
@@ -2361,7 +2363,7 @@ export function CompetitionRoundsDialog({
                                 />
                               </div>
                               <div>
-                                <Label className="text-xs">Courant</Label>
+                                <Label className="text-xs">{t("competition.rounds.current")}</Label>
                                 <Input
                                   value={round.current_conditions || ""}
                                   onChange={(e) => updateRound(selectedPlayer.entryKey, round.round_number, { current_conditions: e.target.value })}
@@ -2370,7 +2372,7 @@ export function CompetitionRoundsDialog({
                                 />
                               </div>
                               <div>
-                                <Label className="text-xs">Température (°C)</Label>
+                                <Label className="text-xs">{t("competition.rounds.temperature")}</Label>
                                 <Input
                                   type="number"
                                   onWheel={blurOnWheel}
@@ -2396,7 +2398,7 @@ export function CompetitionRoundsDialog({
                                 />
                               </div>
                               <div>
-                                <Label className="text-xs">Classement</Label>
+                                <Label className="text-xs">{t("competition.rounds.ranking")}</Label>
                                 <Input
                                   type="number"
                                   min={1}
@@ -2408,7 +2410,7 @@ export function CompetitionRoundsDialog({
                                 />
                               </div>
                               <div>
-                                <Label className="text-xs">Écart au 1er</Label>
+                                <Label className="text-xs">{t("competition.rounds.gapToFirst")}</Label>
                                 <Input
                                   value={round.gap_to_first || ""}
                                   onChange={(e) => updateRound(selectedPlayer.entryKey, round.round_number, { gap_to_first: e.target.value })}
@@ -2423,7 +2425,7 @@ export function CompetitionRoundsDialog({
                           {!isAviron && !isBowling && !isAthletics && (
                             <div className="grid grid-cols-2 gap-3">
                               <div>
-                                <Label className="text-xs">Adversaire</Label>
+                                <Label className="text-xs">{t("competition.rounds.opponentLabel")}</Label>
                                 {isJudo ? (
                                   (() => {
                                     const allOpps = opponentProfiles || [];
@@ -2467,7 +2469,7 @@ export function CompetitionRoundsDialog({
                                             {matched.length > 0 && (
                                               <>
                                                 <div className="px-2 py-1 text-[10px] font-bold uppercase text-muted-foreground">
-                                                  Catégorie de l'athlète
+                                                  {t("competition.rounds.athleteCategory")}
                                                 </div>
                                                 {matched.map((o) => (
                                                   <SelectItem key={o.id} value={o.id}>
@@ -2479,7 +2481,7 @@ export function CompetitionRoundsDialog({
                                             {others.length > 0 && (
                                               <>
                                                 <div className="px-2 py-1 text-[10px] font-bold uppercase text-muted-foreground">
-                                                  Autres
+                                                  {t("competition.rounds.others")}
                                                 </div>
                                                 {others.map((o) => (
                                                   <SelectItem key={o.id} value={o.id}>
@@ -2521,7 +2523,7 @@ export function CompetitionRoundsDialog({
                                 )}
                               </div>
                               <div>
-                                <Label className="text-xs">Résultat</Label>
+                                <Label className="text-xs">{t("competition.rounds.result")}</Label>
                                 <Select
                                   value={round.result}
                                   onValueChange={(value) => updateRound(selectedPlayer.entryKey, round.round_number, { result: value })}
@@ -2534,14 +2536,14 @@ export function CompetitionRoundsDialog({
                                     <SelectItem value="win">
                                       <span className="flex items-center gap-2">
                                         <Trophy className="h-3 w-3 text-green-500" />
-                                        Victoire
+                                        {t("competition.rounds.win")}
                                       </span>
                                     </SelectItem>
                                     <SelectItem value="loss">
-                                      <span className="text-destructive">Défaite</span>
+                                      <span className="text-destructive">{t("competition.rounds.loss")}</span>
                                     </SelectItem>
                                     <SelectItem value="draw">
-                                      <span className="text-muted-foreground">Égalité</span>
+                                      <span className="text-muted-foreground">{t("competition.rounds.draw")}</span>
                                     </SelectItem>
                                   </SelectContent>
                                 </Select>
@@ -2553,7 +2555,7 @@ export function CompetitionRoundsDialog({
                           {isAthletics && (
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                               <div className="col-span-2">
-                                <Label className="text-xs">Date & heure de l'épreuve</Label>
+                                <Label className="text-xs">{t("competition.rounds.eventDateTime")}</Label>
                                 <Input
                                   type="datetime-local"
                                   value={round.roundDate || (matchData?.match_date ? `${matchData.match_date.split("T")[0]}T10:00` : "")}
@@ -2563,7 +2565,7 @@ export function CompetitionRoundsDialog({
                                 />
                               </div>
                               <div>
-                                <Label className="text-xs">Classement</Label>
+                                <Label className="text-xs">{t("competition.rounds.ranking")}</Label>
                                 <Input
                                   type="number"
                                   min={1}
@@ -2576,7 +2578,7 @@ export function CompetitionRoundsDialog({
                                 />
                               </div>
                               <div>
-                                <Label className="text-xs">Temps / Perf</Label>
+                                <Label className="text-xs">{t("competition.rounds.timePerf")}</Label>
                                 <Input
                                   type="number"
                                   step="0.01"
@@ -2596,7 +2598,7 @@ export function CompetitionRoundsDialog({
                                 />
                               </div>
                               <div>
-                                <Label className="text-xs">Résultat</Label>
+                                <Label className="text-xs">{t("competition.rounds.result")}</Label>
                                 <Select
                                   value={round.result}
                                   onValueChange={(value) => updateRound(selectedPlayer.entryKey, round.round_number, { result: value })}
@@ -2609,17 +2611,17 @@ export function CompetitionRoundsDialog({
                                     <SelectItem value="qualified">
                                       <span className="flex items-center gap-2">
                                         <CheckCircle className="h-3 w-3 text-green-500" />
-                                        Qualifié(e)
+                                        {t("competition.rounds.qualified")}
                                       </span>
                                     </SelectItem>
                                     <SelectItem value="eliminated">
-                                      <span className="text-destructive">Éliminé(e)</span>
+                                      <span className="text-destructive">{t("competition.rounds.eliminated")}</span>
                                     </SelectItem>
                                     <SelectItem value="dns">
-                                      <span className="text-muted-foreground">DNS</span>
+                                      <span className="text-muted-foreground">{t("competition.rounds.dns")}</span>
                                     </SelectItem>
                                     <SelectItem value="dnf">
-                                      <span className="text-muted-foreground">DNF</span>
+                                      <span className="text-muted-foreground">{t("competition.rounds.dnf")}</span>
                                     </SelectItem>
                                     <SelectItem value="dq">
                                       <span className="text-destructive">DQ</span>
@@ -2644,7 +2646,7 @@ export function CompetitionRoundsDialog({
                                 />
                               </div>
                               <div>
-                                <Label className="text-xs">Sens du vent</Label>
+                                <Label className="text-xs">{t("competition.rounds.windDirection")}</Label>
                                 <Select
                                   value={(round as any).wind_direction || ""}
                                   onValueChange={(value) =>
@@ -2656,17 +2658,17 @@ export function CompetitionRoundsDialog({
                                     <SelectValue placeholder="Choisir..." />
                                   </SelectTrigger>
                                   <SelectContent className="z-[200]">
-                                    <SelectItem value="face">Vent de face</SelectItem>
-                                    <SelectItem value="dos">Vent de dos</SelectItem>
-                                    <SelectItem value="lateral_gauche">Latéral gauche</SelectItem>
-                                    <SelectItem value="lateral_droit">Latéral droit</SelectItem>
-                                    <SelectItem value="nul">Vent nul</SelectItem>
-                                    <SelectItem value="variable">Variable</SelectItem>
+                                    <SelectItem value="face">{t("competition.rounds.windFront")}</SelectItem>
+                                    <SelectItem value="dos">{t("competition.rounds.windBack")}</SelectItem>
+                                    <SelectItem value="lateral_gauche">{t("competition.rounds.lateralLeft")}</SelectItem>
+                                    <SelectItem value="lateral_droit">{t("competition.rounds.lateralRight")}</SelectItem>
+                                    <SelectItem value="nul">{t("competition.rounds.windNull")}</SelectItem>
+                                    <SelectItem value="variable">{t("competition.rounds.variable")}</SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>
                               <div>
-                                <Label className="text-xs">Température (°C)</Label>
+                                <Label className="text-xs">{t("competition.rounds.temperature")}</Label>
                                 <Input
                                   type="number"
                                   onWheel={blurOnWheel}
@@ -2678,7 +2680,7 @@ export function CompetitionRoundsDialog({
                                 />
                               </div>
                               <div className="flex flex-col">
-                                <Label className="text-xs">Record personnel</Label>
+                                <Label className="text-xs">{t("competition.rounds.personalRecord")}</Label>
                                 <Button
                                   type="button"
                                   variant={(round as any).is_personal_record ? "default" : "outline"}
@@ -2705,7 +2707,7 @@ export function CompetitionRoundsDialog({
                               {/* Date, Category, Phase, and opponent info - always visible */}
                               <div className={`grid grid-cols-2 sm:grid-cols-4 gap-3 ${round.isLocked ? "pointer-events-none" : ""}`}>
                                 <div>
-                                  <Label className="text-xs">Jour</Label>
+                                  <Label className="text-xs">{t("competition.rounds.day")}</Label>
                                   <Input
                                     type="date"
                                     value={round.roundDate || matchData?.match_date?.split("T")[0] || ""}
@@ -2715,7 +2717,7 @@ export function CompetitionRoundsDialog({
                                   />
                                 </div>
                                 <div>
-                                  <Label className="text-xs">Catégorie</Label>
+                                  <Label className="text-xs">{t("competition.rounds.category")}</Label>
                                   <Select
                                     value={round.bowlingCategory || ""}
                                     onValueChange={(value) => updateRound(selectedPlayer.entryKey, round.round_number, { bowlingCategory: value })}
@@ -2734,7 +2736,7 @@ export function CompetitionRoundsDialog({
                                   </Select>
                                 </div>
                                 <div>
-                                  <Label className="text-xs">Phase</Label>
+                                  <Label className="text-xs">{t("competition.rounds.phase")}</Label>
                                   <Select
                                     value={round.phase}
                                     onValueChange={(value) => updateRound(selectedPlayer.entryKey, round.round_number, { phase: value })}
@@ -2753,7 +2755,7 @@ export function CompetitionRoundsDialog({
                                   </Select>
                                 </div>
                                 <div>
-                                  <Label className="text-xs">Adversaire</Label>
+                                  <Label className="text-xs">{t("competition.rounds.opponentLabel")}</Label>
                                   <Input
                                     value={round.opponent_name}
                                     onChange={(e) => updateRound(selectedPlayer.entryKey, round.round_number, { opponent_name: e.target.value })}
@@ -2833,7 +2835,7 @@ export function CompetitionRoundsDialog({
                                       <div className="rounded-md border border-border/40 p-2 bg-muted/30">
                                         <div className="flex items-center justify-between mb-1.5">
                                           <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                                            Essais
+                                            {t("competition.rounds.attempts")}
                                           </p>
                                           {!round.isLocked && visibleAttemptCount < 6 && (
                                             <Button
@@ -2848,7 +2850,7 @@ export function CompetitionRoundsDialog({
                                                 }))
                                               }
                                             >
-                                              <Plus className="h-3 w-3" /> Essai
+                                              <Plus className="h-3 w-3" /> {t("competition.rounds.attempt")}
                                             </Button>
                                           )}
                                         </div>
@@ -2906,7 +2908,7 @@ export function CompetitionRoundsDialog({
 
                           {/* Notes */}
                           <div>
-                            <Label className="text-xs">Notes</Label>
+                            <Label className="text-xs">{t("competition.rounds.notes")}</Label>
                             <Input
                               value={round.notes}
                               onChange={(e) => updateRound(selectedPlayer.entryKey, round.round_number, { notes: e.target.value })}
@@ -2976,13 +2978,13 @@ export function CompetitionRoundsDialog({
                                 {bestTime && (
                                   <div className="p-3 rounded-lg bg-green-100 dark:bg-green-900/20">
                                     <p className="text-2xl font-bold text-green-600">{formatTime(bestTime)}</p>
-                                    <p className="text-xs text-muted-foreground">Meilleur temps</p>
+                                    <p className="text-xs text-muted-foreground">{t("competition.rounds.bestTime")}</p>
                                   </div>
                                 )}
                                 {avgRanking && (
                                   <div className="p-3 rounded-lg bg-blue-100 dark:bg-blue-900/20">
                                     <p className="text-2xl font-bold text-blue-600">{avgRanking.toFixed(1)}</p>
-                                    <p className="text-xs text-muted-foreground">Classement moyen</p>
+                                    <p className="text-xs text-muted-foreground">{t("competition.rounds.avgRanking")}</p>
                                   </div>
                                 )}
                               </div>
@@ -2998,7 +3000,7 @@ export function CompetitionRoundsDialog({
                                     return bestRanking.length > 0 ? (
                                       <div className="p-3 rounded-lg bg-green-100 dark:bg-green-900/20">
                                         <p className="text-2xl font-bold text-green-600">{Math.min(...bestRanking)}e</p>
-                                        <p className="text-xs text-muted-foreground">Meilleur classement</p>
+                                        <p className="text-xs text-muted-foreground">{t("competition.rounds.bestRanking")}</p>
                                       </div>
                                     ) : null;
                                   })()}
@@ -3007,7 +3009,7 @@ export function CompetitionRoundsDialog({
                                     return (
                                       <div className="p-3 rounded-lg bg-blue-100 dark:bg-blue-900/20">
                                         <p className="text-2xl font-bold text-blue-600">{qualified}/{total}</p>
-                                        <p className="text-xs text-muted-foreground">Qualifications</p>
+                                        <p className="text-xs text-muted-foreground">{t("competition.rounds.qualifications")}</p>
                                       </div>
                                     );
                                   })()}
@@ -3045,15 +3047,15 @@ export function CompetitionRoundsDialog({
                                 </div>
                                 <div className="p-3 rounded-lg bg-green-100 dark:bg-green-900/20">
                                   <p className="text-2xl font-bold text-green-600">{wins}</p>
-                                  <p className="text-xs text-muted-foreground">Victoires</p>
+                                  <p className="text-xs text-muted-foreground">{t("competition.rounds.wins")}</p>
                                 </div>
                                 <div className="p-3 rounded-lg bg-red-100 dark:bg-red-900/20">
                                   <p className="text-2xl font-bold text-destructive">{losses}</p>
-                                  <p className="text-xs text-muted-foreground">Défaites</p>
+                                  <p className="text-xs text-muted-foreground">{t("competition.rounds.losses")}</p>
                                 </div>
                                 <div className="p-3 rounded-lg bg-gray-100 dark:bg-gray-900/20">
                                   <p className="text-2xl font-bold text-muted-foreground">{draws}</p>
-                                  <p className="text-xs text-muted-foreground">Égalités</p>
+                                  <p className="text-xs text-muted-foreground">{t("competition.rounds.draws")}</p>
                                 </div>
                               </div>
                             )}
@@ -3064,7 +3066,7 @@ export function CompetitionRoundsDialog({
                               const pCats = getPlayerStatCategories(selectedPlayer);
                               return (
                               <div className="space-y-3">
-                                <h4 className="font-medium">Statistiques cumulées</h4>
+                                <h4 className="font-medium">{t("competition.rounds.cumulativeStats")}</h4>
                                 {pCats.map(cat => {
                                   const categoryStats = pStats.filter(s => s.category === cat.key && aggregated[s.key] !== undefined);
                                   if (categoryStats.length === 0) return null;
@@ -3089,7 +3091,7 @@ export function CompetitionRoundsDialog({
                             {/* Aviron: Courses recap */}
                             {isAviron && selectedPlayer.rounds.length > 0 && (
                               <div className="space-y-2">
-                                <h4 className="font-medium">Détail des courses</h4>
+                                <h4 className="font-medium">{t("competition.rounds.raceDetails")}</h4>
                                 <div className="space-y-1">
                                   {selectedPlayer.rounds.map(round => (
                                     <div key={round.round_number} className="flex items-center justify-between p-2 rounded border text-sm">
@@ -3158,7 +3160,7 @@ export function CompetitionRoundsDialog({
             ) : null}
           </div>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Annuler
+            {t("competition.card.cancel")}
           </Button>
           <NotifyStatsButton
             matchId={matchId}

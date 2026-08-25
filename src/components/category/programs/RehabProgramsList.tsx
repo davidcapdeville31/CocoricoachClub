@@ -8,12 +8,14 @@ import { Plus, HeartPulse, Pencil, Trash2 } from "lucide-react";
 import { ProgramBuilderDialog } from "./ProgramBuilderDialog";
 import { toast } from "sonner";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
+import { useTranslation } from "react-i18next";
 
 interface RehabProgramsListProps {
   categoryId: string;
 }
 
 export function RehabProgramsList({ categoryId }: RehabProgramsListProps) {
+  const { t } = useTranslation();
   const { isViewer } = useViewerModeContext();
   const [showBuilder, setShowBuilder] = useState(false);
   const [editingProgram, setEditingProgram] = useState<string | null>(null);
@@ -37,13 +39,13 @@ export function RehabProgramsList({ categoryId }: RehabProgramsListProps) {
   });
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Supprimer ce programme de réhabilitation ?")) return;
+    if (!confirm(t("programmation.rehab.confirmDelete"))) return;
     const { error } = await supabase.from("training_programs").delete().eq("id", id);
     if (error) {
-      toast.error("Erreur lors de la suppression");
+      toast.error(t("programmation.rehab.deleteError"));
       return;
     }
-    toast.success("Programme supprimé");
+    toast.success(t("programmation.rehab.deleteSuccess"));
     refetch();
   };
 
@@ -52,32 +54,32 @@ export function RehabProgramsList({ categoryId }: RehabProgramsListProps) {
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <HeartPulse className="h-5 w-5 text-rose-500" />
-          <h2 className="text-xl font-semibold">Programmes de réhabilitation</h2>
+          <h2 className="text-xl font-semibold">{t("programmation.rehab.title")}</h2>
         </div>
         <div className="flex gap-2">
           {!isViewer && (
             <Button onClick={() => setShowBuilder(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Nouveau programme
+              {t("programmation.rehab.newProgram")}
             </Button>
           )}
         </div>
       </div>
 
       {isLoading ? (
-        <div className="text-center py-8 text-muted-foreground">Chargement...</div>
+        <div className="text-center py-8 text-muted-foreground">{t("programmation.rehab.loading")}</div>
       ) : !programs?.length ? (
         <Card>
           <CardContent className="py-12 text-center">
             <HeartPulse className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground mb-2">Aucun programme de réhabilitation</p>
+            <p className="text-muted-foreground mb-2">{t("programmation.rehab.empty")}</p>
             <p className="text-sm text-muted-foreground mb-4">
-              Crée un programme structuré (Blocs / Semaines / Séances) lié à une blessure de la bibliothèque.
+              {t("programmation.rehab.emptyDesc")}
             </p>
             {!isViewer && (
               <Button onClick={() => setShowBuilder(true)}>
                 <Plus className="h-4 w-4 mr-2" />
-                Créer mon premier programme
+                {t("programmation.rehab.createFirst")}
               </Button>
             )}
           </CardContent>
@@ -116,7 +118,7 @@ export function RehabProgramsList({ categoryId }: RehabProgramsListProps) {
                     <p className="text-xs text-muted-foreground line-clamp-2">{p.description}</p>
                   )}
                   <div className="text-xs text-muted-foreground">
-                    📋 {weeks} sem. · {sessions} séance{sessions > 1 ? "s" : ""}
+                    📋 {t("programmation.rehab.weeksSessions", { weeks, sessionsCount: sessions })}
                   </div>
                 </CardContent>
               </Card>

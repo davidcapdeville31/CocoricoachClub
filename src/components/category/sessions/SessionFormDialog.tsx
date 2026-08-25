@@ -751,10 +751,10 @@ export function SessionFormDialog({
 
       // --- ATHLETE MODE: use edge function ---
       if (isAthleteMode) {
-        if (!athletePlayerId) throw new Error("Session expirée. Reconnecte-toi.");
+        if (!athletePlayerId) throw new Error(t("programmation.sessionForm.sessionExpired"));
         const { data: authData } = await supabase.auth.getSession();
         const accessToken = authData.session?.access_token;
-        if (!accessToken) throw new Error("Session expirée. Reconnecte-toi.");
+        if (!accessToken) throw new Error(t("programmation.sessionForm.sessionExpired"));
 
         const athleteBlocks = sessionBlocks
           .filter((block) => block.training_type)
