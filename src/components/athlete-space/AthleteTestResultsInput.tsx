@@ -56,45 +56,57 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
   const [submittingKey, setSubmittingKey] = useState<string | null>(null);
 
 
-  const reload = async () => {
-    const [{ data: pendingData }, { data: savedData }] = await Promise.all([
-      supabase
-        .from("pending_test_results")
-        .select("test_category, test_type, result_value, result_unit, validation_status")
-        .eq("training_session_id", sessionId)
-        .eq("player_id", playerId),
-      supabase
-        .from("generic_tests")
-        .select("test_category, test_type, result_value, result_unit")
+  const testWindow = parseTestWindowFromNotes(notes);
+
+  const fetchState = async () => {
+    // When the coach defined a testing window, a result submitted on ANY session of the
+    // period counts: the athlete can only submit each test once inside the window.
+    const pendingQuery = supabase
+      .from("pending_test_results")
+      .select("test_category, test_type, result_value, result_unit, validation_status, test_date");
+    const savedQuery = supabase
+      .from("generic_tests")
+      .select("test_category, test_type, result_value, result_unit, test_date");
+
+    if (testWindow) {
+      pendingQuery
         .eq("player_id", playerId)
-        .ilike("notes", `%Session ID: ${sessionId}%`),
+        .gte("test_date", testWindow.start)
+        .lte("test_date", testWindow.end);
+      savedQuery
+        .eq("player_id", playerId)
+        .gte("test_date", testWindow.start)
+        .lte("test_date", testWindow.end);
+    } else {
+      pendingQuery.eq("training_session_id", sessionId).eq("player_id", playerId);
+      savedQuery.eq("player_id", playerId).ilike("notes", `%Session ID: ${sessionId}%`);
+    }
+
+    const [{ data: pendingData }, { data: savedData }] = await Promise.all([
+      pendingQuery,
+      savedQuery,
     ]);
-    setPending(pendingData || []);
-    setStaffSaved(savedData || []);
+    return { pendingData: pendingData || [], savedData: savedData || [] };
+  };
+
+  const reload = async () => {
+    const { pendingData, savedData } = await fetchState();
+    setPending(pendingData);
+    setStaffSaved(savedData);
   };
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [{ data: pendingData }, { data: savedData }] = await Promise.all([
-        supabase
-          .from("pending_test_results")
-          .select("test_category, test_type, result_value, result_unit, validation_status")
-          .eq("training_session_id", sessionId)
-          .eq("player_id", playerId),
-        supabase
-          .from("generic_tests")
-          .select("test_category, test_type, result_value, result_unit")
-          .eq("player_id", playerId)
-          .ilike("notes", `%Session ID: ${sessionId}%`),
-      ]);
+      const { pendingData, savedData } = await fetchState();
       if (!cancelled) {
-        setPending(pendingData || []);
-        setStaffSaved(savedData || []);
+        setPending(pendingData);
+        setStaffSaved(savedData);
       }
     })();
     return () => { cancelled = true; };
-  }, [sessionId, playerId]);
+  }, [sessionId, playerId, testWindow?.start, testWindow?.end]);
+
 
 
   const handleSendOne = async (test: TestRef) => {
