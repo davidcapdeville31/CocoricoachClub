@@ -76,15 +76,21 @@ export function ScheduleTestDialog({
 
       const titleLine = `📋 ${targets.map((t) => t.testTypeLabel).join(" • ")}`;
 
+      if (windowStart && windowEnd && windowEnd < windowStart) {
+        toast.error("La fin de la fenêtre de passage doit être après le début");
+        throw new Error("guard:window");
+      }
+
       const { data, error } = await supabase.from("training_sessions").insert({
         category_id: categoryId,
         session_date: date,
         session_start_time: startTime,
         session_end_time: endTime,
         training_type: "test",
-        notes: `${titleLine}\n<!--TESTS:${testMeta}-->`,
+        notes: `${titleLine}\n<!--TESTS:${testMeta}-->${buildTestWindowMeta(windowStart, windowEnd)}`,
       }).select("id").single();
       if (error) throw error;
+
       return data;
     },
     onSuccess: (data) => {
