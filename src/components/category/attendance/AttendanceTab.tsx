@@ -34,7 +34,9 @@ type AttendanceSession = {
   session_end_time?: string | null;
   intensity?: number | null;
   notes?: string | null;
+  created_by_player_id?: string | null;
 };
+
 
 type EventParticipantRow = ParticipantWithAttendance & {
   id?: string;
@@ -150,6 +152,32 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
       return fetchEventParticipantsBySessionIds([detailSessionId]);
     },
   });
+
+  // Athlete-created private sessions are not roster-wide: never complete them with the roster
+  const isAthletePrivateSession = (session: AttendanceSession) =>
+    !!session.created_by_player_id || (session.notes || "").includes("[Séance athlète]");
+
+  // Some sessions (e.g. recurring test reminders) have no pre-created event_participants rows.
+  // Complete them with the roster so missing athletes count as "no response" instead of disappearing.
+  const completeWithRoster = (
+    session: AttendanceSession,
+    rows: EventParticipantRow[],
+  ): EventParticipantRow[] => {
+    if (isAthletePrivateSession(session)) return rows;
+    const responded = new Set(rows.map((r) => r.player_id));
+    const missing: EventParticipantRow[] = (players || [])
+      .filter((p) => !responded.has(p.id))
+      .map((p) => ({
+        training_session_id: session.id,
+        player_id: p.id,
+        attendance_status: "no_response" as const,
+        absence_comment: null,
+        responded_at: null,
+        players: { id: p.id, name: p.name },
+      }));
+    return [...rows, ...missing];
+  };
+
 
   // Filter sessions by date range
   const filteredSessions = sessions?.filter((session) => {
@@ -442,9 +470,14 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
       {/* Global Presence Response Stats (athlete self-responses) */}
       {(() => {
         const todayStr = format(new Date(), "yyyy-MM-dd");
-        const filteredSessionIds = new Set((filteredSessions || []).map((s) => s.id));
-        const filteredParticipants = (eventParticipants || []).filter((p) =>
-          filteredSessionIds.has(p.training_session_id),
+        const rowsBySession = new Map<string, EventParticipantRow[]>();
+        for (const p of eventParticipants || []) {
+          const list = rowsBySession.get(p.training_session_id) || [];
+          list.push(p);
+          rowsBySession.set(p.training_session_id, list);
+        }
+        const filteredParticipants = (filteredSessions || []).flatMap((s) =>
+          completeWithRoster(s as AttendanceSession, rowsBySession.get(s.id) || []),
         );
         const presentCount = filteredParticipants.filter((p) => p.attendance_status === "present").length;
         const absentCount = filteredParticipants.filter((p) => p.attendance_status === "absent").length;
@@ -458,12 +491,13 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
           .slice()
           .sort((a, b) => new Date(b.session_date).getTime() - new Date(a.session_date).getTime());
 
-        const detailParticipants = detailSessionId
-          ? detailEventParticipants || []
-          : [];
         const detailSession = detailSessionId
           ? sessionOptions.find((s) => s.id === detailSessionId)
           : null;
+        const detailParticipants = detailSession
+          ? completeWithRoster(detailSession as AttendanceSession, detailEventParticipants || [])
+          : [];
+
 
         return (
           <div className="space-y-4">
