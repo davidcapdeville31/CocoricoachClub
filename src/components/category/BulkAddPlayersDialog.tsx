@@ -455,17 +455,24 @@ export function BulkAddPlayersDialog({
           <div className="flex-1 min-h-0 flex flex-col gap-4">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <p className="text-sm">
-                <Badge variant="secondary">{validCount}</Badge> athlète(s) valide(s) —{" "}
-                <Badge variant="outline">{withEmailCount}</Badge> avec email (invitation auto)
+                <Badge variant="secondary">{validCount}</Badge>{" "}
+                {t("roster.bulkAddPlayersDialog.review.validEmailSummary", { valid: validCount, withEmail: withEmailCount })
+                  .split(String(withEmailCount))
+                  .map((part, i, arr) => (
+                    <span key={i}>
+                      {part}
+                      {i < arr.length - 1 && <Badge variant="outline">{withEmailCount}</Badge>}
+                    </span>
+                  ))}
               </p>
 
               {/* Bulk assign */}
               {isTeamSport && positions.length > 0 && (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Appliquer à tous :</span>
+                  <span className="text-xs text-muted-foreground">{t("roster.bulkAddPlayersDialog.review.applyToAll")}</span>
                   <Select onValueChange={applyPositionToAll}>
                     <SelectTrigger className="w-[150px] h-8 text-xs">
-                      <SelectValue placeholder="Poste global" />
+                      <SelectValue placeholder={t("roster.bulkAddPlayersDialog.review.globalPosition")} />
                     </SelectTrigger>
                     <SelectContent>
                       {positions.map((pos) => (
@@ -480,10 +487,10 @@ export function BulkAddPlayersDialog({
 
               {hasDisciplines && disciplineOptions.length > 0 && (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Appliquer à tous :</span>
+                  <span className="text-xs text-muted-foreground">{t("roster.bulkAddPlayersDialog.review.applyToAll")}</span>
                   <Select onValueChange={applyDisciplineToAll}>
                     <SelectTrigger className="w-[150px] h-8 text-xs">
-                      <SelectValue placeholder="Discipline globale" />
+                      <SelectValue placeholder={t("roster.bulkAddPlayersDialog.review.globalDiscipline")} />
                     </SelectTrigger>
                     <SelectContent>
                       {disciplineOptions.map((d) => (
@@ -498,10 +505,10 @@ export function BulkAddPlayersDialog({
 
               {isJudo && (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Appliquer à tous :</span>
+                  <span className="text-xs text-muted-foreground">{t("roster.bulkAddPlayersDialog.review.applyToAll")}</span>
                   <Select onValueChange={applyDisciplineToAll}>
                     <SelectTrigger className="w-[150px] h-8 text-xs">
-                      <SelectValue placeholder="Catégorie" />
+                      <SelectValue placeholder={t("roster.bulkAddPlayersDialog.review.category")} />
                     </SelectTrigger>
                     <SelectContent>
                       {JUDO_WEIGHT_CATEGORIES.map((c) => (
@@ -547,7 +554,7 @@ export function BulkAddPlayersDialog({
                           {athlete.email}
                         </Badge>
                       ) : (
-                        <span className="text-xs text-muted-foreground">Pas d'email</span>
+                        <span className="text-xs text-muted-foreground">{t("roster.bulkAddPlayersDialog.review.noEmail")}</span>
                       )}
                     </div>
 
@@ -566,7 +573,7 @@ export function BulkAddPlayersDialog({
                           onValueChange={(v) => updateAthlete(athlete.id, "position", v)}
                         >
                           <SelectTrigger className="w-[120px] h-7 text-xs">
-                            <SelectValue placeholder="Poste" />
+                            <SelectValue placeholder={t("roster.bulkAddPlayersDialog.review.positionPlaceholder")} />
                           </SelectTrigger>
                           <SelectContent>
                             {positions.map((pos) => (
@@ -584,7 +591,7 @@ export function BulkAddPlayersDialog({
                           onValueChange={(v) => updateAthlete(athlete.id, "discipline", v)}
                         >
                           <SelectTrigger className="w-[120px] h-7 text-xs">
-                            <SelectValue placeholder="Discipline" />
+                            <SelectValue placeholder={t("roster.bulkAddPlayersDialog.review.disciplinePlaceholder")} />
                           </SelectTrigger>
                           <SelectContent>
                             {disciplineOptions.map((d) => (
@@ -604,7 +611,7 @@ export function BulkAddPlayersDialog({
                             onValueChange={(v) => updateAthlete(athlete.id, "specialty", v)}
                           >
                             <SelectTrigger className="w-[110px] h-7 text-xs">
-                              <SelectValue placeholder="Spécialité" />
+                              <SelectValue placeholder={t("roster.bulkAddPlayersDialog.review.specialtyPlaceholder")} />
                             </SelectTrigger>
                             <SelectContent>
                               {getSpecialtyOptions(athlete.discipline).map((s: any) => (
@@ -622,7 +629,7 @@ export function BulkAddPlayersDialog({
                           onValueChange={(v) => updateAthlete(athlete.id, "discipline", v)}
                         >
                           <SelectTrigger className="w-[120px] h-7 text-xs">
-                            <SelectValue placeholder="Catégorie" />
+                            <SelectValue placeholder={t("roster.bulkAddPlayersDialog.review.category")} />
                           </SelectTrigger>
                           <SelectContent>
                             {JUDO_WEIGHT_CATEGORIES.map((c) => (
@@ -650,11 +657,11 @@ export function BulkAddPlayersDialog({
 
             <DialogFooter className="flex-row gap-2">
               <Button variant="outline" onClick={() => setStep("upload")}>
-                Retour
+                {t("roster.bulkAddPlayersDialog.review.back")}
               </Button>
               <Button onClick={handleCreate} disabled={validCount === 0} className="gap-2">
                 <Users className="h-4 w-4" />
-                Créer {validCount} athlète(s) et envoyer les invitations
+                {t("roster.bulkAddPlayersDialog.review.createButton", { count: validCount })}
               </Button>
             </DialogFooter>
           </div>
@@ -665,7 +672,7 @@ export function BulkAddPlayersDialog({
           <div className="py-12 text-center space-y-4">
             <Loader2 className="h-12 w-12 mx-auto animate-spin text-primary" />
             <p className="font-medium">
-              Création en cours… {progress.current} / {progress.total}
+              {t("roster.bulkAddPlayersDialog.creating.progress", { current: progress.current, total: progress.total })}
             </p>
             <div className="w-full max-w-md mx-auto h-2 rounded-full bg-muted overflow-hidden">
               <div
@@ -676,7 +683,7 @@ export function BulkAddPlayersDialog({
               />
             </div>
             <p className="text-sm text-muted-foreground">
-              Envoi des invitations personnalisées — merci de ne pas fermer cette fenêtre
+              {t("roster.bulkAddPlayersDialog.creating.warning")}
             </p>
           </div>
         )}
@@ -688,20 +695,20 @@ export function BulkAddPlayersDialog({
               <div className="h-16 w-16 mx-auto rounded-full bg-green-500/10 flex items-center justify-center">
                 <Check className="h-8 w-8 text-green-600" />
               </div>
-              <p className="font-semibold text-lg">Import terminé !</p>
+              <p className="font-semibold text-lg">{t("roster.bulkAddPlayersDialog.done.title")}</p>
               <div className="flex items-center justify-center gap-4">
                 <Badge variant="default" className="text-sm">
-                  ✅ {results.success} créé(s)
+                  {t("roster.bulkAddPlayersDialog.done.success", { count: results.success })}
                 </Badge>
                 {results.failed > 0 && (
                   <Badge variant="destructive" className="text-sm">
-                    ❌ {results.failed} en erreur
+                    {t("roster.bulkAddPlayersDialog.done.failed", { count: results.failed })}
                   </Badge>
                 )}
               </div>
               {results.links.length > 0 && (
                 <p className="text-sm text-muted-foreground">
-                  📧 {results.links.length} invitation(s) envoyée(s) par email/SMS
+                  {t("roster.bulkAddPlayersDialog.done.invitationsSent", { count: results.links.length })}
                 </p>
               )}
             </div>
@@ -709,10 +716,10 @@ export function BulkAddPlayersDialog({
             {results.links.length > 0 && (
               <div className="bg-muted/50 rounded-lg p-4 space-y-2">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium">Liens de secours (si email non reçu) :</p>
+                  <p className="text-sm font-medium">{t("roster.bulkAddPlayersDialog.done.fallbackLinksTitle")}</p>
                   <Button variant="outline" size="sm" onClick={copyAllLinks} className="gap-1">
                     {linksCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                    Copier tout
+                    {t("roster.bulkAddPlayersDialog.done.copyAll")}
                   </Button>
                 </div>
                 <ScrollArea className="max-h-[150px]">
@@ -728,7 +735,7 @@ export function BulkAddPlayersDialog({
             )}
 
             <DialogFooter>
-              <Button onClick={handleClose}>Fermer</Button>
+              <Button onClick={handleClose}>{t("roster.bulkAddPlayersDialog.done.close")}</Button>
             </DialogFooter>
           </div>
         )}
