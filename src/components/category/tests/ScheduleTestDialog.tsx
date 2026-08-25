@@ -16,6 +16,14 @@ import { CalendarPlus } from "lucide-react";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
 
+export interface ScheduleTestTarget {
+  testCategory: string;
+  testType: string;
+  testCategoryLabel: string;
+  testTypeLabel: string;
+  testUnit: string;
+}
+
 interface ScheduleTestDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -25,6 +33,8 @@ interface ScheduleTestDialogProps {
   testCategory: string;
   testType: string;
   testUnit: string;
+  /** Optional multi-test selection: schedules all of them in a single session */
+  tests?: ScheduleTestTarget[];
 }
 
 export function ScheduleTestDialog({
@@ -36,6 +46,7 @@ export function ScheduleTestDialog({
   testCategory,
   testType,
   testUnit,
+  tests,
 }: ScheduleTestDialogProps) {
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [startTime, setStartTime] = useState("09:00");
@@ -44,16 +55,21 @@ export function ScheduleTestDialog({
   const { notify } = useSessionNotifications();
   const guard = useSeasonGuard(categoryId);
 
+  const targets: ScheduleTestTarget[] =
+    tests && tests.length > 0
+      ? tests
+      : [{ testCategory, testType, testCategoryLabel, testTypeLabel, testUnit }];
+
   const scheduleTest = useMutation({
     mutationFn: async () => {
       if (!guard.assertDate(date)) throw new Error("guard:date");
-      const testMeta = JSON.stringify([
-        {
-          test_category: testCategory,
-          test_type: testType,
-          result_unit: testUnit,
-        },
-      ]);
+      const testMeta = JSON.stringify(
+        targets.map((t) => ({
+          test_category: t.testCategory,
+          test_type: t.testType,
+          result_unit: t.testUnit,
+        })),
+      );
 
       const { data, error } = await supabase.from("training_sessions").insert({
         category_id: categoryId,
@@ -69,7 +85,11 @@ export function ScheduleTestDialog({
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
-      toast.success(`Test "${testTypeLabel}" planifié au calendrier`);
+      toast.success(
+        targets.length > 1
+          ? `${targets.length} tests planifiés au calendrier`
+          : `Test "${targets[0]?.testTypeLabel}" planifié au calendrier`,
+      );
 
       // 🔔 Notify all category athletes about the scheduled test
       if (data?.id) {
@@ -97,14 +117,21 @@ export function ScheduleTestDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CalendarPlus className="h-5 w-5" />
-            Planifier un test
+            {targets.length > 1 ? `Planifier ${targets.length} tests` : "Planifier un test"}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="p-3 rounded-lg bg-muted/50 space-y-1">
-            <p className="text-sm font-medium">{testCategoryLabel}</p>
-            <p className="text-sm text-muted-foreground">{testTypeLabel}</p>
+          <div className="p-3 rounded-lg bg-muted/50 space-y-1 max-h-40 overflow-y-auto">
+            {targets.map((t, i) => (
+              <div key={`${t.testCategory}-${t.testType}-${i}`}>
+                <p className="text-sm font-medium">{t.testTypeLabel}</p>
+                <p className="text-xs text-muted-foreground">
+                  {t.testCategoryLabel}
+                  {t.testUnit ? ` · ${t.testUnit}` : ""}
+                </p>
+              </div>
+            ))}
           </div>
 
           <div className="space-y-2">
