@@ -10,7 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { ClipboardCheck, Calendar, Users, TrendingUp, ChevronRight, Filter, Clock, AlertCircle, CheckCircle, Check, X, HelpCircle } from "lucide-react";
+import { ClipboardCheck, Calendar, Users, TrendingUp, ChevronRight, Filter, Clock, AlertCircle, CheckCircle, Check, X, HelpCircle, FileText, FileSpreadsheet } from "lucide-react";
+import { exportAttendancePdf, exportAttendanceExcel, type AttendanceExportRow } from "@/lib/attendanceExport";
+import { toast } from "sonner";
 import { format, startOfMonth, endOfMonth, subMonths, subDays, isWithinInterval, parseISO } from "date-fns";
 import { SessionAttendanceDialog } from "./SessionAttendanceDialog";
 import { ParticipantsAttendanceList } from "./ParticipantsAttendanceList";
@@ -174,6 +176,59 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
     }
     return "Séance";
   };
+
+  const handleExportDetail = async (
+    kind: "pdf" | "excel",
+    session: any,
+    participants: any[],
+  ) => {
+    try {
+      const rows: AttendanceExportRow[] = (participants || [])
+        .map((p) => {
+          const pl = p.players || {};
+          const name = pl.first_name ? `${pl.first_name} ${pl.name ?? ""}`.trim() : pl.name || "-";
+          const status = (p.attendance_status === "present" || p.attendance_status === "absent"
+            ? p.attendance_status
+            : "no_response") as AttendanceExportRow["status"];
+          return {
+            name,
+            status,
+            comment: status === "absent" ? p.absence_comment : null,
+            respondedAt: p.responded_at ? format(new Date(p.responded_at), "dd/MM/yyyy HH:mm") : null,
+          };
+        })
+        .sort((a, b) => {
+          const order = { present: 0, absent: 1, no_response: 2 } as const;
+          return order[a.status] - order[b.status] || a.name.localeCompare(b.name);
+        });
+
+      const ctx = {
+        categoryId,
+        sessionLabel: getSessionLabel(session),
+        sessionDate: format(parseISO(session.session_date), "dd/MM/yyyy"),
+        rows,
+        labels: {
+          title: t("admin.attendance.detailBySession"),
+          athlete: t("adminAttendance.participants.defaultAthlete"),
+          status: t("admin.attendance.status", { defaultValue: "Statut" }),
+          reason: t("admin.attendance.reason", { defaultValue: "Motif" }),
+          respondedAt: t("admin.attendance.respondedAt", { defaultValue: "Réponse le" }),
+          present: t("admin.attendance.present"),
+          absent: t("admin.attendance.absent"),
+          noResponse: t("admin.attendance.noResponse"),
+          session: t("admin.attendance.sessionLabel", { defaultValue: "Séance" }),
+          date: t("admin.attendance.dateLabel", { defaultValue: "Date" }),
+        },
+      };
+
+      if (kind === "pdf") await exportAttendancePdf(ctx);
+      else await exportAttendanceExcel(ctx);
+    } catch (e: any) {
+      toast.error(e?.message || "Export error");
+    }
+  };
+
+
 
   const getRateColor = (rate: number) => {
     if (rate >= 90) return "text-green-600";
@@ -412,14 +467,39 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
 
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <ClipboardCheck className="h-5 w-5" />
-                  {t("admin.attendance.detailBySession")}
-                </CardTitle>
-                <CardDescription>
-                  {t("admin.attendance.selectSessionHint")}
-                </CardDescription>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <ClipboardCheck className="h-5 w-5" />
+                      {t("admin.attendance.detailBySession")}
+                    </CardTitle>
+                    <CardDescription>
+                      {t("admin.attendance.selectSessionHint")}
+                    </CardDescription>
+                  </div>
+                  {detailSession && (
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5"
+                        onClick={() => handleExportDetail("pdf", detailSession, detailParticipants)}
+                      >
+                        <FileText className="h-4 w-4" /> PDF
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5"
+                        onClick={() => handleExportDetail("excel", detailSession, detailParticipants)}
+                      >
+                        <FileSpreadsheet className="h-4 w-4" /> Excel
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </CardHeader>
+
               <CardContent className="space-y-4">
                 {sessionOptions.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">
