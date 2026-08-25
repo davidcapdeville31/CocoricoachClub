@@ -1,5 +1,6 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -25,6 +26,7 @@ interface ReportsTabProps {
 }
 
 export function ReportsTab({ categoryId }: ReportsTabProps) {
+  const { t } = useTranslation();
   const [selectedMatch, setSelectedMatch] = useState<string>("");
   const [generatingReport, setGeneratingReport] = useState<string | null>(null);
 
@@ -57,9 +59,9 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
   const isRacketSport = RACKET_SPORTS.some(s => baseSport.includes(s));
   const isTeamSport = !isIndividualSport && !isRacketSport;
   const hasTdj = isTeamSport; // Only team sports have meaningful TDJ (starters/subs/minutes)
-  const athleteLabel = isIndividualSport ? "Athlètes" : isRacketSport ? "Joueurs" : "Joueurs";
-  const athleteLabelSingular = isIndividualSport ? "Athlète" : "Joueur";
-  const competitionLabel = isIndividualSport ? "Compétitions" : isRacketSport ? "Matchs" : "Matchs";
+  const athleteLabel = isIndividualSport ? t("adminReports.common.athletes") : t("adminReports.common.players");
+  const athleteLabelSingular = isIndividualSport ? t("adminReports.common.athlete") : t("adminReports.common.player");
+  const competitionLabel = isIndividualSport ? t("adminReports.common.competitions") : t("adminReports.common.matches");
 
   const { data: players = [] } = useQuery({
     queryKey: ["players", categoryId],
@@ -325,10 +327,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       });
 
       pdf.save(`tdj_${(catName1 || category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
-      toast.success("Rapport Temps de Jeu généré");
+      toast.success(t("adminReports.tdj.pdfGenerated"));
     } catch (error) {
       console.error(error);
-      toast.error("Erreur lors de la génération");
+      toast.error(t("adminReports.common.errorGenerating"));
     } finally {
       setGeneratingReport(null);
     }
@@ -466,10 +468,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       detailHeaders.forEach((_, i) => { detailSheet.getColumn(i + 1).width = i <= 2 ? 22 : 14; });
 
       await downloadWorkbook(workbook, `tdj_${(category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
-      toast.success("Export Excel généré");
+      toast.success(t("adminReports.common.excelGenerated"));
     } catch (error) {
       console.error(error);
-      toast.error("Erreur lors de l'export Excel");
+      toast.error(t("adminReports.common.errorExporting"));
     } finally {
       setGeneratingReport(null);
     }
@@ -784,10 +786,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       }
 
       pdf.save(`bilan_saison_${(catName2 || category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
-      toast.success("Rapport de saison généré");
+      toast.success(t("adminReports.season.pdfGenerated"));
     } catch (error) {
       console.error(error);
-      toast.error("Erreur lors de la génération");
+      toast.error(t("adminReports.common.errorGenerating"));
     } finally {
       setGeneratingReport(null);
     }
@@ -796,7 +798,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
   // ========================== MATCH REPORT ==========================
   const generateMatchReport = async () => {
     if (!selectedMatch) {
-      toast.error("Veuillez sélectionner un match");
+      toast.error(t("adminReports.common.selectMatchFirst"));
       return;
     }
 
@@ -1350,10 +1352,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       }
 
       pdf.save(`match_${match.opponent.replace(/\s+/g, '_')}_${format(new Date(match.match_date), "yyyy-MM-dd")}.pdf`);
-      toast.success("Rapport de match généré");
+      toast.success(t("adminReports.match.pdfGenerated"));
     } catch (error) {
       console.error(error);
-      toast.error("Erreur lors de la génération");
+      toast.error(t("adminReports.common.errorGenerating"));
     } finally {
       setGeneratingReport(null);
     }
@@ -1824,10 +1826,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       } // end isTeamSport
 
       pdf.save(`effectif_${(catName3 || category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
-      toast.success("Rapport d'effectif généré");
+      toast.success(t("adminReports.squad.pdfGenerated"));
     } catch (error) {
       console.error(error);
-      toast.error("Erreur lors de la génération");
+      toast.error(t("adminReports.common.errorGenerating"));
     } finally {
       setGeneratingReport(null);
     }
@@ -1921,10 +1923,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       headers.forEach((_, i) => { sheet.getColumn(i + 1).width = i <= 1 ? 18 : 15; });
 
       await downloadWorkbook(workbook, `effectif_${(category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
-      toast.success("Export Excel généré");
+      toast.success(t("adminReports.common.excelGenerated"));
     } catch (error) {
       console.error(error);
-      toast.error("Erreur lors de l'export Excel");
+      toast.error(t("adminReports.common.errorExporting"));
     } finally {
       setGeneratingReport(null);
     }
@@ -2013,10 +2015,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       headers.forEach((_, i) => { sheet.getColumn(i + 1).width = i === 1 ? 25 : 16; });
 
       await downloadWorkbook(workbook, `saison_${(category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
-      toast.success("Export Excel généré");
+      toast.success(t("adminReports.common.excelGenerated"));
     } catch (error) {
       console.error(error);
-      toast.error("Erreur lors de l'export Excel");
+      toast.error(t("adminReports.common.errorExporting"));
     } finally {
       setGeneratingReport(null);
     }
@@ -2024,7 +2026,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
 
   const generateMatchCsv = async () => {
     if (!selectedMatch) {
-      toast.error("Veuillez sélectionner un match");
+      toast.error(t("adminReports.common.selectMatchFirst"));
       return;
     }
     setGeneratingReport("match-csv");
@@ -2132,10 +2134,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       allHeaders.forEach((_, i) => { sheet.getColumn(i + 1).width = i === 0 ? 25 : 15; });
 
       await downloadWorkbook(workbook, `match_${match.opponent.replace(/\s+/g, '_')}_${format(new Date(match.match_date), "yyyy-MM-dd")}.xlsx`);
-      toast.success("Export Excel généré");
+      toast.success(t("adminReports.common.excelGenerated"));
     } catch (error) {
       console.error(error);
-      toast.error("Erreur lors de l'export Excel");
+      toast.error(t("adminReports.common.errorExporting"));
     } finally {
       setGeneratingReport(null);
     }
@@ -2376,10 +2378,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       }
 
       pdf.save(`presences_${(catName4 || category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
-      toast.success("Rapport de présences généré");
+      toast.success(t("adminReports.attendance.pdfGenerated"));
     } catch (error) {
       console.error(error);
-      toast.error("Erreur lors de la génération");
+      toast.error(t("adminReports.common.errorGenerating"));
     } finally {
       setGeneratingReport(null);
     }
@@ -2518,10 +2520,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       headers.forEach((_, i) => { sheet.getColumn(i + 1).width = i === 0 ? 25 : 18; });
 
       await downloadWorkbook(workbook, `presences_${(category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
-      toast.success("Export Excel généré");
+      toast.success(t("adminReports.common.excelGenerated"));
     } catch (error) {
       console.error(error);
-      toast.error("Erreur lors de l'export Excel");
+      toast.error(t("adminReports.common.errorExporting"));
     } finally {
       setGeneratingReport(null);
     }
