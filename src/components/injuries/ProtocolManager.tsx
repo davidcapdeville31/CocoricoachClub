@@ -68,10 +68,10 @@ interface Phase {
 
 function getDefaultPhases(): Phase[] {
   return [
-    { phase_number: 1, name: i18n.t("health:protocolManager.defaultPhases.phase1.name"), description: i18n.t("health:protocolManager.defaultPhases.phase1.description"), duration_days_min: 7, duration_days_max: 14, objectives: [], exit_criteria: [], care_instructions: i18n.t("health:protocolManager.defaultPhases.phase1.care", { returnObjects: true }) as string[], taping_instructions: [], taping_diagram_url: null, linked_program_id: null, exercises: [] },
-    { phase_number: 2, name: i18n.t("health:protocolManager.defaultPhases.phase2.name"), description: i18n.t("health:protocolManager.defaultPhases.phase2.description"), duration_days_min: 7, duration_days_max: 14, objectives: [], exit_criteria: [], care_instructions: i18n.t("health:protocolManager.defaultPhases.phase2.care", { returnObjects: true }) as string[], taping_instructions: i18n.t("health:protocolManager.defaultPhases.phase2.taping", { returnObjects: true }) as string[], taping_diagram_url: null, linked_program_id: null, exercises: [] },
-    { phase_number: 3, name: i18n.t("health:protocolManager.defaultPhases.phase3.name"), description: i18n.t("health:protocolManager.defaultPhases.phase3.description"), duration_days_min: 7, duration_days_max: 14, objectives: [], exit_criteria: [], care_instructions: i18n.t("health:protocolManager.defaultPhases.phase3.care", { returnObjects: true }) as string[], taping_instructions: i18n.t("health:protocolManager.defaultPhases.phase3.taping", { returnObjects: true }) as string[], taping_diagram_url: null, linked_program_id: null, exercises: [] },
-    { phase_number: 4, name: i18n.t("health:protocolManager.defaultPhases.phase4.name"), description: i18n.t("health:protocolManager.defaultPhases.phase4.description"), duration_days_min: 7, duration_days_max: 14, objectives: [], exit_criteria: [], care_instructions: [], taping_instructions: [], taping_diagram_url: null, linked_program_id: null, exercises: [] },
+    { phase_number: 1, name: i18n.t("health.protocolManager.defaultPhases.phase1.name"), description: i18n.t("health.protocolManager.defaultPhases.phase1.description"), duration_days_min: 7, duration_days_max: 14, objectives: [], exit_criteria: [], care_instructions: i18n.t("health.protocolManager.defaultPhases.phase1.care", { returnObjects: true }) as string[], taping_instructions: [], taping_diagram_url: null, linked_program_id: null, exercises: [] },
+    { phase_number: 2, name: i18n.t("health.protocolManager.defaultPhases.phase2.name"), description: i18n.t("health.protocolManager.defaultPhases.phase2.description"), duration_days_min: 7, duration_days_max: 14, objectives: [], exit_criteria: [], care_instructions: i18n.t("health.protocolManager.defaultPhases.phase2.care", { returnObjects: true }) as string[], taping_instructions: i18n.t("health.protocolManager.defaultPhases.phase2.taping", { returnObjects: true }) as string[], taping_diagram_url: null, linked_program_id: null, exercises: [] },
+    { phase_number: 3, name: i18n.t("health.protocolManager.defaultPhases.phase3.name"), description: i18n.t("health.protocolManager.defaultPhases.phase3.description"), duration_days_min: 7, duration_days_max: 14, objectives: [], exit_criteria: [], care_instructions: i18n.t("health.protocolManager.defaultPhases.phase3.care", { returnObjects: true }) as string[], taping_instructions: i18n.t("health.protocolManager.defaultPhases.phase3.taping", { returnObjects: true }) as string[], taping_diagram_url: null, linked_program_id: null, exercises: [] },
+    { phase_number: 4, name: i18n.t("health.protocolManager.defaultPhases.phase4.name"), description: i18n.t("health.protocolManager.defaultPhases.phase4.description"), duration_days_min: 7, duration_days_max: 14, objectives: [], exit_criteria: [], care_instructions: [], taping_instructions: [], taping_diagram_url: null, linked_program_id: null, exercises: [] },
   ];
 }
 
@@ -190,7 +190,7 @@ function ProtocolFormFields({
               <Input
                 value={phase.name}
                 onChange={(e) => updatePhase(index, 'name', e.target.value)}
-                placeholder={t("health:protocolManager.phaseNamePlaceholder")}
+                placeholder={t("health.protocolManager.phaseNamePlaceholder")}
                 className="flex-1"
               />
               <div className="flex gap-1">
@@ -208,7 +208,7 @@ function ProtocolFormFields({
             <Input
               value={phase.description}
               onChange={(e) => updatePhase(index, 'description', e.target.value)}
-              placeholder={t("health:protocolManager.phaseDescriptionPlaceholder")}
+              placeholder={t("health.protocolManager.phaseDescriptionPlaceholder")}
               className="text-sm"
             />
             <div className="grid grid-cols-2 gap-2">
@@ -230,7 +230,7 @@ function ProtocolFormFields({
                 <Textarea
                   value={(phase.objectives || []).join('\n')}
                   onChange={(e) => updatePhase(index, 'objectives', e.target.value.split('\n').filter((o: string) => o.trim()))}
-                  placeholder={t("health:protocolManager.objectivesPlaceholder")}
+                  placeholder={t("health.protocolManager.objectivesPlaceholder")}
                   rows={2}
                   className="text-sm"
                 />
@@ -242,7 +242,7 @@ function ProtocolFormFields({
               <Textarea
                 value={(phase.care_instructions || []).join('\n')}
                 onChange={(e) => updatePhase(index, 'care_instructions', e.target.value.split('\n').filter((c: string) => c.trim()))}
-                placeholder={t("health:protocolManager.carePlaceholder")}
+                placeholder={t("health.protocolManager.carePlaceholder")}
                 rows={2}
                 className="text-sm"
               />
@@ -378,12 +378,12 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["injury-protocols-manager", categoryId] });
-      toast.success(t("health:protocolManager.toastCreateSuccess"));
+      toast.success(t("health.protocolManager.toastCreateSuccess"));
       resetForm();
       setIsAddDialogOpen(false);
     },
     onError: () => {
-      toast.error(t("health:protocolManager.toastCreateError"));
+      toast.error(t("health.protocolManager.toastCreateError"));
     },
   });
 
@@ -405,11 +405,11 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["injury-protocols-manager", categoryId] });
-      toast.success(t("health:protocolManager.toastUpdateSuccess"));
+      toast.success(t("health.protocolManager.toastUpdateSuccess"));
       setIsEditDialogOpen(false);
     },
     onError: () => {
-      toast.error(t("health:protocolManager.toastUpdateError"));
+      toast.error(t("health.protocolManager.toastUpdateError"));
     },
   });
 
@@ -470,11 +470,11 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["injury-protocols-manager", categoryId] });
-      toast.success(t("health:protocolManager.toastPhasesUpdateSuccess"));
+      toast.success(t("health.protocolManager.toastPhasesUpdateSuccess"));
       setIsEditPhasesOpen(false);
     },
     onError: () => {
-      toast.error(t("health:protocolManager.toastPhasesUpdateError"));
+      toast.error(t("health.protocolManager.toastPhasesUpdateError"));
     },
   });
 
@@ -490,10 +490,10 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["injury-protocols-manager", categoryId] });
-      toast.success(t("health:protocolManager.toastDeleteSuccess"));
+      toast.success(t("health.protocolManager.toastDeleteSuccess"));
     },
     onError: () => {
-      toast.error(t("health:protocolManager.toastDeleteError"));
+      toast.error(t("health.protocolManager.toastDeleteError"));
     },
   });
 
@@ -504,7 +504,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
       const { data: newProtocol, error: protocolError } = await supabase
         .from("injury_protocols")
         .insert({
-          name: `${protocol.name}${t("health:protocolManager.duplicateSuffix")}`,
+          name: `${protocol.name}${t("health.protocolManager.duplicateSuffix")}`,
           injury_category: protocol.injury_category,
           description: protocol.description,
           typical_duration_days_min: protocol.typical_duration_days_min,
@@ -569,10 +569,10 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["injury-protocols-manager", categoryId] });
-      toast.success(t("health:protocolManager.toastDuplicateSuccess"));
+      toast.success(t("health.protocolManager.toastDuplicateSuccess"));
     },
     onError: () => {
-      toast.error(t("health:protocolManager.toastDuplicateError"));
+      toast.error(t("health.protocolManager.toastDuplicateError"));
     },
   });
 
@@ -591,7 +591,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
     setSelectedInjuryType(injuryName);
     const injury = RUGBY_INJURY_TYPES.find(i => i.name === injuryName);
     if (injury) {
-      setProtocolName(`${t("health:protocolManager.protocolNamePlaceholder")} - ${injury.name}`);
+      setProtocolName(`${t("health.protocolManager.protocolNamePlaceholder")} - ${injury.name}`);
       setProtocolCategory(injury.category);
       setProtocolDescription(injury.description);
       setDurationMin(injury.durationMin);
@@ -662,7 +662,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
     const newPhaseNumber = phases.length + 1;
     setPhases([...phases, {
       phase_number: newPhaseNumber,
-      name: t("health:protocolManager.defaultPhaseName", { number: newPhaseNumber }),
+      name: t("health.protocolManager.defaultPhaseName", { number: newPhaseNumber }),
       description: "",
       duration_days_min: 7,
       duration_days_max: 14,
@@ -715,26 +715,26 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold">{t("health:protocolManager.title")}</h2>
+          <h2 className="text-xl font-semibold">{t("health.protocolManager.title")}</h2>
           <p className="text-sm text-muted-foreground">
-            {t("health:protocolManager.subtitle")}
+            {t("health.protocolManager.subtitle")}
           </p>
         </div>
         <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
           <Plus className="h-4 w-4" />
-          {t("health:protocolManager.newProtocol")}
+          {t("health.protocolManager.newProtocol")}
         </Button>
       </div>
 
       {/* Filter */}
       <div className="flex items-center gap-4">
-        <Label>{t("health:protocolManager.filterByCategory")}</Label>
+        <Label>{t("health.protocolManager.filterByCategory")}</Label>
         <Select value={filterCategory} onValueChange={setFilterCategory}>
           <SelectTrigger className="w-48">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">{t("health:protocolManager.allCategories")}</SelectItem>
+            <SelectItem value="all">{t("health.protocolManager.allCategories")}</SelectItem>
             {INJURY_CATEGORIES.map(cat => (
               <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
             ))}
@@ -754,7 +754,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                     <CardTitle className="text-lg flex items-center gap-2">
                       {protocol.name}
                       {protocol.is_system_default && (
-                        <Badge variant="outline" className="text-xs">{t("health:protocolManager.systemBadge")}</Badge>
+                        <Badge variant="outline" className="text-xs">{t("health.protocolManager.systemBadge")}</Badge>
                       )}
                     </CardTitle>
                     <p className="text-sm text-muted-foreground">{protocol.description}</p>
@@ -781,7 +781,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                     </Badge>
                   ))}
                   {(!protocol.protocol_phases || protocol.protocol_phases.length === 0) && (
-                    <span className="text-sm text-muted-foreground italic">{t("health:protocolManager.noPhasesDefined")}</span>
+                    <span className="text-sm text-muted-foreground italic">{t("health.protocolManager.noPhasesDefined")}</span>
                   )}
                 </div>
                 <div className="flex gap-1">
@@ -789,7 +789,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                     variant="ghost"
                     size="sm"
                     onClick={() => duplicateProtocol.mutate(protocol)}
-                    title={t("health:protocolManager.duplicate")}
+                    title={t("health.protocolManager.duplicate")}
                   >
                     <Copy className="h-4 w-4" />
                   </Button>
@@ -799,7 +799,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleEditPhases(protocol)}
-                        title={t("health:protocolManager.editPhases")}
+                        title={t("health.protocolManager.editPhases")}
                       >
                         <Settings2 className="h-4 w-4" />
                       </Button>
@@ -807,7 +807,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleEdit(protocol)}
-                        title={t("health:protocolManager.edit")}
+                        title={t("health.protocolManager.edit")}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -815,11 +815,11 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          if (confirm(t("health:protocolManager.deleteConfirm"))) {
+                          if (confirm(t("health.protocolManager.deleteConfirm"))) {
                             deleteProtocol.mutate(protocol.id);
                           }
                         }}
-                        title={t("health:protocolManager.delete")}
+                        title={t("health.protocolManager.delete")}
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
@@ -835,14 +835,14 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
           <Card className="border-dashed">
             <CardContent className="p-8 text-center">
               <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">{t("health:protocolManager.noProtocolsFound")}</p>
+              <p className="text-muted-foreground">{t("health.protocolManager.noProtocolsFound")}</p>
               <Button 
                 variant="outline" 
                 className="mt-4"
                 onClick={() => setIsAddDialogOpen(true)}
               >
                 <Plus className="h-4 w-4 mr-2" />
-                {t("health:protocolManager.createProtocol")}
+                {t("health.protocolManager.createProtocol")}
               </Button>
             </CardContent>
           </Card>
@@ -853,7 +853,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
       <Dialog open={isAddDialogOpen} onOpenChange={(open) => { if (!open) resetForm(); setIsAddDialogOpen(open); }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{t("health:protocolManager.newProtocolDialogTitle")}</DialogTitle>
+            <DialogTitle>{t("health.protocolManager.newProtocolDialogTitle")}</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-4">
@@ -864,7 +864,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                 size="sm"
                 onClick={() => { setCreationMode("predefined"); resetForm(); }}
               >
-                {t("health:protocolManager.predefinedInjury")}
+                {t("health.protocolManager.predefinedInjury")}
               </Button>
               <Button
                 variant={creationMode === "custom" ? "default" : "outline"}
@@ -875,17 +875,17 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                   setPhases(getDefaultPhases());
                 }}
               >
-                {t("health:protocolManager.customProtocol")}
+                {t("health.protocolManager.customProtocol")}
               </Button>
             </div>
 
             {creationMode === "predefined" && (
               <>
                 <div className="space-y-2">
-                  <Label className="text-base font-semibold">{t("health:protocolManager.selectInjuryStep")}</Label>
+                  <Label className="text-base font-semibold">{t("health.protocolManager.selectInjuryStep")}</Label>
                   <Select value={selectedInjuryType} onValueChange={handleInjuryTypeSelect}>
                     <SelectTrigger>
-                      <SelectValue placeholder={t("health:protocolManager.chooseInjuryTypePlaceholder")} />
+                      <SelectValue placeholder={t("health.protocolManager.chooseInjuryTypePlaceholder")} />
                     </SelectTrigger>
                     <SelectContent>
                       {INJURY_CATEGORIES.map(cat => (
@@ -930,22 +930,22 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
               <>
                 <div className="space-y-3">
                   <div className="space-y-2">
-                    <Label>{t("health:protocolManager.protocolNameRequired")}</Label>
+                    <Label>{t("health.protocolManager.protocolNameRequired")}</Label>
                     <Input
                       value={protocolName}
                       onChange={(e) => setProtocolName(e.target.value)}
-                      placeholder={t("health:protocolManager.protocolNamePlaceholder")}
+                      placeholder={t("health.protocolManager.protocolNamePlaceholder")}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label>{t("health:protocolManager.injuryTypeRequired")}</Label>
+                    <Label>{t("health.protocolManager.injuryTypeRequired")}</Label>
                     <Select value={protocolCategory} onValueChange={(val) => {
                       setProtocolCategory(val);
                       setPhases(getPhasesForInjuryCategory(val));
                     }}>
                       <SelectTrigger>
-                        <SelectValue placeholder={t("health:protocolManager.chooseTypePlaceholder")} />
+                        <SelectValue placeholder={t("health.protocolManager.chooseTypePlaceholder")} />
                       </SelectTrigger>
                       <SelectContent>
                         {INJURY_CATEGORIES.map(cat => (
@@ -956,11 +956,11 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>{t("health:protocolManager.description")}</Label>
+                    <Label>{t("health.protocolManager.description")}</Label>
                     <Textarea
                       value={protocolDescription}
                       onChange={(e) => setProtocolDescription(e.target.value)}
-                      placeholder={t("health:protocolManager.descriptionPlaceholder")}
+                      placeholder={t("health.protocolManager.descriptionPlaceholder")}
                       rows={2}
                     />
                   </div>
@@ -992,7 +992,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-              {t("health:protocolManager.cancel")}
+              {t("health.protocolManager.cancel")}
             </Button>
             <Button 
               onClick={() => createProtocol.mutate()}
@@ -1001,7 +1001,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                 (creationMode === "predefined" && !selectedInjuryType)
               }
             >
-              {t("health:protocolManager.createProtocolButton")}
+              {t("health.protocolManager.createProtocolButton")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1011,19 +1011,19 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("health:protocolManager.editProtocolTitle")}</DialogTitle>
+            <DialogTitle>{t("health.protocolManager.editProtocolTitle")}</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>{t("health:protocolManager.protocolNameField")}</Label>
+              <Label>{t("health.protocolManager.protocolNameField")}</Label>
               <Input
                 value={protocolName}
                 onChange={(e) => setProtocolName(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label>{t("health:protocolManager.categoryRequired")}</Label>
+              <Label>{t("health.protocolManager.categoryRequired")}</Label>
               <Select value={protocolCategory} onValueChange={setProtocolCategory}>
                 <SelectTrigger>
                   <SelectValue />
@@ -1036,7 +1036,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>{t("health:protocolManager.description")}</Label>
+              <Label>{t("health.protocolManager.description")}</Label>
               <Textarea
                 value={protocolDescription}
                 onChange={(e) => setProtocolDescription(e.target.value)}
@@ -1045,7 +1045,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>{t("health:protocolManager.durationMin")}</Label>
+                <Label>{t("health.protocolManager.durationMin")}</Label>
                 <Input
                   type="number"
                   value={durationMin}
@@ -1053,7 +1053,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label>{t("health:protocolManager.durationMax")}</Label>
+                <Label>{t("health.protocolManager.durationMax")}</Label>
                 <Input
                   type="number"
                   value={durationMax}
@@ -1065,13 +1065,13 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              {t("health:protocolManager.cancel")}
+              {t("health.protocolManager.cancel")}
             </Button>
             <Button 
               onClick={() => updateProtocol.mutate()}
               disabled={!protocolName || !protocolCategory || updateProtocol.isPending}
             >
-              {t("health:protocolManager.save")}
+              {t("health.protocolManager.save")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1081,14 +1081,14 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
       <Dialog open={isEditPhasesOpen} onOpenChange={setIsEditPhasesOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{t("health:protocolManager.editPhasesTitle", { name: selectedProtocol?.name })}</DialogTitle>
+            <DialogTitle>{t("health.protocolManager.editPhasesTitle", { name: selectedProtocol?.name })}</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-3">
             <div className="flex justify-end">
               <Button variant="outline" size="sm" onClick={addPhase}>
                 <Plus className="h-4 w-4 mr-1" />
-                {t("health:protocolManager.addPhaseButton")}
+                {t("health.protocolManager.addPhaseButton")}
               </Button>
             </div>
 
@@ -1099,7 +1099,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                   <Input
                     value={phase.name}
                     onChange={(e) => updatePhase(index, 'name', e.target.value)}
-                    placeholder={t("health:protocolManager.phaseNamePlaceholder")}
+                    placeholder={t("health.protocolManager.phaseNamePlaceholder")}
                     className="flex-1 font-medium"
                   />
                   <div className="flex gap-1">
@@ -1133,13 +1133,13 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                 <Textarea
                   value={phase.description}
                   onChange={(e) => updatePhase(index, 'description', e.target.value)}
-                  placeholder={t("health:protocolManager.phaseDescriptionPlaceholder")}
+                  placeholder={t("health.protocolManager.phaseDescriptionPlaceholder")}
                   rows={2}
                 />
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <Label className="text-xs">{t("health:protocolManager.totalDurationMin")}</Label>
+                    <Label className="text-xs">{t("health.protocolManager.totalDurationMin")}</Label>
                     <div className="flex items-center gap-2">
                       <Input
                         type="number"
@@ -1150,7 +1150,7 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs">{t("health:protocolManager.totalDurationMax")}</Label>
+                    <Label className="text-xs">{t("health.protocolManager.totalDurationMax")}</Label>
                     <div className="flex items-center gap-2">
                       <Input
                         type="number"
@@ -1163,31 +1163,31 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
                 </div>
 
                 <div className="space-y-1">
-                  <Label className="text-xs">{t("health:protocolManager.objectivesLabel")} (une par ligne)</Label>
+                  <Label className="text-xs">{t("health.protocolManager.objectivesLabel")} (une par ligne)</Label>
                   <Textarea
                     value={(phase.objectives || []).join('\n')}
                     onChange={(e) => updatePhase(index, 'objectives', e.target.value.split('\n').filter(o => o.trim()))}
-                    placeholder={t("health:protocolManager.objectivesLinesPlaceholder")}
+                    placeholder={t("health.protocolManager.objectivesLinesPlaceholder")}
                     rows={3}
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <Label className="text-xs">{t("health:protocolManager.exitCriteriaLabel")}</Label>
+                  <Label className="text-xs">{t("health.protocolManager.exitCriteriaLabel")}</Label>
                   <Textarea
                     value={(phase.exit_criteria || []).join('\n')}
                     onChange={(e) => updatePhase(index, 'exit_criteria', e.target.value.split('\n').filter(c => c.trim()))}
-                    placeholder={t("health:protocolManager.exitCriteriaPlaceholder")}
+                    placeholder={t("health.protocolManager.exitCriteriaPlaceholder")}
                     rows={3}
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <Label className="text-xs">{t("health:protocolManager.careLabel")} (un par ligne)</Label>
+                  <Label className="text-xs">{t("health.protocolManager.careLabel")} (un par ligne)</Label>
                   <Textarea
                     value={(phase.care_instructions || []).join('\n')}
                     onChange={(e) => updatePhase(index, 'care_instructions', e.target.value.split('\n').filter(c => c.trim()))}
-                    placeholder={t("health:protocolManager.carePlaceholderMulti")}
+                    placeholder={t("health.protocolManager.carePlaceholderMulti")}
                     rows={3}
                   />
                 </div>
@@ -1218,13 +1218,13 @@ export function ProtocolManager({ categoryId }: ProtocolManagerProps) {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditPhasesOpen(false)}>
-              {t("health:protocolManager.cancel")}
+              {t("health.protocolManager.cancel")}
             </Button>
             <Button 
               onClick={() => updatePhases.mutate()}
               disabled={updatePhases.isPending}
             >
-              {t("health:protocolManager.savePhases")}
+              {t("health.protocolManager.savePhases")}
             </Button>
           </DialogFooter>
         </DialogContent>

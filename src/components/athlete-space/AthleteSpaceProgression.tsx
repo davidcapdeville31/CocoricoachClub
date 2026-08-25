@@ -52,17 +52,17 @@ const formatFrNumber = (value: number, digits = 2) => {
 const buildRatioDisplay = (rawValue: unknown, playerWeight?: number | null) => {
   const value = Number(rawValue);
   if (!Number.isFinite(value)) {
-    return { main: String(rawValue ?? ""), sub: i18n.t("athleteSpace:progression.ratioLoadWeight"), ratio: null as number | null, loadKg: null as number | null };
+    return { main: String(rawValue ?? ""), sub: i18n.t("athleteSpace.progression.ratioLoadWeight"), ratio: null as number | null, loadKg: null as number | null };
   }
 
   if (!playerWeight || playerWeight <= 0) {
-    return { main: formatFrNumber(value), sub: i18n.t("athleteSpace:progression.ratioLoadWeight"), ratio: null as number | null, loadKg: value };
+    return { main: formatFrNumber(value), sub: i18n.t("athleteSpace.progression.ratioLoadWeight"), ratio: null as number | null, loadKg: value };
   }
 
   const loadKg = value >= 5 ? value : value * playerWeight;
   const ratio = value >= 5 ? loadKg / playerWeight : value;
   return {
-    main: `${i18n.t("athleteSpace:progression.ratioPrefix")} ${formatFrNumber(ratio, 2)}`,
+    main: `${i18n.t("athleteSpace.progression.ratioPrefix")} ${formatFrNumber(ratio, 2)}`,
     sub: `${formatFrNumber(loadKg, 1)}/${formatFrNumber(playerWeight, 1)} kg`,
     ratio,
     loadKg,
@@ -287,11 +287,11 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
     
     // Check for speed tests
     if (categoriesWithData.has("__speed__")) {
-      filters.push({ value: "__speed__", label: t("athleteSpace:progression.speed") });
+      filters.push({ value: "__speed__", label: t("athleteSpace.progression.speed") });
     }
     // Check for strength tests
     if (categoriesWithData.has("__strength__")) {
-      filters.push({ value: "__strength__", label: t("athleteSpace:progression.strength") });
+      filters.push({ value: "__strength__", label: t("athleteSpace.progression.strength") });
     }
     // Generic test categories
     testCategories.forEach(cat => {
@@ -336,9 +336,9 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
       if (latest.time_40m_seconds && previous.time_40m_seconds) {
         const diff = latest.time_40m_seconds - previous.time_40m_seconds;
         if (diff < 0) {
-          msgs.push(t("athleteSpace:progression.speedProgressGain", { diff: Math.abs(diff).toFixed(2) }));
+          msgs.push(t("athleteSpace.progression.speedProgressGain", { diff: Math.abs(diff).toFixed(2) }));
         } else if (diff > 0) {
-          msgs.push(t("athleteSpace:progression.speedProgressLoss", { diff: diff.toFixed(2) }));
+          msgs.push(t("athleteSpace.progression.speedProgressLoss", { diff: diff.toFixed(2) }));
         }
       }
     }
@@ -350,7 +350,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
           const previous = data[data.length - 2].value;
           const diff = latest - previous;
           if (diff > 0) {
-            msgs.push(t("athleteSpace:progression.strengthProgress", { exercise, diff }));
+            msgs.push(t("athleteSpace.progression.strengthProgress", { exercise, diff }));
           }
         }
       });
@@ -365,18 +365,18 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
         const isTimeTest = latest.unit === "s" || latest.unit === "min";
         if (isTimeTest) {
           if (diff < 0) {
-            msgs.push(t("athleteSpace:progression.genericTimeImprovement", { label: latest.label, diff: Math.abs(diff).toFixed(1), unit: latest.unit }));
+            msgs.push(t("athleteSpace.progression.genericTimeImprovement", { label: latest.label, diff: Math.abs(diff).toFixed(1), unit: latest.unit }));
           }
         } else {
           if (diff > 0) {
-            msgs.push(t("athleteSpace:progression.genericValueImprovement", { label: latest.label, diff: diff.toFixed(1), unit: latest.unit }));
+            msgs.push(t("athleteSpace.progression.genericValueImprovement", { label: latest.label, diff: diff.toFixed(1), unit: latest.unit }));
           }
         }
       }
     });
 
     if (msgs.length === 0) {
-      msgs.push(t("athleteSpace:progression.defaultFeedback"));
+      msgs.push(t("athleteSpace.progression.defaultFeedback"));
     }
 
     return msgs;
@@ -396,7 +396,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Filter className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium text-muted-foreground">{t("athleteSpace:progression.filterByCategory")}</span>
+            <span className="text-sm font-medium text-muted-foreground">{t("athleteSpace.progression.filterByCategory")}</span>
           </div>
           <ScrollArea className="w-full whitespace-nowrap">
             <div className="flex gap-2 pb-2">
@@ -408,7 +408,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
                     : "bg-muted text-muted-foreground hover:bg-muted/80"
                 }`}
               >
-                {t("athleteSpace:progression.allTests")}
+                {t("athleteSpace.progression.allTests")}
               </button>
               {availableFilters.map(f => (
                 <button
@@ -444,7 +444,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex items-center gap-2">
                     <FlaskConical className="h-4 w-4 text-primary" />
-                    {t("athleteSpace:progression.latestResults")}
+                    {t("athleteSpace.progression.latestResults")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>

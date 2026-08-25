@@ -79,23 +79,23 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
   }));
 
   const COMMON_VACCINATIONS = [
-    t("health:medicalRecords.vaccinations.tetanus"),
-    t("health:medicalRecords.vaccinations.diphtheria"),
-    t("health:medicalRecords.vaccinations.poliomyelitis"),
-    t("health:medicalRecords.vaccinations.pertussis"),
-    t("health:medicalRecords.vaccinations.hepatitisB"),
-    t("health:medicalRecords.vaccinations.flu"),
-    t("health:medicalRecords.vaccinations.covid19"),
+    t("health.medicalRecords.vaccinations.tetanus"),
+    t("health.medicalRecords.vaccinations.diphtheria"),
+    t("health.medicalRecords.vaccinations.poliomyelitis"),
+    t("health.medicalRecords.vaccinations.pertussis"),
+    t("health.medicalRecords.vaccinations.hepatitisB"),
+    t("health.medicalRecords.vaccinations.flu"),
+    t("health.medicalRecords.vaccinations.covid19"),
   ];
 
   const COMMON_EXAMS = [
-    t("health:medicalRecords.exams.fitnessCheckup"),
-    t("health:medicalRecords.exams.noContraindicationCertificate"),
-    t("health:medicalRecords.exams.ecg"),
-    t("health:medicalRecords.exams.stressTest"),
-    t("health:medicalRecords.exams.annualBloodPanel"),
-    t("health:medicalRecords.exams.dentalExam"),
-    t("health:medicalRecords.exams.eyeExam"),
+    t("health.medicalRecords.exams.fitnessCheckup"),
+    t("health.medicalRecords.exams.noContraindicationCertificate"),
+    t("health.medicalRecords.exams.ecg"),
+    t("health.medicalRecords.exams.stressTest"),
+    t("health.medicalRecords.exams.annualBloodPanel"),
+    t("health.medicalRecords.exams.dentalExam"),
+    t("health.medicalRecords.exams.eyeExam"),
   ];
 
   // Fetch players
@@ -177,12 +177,12 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["medical_records"] });
-      toast.success(t("health:medicalRecords.toastSuccess"));
+      toast.success(t("health.medicalRecords.toastSuccess"));
       resetForm();
       setIsDialogOpen(false);
     },
     onError: () => {
-      toast.error(t("health:medicalRecords.toastError"));
+      toast.error(t("health.medicalRecords.toastError"));
     },
   });
 
@@ -200,18 +200,18 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
     if (days === null) return null;
     
     if (days < 0) {
-      return <Badge variant="destructive">{t("health:medicalRecords.badges.expiredSince", { days: Math.abs(days) })}</Badge>;
+      return <Badge variant="destructive">{t("health.medicalRecords.badges.expiredSince", { days: Math.abs(days) })}</Badge>;
     }
     if (days <= 7) {
-      return <Badge variant="destructive">{t("health:medicalRecords.badges.inDays", { days })}</Badge>;
+      return <Badge variant="destructive">{t("health.medicalRecords.badges.inDays", { days })}</Badge>;
     }
     if (days <= 30) {
-      return <Badge className="bg-orange-500">{t("health:medicalRecords.badges.inDays", { days })}</Badge>;
+      return <Badge className="bg-orange-500">{t("health.medicalRecords.badges.inDays", { days })}</Badge>;
     }
     if (days <= 90) {
-      return <Badge className="bg-yellow-500 text-black">{t("health:medicalRecords.badges.inDays", { days })}</Badge>;
+      return <Badge className="bg-yellow-500 text-black">{t("health.medicalRecords.badges.inDays", { days })}</Badge>;
     }
-    return <Badge variant="outline">{t("health:medicalRecords.badges.daysShort", { days })}</Badge>;
+    return <Badge variant="outline">{t("health.medicalRecords.badges.daysShort", { days })}</Badge>;
   };
 
   // Stats
@@ -236,13 +236,13 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
               <div>
                 {expiredCount > 0 && (
                   <span className="text-destructive font-medium">
-                    {t("health:medicalRecords.expiredCount", { count: expiredCount })}
+                    {t("health.medicalRecords.expiredCount", { count: expiredCount })}
                   </span>
                 )}
                 {expiredCount > 0 && dueSoonCount > 0 && " • "}
                 {dueSoonCount > 0 && (
                   <span className="text-orange-600 font-medium">
-                    {t("health:medicalRecords.dueSoonCount", { count: dueSoonCount })}
+                    {t("health.medicalRecords.dueSoonCount", { count: dueSoonCount })}
                   </span>
                 )}
               </div>
@@ -257,7 +257,7 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
               <Syringe className="h-4 w-4" />
-              {t("health:medicalRecords.stats.vaccinations")}
+              {t("health.medicalRecords.stats.vaccinations")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -270,7 +270,7 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
               <FileText className="h-4 w-4" />
-              {t("health:medicalRecords.stats.exams")}
+              {t("health.medicalRecords.stats.exams")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -283,7 +283,7 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
               <Clock className="h-4 w-4" />
-              {t("health:medicalRecords.stats.dueSoon")}
+              {t("health.medicalRecords.stats.dueSoon")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -294,7 +294,7 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
               <AlertTriangle className="h-4 w-4" />
-              {t("health:medicalRecords.stats.expired")}
+              {t("health.medicalRecords.stats.expired")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -307,10 +307,10 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
       <div className="flex flex-wrap gap-4 items-center">
         <Select value={filterType} onValueChange={setFilterType}>
           <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder={t("health:medicalRecords.filters.typePlaceholder")} />
+            <SelectValue placeholder={t("health.medicalRecords.filters.typePlaceholder")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">{t("health:medicalRecords.filters.allTypes")}</SelectItem>
+            <SelectItem value="all">{t("health.medicalRecords.filters.allTypes")}</SelectItem>
             {RECORD_TYPES.map((type) => (
               <SelectItem key={type.value} value={type.value}>
                 {type.label}
@@ -321,10 +321,10 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
 
         <Select value={filterPlayer} onValueChange={setFilterPlayer}>
           <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder={t("health:medicalRecords.filters.playerPlaceholder")} />
+            <SelectValue placeholder={t("health.medicalRecords.filters.playerPlaceholder")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">{t("health:medicalRecords.filters.allPlayers")}</SelectItem>
+            <SelectItem value="all">{t("health.medicalRecords.filters.allPlayers")}</SelectItem>
             {players?.map((player) => (
               <SelectItem key={player.id} value={player.id}>
                 {player.name}
@@ -337,7 +337,7 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
 
         <Button onClick={() => setIsDialogOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
-          {t("health:medicalRecords.addDocument")}
+          {t("health.medicalRecords.addDocument")}
         </Button>
       </div>
 
@@ -345,17 +345,17 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
       <Card>
         <CardContent className="pt-6">
           {isLoading ? (
-            <div className="text-center py-8 text-muted-foreground">{t("health:medicalRecords.loading")}</div>
+            <div className="text-center py-8 text-muted-foreground">{t("health.medicalRecords.loading")}</div>
           ) : records && records.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t("health:medicalRecords.table.player")}</TableHead>
-                  <TableHead>{t("health:medicalRecords.table.type")}</TableHead>
-                  <TableHead>{t("health:medicalRecords.table.document")}</TableHead>
-                  <TableHead>{t("health:medicalRecords.table.date")}</TableHead>
-                  <TableHead>{t("health:medicalRecords.table.nextDue")}</TableHead>
-                  <TableHead>{t("health:medicalRecords.table.status")}</TableHead>
+                  <TableHead>{t("health.medicalRecords.table.player")}</TableHead>
+                  <TableHead>{t("health.medicalRecords.table.type")}</TableHead>
+                  <TableHead>{t("health.medicalRecords.table.document")}</TableHead>
+                  <TableHead>{t("health.medicalRecords.table.date")}</TableHead>
+                  <TableHead>{t("health.medicalRecords.table.nextDue")}</TableHead>
+                  <TableHead>{t("health.medicalRecords.table.status")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -381,7 +381,7 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
             </Table>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
-              {t("health:medicalRecords.empty")}
+              {t("health.medicalRecords.empty")}
             </div>
           )}
         </CardContent>
@@ -391,16 +391,16 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{t("health:medicalRecords.dialog.title")}</DialogTitle>
+            <DialogTitle>{t("health.medicalRecords.dialog.title")}</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 pb-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>{t("health:medicalRecords.dialog.player")}</Label>
+                <Label>{t("health.medicalRecords.dialog.player")}</Label>
                 <Select value={playerId} onValueChange={setPlayerId}>
                   <SelectTrigger>
-                    <SelectValue placeholder={t("health:medicalRecords.dialog.selectPlaceholder")} />
+                    <SelectValue placeholder={t("health.medicalRecords.dialog.selectPlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
                     {players?.map((player) => (
@@ -413,7 +413,7 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
               </div>
 
               <div className="space-y-2">
-                <Label>{t("health:medicalRecords.dialog.type")}</Label>
+                <Label>{t("health.medicalRecords.dialog.type")}</Label>
                 <Select value={recordType} onValueChange={setRecordType}>
                   <SelectTrigger>
                     <SelectValue />
@@ -430,10 +430,10 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
             </div>
 
             <div className="space-y-2">
-              <Label>{t("health:medicalRecords.dialog.documentName")}</Label>
+              <Label>{t("health.medicalRecords.dialog.documentName")}</Label>
               <Select value={name} onValueChange={setName}>
                 <SelectTrigger>
-                  <SelectValue placeholder={t("health:medicalRecords.dialog.documentNamePlaceholder")} />
+                  <SelectValue placeholder={t("health.medicalRecords.dialog.documentNamePlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   {(recordType === "vaccination" ? COMMON_VACCINATIONS : COMMON_EXAMS).map(
@@ -448,14 +448,14 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder={t("health:medicalRecords.dialog.documentNameManualPlaceholder")}
+                placeholder={t("health.medicalRecords.dialog.documentNameManualPlaceholder")}
                 className="mt-2"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>{t("health:medicalRecords.dialog.documentDate")}</Label>
+                <Label>{t("health.medicalRecords.dialog.documentDate")}</Label>
                 <Input
                   type="date"
                   value={recordDate}
@@ -463,7 +463,7 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label>{t("health:medicalRecords.dialog.nextDue")}</Label>
+                <Label>{t("health.medicalRecords.dialog.nextDue")}</Label>
                 <Input
                   type="date"
                   value={nextDueDate}
@@ -473,37 +473,37 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
             </div>
 
             <div className="space-y-2">
-              <Label>{t("health:medicalRecords.dialog.provider")}</Label>
+              <Label>{t("health.medicalRecords.dialog.provider")}</Label>
               <Input
                 value={provider}
                 onChange={(e) => setProvider(e.target.value)}
-                placeholder={t("health:medicalRecords.dialog.providerPlaceholder")}
+                placeholder={t("health.medicalRecords.dialog.providerPlaceholder")}
               />
             </div>
 
             <div className="space-y-2">
-              <Label>{t("health:medicalRecords.dialog.result")}</Label>
+              <Label>{t("health.medicalRecords.dialog.result")}</Label>
               <Input
                 value={result}
                 onChange={(e) => setResult(e.target.value)}
-                placeholder={t("health:medicalRecords.dialog.resultPlaceholder")}
+                placeholder={t("health.medicalRecords.dialog.resultPlaceholder")}
               />
             </div>
 
             <div className="space-y-2">
-              <Label>{t("health:medicalRecords.dialog.notes")}</Label>
+              <Label>{t("health.medicalRecords.dialog.notes")}</Label>
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder={t("health:medicalRecords.dialog.notesPlaceholder")}
+                placeholder={t("health.medicalRecords.dialog.notesPlaceholder")}
               />
             </div>
 
             <div className="flex items-center justify-between border rounded-lg p-3">
               <div>
-                <p className="font-medium">{t("health:medicalRecords.dialog.autoReminder")}</p>
+                <p className="font-medium">{t("health.medicalRecords.dialog.autoReminder")}</p>
                 <p className="text-sm text-muted-foreground">
-                  {t("health:medicalRecords.dialog.reminderNotice", { days: reminderDays })}
+                  {t("health.medicalRecords.dialog.reminderNotice", { days: reminderDays })}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -521,13 +521,13 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              {t("health:medicalRecords.dialog.cancel")}
+              {t("health.medicalRecords.dialog.cancel")}
             </Button>
             <Button
               onClick={() => addRecord.mutate()}
               disabled={!playerId || !name || addRecord.isPending}
             >
-              {addRecord.isPending ? t("health:medicalRecords.dialog.adding") : t("health:medicalRecords.dialog.add")}
+              {addRecord.isPending ? t("health.medicalRecords.dialog.adding") : t("health.medicalRecords.dialog.add")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -28,11 +28,11 @@ interface Props {
 
 function getRehabPhases(t: (key: string) => string) {
   return [
-    { phase: 1, label: t("athleteSpace:health.rehabPhases.protection.label"), description: t("athleteSpace:health.rehabPhases.protection.description") },
-    { phase: 2, label: t("athleteSpace:health.rehabPhases.mobility.label"), description: t("athleteSpace:health.rehabPhases.mobility.description") },
-    { phase: 3, label: t("athleteSpace:health.rehabPhases.strengthening.label"), description: t("athleteSpace:health.rehabPhases.strengthening.description") },
-    { phase: 4, label: t("athleteSpace:health.rehabPhases.reathletisation.label"), description: t("athleteSpace:health.rehabPhases.reathletisation.description") },
-    { phase: 5, label: t("athleteSpace:health.rehabPhases.performance.label"), description: t("athleteSpace:health.rehabPhases.performance.description") },
+    { phase: 1, label: t("athleteSpace.health.rehabPhases.protection.label"), description: t("athleteSpace.health.rehabPhases.protection.description") },
+    { phase: 2, label: t("athleteSpace.health.rehabPhases.mobility.label"), description: t("athleteSpace.health.rehabPhases.mobility.description") },
+    { phase: 3, label: t("athleteSpace.health.rehabPhases.strengthening.label"), description: t("athleteSpace.health.rehabPhases.strengthening.description") },
+    { phase: 4, label: t("athleteSpace.health.rehabPhases.reathletisation.label"), description: t("athleteSpace.health.rehabPhases.reathletisation.description") },
+    { phase: 5, label: t("athleteSpace.health.rehabPhases.performance.label"), description: t("athleteSpace.health.rehabPhases.performance.description") },
   ];
 }
 
@@ -59,9 +59,9 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["athlete-space-injuries-detail", playerId] });
-      toast.success(t("athleteSpace:health.injuryDeleted"));
+      toast.success(t("athleteSpace.health.injuryDeleted"));
     },
-    onError: (e: any) => toast.error(e?.message || t("athleteSpace:health.genericError")),
+    onError: (e: any) => toast.error(e?.message || t("athleteSpace.health.genericError")),
   });
 
   const advancePhase = useMutation({
@@ -76,7 +76,7 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
       } else {
         // Fallback: update generic phase on the active injury
         const activeInjury = injuries.find((i: any) => i.status === "active") || injuries[0];
-        if (!activeInjury) throw new Error(t("athleteSpace:health.noRehabProtocol"));
+        if (!activeInjury) throw new Error(t("athleteSpace.health.noRehabProtocol"));
         const { error } = await supabase
           .from("injuries")
           .update({ current_rehab_phase: newPhase, updated_at: new Date().toISOString() })
@@ -87,10 +87,10 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["athlete-space-rehab", playerId] });
       qc.invalidateQueries({ queryKey: ["athlete-space-injuries-detail", playerId] });
-      toast.success(t("athleteSpace:health.stepValidated"));
+      toast.success(t("athleteSpace.health.stepValidated"));
       setConfirmAdvance(null);
     },
-    onError: (e: any) => toast.error(e?.message || t("athleteSpace:health.genericError")),
+    onError: (e: any) => toast.error(e?.message || t("athleteSpace.health.genericError")),
   });
 
 
@@ -181,18 +181,18 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
   const getHealthFeedback = (): string[] => {
     const msgs: string[] = [];
     if (hasNoIssues) {
-      msgs.push(t("athleteSpace:health.noIssue"));
+      msgs.push(t("athleteSpace.health.noIssue"));
       return msgs;
     }
 
     injuries.forEach(inj => {
       if (inj.status === "active") {
-        msgs.push(t("athleteSpace:health.injuryActive", { type: inj.injury_type, date: format(new Date(inj.injury_date), "dd/MM/yyyy") }));
+        msgs.push(t("athleteSpace.health.injuryActive", { type: inj.injury_type, date: format(new Date(inj.injury_date), "dd/MM/yyyy") }));
         if (inj.estimated_return_date) {
-          msgs.push(t("athleteSpace:health.estimatedReturn", { date: format(new Date(inj.estimated_return_date), "dd MMM yyyy", { locale: getDateLocale() }) }));
+          msgs.push(t("athleteSpace.health.estimatedReturn", { date: format(new Date(inj.estimated_return_date), "dd MMM yyyy", { locale: getDateLocale() }) }));
         }
       } else if (inj.status === "recovering") {
-        msgs.push(t("athleteSpace:health.injuryRecovering", { type: inj.injury_type }));
+        msgs.push(t("athleteSpace.health.injuryRecovering", { type: inj.injury_type }));
       }
     });
 
@@ -236,7 +236,7 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
             <Shield className="h-4 w-4 text-status-optimal" />
-            {t("athleteSpace:health.healthStatus")}
+            {t("athleteSpace.health.healthStatus")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -252,23 +252,23 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
                     <p className="text-[11px] text-muted-foreground">{format(new Date(inj.injury_date), "dd MMM yyyy", { locale: getDateLocale() })}</p>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingInjury(inj)} title={t("athleteSpace:health.edit")}>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingInjury(inj)} title={t("athleteSpace.health.edit")}>
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" title={t("athleteSpace:health.delete")}>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" title={t("athleteSpace.health.delete")}>
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>{t("athleteSpace:health.confirmDeleteInjuryTitle")}</AlertDialogTitle>
-                          <AlertDialogDescription>{t("athleteSpace:health.confirmDeleteInjuryDesc")}</AlertDialogDescription>
+                          <AlertDialogTitle>{t("athleteSpace.health.confirmDeleteInjuryTitle")}</AlertDialogTitle>
+                          <AlertDialogDescription>{t("athleteSpace.health.confirmDeleteInjuryDesc")}</AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>{t("athleteSpace:health.cancel")}</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => deleteInjury.mutate(inj.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">{t("athleteSpace:health.delete")}</AlertDialogAction>
+                          <AlertDialogCancel>{t("athleteSpace.health.cancel")}</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => deleteInjury.mutate(inj.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">{t("athleteSpace.health.delete")}</AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
@@ -283,7 +283,7 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
 
       <Card className="bg-gradient-card shadow-md">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">{t("athleteSpace:health.authorizations")}</CardTitle>
+          <CardTitle className="text-sm">{t("athleteSpace.health.authorizations")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-2">
@@ -309,11 +309,11 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
               <Dumbbell className="h-4 w-4" />
-              {activeProtocol ? (activeProtocol.injury_protocols as any)?.name || t("athleteSpace:health.defaultProtocolTitle") : t("athleteSpace:health.genericStepsTitle")}
+              {activeProtocol ? (activeProtocol.injury_protocols as any)?.name || t("athleteSpace.health.defaultProtocolTitle") : t("athleteSpace.health.genericStepsTitle")}
             </CardTitle>
             {activeProtocol && (
               <p className="text-xs text-muted-foreground">
-                {t("athleteSpace:health.currentPhase", { current: currentPhaseNumber, total: displayPhases.length })}
+                {t("athleteSpace.health.currentPhase", { current: currentPhaseNumber, total: displayPhases.length })}
               </p>
             )}
           </CardHeader>
@@ -349,8 +349,8 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <p className="text-sm font-medium">{phase.name || phase.label}</p>
-                            {isActive && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{t("athleteSpace:health.inProgress")}</Badge>}
-                            {hasTaping && <Badge variant="outline" className="text-[10px] px-1.5 py-0">{t("athleteSpace:health.tapingBadge")}</Badge>}
+                            {isActive && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{t("athleteSpace.health.inProgress")}</Badge>}
+                            {hasTaping && <Badge variant="outline" className="text-[10px] px-1.5 py-0">{t("athleteSpace.health.tapingBadge")}</Badge>}
                           </div>
                           <p className="text-[11px] text-muted-foreground truncate">{phase.description}</p>
                         </div>
@@ -364,7 +364,7 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
                       {/* Objectives */}
                       {hasObjectives && (
                         <div className="mt-2">
-                          <p className="text-xs font-medium text-muted-foreground mb-1">{t("athleteSpace:health.objectivesHeader")}</p>
+                          <p className="text-xs font-medium text-muted-foreground mb-1">{t("athleteSpace.health.objectivesHeader")}</p>
                           <ul className="text-sm space-y-0.5">
                             {(phase.objectives as string[]).map((obj: string, i: number) => (
                               <li key={i} className="flex items-start gap-2">
@@ -379,7 +379,7 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
                       {/* Care instructions */}
                       {hasCare && (
                         <div>
-                          <p className="text-xs font-medium text-muted-foreground mb-1">{t("athleteSpace:health.careHeader")}</p>
+                          <p className="text-xs font-medium text-muted-foreground mb-1">{t("athleteSpace.health.careHeader")}</p>
                           <ul className="text-sm space-y-0.5">
                             {(phase.care_instructions as string[]).map((care: string, i: number) => (
                               <li key={i} className="flex items-start gap-2">
@@ -395,7 +395,7 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
                       {hasTaping && (
                         <div className="p-3 rounded-lg border bg-muted/30">
                           <p className="text-xs font-semibold mb-2 flex items-center gap-1">
-                            {t("athleteSpace:health.tapingHeader")}
+                            {t("athleteSpace.health.tapingHeader")}
                           </p>
                           {phase.taping_instructions && phase.taping_instructions.length > 0 && (
                             <ul className="text-sm space-y-1 mb-3">
@@ -411,12 +411,12 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
                             <div>
                               <img
                                 src={phase.taping_diagram_url}
-                                alt={t("athleteSpace:health.tapingDiagramAlt")}
+                                alt={t("athleteSpace.health.tapingDiagramAlt")}
                                 className="w-full max-h-64 object-contain rounded-lg border bg-white cursor-pointer hover:opacity-90 transition-opacity"
                                 onClick={() => window.open(phase.taping_diagram_url, '_blank')}
                               />
                               <p className="text-[10px] text-muted-foreground mt-1 text-center">
-                                {t("athleteSpace:health.tapImageHint")}
+                                {t("athleteSpace.health.tapImageHint")}
                               </p>
                             </div>
                           )}
@@ -426,7 +426,7 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
                       {/* Exercises for this phase */}
                       {phaseExercises.length > 0 && (
                         <div>
-                          <p className="text-xs font-medium text-muted-foreground mb-1">{t("athleteSpace:health.exercisesHeader")}</p>
+                          <p className="text-xs font-medium text-muted-foreground mb-1">{t("athleteSpace.health.exercisesHeader")}</p>
                           <div className="space-y-1">
                             {phaseExercises.map((ex: any) => (
                               <div key={ex.id} className="text-sm p-2 bg-background rounded border flex items-center justify-between">
@@ -448,7 +448,7 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
                       {/* Duration info */}
                       {(phase.duration_days_min || phase.duration_days_max) && (
                         <p className="text-[11px] text-muted-foreground">
-                          {t("athleteSpace:health.durationEstimate", { min: phase.duration_days_min, max: phase.duration_days_max })}
+                          {t("athleteSpace.health.durationEstimate", { min: phase.duration_days_min, max: phase.duration_days_max })}
                         </p>
                       )}
 
@@ -462,11 +462,11 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
                             const next = displayPhases.find((p: any) => (p.phase_number || p.phase) === phaseNum + 1);
                             setConfirmAdvance({
                               nextPhase: phaseNum + 1,
-                              nextName: next?.name || next?.label || t("athleteSpace:health.stepFallback", { n: phaseNum + 1 }),
+                              nextName: next?.name || next?.label || t("athleteSpace.health.stepFallback", { n: phaseNum + 1 }),
                             });
                           }}
                         >
-                          {t("athleteSpace:health.validateStepButton")}
+                          {t("athleteSpace.health.validateStepButton")}
                         </Button>
                       )}
                     </CollapsibleContent>
@@ -483,18 +483,18 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2 text-destructive">
               <AlertTriangle className="h-4 w-4" />
-              {t("athleteSpace:health.concussionProtocol")}
+              {t("athleteSpace.health.concussionProtocol")}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {concussions.map((c) => (
               <div key={c.id} className="space-y-1">
-                <p className="text-sm">{t("athleteSpace:health.currentPhaseShort")} <strong>{c.return_to_play_phase || 1}/6</strong></p>
+                <p className="text-sm">{t("athleteSpace.health.currentPhaseShort")} <strong>{c.return_to_play_phase || 1}/6</strong></p>
                 <p className="text-xs text-muted-foreground">
-                  {t("athleteSpace:health.incidentLabel", { date: format(new Date(c.incident_date), "dd MMM yyyy", { locale: getDateLocale() }) })}
+                  {t("athleteSpace.health.incidentLabel", { date: format(new Date(c.incident_date), "dd MMM yyyy", { locale: getDateLocale() }) })}
                 </p>
                 {c.medical_notes && (
-                  <p className="text-xs text-muted-foreground mt-1">{t("athleteSpace:health.notesLabel", { notes: c.medical_notes })}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{t("athleteSpace.health.notesLabel", { notes: c.medical_notes })}</p>
                 )}
               </div>
             ))}
@@ -513,15 +513,15 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
       <AlertDialog open={!!confirmAdvance} onOpenChange={(o) => !o && setConfirmAdvance(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("athleteSpace:health.confirmAdvanceTitle")}</AlertDialogTitle>
+            <AlertDialogTitle>{t("athleteSpace.health.confirmAdvanceTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              <span dangerouslySetInnerHTML={{ __html: t("athleteSpace:health.confirmAdvanceDesc", { name: confirmAdvance?.nextName || "" }) }} />
+              <span dangerouslySetInnerHTML={{ __html: t("athleteSpace.health.confirmAdvanceDesc", { name: confirmAdvance?.nextName || "" }) }} />
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t("athleteSpace:health.cancel")}</AlertDialogCancel>
+            <AlertDialogCancel>{t("athleteSpace.health.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={() => confirmAdvance && advancePhase.mutate(confirmAdvance.nextPhase)}>
-              {t("athleteSpace:health.confirmAdvanceAction")}
+              {t("athleteSpace.health.confirmAdvanceAction")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

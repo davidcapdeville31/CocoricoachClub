@@ -44,7 +44,7 @@ export function CurrentCyclesCard({ categoryId }: Props) {
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
           <CalendarRange className="h-4 w-4 text-primary" />
-          {t("athleteSpace:components.currentCyclesCard.title")}
+          {t("athleteSpace.components.currentCyclesCard.title")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2 pt-0">
@@ -69,7 +69,7 @@ export function CurrentCyclesCard({ categoryId }: Props) {
                     style={{ backgroundColor: thematic?.color || c.color || "#64748b" }}
                   />
                   <span className="text-xs text-muted-foreground truncate">
-                    {thematic?.name || t("athleteSpace:components.currentCyclesCard.activity")}
+                    {thematic?.name || t("athleteSpace.components.currentCyclesCard.activity")}
                   </span>
                 </div>
                 {meta && (
@@ -93,8 +93,8 @@ export function CurrentCyclesCard({ categoryId }: Props) {
                 </span>
                 <span className="font-medium">
                   {daysLeft > 0
-                    ? t("athleteSpace:components.currentCyclesCard.daysLeft", { count: daysLeft, plural: daysLeft > 1 ? "s" : "" })
-                    : t("athleteSpace:components.currentCyclesCard.lastDay")}
+                    ? t("athleteSpace.components.currentCyclesCard.daysLeft", { count: daysLeft, plural: daysLeft > 1 ? "s" : "" })
+                    : t("athleteSpace.components.currentCyclesCard.lastDay")}
                 </span>
               </div>
 
@@ -111,7 +111,7 @@ export function CurrentCyclesCard({ categoryId }: Props) {
               {typeof c.intensity === "number" && c.intensity > 0 && (
                 <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
                   <Activity className="h-3 w-3" />
-                  <span>{t("athleteSpace:components.currentCyclesCard.intensity")}</span>
+                  <span>{t("athleteSpace.components.currentCyclesCard.intensity")}</span>
                   <div className="flex gap-0.5">
                     {[1, 2, 3, 4, 5].map((i) => (
                       <span

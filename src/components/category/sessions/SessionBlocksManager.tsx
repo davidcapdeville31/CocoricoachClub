@@ -190,15 +190,15 @@ export function SessionBlocksManager({
         <div className="min-w-0 flex-1">
           <Label className="text-sm sm:text-base font-medium flex items-center gap-2">
             <Clock className="h-4 w-4 shrink-0" />
-            <span>{t("planning:calendarDialogs.sessionForm.structureIntoThemes")}</span>
+            <span>{t("planning.calendarDialogs.sessionForm.structureIntoThemes")}</span>
           </Label>
           <p className="text-xs text-muted-foreground mt-0.5">
-            {t("planning:calendarDialogs.sessionForm.structureIntoThemesHint")}
+            {t("planning.calendarDialogs.sessionForm.structureIntoThemesHint")}
           </p>
         </div>
         <Button type="button" variant="default" size="sm" onClick={addBlock} className="shrink-0">
           <Plus className="h-4 w-4 mr-1" />
-          {t("planning:calendarDialogs.sessionForm.addBlock")}
+          {t("planning.calendarDialogs.sessionForm.addBlock")}
         </Button>
       </div>
 
@@ -209,10 +209,10 @@ export function SessionBlocksManager({
         >
           <Clock className="h-8 w-8 mx-auto text-primary/50 mb-2" />
           <p className="text-muted-foreground text-sm font-medium">
-            {t("planning:calendarDialogs.sessionForm.clickToStructure")}
+            {t("planning.calendarDialogs.sessionForm.clickToStructure")}
           </p>
           <p className="text-muted-foreground text-xs mt-1">
-            {t("planning:calendarDialogs.sessionForm.structureExample")}
+            {t("planning.calendarDialogs.sessionForm.structureExample")}
           </p>
         </div>
       ) : (
@@ -257,7 +257,7 @@ export function SessionBlocksManager({
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className="font-mono">
-                            {t("planning:calendarDialogs.sessionForm.blockLabel", { index: index + 1 })}
+                            {t("planning.calendarDialogs.sessionForm.blockLabel", { index: index + 1 })}
                           </Badge>
                           {duration && (
                             <Badge variant="secondary" className="text-xs">
@@ -266,7 +266,7 @@ export function SessionBlocksManager({
                           )}
                           {block.intensity && (
                             <Badge className={cn("text-xs", INTENSITY_COLORS[block.intensity])}>
-                              {t("planning:calendarDialogs.sessionForm.intensityLabel", { value: block.intensity })}
+                              {t("planning.calendarDialogs.sessionForm.intensityLabel", { value: block.intensity })}
                             </Badge>
                           )}
                         </div>
@@ -284,7 +284,7 @@ export function SessionBlocksManager({
                       {/* Time inputs */}
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.start")}</Label>
+                          <Label className="text-xs text-muted-foreground">{t("planning.calendarDialogs.sessionForm.start")}</Label>
                           <Input
                             type="time"
                             value={block.start_time || ""}
@@ -293,7 +293,7 @@ export function SessionBlocksManager({
                           />
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.end")}</Label>
+                          <Label className="text-xs text-muted-foreground">{t("planning.calendarDialogs.sessionForm.end")}</Label>
                           <Input
                             type="time"
                             value={block.end_time || ""}
@@ -306,17 +306,17 @@ export function SessionBlocksManager({
                       {/* Training type and intensity */}
                       <div className="grid grid-cols-3 gap-3">
                         <div className="col-span-2 space-y-1">
-                          <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.theme")}</Label>
+                          <Label className="text-xs text-muted-foreground">{t("planning.calendarDialogs.sessionForm.theme")}</Label>
                           <CustomTrainingTypeSelect
                             value={block.training_type}
                             onValueChange={(val) => updateBlock(index, "training_type", val)}
                             sportType={sportType}
                             categoryId={categoryId}
-                            placeholder={t("planning:calendarDialogs.sessionForm.select")}
+                            placeholder={t("planning.calendarDialogs.sessionForm.select")}
                           />
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.targetRpe")}</Label>
+                          <Label className="text-xs text-muted-foreground">{t("planning.calendarDialogs.sessionForm.targetRpe")}</Label>
                           <Input
                             type="number"
                             min="1"
@@ -332,13 +332,13 @@ export function SessionBlocksManager({
                       {/* Bowling precision exercise type */}
                       {block.training_type === "bowling_spare" && (
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.precisionExercise")}</Label>
+                          <Label className="text-xs text-muted-foreground">{t("planning.calendarDialogs.sessionForm.precisionExercise")}</Label>
                           <Select
                             value={block.bowling_exercise_type || ""}
                             onValueChange={(val) => updateBlock(index, "bowling_exercise_type", val || undefined)}
                           >
                             <SelectTrigger className="h-9">
-                              <SelectValue placeholder={t("planning:calendarDialogs.sessionForm.selectExercise")} />
+                              <SelectValue placeholder={t("planning.calendarDialogs.sessionForm.selectExercise")} />
                             </SelectTrigger>
                             <SelectContent>
                               {BOWLING_PRECISION_EXERCISES.map((ex) => (
@@ -353,7 +353,7 @@ export function SessionBlocksManager({
                       {isThrowingBlock(block.training_type) && (
                         <div className="grid grid-cols-2 gap-3 rounded-md border border-dashed border-primary/30 bg-primary/5 p-3">
                           <div className="space-y-1">
-                            <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.implement")}</Label>
+                            <Label className="text-xs text-muted-foreground">{t("planning.calendarDialogs.sessionForm.implement")}</Label>
                             <Select
                               value={block.throwing_implement || ""}
                               onValueChange={(val) => {
@@ -367,7 +367,7 @@ export function SessionBlocksManager({
                               }}
                             >
                               <SelectTrigger className="h-9">
-                                <SelectValue placeholder={t("planning:calendarDialogs.sessionForm.implementPlaceholder")} />
+                                <SelectValue placeholder={t("planning.calendarDialogs.sessionForm.implementPlaceholder")} />
                               </SelectTrigger>
                               <SelectContent>
                                 {(Object.keys(IMPLEMENT_LABELS) as ImplementType[]).map((k) => (
@@ -378,7 +378,7 @@ export function SessionBlocksManager({
                           </div>
                           <div className="space-y-1">
                             <Label className="text-xs text-muted-foreground">
-                              {t("planning:calendarDialogs.sessionForm.implementWeight")}
+                              {t("planning.calendarDialogs.sessionForm.implementWeight")}
                             </Label>
                             <Select
                               value={block.implement_weight_g != null ? String(block.implement_weight_g) : ""}
@@ -388,7 +388,7 @@ export function SessionBlocksManager({
                               disabled={!block.throwing_implement}
                             >
                               <SelectTrigger className="h-9">
-                                <SelectValue placeholder={block.throwing_implement ? t("planning:calendarDialogs.sessionForm.selectWeight") : t("planning:calendarDialogs.sessionForm.chooseImplementFirst")} />
+                                <SelectValue placeholder={block.throwing_implement ? t("planning.calendarDialogs.sessionForm.selectWeight") : t("planning.calendarDialogs.sessionForm.chooseImplementFirst")} />
                               </SelectTrigger>
                               <SelectContent>
                                 {block.throwing_implement &&
@@ -422,10 +422,10 @@ export function SessionBlocksManager({
 
                       {/* Enrichment fields */}
                       <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.mainObjective")}</Label>
+                        <Label className="text-xs text-muted-foreground">{t("planning.calendarDialogs.sessionForm.mainObjective")}</Label>
                         <Select value={block.objective || ""} onValueChange={(val) => updateBlock(index, "objective", val || undefined)}>
                           <SelectTrigger className="h-9">
-                            <SelectValue placeholder={t("planning:calendarDialogs.sessionForm.select")} />
+                            <SelectValue placeholder={t("planning.calendarDialogs.sessionForm.select")} />
                           </SelectTrigger>
                           <SelectContent>
                             {SESSION_OBJECTIVES.map(o => (
@@ -437,10 +437,10 @@ export function SessionBlocksManager({
 
                       <div className={cn("grid gap-3", isRugby ? "grid-cols-3" : "grid-cols-2")}>
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.targetIntensity")}</Label>
+                          <Label className="text-xs text-muted-foreground">{t("planning.calendarDialogs.sessionForm.targetIntensity")}</Label>
                           <Select value={block.target_intensity || ""} onValueChange={(val) => updateBlock(index, "target_intensity", val || undefined)}>
                             <SelectTrigger className="h-9">
-                              <SelectValue placeholder={t("planning:calendarDialogs.sessionForm.select")} />
+                              <SelectValue placeholder={t("planning.calendarDialogs.sessionForm.select")} />
                             </SelectTrigger>
                             <SelectContent>
                               {TARGET_INTENSITIES.map(i => (
@@ -450,10 +450,10 @@ export function SessionBlocksManager({
                           </Select>
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.volume")}</Label>
+                          <Label className="text-xs text-muted-foreground">{t("planning.calendarDialogs.sessionForm.volume")}</Label>
                           <Select value={block.volume || ""} onValueChange={(val) => updateBlock(index, "volume", val || undefined)}>
                             <SelectTrigger className="h-9">
-                              <SelectValue placeholder={t("planning:calendarDialogs.sessionForm.select")} />
+                              <SelectValue placeholder={t("planning.calendarDialogs.sessionForm.select")} />
                             </SelectTrigger>
                             <SelectContent>
                               {VOLUME_OPTIONS.map(v => (
@@ -464,10 +464,10 @@ export function SessionBlocksManager({
                         </div>
                         {isRugby && (
                           <div className="space-y-1">
-                            <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.contactCharge")}</Label>
+                            <Label className="text-xs text-muted-foreground">{t("planning.calendarDialogs.sessionForm.contactCharge")}</Label>
                             <Select value={block.contact_charge || ""} onValueChange={(val) => updateBlock(index, "contact_charge", val || undefined)}>
                               <SelectTrigger className="h-9">
-                                <SelectValue placeholder={t("planning:calendarDialogs.sessionForm.select")} />
+                                <SelectValue placeholder={t("planning.calendarDialogs.sessionForm.select")} />
                               </SelectTrigger>
                               <SelectContent>
                                 {CONTACT_CHARGE_OPTIONS.map(c => (
@@ -481,11 +481,11 @@ export function SessionBlocksManager({
 
                       {/* Notes */}
                       <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.notesOptional")}</Label>
+                        <Label className="text-xs text-muted-foreground">{t("planning.calendarDialogs.sessionForm.notesOptional")}</Label>
                         <Textarea
                           value={block.notes || ""}
                           onChange={(e) => updateBlock(index, "notes", e.target.value || undefined)}
-                          placeholder={t("planning:calendarDialogs.sessionForm.blockNotesPlaceholder")}
+                          placeholder={t("planning.calendarDialogs.sessionForm.blockNotesPlaceholder")}
                           rows={1}
                           className="min-h-[36px] resize-none"
                         />
@@ -509,7 +509,7 @@ export function SessionBlocksManager({
             className="w-full border-dashed"
           >
             <Plus className="h-4 w-4 mr-1" />
-            {t("planning:calendarDialogs.sessionForm.addAnotherBlock")}
+            {t("planning.calendarDialogs.sessionForm.addAnotherBlock")}
           </Button>
 
           {/* Summary */}
@@ -520,7 +520,7 @@ export function SessionBlocksManager({
             return (
               <Card className="bg-muted/30 border-dashed">
                 <CardContent className="p-3">
-                  <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t("planning:calendarDialogs.sessionForm.sessionSummary")}</Label>
+                  <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t("planning.calendarDialogs.sessionForm.sessionSummary")}</Label>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {summary.mainSessionType && (
                       <Badge variant="default" className="text-xs">
@@ -534,28 +534,28 @@ export function SessionBlocksManager({
                     ))}
                     {summary.avgIntensity && (
                       <Badge variant="secondary" className="text-xs">
-                        {t("planning:calendarDialogs.sessionForm.intensityLabel", { value: getIntensityLabel(summary.avgIntensity) })}
+                        {t("planning.calendarDialogs.sessionForm.intensityLabel", { value: getIntensityLabel(summary.avgIntensity) })}
                       </Badge>
                     )}
                     {summary.avgVolume && (
                       <Badge variant="secondary" className="text-xs">
-                        {t("planning:calendarDialogs.sessionForm.volumeLabel", { value: getVolumeLabel(summary.avgVolume) })}
+                        {t("planning.calendarDialogs.sessionForm.volumeLabel", { value: getVolumeLabel(summary.avgVolume) })}
                       </Badge>
                     )}
                     {summary.avgContactCharge && (
                       <Badge variant="secondary" className="text-xs">
-                        {t("planning:calendarDialogs.sessionForm.contactLabel", { value: getContactChargeLabel(summary.avgContactCharge) })}
+                        {t("planning.calendarDialogs.sessionForm.contactLabel", { value: getContactChargeLabel(summary.avgContactCharge) })}
                       </Badge>
                     )}
                     {summary.avgRpeIntensity !== null && (
                       <Badge variant="secondary" className="text-xs">
-                        {t("planning:calendarDialogs.sessionForm.avgRpeLabel", { value: summary.avgRpeIntensity })}
+                        {t("planning.calendarDialogs.sessionForm.avgRpeLabel", { value: summary.avgRpeIntensity })}
                       </Badge>
                     )}
                   </div>
                   {summary.dominantObjectives.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
-                      <span className="text-xs text-muted-foreground">{t("planning:calendarDialogs.sessionForm.fields")}</span>
+                      <span className="text-xs text-muted-foreground">{t("planning.calendarDialogs.sessionForm.fields")}</span>
                       {summary.dominantObjectives.map(obj => (
                         <Badge key={obj} variant="outline" className="text-xs">
                           {getObjectiveLabel(obj)}
