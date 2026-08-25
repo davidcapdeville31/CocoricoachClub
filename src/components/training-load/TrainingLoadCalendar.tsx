@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { useState, useMemo } from "react";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, addWeeks, subWeeks, addMonths, subMonths, isSameDay } from "date-fns";
-import { fr } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -184,8 +184,8 @@ export function TrainingLoadCalendar({ categoryId }: TrainingLoadCalendarProps) 
         </div>
         <p className="text-sm text-muted-foreground">
           {viewMode === "week"
-            ? `${format(dateRange.start, "d MMM", { locale: fr })} - ${format(dateRange.end, "d MMM yyyy", { locale: fr })}`
-            : format(currentDate, "MMMM yyyy", { locale: fr })}
+            ? `${format(dateRange.start, "d MMM", { locale: getDateLocale() })} - ${format(dateRange.end, "d MMM yyyy", { locale: getDateLocale() })}`
+            : format(currentDate, "MMMM yyyy", { locale: getDateLocale() })}
         </p>
       </CardHeader>
       <CardContent>
@@ -256,7 +256,7 @@ export function TrainingLoadCalendar({ categoryId }: TrainingLoadCalendarProps) 
                   {data && (
                     <TooltipContent className="max-w-xs">
                       <div className="space-y-1">
-                        <p className="font-medium">{format(day, "EEEE d MMMM", { locale: fr })}</p>
+                        <p className="font-medium">{format(day, "EEEE d MMMM", { locale: getDateLocale() })}</p>
                         <p className="text-xs">{t("workload.calendar.sessionsCount", { count: data.sessions.length })}</p>
                         {data.summary.sessionTypes.length > 0 && (
                           <p className="text-xs">{t("workload.calendar.tooltip.types", { value: data.summary.sessionTypes.map(getSessionTypeLabel).join(", ") })}</p>

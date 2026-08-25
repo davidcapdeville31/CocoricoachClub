@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useMemo, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +11,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 import { Activity, Trophy, Timer, Target, TrendingUp, TrendingDown, Minus, Wind, Thermometer, Download, FileSpreadsheet } from "lucide-react";
 import { format, parseISO } from "date-fns";
-import { fr } from "date-fns/locale";
 import { getDefaultUnitForDiscipline } from "@/lib/athletics/recordsHelpers";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
@@ -434,12 +434,12 @@ export function AthleticsIndividualStats({ categoryId, matchIds }: AthleticsIndi
           weatherBits.push(`💨 ${p.windDirection}`);
         }
         if (p.temperature != null) weatherBits.push(`🌡️ ${p.temperature}°C`);
-        const dateStr = p.matchDate ? format(parseISO(p.matchDate), "dd/MM", { locale: fr }) : "";
+        const dateStr = p.matchDate ? format(parseISO(p.matchDate), "dd/MM", { locale: getDateLocale() }) : "";
         const xLabel = p.phase ? `${dateStr} • ${p.phase}` : dateStr;
         return {
           name: p.competition,
           date: xLabel,
-          label: `${p.competition}${p.phase ? ` — ${p.phase}` : ""}${p.matchDate ? ` (${format(parseISO(p.matchDate), "dd/MM/yy", { locale: fr })})` : ""}${weatherBits.length ? `\n${weatherBits.join(" · ")}` : ""}`,
+          label: `${p.competition}${p.phase ? ` — ${p.phase}` : ""}${p.matchDate ? ` (${format(parseISO(p.matchDate), "dd/MM/yy", { locale: getDateLocale() })})` : ""}${weatherBits.length ? `\n${weatherBits.join(" · ")}` : ""}`,
           result: p.result,
           ranking: p.ranking,
         };
@@ -457,10 +457,10 @@ export function AthleticsIndividualStats({ categoryId, matchIds }: AthleticsIndi
       .map(([mid, info]) => {
         const ref = byMatch[mid];
         if (!ref) return null;
-        const dateStr = ref.matchDate ? format(parseISO(ref.matchDate), "dd/MM", { locale: fr }) : "";
+        const dateStr = ref.matchDate ? format(parseISO(ref.matchDate), "dd/MM", { locale: getDateLocale() }) : "";
         return {
           date: dateStr,
-          label: `${ref.competition}${info.phase ? ` — ${info.phase}` : ""}${ref.matchDate ? ` (${format(parseISO(ref.matchDate), "dd/MM/yy", { locale: fr })})` : ""}`,
+          label: `${ref.competition}${info.phase ? ` — ${info.phase}` : ""}${ref.matchDate ? ` (${format(parseISO(ref.matchDate), "dd/MM/yy", { locale: getDateLocale() })})` : ""}`,
           ranking: info.ranking,
           phase: info.phase,
           matchDate: ref.matchDate,
@@ -483,7 +483,7 @@ export function AthleticsIndividualStats({ categoryId, matchIds }: AthleticsIndi
         : "—";
 
       const rows = performancePoints.map(p => ({
-        "Date": p.matchDate ? format(parseISO(p.matchDate), "dd/MM/yyyy", { locale: fr }) : "",
+        "Date": p.matchDate ? format(parseISO(p.matchDate), "dd/MM/yyyy", { locale: getDateLocale() }) : "",
         "Compétition": p.competition,
         "Phase / Manche": p.phase || "",
         "Discipline": discLabel,
@@ -574,7 +574,7 @@ export function AthleticsIndividualStats({ categoryId, matchIds }: AthleticsIndi
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
       doc.text(`${discLabel}${activePair.specialty ? ` • ${activePair.specialty}` : ""}`, margin, 18);
-      doc.text(format(new Date(), "dd MMMM yyyy", { locale: fr }), pageWidth - margin, 18, { align: "right" });
+      doc.text(format(new Date(), "dd MMMM yyyy", { locale: getDateLocale() }), pageWidth - margin, 18, { align: "right" });
       y = 30;
       doc.setTextColor(0, 0, 0);
 
@@ -683,7 +683,7 @@ export function AthleticsIndividualStats({ categoryId, matchIds }: AthleticsIndi
           x: innerX + i * xStep,
           y: yScale(Number(p.result)),
           val: Number(p.result),
-          label: p.matchDate ? format(parseISO(p.matchDate), "dd/MM", { locale: fr }) : "",
+          label: p.matchDate ? format(parseISO(p.matchDate), "dd/MM", { locale: getDateLocale() }) : "",
         }));
 
         // Ligne
@@ -775,7 +775,7 @@ export function AthleticsIndividualStats({ categoryId, matchIds }: AthleticsIndi
         }
 
         const cells = [
-          p.matchDate ? format(parseISO(p.matchDate), "dd/MM/yy", { locale: fr }) : "—",
+          p.matchDate ? format(parseISO(p.matchDate), "dd/MM/yy", { locale: getDateLocale() }) : "—",
           p.competition.length > 38 ? p.competition.slice(0, 36) + "…" : p.competition,
           p.phase || "—",
           p.ranking != null ? `${p.ranking}` : "—",
@@ -1058,7 +1058,7 @@ export function AthleticsIndividualStats({ categoryId, matchIds }: AthleticsIndi
                                 className={`${bandClass} ${isFirstOfGroup ? "border-t-2 border-t-border" : ""}`}
                               >
                                 <TableCell className="text-xs text-muted-foreground">
-                                  {p.matchDate ? format(parseISO(p.matchDate), "dd/MM/yy", { locale: fr }) : "—"}
+                                  {p.matchDate ? format(parseISO(p.matchDate), "dd/MM/yy", { locale: getDateLocale() }) : "—"}
                                 </TableCell>
                                 <TableCell className="font-medium">{p.competition}</TableCell>
                                 <TableCell className="text-xs">

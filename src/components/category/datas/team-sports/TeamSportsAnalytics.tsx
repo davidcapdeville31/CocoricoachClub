@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useEffect, useMemo, useState } from "react";
 import { useCategoryMatches, useMultiMatchEvents } from "@/hooks/analytics/useTeamSportsAnalytics";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
@@ -10,7 +11,6 @@ import { BarChart3, Users, GitCompare, ChevronDown, Check, FileSpreadsheet, Down
 import { MatchEventExportChooser } from "@/components/category/matches/MatchEventExportChooser";
 import { useCategoryTeamName } from "@/hooks/analytics/useTeamSportsAnalytics";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { GeneralTab } from "./tabs/GeneralTab";
 import { GeneralAggregateTab } from "./tabs/GeneralAggregateTab";
 import { PlayerStatsTab } from "./tabs/PlayerStatsTab";
@@ -133,7 +133,7 @@ export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
                     {selectedMatches.length === 0
                       ? "Sélectionnez un ou plusieurs matchs"
                       : selectedMatches.length === 1
-                      ? `${format(new Date(selectedMatches[0].match_date), "d MMM yyyy", { locale: fr })} · ${selectedMatches[0].is_home ? "vs" : "@"} ${selectedMatches[0].opponent}`
+                      ? `${format(new Date(selectedMatches[0].match_date), "d MMM yyyy", { locale: getDateLocale() })} · ${selectedMatches[0].is_home ? "vs" : "@"} ${selectedMatches[0].opponent}`
                       : `${selectedMatches.length} matchs sélectionnés (cumul)`}
                   </span>
                   <div className="flex items-center gap-2 shrink-0">
@@ -183,7 +183,7 @@ export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
                         <Checkbox checked={checked} onCheckedChange={() => toggleMatchId(m.id)} />
                         <div className="flex-1 min-w-0">
                           <div className="truncate">
-                            {format(new Date(m.match_date), "d MMM yyyy", { locale: fr })} · {m.is_home ? "vs" : "@"} {m.opponent}
+                            {format(new Date(m.match_date), "d MMM yyyy", { locale: getDateLocale() })} · {m.is_home ? "vs" : "@"} {m.opponent}
                           </div>
                           {m.score_home != null && m.score_away != null && (
                             <div className="text-[11px] text-muted-foreground">

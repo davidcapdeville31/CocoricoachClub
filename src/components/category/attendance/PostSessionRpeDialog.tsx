@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,12 +16,12 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { format, differenceInMinutes, parse } from "date-fns";
-import { fr } from "date-fns/locale";
 import { Activity, Clock, Loader2, Users, ChevronRight, Heart, Target, Plus, Trash2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { IMPLEMENT_LABELS, type ImplementType } from "@/lib/constants/athleticsImplements";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
+import { useTranslation } from "react-i18next";
 
 interface PostSessionRpeDialogProps {
   open: boolean;
@@ -67,6 +68,7 @@ export function PostSessionRpeDialog({
   categoryId,
   presentPlayerIds,
 }: PostSessionRpeDialogProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const guard = useSeasonGuard(categoryId);
   const [entries, setEntries] = useState<Record<string, PlayerRpeEntry>>({});
@@ -192,7 +194,7 @@ export function PostSessionRpeDialog({
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      if (!session) throw new Error("Session manquante");
+      if (!session) throw new Error(t("adminAttendance.rpe.missingSession"));
       if (!guard.assertDate(session.session_date)) throw new Error("guard:date");
 
       const validEntries = Object.values(entries).filter(
@@ -200,7 +202,7 @@ export function PostSessionRpeDialog({
       );
 
       if (validEntries.length === 0) {
-        throw new Error("Aucune entrée valide à enregistrer");
+        throw new Error(t("adminAttendance.rpe.noValidEntry"));
       }
       if (!guard.assertPlayers(validEntries.map((e) => e.playerId))) throw new Error("guard:players");
 
@@ -258,7 +260,7 @@ export function PostSessionRpeDialog({
         const { error: hrvError } = await supabase.from("hrv_records").insert(hrvInserts);
         if (hrvError) {
           console.error("HRV insert error:", hrvError);
-          toast.error("RPE enregistrés mais erreur HRV");
+          toast.error(t("adminAttendance.rpe.hrvSavedButError"));
         }
       }
 
@@ -295,7 +297,7 @@ export function PostSessionRpeDialog({
             .insert(throwInserts);
           if (throwError) {
             console.error("Throwing attempts insert error:", throwError);
-            toast.error("RPE enregistrés mais erreur lancers");
+            toast.error(t("adminAttendance.rpe.throwsSavedButError"));
           }
         }
       }
@@ -316,7 +318,7 @@ export function PostSessionRpeDialog({
       if (showHrv) {
         queryClient.invalidateQueries({ queryKey: ["hrv_records"] });
       }
-      toast.success(`${count} entrées RPE enregistrées`);
+      toast.success(t("adminAttendance.rpe.entriesSaved", { count }));
       setShowHrv(false);
       setHrvMs(""); setRestingHr(""); setAvgHr(""); setMaxHr("");
       setShowZones(false);
@@ -327,7 +329,7 @@ export function PostSessionRpeDialog({
     },
     onError: (error: Error) => {
       if (typeof error?.message === "string" && error.message.startsWith("guard:")) return;
-      toast.error(error.message || "Erreur lors de l'enregistrement");
+      toast.error(error.message || t("adminAttendance.rpe.saveError"));
     },
   });
 
@@ -419,12 +421,12 @@ export function PostSessionRpeDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-primary" />
-            Saisie RPE post-séance
+            {t("adminAttendance.rpe.title")}
           </DialogTitle>
           <div className="flex items-center gap-2 text-sm text-muted-foreground pt-1">
             <Badge variant="outline">{session.training_type}</Badge>
             <span>•</span>
-            <span>{format(new Date(session.session_date), "EEEE d MMMM", { locale: fr })}</span>
+            <span>{format(new Date(session.session_date), "EEEE d MMMM", { locale: getDateLocale() })}</span>
             {session.session_start_time && (
               <>
                 <span>•</span>
@@ -438,7 +440,7 @@ export function PostSessionRpeDialog({
         <div className="space-y-4 flex-1 overflow-hidden flex flex-col">
           {/* Quick RPE buttons */}
           <div className="p-3 bg-muted/50 rounded-lg">
-            <Label className="text-sm font-medium mb-2 block">Appliquer à tous :</Label>
+            <Label className="text-sm font-medium mb-2 block">{t("adminAttendance.rpe.applyToAll")}</Label>
             <div className="flex flex-wrap gap-1">
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((rpe) => (
                 <Button
@@ -462,7 +464,7 @@ export function PostSessionRpeDialog({
 
           {/* Duration setting */}
           <div className="flex items-center gap-4">
-            <Label className="text-sm whitespace-nowrap">Durée (min) :</Label>
+            <Label className="text-sm whitespace-nowrap">{t("adminAttendance.rpe.duration")}</Label>
             <Input
               type="number"
               min="1"
@@ -482,7 +484,7 @@ export function PostSessionRpeDialog({
             />
             <Badge variant="secondary" className="ml-auto">
               <Users className="h-3 w-3 mr-1" />
-              {validCount}/{totalPlayers} joueurs
+              {t("adminAttendance.rpe.playersCount", { valid: validCount, total: totalPlayers })}
             </Badge>
           </div>
 
@@ -520,7 +522,7 @@ export function PostSessionRpeDialog({
                             type="number"
                             min="0"
                             max="10"
-                            placeholder="RPE"
+                            placeholder={t("adminAttendance.rpe.rpePlaceholder")}
                             className="w-16 h-8"
                             value={entry.rpe}
                             onChange={(e) => handleEntryChange(player.id, "rpe", e.target.value)}
@@ -531,14 +533,14 @@ export function PostSessionRpeDialog({
                           <Input
                             type="number"
                             min="1"
-                            placeholder="min"
+                            placeholder={t("adminAttendance.rpe.minPlaceholder")}
                             className="w-20 h-8"
                             value={entry.duration}
                             onChange={(e) => handleEntryChange(player.id, "duration", e.target.value)}
                           />
                         </div>
                         {load !== null && (
-                          <Badge variant="outline">Charge: {load}</Badge>
+                          <Badge variant="outline">{t("adminAttendance.rpe.load", { load })}</Badge>
                         )}
                         {hasThrowingBlocks && (
                           <Button
@@ -551,7 +553,7 @@ export function PostSessionRpeDialog({
                             }
                           >
                             <Target className="h-3.5 w-3.5" />
-                            Lancers
+                            {t("adminAttendance.rpe.throws")}
                             {throwsCount > 0 && (
                               <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">
                                 {throwsCount}
@@ -583,12 +585,12 @@ export function PostSessionRpeDialog({
                                   className="h-7 text-xs"
                                   onClick={() => addAttempt(player.id, block.id)}
                                 >
-                                  <Plus className="h-3 w-3 mr-1" /> Essai
+                                  <Plus className="h-3 w-3 mr-1" /> {t("adminAttendance.rpe.attempt")}
                                 </Button>
                               </div>
                               {attempts.length === 0 ? (
                                 <p className="text-[11px] text-muted-foreground italic pl-5">
-                                  Aucun essai. Cliquez sur "Essai" pour en ajouter.
+                                  {t("adminAttendance.rpe.noAttempt")}
                                 </p>
                               ) : (
                                 <div className="space-y-1.5">
@@ -623,7 +625,7 @@ export function PostSessionRpeDialog({
                                           }
                                         />
                                         <span className={cn(!a.isValid && "text-rose-600")}>
-                                          {a.isValid ? "Valide" : "Mordu/nul"}
+                                          {a.isValid ? t("adminAttendance.rpe.valid") : t("adminAttendance.rpe.invalid")}
                                         </span>
                                       </label>
                                       <Button
@@ -662,7 +664,7 @@ export function PostSessionRpeDialog({
               />
               <Label htmlFor="show-hrv" className="text-sm flex items-center gap-1.5 cursor-pointer">
                 <Heart className="h-3.5 w-3.5 text-rose-500" />
-                Ajouter données HRV / cardio (optionnel)
+                {t("adminAttendance.rpe.addHrv")}
               </Label>
             </div>
 
@@ -670,20 +672,20 @@ export function PostSessionRpeDialog({
               <div className="space-y-3 pt-1">
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <div>
-                    <Label className="text-xs">HRV (ms)</Label>
-                    <Input type="number" min="0" className="h-8 mt-1" value={hrvMs} onChange={(e) => setHrvMs(e.target.value)} placeholder="ex: 65" />
+                    <Label className="text-xs">{t("adminAttendance.rpe.hrvMs")}</Label>
+                    <Input type="number" min="0" className="h-8 mt-1" value={hrvMs} onChange={(e) => setHrvMs(e.target.value)} placeholder={t("adminAttendance.rpe.hrvPlaceholder")} />
                   </div>
                   <div>
-                    <Label className="text-xs">FC repos</Label>
-                    <Input type="number" min="0" className="h-8 mt-1" value={restingHr} onChange={(e) => setRestingHr(e.target.value)} placeholder="bpm" />
+                    <Label className="text-xs">{t("adminAttendance.rpe.restingHr")}</Label>
+                    <Input type="number" min="0" className="h-8 mt-1" value={restingHr} onChange={(e) => setRestingHr(e.target.value)} placeholder={t("adminAttendance.rpe.bpmPlaceholder")} />
                   </div>
                   <div>
-                    <Label className="text-xs">FC moy</Label>
-                    <Input type="number" min="0" className="h-8 mt-1" value={avgHr} onChange={(e) => setAvgHr(e.target.value)} placeholder="bpm" />
+                    <Label className="text-xs">{t("adminAttendance.rpe.avgHr")}</Label>
+                    <Input type="number" min="0" className="h-8 mt-1" value={avgHr} onChange={(e) => setAvgHr(e.target.value)} placeholder={t("adminAttendance.rpe.bpmPlaceholder")} />
                   </div>
                   <div>
-                    <Label className="text-xs">FC max</Label>
-                    <Input type="number" min="0" className="h-8 mt-1" value={maxHr} onChange={(e) => setMaxHr(e.target.value)} placeholder="bpm" />
+                    <Label className="text-xs">{t("adminAttendance.rpe.maxHr")}</Label>
+                    <Input type="number" min="0" className="h-8 mt-1" value={maxHr} onChange={(e) => setMaxHr(e.target.value)} placeholder={t("adminAttendance.rpe.bpmPlaceholder")} />
                   </div>
                 </div>
 
@@ -694,7 +696,7 @@ export function PostSessionRpeDialog({
                     onCheckedChange={(c) => setShowZones(!!c)}
                   />
                   <Label htmlFor="show-zones" className="text-xs cursor-pointer">
-                    Ajouter le temps par zone cardiaque
+                    {t("adminAttendance.rpe.addZones")}
                   </Label>
                 </div>
 
@@ -702,11 +704,11 @@ export function PostSessionRpeDialog({
                   <div className="space-y-2">
                     <div className="grid grid-cols-5 gap-2">
                       {[
-                        { label: "Z1 Récup", color: "border-sky-400", value: zone1, set: setZone1 },
-                        { label: "Z2 Aéro", color: "border-emerald-400", value: zone2, set: setZone2 },
-                        { label: "Z3 Tempo", color: "border-amber-400", value: zone3, set: setZone3 },
-                        { label: "Z4 Seuil", color: "border-orange-400", value: zone4, set: setZone4 },
-                        { label: "Z5 VO2", color: "border-rose-400", value: zone5, set: setZone5 },
+                        { label: t("adminAttendance.rpe.zoneRecovery"), color: "border-sky-400", value: zone1, set: setZone1 },
+                        { label: t("adminAttendance.rpe.zoneAerobic"), color: "border-emerald-400", value: zone2, set: setZone2 },
+                        { label: t("adminAttendance.rpe.zoneTempo"), color: "border-amber-400", value: zone3, set: setZone3 },
+                        { label: t("adminAttendance.rpe.zoneThreshold"), color: "border-orange-400", value: zone4, set: setZone4 },
+                        { label: t("adminAttendance.rpe.zoneVo2"), color: "border-rose-400", value: zone5, set: setZone5 },
                       ].map((z) => (
                         <div key={z.label}>
                           <Label className="text-[10px] block mb-1">{z.label}</Label>
@@ -716,14 +718,14 @@ export function PostSessionRpeDialog({
                             className={cn("h-7 text-xs border-l-2", z.color)}
                             value={z.value}
                             onChange={(e) => z.set(e.target.value)}
-                            placeholder="min"
+                            placeholder={t("adminAttendance.rpe.minPlaceholder")}
                           />
                         </div>
                       ))}
                     </div>
                     {(zone1 || zone2 || zone3 || zone4 || zone5) && (
                       <p className="text-[10px] text-muted-foreground text-right">
-                        Total: {[zone1, zone2, zone3, zone4, zone5].reduce((s, v) => s + (parseFloat(v) || 0), 0)} min
+                        {t("adminAttendance.rpe.zoneTotal", { total: [zone1, zone2, zone3, zone4, zone5].reduce((s, v) => s + (parseFloat(v) || 0), 0) })}
                       </p>
                     )}
                   </div>
@@ -734,13 +736,13 @@ export function PostSessionRpeDialog({
 
           {/* RPE scale reference */}
           <div className="p-2 bg-muted/30 rounded-lg text-xs text-muted-foreground">
-            <strong>Échelle RPE:</strong> 1-2 Très léger | 3-4 Léger | 5-6 Modéré | 7-8 Difficile | 9-10 Maximal
+            <strong>{t("adminAttendance.rpe.rpeScale")}</strong> {t("adminAttendance.rpe.rpeScaleValues")}
           </div>
         </div>
 
         <DialogFooter className="pt-4 border-t">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Passer
+            {t("adminAttendance.rpe.skip")}
           </Button>
           <Button
             onClick={() => saveMutation.mutate()}
@@ -749,11 +751,11 @@ export function PostSessionRpeDialog({
             {saveMutation.isPending ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Enregistrement...
+                {t("adminAttendance.rpe.saving")}
               </>
             ) : (
               <>
-                Enregistrer {validCount} RPE
+                {t("adminAttendance.rpe.save", { count: validCount })}
                 <ChevronRight className="h-4 w-4 ml-1" />
               </>
             )}

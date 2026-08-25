@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useOfflineSyncContext } from "@/contexts/OfflineSyncContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,7 +17,6 @@ import {
   Download
 } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 export function OfflineSyncPanel() {
   const {
@@ -110,7 +110,7 @@ export function OfflineSyncPanel() {
 
           {hasOfflineData && lastDataSync && (
             <p className="text-xs text-muted-foreground">
-              Dernière sync: {format(lastDataSync, "dd MMM yyyy à HH:mm", { locale: fr })}
+              Dernière sync: {format(lastDataSync, "dd MMM yyyy à HH:mm", { locale: getDateLocale() })}
             </p>
           )}
 

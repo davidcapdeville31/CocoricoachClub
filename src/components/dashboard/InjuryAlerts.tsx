@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,7 +6,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, TrendingUp } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface InjuryAlertsProps {
   categoryIds: string[];
@@ -132,7 +132,7 @@ export function InjuryAlerts({ categoryIds }: InjuryAlertsProps) {
                         Blessure: {alert.injury}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {format(new Date(alert.date), "dd MMMM yyyy", { locale: fr })}
+                        {format(new Date(alert.date), "dd MMMM yyyy", { locale: getDateLocale() })}
                       </p>
                     </>
                   ) : (
@@ -146,7 +146,7 @@ export function InjuryAlerts({ categoryIds }: InjuryAlertsProps) {
                         Risque de blessure élevé - Réduire la charge
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {format(new Date(alert.date), "dd MMMM yyyy", { locale: fr })}
+                        {format(new Date(alert.date), "dd MMMM yyyy", { locale: getDateLocale() })}
                       </p>
                     </>
                   )}

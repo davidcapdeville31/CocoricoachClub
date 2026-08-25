@@ -1,9 +1,9 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { WifiOff, Cloud, RefreshCw, Loader2, Database, CheckCircle, UserCircle } from "lucide-react";
 import { useOfflineSyncContext } from "@/contexts/OfflineSyncContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 const OfflineIndicator = () => {
   const { 
@@ -90,7 +90,7 @@ const OfflineIndicator = () => {
         <div className="fixed top-0 left-0 right-0 z-[100] bg-green-500 text-white py-2 px-4 flex items-center justify-center gap-2 text-sm font-medium animate-in slide-in-from-top-2">
           <CheckCircle className="w-4 h-4" />
           <span>
-            Données hors-ligne prêtes - Dernière sync: {format(lastDataSync, "HH:mm", { locale: fr })}
+            Données hors-ligne prêtes - Dernière sync: {format(lastDataSync, "HH:mm", { locale: getDateLocale() })}
           </span>
         </div>
       );

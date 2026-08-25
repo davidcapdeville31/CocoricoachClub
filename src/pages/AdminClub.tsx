@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
  import { useState } from "react";
  import { useParams, useNavigate } from "react-router-dom";
  import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -30,8 +31,7 @@
    Building2
  } from "lucide-react";
  import { format, startOfWeek, endOfWeek } from "date-fns";
- import { fr } from "date-fns/locale";
- import { cn } from "@/lib/utils";
+  import { cn } from "@/lib/utils";
  import { AddCategoryDialog } from "@/components/categories/AddCategoryDialog";
  import { InviteMemberDialog } from "@/components/collaboration/InviteMemberDialog";
 import { TutorialVideosSection } from "@/components/category/settings/TutorialVideosSection";

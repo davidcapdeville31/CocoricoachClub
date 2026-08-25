@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,7 +25,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { PlayerObjectivesSection } from "./PlayerObjectivesSection";
 import { useTranslation } from "react-i18next";
 
@@ -373,7 +373,7 @@ export function SeasonObjectivesSection({ categoryId }: SeasonObjectivesSectionP
                       </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {format(new Date(milestone.milestone_date), "d MMMM yyyy", { locale: fr })}
+                      {format(new Date(milestone.milestone_date), "d MMMM yyyy", { locale: getDateLocale() })}
                     </p>
                     {milestone.description && (
                       <p className="text-xs text-muted-foreground mt-1">{milestone.description}</p>

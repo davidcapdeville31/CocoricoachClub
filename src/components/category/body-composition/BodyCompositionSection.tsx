@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +9,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Scale, Trash2 } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { AddBodyCompositionDialog } from "./AddBodyCompositionDialog";
 
@@ -106,7 +106,7 @@ export function BodyCompositionSection({ categoryId }: BodyCompositionSectionPro
                 {compositions?.map((comp) => (
                   <TableRow key={comp.id}>
                     <TableCell className="font-medium">{comp.players?.name}</TableCell>
-                    <TableCell>{format(new Date(comp.measurement_date), "dd MMM yyyy", { locale: fr })}</TableCell>
+                    <TableCell>{format(new Date(comp.measurement_date), "dd MMM yyyy", { locale: getDateLocale() })}</TableCell>
                     <TableCell className="text-right">{comp.weight_kg?.toFixed(1) || "-"}</TableCell>
                     <TableCell className="text-right">{comp.height_cm?.toFixed(0) || "-"}</TableCell>
                     <TableCell className="text-right">

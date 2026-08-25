@@ -1,10 +1,10 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Award, Trophy, Calendar, MapPin, Users } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface PlayerMedalsSectionProps {
   playerId: string;
@@ -149,7 +149,7 @@ export function PlayerMedalsSection({ playerId }: PlayerMedalsSectionProps) {
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
                         {format(new Date(m.awarded_date), "d MMMM yyyy", {
-                          locale: fr,
+                          locale: getDateLocale(),
                         })}
                       </span>
                       {match?.location && (

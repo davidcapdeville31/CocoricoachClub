@@ -1,3 +1,4 @@
+import { getLocaleTag } from "@/lib/i18n/dateLocale";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -3152,7 +3153,7 @@ export function CompetitionRoundsDialog({
             ) : lastSavedAt ? (
               <span className="inline-flex items-center gap-1.5 text-green-600 dark:text-green-400 font-medium">
                 <CheckCircle className="h-4 w-4" />
-                Sauvegardé à {lastSavedAt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                Sauvegardé à {lastSavedAt.toLocaleTimeString(getLocaleTag(), { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
               </span>
             ) : null}
           </div>

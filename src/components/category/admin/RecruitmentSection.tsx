@@ -1,4 +1,6 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,7 +15,6 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Search, User, Phone, Mail, MapPin, Calendar, Trash2, Pencil } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import {
   DndContext,
   DragOverlay,
@@ -58,14 +59,17 @@ const STATUS_COLORS: Record<string, string> = {
   rejected: "bg-red-100 text-red-700",
 };
 
-const STATUS_LABELS: Record<string, string> = {
-  contacted: "Contacté",
-  interested: "Intéressé",
-  evaluation: "En évaluation",
-  negotiation: "Négociation",
-  signed: "Signé",
-  rejected: "Refusé",
-};
+function useStatusLabels(): Record<string, string> {
+  const { t } = useTranslation();
+  return {
+    contacted: t("adminRecruitDocs.recruitment.statusLabels.contacted"),
+    interested: t("adminRecruitDocs.recruitment.statusLabels.interested"),
+    evaluation: t("adminRecruitDocs.recruitment.statusLabels.evaluation"),
+    negotiation: t("adminRecruitDocs.recruitment.statusLabels.negotiation"),
+    signed: t("adminRecruitDocs.recruitment.statusLabels.signed"),
+    rejected: t("adminRecruitDocs.recruitment.statusLabels.rejected"),
+  };
+}
 
 const PIPELINE_STATUSES = ["contacted", "interested", "evaluation", "negotiation", "signed"];
 
@@ -131,6 +135,8 @@ function DraggableProspectCard({ prospect, onClick }: { prospect: Prospect; onCl
 }
 
 export function RecruitmentSection({ categoryId }: RecruitmentSectionProps) {
+  const { t } = useTranslation();
+  const STATUS_LABELS = useStatusLabels();
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -196,10 +202,10 @@ export function RecruitmentSection({ categoryId }: RecruitmentSectionProps) {
       queryClient.invalidateQueries({ queryKey: ["prospects", categoryId] });
       setShowAddDialog(false);
       resetForm();
-      toast({ title: "Prospect ajouté", description: "Le prospect a été ajouté au pipeline" });
+      toast({ title: t("adminRecruitDocs.recruitment.toasts.prospectAdded"), description: t("adminRecruitDocs.recruitment.toasts.prospectAddedDesc") });
     },
     onError: (error: any) => {
-      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      toast({ title: t("adminRecruitDocs.recruitment.toasts.error"), description: error.message, variant: "destructive" });
     },
   });
 
@@ -213,7 +219,7 @@ export function RecruitmentSection({ categoryId }: RecruitmentSectionProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["prospects", categoryId] });
-      toast({ title: "Statut mis à jour" });
+      toast({ title: t("adminRecruitDocs.recruitment.toasts.statusUpdated") });
     },
   });
 
@@ -238,10 +244,10 @@ export function RecruitmentSection({ categoryId }: RecruitmentSectionProps) {
       queryClient.invalidateQueries({ queryKey: ["prospects", categoryId] });
       setIsEditing(false);
       setSelectedProspect(null);
-      toast({ title: "Prospect mis à jour" });
+      toast({ title: t("adminRecruitDocs.recruitment.toasts.prospectUpdated") });
     },
     onError: (error: any) => {
-      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      toast({ title: t("adminRecruitDocs.recruitment.toasts.error"), description: error.message, variant: "destructive" });
     },
   });
 
@@ -253,7 +259,7 @@ export function RecruitmentSection({ categoryId }: RecruitmentSectionProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["prospects", categoryId] });
       setSelectedProspect(null);
-      toast({ title: "Prospect supprimé" });
+      toast({ title: t("adminRecruitDocs.recruitment.toasts.prospectDeleted") });
     },
   });
 
@@ -323,7 +329,7 @@ export function RecruitmentSection({ categoryId }: RecruitmentSectionProps) {
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Rechercher un prospect..."
+              placeholder={t("adminRecruitDocs.recruitment.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -331,10 +337,10 @@ export function RecruitmentSection({ categoryId }: RecruitmentSectionProps) {
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Statut" />
+              <SelectValue placeholder={t("adminRecruitDocs.recruitment.statusPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tous</SelectItem>
+              <SelectItem value="all">{t("adminRecruitDocs.recruitment.all")}</SelectItem>
               {Object.entries(STATUS_LABELS).map(([value, label]) => (
                 <SelectItem key={value} value={value}>{label}</SelectItem>
               ))}
@@ -346,41 +352,41 @@ export function RecruitmentSection({ categoryId }: RecruitmentSectionProps) {
           <DialogTrigger asChild>
             <Button size="sm">
               <Plus className="h-4 w-4 mr-2" />
-              Ajouter un prospect
+              {t("adminRecruitDocs.recruitment.addProspect")}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Nouveau Prospect</DialogTitle>
+              <DialogTitle>{t("adminRecruitDocs.recruitment.newProspect")}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
-                  <Label>Nom complet *</Label>
+                  <Label>{t("adminRecruitDocs.recruitment.fullName")}</Label>
                   <Input
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Nom du joueur"
+                    placeholder={t("adminRecruitDocs.recruitment.namePlaceholder")}
                   />
                 </div>
                 <div>
-                  <Label>Poste</Label>
+                  <Label>{t("adminRecruitDocs.recruitment.position")}</Label>
                   <Input
                     value={formData.position}
                     onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                    placeholder="ex: Ailier"
+                    placeholder={t("adminRecruitDocs.recruitment.positionPlaceholder")}
                   />
                 </div>
                 <div>
-                  <Label>Club actuel</Label>
+                  <Label>{t("adminRecruitDocs.recruitment.currentClub")}</Label>
                   <Input
                     value={formData.current_club}
                     onChange={(e) => setFormData({ ...formData, current_club: e.target.value })}
-                    placeholder="ex: FC Lyon"
+                    placeholder={t("adminRecruitDocs.recruitment.currentClubPlaceholder")}
                   />
                 </div>
                 <div>
-                  <Label>Date de naissance</Label>
+                  <Label>{t("adminRecruitDocs.recruitment.birthDate")}</Label>
                   <Input
                     type="date"
                     value={formData.birth_date}
@@ -388,43 +394,43 @@ export function RecruitmentSection({ categoryId }: RecruitmentSectionProps) {
                   />
                 </div>
                 <div>
-                  <Label>Ville</Label>
+                  <Label>{t("adminRecruitDocs.recruitment.city")}</Label>
                   <Input
                     value={formData.city}
                     onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    placeholder="ex: Lyon"
+                    placeholder={t("adminRecruitDocs.recruitment.cityPlaceholder")}
                   />
                 </div>
                 <div>
-                  <Label>Téléphone</Label>
+                  <Label>{t("adminRecruitDocs.recruitment.phone")}</Label>
                   <Input
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="+33..."
+                    placeholder={t("adminRecruitDocs.recruitment.phonePlaceholder")}
                   />
                 </div>
                 <div>
-                  <Label>Email</Label>
+                  <Label>{t("adminRecruitDocs.recruitment.email")}</Label>
                   <Input
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="email@example.com"
+                    placeholder={t("adminRecruitDocs.recruitment.emailPlaceholder")}
                   />
                 </div>
                 <div>
-                  <Label>Source</Label>
+                  <Label>{t("adminRecruitDocs.recruitment.source")}</Label>
                   <Input
                     value={formData.source}
                     onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-                    placeholder="ex: Recommandation, Match..."
+                    placeholder={t("adminRecruitDocs.recruitment.sourcePlaceholder")}
                   />
                 </div>
                 <div>
-                  <Label>Note (1-5)</Label>
+                  <Label>{t("adminRecruitDocs.recruitment.rating")}</Label>
                   <Select value={formData.rating} onValueChange={(v) => setFormData({ ...formData, rating: v })}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Note" />
+                      <SelectValue placeholder={t("adminRecruitDocs.recruitment.ratingPlaceholder")} />
                     </SelectTrigger>
                     <SelectContent>
                       {[1, 2, 3, 4, 5].map((n) => (
@@ -436,7 +442,7 @@ export function RecruitmentSection({ categoryId }: RecruitmentSectionProps) {
                   </Select>
                 </div>
                 <div>
-                  <Label>Statut initial</Label>
+                  <Label>{t("adminRecruitDocs.recruitment.initialStatus")}</Label>
                   <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
                     <SelectTrigger>
                       <SelectValue />
@@ -450,11 +456,11 @@ export function RecruitmentSection({ categoryId }: RecruitmentSectionProps) {
                 </div>
               </div>
               <div>
-                <Label>Notes / Observations</Label>
+                <Label>{t("adminRecruitDocs.recruitment.notesObservations")}</Label>
                 <Textarea
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  placeholder="Observations, points forts, points à améliorer..."
+                  placeholder={t("adminRecruitDocs.recruitment.notesPlaceholder")}
                   rows={3}
                 />
               </div>
@@ -463,7 +469,7 @@ export function RecruitmentSection({ categoryId }: RecruitmentSectionProps) {
                 disabled={!formData.name || addProspectMutation.isPending}
                 className="w-full"
               >
-                Ajouter le prospect
+                {t("adminRecruitDocs.recruitment.addProspectButton")}
               </Button>
             </div>
           </DialogContent>
@@ -498,7 +504,7 @@ export function RecruitmentSection({ categoryId }: RecruitmentSectionProps) {
                 ))}
                 {getProspectsByStatus(status).length === 0 && (
                   <div className="text-center text-muted-foreground text-[10px] py-6">
-                    Aucun prospect
+                    {t("adminRecruitDocs.recruitment.noProspect")}
                   </div>
                 )}
               </DroppableColumn>
@@ -526,7 +532,7 @@ export function RecruitmentSection({ categoryId }: RecruitmentSectionProps) {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <User className="h-5 w-5" />
-              {isEditing ? "Modifier le prospect" : selectedProspect?.name}
+              {isEditing ? t("adminRecruitDocs.recruitment.modifyProspect") : selectedProspect?.name}
             </DialogTitle>
           </DialogHeader>
           {selectedProspect && !isEditing && (
@@ -545,21 +551,21 @@ export function RecruitmentSection({ categoryId }: RecruitmentSectionProps) {
               <div className="grid grid-cols-2 gap-3 text-sm">
                 {selectedProspect.position && (
                   <div>
-                    <span className="text-muted-foreground">Poste:</span>
+                    <span className="text-muted-foreground">{t("adminRecruitDocs.recruitment.poste")}</span>
                     <p className="font-medium">{selectedProspect.position}</p>
                   </div>
                 )}
                 {selectedProspect.current_club && (
                   <div>
-                    <span className="text-muted-foreground">Club:</span>
+                    <span className="text-muted-foreground">{t("adminRecruitDocs.recruitment.club")}</span>
                     <p className="font-medium">{selectedProspect.current_club}</p>
                   </div>
                 )}
                 {selectedProspect.birth_date && (
                   <div>
-                    <span className="text-muted-foreground">Né le:</span>
+                    <span className="text-muted-foreground">{t("adminRecruitDocs.recruitment.bornOn")}</span>
                     <p className="font-medium">
-                      {format(new Date(selectedProspect.birth_date), "d MMMM yyyy", { locale: fr })}
+                      {format(new Date(selectedProspect.birth_date), "d MMMM yyyy", { locale: getDateLocale() })}
                     </p>
                   </div>
                 )}
@@ -589,27 +595,27 @@ export function RecruitmentSection({ categoryId }: RecruitmentSectionProps) {
 
               {selectedProspect.notes && (
                 <div>
-                  <Label className="text-muted-foreground">Notes</Label>
+                  <Label className="text-muted-foreground">{t("adminRecruitDocs.documents.notes")}</Label>
                   <p className="text-sm mt-1 whitespace-pre-wrap">{selectedProspect.notes}</p>
                 </div>
               )}
 
               {selectedProspect.source && (
                 <div className="text-xs text-muted-foreground">
-                  Source: {selectedProspect.source}
+                  {t("adminRecruitDocs.recruitment.source_", { source: selectedProspect.source })}
                 </div>
               )}
 
               {selectedProspect.last_contact && (
                 <div className="text-xs text-muted-foreground flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
-                  Dernier contact: {format(new Date(selectedProspect.last_contact), "d MMM yyyy", { locale: fr })}
+                  {t("adminRecruitDocs.recruitment.lastContact", { date: format(new Date(selectedProspect.last_contact), "d MMM yyyy", { locale: getDateLocale() }) })}
                 </div>
               )}
 
               {/* Actions rapides */}
               <div className="flex flex-wrap gap-2">
-                <Label className="w-full text-muted-foreground">Changer le statut:</Label>
+                <Label className="w-full text-muted-foreground">{t("adminRecruitDocs.recruitment.changeStatus")}</Label>
                 {Object.entries(STATUS_LABELS)
                   .filter(([key]) => key !== selectedProspect.status)
                   .map(([key, label]) => (
@@ -635,7 +641,7 @@ export function RecruitmentSection({ categoryId }: RecruitmentSectionProps) {
                   onClick={() => startEditing(selectedProspect)}
                 >
                   <Pencil className="h-4 w-4 mr-1" />
-                  Modifier
+                  {t("adminRecruitDocs.recruitment.modify")}
                 </Button>
                 <Button
                   variant="destructive"
@@ -643,7 +649,7 @@ export function RecruitmentSection({ categoryId }: RecruitmentSectionProps) {
                   onClick={() => deleteProspectMutation.mutate(selectedProspect.id)}
                 >
                   <Trash2 className="h-4 w-4 mr-1" />
-                  Supprimer
+                  {t("adminRecruitDocs.recruitment.delete")}
                 </Button>
               </div>
             </div>
@@ -652,41 +658,41 @@ export function RecruitmentSection({ categoryId }: RecruitmentSectionProps) {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
-                  <Label>Nom complet *</Label>
+                  <Label>{t("adminRecruitDocs.recruitment.fullName")}</Label>
                   <Input value={editData.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} />
                 </div>
                 <div>
-                  <Label>Poste</Label>
+                  <Label>{t("adminRecruitDocs.recruitment.position")}</Label>
                   <Input value={editData.position} onChange={(e) => setEditData({ ...editData, position: e.target.value })} />
                 </div>
                 <div>
-                  <Label>Club actuel</Label>
+                  <Label>{t("adminRecruitDocs.recruitment.currentClub")}</Label>
                   <Input value={editData.current_club} onChange={(e) => setEditData({ ...editData, current_club: e.target.value })} />
                 </div>
                 <div>
-                  <Label>Date de naissance</Label>
+                  <Label>{t("adminRecruitDocs.recruitment.birthDate")}</Label>
                   <Input type="date" value={editData.birth_date} onChange={(e) => setEditData({ ...editData, birth_date: e.target.value })} />
                 </div>
                 <div>
-                  <Label>Ville</Label>
+                  <Label>{t("adminRecruitDocs.recruitment.city")}</Label>
                   <Input value={editData.city} onChange={(e) => setEditData({ ...editData, city: e.target.value })} />
                 </div>
                 <div>
-                  <Label>Téléphone</Label>
+                  <Label>{t("adminRecruitDocs.recruitment.phone")}</Label>
                   <Input value={editData.phone} onChange={(e) => setEditData({ ...editData, phone: e.target.value })} />
                 </div>
                 <div>
-                  <Label>Email</Label>
+                  <Label>{t("adminRecruitDocs.recruitment.email")}</Label>
                   <Input type="email" value={editData.email} onChange={(e) => setEditData({ ...editData, email: e.target.value })} />
                 </div>
                 <div>
-                  <Label>Source</Label>
+                  <Label>{t("adminRecruitDocs.recruitment.source")}</Label>
                   <Input value={editData.source} onChange={(e) => setEditData({ ...editData, source: e.target.value })} />
                 </div>
                 <div>
-                  <Label>Note (1-5)</Label>
+                  <Label>{t("adminRecruitDocs.recruitment.rating")}</Label>
                   <Select value={editData.rating} onValueChange={(v) => setEditData({ ...editData, rating: v })}>
-                    <SelectTrigger><SelectValue placeholder="Note" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder={t("adminRecruitDocs.recruitment.ratingPlaceholder")} /></SelectTrigger>
                     <SelectContent>
                       {[1, 2, 3, 4, 5].map((n) => (
                         <SelectItem key={n} value={String(n)}>{"★".repeat(n)}{"☆".repeat(5 - n)}</SelectItem>
@@ -695,7 +701,7 @@ export function RecruitmentSection({ categoryId }: RecruitmentSectionProps) {
                   </Select>
                 </div>
                 <div>
-                  <Label>Statut</Label>
+                  <Label>{t("adminRecruitDocs.recruitment.initialStatus")}</Label>
                   <Select value={editData.status} onValueChange={(v) => setEditData({ ...editData, status: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -707,17 +713,17 @@ export function RecruitmentSection({ categoryId }: RecruitmentSectionProps) {
                 </div>
               </div>
               <div>
-                <Label>Notes / Observations</Label>
+                <Label>{t("adminRecruitDocs.recruitment.notesObservations")}</Label>
                 <Textarea value={editData.notes} onChange={(e) => setEditData({ ...editData, notes: e.target.value })} rows={3} />
               </div>
               <div className="flex justify-end gap-2 pt-4 border-t">
-                <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>Annuler</Button>
+                <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>{t("adminRecruitDocs.recruitment.cancel")}</Button>
                 <Button
                   size="sm"
                   disabled={!editData.name || updateProspectMutation.isPending}
                   onClick={() => updateProspectMutation.mutate({ id: selectedProspect.id, data: editData })}
                 >
-                  Enregistrer
+                  {t("adminRecruitDocs.recruitment.save")}
                 </Button>
               </div>
             </div>

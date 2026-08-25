@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,7 +25,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { format, addWeeks, isBefore, startOfDay } from "date-fns";
-import { fr } from "date-fns/locale";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { Badge } from "@/components/ui/badge";
 import { SessionFormDialog } from "@/components/category/sessions/SessionFormDialog";
@@ -521,7 +521,7 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
                       </CardTitle>
                       <CardDescription>
                         Début: {reminder.start_date 
-                          ? format(new Date(reminder.start_date), "dd MMMM yyyy", { locale: fr })
+                          ? format(new Date(reminder.start_date), "dd MMMM yyyy", { locale: getDateLocale() })
                           : "Non défini"} • Tous les {reminder.frequency_weeks} semaines
                         {(reminder.session_start_time || reminder.session_end_time) && (
                           <> • {reminder.session_start_time?.slice(0,5) || "—"}
@@ -587,7 +587,7 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
                         <Calendar className="h-4 w-4" />
                         <span>
                           Dernière notification:{" "}
-                          {format(new Date(reminder.last_notification_date), "dd MMMM yyyy", { locale: fr })}
+                          {format(new Date(reminder.last_notification_date), "dd MMMM yyyy", { locale: getDateLocale() })}
                         </span>
                       </div>
                     )}

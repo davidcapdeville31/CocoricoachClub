@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useMemo, useState } from "react";
 import { AthleteSpaceRpeHistory } from "./AthleteSpaceRpeHistory";
 import { useTranslation } from "react-i18next";
@@ -15,7 +16,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Activity, CheckCircle2, Clock, Calendar, Lock, Target, Heart, Dumbbell, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import { format, parseISO, addDays } from "date-fns";
-import { fr } from "date-fns/locale";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 import { getTestLabel } from "@/lib/constants/testCategories";
 import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
@@ -1389,7 +1389,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                 {Object.entries(upcomingByDate).map(([date, dateSessions]) => (
                   <div key={date}>
                     <p className="text-xs font-semibold text-muted-foreground mb-2">
-                      📅 {format(parseISO(date), "EEEE d MMMM", { locale: fr })}
+                      📅 {format(parseISO(date), "EEEE d MMMM", { locale: getDateLocale() })}
                     </p>
                     <div className="space-y-2">
                       {dateSessions.map(session => (

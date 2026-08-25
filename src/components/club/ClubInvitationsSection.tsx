@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +15,6 @@ import {
 import { Trash2, Mail, Copy, RefreshCw, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { useResendInvitation, getInvitationStatus } from "@/hooks/useResendInvitation";
 import { getAppBaseUrl } from "@/lib/appUrl";
 
@@ -311,7 +311,7 @@ export function ClubInvitationsSection({ clubId }: ClubInvitationsSectionProps) 
                       </div>
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-xs text-muted-foreground">
-                          {format(new Date(invitation.created_at), "dd/MM/yy HH:mm", { locale: fr })}
+                          {format(new Date(invitation.created_at), "dd/MM/yy HH:mm", { locale: getDateLocale() })}
                         </span>
                         {renderActions(invitation, displayStatus, isCategory)}
                       </div>
@@ -347,7 +347,7 @@ export function ClubInvitationsSection({ clubId }: ClubInvitationsSectionProps) 
                           </TableCell>
                           <TableCell>{getRoleBadge(invitation.role)}</TableCell>
                           <TableCell className="text-sm text-muted-foreground">
-                            {format(new Date(invitation.created_at), "dd/MM/yy HH:mm", { locale: fr })}
+                            {format(new Date(invitation.created_at), "dd/MM/yy HH:mm", { locale: getDateLocale() })}
                           </TableCell>
                           <TableCell>{getStatusBadge(invitation)}</TableCell>
                           <TableCell>{renderActions(invitation, displayStatus, isCategory)}</TableCell>

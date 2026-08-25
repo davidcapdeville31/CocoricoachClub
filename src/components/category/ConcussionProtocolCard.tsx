@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -9,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Trash2, User, AlertTriangle, Calendar, Lock, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { format, addDays, differenceInDays, isBefore } from "date-fns";
-import { fr } from "date-fns/locale";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -235,7 +235,7 @@ export function ConcussionProtocolCard({ protocol, categoryId }: ConcussionProto
         <div className="grid gap-3 text-sm">
           <div className="flex justify-between">
             <span className="text-muted-foreground">{t("health.concussionCard.incidentDate")}</span>
-            <span>{format(incidentDate, "dd/MM/yyyy", { locale: fr })}</span>
+            <span>{format(incidentDate, "dd/MM/yyyy", { locale: getDateLocale() })}</span>
           </div>
 
           {/* Timeline automatique */}
@@ -251,11 +251,11 @@ export function ConcussionProtocolCard({ protocol, categoryId }: ConcussionProto
               </div>
               <div>
                 <span className="text-muted-foreground">{t("health.concussionCard.estimatedRestEnd")}</span>
-                <span className="ml-1 font-medium">{format(addDays(incidentDate, minRestDays), "dd/MM", { locale: fr })}</span>
+                <span className="ml-1 font-medium">{format(addDays(incidentDate, minRestDays), "dd/MM", { locale: getDateLocale() })}</span>
               </div>
               <div>
                 <span className="text-muted-foreground">{t("health.concussionCard.estimatedReturn")}</span>
-                <span className="ml-1 font-medium">{format(getPhaseTargetDate(6) || new Date(), "dd/MM", { locale: fr })}</span>
+                <span className="ml-1 font-medium">{format(getPhaseTargetDate(6) || new Date(), "dd/MM", { locale: getDateLocale() })}</span>
               </div>
               {protocol.status !== "cleared" && (
                 <div>
@@ -350,7 +350,7 @@ export function ConcussionProtocolCard({ protocol, categoryId }: ConcussionProto
             <div className="flex justify-between">
               <span className="text-muted-foreground">{t("health.concussionCard.returnDate")}</span>
               <span className="text-green-600">
-                {format(new Date(protocol.clearance_date), "dd/MM/yyyy", { locale: fr })}
+                {format(new Date(protocol.clearance_date), "dd/MM/yyyy", { locale: getDateLocale() })}
               </span>
             </div>
           )}

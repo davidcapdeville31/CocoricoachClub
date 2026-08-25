@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,7 +33,6 @@ import {
 import { Plus, Trash2, Timer, Trophy, BarChart3, Activity, Wind } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import {
   SPRINT_EXERCISE_TYPES,
   START_TYPES,
@@ -267,7 +267,7 @@ export function AthleticsSprintStats({ categoryId, groups = ["sprints", "haies",
     return Object.entries(byDate)
       .sort((a, b) => a[0].localeCompare(b[0]))
       .map(([date, vals]) => ({
-        date: format(new Date(date), "dd/MM/yy", { locale: fr }),
+        date: format(new Date(date), "dd/MM/yy", { locale: getDateLocale() }),
         ...vals,
       }));
   }, [filtered]);

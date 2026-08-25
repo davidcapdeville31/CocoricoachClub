@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +11,6 @@ import {
 import { usePublicAccess } from "@/contexts/PublicAccessContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface Player {
   id: string;
@@ -278,7 +278,7 @@ export default function PublicCategoryView() {
                             </span>
                           </div>
                           <span className="text-sm text-muted-foreground">
-                            {format(new Date(match.match_date), "d MMM", { locale: fr })}
+                            {format(new Date(match.match_date), "d MMM", { locale: getDateLocale() })}
                           </span>
                         </div>
                       ))}
@@ -333,7 +333,7 @@ export default function PublicCategoryView() {
                           {match.is_home ? "vs " : "@ "}{match.opponent}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {format(new Date(match.match_date), "d MMM yyyy", { locale: fr })}
+                          {format(new Date(match.match_date), "d MMM yyyy", { locale: getDateLocale() })}
                           {match.location && ` • ${match.location}`}
                         </p>
                         {match.competition && (

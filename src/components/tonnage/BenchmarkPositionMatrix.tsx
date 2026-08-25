@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,7 +32,6 @@ import {
   type PositionGroup,
 } from "@/lib/constants/sportPositionGroups";
 import { format, parseISO } from "date-fns";
-import { fr } from "date-fns/locale";
 import { generateCsv, downloadCsv } from "@/lib/csv";
 
 import {
@@ -738,7 +738,7 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
 
   const fmtDate = (d: string) => {
     try {
-      return format(parseISO(d), "dd/MM/yy", { locale: fr });
+      return format(parseISO(d), "dd/MM/yy", { locale: getDateLocale() });
     } catch {
       return d;
     }

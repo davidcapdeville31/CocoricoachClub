@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -5,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend } from "recharts";
 import { TrendingUp, Users, Zap, Activity } from "lucide-react";
 import { format, subDays, isAfter, parseISO } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface GpsSession {
   id: string;
@@ -91,7 +91,7 @@ export function GpsAnalyticsDashboard({ sessions, categoryId }: GpsAnalyticsDash
 
     return Array.from(byDate.entries())
       .map(([date, data]) => ({
-        date: format(parseISO(date), 'dd/MM', { locale: fr }),
+        date: format(parseISO(date), 'dd/MM', { locale: getDateLocale() }),
         fullDate: date,
         distance: Math.round(data.total / data.count),
         hsr: Math.round(data.hsr / data.count),

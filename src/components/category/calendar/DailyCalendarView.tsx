@@ -1,5 +1,5 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { format, isToday as checkIsToday, isTomorrow, isYesterday } from "date-fns";
-import { fr } from "date-fns/locale";
 import { Plus, Clock, MapPin, ChevronRight, Zap, Calendar, Users, Trash2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TRAINING_TYPE_COLORS } from "@/lib/constants/trainingTypes";
@@ -102,9 +102,9 @@ export function DailyCalendarView({
   });
 
   const getRelativeDay = () => {
-    if (checkIsToday(day)) return t("planning:calendarViews.daily.today");
-    if (isTomorrow(day)) return t("planning:calendarViews.daily.tomorrow");
-    if (isYesterday(day)) return t("planning:calendarViews.daily.yesterday");
+    if (checkIsToday(day)) return t("planning.calendarViews.daily.today");
+    if (isTomorrow(day)) return t("planning.calendarViews.daily.tomorrow");
+    if (isYesterday(day)) return t("planning.calendarViews.daily.yesterday");
     return null;
   };
 
@@ -151,7 +151,7 @@ export function DailyCalendarView({
                   {format(day, "d")}
                 </span>
                 <span className="text-[10px] sm:text-xs font-medium text-white/80 uppercase">
-                  {format(day, "MMM", { locale: fr })}
+                  {format(day, "MMM", { locale: getDateLocale() })}
                 </span>
               </div>
               
@@ -162,10 +162,10 @@ export function DailyCalendarView({
                   </span>
                 )}
                 <p className="text-xl sm:text-2xl font-bold text-white capitalize">
-                  {format(day, "EEEE", { locale: fr })}
+                  {format(day, "EEEE", { locale: getDateLocale() })}
                 </p>
                 <p className="text-white/70 text-sm">
-                  {format(day, "d MMMM yyyy", { locale: fr })}
+                  {format(day, "d MMMM yyyy", { locale: getDateLocale() })}
                 </p>
               </div>
             </div>
@@ -177,7 +177,7 @@ export function DailyCalendarView({
                 className="bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-sm"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                {t("planning:calendarViews.daily.add")}
+                {t("planning.calendarViews.daily.add")}
               </Button>
             )}
           </div>
@@ -186,11 +186,11 @@ export function DailyCalendarView({
           <div className="flex gap-4 mt-4 pt-4 border-t border-white/20">
             <div className="flex items-center gap-2 text-white/80 text-sm">
               <Calendar className="h-4 w-4" />
-              <span>{t("planning:calendarViews.daily.sessionsCount", { count: sessions.length, plural: sessions.length !== 1 ? "s" : "" })}</span>
+              <span>{t("planning.calendarViews.daily.sessionsCount", { count: sessions.length, plural: sessions.length !== 1 ? "s" : "" })}</span>
             </div>
             <div className="flex items-center gap-2 text-white/80 text-sm">
               <Zap className="h-4 w-4" />
-              <span>{t("planning:calendarViews.daily.matchesCount", { count: matches.length, label: isIndividualSport(sportType || "") ? t("planning:calendarViews.competition").toLowerCase() : t("planning:calendarViews.match").toLowerCase(), plural: matches.length !== 1 ? "s" : "" })}</span>
+              <span>{t("planning.calendarViews.daily.matchesCount", { count: matches.length, label: isIndividualSport(sportType || "") ? t("planning.calendarViews.competition").toLowerCase() : t("planning.calendarViews.match").toLowerCase(), plural: matches.length !== 1 ? "s" : "" })}</span>
             </div>
           </div>
         </div>
@@ -229,10 +229,10 @@ export function DailyCalendarView({
                           compColor.soft,
                           compColor.softText
                         )}>
-                          {compLabel || (isIndividualSport(sportType || "") ? t("planning:calendarViews.competition") : t("planning:calendarViews.match"))}
+                          {compLabel || (isIndividualSport(sportType || "") ? t("planning.calendarViews.competition") : t("planning.calendarViews.match"))}
                         </span>
                         <p className="font-semibold text-foreground">
-                          {isIndividualSport(sportType || "") ? t("planning:calendarViews.competition") : `vs ${match.opponent}`}
+                          {isIndividualSport(sportType || "") ? t("planning.calendarViews.competition") : `vs ${match.opponent}`}
                         </p>
 
                         {match.location && (
@@ -249,7 +249,7 @@ export function DailyCalendarView({
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8 text-muted-foreground hover:text-primary"
-                              title={t("planning:calendarViews.daily.editMatchTooltip")}
+                              title={t("planning.calendarViews.daily.editMatchTooltip")}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 onEditMatch(match);
@@ -263,7 +263,7 @@ export function DailyCalendarView({
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8 text-muted-foreground hover:text-primary"
-                              title={t("planning:calendarViews.daily.lineupTooltip")}
+                              title={t("planning.calendarViews.daily.lineupTooltip")}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 onLineupMatch(match.id);
@@ -277,10 +277,10 @@ export function DailyCalendarView({
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                              title={t("planning:calendarViews.daily.delete")}
+                              title={t("planning.calendarViews.daily.delete")}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                if (confirm(t("planning:calendarViews.daily.deleteMatchConfirm"))) {
+                                if (confirm(t("planning.calendarViews.daily.deleteMatchConfirm"))) {
                                   onDeleteMatch(match.id);
                                 }
                               }}
@@ -401,10 +401,10 @@ export function DailyCalendarView({
               <Calendar className="h-8 w-8 text-muted-foreground/50" />
             </div>
             <p className="text-lg font-medium text-muted-foreground mb-2">
-              {t("planning:calendarViews.daily.noEventsTitle")}
+              {t("planning.calendarViews.daily.noEventsTitle")}
             </p>
             <p className="text-sm text-muted-foreground/70 mb-4">
-              {t("planning:calendarViews.daily.noEventsSubtitle")}
+              {t("planning.calendarViews.daily.noEventsSubtitle")}
             </p>
             {!isViewer && onAddEvent && (
               <Button 
@@ -413,7 +413,7 @@ export function DailyCalendarView({
                 className="gap-2"
               >
                 <Plus className="h-4 w-4" />
-                {t("planning:calendarViews.daily.addEvent")}
+                {t("planning.calendarViews.daily.addEvent")}
               </Button>
             )}
           </div>

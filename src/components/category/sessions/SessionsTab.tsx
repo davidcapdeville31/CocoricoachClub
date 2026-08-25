@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getDisplayNotes } from "@/lib/utils/sessionNotes";
@@ -10,7 +11,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Calendar as CalendarIcon, Clock, Dumbbell, Trash2, Edit, Printer } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { SessionFormDialog } from "./SessionFormDialog";
 import { SessionEditorV2 } from "@/components/program-builder-v2/SessionEditorV2";
@@ -78,7 +78,7 @@ export function SessionsTab({ categoryId }: SessionsTabProps) {
       return;
     }
 
-    const sessionDate = format(new Date(session.session_date), "EEEE d MMMM yyyy", { locale: fr });
+    const sessionDate = format(new Date(session.session_date), "EEEE d MMMM yyyy", { locale: getDateLocale() });
     const trainingType = trainingTypeLabels[session.training_type] || session.training_type;
 
     printWindow.document.write(`
@@ -326,7 +326,7 @@ export function SessionsTab({ categoryId }: SessionsTabProps) {
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <CalendarIcon className="h-4 w-4" />
-                        {format(new Date(session.session_date), "EEEE d MMMM yyyy", { locale: fr })}
+                        {format(new Date(session.session_date), "EEEE d MMMM yyyy", { locale: getDateLocale() })}
                       </span>
                       {session.session_start_time && (
                         <span className="flex items-center gap-1">

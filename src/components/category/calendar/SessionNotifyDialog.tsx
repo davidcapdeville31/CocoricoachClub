@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,7 +19,6 @@ import { toast } from "sonner";
 import { Mail, Send, Loader2, Users, CalendarPlus, Clock, XCircle, Bell } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 import { useTranslation } from "react-i18next";
 
@@ -163,7 +163,7 @@ export function SessionNotifyDialog({
 
       const results = { emailsSent: 0, pushSent: 0, bellSent: 0 };
       const eventDetails = {
-        date: format(new Date(session.session_date), "EEEE d MMMM yyyy", { locale: fr }),
+        date: format(new Date(session.session_date), "EEEE d MMMM yyyy", { locale: getDateLocale() }),
         time: session.session_start_time ? session.session_start_time.substring(0, 5) : undefined,
       };
 
@@ -284,7 +284,7 @@ export function SessionNotifyDialog({
             {t("planning.calendarDialogs.sessionNotify.title")}
           </DialogTitle>
           <DialogDescription>
-            {t("planning.calendarDialogs.sessionNotify.sessionSummary", { type: getTrainingTypeLabel(session.training_type), date: format(new Date(session.session_date), "d MMMM yyyy", { locale: fr }) })}
+            {t("planning.calendarDialogs.sessionNotify.sessionSummary", { type: getTrainingTypeLabel(session.training_type), date: format(new Date(session.session_date), "d MMMM yyyy", { locale: getDateLocale() }) })}
           </DialogDescription>
         </DialogHeader>
 
@@ -387,7 +387,7 @@ export function SessionNotifyDialog({
           {/* Event details preview */}
           <div className="p-3 bg-accent/20 rounded-lg text-sm space-y-1">
             <p className="font-medium text-muted-foreground">{t("planning.calendarDialogs.sessionNotify.detailsIncluded")}</p>
-            <p>📅 {format(new Date(session.session_date), "EEEE d MMMM yyyy", { locale: fr })}</p>
+            <p>📅 {format(new Date(session.session_date), "EEEE d MMMM yyyy", { locale: getDateLocale() })}</p>
             {session.session_start_time && <p>🕐 {session.session_start_time.substring(0, 5)}</p>}
           </div>
           </div>{/* end scrollable area */}

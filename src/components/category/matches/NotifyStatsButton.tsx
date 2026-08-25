@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +15,6 @@ import { Bell, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface NotifyStatsButtonProps {
   matchId: string;
@@ -61,7 +61,7 @@ export function NotifyStatsButton({
       const cat = (match.categories as any) || {};
       const club = cat.clubs || {};
       const matchDateLabel = match.match_date
-        ? format(new Date(match.match_date), "EEEE d MMMM yyyy", { locale: fr })
+        ? format(new Date(match.match_date), "EEEE d MMMM yyyy", { locale: getDateLocale() })
         : "";
       const opponentLabel = match.opponent ? ` vs ${match.opponent}` : "";
       const competitionLabel = match.competition ? ` (${match.competition})` : "";

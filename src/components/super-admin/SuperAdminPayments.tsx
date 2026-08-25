@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
  import { useState } from "react";
  import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
  import { supabase } from "@/integrations/supabase/client";
@@ -14,8 +15,7 @@
  import { toast } from "@/components/ui/sonner";
  import { CreditCard, Plus, CalendarIcon, TrendingUp, AlertCircle } from "lucide-react";
  import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
- import { fr } from "date-fns/locale";
- 
+  
  export function SuperAdminPayments() {
    const queryClient = useQueryClient();
    const [isAddOpen, setIsAddOpen] = useState(false);
@@ -126,7 +126,7 @@
              <PopoverTrigger asChild>
                <Button variant="outline" className="gap-2">
                  <CalendarIcon className="h-4 w-4" />
-                 {format(selectedMonth, "MMMM yyyy", { locale: fr })}
+                 {format(selectedMonth, "MMMM yyyy", { locale: getDateLocale() })}
                </Button>
              </PopoverTrigger>
              <PopoverContent className="w-auto p-0" align="start">
@@ -319,7 +319,7 @@
                      <TableCell className="font-medium">{payment.clients?.name}</TableCell>
                      <TableCell>{payment.amount} €</TableCell>
                      <TableCell>
-                       {format(new Date(payment.payment_date), "dd MMM yyyy", { locale: fr })}
+                       {format(new Date(payment.payment_date), "dd MMM yyyy", { locale: getDateLocale() })}
                      </TableCell>
                      <TableCell>{payment.payment_method || "-"}</TableCell>
                      <TableCell>{payment.invoice_number || "-"}</TableCell>

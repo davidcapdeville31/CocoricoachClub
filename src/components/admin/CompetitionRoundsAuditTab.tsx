@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,7 +6,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { Trash2, Plus, Edit, Target } from "lucide-react";
 
 interface AuditRow {
@@ -104,7 +104,7 @@ export function CompetitionRoundsAuditTab() {
                   return (
                     <TableRow key={r.id}>
                       <TableCell className="whitespace-nowrap text-sm">
-                        {format(new Date(r.created_at), "dd/MM/yy HH:mm:ss", { locale: fr })}
+                        {format(new Date(r.created_at), "dd/MM/yy HH:mm:ss", { locale: getDateLocale() })}
                       </TableCell>
                       <TableCell>{renderAction(r.action)}</TableCell>
                       <TableCell className="max-w-[260px] truncate text-sm">

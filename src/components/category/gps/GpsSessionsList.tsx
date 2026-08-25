@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Trash2, Calendar, User, MapPin, Eye } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -190,7 +190,7 @@ export function GpsSessionsList({ sessions, isLoading, onRefresh, categoryId }: 
               <div className="flex items-center justify-between mb-3">
                 <h4 className="font-medium flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
-                  {format(new Date(date), 'EEEE d MMMM yyyy', { locale: fr })}
+                  {format(new Date(date), 'EEEE d MMMM yyyy', { locale: getDateLocale() })}
                   {sessionsByDate[date][0].session_name && (
                     <span className="text-muted-foreground font-normal">
                       - {sessionsByDate[date][0].session_name}
@@ -210,7 +210,7 @@ export function GpsSessionsList({ sessions, isLoading, onRefresh, categoryId }: 
                     <AlertDialogHeader>
                       <AlertDialogTitle>Supprimer toute la séance GPS ?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Cela supprimera les {sessionsByDate[date].length} enregistrement(s) GPS du {format(new Date(date), 'd MMMM yyyy', { locale: fr })}. Cette action est irréversible.
+                        Cela supprimera les {sessionsByDate[date].length} enregistrement(s) GPS du {format(new Date(date), 'd MMMM yyyy', { locale: getDateLocale() })}. Cette action est irréversible.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

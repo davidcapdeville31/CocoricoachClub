@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
 import { Building2, Package, Bus } from "lucide-react";
@@ -11,17 +12,18 @@ interface LogisticsSectionProps {
 }
 
 export function LogisticsSection({ categoryId }: LogisticsSectionProps) {
+  const { t } = useTranslation();
   return (
     <Tabs defaultValue="facilities" className="space-y-4">
       <ColoredSubTabsList colorKey="admin" className="justify-start">
         <ColoredSubTabsTrigger value="facilities" colorKey="admin" icon={<Building2 className="h-4 w-4" />}>
-          Infrastructures
+          {t("adminRecruitDocs.logistics.tabs.facilities")}
         </ColoredSubTabsTrigger>
         <ColoredSubTabsTrigger value="equipment" colorKey="admin" icon={<Package className="h-4 w-4" />}>
-          Matériel
+          {t("adminRecruitDocs.logistics.tabs.equipment")}
         </ColoredSubTabsTrigger>
         <ColoredSubTabsTrigger value="trips" colorKey="admin" icon={<Bus className="h-4 w-4" />}>
-          Déplacements
+          {t("adminRecruitDocs.logistics.tabs.trips")}
         </ColoredSubTabsTrigger>
       </ColoredSubTabsList>
 

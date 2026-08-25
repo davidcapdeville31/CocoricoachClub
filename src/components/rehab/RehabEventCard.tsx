@@ -1,3 +1,4 @@
+import { getLocaleTag } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -126,7 +127,7 @@ export function RehabEventCard({ event, playerId, canEdit = true }: RehabEventCa
                   )}
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {eventDate.toLocaleDateString("fr-FR", {
+                  {eventDate.toLocaleDateString(getLocaleTag(), {
                     weekday: "long",
                     year: "numeric",
                     month: "long",
@@ -204,7 +205,7 @@ export function RehabEventCard({ event, playerId, canEdit = true }: RehabEventCa
 
           {event.completed_at && (
             <p className="text-xs text-muted-foreground ml-7">
-              Terminé le {new Date(event.completed_at).toLocaleDateString("fr-FR")}
+              Terminé le {new Date(event.completed_at).toLocaleDateString(getLocaleTag())}
             </p>
           )}
         </CollapsibleContent>

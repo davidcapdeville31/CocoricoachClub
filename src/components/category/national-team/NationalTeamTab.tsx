@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -5,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Calendar, Trophy, Users, MapPin } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { AddNationalEventDialog } from "./AddNationalEventDialog";
 import { NationalTeamCalendar } from "./NationalTeamCalendar";
 import { PlayerCapsSection } from "./PlayerCapsSection";
@@ -194,7 +194,7 @@ export function NationalTeamTab({ categoryId }: NationalTeamTabProps) {
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-medium">
-                          {format(new Date(event.start_date), "dd MMM yyyy", { locale: fr })}
+                          {format(new Date(event.start_date), "dd MMM yyyy", { locale: getDateLocale() })}
                         </p>
                         {event.location && (
                           <p className="text-xs text-muted-foreground flex items-center gap-1 justify-end">
@@ -242,7 +242,7 @@ export function NationalTeamTab({ categoryId }: NationalTeamTabProps) {
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-medium">
-                          {format(new Date(event.start_date), "dd MMM yyyy", { locale: fr })}
+                          {format(new Date(event.start_date), "dd MMM yyyy", { locale: getDateLocale() })}
                         </p>
                         {event.score_home !== null && event.score_away !== null && (
                           <p className="text-sm font-bold">

@@ -1,6 +1,6 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import jsPDF from "jspdf";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { getLevelForPercent, type BatteryLevel } from "@/lib/constants/testUnits";
 import { getReportLogoDataUrl } from "@/lib/pdf/clubLogo";
 
@@ -649,7 +649,7 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
   }
 
   pdf.setTextColor(60);
-  st(pdf, `Genere le ${format(new Date(), "dd/MM/yyyy 'a' HH:mm", { locale: fr })}`, margin, coverY);
+  st(pdf, `Genere le ${format(new Date(), "dd/MM/yyyy 'a' HH:mm", { locale: getDateLocale() })}`, margin, coverY);
   coverY += 16;
   st(pdf, `${groups.length} passation(s) - ${items.length} tests - ${totalMaxBattery} pts max`, margin, coverY);
   coverY += 28;
@@ -943,7 +943,7 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
     pdf.setFont("helvetica", "normal");
     pdf.setFontSize(10);
     pdf.setTextColor(110);
-    st(pdf, `${categoryName ? categoryName + " - " : ""}${batteryName} - ${format(new Date(g.date), "dd/MM/yyyy", { locale: fr })}`, headerX, y + 32);
+    st(pdf, `${categoryName ? categoryName + " - " : ""}${batteryName} - ${format(new Date(g.date), "dd/MM/yyyy", { locale: getDateLocale() })}`, headerX, y + 32);
 
     const lvlColor = hexToRgb(level.color || "#3b82f6");
     pdf.setFillColor(lvlColor.r, lvlColor.g, lvlColor.b);

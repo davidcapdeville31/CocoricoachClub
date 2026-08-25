@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,7 +20,6 @@ import { groupStatsByTheme } from "@/lib/statSubGroups";
 import { pdfGroupColor } from "@/lib/pdfStatGroupPalette";
 import { useStatPreferences } from "@/hooks/use-stat-preferences";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import ExcelJS from "exceljs";
 import jsPDF from "jspdf";
@@ -750,7 +750,7 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
           const awayName = singleMatch.is_home ? singleMatch.opponent : (clubName || "Extérieur");
           const sh = singleMatch.score_home != null ? String(singleMatch.score_home) : "—";
           const sa = singleMatch.score_away != null ? String(singleMatch.score_away) : "—";
-          const dateStr = format(new Date(singleMatch.match_date), "EEEE d MMMM yyyy", { locale: fr });
+          const dateStr = format(new Date(singleMatch.match_date), "EEEE d MMMM yyyy", { locale: getDateLocale() });
           const compLine = [
             singleMatch.competition,
             singleMatch.competition_stage,
@@ -2422,7 +2422,7 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
                                   )}
                                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                     <Calendar className="h-3 w-3" />
-                                    {format(new Date(match.match_date), "dd MMM yyyy", { locale: fr })}
+                                    {format(new Date(match.match_date), "dd MMM yyyy", { locale: getDateLocale() })}
                                   </div>
                                 </div>
                               </button>

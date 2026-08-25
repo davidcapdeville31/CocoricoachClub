@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo, useEffect, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
@@ -16,7 +17,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, AlertTriangle, Calendar, X, Settings2, Download } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { AddWellnessDialog } from "./AddWellnessDialog";
 import { WellnessReminderButton } from "./wellness/WellnessReminderButton";
 import { WellnessScheduleConfig } from "./wellness/WellnessScheduleConfig";
@@ -394,7 +394,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                         )}
                       >
                         <Calendar className="mr-2 h-4 w-4" />
-                        {filterFrom ? format(filterFrom, "dd MMM yyyy", { locale: fr }) : t("health.wellness.startDate")}
+                        {filterFrom ? format(filterFrom, "dd MMM yyyy", { locale: getDateLocale() }) : t("health.wellness.startDate")}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="end">
@@ -402,7 +402,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                         mode="single"
                         selected={filterFrom}
                         onSelect={setFilterFrom}
-                        locale={fr}
+                        locale={getDateLocale()}
                         initialFocus
                         className="p-3 pointer-events-auto"
                         modifiers={{ wellnessPlanned: isWellnessPlanned }}
@@ -422,7 +422,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                         )}
                       >
                         <Calendar className="mr-2 h-4 w-4" />
-                        {filterTo ? format(filterTo, "dd MMM yyyy", { locale: fr }) : t("health.wellness.endDate")}
+                        {filterTo ? format(filterTo, "dd MMM yyyy", { locale: getDateLocale() }) : t("health.wellness.endDate")}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="end">
@@ -430,7 +430,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                         mode="single"
                         selected={filterTo}
                         onSelect={setFilterTo}
-                        locale={fr}
+                        locale={getDateLocale()}
                         initialFocus
                         className="p-3 pointer-events-auto"
                         modifiers={{ wellnessPlanned: isWellnessPlanned }}
@@ -517,7 +517,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                       </TableCell>
 
                       <TableCell className="whitespace-nowrap">
-                        {format(new Date(entry.tracking_date), "dd MMM yyyy", { locale: fr })}
+                        {format(new Date(entry.tracking_date), "dd MMM yyyy", { locale: getDateLocale() })}
                       </TableCell>
 
                       {activeQuestions.map((q) => {

@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useMemo, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Trophy, Users, Wind, Thermometer, Download, FileSpreadsheet } from "lucide-react";
 import { format, parseISO } from "date-fns";
-import { fr } from "date-fns/locale";
 import { getDefaultUnitForDiscipline } from "@/lib/athletics/recordsHelpers";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
@@ -401,7 +401,7 @@ export function AthleticsEventView({ categoryId, matchIds }: Props) {
       const data = rows.map(r => {
         const base: Record<string, any> = {
           "Compétition": r.matchLabel,
-          "Date": r.matchDate ? format(parseISO(r.matchDate), "dd/MM/yyyy", { locale: fr }) : "",
+          "Date": r.matchDate ? format(parseISO(r.matchDate), "dd/MM/yyyy", { locale: getDateLocale() }) : "",
           "Athlète": r.playerName,
           "Manches saisies": r.raceCount,
           "Classement final": r.finalRank != null ? r.finalRank : "",
@@ -462,7 +462,7 @@ export function AthleticsEventView({ categoryId, matchIds }: Props) {
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
       doc.text(`${rowsByMatch.length} compétition${rowsByMatch.length > 1 ? "s" : ""} • ${rows.length} performance${rows.length > 1 ? "s" : ""}`, margin, 17);
-      doc.text(format(new Date(), "dd/MM/yyyy", { locale: fr }), pageWidth - margin, 17, { align: "right" });
+      doc.text(format(new Date(), "dd/MM/yyyy", { locale: getDateLocale() }), pageWidth - margin, 17, { align: "right" });
       y = 28;
       doc.setTextColor(0, 0, 0);
 
@@ -475,7 +475,7 @@ export function AthleticsEventView({ categoryId, matchIds }: Props) {
 
       rowsByMatch.forEach(({ match, rows: mrows }) => {
         ensureSpace(20);
-        const compLabel = `${match.competition || match.opponent} — ${format(parseISO(match.match_date), "dd/MM/yyyy", { locale: fr })}${match.location ? ` • ${match.location}` : ""}`;
+        const compLabel = `${match.competition || match.opponent} — ${format(parseISO(match.match_date), "dd/MM/yyyy", { locale: getDateLocale() })}${match.location ? ` • ${match.location}` : ""}`;
         doc.setFillColor(241, 245, 249);
         doc.rect(margin, y, pageWidth - margin * 2, 7, "F");
         doc.setFontSize(10);
@@ -618,7 +618,7 @@ export function AthleticsEventView({ categoryId, matchIds }: Props) {
               <CardTitle className="text-sm flex items-center justify-between">
                 <span>{match.competition || match.opponent}</span>
                 <span className="text-xs text-muted-foreground font-normal">
-                  {format(parseISO(match.match_date), "dd/MM/yyyy", { locale: fr })}
+                  {format(parseISO(match.match_date), "dd/MM/yyyy", { locale: getDateLocale() })}
                   {match.location ? ` • ${match.location}` : ""}
                 </span>
               </CardTitle>

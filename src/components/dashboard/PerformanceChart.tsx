@@ -1,10 +1,10 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface PerformanceChartProps {
   categoryIds: string[];
@@ -37,7 +37,7 @@ export function PerformanceChart({ categoryIds }: PerformanceChartProps) {
       }, {} as Record<string, { date: string; loads: number[]; awcrs: number[] }>);
 
       return Object.values(grouped).map((item) => ({
-        date: format(new Date(item.date), "dd MMM", { locale: fr }),
+        date: format(new Date(item.date), "dd MMM", { locale: getDateLocale() }),
         charge: item.loads.length > 0
           ? Math.round(item.loads.reduce((sum, l) => sum + l, 0) / item.loads.length)
           : 0,

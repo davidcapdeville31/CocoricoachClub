@@ -1,3 +1,4 @@
+import { getLocaleTag } from "@/lib/i18n/dateLocale";
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -352,7 +353,7 @@ export function PlayerPersonalInfoSection({ playerId, categoryId, isViewer = fal
                     <div>
                       <p className="text-xs text-muted-foreground">Date de naissance</p>
                       <p className="text-sm">
-                        {new Date(playerInfo.birth_date).toLocaleDateString("fr-FR")}
+                        {new Date(playerInfo.birth_date).toLocaleDateString(getLocaleTag())}
                       </p>
                     </div>
                   </div>

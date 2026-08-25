@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,7 +39,6 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { differenceInDays, parseISO, format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 
 interface ActiveProtocolsDashboardProps {
@@ -473,7 +473,7 @@ export function ActiveProtocolsDashboard({ categoryId }: ActiveProtocolsDashboar
                           {injury?.estimated_return_date && (
                             <p className="text-xs text-muted-foreground mt-1">
                               <Clock className="h-3 w-3 inline mr-1" />
-                              Retour estimé: {format(parseISO(injury.estimated_return_date), "d MMM yyyy", { locale: fr })}
+                              Retour estimé: {format(parseISO(injury.estimated_return_date), "d MMM yyyy", { locale: getDateLocale() })}
                             </p>
                           )}
                         </div>
@@ -509,12 +509,12 @@ export function ActiveProtocolsDashboard({ categoryId }: ActiveProtocolsDashboar
                             {injury.injury_type}
                           </p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            Blessure depuis le {format(parseISO(injury.injury_date), "d MMM yyyy", { locale: fr })}
+                            Blessure depuis le {format(parseISO(injury.injury_date), "d MMM yyyy", { locale: getDateLocale() })}
                           </p>
                           {injury.estimated_return_date && (
                             <p className="text-xs text-muted-foreground mt-1">
                               <Clock className="h-3 w-3 inline mr-1" />
-                              Retour estimé: {format(parseISO(injury.estimated_return_date), "d MMM yyyy", { locale: fr })}
+                              Retour estimé: {format(parseISO(injury.estimated_return_date), "d MMM yyyy", { locale: getDateLocale() })}
                             </p>
                           )}
                           <p className="text-xs text-amber-600 mt-2 font-medium">
@@ -618,7 +618,7 @@ export function ActiveProtocolsDashboard({ categoryId }: ActiveProtocolsDashboar
                           }
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {format(eventDate, "d MMM", { locale: fr })}
+                          {format(eventDate, "d MMM", { locale: getDateLocale() })}
                         </p>
                       </div>
                     </div>

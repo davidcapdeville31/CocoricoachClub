@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,7 +16,6 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -127,10 +127,10 @@ export function PeriodsSection({ categoryId }: PeriodsSectionProps) {
                 <TableCell className="font-medium">{period.name}</TableCell>
                 <TableCell>{getPeriodTypeBadge(period.period_type)}</TableCell>
                 <TableCell>
-                  {format(new Date(period.start_date), "dd MMM yyyy", { locale: fr })}
+                  {format(new Date(period.start_date), "dd MMM yyyy", { locale: getDateLocale() })}
                 </TableCell>
                 <TableCell>
-                  {format(new Date(period.end_date), "dd MMM yyyy", { locale: fr })}
+                  {format(new Date(period.end_date), "dd MMM yyyy", { locale: getDateLocale() })}
                 </TableCell>
                 <TableCell>{period.target_load_percentage || "—"}</TableCell>
                 <TableCell className="max-w-xs truncate">

@@ -1,3 +1,4 @@
+import { getLocaleTag } from "@/lib/i18n/dateLocale";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -238,7 +239,7 @@ export function EmailMonitoring() {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
-                          {new Date(r.created_at).toLocaleString("fr-FR")}
+                          {new Date(r.created_at).toLocaleString(getLocaleTag())}
                         </TableCell>
                         <TableCell className="text-xs text-red-600 dark:text-red-400 max-w-[280px] truncate" title={r.error_message ?? ""}>
                           {r.error_message ?? ""}

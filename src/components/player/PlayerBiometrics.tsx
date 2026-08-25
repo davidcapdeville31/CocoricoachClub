@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Weight, Ruler, Calendar, Scale, Dumbbell } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { AddMeasurementDialog } from "./AddMeasurementDialog";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 
@@ -152,7 +152,7 @@ export function PlayerBiometrics({ playerId, categoryId, birthYear }: PlayerBiom
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="h-4 w-4" />
                 <span>
-                  Dernière mesure: {format(new Date(latestComposition?.measurement_date || latestMeasurement?.measurement_date), "d MMMM yyyy", { locale: fr })}
+                  Dernière mesure: {format(new Date(latestComposition?.measurement_date || latestMeasurement?.measurement_date), "d MMMM yyyy", { locale: getDateLocale() })}
                 </span>
               </div>
 
@@ -167,7 +167,7 @@ export function PlayerBiometrics({ playerId, categoryId, birthYear }: PlayerBiom
                         className="flex items-center justify-between text-sm p-2 bg-muted/30 rounded"
                       >
                         <span className="text-muted-foreground">
-                          {format(new Date(comp.measurement_date), "d MMM yyyy", { locale: fr })}
+                          {format(new Date(comp.measurement_date), "d MMM yyyy", { locale: getDateLocale() })}
                         </span>
                         <div className="flex gap-4">
                           {comp.weight_kg && <span>{comp.weight_kg} kg</span>}

@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { 
   FileText, 
   Search, 
@@ -221,7 +221,7 @@ export function AuditLogsTab() {
                 {filteredLogs.map((log) => (
                   <TableRow key={log.id}>
                     <TableCell className="whitespace-nowrap">
-                      {format(new Date(log.created_at), "dd/MM/yy HH:mm", { locale: fr })}
+                      {format(new Date(log.created_at), "dd/MM/yy HH:mm", { locale: getDateLocale() })}
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col">

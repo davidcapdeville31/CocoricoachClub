@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,7 +31,6 @@ import {
 import { VideoFileUpload } from "./VideoFileUpload";
 import { getActionTypesForSport, ACTION_CATEGORIES } from "@/lib/constants/videoActionTypes";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface DirectClipImportProps {
   categoryId: string;
@@ -239,7 +239,7 @@ export function DirectClipImport({
           match_id: analysisMatchId || null,
           title: match 
             ? `Clips ${match.is_home ? "vs" : "@"} ${match.opponent}`
-            : `Import de clips - ${format(new Date(), "dd/MM/yyyy", { locale: fr })}`,
+            : `Import de clips - ${format(new Date(), "dd/MM/yyyy", { locale: getDateLocale() })}`,
           video_source: "import",
           created_by: user?.id,
         })
@@ -334,7 +334,7 @@ export function DirectClipImport({
                 {matches?.map((match) => (
                   <SelectItem key={match.id} value={match.id}>
                     {match.is_home ? "vs" : "@"} {match.opponent} -{" "}
-                    {format(new Date(match.match_date), "dd/MM/yyyy", { locale: fr })}
+                    {format(new Date(match.match_date), "dd/MM/yyyy", { locale: getDateLocale() })}
                   </SelectItem>
                 ))}
               </SelectContent>

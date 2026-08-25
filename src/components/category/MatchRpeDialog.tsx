@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,7 +15,6 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { Swords, Activity } from "lucide-react";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
 
@@ -197,7 +197,7 @@ export function MatchRpeDialog({
 
         <div className="flex items-center gap-2 mb-4">
           <Badge variant="outline">
-            {format(new Date(matchDate), "EEEE d MMMM yyyy", { locale: fr })}
+            {format(new Date(matchDate), "EEEE d MMMM yyyy", { locale: getDateLocale() })}
           </Badge>
           {lineup && lineup.length > 0 && (
             <Badge variant="secondary">{lineup.length} joueur(s) dans la compo</Badge>

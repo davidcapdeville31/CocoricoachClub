@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,22 +12,22 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, ClipboardCheck, Users } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface AttendanceSectionProps {
   categoryId: string;
   players: { id: string; name: string }[] | undefined;
 }
 
-const ATTENDANCE_STATUS = [
-  { value: "present", label: "Présent", color: "bg-green-500" },
-  { value: "absent", label: "Absent", color: "bg-red-500" },
-  { value: "excused", label: "Excusé", color: "bg-amber-500" },
-  { value: "late", label: "Retard", color: "bg-orange-500" },
-];
-
 export function AttendanceSection({ categoryId, players }: AttendanceSectionProps) {
+  const { t } = useTranslation();
+  const ATTENDANCE_STATUS = [
+    { value: "present", label: t("academy.attendance.status.present"), color: "bg-green-500" },
+    { value: "absent", label: t("academy.attendance.status.absent"), color: "bg-red-500" },
+    { value: "excused", label: t("academy.attendance.status.excused"), color: "bg-amber-500" },
+    { value: "late", label: t("academy.attendance.status.late"), color: "bg-orange-500" },
+  ];
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
@@ -86,11 +87,11 @@ export function AttendanceSection({ categoryId, players }: AttendanceSectionProp
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["training_attendance", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["training_attendance_stats", categoryId] });
-      toast.success("Présence enregistrée");
+      toast.success(t("academy.attendance.toast.recorded"));
       resetForm();
       setDialogOpen(false);
     },
-    onError: () => toast.error("Erreur lors de l'enregistrement"),
+    onError: () => toast.error(t("academy.attendance.toast.errorRecording")),
   });
 
   const addBulkAttendance = useMutation({
@@ -104,7 +105,7 @@ export function AttendanceSection({ categoryId, players }: AttendanceSectionProp
           status: status,
         }));
       
-      if (entries.length === 0) throw new Error("Aucune présence sélectionnée");
+      if (entries.length === 0) throw new Error(t("academy.attendance.toast.noAttendanceSelected"));
       
       const { error } = await supabase.from("training_attendance").insert(entries);
       if (error) throw error;
@@ -112,11 +113,11 @@ export function AttendanceSection({ categoryId, players }: AttendanceSectionProp
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["training_attendance", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["training_attendance_stats", categoryId] });
-      toast.success("Présences enregistrées");
+      toast.success(t("academy.attendance.toast.bulkRecorded"));
       setBulkAttendance({});
       setBulkDialogOpen(false);
     },
-    onError: (error) => toast.error(error instanceof Error ? error.message : "Erreur lors de l'enregistrement"),
+    onError: (error) => toast.error(error instanceof Error ? error.message : t("academy.attendance.toast.errorRecording")),
   });
 
   const resetForm = () => {
@@ -147,18 +148,18 @@ export function AttendanceSection({ categoryId, players }: AttendanceSectionProp
             <div>
               <CardTitle className="flex items-center gap-2">
                 <ClipboardCheck className="h-5 w-5" />
-                Suivi des Présences
+                {t("academy.attendance.title")}
               </CardTitle>
-              <CardDescription>Présences aux entraînements et statistiques de participation</CardDescription>
+              <CardDescription>{t("academy.attendance.description")}</CardDescription>
             </div>
             <div className="flex gap-2">
               <Button variant="outline" onClick={initBulkAttendance}>
                 <Users className="h-4 w-4 mr-2" />
-                Appel groupé
+                {t("academy.attendance.bulkCall")}
               </Button>
               <Button onClick={() => setDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
-                Présence individuelle
+                {t("academy.attendance.individualAttendance")}
               </Button>
             </div>
           </div>
@@ -167,17 +168,17 @@ export function AttendanceSection({ categoryId, players }: AttendanceSectionProp
           {/* Stats summary */}
           {attendanceStats && attendanceStats.length > 0 && (
             <div>
-              <h4 className="font-medium mb-3">Statistiques de présence</h4>
+              <h4 className="font-medium mb-3">{t("academy.attendance.statsTitle")}</h4>
               <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Joueur</TableHead>
-                      <TableHead className="text-center">Présent</TableHead>
-                      <TableHead className="text-center">Absent</TableHead>
-                      <TableHead className="text-center">Excusé</TableHead>
-                      <TableHead className="text-center">Retard</TableHead>
-                      <TableHead className="text-center">% Présence</TableHead>
+                      <TableHead>{t("academy.attendance.table.player")}</TableHead>
+                      <TableHead className="text-center">{t("academy.attendance.table.present")}</TableHead>
+                      <TableHead className="text-center">{t("academy.attendance.table.absent")}</TableHead>
+                      <TableHead className="text-center">{t("academy.attendance.table.excused")}</TableHead>
+                      <TableHead className="text-center">{t("academy.attendance.table.late")}</TableHead>
+                      <TableHead className="text-center">{t("academy.attendance.table.presencePercent")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -201,24 +202,24 @@ export function AttendanceSection({ categoryId, players }: AttendanceSectionProp
 
           {/* Recent attendance */}
           <div>
-            <h4 className="font-medium mb-3">Historique récent</h4>
+            <h4 className="font-medium mb-3">{t("academy.attendance.historyTitle")}</h4>
             {!attendance || attendance.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">Aucune présence enregistrée.</p>
+              <p className="text-center text-muted-foreground py-8">{t("academy.attendance.noAttendance")}</p>
             ) : (
               <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Joueur</TableHead>
-                      <TableHead>Statut</TableHead>
-                      <TableHead>Raison</TableHead>
+                      <TableHead>{t("academy.attendance.table.date")}</TableHead>
+                      <TableHead>{t("academy.attendance.table.player")}</TableHead>
+                      <TableHead>{t("academy.attendance.table.status")}</TableHead>
+                      <TableHead>{t("academy.attendance.table.reason")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {attendance.slice(0, 20).map((entry) => (
                       <TableRow key={entry.id}>
-                        <TableCell>{format(new Date(entry.attendance_date), "dd MMM yyyy", { locale: fr })}</TableCell>
+                        <TableCell>{format(new Date(entry.attendance_date), "dd MMM yyyy", { locale: getDateLocale() })}</TableCell>
                         <TableCell className="font-medium">{entry.players?.name}</TableCell>
                         <TableCell>{getStatusBadge(entry.status)}</TableCell>
                         <TableCell className="max-w-40 truncate">{entry.absence_reason || "-"}</TableCell>
@@ -236,13 +237,13 @@ export function AttendanceSection({ categoryId, players }: AttendanceSectionProp
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Enregistrer une présence</DialogTitle>
+            <DialogTitle>{t("academy.attendance.individualDialog.title")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Joueur</Label>
+              <Label>{t("academy.attendance.individualDialog.player")}</Label>
               <Select value={selectedPlayer} onValueChange={setSelectedPlayer}>
-                <SelectTrigger><SelectValue placeholder="Sélectionner un joueur" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t("academy.attendance.individualDialog.selectPlayer")} /></SelectTrigger>
                 <SelectContent>
                   {players?.map((p) => (
                     <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
@@ -251,11 +252,11 @@ export function AttendanceSection({ categoryId, players }: AttendanceSectionProp
               </Select>
             </div>
             <div>
-              <Label>Date</Label>
+              <Label>{t("academy.attendance.individualDialog.date")}</Label>
               <Input type="date" value={attendanceDate} onChange={(e) => setAttendanceDate(e.target.value)} />
             </div>
             <div>
-              <Label>Statut</Label>
+              <Label>{t("academy.attendance.individualDialog.status")}</Label>
               <Select value={status} onValueChange={setStatus}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -267,14 +268,14 @@ export function AttendanceSection({ categoryId, players }: AttendanceSectionProp
             </div>
             {status !== "present" && (
               <div>
-                <Label>Raison</Label>
-                <Input value={absenceReason} onChange={(e) => setAbsenceReason(e.target.value)} placeholder="Blessure, compétition..." />
+                <Label>{t("academy.attendance.individualDialog.reason")}</Label>
+                <Input value={absenceReason} onChange={(e) => setAbsenceReason(e.target.value)} placeholder={t("academy.attendance.individualDialog.reasonPlaceholder")} />
               </div>
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Annuler</Button>
-            <Button onClick={() => addAttendance.mutate()} disabled={!selectedPlayer}>Enregistrer</Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>{t("academy.attendance.individualDialog.cancel")}</Button>
+            <Button onClick={() => addAttendance.mutate()} disabled={!selectedPlayer}>{t("academy.attendance.individualDialog.save")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -283,11 +284,11 @@ export function AttendanceSection({ categoryId, players }: AttendanceSectionProp
       <Dialog open={bulkDialogOpen} onOpenChange={setBulkDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Appel groupé - {format(new Date(attendanceDate), "dd MMMM yyyy", { locale: fr })}</DialogTitle>
+            <DialogTitle>{t("academy.attendance.bulkDialog.title", { date: format(new Date(attendanceDate), "dd MMMM yyyy", { locale: getDateLocale() }) })}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Date de l'entraînement</Label>
+              <Label>{t("academy.attendance.bulkDialog.trainingDate")}</Label>
               <Input type="date" value={attendanceDate} onChange={(e) => setAttendanceDate(e.target.value)} />
             </div>
             <div className="space-y-2">
@@ -307,8 +308,8 @@ export function AttendanceSection({ categoryId, players }: AttendanceSectionProp
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setBulkDialogOpen(false)}>Annuler</Button>
-            <Button onClick={() => addBulkAttendance.mutate()}>Enregistrer tout</Button>
+            <Button variant="outline" onClick={() => setBulkDialogOpen(false)}>{t("academy.attendance.bulkDialog.cancel")}</Button>
+            <Button onClick={() => addBulkAttendance.mutate()}>{t("academy.attendance.bulkDialog.saveAll")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

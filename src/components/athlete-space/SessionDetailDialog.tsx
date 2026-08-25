@@ -1,8 +1,8 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Activity, Clock, Calendar as CalendarIcon, CheckCircle2, Trophy, Target, ChevronDown, Wrench, Gamepad2, Droplet } from "lucide-react";
 import { format, parseISO } from "date-fns";
-import { fr } from "date-fns/locale";
 import { GroupedExerciseList } from "@/components/category/GroupedExerciseList";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 import { useQuery } from "@tanstack/react-query";
@@ -88,7 +88,7 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
 
   const rawNotes = String(session.notes || "").replace(/<!--[\s\S]*?-->/g, "").trim();
   const dateLabel = session.session_date
-    ? format(parseISO(session.session_date), "EEEE d MMMM yyyy", { locale: fr })
+    ? format(parseISO(session.session_date), "EEEE d MMMM yyyy", { locale: getDateLocale() })
     : "";
 
   const avgRpe =

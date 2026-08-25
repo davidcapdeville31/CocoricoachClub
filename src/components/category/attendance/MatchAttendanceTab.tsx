@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +10,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Check, X, HelpCircle, Filter, Trophy, Users } from "lucide-react";
 import { format, parseISO, subMonths, subDays, startOfMonth, endOfMonth } from "date-fns";
-import { fr } from "date-fns/locale";
 import { ParticipantsAttendanceList } from "./ParticipantsAttendanceList";
 
 interface MatchAttendanceTabProps {
@@ -63,7 +63,7 @@ export function MatchAttendanceTab({ categoryId }: MatchAttendanceTabProps) {
   const noResponseCount = all.filter((p) => !p.attendance_status || p.attendance_status === "no_response").length;
 
   const matchLabel = (m: any) =>
-    `${format(parseISO(m.match_date), "dd MMM yyyy", { locale: fr })} — ${m.opponent}${
+    `${format(parseISO(m.match_date), "dd MMM yyyy", { locale: getDateLocale() })} — ${m.opponent}${
       m.competition ? ` (${m.competition})` : ""
     }${m.is_home === true ? " 🏠" : m.is_home === false ? " ✈️" : ""}`;
 

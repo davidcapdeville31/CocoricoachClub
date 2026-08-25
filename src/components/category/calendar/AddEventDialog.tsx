@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
@@ -11,7 +12,6 @@ import {
   Brain,
 } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 
@@ -147,7 +147,7 @@ export function AddEventDialog({
             {t("planning.calendarDialogs.addEvent.title")}
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
-            {format(date, "EEEE d MMMM yyyy", { locale: fr })}
+            {format(date, "EEEE d MMMM yyyy", { locale: getDateLocale() })}
           </p>
         </DialogHeader>
 

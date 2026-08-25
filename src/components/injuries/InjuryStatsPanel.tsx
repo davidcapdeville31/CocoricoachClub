@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useTranslation } from "react-i18next";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -17,7 +18,6 @@ import {
 } from "@/components/ui/select";
 import { BarChart3, Repeat, ShieldCheck, CalendarIcon, Activity, Thermometer, Download, FileSpreadsheet } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import ExcelJS from "exceljs";
 import jsPDF from "jspdf";
@@ -543,7 +543,7 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
                       mode="single"
                       selected={customFrom}
                       onSelect={setCustomFrom}
-                      locale={fr}
+                      locale={getDateLocale()}
                       initialFocus
                       className={cn("p-3 pointer-events-auto")}
                     />
@@ -567,7 +567,7 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
                       mode="single"
                       selected={customTo}
                       onSelect={setCustomTo}
-                      locale={fr}
+                      locale={getDateLocale()}
                       initialFocus
                       className={cn("p-3 pointer-events-auto")}
                     />

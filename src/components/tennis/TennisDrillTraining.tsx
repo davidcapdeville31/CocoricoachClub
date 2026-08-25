@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +12,6 @@ import { Target, Plus, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 export const TENNIS_EXERCISE_TYPES = [
   { value: "service_1ere", label: "1ère balle de service" },
@@ -157,7 +157,7 @@ export function TennisDrillTraining({ playerId, categoryId, trainingSessionId }:
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-muted-foreground">
-                    {format(new Date(ex.session_date), "dd/MM", { locale: fr })}
+                    {format(new Date(ex.session_date), "dd/MM", { locale: getDateLocale() })}
                   </span>
                   <Button
                     variant="ghost"

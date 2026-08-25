@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useRef, useMemo } from "react";
 import { getObjectiveLabel } from "@/lib/constants/sessionBlockOptions";
 import { getDisplayNotes, parsePrecisionExerciseFromNotes, parseV2BlockTag, parseMentalFromNotes } from "@/lib/utils/sessionNotes";
@@ -18,7 +19,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { Dumbbell, Users, Activity, Clock, Calendar, Printer, Calculator, Info, Bell, Target, Video } from "lucide-react";
 import { getCategoryLabel } from "@/lib/constants/exerciseCategories";
 import { printElement, exportSessionToPdf, preparePdfWithSettings } from "@/lib/pdfExport";
@@ -133,7 +133,7 @@ export function SessionDetailsDialog({
       });
     } catch {
       if (printRef.current) {
-        printElement(printRef.current, `Séance du ${format(new Date(sessionDate), "PPP", { locale: fr })}`);
+        printElement(printRef.current, `Séance du ${format(new Date(sessionDate), "PPP", { locale: getDateLocale() })}`);
       }
     }
   };
@@ -636,7 +636,7 @@ export function SessionDetailsDialog({
           <div>
             <DialogTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              Séance du {format(new Date(sessionDate), "PPP", { locale: fr })}
+              Séance du {format(new Date(sessionDate), "PPP", { locale: getDateLocale() })}
             </DialogTitle>
             {blockWeekInfo && (
               <p className="text-sm text-muted-foreground mt-1">
@@ -930,7 +930,7 @@ export function SessionDetailsDialog({
           {blockWeekInfo && (
             <div className="print-only mt-4 pt-4 border-t text-sm text-muted-foreground hidden print:block">
               <p className="font-medium">{blockWeekInfo.blockName} - Semaine {blockWeekInfo.weekNumber}</p>
-              <p>Exporté le {format(new Date(), "PPP", { locale: fr })}</p>
+              <p>Exporté le {format(new Date(), "PPP", { locale: getDateLocale() })}</p>
             </div>
           )}
         </div>
@@ -1169,9 +1169,9 @@ export function SessionDetailsDialog({
         onOpenChange={setIsNotifyOpen}
         athletes={players || []}
         eventType="session"
-        defaultSubject={`Séance du ${format(new Date(sessionDate), "EEEE d MMMM", { locale: fr })}`}
+        defaultSubject={`Séance du ${format(new Date(sessionDate), "EEEE d MMMM", { locale: getDateLocale() })}`}
         eventDetails={{
-          date: format(new Date(sessionDate), "EEEE d MMMM yyyy", { locale: fr }),
+          date: format(new Date(sessionDate), "EEEE d MMMM yyyy", { locale: getDateLocale() }),
           time: session?.session_start_time ? session.session_start_time.slice(0, 5) : undefined,
         }}
       />

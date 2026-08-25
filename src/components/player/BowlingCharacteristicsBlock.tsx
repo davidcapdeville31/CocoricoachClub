@@ -1,3 +1,4 @@
+import { getLocaleTag } from "@/lib/i18n/dateLocale";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,11 +66,11 @@ function formatDisplayValue(value: number | null, options?: { decimals?: number;
   if (value == null) return null;
   const { decimals, suffix } = options || {};
   const formatted = typeof decimals === "number"
-    ? value.toLocaleString("fr-FR", {
+    ? value.toLocaleString(getLocaleTag(), {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals,
       })
-    : value.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
+    : value.toLocaleString(getLocaleTag(), { maximumFractionDigits: 2 });
   return suffix ? `${formatted} ${suffix}` : formatted;
 }
 

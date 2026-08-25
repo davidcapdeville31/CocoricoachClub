@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,7 +32,6 @@ import { Label } from "@/components/ui/label";
 import { Trash2, Crown, Settings2, Users, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { getAppBaseUrl } from "@/lib/appUrl";
 import { useRealtimeMembers } from "@/hooks/useRealtimeMembers";
 
@@ -330,7 +330,7 @@ export function ClubMembersManagement({ clubId, categories, canManage }: ClubMem
 
                 <div className="flex items-center justify-between gap-2 pt-1">
                   <span className="text-xs text-muted-foreground">
-                    Depuis le {format(new Date(member.created_at), "dd/MM/yy", { locale: fr })}
+                    Depuis le {format(new Date(member.created_at), "dd/MM/yy", { locale: getDateLocale() })}
                   </span>
                   {canManage && (
                     <div className="flex items-center gap-1">
@@ -416,7 +416,7 @@ export function ClubMembersManagement({ clubId, categories, canManage }: ClubMem
                     <TableCell>{getRoleBadge(member.role)}</TableCell>
                     <TableCell>{getCategoryNames(member.assigned_categories)}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {format(new Date(member.created_at), "dd/MM/yy", { locale: fr })}
+                      {format(new Date(member.created_at), "dd/MM/yy", { locale: getDateLocale() })}
                     </TableCell>
                     {canManage && (
                       <TableCell>

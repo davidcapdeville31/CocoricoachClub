@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +11,6 @@ import {
 import { EditInjuryDialog } from "@/components/injuries/EditInjuryDialog";
 import { Shield, AlertTriangle, CheckCircle2, ChevronDown, ChevronRight, Dumbbell, Pencil, Trash2 } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -189,7 +189,7 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
       if (inj.status === "active") {
         msgs.push(t("athleteSpace:health.injuryActive", { type: inj.injury_type, date: format(new Date(inj.injury_date), "dd/MM/yyyy") }));
         if (inj.estimated_return_date) {
-          msgs.push(t("athleteSpace:health.estimatedReturn", { date: format(new Date(inj.estimated_return_date), "dd MMM yyyy", { locale: fr }) }));
+          msgs.push(t("athleteSpace:health.estimatedReturn", { date: format(new Date(inj.estimated_return_date), "dd MMM yyyy", { locale: getDateLocale() }) }));
         }
       } else if (inj.status === "recovering") {
         msgs.push(t("athleteSpace:health.injuryRecovering", { type: inj.injury_type }));
@@ -249,7 +249,7 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
                 <div key={inj.id} className="flex items-center justify-between gap-2 p-2 rounded-lg border bg-background/50">
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium truncate">{inj.injury_type}</p>
-                    <p className="text-[11px] text-muted-foreground">{format(new Date(inj.injury_date), "dd MMM yyyy", { locale: fr })}</p>
+                    <p className="text-[11px] text-muted-foreground">{format(new Date(inj.injury_date), "dd MMM yyyy", { locale: getDateLocale() })}</p>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingInjury(inj)} title={t("athleteSpace:health.edit")}>
@@ -491,7 +491,7 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
               <div key={c.id} className="space-y-1">
                 <p className="text-sm">{t("athleteSpace:health.currentPhaseShort")} <strong>{c.return_to_play_phase || 1}/6</strong></p>
                 <p className="text-xs text-muted-foreground">
-                  {t("athleteSpace:health.incidentLabel", { date: format(new Date(c.incident_date), "dd MMM yyyy", { locale: fr }) })}
+                  {t("athleteSpace:health.incidentLabel", { date: format(new Date(c.incident_date), "dd MMM yyyy", { locale: getDateLocale() }) })}
                 </p>
                 {c.medical_notes && (
                   <p className="text-xs text-muted-foreground mt-1">{t("athleteSpace:health.notesLabel", { notes: c.medical_notes })}</p>

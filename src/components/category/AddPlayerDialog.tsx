@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,6 +38,7 @@ export function AddPlayerDialog({
   onOpenChange,
   categoryId,
 }: AddPlayerDialogProps) {
+  const { t } = useTranslation();
   const [playerName, setPlayerName] = useState("");
   const [playerEmail, setPlayerEmail] = useState("");
   const [playerPhone, setPlayerPhone] = useState("");
@@ -206,7 +208,7 @@ export function AddPlayerDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["players", categoryId] });
-      toast.success("Athlète ajouté avec succès");
+      toast.success(t("roster.addPlayerDialog.toasts.added"));
       setPlayerName("");
       setPlayerEmail("");
       setPlayerPhone("");
@@ -225,7 +227,7 @@ export function AddPlayerDialog({
       onOpenChange(false);
     },
     onError: () => {
-      toast.error("Erreur lors de l'ajout de l'athlète");
+      toast.error(t("roster.addPlayerDialog.toasts.addError"));
     },
   });
 
@@ -246,21 +248,19 @@ export function AddPlayerDialog({
 
     // Validate discipline(s) for athletics — multi-discipline supported
     if (isAthletics && disciplinePairs.length === 0) {
-      setValidationError(
-        "Ajoutez au moins une discipline (clique sur + après ton choix de discipline/spécialité)",
-      );
+      setValidationError(t("roster.addPlayerDialog.validation.disciplineRequired"));
       return;
     }
 
     // Validate weight category for judo
     if (isJudo && !discipline) {
-      setValidationError("Veuillez sélectionner une catégorie de poids");
+      setValidationError(t("roster.addPlayerDialog.validation.weightCategoryRequired"));
       return;
     }
 
     // Validate role for aviron
     if (isAviron && !position) {
-      setValidationError("Veuillez sélectionner un rôle");
+      setValidationError(t("roster.addPlayerDialog.validation.roleRequired"));
       return;
     }
 
@@ -297,7 +297,7 @@ export function AddPlayerDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Ajouter un nouvel athlète</DialogTitle>
+          <DialogTitle>{t("roster.addPlayerDialog.title")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
@@ -305,18 +305,18 @@ export function AddPlayerDialog({
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  Limite d'athlètes atteinte ({currentPlayerCount}/{maxAthletes}). Retirez un athlète existant avant d'en ajouter un nouveau.
+                  {t("roster.addPlayerDialog.limitReached", { current: currentPlayerCount, max: maxAthletes })}
                 </AlertDescription>
               </Alert>
             )}
 
             {maxAthletes !== null && !isAthletesFull && (
               <p className="text-xs text-muted-foreground">
-                Athlètes : {currentPlayerCount}/{maxAthletes} dans cette catégorie
+                {t("roster.addPlayerDialog.countInCategory", { current: currentPlayerCount, max: maxAthletes })}
               </p>
             )}
             <div className="space-y-2">
-              <Label htmlFor="playerName">Nom de l'athlète</Label>
+              <Label htmlFor="playerName">{t("roster.addPlayerDialog.fields.name")}</Label>
               <Input
                 id="playerName"
                 value={playerName}
@@ -324,46 +324,46 @@ export function AddPlayerDialog({
                   setPlayerName(e.target.value);
                   setValidationError("");
                 }}
-                placeholder="Ex: Jean Dupont"
+                placeholder={t("roster.addPlayerDialog.placeholders.name")}
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="playerEmail">Email (optionnel)</Label>
+              <Label htmlFor="playerEmail">{t("roster.addPlayerDialog.fields.email")}</Label>
               <Input
                 id="playerEmail"
                 type="email"
                 value={playerEmail}
                 onChange={(e) => setPlayerEmail(e.target.value)}
-                placeholder="athlete@email.com"
+                placeholder={t("roster.addPlayerDialog.placeholders.email")}
               />
               <p className="text-xs text-muted-foreground">
-                Pour envoyer des notifications par email
+                {t("roster.addPlayerDialog.helpers.email")}
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="playerPhone">Téléphone (optionnel)</Label>
+              <Label htmlFor="playerPhone">{t("roster.addPlayerDialog.fields.phone")}</Label>
               <Input
                 id="playerPhone"
                 type="tel"
                 value={playerPhone}
                 onChange={(e) => setPlayerPhone(e.target.value)}
-                placeholder="+33 6 12 34 56 78"
+                placeholder={t("roster.addPlayerDialog.placeholders.phone")}
               />
               <p className="text-xs text-muted-foreground">
-                Pour envoyer des notifications par SMS
+                {t("roster.addPlayerDialog.helpers.phone")}
               </p>
             </div>
 
             {/* Position selector for team sports */}
             {isTeamSport && positions.length > 0 && (
               <div className="space-y-2">
-                <Label htmlFor="position">Poste (optionnel)</Label>
+                <Label htmlFor="position">{t("roster.addPlayerDialog.fields.position")}</Label>
                 <Select value={position} onValueChange={setPosition}>
                   <SelectTrigger className="w-full bg-background">
-                    <SelectValue placeholder="Sélectionner un poste" />
+                    <SelectValue placeholder={t("roster.addPlayerDialog.placeholders.position")} />
                   </SelectTrigger>
                   <SelectContent className="bg-background border z-50 max-h-[300px]">
                     {positions.map((pos) => (
@@ -378,9 +378,9 @@ export function AddPlayerDialog({
 
             {isAthletics && (
               <div className="space-y-2 rounded-lg border p-3 bg-muted/20">
-                <Label className="text-sm font-medium">Disciplines pratiquées *</Label>
+                <Label className="text-sm font-medium">{t("roster.addPlayerDialog.disciplines.title")}</Label>
                 <p className="text-xs text-muted-foreground">
-                  Un athlète peut pratiquer plusieurs disciplines (ex. sprint + saut). La 1ʳᵉ ajoutée est la discipline principale.
+                  {t("roster.addPlayerDialog.disciplines.description")}
                 </p>
 
                 {/* Existing pairs */}
@@ -404,13 +404,13 @@ export function AddPlayerDialog({
                           <span>
                             {discLabel}
                             {specLabel ? ` · ${specLabel}` : ""}
-                            {i === 0 ? " (principale)" : ""}
+                            {i === 0 ? t("roster.addPlayerDialog.disciplines.primary") : ""}
                           </span>
                           <button
                             type="button"
                             onClick={() => removeDisciplinePair(i)}
                             className="ml-1 rounded-sm hover:bg-foreground/10 p-0.5"
-                            aria-label="Retirer cette discipline"
+                            aria-label={t("roster.addPlayerDialog.disciplines.removeAriaLabel")}
                           >
                             <X className="h-3 w-3" />
                           </button>
@@ -430,7 +430,7 @@ export function AddPlayerDialog({
                     }}
                   >
                     <SelectTrigger className="w-full bg-background">
-                      <SelectValue placeholder="Discipline" />
+                      <SelectValue placeholder={t("roster.addPlayerDialog.disciplines.discipline")} />
                     </SelectTrigger>
                     <SelectContent className="bg-background border z-50">
                       {ATHLETISME_DISCIPLINES.map((disc) => (
@@ -444,7 +444,7 @@ export function AddPlayerDialog({
                   {availableSpecialties.length > 0 && (
                     <Select value={draftSpecialty} onValueChange={setDraftSpecialty}>
                       <SelectTrigger className="w-full bg-background">
-                        <SelectValue placeholder="Spécialité" />
+                        <SelectValue placeholder={t("roster.addPlayerDialog.disciplines.specialty")} />
                       </SelectTrigger>
                       <SelectContent className="bg-background border z-50">
                         {availableSpecialties.map((spec) => (
@@ -465,7 +465,7 @@ export function AddPlayerDialog({
                       !draftDiscipline ||
                       (availableSpecialties.length > 0 && !draftSpecialty)
                     }
-                    aria-label="Ajouter cette discipline"
+                    aria-label={t("roster.addPlayerDialog.disciplines.addAriaLabel")}
                   >
                     <Plus className="h-4 w-4" />
                   </Button>
@@ -475,10 +475,10 @@ export function AddPlayerDialog({
 
             {isJudo && (
               <div className="space-y-2">
-                <Label htmlFor="weightCategory">Catégorie de poids *</Label>
+                <Label htmlFor="weightCategory">{t("roster.addPlayerDialog.weightCategory.label")}</Label>
                 <Select value={discipline} onValueChange={setDiscipline}>
                   <SelectTrigger className="w-full bg-background">
-                    <SelectValue placeholder="Sélectionner une catégorie" />
+                    <SelectValue placeholder={t("roster.addPlayerDialog.weightCategory.placeholder")} />
                   </SelectTrigger>
                   <SelectContent className="bg-background border z-50">
                     {JUDO_WEIGHT_CATEGORIES.map((cat) => (
@@ -489,17 +489,17 @@ export function AddPlayerDialog({
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  Les athlètes pourront être comparés par catégorie de poids
+                  {t("roster.addPlayerDialog.helpers.weightCategory")}
                 </p>
               </div>
             )}
 
             {isAviron && (
               <div className="space-y-2">
-                <Label htmlFor="avironRole">Rôle *</Label>
+                <Label htmlFor="avironRole">{t("roster.addPlayerDialog.avironRole.label")}</Label>
                 <Select value={position} onValueChange={setPosition}>
                   <SelectTrigger className="w-full bg-background">
-                    <SelectValue placeholder="Sélectionner un rôle" />
+                    <SelectValue placeholder={t("roster.addPlayerDialog.avironRole.placeholder")} />
                   </SelectTrigger>
                   <SelectContent className="bg-background border z-50 max-h-[300px]">
                     {AVIRON_ROLES.map((role) => (
@@ -510,7 +510,7 @@ export function AddPlayerDialog({
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  Le rôle dans l'embarcation
+                  {t("roster.addPlayerDialog.helpers.avironRole")}
                 </p>
               </div>
             )}
@@ -520,10 +520,10 @@ export function AddPlayerDialog({
               const filteredDisciplines = getSkiDisciplinesForCategory(category?.rugby_type || "");
               return filteredDisciplines.length > 1 ? (
                 <div className="space-y-2">
-                  <Label htmlFor="skiDiscipline">Discipline</Label>
+                  <Label htmlFor="skiDiscipline">{t("roster.addPlayerDialog.skiDiscipline.label")}</Label>
                   <Select value={discipline} onValueChange={setDiscipline}>
                     <SelectTrigger className="w-full bg-background">
-                      <SelectValue placeholder="Sélectionner une discipline" />
+                      <SelectValue placeholder={t("roster.addPlayerDialog.skiDiscipline.placeholder")} />
                     </SelectTrigger>
                     <SelectContent className="bg-background border z-50 max-h-[300px]">
                       {filteredDisciplines.map((disc) => (
@@ -542,40 +542,40 @@ export function AddPlayerDialog({
               <>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
-                    <Label htmlFor="fisRanking">Classement FIS</Label>
+                    <Label htmlFor="fisRanking">{t("roster.addPlayerDialog.fis.ranking")}</Label>
                     <Input
                       id="fisRanking"
                       type="number"
                       value={fisRanking}
                       onChange={(e) => setFisRanking(e.target.value)}
-                      placeholder="Ex: 45"
+                      placeholder={t("roster.addPlayerDialog.fis.rankingPlaceholder")}
                       min="1"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="fisPoints">Points FIS</Label>
+                    <Label htmlFor="fisPoints">{t("roster.addPlayerDialog.fis.points")}</Label>
                     <Input
                       id="fisPoints"
                       type="number"
                       value={fisPointsInput}
                       onChange={(e) => setFisPointsInput(e.target.value)}
-                      placeholder="Ex: 320.50"
+                      placeholder={t("roster.addPlayerDialog.fis.pointsPlaceholder")}
                       step="0.01"
                       min="0"
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="fisObjective">Objectif sportif</Label>
+                  <Label htmlFor="fisObjective">{t("roster.addPlayerDialog.fis.objective")}</Label>
                   <Input
                     id="fisObjective"
                     value={fisObjective}
                     onChange={(e) => setFisObjective(e.target.value)}
-                    placeholder="Ex: Qualification Championnats du Monde"
+                    placeholder={t("roster.addPlayerDialog.fis.objectivePlaceholder")}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="fisObjectiveDate">Date cible objectif</Label>
+                  <Label htmlFor="fisObjectiveDate">{t("roster.addPlayerDialog.fis.objectiveDate")}</Label>
                   <Input
                     id="fisObjectiveDate"
                     type="date"
@@ -583,14 +583,14 @@ export function AddPlayerDialog({
                     onChange={(e) => setFisObjectiveDate(e.target.value)}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Échéance pour atteindre l'objectif FIS
+                    {t("roster.addPlayerDialog.helpers.fisObjectiveDate")}
                   </p>
                 </div>
               </>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="birthDate">Date de naissance (optionnel)</Label>
+              <Label htmlFor="birthDate">{t("roster.addPlayerDialog.fields.birthDate")}</Label>
               <Input
                 id="birthDate"
                 type="date"
@@ -606,12 +606,12 @@ export function AddPlayerDialog({
                 max={new Date().toISOString().split('T')[0]}
               />
               <p className="text-xs text-muted-foreground">
-                Pour recevoir des notifications d'anniversaire
+                {t("roster.addPlayerDialog.helpers.birthDate")}
               </p>
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="birthYear">Année de naissance (optionnel)</Label>
+              <Label htmlFor="birthYear">{t("roster.addPlayerDialog.fields.birthYear")}</Label>
               <Input
                 id="birthYear"
                 type="number"
@@ -620,7 +620,7 @@ export function AddPlayerDialog({
                   setBirthYear(e.target.value);
                   setValidationError("");
                 }}
-                placeholder="Ex: 2010"
+                placeholder={t("roster.addPlayerDialog.placeholders.birthYear")}
                 min="1950"
                 max={new Date().getFullYear()}
               />
@@ -636,13 +636,13 @@ export function AddPlayerDialog({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Annuler
+              {t("roster.addPlayerDialog.buttons.cancel")}
             </Button>
             <Button
               type="submit"
               disabled={!playerName.trim() || addPlayer.isPending || isAthletesFull}
             >
-              {addPlayer.isPending ? "Ajout..." : "Ajouter"}
+              {addPlayer.isPending ? t("roster.addPlayerDialog.buttons.adding") : t("roster.addPlayerDialog.buttons.add")}
             </Button>
           </DialogFooter>
         </form>

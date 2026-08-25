@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useMemo, useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,7 +27,6 @@ import {
 import { CalendarPlus, Search, Star, Bell, Trash2, Pencil, RefreshCw, X, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { format, addWeeks, isBefore, startOfDay } from "date-fns";
-import { fr } from "date-fns/locale";
 import { getTestCategoriesForSport, type TestCategory } from "@/lib/constants/testCategories";
 import { formatCategoryLabel, formatTestTypeLabel } from "./customTestCatalog";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
@@ -882,7 +882,7 @@ export function PlanTestsSection({ categoryId, sportType }: PlanTestsSectionProp
                   <p className="text-xs text-muted-foreground">
                     {allPreviewDates.length} séance{allPreviewDates.length > 1 ? "s" : ""} prévue
                     {allPreviewDates.length > 1 ? "s" : ""} • Aperçu :{" "}
-                    {previewDates.map((d) => format(new Date(d), "dd MMM", { locale: fr })).join(", ")}
+                    {previewDates.map((d) => format(new Date(d), "dd MMM", { locale: getDateLocale() })).join(", ")}
                     {allPreviewDates.length > previewDates.length ? "…" : ""}
                   </p>
                 )}
@@ -968,11 +968,11 @@ export function PlanTestsSection({ categoryId, sportType }: PlanTestsSectionProp
                       <p className="text-xs text-muted-foreground">
                         Début:{" "}
                         {r.start_date
-                          ? format(new Date(r.start_date), "dd MMMM yyyy", { locale: fr })
+                          ? format(new Date(r.start_date), "dd MMMM yyyy", { locale: getDateLocale() })
                           : "—"}{" "}
                         • Tous les {r.frequency_weeks} semaines
                         {r.end_date && (
-                          <> • Jusqu'au {format(new Date(r.end_date), "dd MMM yyyy", { locale: fr })}</>
+                          <> • Jusqu'au {format(new Date(r.end_date), "dd MMM yyyy", { locale: getDateLocale() })}</>
                         )}
                         {(r.session_start_time || r.session_end_time) && (
                           <>

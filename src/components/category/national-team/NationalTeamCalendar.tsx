@@ -1,9 +1,9 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek } from "date-fns";
-import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
 interface NationalTeamEvent {
@@ -79,7 +79,7 @@ export function NationalTeamCalendar({ categoryId, events }: NationalTeamCalenda
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <span className="font-medium min-w-[140px] text-center">
-                {format(currentMonth, "MMMM yyyy", { locale: fr })}
+                {format(currentMonth, "MMMM yyyy", { locale: getDateLocale() })}
               </span>
               <Button
                 variant="outline"
@@ -187,8 +187,8 @@ export function NationalTeamCalendar({ categoryId, events }: NationalTeamCalenda
               <div>
                 <span className="text-muted-foreground">Date:</span>
                 <p className="font-medium">
-                  {format(new Date(selectedEvent.start_date), "dd MMM yyyy", { locale: fr })}
-                  {selectedEvent.end_date && ` - ${format(new Date(selectedEvent.end_date), "dd MMM yyyy", { locale: fr })}`}
+                  {format(new Date(selectedEvent.start_date), "dd MMM yyyy", { locale: getDateLocale() })}
+                  {selectedEvent.end_date && ` - ${format(new Date(selectedEvent.end_date), "dd MMM yyyy", { locale: getDateLocale() })}`}
                 </p>
               </div>
               {selectedEvent.location && (

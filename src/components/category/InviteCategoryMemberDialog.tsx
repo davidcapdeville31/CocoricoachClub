@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,6 +28,7 @@ interface InviteCategoryMemberDialogProps {
 }
 
 export function InviteCategoryMemberDialog({ open, onOpenChange, categoryId }: InviteCategoryMemberDialogProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [generatedLink, setGeneratedLink] = useState<string | null>(null);
@@ -90,7 +92,7 @@ export function InviteCategoryMemberDialog({ open, onOpenChange, categoryId }: I
   const mutation = useMutation({
     mutationFn: async (data: InvitationForm) => {
       const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("Non authentifié");
+      if (!user.user) throw new Error(t("adminStaff.invite.notAuthenticated"));
 
       const { data: invitation, error } = await supabase
         .from("category_invitations")

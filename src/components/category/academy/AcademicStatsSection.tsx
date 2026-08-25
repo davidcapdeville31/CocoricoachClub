@@ -1,3 +1,4 @@
+import { getLocaleTag } from "@/lib/i18n/dateLocale";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +13,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import ExcelJS from "exceljs";
 import { cn } from "@/lib/utils";
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useTranslation } from "react-i18next";
 
 interface AcademicStatsSectionProps {
   categoryId: string;
@@ -39,6 +41,7 @@ function normalizeGrade(grade: number | null, scale: string | null): number | nu
 }
 
 export function AcademicStatsSection({ categoryId }: AcademicStatsSectionProps) {
+  const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState<string>("all");
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
@@ -154,7 +157,7 @@ export function AcademicStatsSection({ categoryId }: AcademicStatsSectionProps) 
     const chartData = allDates.map(date => {
       const row: Record<string, any> = {
         date,
-        label: new Date(date).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" }),
+        label: new Date(date).toLocaleDateString(getLocaleTag(), { day: "2-digit", month: "short" }),
       };
       subjects.forEach(subj => {
         const entry = subjectEntries[subj]?.find(e => e.date === date);
@@ -170,7 +173,7 @@ export function AcademicStatsSection({ categoryId }: AcademicStatsSectionProps) 
     filteredData.forEach(e => {
       const d = new Date(e.tracking_date);
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-      const label = new Date(d.getFullYear(), d.getMonth()).toLocaleDateString("fr-FR", { month: "short", year: "2-digit" });
+      const label = new Date(d.getFullYear(), d.getMonth()).toLocaleDateString(getLocaleTag(), { month: "short", year: "2-digit" });
       if (!months[key]) months[key] = { grades: [], label, absences: 0 };
       months[key].absences += e.school_absence_hours || 0;
       const n = normalizeGrade(e.academic_grade, e.grade_scale);
@@ -212,44 +215,44 @@ export function AcademicStatsSection({ categoryId }: AcademicStatsSectionProps) 
   const exportToExcel = async () => {
     try {
       const wb = new ExcelJS.Workbook();
-      const ws1 = wb.addWorksheet("Statistiques Globales");
+      const ws1 = wb.addWorksheet(t("academy.stats.export_.globalStatsSheet"));
       ws1.columns = [
-        { header: "Indicateur", key: "indicator", width: 25 },
-        { header: "Valeur", key: "value", width: 15 },
+        { header: t("academy.stats.export_.indicator"), key: "indicator", width: 25 },
+        { header: t("academy.stats.export_.value"), key: "value", width: 15 },
       ];
       ws1.getRow(1).font = { bold: true };
       if (globalStats) {
-        ws1.addRow({ indicator: "Moyenne générale (/20)", value: globalStats.avg });
-        ws1.addRow({ indicator: "Note min (/20)", value: globalStats.min });
-        ws1.addRow({ indicator: "Note max (/20)", value: globalStats.max });
-        ws1.addRow({ indicator: "Nombre de notes", value: globalStats.count });
-        ws1.addRow({ indicator: "Total heures absences", value: globalStats.totalAbsences });
+        ws1.addRow({ indicator: t("academy.stats.export_.overallAverage"), value: globalStats.avg });
+        ws1.addRow({ indicator: t("academy.stats.export_.minGrade"), value: globalStats.min });
+        ws1.addRow({ indicator: t("academy.stats.export_.maxGrade"), value: globalStats.max });
+        ws1.addRow({ indicator: t("academy.stats.export_.gradeCount"), value: globalStats.count });
+        ws1.addRow({ indicator: t("academy.stats.export_.totalAbsenceHours"), value: globalStats.totalAbsences });
       }
-      const ws2 = wb.addWorksheet("Par Matière");
+      const ws2 = wb.addWorksheet(t("academy.stats.export_.bySubjectSheet"));
       ws2.columns = [
-        { header: "Matière", key: "name", width: 20 },
-        { header: "Moyenne (/20)", key: "avg", width: 15 },
-        { header: "Min (/20)", key: "min", width: 12 },
-        { header: "Max (/20)", key: "max", width: 12 },
-        { header: "Nb notes", key: "count", width: 12 },
+        { header: t("academy.stats.export_.subject"), key: "name", width: 20 },
+        { header: t("academy.stats.export_.averageOn20"), key: "avg", width: 15 },
+        { header: t("academy.stats.export_.minOn20"), key: "min", width: 12 },
+        { header: t("academy.stats.export_.maxOn20"), key: "max", width: 12 },
+        { header: t("academy.stats.export_.gradeCountShort"), key: "count", width: 12 },
       ];
       ws2.getRow(1).font = { bold: true };
       subjectStats.forEach(s => ws2.addRow(s));
-      const ws4 = wb.addWorksheet("Évolution Mensuelle");
+      const ws4 = wb.addWorksheet(t("academy.stats.export_.monthlyEvolutionSheet"));
       ws4.columns = [
-        { header: "Mois", key: "label", width: 15 },
-        { header: "Moyenne (/20)", key: "moyenne", width: 15 },
-        { header: "Nb notes", key: "nbNotes", width: 12 },
-        { header: "Absences (h)", key: "absences", width: 15 },
+        { header: t("academy.stats.export_.month"), key: "label", width: 15 },
+        { header: t("academy.stats.export_.averageOn20"), key: "moyenne", width: 15 },
+        { header: t("academy.stats.export_.gradeCountShort"), key: "nbNotes", width: 12 },
+        { header: t("academy.stats.export_.absenceHoursShort"), key: "absences", width: 15 },
       ];
       ws4.getRow(1).font = { bold: true };
       evolutionData.forEach(e => ws4.addRow(e));
-      const ws5 = wb.addWorksheet("Comparaison Annuelle");
+      const ws5 = wb.addWorksheet(t("academy.stats.export_.yearlyComparisonSheet"));
       ws5.columns = [
-        { header: "Année", key: "year", width: 12 },
-        { header: "Moyenne (/20)", key: "moyenne", width: 15 },
-        { header: "Nb notes", key: "nbNotes", width: 12 },
-        { header: "Absences (h)", key: "absences", width: 15 },
+        { header: t("academy.stats.export_.year"), key: "year", width: 12 },
+        { header: t("academy.stats.export_.averageOn20"), key: "moyenne", width: 15 },
+        { header: t("academy.stats.export_.gradeCountShort"), key: "nbNotes", width: 12 },
+        { header: t("academy.stats.export_.absenceHoursShort"), key: "absences", width: 15 },
       ];
       ws5.getRow(1).font = { bold: true };
       yearComparison.forEach(y => ws5.addRow(y));
@@ -258,12 +261,12 @@ export function AcademicStatsSection({ categoryId }: AcademicStatsSectionProps) 
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `statistiques_scolaires_${selectedYear === "all" ? "toutes_annees" : selectedYear}.xlsx`;
+      a.download = `statistiques_scolaires_${selectedYear === "all" ? t("academy.stats.export_.fileNameAllYears") : selectedYear}.xlsx`;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success("Export Excel téléchargé");
+      toast.success(t("academy.stats.export_.toastSuccess"));
     } catch {
-      toast.error("Erreur lors de l'export");
+      toast.error(t("academy.stats.export_.toastError"));
     }
   };
 
@@ -290,22 +293,22 @@ export function AcademicStatsSection({ categoryId }: AcademicStatsSectionProps) 
           <div>
             <CardTitle className="flex items-center gap-2">
               <BarChart3 className="h-5 w-5" />
-              Statistiques Scolaires
+              {t("academy.stats.title")}
               {selectedPlayerName && (
                 <span className="text-sm font-normal text-muted-foreground">— {selectedPlayerName}</span>
               )}
             </CardTitle>
             <CardDescription>
-              {selectedPlayerId ? "Statistiques individuelles" : "Sélectionnez un joueur pour voir ses statistiques"}
+              {selectedPlayerId ? t("academy.stats.individualStats") : t("academy.stats.selectPlayerPrompt")}
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
             <Select value={selectedYear} onValueChange={setSelectedYear}>
               <SelectTrigger className="w-40">
-                <SelectValue placeholder="Période" />
+                <SelectValue placeholder={t("academy.stats.periodPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Toutes les années</SelectItem>
+                <SelectItem value="all">{t("academy.stats.allYears")}</SelectItem>
                 {availableYears.map(y => (
                   <SelectItem key={y} value={y.toString()}>{y}/{y + 1}</SelectItem>
                 ))}
@@ -313,7 +316,7 @@ export function AcademicStatsSection({ categoryId }: AcademicStatsSectionProps) 
             </Select>
             <Button variant="outline" onClick={exportToExcel} disabled={!allData || allData.length === 0}>
               <Download className="h-4 w-4 mr-2" />
-              Exporter
+              {t("academy.stats.export")}
             </Button>
           </div>
         </div>
@@ -323,14 +326,14 @@ export function AcademicStatsSection({ categoryId }: AcademicStatsSectionProps) 
         <div className="space-y-2">
           <p className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
             <Users className="h-4 w-4" />
-            Sélectionner un athlète
+            {t("academy.stats.selectAthlete")}
           </p>
           <Select
             value={selectedPlayerId ?? ""}
             onValueChange={(v) => setSelectedPlayerId(v || null)}
           >
             <SelectTrigger className="w-full md:w-80">
-              <SelectValue placeholder="Choisir un athlète" />
+              <SelectValue placeholder={t("academy.stats.chooseAthlete")} />
             </SelectTrigger>
             <SelectContent>
               {allPlayers?.map((player) => {
@@ -347,32 +350,32 @@ export function AcademicStatsSection({ categoryId }: AcademicStatsSectionProps) 
 
         {!selectedPlayerId ? (
           <p className="text-center text-muted-foreground py-8">
-            Cliquez sur un joueur ci-dessus pour afficher ses statistiques scolaires.
+            {t("academy.stats.clickPlayerPrompt")}
           </p>
         ) : filteredData.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">Aucune donnée scolaire pour ce joueur.</p>
+          <p className="text-center text-muted-foreground py-8">{t("academy.stats.noDataForPlayer")}</p>
         ) : (
           <>
             {globalStats && (
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <div className="p-4 bg-muted rounded-lg text-center">
-                  <p className="text-sm text-muted-foreground">Moyenne générale</p>
+                  <p className="text-sm text-muted-foreground">{t("academy.stats.cards.average")}</p>
                   <p className="text-2xl font-bold text-primary">{globalStats.avg}/20</p>
                 </div>
                 <div className="p-4 bg-muted rounded-lg text-center">
-                  <p className="text-sm text-muted-foreground">Note min</p>
+                  <p className="text-sm text-muted-foreground">{t("academy.stats.cards.minGrade")}</p>
                   <p className="text-2xl font-bold">{globalStats.min}/20</p>
                 </div>
                 <div className="p-4 bg-muted rounded-lg text-center">
-                  <p className="text-sm text-muted-foreground">Note max</p>
+                  <p className="text-sm text-muted-foreground">{t("academy.stats.cards.maxGrade")}</p>
                   <p className="text-2xl font-bold">{globalStats.max}/20</p>
                 </div>
                 <div className="p-4 bg-muted rounded-lg text-center">
-                  <p className="text-sm text-muted-foreground">Nombre de notes</p>
+                  <p className="text-sm text-muted-foreground">{t("academy.stats.cards.gradeCount")}</p>
                   <p className="text-2xl font-bold">{globalStats.count}</p>
                 </div>
                 <div className="p-4 bg-muted rounded-lg text-center">
-                  <p className="text-sm text-muted-foreground">Heures absences</p>
+                  <p className="text-sm text-muted-foreground">{t("academy.stats.cards.absenceHours")}</p>
                   <p className="text-2xl font-bold text-destructive">{globalStats.totalAbsences}h</p>
                 </div>
               </div>
@@ -380,16 +383,16 @@ export function AcademicStatsSection({ categoryId }: AcademicStatsSectionProps) 
 
             <Tabs defaultValue="evolution" className="space-y-4">
               <TabsList>
-                <TabsTrigger value="evolution">Évolution</TabsTrigger>
-                <TabsTrigger value="subjects">Par Matière</TabsTrigger>
-                <TabsTrigger value="years">Année par Année</TabsTrigger>
+                <TabsTrigger value="evolution">{t("academy.stats.tabs.evolution")}</TabsTrigger>
+                <TabsTrigger value="subjects">{t("academy.stats.tabs.subjects")}</TabsTrigger>
+                <TabsTrigger value="years">{t("academy.stats.tabs.years")}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="evolution">
                 {evolutionData.length > 0 ? (
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">Tendance:</span>
+                      <span className="text-sm font-medium">{t("academy.stats.trend")}</span>
                       {getTrendIcon(evolutionData)}
                     </div>
                     <div className="h-72">
@@ -400,7 +403,7 @@ export function AcademicStatsSection({ categoryId }: AcademicStatsSectionProps) 
                           <YAxis domain={[(dataMin: number) => Math.max(0, Math.floor(dataMin) - 2), 20]} fontSize={12} allowDecimals={false} />
                           <Tooltip />
                           <Legend />
-                          <Line type="monotone" dataKey="moyenne" name="Moyenne (/20)" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4 }} connectNulls />
+                          <Line type="monotone" dataKey="moyenne" name={t("academy.stats.chart.average")} stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4 }} connectNulls />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
@@ -412,13 +415,13 @@ export function AcademicStatsSection({ categoryId }: AcademicStatsSectionProps) 
                           <YAxis fontSize={12} />
                           <Tooltip />
                           <Legend />
-                          <Bar dataKey="absences" name="Absences (h)" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
+                          <Bar dataKey="absences" name={t("academy.stats.chart.absences")} fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
                   </div>
                 ) : (
-                  <p className="text-center text-muted-foreground py-8">Pas assez de données pour l'évolution.</p>
+                  <p className="text-center text-muted-foreground py-8">{t("academy.stats.noEvolutionData")}</p>
                 )}
               </TabsContent>
 
@@ -459,11 +462,11 @@ export function AcademicStatsSection({ categoryId }: AcademicStatsSectionProps) 
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Matière</TableHead>
-                            <TableHead className="text-center">Moyenne</TableHead>
-                            <TableHead className="text-center">Min</TableHead>
-                            <TableHead className="text-center">Max</TableHead>
-                            <TableHead className="text-center">Nb notes</TableHead>
+                            <TableHead>{t("academy.stats.table.subject")}</TableHead>
+                            <TableHead className="text-center">{t("academy.stats.table.average")}</TableHead>
+                            <TableHead className="text-center">{t("academy.stats.table.min")}</TableHead>
+                            <TableHead className="text-center">{t("academy.stats.table.max")}</TableHead>
+                            <TableHead className="text-center">{t("academy.stats.table.gradeCount")}</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -481,7 +484,7 @@ export function AcademicStatsSection({ categoryId }: AcademicStatsSectionProps) 
                     </div>
                   </div>
                 ) : (
-                  <p className="text-center text-muted-foreground py-8">Aucune note par matière.</p>
+                  <p className="text-center text-muted-foreground py-8">{t("academy.stats.noSubjectData")}</p>
                 )}
               </TabsContent>
 
@@ -489,7 +492,7 @@ export function AcademicStatsSection({ categoryId }: AcademicStatsSectionProps) 
                 {yearComparison.length > 0 ? (
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">Tendance inter-annuelle:</span>
+                      <span className="text-sm font-medium">{t("academy.stats.yearlyTrend")}</span>
                       {getTrendIcon(yearComparison)}
                     </div>
                     <div className="h-64">
@@ -500,7 +503,7 @@ export function AcademicStatsSection({ categoryId }: AcademicStatsSectionProps) 
                           <YAxis domain={[(dataMin: number) => Math.max(0, Math.floor(dataMin) - 2), 20]} fontSize={12} allowDecimals={false} />
                           <Tooltip />
                           <Legend />
-                          <Bar dataKey="moyenne" name="Moyenne (/20)" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} barSize={60} maxBarSize={80} />
+                          <Bar dataKey="moyenne" name={t("academy.stats.chart.average")} fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} barSize={60} maxBarSize={80} />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
@@ -508,10 +511,10 @@ export function AcademicStatsSection({ categoryId }: AcademicStatsSectionProps) 
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Année</TableHead>
-                            <TableHead className="text-center">Moyenne (/20)</TableHead>
-                            <TableHead className="text-center">Nb notes</TableHead>
-                            <TableHead className="text-center">Absences (h)</TableHead>
+                            <TableHead>{t("academy.stats.table.year")}</TableHead>
+                            <TableHead className="text-center">{t("academy.stats.table.averageOn20")}</TableHead>
+                            <TableHead className="text-center">{t("academy.stats.table.gradeCount")}</TableHead>
+                            <TableHead className="text-center">{t("academy.stats.table.absenceHours")}</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -528,7 +531,7 @@ export function AcademicStatsSection({ categoryId }: AcademicStatsSectionProps) 
                     </div>
                   </div>
                 ) : (
-                  <p className="text-center text-muted-foreground py-8">Pas assez de données pour la comparaison annuelle.</p>
+                  <p className="text-center text-muted-foreground py-8">{t("academy.stats.noYearData")}</p>
                 )}
               </TabsContent>
             </Tabs>

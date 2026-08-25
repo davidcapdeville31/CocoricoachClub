@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +11,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { BarChart3, CalendarIcon, Users, Target, Download, FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format, isAfter, isBefore, startOfDay, endOfDay } from "date-fns";
-import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import ExcelJS from "exceljs";
 import jsPDF from "jspdf";
@@ -390,7 +390,7 @@ export function TennisTrainingStats({ categoryId }: TennisTrainingStatsProps) {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} locale={fr} />
+                  <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} locale={getDateLocale()} />
                 </PopoverContent>
               </Popover>
             </div>
@@ -404,7 +404,7 @@ export function TennisTrainingStats({ categoryId }: TennisTrainingStatsProps) {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={dateTo} onSelect={setDateTo} locale={fr} />
+                  <Calendar mode="single" selected={dateTo} onSelect={setDateTo} locale={getDateLocale()} />
                 </PopoverContent>
               </Popover>
             </div>

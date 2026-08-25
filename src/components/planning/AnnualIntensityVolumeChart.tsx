@@ -1,6 +1,6 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useMemo, useRef, useState } from "react";
 import { addDays, differenceInCalendarDays, format, startOfWeek } from "date-fns";
-import { fr } from "date-fns/locale";
 import {
   ResponsiveContainer,
   LineChart,
@@ -85,7 +85,7 @@ export function AnnualIntensityVolumeChart({ periodStart, periodEnd, categories,
       });
 
       rows.push({
-        label: format(wStart, "dd/MM", { locale: fr }),
+        label: format(wStart, "dd/MM", { locale: getDateLocale() }),
         weekIndex: w,
         intensity: count > 0 ? Math.round((intensitySum / count) * 10) / 10 : null,
         volume: count > 0 ? Math.round((volumeSum / count) * 10) / 10 : null,
@@ -145,7 +145,7 @@ export function AnnualIntensityVolumeChart({ periodStart, periodEnd, categories,
     try {
       await exportElementToPdf(exportRef.current, {
         title: "Volume / Intensité — Vue annuelle",
-        subtitle: `${format(periodStart, "dd MMM yyyy", { locale: fr })} → ${format(periodEnd, "dd MMM yyyy", { locale: fr })}`,
+        subtitle: `${format(periodStart, "dd MMM yyyy", { locale: getDateLocale() })} → ${format(periodEnd, "dd MMM yyyy", { locale: getDateLocale() })}`,
         orientation: "landscape",
         filename: `volume-intensite-${format(periodStart, "yyyy-MM-dd")}.pdf`,
       });
@@ -294,7 +294,7 @@ export function AnnualIntensityVolumeChart({ periodStart, periodEnd, categories,
                           )}
                         </div>
                         <p className="text-[10px] text-muted-foreground leading-relaxed">
-                          {format(new Date(b.start_date), "dd MMM", { locale: fr })} → {format(new Date(b.end_date), "dd MMM yyyy", { locale: fr })}
+                          {format(new Date(b.start_date), "dd MMM", { locale: getDateLocale() })} → {format(new Date(b.end_date), "dd MMM yyyy", { locale: getDateLocale() })}
                         </p>
                         <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] leading-relaxed">
                           {b.intensity != null && (

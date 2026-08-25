@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,7 +17,6 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "@/hooks/use-toast";
 import { format, formatDistanceToNow } from "date-fns";
-import { fr } from "date-fns/locale";
 import { useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2 } from "lucide-react";
@@ -142,7 +142,7 @@ export function WellnessReminderButton({ categoryId }: WellnessReminderButtonPro
 
   const alreadySent = !!lastReminder;
   const sentAgo = lastReminder
-    ? formatDistanceToNow(new Date(lastReminder.sent_at), { addSuffix: true, locale: fr })
+    ? formatDistanceToNow(new Date(lastReminder.sent_at), { addSuffix: true, locale: getDateLocale() })
     : null;
 
   return (

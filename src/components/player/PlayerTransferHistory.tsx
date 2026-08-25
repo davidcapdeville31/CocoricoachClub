@@ -1,10 +1,10 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, History } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface PlayerTransferHistoryProps {
   playerId: string;
@@ -89,7 +89,7 @@ export function PlayerTransferHistory({ playerId }: PlayerTransferHistoryProps) 
                   </Badge>
                 )}
                 <span className="text-muted-foreground">
-                  {format(new Date(transfer.transfer_date), "d MMM yyyy", { locale: fr })}
+                  {format(new Date(transfer.transfer_date), "d MMM yyyy", { locale: getDateLocale() })}
                 </span>
               </div>
             </div>

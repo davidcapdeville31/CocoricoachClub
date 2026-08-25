@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,7 +15,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar, Clock, MapPin, ChevronLeft } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
@@ -110,7 +110,7 @@ export function EditAdminEventDialog({ open, onOpenChange, session }: EditAdminE
             {dialogTitle}
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
-            {format(date, "EEEE d MMMM yyyy", { locale: fr })}
+            {format(date, "EEEE d MMMM yyyy", { locale: getDateLocale() })}
           </p>
         </DialogHeader>
 

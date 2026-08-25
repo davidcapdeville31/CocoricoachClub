@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +12,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { Send, Users, Bell, Check, CheckCheck, BarChart3, ChevronUp, ChevronDown, UserPlus, Pencil, Hash } from "lucide-react";
 import { toast } from "sonner";
 import { ManageParticipantsDialog } from "./ManageParticipantsDialog";
@@ -450,7 +450,7 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
                   {message.message_type !== "poll" && (
                     <div className="flex items-center justify-end gap-1 mt-1">
                       <span className="text-xs opacity-70">
-                        {format(new Date(message.created_at), "HH:mm", { locale: fr })}
+                        {format(new Date(message.created_at), "HH:mm", { locale: getDateLocale() })}
                       </span>
                       {isOwnMessage(message.sender_id) && (
                         message.read_by.length > 1 ? (

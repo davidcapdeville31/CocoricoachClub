@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,7 +17,6 @@ import {
   Calendar 
 } from "lucide-react";
 import { format, startOfWeek, endOfWeek, isWithinInterval, parseISO } from "date-fns";
-import { fr } from "date-fns/locale";
 import { AddLoadObjectiveDialog } from "./AddLoadObjectiveDialog";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 
@@ -290,8 +290,8 @@ export function LoadObjectivesSection({ categoryId }: LoadObjectivesSectionProps
                     <div>
                       <span className="text-muted-foreground">Période</span>
                       <p>
-                        {format(parseISO(cycle.start_date), "dd MMM", { locale: fr })} - 
-                        {format(parseISO(cycle.end_date), "dd MMM", { locale: fr })}
+                        {format(parseISO(cycle.start_date), "dd MMM", { locale: getDateLocale() })} - 
+                        {format(parseISO(cycle.end_date), "dd MMM", { locale: getDateLocale() })}
                       </p>
                     </div>
                     <div>

@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { computeRecoveryScore } from "@/lib/wellness/aggregatePeriod";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -11,7 +12,6 @@ import {
 import { TrendingUp, Info } from "lucide-react";
 import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 import { sleepScoreToHours } from "@/lib/sleepConversion";
 import { aggregateWellnessByPeriod, type WellnessPeriod } from "@/lib/wellness/aggregatePeriod";
@@ -86,8 +86,8 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
     const recoveryScore = computeRecoveryScore(w);
 
     return {
-      date: format(new Date(w.tracking_date), "dd/MM", { locale: fr }),
-      fullDate: format(new Date(w.tracking_date), "dd MMM yyyy", { locale: fr }),
+      date: format(new Date(w.tracking_date), "dd/MM", { locale: getDateLocale() }),
+      fullDate: format(new Date(w.tracking_date), "dd MMM yyyy", { locale: getDateLocale() }),
       sleep_quality: w.sleep_quality,
       general_fatigue: w.general_fatigue,
       soreness_upper_body: w.soreness_upper_body,

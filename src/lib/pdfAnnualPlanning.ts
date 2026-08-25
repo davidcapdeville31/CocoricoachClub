@@ -1,6 +1,6 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import jsPDF from "jspdf";
 import { format, getDaysInMonth, startOfDay, startOfMonth, endOfMonth } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface PeriodizationCategory {
   id: string;
@@ -401,7 +401,7 @@ function renderCalendarPage(pdf: jsPDF, data: AnnualPlanningPdfData) {
 
   pdf.setFontSize(7.5);
   pdf.text(
-    `Généré le ${format(new Date(), "dd MMMM yyyy", { locale: fr })}`,
+    `Généré le ${format(new Date(), "dd MMMM yyyy", { locale: getDateLocale() })}`,
     pageW - margin,
     8,
     { align: "right" },
@@ -877,7 +877,7 @@ function renderCalendarPage(pdf: jsPDF, data: AnnualPlanningPdfData) {
       drawTrophyIcon(pdf, x + 1.6, y - 0.6, 2.4);
 
       // Date + opponent/competition
-      const dateLabel = format(new Date(mt.match_date), "dd/MM", { locale: fr });
+      const dateLabel = format(new Date(mt.match_date), "dd/MM", { locale: getDateLocale() });
       const label = mt.opponent || mt.competition || "Compétition";
       const fullText = `${dateLabel} · ${label}`;
       pdf.setFont("helvetica", "normal");

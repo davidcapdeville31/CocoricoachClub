@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, MapPin, Trophy, Video, ChevronDown, ChevronUp, BarChart3, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { VideoCompanionDock } from "@/components/shared/VideoCompanionPanel";
 
 interface CompetitionHistoryPanelProps {
@@ -136,7 +136,7 @@ function RelatedMatchCard({ match, sportType }: RelatedMatchCardProps) {
             <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
-                {format(new Date(match.match_date), "dd MMM yyyy", { locale: fr })}
+                {format(new Date(match.match_date), "dd MMM yyyy", { locale: getDateLocale() })}
                 {match.match_time ? ` à ${match.match_time.slice(0, 5)}` : ""}
               </span>
               {match.location && (

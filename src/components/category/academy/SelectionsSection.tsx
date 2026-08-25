@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Trash2, Award } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 
 interface SelectionsSectionProps {
@@ -147,8 +147,8 @@ export function SelectionsSection({ categoryId, players }: SelectionsSectionProp
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {format(new Date(selection.selection_date), "dd MMM yyyy", { locale: fr })}
-                        {selection.end_date && ` - ${format(new Date(selection.end_date), "dd MMM yyyy", { locale: fr })}`}
+                        {format(new Date(selection.selection_date), "dd MMM yyyy", { locale: getDateLocale() })}
+                        {selection.end_date && ` - ${format(new Date(selection.end_date), "dd MMM yyyy", { locale: getDateLocale() })}`}
                       </TableCell>
                       <TableCell>{selection.competition_name || "-"}</TableCell>
                       <TableCell className="max-w-40 truncate">{selection.notes || "-"}</TableCell>

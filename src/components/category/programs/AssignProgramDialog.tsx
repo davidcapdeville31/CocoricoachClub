@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,7 +16,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { Users, Calendar, CalendarPlus } from "lucide-react";
 import { format, addDays, startOfWeek, addWeeks } from "date-fns";
-import { fr } from "date-fns/locale";
 import { Switch } from "@/components/ui/switch";
 import { AdvancedPlayerSelection } from "../players/AdvancedPlayerSelection";
 import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
@@ -381,7 +381,7 @@ export function AssignProgramDialog({
                           S{weekNumber} - {session.name}
                         </span>
                         <span className="text-muted-foreground">
-                          {format(date, "EEEE d MMM", { locale: fr })}
+                          {format(date, "EEEE d MMM", { locale: getDateLocale() })}
                           {session.start_time ? ` · ${session.start_time.slice(0, 5)}` : ""}
                           {session.end_time ? `-${session.end_time.slice(0, 5)}` : ""}
                         </span>

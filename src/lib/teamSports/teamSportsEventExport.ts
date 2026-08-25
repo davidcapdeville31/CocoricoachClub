@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 /**
  * Exports PDF + Excel d'une rencontre sport co (rugby, foot, hand, volley, basket)
  * en se basant sur les `match_events` (même source que l'onglet Général).
@@ -11,7 +12,6 @@
 import jsPDF from "jspdf";
 import ExcelJS from "exceljs";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import {
   computeMatchAnalytics,
@@ -504,7 +504,7 @@ function drawScoreBanner(
   pdf.setFontSize(9);
   const center = pageWidth / 2;
   pdf.text("VS", center, y + 13, { align: "center" });
-  const dateStr = format(new Date(match.match_date), "EEEE d MMMM yyyy", { locale: fr });
+  const dateStr = format(new Date(match.match_date), "EEEE d MMMM yyyy", { locale: getDateLocale() });
   pdf.text(dateStr, center, y + 19, { align: "center" });
   const meta = [match.competition, match.location, match.age_category].filter(Boolean).join(" • ");
   if (meta) pdf.text(meta, center, y + 25, { align: "center" });
@@ -577,12 +577,12 @@ export async function exportTeamSportEventPdf(opts: BaseExportOpts): Promise<voi
   const matchLabel = `${match.is_home ? "vs" : "@"} ${match.opponent}`;
 
   const drawHeader = () => {
-    const dateStr = format(new Date(match.match_date), "d MMM yyyy", { locale: fr });
+    const dateStr = format(new Date(match.match_date), "d MMM yyyy", { locale: getDateLocale() });
     return drawPdfHeader(
       pdf,
       mode === "team" ? "Rapport d'équipe" : "Rapport individuel",
       `${clubName} • ${categoryName} • ${seasonName} — ${matchLabel} (${dateStr})`,
-      format(new Date(), "dd/MM/yyyy HH:mm", { locale: fr }),
+      format(new Date(), "dd/MM/yyyy HH:mm", { locale: getDateLocale() }),
       settings,
       logoBase64,
     );
@@ -906,7 +906,7 @@ export async function exportTeamSportEventExcel(opts: BaseExportOpts): Promise<v
   const usPoss = possession.total > 0 ? (match.is_home ? possession.homePct : possession.awayPct) : null;
   const themPoss = possession.total > 0 ? (match.is_home ? possession.awayPct : possession.homePct) : null;
   const matchLabel = `${match.is_home ? "vs" : "@"} ${match.opponent}`;
-  const dateStr = format(new Date(match.match_date), "d MMMM yyyy", { locale: fr });
+  const dateStr = format(new Date(match.match_date), "d MMMM yyyy", { locale: getDateLocale() });
 
   const writeMatchInfoSheet = (sheet: ExcelJS.Worksheet, title: string) => {
     sheet.columns = [{ width: 32 }, { width: 26 }, { width: 18 }];
@@ -1178,7 +1178,7 @@ export async function exportAggregatedTeamSportPdf(opts: AggregateExportOpts): P
       pdf,
       "Rapport cumulé multi-matchs",
       subtitle,
-      format(new Date(), "dd/MM/yyyy HH:mm", { locale: fr }),
+      format(new Date(), "dd/MM/yyyy HH:mm", { locale: getDateLocale() }),
       settings,
       logoBase64,
     );
@@ -1194,7 +1194,7 @@ export async function exportAggregatedTeamSportPdf(opts: AggregateExportOpts): P
   pdf.setTextColor(71, 85, 105);
   matches.forEach((m) => {
     y = ensureSpace(pdf, y, 6, drawHeader);
-    const dateStr = format(new Date(m.match.match_date), "d MMM yyyy", { locale: fr });
+    const dateStr = format(new Date(m.match.match_date), "d MMM yyyy", { locale: getDateLocale() });
     const score = m.match.score_home != null && m.match.score_away != null ? ` — ${m.match.score_home}-${m.match.score_away}` : "";
     pdf.text(`• ${dateStr} · ${m.match.is_home ? "vs" : "@"} ${m.match.opponent}${score}`, 18, y);
     y += 5;
@@ -1246,7 +1246,7 @@ export async function exportAggregatedTeamSportExcel(opts: AggregateExportOpts):
   sum.getCell(r, 1).font = { bold: true, size: 11, color: { argb: "FF334155" } };
   r++;
   matches.forEach((m) => {
-    const dateStr = format(new Date(m.match.match_date), "d MMM yyyy", { locale: fr });
+    const dateStr = format(new Date(m.match.match_date), "d MMM yyyy", { locale: getDateLocale() });
     sum.getCell(r, 1).value = `${dateStr} · ${m.match.is_home ? "vs" : "@"} ${m.match.opponent}`;
     sum.getCell(r, 2).value =
       m.match.score_home != null && m.match.score_away != null

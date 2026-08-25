@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,7 +16,6 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/sonner";
 import { Bell, Plus, Send, Mail, Smartphone, Trash2, Building2, Users, Globe, Briefcase } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 export function SuperAdminNotifications() {
   const { user } = useAuth();
@@ -473,7 +473,7 @@ export function SuperAdminNotifications() {
                   <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                     {notif.sent_at && (
                       <span>
-                        Envoyé le {format(new Date(notif.sent_at), "dd MMM yyyy à HH:mm", { locale: fr })}
+                        Envoyé le {format(new Date(notif.sent_at), "dd MMM yyyy à HH:mm", { locale: getDateLocale() })}
                       </span>
                     )}
                     <div className="flex items-center gap-2">

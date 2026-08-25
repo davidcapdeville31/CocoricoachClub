@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,7 +6,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import React, { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
-import { fr } from "date-fns/locale";
 import { getRiskLevel } from "@/lib/trainingLoadCalculations";
 
 interface PerformanceHeatmapProps {
@@ -233,7 +233,7 @@ export function PerformanceHeatmap({ categoryId }: PerformanceHeatmapProps) {
               date.setMonth(date.getMonth() - i);
               return (
                 <SelectItem key={i} value={format(date, "yyyy-MM")}>
-                  {format(date, "MMMM yyyy", { locale: fr })}
+                  {format(date, "MMMM yyyy", { locale: getDateLocale() })}
                 </SelectItem>
               );
             })}
@@ -247,7 +247,7 @@ export function PerformanceHeatmap({ categoryId }: PerformanceHeatmapProps) {
       <Card className="overflow-x-auto">
         <CardHeader>
           <CardTitle>
-            Heatmap - {selectedMetric === "awcr" ? "AWCR" : selectedMetric === "ewma_ratio" ? "EWMA" : selectedMetric === "training_load" ? "Charge" : selectedMetric === "wellness" ? "Wellness" : "Douleurs"} - {format(selectedMonth, "MMMM yyyy", { locale: fr })}
+            Heatmap - {selectedMetric === "awcr" ? "AWCR" : selectedMetric === "ewma_ratio" ? "EWMA" : selectedMetric === "training_load" ? "Charge" : selectedMetric === "wellness" ? "Wellness" : "Douleurs"} - {format(selectedMonth, "MMMM yyyy", { locale: getDateLocale() })}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -274,7 +274,7 @@ export function PerformanceHeatmap({ categoryId }: PerformanceHeatmapProps) {
                       <div
                         key={`${player.id}-${day.toISOString()}`}
                         className={`h-8 rounded transition-colors ${color} border border-border/20`}
-                        title={value !== null ? `${format(day, "d MMM", { locale: fr })}: ${value.toFixed(2)}` : "Pas de données"}
+                        title={value !== null ? `${format(day, "d MMM", { locale: getDateLocale() })}: ${value.toFixed(2)}` : "Pas de données"}
                       />
                     );
                   })}

@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,7 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/sonner";
 import { Users, Crown, Trash2, Phone, Building2, UserPlus, Check, Clock } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -202,7 +202,7 @@ export function SuperAdminUsers() {
                       ) : <span className="text-muted-foreground text-xs">-</span>}
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
-                      {p.created_at ? format(new Date(p.created_at), "dd MMM yyyy HH:mm", { locale: fr }) : "-"}
+                      {p.created_at ? format(new Date(p.created_at), "dd MMM yyyy HH:mm", { locale: getDateLocale() }) : "-"}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">

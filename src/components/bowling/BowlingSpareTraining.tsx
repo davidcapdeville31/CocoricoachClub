@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +13,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "sonner";
 import { SPARE_EXERCISE_TYPES } from "@/lib/constants/bowlingBallBrands";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface BowlingSpareTrainingProps {
   playerId: string;
@@ -126,7 +126,7 @@ export function BowlingSpareTraining({ playerId, categoryId, trainingSessionId }
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary">{getTypeLabel(ex.exercise_type)}</Badge>
                     <span className="text-xs text-muted-foreground">
-                      {format(new Date(ex.session_date), "d MMM yyyy", { locale: fr })}
+                      {format(new Date(ex.session_date), "d MMM yyyy", { locale: getDateLocale() })}
                     </span>
                   </div>
                   <div className="flex gap-4 mt-1 text-sm">

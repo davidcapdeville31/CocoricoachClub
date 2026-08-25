@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +13,6 @@ import { Badge } from "@/components/ui/badge";
 import { Trophy, Target, Trash2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { BowlingScoreSheet } from "@/components/athlete-portal/BowlingScoreSheet";
 import { SPARE_EXERCISE_TYPES } from "@/lib/constants/bowlingBallBrands";
 
@@ -166,7 +166,7 @@ export function BowlingTrainingEntryDialog({ open, onClose, playerId, categoryId
                     <Card>
                       <CardContent className="pt-4 space-y-2">
                         <p className="text-sm font-medium">
-                          Parties du {format(new Date(sessionDate), "d MMM yyyy", { locale: fr })}
+                          Parties du {format(new Date(sessionDate), "d MMM yyyy", { locale: getDateLocale() })}
                         </p>
                         {rounds.map((r: any) => (
                           <div key={r.id} className="flex items-center justify-between p-2.5 rounded-lg border">

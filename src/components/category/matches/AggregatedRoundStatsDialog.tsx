@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -18,7 +19,6 @@ import { isAthletismeCategory } from "@/lib/constants/sportTypes";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { AthleticsDeltaBadge } from "@/components/category/athletics/AthleticsDeltaBadge";
 import { findMatchingReference, type AthleticsMinima, type AthleticsRecord } from "@/lib/athletics/recordsHelpers";
 import { getMinimaLevel } from "@/lib/athletics/minimaLevels";
@@ -385,13 +385,13 @@ export function AggregatedRoundStatsDialog({
       if (competitionDate) {
         pdf.setFontSize(12);
         pdf.setFont("helvetica", "normal");
-        const formattedDate = format(new Date(competitionDate), "d MMMM yyyy", { locale: fr });
+        const formattedDate = format(new Date(competitionDate), "d MMMM yyyy", { locale: getDateLocale() });
         pdf.text(formattedDate, pageWidth / 2, yPos, { align: "center" });
         yPos += 8;
       }
 
       pdf.setFontSize(10);
-      pdf.text(`Généré le ${format(new Date(), "d MMMM yyyy à HH:mm", { locale: fr })}`, pageWidth / 2, yPos, { align: "center" });
+      pdf.text(`Généré le ${format(new Date(), "d MMMM yyyy à HH:mm", { locale: getDateLocale() })}`, pageWidth / 2, yPos, { align: "center" });
       yPos += 15;
 
       // For each player

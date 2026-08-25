@@ -1,9 +1,9 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ChevronDown, ChevronUp, Plus } from "lucide-react";
 import { differenceInCalendarDays, addDays, format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 export interface WeeklyDetail {
   week: number;
@@ -148,7 +148,7 @@ export function WeeklyIntensityVolumeDetails({ startDate, endDate, value, onChan
                   <span className="text-xs font-semibold">Semaine {w.week}</span>
                   {wStart && wEnd && (
                     <span className="text-[10px] text-muted-foreground">
-                      {format(wStart, "dd/MM", { locale: fr })} → {format(wEnd, "dd/MM", { locale: fr })}
+                      {format(wStart, "dd/MM", { locale: getDateLocale() })} → {format(wEnd, "dd/MM", { locale: getDateLocale() })}
                     </span>
                   )}
                 </div>

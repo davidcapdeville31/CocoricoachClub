@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,7 +24,6 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { Video, Calendar, Users } from "lucide-react";
 import { VideoFileUpload } from "./VideoFileUpload";
 import { getVideoTerminology } from "@/lib/constants/videoActionTypes";
@@ -211,7 +211,7 @@ export function AddVideoAnalysisDialog({
                     {matches?.map((match) => (
                       <SelectItem key={match.id} value={match.id}>
                         {match.is_home ? "vs" : "@"} {match.opponent} -{" "}
-                        {format(new Date(match.match_date), "dd/MM/yyyy", { locale: fr })}
+                        {format(new Date(match.match_date), "dd/MM/yyyy", { locale: getDateLocale() })}
                       </SelectItem>
                     ))}
                   </SelectContent>

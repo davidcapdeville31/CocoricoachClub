@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +14,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Bus, MapPin, Calendar, Clock, Users, Trash2, Hotel, Utensils } from "lucide-react";
 import { format, isPast, isFuture } from "date-fns";
-import { fr } from "date-fns/locale";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 
 interface TripsSectionProps {
   categoryId: string;
@@ -36,15 +38,16 @@ interface Trip {
   match_id: string | null;
 }
 
-const TRANSPORT_TYPES = [
-  { value: "bus", label: "Bus", icon: Bus },
-  { value: "car", label: "Voitures", icon: Bus },
-  { value: "train", label: "Train", icon: Bus },
-  { value: "plane", label: "Avion", icon: Bus },
-  { value: "other", label: "Autre", icon: Bus },
+const getTransportTypes = () => [
+  { value: "bus", label: i18n.t("adminRecruitDocs.logistics.trips.transportTypes.bus"), icon: Bus },
+  { value: "car", label: i18n.t("adminRecruitDocs.logistics.trips.transportTypes.car"), icon: Bus },
+  { value: "train", label: i18n.t("adminRecruitDocs.logistics.trips.transportTypes.train"), icon: Bus },
+  { value: "plane", label: i18n.t("adminRecruitDocs.logistics.trips.transportTypes.plane"), icon: Bus },
+  { value: "other", label: i18n.t("adminRecruitDocs.logistics.trips.transportTypes.other"), icon: Bus },
 ];
 
 export function TripsSection({ categoryId }: TripsSectionProps) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -107,7 +110,7 @@ export function TripsSection({ categoryId }: TripsSectionProps) {
         return_date: "", return_time: "", transport_type: "bus",
         transport_details: "", accommodation: "", meal_plan: "", meeting_point: "", notes: "",
       });
-      toast({ title: "Déplacement créé" });
+      toast({ title: t("adminRecruitDocs.logistics.trips.toasts.tripCreated") });
     },
   });
 
@@ -118,7 +121,7 @@ export function TripsSection({ categoryId }: TripsSectionProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["trips", categoryId] });
-      toast({ title: "Déplacement supprimé" });
+      toast({ title: t("adminRecruitDocs.logistics.trips.toasts.tripDeleted") });
     },
   });
 
@@ -137,14 +140,14 @@ export function TripsSection({ categoryId }: TripsSectionProps) {
             size="sm"
             onClick={() => setFilter("upcoming")}
           >
-            À venir
+            {t("adminRecruitDocs.logistics.trips.upcoming")}
           </Button>
           <Button
             variant={filter === "past" ? "default" : "outline"}
             size="sm"
             onClick={() => setFilter("past")}
           >
-            Passés
+            {t("adminRecruitDocs.logistics.trips.past")}
           </Button>
         </div>
 
@@ -152,34 +155,34 @@ export function TripsSection({ categoryId }: TripsSectionProps) {
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              Nouveau déplacement
+              {t("adminRecruitDocs.logistics.trips.newTrip")}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Nouveau Déplacement</DialogTitle>
+              <DialogTitle>{t("adminRecruitDocs.logistics.trips.newTripTitle")}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label>Titre *</Label>
+                <Label>{t("adminRecruitDocs.logistics.trips.title")}</Label>
                 <Input
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="ex: Match à Lyon"
+                  placeholder={t("adminRecruitDocs.logistics.trips.titlePlaceholder")}
                 />
               </div>
               <div>
-                <Label>Destination *</Label>
+                <Label>{t("adminRecruitDocs.logistics.trips.destination")}</Label>
                 <Input
                   value={formData.destination}
                   onChange={(e) => setFormData({ ...formData, destination: e.target.value })}
-                  placeholder="ex: Stade de Gerland, Lyon"
+                  placeholder={t("adminRecruitDocs.logistics.trips.destinationPlaceholder")}
                 />
               </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Date départ *</Label>
+                  <Label>{t("adminRecruitDocs.logistics.trips.departureDate")}</Label>
                   <Input
                     type="date"
                     value={formData.departure_date}
@@ -187,7 +190,7 @@ export function TripsSection({ categoryId }: TripsSectionProps) {
                   />
                 </div>
                 <div>
-                  <Label>Heure départ</Label>
+                  <Label>{t("adminRecruitDocs.logistics.trips.departureTime")}</Label>
                   <Input
                     type="time"
                     value={formData.departure_time}
@@ -198,7 +201,7 @@ export function TripsSection({ categoryId }: TripsSectionProps) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Date retour</Label>
+                  <Label>{t("adminRecruitDocs.logistics.trips.returnDate")}</Label>
                   <Input
                     type="date"
                     min={formData.departure_date || undefined}
@@ -207,7 +210,7 @@ export function TripsSection({ categoryId }: TripsSectionProps) {
                   />
                 </div>
                 <div>
-                  <Label>Heure retour</Label>
+                  <Label>{t("adminRecruitDocs.logistics.trips.returnTime")}</Label>
                   <Input
                     type="time"
                     value={formData.return_time}
@@ -217,11 +220,11 @@ export function TripsSection({ categoryId }: TripsSectionProps) {
               </div>
 
               <div>
-                <Label>Transport</Label>
+                <Label>{t("adminRecruitDocs.logistics.trips.transport")}</Label>
                 <Select value={formData.transport_type} onValueChange={(v) => setFormData({ ...formData, transport_type: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {TRANSPORT_TYPES.map((t) => (
+                    {getTransportTypes().map((t) => (
                       <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
                     ))}
                   </SelectContent>
@@ -229,47 +232,47 @@ export function TripsSection({ categoryId }: TripsSectionProps) {
               </div>
 
               <div>
-                <Label>Détails transport</Label>
+                <Label>{t("adminRecruitDocs.logistics.trips.transportDetails")}</Label>
                 <Input
                   value={formData.transport_details}
                   onChange={(e) => setFormData({ ...formData, transport_details: e.target.value })}
-                  placeholder="ex: Bus 52 places - Transdev"
+                  placeholder={t("adminRecruitDocs.logistics.trips.transportDetailsPlaceholder")}
                 />
               </div>
 
               <div>
-                <Label>Point de rendez-vous</Label>
+                <Label>{t("adminRecruitDocs.logistics.trips.meetingPoint")}</Label>
                 <Input
                   value={formData.meeting_point}
                   onChange={(e) => setFormData({ ...formData, meeting_point: e.target.value })}
-                  placeholder="ex: Parking stade principal"
+                  placeholder={t("adminRecruitDocs.logistics.trips.meetingPointPlaceholder")}
                 />
               </div>
 
               <div>
-                <Label>Hébergement</Label>
+                <Label>{t("adminRecruitDocs.logistics.trips.accommodation")}</Label>
                 <Input
                   value={formData.accommodation}
                   onChange={(e) => setFormData({ ...formData, accommodation: e.target.value })}
-                  placeholder="ex: Hôtel Ibis Lyon Centre"
+                  placeholder={t("adminRecruitDocs.logistics.trips.accommodationPlaceholder")}
                 />
               </div>
 
               <div>
-                <Label>Restauration</Label>
+                <Label>{t("adminRecruitDocs.logistics.trips.mealPlan")}</Label>
                 <Input
                   value={formData.meal_plan}
                   onChange={(e) => setFormData({ ...formData, meal_plan: e.target.value })}
-                  placeholder="ex: Repas d'avant-match à l'hôtel"
+                  placeholder={t("adminRecruitDocs.logistics.trips.mealPlanPlaceholder")}
                 />
               </div>
 
               <div>
-                <Label>Notes</Label>
+                <Label>{t("adminRecruitDocs.logistics.trips.notes")}</Label>
                 <Textarea
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  placeholder="Informations complémentaires..."
+                  placeholder={t("adminRecruitDocs.logistics.trips.notesPlaceholder")}
                   rows={2}
                 />
               </div>
@@ -279,7 +282,7 @@ export function TripsSection({ categoryId }: TripsSectionProps) {
                 disabled={!formData.title || !formData.destination || !formData.departure_date}
                 className="w-full"
               >
-                Créer le déplacement
+                {t("adminRecruitDocs.logistics.trips.createTrip")}
               </Button>
             </div>
           </DialogContent>
@@ -288,12 +291,12 @@ export function TripsSection({ categoryId }: TripsSectionProps) {
 
       {/* Liste des déplacements */}
       {isLoading ? (
-        <div className="text-center py-8 text-muted-foreground">Chargement...</div>
+        <div className="text-center py-8 text-muted-foreground">{t("adminRecruitDocs.logistics.trips.loading")}</div>
       ) : filteredTrips?.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
             <Bus className="h-12 w-12 mx-auto mb-4 opacity-30" />
-            <p>Aucun déplacement {filter === "upcoming" ? "à venir" : "passé"}</p>
+            <p>{filter === "upcoming" ? t("adminRecruitDocs.logistics.trips.noTripUpcoming") : t("adminRecruitDocs.logistics.trips.noTripPast")}</p>
           </CardContent>
         </Card>
       ) : (
@@ -306,7 +309,7 @@ export function TripsSection({ categoryId }: TripsSectionProps) {
                     <div className="flex items-center gap-3 mb-2">
                       <h4 className="font-semibold text-lg">{trip.title}</h4>
                       <Badge variant="outline">
-                        {TRANSPORT_TYPES.find((t) => t.value === trip.transport_type)?.label}
+                        {getTransportTypes().find((t) => t.value === trip.transport_type)?.label}
                       </Badge>
                     </div>
 
@@ -319,8 +322,8 @@ export function TripsSection({ categoryId }: TripsSectionProps) {
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <Calendar className="h-4 w-4" />
                         <span>
-                          {format(new Date(trip.departure_date), "EEEE d MMMM", { locale: fr })}
-                          {trip.departure_time && ` à ${trip.departure_time.slice(0, 5)}`}
+                          {format(new Date(trip.departure_date), "EEEE d MMMM", { locale: getDateLocale() })}
+                          {trip.departure_time && t("adminRecruitDocs.logistics.trips.atTime", { time: trip.departure_time.slice(0, 5) })}
                         </span>
                       </div>
 
@@ -328,8 +331,8 @@ export function TripsSection({ categoryId }: TripsSectionProps) {
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <Clock className="h-4 w-4" />
                           <span>
-                            Retour: {format(new Date(trip.return_date), "d MMM", { locale: fr })}
-                            {trip.return_time && ` à ${trip.return_time.slice(0, 5)}`}
+                            {t("adminRecruitDocs.logistics.trips.returnLabel", { date: format(new Date(trip.return_date), "d MMM", { locale: getDateLocale() }) })}
+                            {trip.return_time && t("adminRecruitDocs.logistics.trips.atTime", { time: trip.return_time.slice(0, 5) })}
                           </span>
                         </div>
                       )}
@@ -337,7 +340,7 @@ export function TripsSection({ categoryId }: TripsSectionProps) {
                       {trip.meeting_point && (
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <Users className="h-4 w-4" />
-                          <span>RDV: {trip.meeting_point}</span>
+                          <span>{t("adminRecruitDocs.logistics.trips.rdv", { point: trip.meeting_point })}</span>
                         </div>
                       )}
 

@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +9,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Timer, Trash2 } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { AddFieldTestDialog } from "./AddFieldTestDialog";
 import { getFieldTestLabel, getFieldTestsForSport, YO_YO_LEVELS } from "@/lib/constants/fieldTests";
@@ -128,7 +128,7 @@ export function FieldTestsSection({ categoryId, sportType = "XV" }: FieldTestsSe
                 {tests?.map((test) => (
                   <TableRow key={test.id}>
                     <TableCell className="font-medium">{test.players?.name}</TableCell>
-                    <TableCell>{format(new Date(test.test_date), "dd MMM yyyy", { locale: fr })}</TableCell>
+                    <TableCell>{format(new Date(test.test_date), "dd MMM yyyy", { locale: getDateLocale() })}</TableCell>
                     <TableCell>
                       <Badge variant="outline">
                         {getFieldTestLabel(test.test_type)}

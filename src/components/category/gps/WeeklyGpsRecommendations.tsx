@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +16,6 @@ import {
   Target
 } from "lucide-react";
 import { format, subDays, startOfWeek, endOfWeek } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface WeeklyGpsRecommendationsProps {
   categoryId: string;
@@ -252,7 +252,7 @@ export function WeeklyGpsRecommendations({ categoryId, playerId }: WeeklyGpsReco
             Préconisations GPS hebdomadaires
           </span>
           <Badge variant="outline" className="text-xs font-normal">
-            {format(currentWeekStart, "d MMM", { locale: fr })} - {format(currentWeekEnd, "d MMM", { locale: fr })}
+            {format(currentWeekStart, "d MMM", { locale: getDateLocale() })} - {format(currentWeekEnd, "d MMM", { locale: getDateLocale() })}
           </Badge>
         </CardTitle>
       </CardHeader>

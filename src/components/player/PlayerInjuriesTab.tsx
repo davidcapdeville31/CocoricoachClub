@@ -1,3 +1,4 @@
+import { getLocaleTag } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -192,7 +193,7 @@ export function PlayerInjuriesTab({ playerId, categoryId, playerName = "Joueur",
               <div>
                 <p className="text-sm text-muted-foreground">Date</p>
                 <p className="font-medium">
-                  {new Date(activeInjury.injury_date).toLocaleDateString("fr-FR")}
+                  {new Date(activeInjury.injury_date).toLocaleDateString(getLocaleTag())}
                 </p>
               </div>
               <div>
@@ -206,7 +207,7 @@ export function PlayerInjuriesTab({ playerId, categoryId, playerName = "Joueur",
               <div>
                 <p className="text-sm text-muted-foreground">Retour estimé</p>
                 <p className="font-medium">
-                  {new Date(activeInjury.estimated_return_date).toLocaleDateString("fr-FR")}
+                  {new Date(activeInjury.estimated_return_date).toLocaleDateString(getLocaleTag())}
                 </p>
                 {isReturnOverdue(activeInjury) && (
                   <Badge variant="outline" className="mt-1 border-orange-500/50 text-orange-600 dark:text-orange-400">
@@ -257,7 +258,7 @@ export function PlayerInjuriesTab({ playerId, categoryId, playerName = "Joueur",
                     <div>
                       <CardTitle className="text-lg">{injury.injury_type}</CardTitle>
                       <p className="text-sm text-muted-foreground">
-                        En réhabilitation depuis le {new Date(injury.injury_date).toLocaleDateString("fr-FR")}
+                        En réhabilitation depuis le {new Date(injury.injury_date).toLocaleDateString(getLocaleTag())}
                       </p>
                       {isReturnOverdue(injury) && (
                         <Badge variant="outline" className="mt-1 border-orange-500/50 text-orange-600 dark:text-orange-400">
@@ -337,7 +338,7 @@ export function PlayerInjuriesTab({ playerId, categoryId, playerName = "Joueur",
                     <div>
                       <p className="font-semibold">{injury.injury_type}</p>
                       <p className="text-sm text-muted-foreground">
-                        {new Date(injury.injury_date).toLocaleDateString("fr-FR")}
+                        {new Date(injury.injury_date).toLocaleDateString(getLocaleTag())}
                       </p>
                     </div>
                     <div className="flex gap-2 items-start flex-wrap">
@@ -392,7 +393,7 @@ export function PlayerInjuriesTab({ playerId, categoryId, playerName = "Joueur",
                     <div className="text-sm">
                       <span className="text-muted-foreground">Retour estimé: </span>
                       <span className="font-medium">
-                        {new Date(injury.estimated_return_date).toLocaleDateString("fr-FR")}
+                        {new Date(injury.estimated_return_date).toLocaleDateString(getLocaleTag())}
                       </span>
                     </div>
                   )}
@@ -400,7 +401,7 @@ export function PlayerInjuriesTab({ playerId, categoryId, playerName = "Joueur",
                     <div className="text-sm">
                       <span className="text-muted-foreground">Retour effectif: </span>
                       <span className="font-medium">
-                        {new Date(injury.actual_return_date).toLocaleDateString("fr-FR")}
+                        {new Date(injury.actual_return_date).toLocaleDateString(getLocaleTag())}
                       </span>
                     </div>
                   )}

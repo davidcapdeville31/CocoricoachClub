@@ -12,6 +12,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Package, Search, AlertTriangle, Trash2, Edit2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 
 interface EquipmentSectionProps {
   categoryId: string;
@@ -29,17 +31,17 @@ interface Equipment {
   last_maintenance: string | null;
 }
 
-const EQUIPMENT_CATEGORIES = [
-  { value: "balls", label: "Ballons" },
-  { value: "cones", label: "Plots / Cônes" },
-  { value: "goals", label: "Buts / Poteaux" },
-  { value: "bibs", label: "Chasubles" },
-  { value: "gym", label: "Équipement musculation" },
-  { value: "medical", label: "Matériel médical" },
-  { value: "gps", label: "GPS / Capteurs" },
-  { value: "video", label: "Vidéo / Caméras" },
-  { value: "clothing", label: "Tenues / Équipements" },
-  { value: "other", label: "Autre" },
+const getEquipmentCategories = () => [
+  { value: "balls", label: i18n.t("adminRecruitDocs.logistics.equipment.categories.balls") },
+  { value: "cones", label: i18n.t("adminRecruitDocs.logistics.equipment.categories.cones") },
+  { value: "goals", label: i18n.t("adminRecruitDocs.logistics.equipment.categories.goals") },
+  { value: "bibs", label: i18n.t("adminRecruitDocs.logistics.equipment.categories.bibs") },
+  { value: "gym", label: i18n.t("adminRecruitDocs.logistics.equipment.categories.gym") },
+  { value: "medical", label: i18n.t("adminRecruitDocs.logistics.equipment.categories.medical") },
+  { value: "gps", label: i18n.t("adminRecruitDocs.logistics.equipment.categories.gps") },
+  { value: "video", label: i18n.t("adminRecruitDocs.logistics.equipment.categories.video") },
+  { value: "clothing", label: i18n.t("adminRecruitDocs.logistics.equipment.categories.clothing") },
+  { value: "other", label: i18n.t("adminRecruitDocs.logistics.equipment.categories.other") },
 ];
 
 const CONDITION_COLORS: Record<string, string> = {
@@ -49,14 +51,15 @@ const CONDITION_COLORS: Record<string, string> = {
   poor: "bg-red-100 text-red-700",
 };
 
-const CONDITION_LABELS: Record<string, string> = {
-  excellent: "Excellent",
-  good: "Bon",
-  fair: "Correct",
-  poor: "Mauvais",
-};
+const getConditionLabels = (): Record<string, string> => ({
+  excellent: i18n.t("adminRecruitDocs.logistics.equipment.conditionLabels.excellent"),
+  good: i18n.t("adminRecruitDocs.logistics.equipment.conditionLabels.good"),
+  fair: i18n.t("adminRecruitDocs.logistics.equipment.conditionLabels.fair"),
+  poor: i18n.t("adminRecruitDocs.logistics.equipment.conditionLabels.poor"),
+});
 
 export function EquipmentSection({ categoryId }: EquipmentSectionProps) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -106,7 +109,7 @@ export function EquipmentSection({ categoryId }: EquipmentSectionProps) {
       queryClient.invalidateQueries({ queryKey: ["equipment", categoryId] });
       setShowAddDialog(false);
       setFormData({ name: "", category: "balls", quantity: "1", condition: "good", location: "", notes: "" });
-      toast({ title: "Équipement ajouté" });
+      toast({ title: t("adminRecruitDocs.logistics.equipment.toasts.equipmentAdded") });
     },
   });
 
@@ -130,7 +133,7 @@ export function EquipmentSection({ categoryId }: EquipmentSectionProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["equipment", categoryId] });
-      toast({ title: "Équipement supprimé" });
+      toast({ title: t("adminRecruitDocs.logistics.equipment.toasts.equipmentDeleted") });
     },
   });
 
@@ -150,12 +153,12 @@ export function EquipmentSection({ categoryId }: EquipmentSectionProps) {
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-amber-700 font-medium mb-2">
               <AlertTriangle className="h-4 w-4" />
-              Stock bas ({lowStockItems.length})
+              {t("adminRecruitDocs.logistics.equipment.lowStock", { count: lowStockItems.length })}
             </div>
             <div className="text-sm text-amber-600">
               {lowStockItems.map((item) => (
                 <span key={item.id} className="mr-3">
-                  {item.name}: {item.available_quantity}/{item.quantity}
+                  {t("adminRecruitDocs.logistics.equipment.stockRatio", { name: item.name, available: item.available_quantity, quantity: item.quantity })}
                 </span>
               ))}
             </div>
@@ -169,7 +172,7 @@ export function EquipmentSection({ categoryId }: EquipmentSectionProps) {
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Rechercher..."
+              placeholder={t("adminRecruitDocs.logistics.equipment.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -177,11 +180,11 @@ export function EquipmentSection({ categoryId }: EquipmentSectionProps) {
           </div>
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
             <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Catégorie" />
+              <SelectValue placeholder={t("adminRecruitDocs.logistics.equipment.categoryPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Toutes</SelectItem>
-              {EQUIPMENT_CATEGORIES.map((cat) => (
+              <SelectItem value="all">{t("adminRecruitDocs.logistics.equipment.allCategories")}</SelectItem>
+              {getEquipmentCategories().map((cat) => (
                 <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
               ))}
             </SelectContent>
@@ -192,36 +195,36 @@ export function EquipmentSection({ categoryId }: EquipmentSectionProps) {
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              Ajouter
+              {t("adminRecruitDocs.logistics.equipment.add")}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Nouvel Équipement</DialogTitle>
+              <DialogTitle>{t("adminRecruitDocs.logistics.equipment.newEquipment")}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label>Nom *</Label>
+                <Label>{t("adminRecruitDocs.logistics.equipment.name")}</Label>
                 <Input
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="ex: Ballons match Nike"
+                  placeholder={t("adminRecruitDocs.logistics.equipment.namePlaceholder")}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Catégorie</Label>
+                  <Label>{t("adminRecruitDocs.logistics.equipment.category")}</Label>
                   <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {EQUIPMENT_CATEGORIES.map((cat) => (
+                      {getEquipmentCategories().map((cat) => (
                         <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label>Quantité</Label>
+                  <Label>{t("adminRecruitDocs.logistics.equipment.quantity")}</Label>
                   <Input
                     type="number"
                     min="1"
@@ -232,36 +235,36 @@ export function EquipmentSection({ categoryId }: EquipmentSectionProps) {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>État</Label>
+                  <Label>{t("adminRecruitDocs.logistics.equipment.condition")}</Label>
                   <Select value={formData.condition} onValueChange={(v) => setFormData({ ...formData, condition: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {Object.entries(CONDITION_LABELS).map(([key, label]) => (
+                      {Object.entries(getConditionLabels()).map(([key, label]) => (
                         <SelectItem key={key} value={key}>{label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label>Emplacement</Label>
+                  <Label>{t("adminRecruitDocs.logistics.equipment.location")}</Label>
                   <Input
                     value={formData.location}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    placeholder="ex: Local matériel"
+                    placeholder={t("adminRecruitDocs.logistics.equipment.locationPlaceholder")}
                   />
                 </div>
               </div>
               <div>
-                <Label>Notes</Label>
+                <Label>{t("adminRecruitDocs.logistics.equipment.notes")}</Label>
                 <Textarea
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  placeholder="Détails, référence..."
+                  placeholder={t("adminRecruitDocs.logistics.equipment.notesPlaceholder")}
                   rows={2}
                 />
               </div>
               <Button onClick={() => addEquipmentMutation.mutate(formData)} disabled={!formData.name} className="w-full">
-                Ajouter
+                {t("adminRecruitDocs.logistics.equipment.add")}
               </Button>
             </div>
           </DialogContent>
@@ -270,12 +273,12 @@ export function EquipmentSection({ categoryId }: EquipmentSectionProps) {
 
       {/* Liste des équipements */}
       {isLoading ? (
-        <div className="text-center py-8 text-muted-foreground">Chargement...</div>
+        <div className="text-center py-8 text-muted-foreground">{t("adminRecruitDocs.logistics.equipment.loading")}</div>
       ) : filteredEquipment?.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
             <Package className="h-12 w-12 mx-auto mb-4 opacity-30" />
-            <p>Aucun équipement enregistré</p>
+            <p>{t("adminRecruitDocs.logistics.equipment.noEquipment")}</p>
           </CardContent>
         </Card>
       ) : (
@@ -291,7 +294,7 @@ export function EquipmentSection({ categoryId }: EquipmentSectionProps) {
                     <div>
                       <h4 className="font-medium">{item.name}</h4>
                       <p className="text-xs text-muted-foreground">
-                        {EQUIPMENT_CATEGORIES.find((c) => c.value === item.category)?.label}
+                        {getEquipmentCategories().find((c) => c.value === item.category)?.label}
                       </p>
                     </div>
                   </div>
@@ -308,7 +311,7 @@ export function EquipmentSection({ categoryId }: EquipmentSectionProps) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Badge className={CONDITION_COLORS[item.condition]}>
-                      {CONDITION_LABELS[item.condition]}
+                      {getConditionLabels()[item.condition]}
                     </Badge>
                     {item.location && (
                       <span className="text-xs text-muted-foreground">{item.location}</span>
@@ -318,7 +321,7 @@ export function EquipmentSection({ categoryId }: EquipmentSectionProps) {
 
                 <div className="mt-3 flex items-center justify-between">
                   <span className="text-sm">
-                    Disponible: <strong>{item.available_quantity}</strong> / {item.quantity}
+                    {t("adminRecruitDocs.logistics.equipment.available", { available: item.available_quantity, quantity: item.quantity })}
                   </span>
                   <div className="flex gap-1">
                     <Button

@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo } from "react";
 import { LineoutFieldSVG, aggregateLineoutStats } from "@/components/rugby/LineoutFieldSVG";
 import { useQuery } from "@tanstack/react-query";
@@ -15,7 +16,6 @@ import { BarChart3, Target, CalendarIcon, Users, User, Download, FileSpreadsheet
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
 import { format, isAfter, isBefore, startOfDay, endOfDay } from "date-fns";
-import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import ExcelJS from "exceljs";
@@ -1186,7 +1186,7 @@ export function PrecisionTrainingStats({ categoryId, lockedPlayerId }: Precision
                       {dateFrom ? format(dateFrom, "dd/MM/yy") : "Début"}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} locale={fr} /></PopoverContent>
+                  <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} locale={getDateLocale()} /></PopoverContent>
                 </Popover>
               </div>
 
@@ -1199,7 +1199,7 @@ export function PrecisionTrainingStats({ categoryId, lockedPlayerId }: Precision
                       {dateTo ? format(dateTo, "dd/MM/yy") : "Fin"}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={dateTo} onSelect={setDateTo} locale={fr} disabled={(d) => dateFrom ? d < dateFrom : false} /></PopoverContent>
+                  <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={dateTo} onSelect={setDateTo} locale={getDateLocale()} disabled={(d) => dateFrom ? d < dateFrom : false} /></PopoverContent>
                 </Popover>
               </div>
 

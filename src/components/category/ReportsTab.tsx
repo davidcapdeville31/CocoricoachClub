@@ -1,4 +1,6 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -9,7 +11,6 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { FileText, Download, User, Calendar, Trophy, Loader2, Users, FileSpreadsheet, ClipboardCheck } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import jsPDF from "jspdf";
 import ExcelJS from "exceljs";
 import { getExcelBranding, addBrandedHeader, styleDataHeaderRow, addZebraRows, addFooter, downloadWorkbook } from "@/lib/excelExport";
@@ -25,6 +26,7 @@ interface ReportsTabProps {
 }
 
 export function ReportsTab({ categoryId }: ReportsTabProps) {
+  const { t } = useTranslation();
   const [selectedMatch, setSelectedMatch] = useState<string>("");
   const [generatingReport, setGeneratingReport] = useState<string | null>(null);
 
@@ -57,9 +59,9 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
   const isRacketSport = RACKET_SPORTS.some(s => baseSport.includes(s));
   const isTeamSport = !isIndividualSport && !isRacketSport;
   const hasTdj = isTeamSport; // Only team sports have meaningful TDJ (starters/subs/minutes)
-  const athleteLabel = isIndividualSport ? "Athlètes" : isRacketSport ? "Joueurs" : "Joueurs";
-  const athleteLabelSingular = isIndividualSport ? "Athlète" : "Joueur";
-  const competitionLabel = isIndividualSport ? "Compétitions" : isRacketSport ? "Matchs" : "Matchs";
+  const athleteLabel = isIndividualSport ? t("adminReports.common.athletes") : t("adminReports.common.players");
+  const athleteLabelSingular = isIndividualSport ? t("adminReports.common.athlete") : t("adminReports.common.player");
+  const competitionLabel = isIndividualSport ? t("adminReports.common.competitions") : t("adminReports.common.matches");
 
   const { data: players = [] } = useQuery({
     queryKey: ["players", categoryId],
@@ -257,14 +259,14 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       const contentWidth = pageWidth - 2 * margin;
 
       const dateRange = tdjDateFrom || tdjDateTo
-        ? `${tdjDateFrom ? format(new Date(tdjDateFrom), "d MMM yyyy", { locale: fr }) : "Début"} → ${tdjDateTo ? format(new Date(tdjDateTo), "d MMM yyyy", { locale: fr }) : "Aujourd'hui"}`
+        ? `${tdjDateFrom ? format(new Date(tdjDateFrom), "d MMM yyyy", { locale: getDateLocale() }) : t("adminReports.export.common.start")} → ${tdjDateTo ? format(new Date(tdjDateTo), "d MMM yyyy", { locale: getDateLocale() }) : t("adminReports.export.common.today")}`
         : "";
 
       let yPos = drawPdfHeaderCustom(
         pdf,
-        `SUIVI TEMPS DE JEU${seasonName ? ` - ${seasonName}` : ""}`,
+        t("adminReports.export.tdj.pdfTitle") + (seasonName ? ` - ${seasonName}` : ""),
         `${cn1 || category?.clubs?.name || ''} - ${catName1 || category?.name || ''}`,
-        `${matchesData.length} matchs | ${format(new Date(), "d MMMM yyyy", { locale: fr })}${dateRange ? ` | ${dateRange}` : ""}`,
+        `${t("adminReports.export.common.matchesCount", { count: matchesData.length })} | ${format(new Date(), "d MMMM yyyy", { locale: getDateLocale() })}${dateRange ? ` | ${dateRange}` : ""}`,
         pdfSettings,
         logoBase64
       );
@@ -275,11 +277,11 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       const totalMatchMinutes = playerTdj.reduce((s, p) => s + p.totalMinutes, 0);
       const avgMinutes = players.length > 0 ? Math.round(totalMatchMinutes / players.length) : 0;
 
-      drawKpiCard(pdf, margin, yPos, cardW, cardH, String(matchesData.length), "MATCHS", defaultColors.primary);
-      drawKpiCard(pdf, margin + cardW + 5, yPos, cardW, cardH, String(players.length), "JOUEURS", defaultColors.primary);
-      drawKpiCard(pdf, margin + (cardW + 5) * 2, yPos, cardW, cardH, String(totalMatchMinutes), "MIN TOTALES", defaultColors.success);
-      drawKpiCard(pdf, margin + (cardW + 5) * 3, yPos, cardW, cardH, String(avgMinutes), "MIN MOY/JOUEUR", defaultColors.warning);
-      drawKpiCard(pdf, margin + (cardW + 5) * 4, yPos, cardW, cardH, String(injuries.length), "BLESSURES", injuries.length > 5 ? defaultColors.danger : defaultColors.success);
+      drawKpiCard(pdf, margin, yPos, cardW, cardH, String(matchesData.length), t("adminReports.export.tdj.kpiMatches"), defaultColors.primary);
+      drawKpiCard(pdf, margin + cardW + 5, yPos, cardW, cardH, String(players.length), t("adminReports.export.tdj.kpiPlayers"), defaultColors.primary);
+      drawKpiCard(pdf, margin + (cardW + 5) * 2, yPos, cardW, cardH, String(totalMatchMinutes), t("adminReports.export.tdj.kpiTotalMinutes"), defaultColors.success);
+      drawKpiCard(pdf, margin + (cardW + 5) * 3, yPos, cardW, cardH, String(avgMinutes), t("adminReports.export.tdj.kpiAvgMinutes"), defaultColors.warning);
+      drawKpiCard(pdf, margin + (cardW + 5) * 4, yPos, cardW, cardH, String(injuries.length), t("adminReports.export.tdj.kpiInjuries"), injuries.length > 5 ? defaultColors.danger : defaultColors.success);
 
       yPos += cardH + 12;
 
@@ -287,10 +289,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       pdf.setFontSize(11);
       pdf.setFont("helvetica", "bold");
       pdf.setTextColor(...defaultColors.dark);
-      pdf.text("TOTAL DE LA SAISON", margin, yPos);
+      pdf.text(t("adminReports.export.tdj.tableTitle"), margin, yPos);
       yPos += 7;
 
-      const headers = ["Prénom / NOM", "Min. totales", "Titulaire", "Remplaçant", "Matchs joués", "Hors-groupe", "Blessé"];
+      const headers = [t("adminReports.export.tdj.headerName"), t("adminReports.export.tdj.headerTotalMinutes"), t("adminReports.export.tdj.headerStarter"), t("adminReports.export.tdj.headerSubstitute"), t("adminReports.export.tdj.headerMatchesPlayed"), t("adminReports.export.tdj.headerOutOfSquad"), t("adminReports.export.tdj.headerInjured")];
       const colWidths = [70, 35, 35, 35, 35, 35, 35];
       yPos = drawTableHeaderPdf(pdf, headers, colWidths, yPos, margin, contentWidth);
 
@@ -325,10 +327,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       });
 
       pdf.save(`tdj_${(catName1 || category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
-      toast.success("Rapport Temps de Jeu généré");
+      toast.success(t("adminReports.tdj.pdfGenerated"));
     } catch (error) {
       console.error(error);
-      toast.error("Erreur lors de la génération");
+      toast.error(t("adminReports.common.errorGenerating"));
     } finally {
       setGeneratingReport(null);
     }
@@ -362,7 +364,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         if (minutes > 0) csvStatsMinutesMap.set(`${s.match_id}_${s.player_id}`, Number(minutes));
       });
 
-      const headers = ["Joueur", "Minutes totales", "Titulaire", "Remplaçant", "Matchs joués", "Hors-groupe", "Blessé"];
+      const headers = [t("adminReports.export.tdj.headerPlayer"), t("adminReports.export.tdj.totalMinutes"), t("adminReports.export.tdj.headerStarter"), t("adminReports.export.tdj.headerSubstitute"), t("adminReports.export.tdj.headerMatchesPlayed"), t("adminReports.export.tdj.headerOutOfSquad"), t("adminReports.export.tdj.headerInjured")];
       const rows = players.map(player => {
         const pl = lineups.filter(l => l.player_id === player.id);
         const totalMin = pl.reduce((s, l) => {
@@ -392,15 +394,15 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
 
       const workbook = new ExcelJS.Workbook();
       // Sheet 1: Summary
-      const sheet = workbook.addWorksheet("Suivi Temps de Jeu");
+      const sheet = workbook.addWorksheet(t("adminReports.export.tdj.sheetName"));
       const extraInfo: [string, string][] = [
-        ["Matchs analysés", `${matchesData.length}`],
-        ["Minutes totales", `${rows.reduce((s, r) => s + (r[1] as number), 0)}`],
+        [t("adminReports.export.tdj.matchesAnalyzed"), `${matchesData.length}`],
+        [t("adminReports.export.tdj.totalMinutes"), `${rows.reduce((s, r) => s + (r[1] as number), 0)}`],
       ];
       if (tdjDateFrom || tdjDateTo) {
-        extraInfo.push(["Période", `${tdjDateFrom || "début"} — ${tdjDateTo || "aujourd'hui"}`]);
+        extraInfo.push([t("adminReports.export.common.periodLabel"), t("adminReports.export.common.periodRange", { from: tdjDateFrom || t("adminReports.export.common.start"), to: tdjDateTo || t("adminReports.export.common.today") })]);
       }
-      const dataStart = addBrandedHeader(sheet, "SUIVI TEMPS DE JEU", branding, extraInfo);
+      const dataStart = addBrandedHeader(sheet, t("adminReports.export.tdj.pdfTitle"), branding, extraInfo);
 
       headers.forEach((h, i) => { sheet.getCell(dataStart, i + 1).value = h; });
       styleDataHeaderRow(sheet, dataStart, headers.length, branding.headerColor);
@@ -420,14 +422,14 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       // Totals row
       const totIdx = dataStart + rows.length + 1;
       const totRow = sheet.getRow(totIdx);
-      totRow.getCell(1).value = 'TOTAL / MOYENNE';
+      totRow.getCell(1).value = t("adminReports.export.common.totalAverage");
       totRow.getCell(1).font = { bold: true };
       const totalMin = rows.reduce((s, r) => s + (r[1] as number), 0);
       totRow.getCell(2).value = totalMin;
       totRow.getCell(2).font = { bold: true };
       const avgMin = rows.length > 0 ? Math.round(totalMin / rows.length) : 0;
-      totRow.getCell(3).value = `Moy: ${Math.round(rows.reduce((s, r) => s + (r[2] as number), 0) / Math.max(rows.length, 1))}`;
-      totRow.getCell(5).value = `Moy: ${Math.round(rows.reduce((s, r) => s + (r[4] as number), 0) / Math.max(rows.length, 1))}`;
+      totRow.getCell(3).value = t("adminReports.export.common.average", { value: Math.round(rows.reduce((s, r) => s + (r[2] as number), 0) / Math.max(rows.length, 1)) });
+      totRow.getCell(5).value = t("adminReports.export.common.average", { value: Math.round(rows.reduce((s, r) => s + (r[4] as number), 0) / Math.max(rows.length, 1)) });
       for (let i = 1; i <= headers.length; i++) {
         totRow.getCell(i).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE2E8F0' } };
       }
@@ -436,9 +438,9 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       headers.forEach((_, i) => { sheet.getColumn(i + 1).width = i === 0 ? 25 : 18; });
 
       // Sheet 2: Per-match detail
-      const detailSheet = workbook.addWorksheet("Détail par match");
-      const detailStart = addBrandedHeader(detailSheet, "DÉTAIL PAR MATCH", branding, []);
-      const detailHeaders = ["Match", "Date", "Joueur", "Titulaire", "Minutes"];
+      const detailSheet = workbook.addWorksheet(t("adminReports.export.tdj.detailSheetName"));
+      const detailStart = addBrandedHeader(detailSheet, t("adminReports.export.tdj.detailTitle"), branding, []);
+      const detailHeaders = [t("adminReports.export.tdj.detailHeaderMatch"), t("adminReports.export.tdj.detailHeaderDate"), t("adminReports.export.tdj.headerPlayer"), t("adminReports.export.tdj.headerStarter"), t("adminReports.export.match.headerMinutes")];
       detailHeaders.forEach((h, i) => { detailSheet.getCell(detailStart, i + 1).value = h; });
       styleDataHeaderRow(detailSheet, detailStart, detailHeaders.length, branding.headerColor);
 
@@ -453,7 +455,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
           r.getCell(1).value = m.opponent;
           r.getCell(2).value = format(new Date(m.match_date), "dd/MM/yyyy");
           r.getCell(3).value = pName;
-          r.getCell(4).value = l.is_starter ? "Oui" : "Non";
+          r.getCell(4).value = l.is_starter ? t("adminReports.export.common.yes") : t("adminReports.export.common.no");
           r.getCell(5).value = lineupMin;
           if (dRowIdx % 2 === 0) {
             for (let i = 1; i <= detailHeaders.length; i++) {
@@ -466,10 +468,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       detailHeaders.forEach((_, i) => { detailSheet.getColumn(i + 1).width = i <= 2 ? 22 : 14; });
 
       await downloadWorkbook(workbook, `tdj_${(category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
-      toast.success("Export Excel généré");
+      toast.success(t("adminReports.common.excelGenerated"));
     } catch (error) {
       console.error(error);
-      toast.error("Erreur lors de l'export Excel");
+      toast.error(t("adminReports.common.errorExporting"));
     } finally {
       setGeneratingReport(null);
     }
@@ -514,7 +516,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         pdf,
         `BILAN DE SAISON${sName ? ` - ${sName}` : ` ${new Date().getFullYear()}/${new Date().getFullYear() + 1}`}`,
         `${cn2 || category?.clubs?.name || ''} - ${catName2 || category?.name || ''}`,
-        `Généré le ${format(new Date(), "d MMMM yyyy", { locale: fr })}`,
+        `Généré le ${format(new Date(), "d MMMM yyyy", { locale: getDateLocale() })}`,
         pdfSettings,
         logoBase64
       );
@@ -784,10 +786,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       }
 
       pdf.save(`bilan_saison_${(catName2 || category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
-      toast.success("Rapport de saison généré");
+      toast.success(t("adminReports.season.pdfGenerated"));
     } catch (error) {
       console.error(error);
-      toast.error("Erreur lors de la génération");
+      toast.error(t("adminReports.common.errorGenerating"));
     } finally {
       setGeneratingReport(null);
     }
@@ -796,7 +798,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
   // ========================== MATCH REPORT ==========================
   const generateMatchReport = async () => {
     if (!selectedMatch) {
-      toast.error("Veuillez sélectionner un match");
+      toast.error(t("adminReports.common.selectMatchFirst"));
       return;
     }
 
@@ -845,7 +847,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         pdf,
         `RAPPORT DE MATCH`,
         `vs ${match.opponent} - ${match.location || 'Lieu non défini'}`,
-        `${format(new Date(match.match_date), "EEEE d MMMM yyyy", { locale: fr })}`,
+        `${format(new Date(match.match_date), "EEEE d MMMM yyyy", { locale: getDateLocale() })}`,
         pdfSettings,
         logoBase64
       );
@@ -1350,10 +1352,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       }
 
       pdf.save(`match_${match.opponent.replace(/\s+/g, '_')}_${format(new Date(match.match_date), "yyyy-MM-dd")}.pdf`);
-      toast.success("Rapport de match généré");
+      toast.success(t("adminReports.match.pdfGenerated"));
     } catch (error) {
       console.error(error);
-      toast.error("Erreur lors de la génération");
+      toast.error(t("adminReports.common.errorGenerating"));
     } finally {
       setGeneratingReport(null);
     }
@@ -1478,7 +1480,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         pdf,
         "VUE D'ENSEMBLE DE L'EFFECTIF",
         `${cn3 || category?.clubs?.name || ''} - ${catName3 || category?.name || ''}${sn3 ? ` • ${sn3}` : ''}`,
-        `Généré le ${format(new Date(), "d MMMM yyyy", { locale: fr })}${dateRange ? ` | ${dateRange.trim()}` : ""}`,
+        `Généré le ${format(new Date(), "d MMMM yyyy", { locale: getDateLocale() })}${dateRange ? ` | ${dateRange.trim()}` : ""}`,
         pdfSettings,
         logoBase64
       );
@@ -1824,10 +1826,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       } // end isTeamSport
 
       pdf.save(`effectif_${(catName3 || category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
-      toast.success("Rapport d'effectif généré");
+      toast.success(t("adminReports.squad.pdfGenerated"));
     } catch (error) {
       console.error(error);
-      toast.error("Erreur lors de la génération");
+      toast.error(t("adminReports.common.errorGenerating"));
     } finally {
       setGeneratingReport(null);
     }
@@ -1921,10 +1923,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       headers.forEach((_, i) => { sheet.getColumn(i + 1).width = i <= 1 ? 18 : 15; });
 
       await downloadWorkbook(workbook, `effectif_${(category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
-      toast.success("Export Excel généré");
+      toast.success(t("adminReports.common.excelGenerated"));
     } catch (error) {
       console.error(error);
-      toast.error("Erreur lors de l'export Excel");
+      toast.error(t("adminReports.common.errorExporting"));
     } finally {
       setGeneratingReport(null);
     }
@@ -2013,10 +2015,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       headers.forEach((_, i) => { sheet.getColumn(i + 1).width = i === 1 ? 25 : 16; });
 
       await downloadWorkbook(workbook, `saison_${(category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
-      toast.success("Export Excel généré");
+      toast.success(t("adminReports.common.excelGenerated"));
     } catch (error) {
       console.error(error);
-      toast.error("Erreur lors de l'export Excel");
+      toast.error(t("adminReports.common.errorExporting"));
     } finally {
       setGeneratingReport(null);
     }
@@ -2024,7 +2026,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
 
   const generateMatchCsv = async () => {
     if (!selectedMatch) {
-      toast.error("Veuillez sélectionner un match");
+      toast.error(t("adminReports.common.selectMatchFirst"));
       return;
     }
     setGeneratingReport("match-csv");
@@ -2132,10 +2134,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       allHeaders.forEach((_, i) => { sheet.getColumn(i + 1).width = i === 0 ? 25 : 15; });
 
       await downloadWorkbook(workbook, `match_${match.opponent.replace(/\s+/g, '_')}_${format(new Date(match.match_date), "yyyy-MM-dd")}.xlsx`);
-      toast.success("Export Excel généré");
+      toast.success(t("adminReports.common.excelGenerated"));
     } catch (error) {
       console.error(error);
-      toast.error("Erreur lors de l'export Excel");
+      toast.error(t("adminReports.common.errorExporting"));
     } finally {
       setGeneratingReport(null);
     }
@@ -2232,7 +2234,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         pdf,
         "RAPPORT DE PRÉSENCES",
         `${cn4 || category?.clubs?.name || ''} - ${catName4 || category?.name || ''}${sn4 ? ` • ${sn4}` : ''}`,
-        `Généré le ${format(new Date(), "d MMMM yyyy", { locale: fr })}${dateRange}`,
+        `Généré le ${format(new Date(), "d MMMM yyyy", { locale: getDateLocale() })}${dateRange}`,
         pdfSettings,
         logoBase64
       );
@@ -2376,10 +2378,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       }
 
       pdf.save(`presences_${(catName4 || category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
-      toast.success("Rapport de présences généré");
+      toast.success(t("adminReports.attendance.pdfGenerated"));
     } catch (error) {
       console.error(error);
-      toast.error("Erreur lors de la génération");
+      toast.error(t("adminReports.common.errorGenerating"));
     } finally {
       setGeneratingReport(null);
     }
@@ -2518,10 +2520,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       headers.forEach((_, i) => { sheet.getColumn(i + 1).width = i === 0 ? 25 : 18; });
 
       await downloadWorkbook(workbook, `presences_${(category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
-      toast.success("Export Excel généré");
+      toast.success(t("adminReports.common.excelGenerated"));
     } catch (error) {
       console.error(error);
-      toast.error("Erreur lors de l'export Excel");
+      toast.error(t("adminReports.common.errorExporting"));
     } finally {
       setGeneratingReport(null);
     }
@@ -2531,11 +2533,11 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
   const renderDateRange = (from: string, to: string, onFromChange: (v: string) => void, onToChange: (v: string) => void) => (
     <div className="grid grid-cols-2 gap-2">
       <div>
-        <Label className="text-xs text-muted-foreground">Du</Label>
+        <Label className="text-xs text-muted-foreground">{t("adminReports.common.from")}</Label>
         <Input type="date" value={from} onChange={e => onFromChange(e.target.value)} className="h-8 text-xs" />
       </div>
       <div>
-        <Label className="text-xs text-muted-foreground">Au</Label>
+        <Label className="text-xs text-muted-foreground">{t("adminReports.common.to")}</Label>
         <Input type="date" value={to} min={from || undefined} onChange={e => onToChange(e.target.value)} className="h-8 text-xs" />
       </div>
     </div>
@@ -2544,8 +2546,8 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">Rapports</h2>
-        <p className="text-muted-foreground">Générez et exportez des rapports en PDF ou Excel</p>
+        <h2 className="text-2xl font-bold">{t("adminReports.title")}</h2>
+        <p className="text-muted-foreground">{t("adminReports.subtitle")}</p>
       </div>
 
       <div className="flex flex-col gap-3">
@@ -2555,11 +2557,11 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
             <div className="flex items-start gap-3 md:w-72 shrink-0">
               <Users className="h-5 w-5 mt-0.5 text-primary" />
               <div>
-                <p className="font-semibold leading-tight">Vue d'Ensemble Effectif</p>
+                <p className="font-semibold leading-tight">{t("adminReports.squad.title")}</p>
                 <p className="text-xs text-muted-foreground">
                   {isIndividualSport
-                    ? "Synthèse : blessures, wellness, ratio EWMA"
-                    : "Synthèse globale avec Ratio EWMA"}
+                    ? t("adminReports.squad.subtitleIndividual")
+                    : t("adminReports.squad.subtitleTeam")}
                 </p>
               </div>
             </div>
@@ -2586,8 +2588,8 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
               <div className="flex items-start gap-3 md:w-72 shrink-0">
                 <Trophy className="h-5 w-5 mt-0.5 text-primary" />
                 <div>
-                  <p className="font-semibold leading-tight">Suivi Temps de Jeu</p>
-                  <p className="text-xs text-muted-foreground">Minutes, titularisations, remplacements, hors-groupe</p>
+                  <p className="font-semibold leading-tight">{t("adminReports.tdj.title")}</p>
+                  <p className="text-xs text-muted-foreground">{t("adminReports.tdj.subtitle")}</p>
                 </div>
               </div>
               <div className="flex-1 min-w-0">
@@ -2613,18 +2615,18 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
             <div className="flex items-start gap-3 md:w-72 shrink-0">
               <Calendar className="h-5 w-5 mt-0.5 text-primary" />
               <div>
-                <p className="font-semibold leading-tight">Bilan de Saison</p>
+                <p className="font-semibold leading-tight">{t("adminReports.season.title")}</p>
                 <p className="text-xs text-muted-foreground">
                   {isIndividualSport
-                    ? "Résumé des compétitions et performances"
+                    ? t("adminReports.season.subtitleIndividual")
                     : isRacketSport
-                    ? "Résumé des matchs et performances"
-                    : "Résumé complet de la saison en cours"}
+                    ? t("adminReports.season.subtitleRacket")
+                    : t("adminReports.season.subtitleTeam")}
                 </p>
               </div>
             </div>
             <div className="flex-1 min-w-0 text-sm text-muted-foreground">
-              Saison {new Date().getFullYear()}/{new Date().getFullYear() + 1} · {players.length} {athleteLabel.toLowerCase()} · {matches.length} {competitionLabel.toLowerCase()}
+              {t("adminReports.season.summaryLine", { yearStart: new Date().getFullYear(), yearEnd: new Date().getFullYear() + 1, playerCount: players.length, athleteLabel: athleteLabel.toLowerCase(), matchCount: matches.length, competitionLabel: competitionLabel.toLowerCase() })}
             </div>
             <div className="flex gap-2 md:w-56 shrink-0">
               <Button onClick={generateSeasonReport} className="flex-1" disabled={generatingReport === "season" || generatingReport === "season-csv"}>
@@ -2645,21 +2647,21 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
             <div className="flex items-start gap-3 md:w-72 shrink-0">
               <Trophy className="h-5 w-5 mt-0.5 text-primary" />
               <div>
-                <p className="font-semibold leading-tight">{isIndividualSport ? "Rapport de Compétition" : "Rapport de Match"}</p>
+                <p className="font-semibold leading-tight">{isIndividualSport ? t("adminReports.match.titleCompetition") : t("adminReports.match.title")}</p>
                 <p className="text-xs text-muted-foreground">
-                  {isIndividualSport ? "Détail par compétition et par athlète" : "Stats dynamiques selon vos préférences"}
+                  {isIndividualSport ? t("adminReports.match.subtitleCompetition") : t("adminReports.match.subtitle")}
                 </p>
               </div>
             </div>
             <div className="flex-1 min-w-0">
               <Select value={selectedMatch} onValueChange={setSelectedMatch}>
                 <SelectTrigger className="h-9">
-                  <SelectValue placeholder={isIndividualSport ? "Sélectionner une compétition" : "Sélectionner un match"} />
+                  <SelectValue placeholder={isIndividualSport ? t("adminReports.match.selectCompetition") : t("adminReports.match.selectMatch")} />
                 </SelectTrigger>
                 <SelectContent>
                   {matches.map((match) => (
                     <SelectItem key={match.id} value={match.id}>
-                      {isIndividualSport ? "" : "vs "}{match.opponent} ({format(new Date(match.match_date), "d MMM", { locale: fr })})
+                      {isIndividualSport ? "" : t("adminReports.match.vsPrefix")}{match.opponent} ({format(new Date(match.match_date), "d MMM", { locale: getDateLocale() })})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -2684,8 +2686,8 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
             <div className="flex items-start gap-3 md:w-72 shrink-0">
               <ClipboardCheck className="h-5 w-5 mt-0.5 text-primary" />
               <div>
-                <p className="font-semibold leading-tight">Rapport de Présences</p>
-                <p className="text-xs text-muted-foreground">Taux de présence et retards</p>
+                <p className="font-semibold leading-tight">{t("adminReports.attendance.title")}</p>
+                <p className="text-xs text-muted-foreground">{t("adminReports.attendance.subtitle")}</p>
               </div>
             </div>
             <div className="flex-1 min-w-0">

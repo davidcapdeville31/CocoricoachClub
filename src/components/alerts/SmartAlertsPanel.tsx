@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AlertTriangle, Activity, Brain, TrendingUp, TrendingDown, X, Check, Bell } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface SmartAlert {
   id: string;
@@ -169,7 +169,7 @@ export function SmartAlertsPanel({ categoryId }: SmartAlertsPanelProps) {
                           <p className="text-xs text-muted-foreground mt-1">
                             {formatDistanceToNow(new Date(alert.created_at), { 
                               addSuffix: true, 
-                              locale: fr 
+                              locale: getDateLocale() 
                             })}
                           </p>
                         </div>

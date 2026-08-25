@@ -1,3 +1,4 @@
+import { getLocaleTag } from "@/lib/i18n/dateLocale";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -173,7 +174,7 @@ export function AddConcussionProtocolDialog({ open, onOpenChange, categoryId, pl
                   <ul className="list-disc list-inside mt-1">
                     {previousConcussions.map((c: any, idx: number) => (
                       <li key={c.id}>
-                        {new Date(c.incident_date).toLocaleDateString("fr-FR")}
+                        {new Date(c.incident_date).toLocaleDateString(getLocaleTag())}
                         {c.status === "cleared" ? t("health.addConcussionDialog.statusCleared") : c.status === "recovery" ? t("health.addConcussionDialog.statusRecovery") : t("health.addConcussionDialog.statusActive")}
                       </li>
                     ))}

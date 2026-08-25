@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import {
   getPositionGroupsForSport, 
   playerBelongsToGroup, 
   sportHasPositionGroups,
+  getPositionGroupLabel,
   PositionGroup 
 } from "@/lib/constants/sportPositionGroups";
 import {
@@ -58,6 +60,7 @@ export function AdvancedPlayerSelection({
   maxHeight = "200px",
   showInjuredFilter = true,
 }: AdvancedPlayerSelectionProps) {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [positionFilter, setPositionFilter] = useState<string>("all");
   const { activeSeasonOnly, activeSeasonId } = useSeasonRosterFilter();
@@ -208,7 +211,7 @@ export function AdvancedPlayerSelection({
       <div className="flex items-center justify-between">
         <Label className="flex items-center gap-2 text-sm font-medium">
           <Users className="h-4 w-4" />
-          Athlètes concernés
+          {t("roster.advancedSelection.title")}
         </Label>
         <div className="flex gap-2">
           <Button
@@ -220,7 +223,7 @@ export function AdvancedPlayerSelection({
               onSelectionChange([]);
             }}
           >
-            Tous
+            {t("roster.advancedSelection.all")}
           </Button>
           <Button
             type="button"
@@ -228,7 +231,7 @@ export function AdvancedPlayerSelection({
             size="sm"
             onClick={() => onSelectionModeChange("specific")}
           >
-            Spécifiques
+            {t("roster.advancedSelection.specific")}
           </Button>
         </div>
       </div>
@@ -245,7 +248,7 @@ export function AdvancedPlayerSelection({
               className="text-xs"
             >
               <UserCheck className="h-3 w-3 mr-1" />
-              Tous ({players.length})
+              {t("roster.advancedSelection.allCount", { count: players.length })}
             </Button>
             
             {showInjuredFilter && (
@@ -258,7 +261,7 @@ export function AdvancedPlayerSelection({
                   className="text-xs border-green-300 text-green-700 hover:bg-green-50 dark:border-green-700 dark:text-green-400 dark:hover:bg-green-950"
                 >
                   <UserCheck className="h-3 w-3 mr-1" />
-                  Aptes ({healthyPlayers.length})
+                  {t("roster.advancedSelection.healthyCount", { count: healthyPlayers.length })}
                 </Button>
                 {injuredPlayers.length > 0 && (
                   <Button
@@ -269,7 +272,7 @@ export function AdvancedPlayerSelection({
                     className="text-xs border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-700 dark:text-amber-400 dark:hover:bg-amber-950"
                   >
                     <AlertTriangle className="h-3 w-3 mr-1" />
-                    Blessés ({injuredPlayers.length})
+                    {t("roster.advancedSelection.injuredCount", { count: injuredPlayers.length })}
                   </Button>
                 )}
               </>
@@ -283,7 +286,7 @@ export function AdvancedPlayerSelection({
                 onClick={clearSelection}
                 className="text-xs text-muted-foreground"
               >
-                Effacer
+                {t("roster.advancedSelection.clear")}
               </Button>
             )}
           </div>
@@ -293,7 +296,7 @@ export function AdvancedPlayerSelection({
             <div className="flex flex-wrap gap-2 p-2 border rounded-lg bg-muted/30">
               <span className="text-xs text-muted-foreground flex items-center gap-1">
                 <Filter className="h-3 w-3" />
-                Par poste:
+                {t("roster.advancedSelection.byPosition")}
               </span>
               {positionGroups.map(group => {
                 const count = playersByGroup[group.id]?.length || 0;
@@ -306,7 +309,7 @@ export function AdvancedPlayerSelection({
                     onClick={() => selectByGroup(group)}
                     className="text-xs"
                   >
-                    {group.label} ({count})
+                    {getPositionGroupLabel(group, t)} ({count})
                   </Button>
                 );
               })}
@@ -320,7 +323,7 @@ export function AdvancedPlayerSelection({
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Rechercher un athlète..."
+                placeholder={t("roster.advancedSelection.searchPlaceholder")}
                 className="pl-8 h-8 text-sm"
               />
             </div>
@@ -329,14 +332,14 @@ export function AdvancedPlayerSelection({
             {(hasPositionGroups || uniquePositions.length > 0) && (
               <Select value={positionFilter} onValueChange={setPositionFilter}>
                 <SelectTrigger className="w-[140px] h-8 text-xs">
-                  <SelectValue placeholder="Tous postes" />
+                  <SelectValue placeholder={t("roster.advancedSelection.allPositions")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tous postes</SelectItem>
+                  <SelectItem value="all">{t("roster.advancedSelection.allPositions")}</SelectItem>
                   {hasPositionGroups ? (
                     positionGroups.map(group => (
                       <SelectItem key={group.id} value={group.id}>
-                        {group.label}
+                        {getPositionGroupLabel(group, t)}
                       </SelectItem>
                     ))
                   ) : (
@@ -393,7 +396,7 @@ export function AdvancedPlayerSelection({
                         )}
                         {playerGroup && (
                           <Badge variant="outline" className="text-[10px] px-1 py-0">
-                            {playerGroup.label}
+                            {getPositionGroupLabel(playerGroup, t)}
                           </Badge>
                         )}
                         <AthleteIdentityBadges playerId={player.id} primaryOnly={false} />
@@ -401,7 +404,7 @@ export function AdvancedPlayerSelection({
                     </div>
                     {isInjured && (
                       <Badge variant="outline" className="text-amber-600 border-amber-300 text-xs shrink-0 pointer-events-none">
-                        Blessé
+                        {t("roster.advancedSelection.injuredBadge")}
                       </Badge>
                     )}
                   </div>
@@ -412,7 +415,7 @@ export function AdvancedPlayerSelection({
 
           {selectedPlayers.length > 0 && (
             <p className="text-xs text-muted-foreground">
-              {selectedPlayers.length} athlète{selectedPlayers.length > 1 ? "s" : ""} sélectionné{selectedPlayers.length > 1 ? "s" : ""}
+              {t("roster.advancedSelection.selectedCount", { count: selectedPlayers.length })}
             </p>
           )}
         </>
@@ -420,7 +423,7 @@ export function AdvancedPlayerSelection({
 
       {selectionMode === "all" && (
         <p className="text-sm text-muted-foreground">
-          Sera appliqué aux {players.length} athlètes de la catégorie
+          {t("roster.advancedSelection.appliedToAll", { count: players.length })}
         </p>
       )}
     </div>

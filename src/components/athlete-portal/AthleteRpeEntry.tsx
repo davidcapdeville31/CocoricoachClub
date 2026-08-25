@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useEffect } from "react";
 import { computeSessionDurationMinutes } from "@/lib/utils/sessionDuration";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -9,7 +10,6 @@ import { Slider } from "@/components/ui/slider";
 import { Activity, Calendar, Clock, CheckCircle2, Loader2, Target, Info } from "lucide-react";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
-import { fr } from "date-fns/locale";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 import { athletePortalHeaders, buildAthletePortalFunctionUrl } from "@/lib/athletePortalClient";
 import { AthleteSpareExerciseForm } from "./AthleteSpareExerciseForm";
@@ -375,7 +375,7 @@ export function AthleteRpeEntry({ token, playerId, categoryId, sportType, onRefr
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <div>
                       <p className="font-medium text-sm">
-                        {format(parseISO(s.session_date), "EEEE d MMMM", { locale: fr })}
+                        {format(parseISO(s.session_date), "EEEE d MMMM", { locale: getDateLocale() })}
                       </p>
                       {s.session_start_time && (
                         <p className="text-xs text-muted-foreground flex items-center gap-1">
@@ -431,7 +431,7 @@ export function AthleteRpeEntry({ token, playerId, categoryId, sportType, onRefr
                       <div className="flex items-center gap-3">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                         <span className="font-medium">
-                          {format(parseISO(session.session_date), "EEEE d MMMM", { locale: fr })}
+                          {format(parseISO(session.session_date), "EEEE d MMMM", { locale: getDateLocale() })}
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5">
@@ -659,7 +659,7 @@ export function AthleteRpeEntry({ token, playerId, categoryId, sportType, onRefr
                   <div className="flex items-center gap-3">
                     <CheckCircle2 className="h-4 w-4 text-green-600" />
                     <span>
-                      {format(parseISO(session.session_date), "d MMMM", { locale: fr })}
+                      {format(parseISO(session.session_date), "d MMMM", { locale: getDateLocale() })}
                     </span>
                   </div>
                   <Badge variant="secondary">

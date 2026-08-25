@@ -1,4 +1,7 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,7 +32,6 @@ import {
   Send, CheckCircle, XCircle, HelpCircle, Clock
 } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { AthleteIdentityBadges } from "@/components/player/AthleteIdentityBadges";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
 
@@ -37,15 +39,19 @@ interface ConvocationsSectionProps {
   categoryId: string;
 }
 
-const EVENT_TYPES = [
-  { value: "match", label: "Match", icon: "🏆" },
-  { value: "training", label: "Entraînement", icon: "⚽" },
-  { value: "tournament", label: "Tournoi", icon: "🎯" },
-  { value: "gathering", label: "Regroupement", icon: "👥" },
-  { value: "meeting", label: "Réunion", icon: "📋" },
-];
+function getEventTypes() {
+  return [
+    { value: "match", label: i18n.t("adminRecruitDocs.convocations.eventTypes.match"), icon: "🏆" },
+    { value: "training", label: i18n.t("adminRecruitDocs.convocations.eventTypes.training"), icon: "⚽" },
+    { value: "tournament", label: i18n.t("adminRecruitDocs.convocations.eventTypes.tournament"), icon: "🎯" },
+    { value: "gathering", label: i18n.t("adminRecruitDocs.convocations.eventTypes.gathering"), icon: "👥" },
+    { value: "meeting", label: i18n.t("adminRecruitDocs.convocations.eventTypes.meeting"), icon: "📋" },
+  ];
+}
 
 export function ConvocationsSection({ categoryId }: ConvocationsSectionProps) {
+  const { t } = useTranslation();
+  const EVENT_TYPES = getEventTypes();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [viewingConvocation, setViewingConvocation] = useState<any>(null);
   const [name, setName] = useState("");
@@ -148,13 +154,13 @@ export function ConvocationsSection({ categoryId }: ConvocationsSectionProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["convocations"] });
-      toast.success("Convocation créée");
+      toast.success(t("adminRecruitDocs.convocations.toasts.convocationCreated"));
       setIsDialogOpen(false);
       resetForm();
     },
     onError: (err: any) => {
       if (typeof err?.message === "string" && err.message.startsWith("guard:")) return;
-      toast.error("Erreur lors de la création");
+      toast.error(t("adminRecruitDocs.convocations.toasts.createError"));
     },
   });
 
@@ -171,7 +177,7 @@ export function ConvocationsSection({ categoryId }: ConvocationsSectionProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["convocations"] });
-      toast.success("Réponse enregistrée");
+      toast.success(t("adminRecruitDocs.convocations.toasts.responseRecorded"));
     },
   });
 
@@ -191,7 +197,7 @@ export function ConvocationsSection({ categoryId }: ConvocationsSectionProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["convocations"] });
-      toast.success("Convocation envoyée");
+      toast.success(t("adminRecruitDocs.convocations.toasts.convocationSent"));
     },
   });
 
@@ -205,7 +211,7 @@ export function ConvocationsSection({ categoryId }: ConvocationsSectionProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["convocations"] });
-      toast.success("Convocation supprimée");
+      toast.success(t("adminRecruitDocs.convocations.toasts.convocationDeleted"));
       setViewingConvocation(null);
     },
   });
@@ -233,13 +239,13 @@ export function ConvocationsSection({ categoryId }: ConvocationsSectionProps) {
   const getResponseBadge = (response: string) => {
     switch (response) {
       case "accepted":
-        return <Badge className="bg-green-100 text-green-700"><CheckCircle className="h-3 w-3 mr-1" />Accepté</Badge>;
+        return <Badge className="bg-green-100 text-green-700"><CheckCircle className="h-3 w-3 mr-1" />{t("adminRecruitDocs.convocations.responseAccepted")}</Badge>;
       case "declined":
-        return <Badge className="bg-red-100 text-red-700"><XCircle className="h-3 w-3 mr-1" />Décliné</Badge>;
+        return <Badge className="bg-red-100 text-red-700"><XCircle className="h-3 w-3 mr-1" />{t("adminRecruitDocs.convocations.responseDeclined")}</Badge>;
       case "maybe":
-        return <Badge className="bg-amber-100 text-amber-700"><HelpCircle className="h-3 w-3 mr-1" />Peut-être</Badge>;
+        return <Badge className="bg-amber-100 text-amber-700"><HelpCircle className="h-3 w-3 mr-1" />{t("adminRecruitDocs.convocations.responseMaybe")}</Badge>;
       default:
-        return <Badge variant="outline"><Clock className="h-3 w-3 mr-1" />En attente</Badge>;
+        return <Badge variant="outline"><Clock className="h-3 w-3 mr-1" />{t("adminRecruitDocs.convocations.responsePending")}</Badge>;
     }
   };
 
@@ -249,22 +255,22 @@ export function ConvocationsSection({ categoryId }: ConvocationsSectionProps) {
         <div>
           <h3 className="text-lg font-semibold flex items-center gap-2">
             <Mail className="h-5 w-5 text-primary" />
-            Convocations
+            {t("adminRecruitDocs.convocations.title")}
           </h3>
           <p className="text-sm text-muted-foreground">
-            Envoyez des convocations aux joueurs et suivez les réponses
+            {t("adminRecruitDocs.convocations.subtitle")}
           </p>
         </div>
         <Button onClick={openCreateDialog}>
           <Plus className="h-4 w-4 mr-2" />
-          Nouvelle convocation
+          {t("adminRecruitDocs.convocations.newConvocation")}
         </Button>
       </div>
 
       {isLoading ? (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
-            Chargement...
+            {t("adminRecruitDocs.convocations.loading")}
           </CardContent>
         </Card>
       ) : convocations && convocations.length > 0 ? (
@@ -286,17 +292,17 @@ export function ConvocationsSection({ categoryId }: ConvocationsSectionProps) {
                         <span className="text-lg">{typeInfo.icon}</span>
                         <h4 className="font-semibold">{convocation.name}</h4>
                         {convocation.status === "draft" && (
-                          <Badge variant="outline">Brouillon</Badge>
+                          <Badge variant="outline">{t("adminRecruitDocs.convocations.draft")}</Badge>
                         )}
                         {convocation.status === "sent" && (
-                          <Badge className="bg-blue-100 text-blue-700">Envoyée</Badge>
+                          <Badge className="bg-blue-100 text-blue-700">{t("adminRecruitDocs.convocations.sent")}</Badge>
                         )}
                       </div>
                       <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3.5 w-3.5" />
-                          {format(new Date(convocation.event_date), "EEEE d MMMM", { locale: fr })}
-                          {convocation.event_time && ` à ${convocation.event_time.slice(0, 5)}`}
+                          {format(new Date(convocation.event_date), "EEEE d MMMM", { locale: getDateLocale() })}
+                          {convocation.event_time && t("adminRecruitDocs.convocations.atTime", { time: convocation.event_time.slice(0, 5) })}
                         </span>
                         {convocation.location && (
                           <span className="flex items-center gap-1">
@@ -336,7 +342,7 @@ export function ConvocationsSection({ categoryId }: ConvocationsSectionProps) {
                           onClick={() => sendConvocation.mutate(convocation.id)}
                         >
                           <Send className="h-4 w-4 mr-1" />
-                          Envoyer
+                          {t("adminRecruitDocs.convocations.send")}
                         </Button>
                       )}
                       <Button
@@ -358,10 +364,10 @@ export function ConvocationsSection({ categoryId }: ConvocationsSectionProps) {
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
             <Mail className="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p>Aucune convocation créée</p>
+            <p>{t("adminRecruitDocs.convocations.noConvocation")}</p>
             <Button className="mt-4" onClick={openCreateDialog}>
               <Plus className="h-4 w-4 mr-2" />
-              Créer une convocation
+              {t("adminRecruitDocs.convocations.createConvocation")}
             </Button>
           </CardContent>
         </Card>
@@ -371,21 +377,21 @@ export function ConvocationsSection({ categoryId }: ConvocationsSectionProps) {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
-            <DialogTitle>Nouvelle convocation</DialogTitle>
+            <DialogTitle>{t("adminRecruitDocs.convocations.newConvocationTitle")}</DialogTitle>
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto space-y-4 pr-2">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2 col-span-2">
-                <Label>Titre *</Label>
+                <Label>{t("adminRecruitDocs.convocations.titleLabel")}</Label>
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Ex: Convocation match J5"
+                  placeholder={t("adminRecruitDocs.convocations.titlePlaceholder")}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Type d'événement</Label>
+                <Label>{t("adminRecruitDocs.convocations.eventTypeLabel")}</Label>
                 <Select value={eventType} onValueChange={setEventType}>
                   <SelectTrigger>
                     <SelectValue />
@@ -400,7 +406,7 @@ export function ConvocationsSection({ categoryId }: ConvocationsSectionProps) {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Date limite de réponse</Label>
+                <Label>{t("adminRecruitDocs.convocations.responseDeadline")}</Label>
                 <Input
                   type="date"
                   value={responseDeadline}
@@ -408,7 +414,7 @@ export function ConvocationsSection({ categoryId }: ConvocationsSectionProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Date de l'événement *</Label>
+                <Label>{t("adminRecruitDocs.convocations.eventDate")}</Label>
                 <Input
                   type="date"
                   value={eventDate}
@@ -416,7 +422,7 @@ export function ConvocationsSection({ categoryId }: ConvocationsSectionProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Heure</Label>
+                <Label>{t("adminRecruitDocs.convocations.time")}</Label>
                 <Input
                   type="time"
                   value={eventTime}
@@ -424,19 +430,19 @@ export function ConvocationsSection({ categoryId }: ConvocationsSectionProps) {
                 />
               </div>
               <div className="space-y-2 col-span-2">
-                <Label>Lieu</Label>
+                <Label>{t("adminRecruitDocs.convocations.location")}</Label>
                 <Input
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  placeholder="Adresse ou nom du lieu"
+                  placeholder={t("adminRecruitDocs.convocations.locationPlaceholder")}
                 />
               </div>
               <div className="space-y-2 col-span-2">
-                <Label>Description</Label>
+                <Label>{t("adminRecruitDocs.convocations.description")}</Label>
                 <Textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Informations complémentaires..."
+                  placeholder={t("adminRecruitDocs.convocations.descriptionPlaceholder")}
                   rows={2}
                 />
               </div>
@@ -445,7 +451,7 @@ export function ConvocationsSection({ categoryId }: ConvocationsSectionProps) {
             {/* Player selection */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label>Joueurs convoqués</Label>
+                <Label>{t("adminRecruitDocs.convocations.convokedPlayers")}</Label>
                 <div className="flex gap-2">
                   <Button
                     type="button"
@@ -453,7 +459,7 @@ export function ConvocationsSection({ categoryId }: ConvocationsSectionProps) {
                     size="sm"
                     onClick={() => setSelectedPlayers(players?.map((p) => p.id) || [])}
                   >
-                    Tous
+                    {t("adminRecruitDocs.convocations.all")}
                   </Button>
                   <Button
                     type="button"
@@ -461,7 +467,7 @@ export function ConvocationsSection({ categoryId }: ConvocationsSectionProps) {
                     size="sm"
                     onClick={() => setSelectedPlayers([])}
                   >
-                    Aucun
+                    {t("adminRecruitDocs.convocations.none")}
                   </Button>
                 </div>
               </div>
@@ -497,20 +503,20 @@ export function ConvocationsSection({ categoryId }: ConvocationsSectionProps) {
                 </ScrollArea>
               </Card>
               <p className="text-sm text-muted-foreground">
-                {selectedPlayers.length} joueur(s) sélectionné(s)
+                {t("adminRecruitDocs.convocations.playersSelected", { count: selectedPlayers.length })}
               </p>
             </div>
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              Annuler
+              {t("adminRecruitDocs.convocations.cancel")}
             </Button>
             <Button 
               onClick={() => saveConvocation.mutate()}
               disabled={!name || !eventDate || selectedPlayers.length === 0 || saveConvocation.isPending}
             >
-              Créer
+              {t("adminRecruitDocs.convocations.create")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -530,8 +536,8 @@ export function ConvocationsSection({ categoryId }: ConvocationsSectionProps) {
             <div className="flex flex-wrap gap-3 text-sm">
               <span className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
-                {viewingConvocation && format(new Date(viewingConvocation.event_date), "EEEE d MMMM yyyy", { locale: fr })}
-                {viewingConvocation?.event_time && ` à ${viewingConvocation.event_time.slice(0, 5)}`}
+                {viewingConvocation && format(new Date(viewingConvocation.event_date), "EEEE d MMMM yyyy", { locale: getDateLocale() })}
+                {viewingConvocation?.event_time && t("adminRecruitDocs.convocations.atTime", { time: viewingConvocation.event_time.slice(0, 5) })}
               </span>
               {viewingConvocation?.location && (
                 <span className="flex items-center gap-1">
@@ -546,7 +552,7 @@ export function ConvocationsSection({ categoryId }: ConvocationsSectionProps) {
             )}
 
             <div className="space-y-2">
-              <h4 className="font-medium">Réponses des joueurs</h4>
+              <h4 className="font-medium">{t("adminRecruitDocs.convocations.playerResponses")}</h4>
               <ScrollArea className="h-[300px]">
                 <div className="space-y-2">
                   {viewingConvocation?.convocation_recipients?.map((recipient: any) => (
@@ -558,7 +564,7 @@ export function ConvocationsSection({ categoryId }: ConvocationsSectionProps) {
                         <p className="font-medium">{recipient.players?.name}</p>
                         {recipient.response_date && (
                           <p className="text-xs text-muted-foreground">
-                            Répondu le {format(new Date(recipient.response_date), "dd/MM à HH:mm")}
+                            {t("adminRecruitDocs.convocations.respondedOn", { date: format(new Date(recipient.response_date), "dd/MM à HH:mm") })}
                           </p>
                         )}
                       </div>
@@ -575,10 +581,10 @@ export function ConvocationsSection({ categoryId }: ConvocationsSectionProps) {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="pending">En attente</SelectItem>
-                            <SelectItem value="accepted">Accepté</SelectItem>
-                            <SelectItem value="declined">Décliné</SelectItem>
-                            <SelectItem value="maybe">Peut-être</SelectItem>
+                            <SelectItem value="pending">{t("adminRecruitDocs.convocations.responsePending")}</SelectItem>
+                            <SelectItem value="accepted">{t("adminRecruitDocs.convocations.responseAccepted")}</SelectItem>
+                            <SelectItem value="declined">{t("adminRecruitDocs.convocations.responseDeclined")}</SelectItem>
+                            <SelectItem value="maybe">{t("adminRecruitDocs.convocations.responseMaybe")}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -591,7 +597,7 @@ export function ConvocationsSection({ categoryId }: ConvocationsSectionProps) {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setViewingConvocation(null)}>
-              Fermer
+              {t("adminRecruitDocs.convocations.close")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +12,6 @@ import { Activity, Heart, AlertTriangle, Target, CheckCircle2, AlertCircle, XCir
 import { Button } from "@/components/ui/button";
 import { InfoHint } from "@/components/training-load/InfoHint";
 import { format, subDays } from "date-fns";
-import { fr } from "date-fns/locale";
 import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 import { useWellnessQuestions, DEFAULT_WELLNESS_QUESTIONS } from "@/lib/wellness/questionConfig";

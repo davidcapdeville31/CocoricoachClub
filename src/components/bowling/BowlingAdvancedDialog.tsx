@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useEffect, useState } from "react";
 import {
   Dialog,
@@ -26,7 +27,6 @@ import {
   Pencil,
 } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -623,7 +623,7 @@ export function BowlingAdvancedDialog({
             {isEditMode ? "Remplir la séance bowling" : "Nouvelle séance bowling — Mode avancé"}
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
-            {format(date, "EEEE d MMMM yyyy", { locale: fr })}
+            {format(date, "EEEE d MMMM yyyy", { locale: getDateLocale() })}
           </p>
         </DialogHeader>
 

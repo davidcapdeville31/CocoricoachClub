@@ -1,6 +1,6 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useMemo } from "react";
 import { format, startOfYear, endOfYear, eachWeekOfInterval, startOfWeek, endOfWeek, isWithinInterval, differenceInDays } from "date-fns";
-import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -134,7 +134,7 @@ export function AnnualLoadHeatmap({ year, periodStart, periodEnd, categories, cy
       const mid = new Date(w.getTime() + 3 * 24 * 60 * 60 * 1000); // Wednesday
       const m = mid.getMonth();
       if (m !== currentMonth) {
-        headers.push({ label: format(mid, "MMM", { locale: fr }), span: 1 });
+        headers.push({ label: format(mid, "MMM", { locale: getDateLocale() }), span: 1 });
         currentMonth = m;
       } else {
         headers[headers.length - 1].span++;
@@ -207,7 +207,7 @@ export function AnnualLoadHeatmap({ year, periodStart, periodEnd, categories, cy
                         </TooltipTrigger>
                         <TooltipContent className="text-xs">
                           <p className="font-semibold">{cat.name} — S{format(ws, "w")}</p>
-                          <p>{format(ws, "dd MMM", { locale: fr })} → {format(we, "dd MMM", { locale: fr })}</p>
+                          <p>{format(ws, "dd MMM", { locale: getDateLocale() })} → {format(we, "dd MMM", { locale: getDateLocale() })}</p>
                           <p>Charge: {score.toFixed(1)}/5</p>
                         </TooltipContent>
                       </Tooltip>

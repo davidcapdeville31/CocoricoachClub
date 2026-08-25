@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +8,6 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import {
   Shield, ShieldCheck, ShieldAlert, AlertTriangle, Lock, Eye, Activity,
   KeyRound, Clock, Database, FileText, UserCheck, Cookie, Ban, CheckCircle2,
@@ -468,7 +468,7 @@ export function SecurityCenter() {
                     {events?.map((ev) => (
                       <TableRow key={ev.id}>
                         <TableCell className="text-xs whitespace-nowrap">
-                          {format(new Date(ev.created_at), "dd/MM HH:mm", { locale: fr })}
+                          {format(new Date(ev.created_at), "dd/MM HH:mm", { locale: getDateLocale() })}
                         </TableCell>
                         <TableCell className="text-xs">{ev.user_email ?? "—"}</TableCell>
                         <TableCell className="text-xs font-medium">
@@ -525,7 +525,7 @@ export function SecurityCenter() {
                     {sensitiveAccess?.map((log) => (
                       <TableRow key={log.id}>
                         <TableCell className="text-xs whitespace-nowrap">
-                          {format(new Date(log.created_at), "dd/MM HH:mm", { locale: fr })}
+                          {format(new Date(log.created_at), "dd/MM HH:mm", { locale: getDateLocale() })}
                         </TableCell>
                         <TableCell className="text-xs">{log.accessor_email ?? "—"}</TableCell>
                         <TableCell className="text-xs">

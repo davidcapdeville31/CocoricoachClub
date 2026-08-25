@@ -1,3 +1,4 @@
+import { getLocaleTag } from "@/lib/i18n/dateLocale";
 import { useState, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -248,7 +249,7 @@ export function ClubCard({ club, onDelete }: ClubCardProps) {
           </div>
         )}
         <p className="text-xs text-muted-foreground">
-          Créé le {new Date(club.created_at).toLocaleDateString("fr-FR")}
+          Créé le {new Date(club.created_at).toLocaleDateString(getLocaleTag())}
         </p>
       </div>
 

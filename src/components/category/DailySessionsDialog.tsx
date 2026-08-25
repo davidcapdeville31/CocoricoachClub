@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { getDisplayNotes } from "@/lib/utils/sessionNotes";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -5,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Pencil, ArrowRight, Clock, MapPin, ChevronRight, X, Trash2, Users } from "lucide-react";
 import { format, isToday, isTomorrow, isYesterday } from "date-fns";
-import { fr } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
@@ -95,7 +95,7 @@ export function DailySessionsDialog({
     if (isToday(d)) return "Aujourd'hui";
     if (isTomorrow(d)) return "Demain";
     if (isYesterday(d)) return "Hier";
-    return format(d, "EEEE", { locale: fr });
+    return format(d, "EEEE", { locale: getDateLocale() });
   };
 
   const totalEvents = sessions.length + matches.length + planning.length;
@@ -142,7 +142,7 @@ export function DailySessionsDialog({
                 {getRelativeDay(date)}
               </p>
               <p className="text-lg font-semibold capitalize">
-                {format(date, "MMMM yyyy", { locale: fr })}
+                {format(date, "MMMM yyyy", { locale: getDateLocale() })}
               </p>
             </div>
           </div>
@@ -314,7 +314,7 @@ export function DailySessionsDialog({
                             mode="single"
                             selected={rescheduleDate}
                             onSelect={setRescheduleDate}
-                            locale={fr}
+                            locale={getDateLocale()}
                             className="p-2 pointer-events-auto"
                           />
                           <div className="p-2 border-t flex justify-end gap-2">

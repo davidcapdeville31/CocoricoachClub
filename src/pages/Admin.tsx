@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,7 +14,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/sonner";
 import { Shield, Users, Building2, ArrowLeft, UserPlus, Trash2, Crown, CheckCircle2, XCircle, Clock, FileText, Gift, Copy, Link, Mail, ChevronDown, ChevronRight, FolderOpen } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { AuditLogsTab } from "@/components/admin/AuditLogsTab";
 import { getAppBaseUrl } from "@/lib/appUrl";
 
@@ -474,7 +474,7 @@ export default function Admin() {
                           <TableCell>{u.email}</TableCell>
                           <TableCell>
                             {u.created_at
-                              ? format(new Date(u.created_at), "dd MMM yyyy", { locale: fr })
+                              ? format(new Date(u.created_at), "dd MMM yyyy", { locale: getDateLocale() })
                               : "-"}
                           </TableCell>
                           <TableCell>{u.clubs_owned}</TableCell>
@@ -590,7 +590,7 @@ export default function Admin() {
                                         <Building2 className="h-5 w-5 text-primary" />
                                         <span className="font-semibold">{club.name}</span>
                                         <span className="text-xs text-muted-foreground">
-                                          (créé le {format(new Date(club.created_at), "dd MMM yyyy", { locale: fr })})
+                                          (créé le {format(new Date(club.created_at), "dd MMM yyyy", { locale: getDateLocale() })})
                                         </span>
                                       </div>
                                       
@@ -675,7 +675,7 @@ export default function Admin() {
                               <TableCell>{u.email}</TableCell>
                               <TableCell>
                                 {u.created_at
-                                  ? format(new Date(u.created_at), "dd MMM yyyy", { locale: fr })
+                                  ? format(new Date(u.created_at), "dd MMM yyyy", { locale: getDateLocale() })
                                   : "-"}
                               </TableCell>
                               <TableCell className="text-right">
@@ -836,7 +836,7 @@ export default function Admin() {
                               </TableCell>
                               <TableCell>{inv.email}</TableCell>
                               <TableCell>
-                                {format(new Date(inv.created_at), "dd MMM yyyy", { locale: fr })}
+                                {format(new Date(inv.created_at), "dd MMM yyyy", { locale: getDateLocale() })}
                               </TableCell>
                               <TableCell>
                                 <Button

@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Users } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { PlayerRotationDialog } from "./PlayerRotationDialog";
 
 interface MatchListProps {
@@ -90,7 +90,7 @@ function MatchItem({ match, onManageRotation }: MatchItemProps) {
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
-              {format(new Date(match.match_date), "dd MMM yyyy", { locale: fr })}
+              {format(new Date(match.match_date), "dd MMM yyyy", { locale: getDateLocale() })}
               {match.match_time && ` à ${match.match_time}`}
             </div>
             <div className="flex items-center gap-1">

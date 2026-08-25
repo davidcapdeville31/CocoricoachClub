@@ -1,6 +1,6 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import jsPDF from "jspdf";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { getReportLogoDataUrl, loadImageAsDataUrl } from "@/lib/pdf/clubLogo";
 import {
@@ -247,7 +247,7 @@ export async function exportJudoCompetitionPdf(args: JudoPdfExportArgs): Promise
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(8);
   pdf.text(
-    `Généré le ${format(new Date(), "d MMMM yyyy 'à' HH:mm", { locale: fr })}`,
+    `Généré le ${format(new Date(), "d MMMM yyyy 'à' HH:mm", { locale: getDateLocale() })}`,
     pageW - margin - 25,
     30,
     { align: "right" },
@@ -275,7 +275,7 @@ export async function exportJudoCompetitionPdf(args: JudoPdfExportArgs): Promise
     pdf.setFontSize(8.5);
     const showList = tournaments.slice(0, 6);
     showList.forEach((t, i) => {
-      const date = format(new Date(t.matchDate), "d MMM yyyy", { locale: fr });
+      const date = format(new Date(t.matchDate), "d MMM yyyy", { locale: getDateLocale() });
       const parts = [t.label || t.competition || "Tournoi", date];
       if (t.location) parts.push(t.location);
       parts.push(tournamentLevelLabel(t.tournamentLevel));
@@ -544,7 +544,7 @@ function renderCombatsDetail(
     pdf.setFontSize(6.8);
     const subParts = [
       t.competition || t.label || "Tournoi",
-      format(new Date(t.matchDate), "d MMM yyyy", { locale: fr }),
+      format(new Date(t.matchDate), "d MMM yyyy", { locale: getDateLocale() }),
     ];
     if (r.phase) subParts.push(r.phase);
     if (op?.weight_category) {

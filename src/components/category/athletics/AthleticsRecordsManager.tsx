@@ -1,3 +1,4 @@
+import { getLocaleTag } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -515,7 +516,7 @@ function RecordsList({
                     {r.personal_best_date && (
                       <p className="text-muted-foreground flex items-center gap-1">
                         <Calendar className="h-2.5 w-2.5" />
-                        {new Date(r.personal_best_date).toLocaleDateString("fr-FR")}
+                        {new Date(r.personal_best_date).toLocaleDateString(getLocaleTag())}
                       </p>
                     )}
                     {r.personal_best_location && (
@@ -536,7 +537,7 @@ function RecordsList({
                     {r.season_best_date && (
                       <p className="text-muted-foreground flex items-center gap-1">
                         <Calendar className="h-2.5 w-2.5" />
-                        {new Date(r.season_best_date).toLocaleDateString("fr-FR")}
+                        {new Date(r.season_best_date).toLocaleDateString(getLocaleTag())}
                       </p>
                     )}
                     {r.season_best_location && (

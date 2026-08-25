@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,13 +18,13 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { GraduationCap, BookOpen, Clock, BarChart3, CalendarIcon, Plus, Pencil, Trash2 } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { AcademicStatsSection } from "./academy/AcademicStatsSection";
 import { SeasonRosterFilterToggle } from "@/components/category/SeasonRosterFilterToggle";
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
+import { useTranslation } from "react-i18next";
 
 
 interface AcademyTabProps {
@@ -32,6 +33,7 @@ interface AcademyTabProps {
 
 
 export function AcademyTab({ categoryId }: AcademyTabProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [academicDialogOpen, setAcademicDialogOpen] = useState(false);
   const [absenceDialogOpen, setAbsenceDialogOpen] = useState(false);
@@ -65,7 +67,7 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
     const description = [backendError.message, backendError.details, backendError.hint, backendError.code ? `Code: ${backendError.code}` : null]
       .filter(Boolean)
       .join(" — ");
-    toast.error(action, { description: description || "Erreur inconnue" });
+    toast.error(action, { description: description || t("academy.tracking.toast.unknownError") });
   };
 
   const { data: allPlayers } = useQuery({
@@ -134,11 +136,11 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["academic_tracking", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["academic_subjects", categoryId] });
-      toast.success("Note scolaire ajoutée");
+      toast.success(t("academy.tracking.toast.gradeAdded"));
       resetAcademicForm();
       setAcademicDialogOpen(false);
     },
-    onError: (error) => showBackendError("Erreur backend lors de l'ajout de la note", error),
+    onError: (error) => showBackendError(t("academy.tracking.toast.errorAddGrade"), error),
   });
 
   const addAbsence = useMutation({
@@ -156,11 +158,11 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["academic_tracking", categoryId] });
-      toast.success("Absence enregistrée");
+      toast.success(t("academy.tracking.toast.absenceAdded"));
       resetAbsenceForm();
       setAbsenceDialogOpen(false);
     },
-    onError: (error) => showBackendError("Erreur backend lors de l'ajout de l'absence", error),
+    onError: (error) => showBackendError(t("academy.tracking.toast.errorAddAbsence"), error),
   });
 
 
@@ -182,11 +184,11 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["academic_tracking", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["academic_subjects", categoryId] });
-      toast.success("Note modifiée");
+      toast.success(t("academy.tracking.toast.gradeUpdated"));
       resetAcademicForm();
       setAcademicDialogOpen(false);
     },
-    onError: (error) => showBackendError("Erreur backend lors de la modification", error),
+    onError: (error) => showBackendError(t("academy.tracking.toast.errorUpdate"), error),
   });
 
   const deleteAcademicEntry = useMutation({
@@ -197,9 +199,9 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["academic_tracking", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["academic_subjects", categoryId] });
-      toast.success("Entrée supprimée");
+      toast.success(t("academy.tracking.toast.entryDeleted"));
     },
-    onError: (error) => showBackendError("Erreur backend lors de la suppression", error),
+    onError: (error) => showBackendError(t("academy.tracking.toast.errorDelete"), error),
   });
 
   const handleEditEntry = (entry: any) => {
@@ -270,10 +272,10 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
         <div className="flex justify-center overflow-x-auto -mx-4 px-4 pb-2">
           <ColoredSubTabsList colorKey="academy" className="inline-flex w-max">
             <ColoredSubTabsTrigger value="academic" colorKey="academy" icon={<GraduationCap className="h-4 w-4" />}>
-              Suivi Scolaire
+              {t("academy.tabs.tracking")}
             </ColoredSubTabsTrigger>
             <ColoredSubTabsTrigger value="stats" colorKey="academy" icon={<BarChart3 className="h-4 w-4" />}>
-              Résultats scolaires
+              {t("academy.tabs.stats")}
             </ColoredSubTabsTrigger>
           </ColoredSubTabsList>
         </div>
@@ -284,17 +286,17 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Suivi Scolaire</CardTitle>
-                  <CardDescription>Absences, notes et suivi académique</CardDescription>
+                  <CardTitle>{t("academy.tracking.title")}</CardTitle>
+                  <CardDescription>{t("academy.tracking.description")}</CardDescription>
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={() => setAbsenceDialogOpen(true)}>
                     <Clock className="h-4 w-4 mr-2" />
-                    Ajouter une absence
+                    {t("academy.tracking.addAbsence")}
                   </Button>
                   <Button onClick={() => setAcademicDialogOpen(true)}>
                     <BookOpen className="h-4 w-4 mr-2" />
-                    Ajouter une note
+                    {t("academy.tracking.addGrade")}
                   </Button>
                 </div>
               </div>
@@ -302,27 +304,27 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
             <CardContent className="space-y-6">
               {/* Notes section */}
               <div>
-                <h3 className="text-sm font-semibold mb-2">Notes</h3>
+                <h3 className="text-sm font-semibold mb-2">{t("academy.tracking.gradesSection")}</h3>
                 {(!academicData || academicData.filter(e => e.academic_grade || (e as any).grade_scale === "letter").length === 0) ? (
-                  <p className="text-center text-muted-foreground py-4 text-sm">Aucune note enregistrée.</p>
+                  <p className="text-center text-muted-foreground py-4 text-sm">{t("academy.tracking.noGrades")}</p>
                 ) : (
                   <div className="rounded-md border overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Joueur</TableHead>
-                          <TableHead>Date</TableHead>
-                          <TableHead>Note</TableHead>
-                          <TableHead>Matière</TableHead>
-                          <TableHead>Commentaires</TableHead>
-                          <TableHead className="w-20">Actions</TableHead>
+                          <TableHead>{t("academy.tracking.table.player")}</TableHead>
+                          <TableHead>{t("academy.tracking.table.date")}</TableHead>
+                          <TableHead>{t("academy.tracking.table.grade")}</TableHead>
+                          <TableHead>{t("academy.tracking.table.subject")}</TableHead>
+                          <TableHead>{t("academy.tracking.table.comments")}</TableHead>
+                          <TableHead className="w-20">{t("academy.tracking.table.actions")}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {academicData.filter(e => e.academic_grade || (e as any).grade_scale === "letter").map((entry) => (
                           <TableRow key={entry.id}>
                             <TableCell className="font-medium">{entry.players?.name}</TableCell>
-                            <TableCell>{format(new Date(entry.tracking_date), "dd MMM yyyy", { locale: fr })}</TableCell>
+                            <TableCell>{format(new Date(entry.tracking_date), "dd MMM yyyy", { locale: getDateLocale() })}</TableCell>
                             <TableCell>
                               {entry.academic_grade 
                                 ? `${entry.academic_grade}/${(entry as any).grade_scale || "20"}`
@@ -339,7 +341,7 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
                                   <Pencil className="h-3.5 w-3.5" />
                                 </Button>
                                 <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => {
-                                  if (confirm("Supprimer cette note ?")) deleteAcademicEntry.mutate(entry.id);
+                                  if (confirm(t("academy.tracking.confirmDeleteGrade"))) deleteAcademicEntry.mutate(entry.id);
                                 }}>
                                   <Trash2 className="h-3.5 w-3.5" />
                                 </Button>
@@ -355,31 +357,31 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
 
               {/* Absences section */}
               <div>
-                <h3 className="text-sm font-semibold mb-2">Absences</h3>
+                <h3 className="text-sm font-semibold mb-2">{t("academy.tracking.absencesSection")}</h3>
                 {(!academicData || academicData.filter(e => e.school_absence_hours && e.school_absence_hours > 0 && !e.academic_grade).length === 0) ? (
-                  <p className="text-center text-muted-foreground py-4 text-sm">Aucune absence enregistrée.</p>
+                  <p className="text-center text-muted-foreground py-4 text-sm">{t("academy.tracking.noAbsences")}</p>
                 ) : (
                   <div className="rounded-md border overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Joueur</TableHead>
-                          <TableHead>Date</TableHead>
-                          <TableHead>Heures</TableHead>
-                          <TableHead>Raison</TableHead>
-                          <TableHead className="w-20">Actions</TableHead>
+                          <TableHead>{t("academy.tracking.table.player")}</TableHead>
+                          <TableHead>{t("academy.tracking.table.date")}</TableHead>
+                          <TableHead>{t("academy.tracking.table.hours")}</TableHead>
+                          <TableHead>{t("academy.tracking.table.reason")}</TableHead>
+                          <TableHead className="w-20">{t("academy.tracking.table.actions")}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {academicData.filter(e => e.school_absence_hours && e.school_absence_hours > 0 && !e.academic_grade).map((entry) => (
                           <TableRow key={entry.id}>
                             <TableCell className="font-medium">{entry.players?.name}</TableCell>
-                            <TableCell>{format(new Date(entry.tracking_date), "dd MMM yyyy", { locale: fr })}</TableCell>
+                            <TableCell>{format(new Date(entry.tracking_date), "dd MMM yyyy", { locale: getDateLocale() })}</TableCell>
                             <TableCell>{entry.school_absence_hours}h</TableCell>
                             <TableCell className="max-w-40 truncate">{entry.absence_reason || "-"}</TableCell>
                             <TableCell>
                               <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => {
-                                if (confirm("Supprimer cette absence ?")) deleteAcademicEntry.mutate(entry.id);
+                                if (confirm(t("academy.tracking.confirmDeleteAbsence"))) deleteAcademicEntry.mutate(entry.id);
                               }}>
                                 <Trash2 className="h-3.5 w-3.5" />
                               </Button>
@@ -406,7 +408,7 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
       <Dialog open={academicDialogOpen} onOpenChange={(open) => { setAcademicDialogOpen(open); if (!open) resetAcademicForm(); }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingEntryId ? "Modifier la note scolaire" : "Ajouter une note scolaire"}</DialogTitle>
+            <DialogTitle>{editingEntryId ? t("academy.tracking.gradeDialog.titleEdit") : t("academy.tracking.gradeDialog.titleAdd")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -455,11 +457,11 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
                   <PopoverTrigger asChild>
                     <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !gradeDate && "text-muted-foreground")}>
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {gradeDate ? format(gradeDate, "dd MMM yyyy", { locale: fr }) : "Choisir une date"}
+                      {gradeDate ? format(gradeDate, "dd MMM yyyy", { locale: getDateLocale() }) : "Choisir une date"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={gradeDate} onSelect={(d) => d && setGradeDate(d)} initialFocus className="p-3 pointer-events-auto" locale={fr} />
+                    <Calendar mode="single" selected={gradeDate} onSelect={(d) => d && setGradeDate(d)} initialFocus className="p-3 pointer-events-auto" locale={getDateLocale()} />
                   </PopoverContent>
                 </Popover>
               </div>
@@ -519,13 +521,13 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
       <Dialog open={absenceDialogOpen} onOpenChange={setAbsenceDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Ajouter une absence</DialogTitle>
+            <DialogTitle>{t("academy.tracking.absenceDialog.title")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Joueur</Label>
+              <Label>{t("academy.tracking.absenceDialog.player")}</Label>
               <Select value={selectedPlayer} onValueChange={setSelectedPlayer}>
-                <SelectTrigger><SelectValue placeholder="Sélectionner un joueur" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t("academy.tracking.absenceDialog.selectPlayer")} /></SelectTrigger>
                 <SelectContent>
                   {players?.map((p) => (
                     <SelectItem key={p.id} value={p.id}>{p.first_name ? `${p.first_name} ${p.name}` : p.name}</SelectItem>
@@ -535,19 +537,19 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Heures d'absence</Label>
+                <Label>{t("academy.tracking.absenceDialog.hours")}</Label>
                 <Input type="number" value={absenceHours} onChange={(e) => setAbsenceHours(e.target.value)} placeholder="0" />
               </div>
               <div>
-                <Label>Raison</Label>
-                <Input value={absenceReason} onChange={(e) => setAbsenceReason(e.target.value)} placeholder="Compétition, blessure..." />
+                <Label>{t("academy.tracking.absenceDialog.reason")}</Label>
+                <Input value={absenceReason} onChange={(e) => setAbsenceReason(e.target.value)} placeholder={t("academy.tracking.absenceDialog.reasonPlaceholder")} />
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAbsenceDialogOpen(false)}>Annuler</Button>
+            <Button variant="outline" onClick={() => setAbsenceDialogOpen(false)}>{t("academy.tracking.absenceDialog.cancel")}</Button>
             <Button onClick={() => addAbsence.mutate()} disabled={!selectedPlayer || !absenceHours || addAbsence.isPending}>
-              {addAbsence.isPending ? "Ajout..." : "Ajouter"}
+              {addAbsence.isPending ? t("academy.tracking.absenceDialog.adding") : t("academy.tracking.absenceDialog.add")}
             </Button>
           </DialogFooter>
         </DialogContent>

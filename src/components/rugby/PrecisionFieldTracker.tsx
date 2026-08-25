@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +12,6 @@ import { Badge } from "@/components/ui/badge";
 import { Target, Trash2, BarChart3, CalendarPlus, Info, CheckCircle2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { RugbyFieldSVG } from "@/components/rugby/RugbyFieldSVG";
 import { getPositionLabel } from "@/lib/utils/kickingFieldZones";
@@ -390,7 +390,7 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
       {activeSessionId && todaySessions[0] && (
         <div className="flex items-center gap-2 text-sm bg-primary/10 text-primary rounded-lg px-3 py-2">
           <CalendarPlus className="h-4 w-4" />
-          <span>Séance active : <strong>Séance du {format(new Date(todaySessions[0].session_date), "dd/MM/yyyy", { locale: fr })}</strong></span>
+          <span>Séance active : <strong>Séance du {format(new Date(todaySessions[0].session_date), "dd/MM/yyyy", { locale: getDateLocale() })}</strong></span>
         </div>
       )}
 
@@ -500,7 +500,7 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
       {/* Stats du jour */}
       <div className="space-y-1">
         <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">
-          Séance du {format(new Date(activeSessionDate), "dd/MM/yyyy", { locale: fr })}
+          Séance du {format(new Date(activeSessionDate), "dd/MM/yyyy", { locale: getDateLocale() })}
         </p>
         <div className="grid grid-cols-3 gap-4">
           <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
@@ -749,7 +749,7 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
                         <p className="text-xs text-muted-foreground">
                           {player ? [player.first_name, player.name].filter(Boolean).join(" ") : ""}
                           {` • ${e.successes}/${e.attempts}`}
-                          {` • ${format(new Date(e.session_date), "dd/MM/yy", { locale: fr })}`}
+                          {` • ${format(new Date(e.session_date), "dd/MM/yy", { locale: getDateLocale() })}`}
                         </p>
                       </div>
                     </div>

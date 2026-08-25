@@ -1,9 +1,9 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isWithinInterval } from "date-fns";
-import { fr } from "date-fns/locale";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -92,7 +92,7 @@ export function PeriodizationCalendar({ categoryId }: PeriodizationCalendarProps
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">
-          {format(currentDate, "MMMM yyyy", { locale: fr })}
+          {format(currentDate, "MMMM yyyy", { locale: getDateLocale() })}
         </h3>
         <div className="flex gap-2">
           <Button

@@ -1,3 +1,4 @@
+import { getLocaleTag } from "@/lib/i18n/dateLocale";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -139,10 +140,10 @@ export function IllnessHistoryCard({ categoryId }: IllnessHistoryCardProps) {
                     <TableRow key={i.id}>
                       <TableCell className="font-medium">{i.players?.name}</TableCell>
                       <TableCell>{i.illness_type}</TableCell>
-                      <TableCell>{new Date(i.illness_date).toLocaleDateString("fr-FR")}</TableCell>
+                      <TableCell>{new Date(i.illness_date).toLocaleDateString(getLocaleTag())}</TableCell>
                       <TableCell><Badge className={severityColor(i.severity)}>{i.severity}</Badge></TableCell>
                       <TableCell><Badge className={statusColor(i.status)}>{STATUS[i.status as keyof typeof STATUS] || i.status}</Badge></TableCell>
-                      <TableCell>{i.estimated_return_date ? new Date(i.estimated_return_date).toLocaleDateString("fr-FR") : "-"}</TableCell>
+                      <TableCell>{i.estimated_return_date ? new Date(i.estimated_return_date).toLocaleDateString(getLocaleTag()) : "-"}</TableCell>
                       <TableCell>
                         {!isViewer ? (
                           <div className="flex items-center gap-2">
@@ -197,8 +198,8 @@ export function IllnessHistoryCard({ categoryId }: IllnessHistoryCardProps) {
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-                    <div><span className="block uppercase tracking-wide">Date</span><span className="text-foreground">{new Date(i.illness_date).toLocaleDateString("fr-FR")}</span></div>
-                    <div><span className="block uppercase tracking-wide">Retour estimé</span><span className="text-foreground">{i.estimated_return_date ? new Date(i.estimated_return_date).toLocaleDateString("fr-FR") : "-"}</span></div>
+                    <div><span className="block uppercase tracking-wide">Date</span><span className="text-foreground">{new Date(i.illness_date).toLocaleDateString(getLocaleTag())}</span></div>
+                    <div><span className="block uppercase tracking-wide">Retour estimé</span><span className="text-foreground">{i.estimated_return_date ? new Date(i.estimated_return_date).toLocaleDateString(getLocaleTag()) : "-"}</span></div>
                   </div>
                   {!isViewer && (
                     <div className="flex items-center gap-2 pt-1">

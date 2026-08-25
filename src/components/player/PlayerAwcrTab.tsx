@@ -1,3 +1,4 @@
+import { getDateLocale, getLocaleTag } from "@/lib/i18n/dateLocale";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,7 +17,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Heart, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { calculateEWMASeries, transformToDailyLoadData } from "@/lib/trainingLoadCalculations";
 import { HrvEntryDialog } from "@/components/category/hrv/HrvEntryDialog";
@@ -138,7 +138,7 @@ export function PlayerAwcrTab({ playerId, categoryId, readOnly = false }: Player
                       className={cn("h-9 justify-start text-left font-normal", !customStart && "text-muted-foreground")}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {customStart ? format(customStart, "dd/MM/yyyy", { locale: fr }) : "Du..."}
+                      {customStart ? format(customStart, "dd/MM/yyyy", { locale: getDateLocale() }) : "Du..."}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -162,7 +162,7 @@ export function PlayerAwcrTab({ playerId, categoryId, readOnly = false }: Player
                       className={cn("h-9 justify-start text-left font-normal", !customEnd && "text-muted-foreground")}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {customEnd ? format(customEnd, "dd/MM/yyyy", { locale: fr }) : "Au..."}
+                      {customEnd ? format(customEnd, "dd/MM/yyyy", { locale: getDateLocale() }) : "Au..."}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -201,7 +201,7 @@ export function PlayerAwcrTab({ playerId, categoryId, readOnly = false }: Player
                     return (
                       <TableRow key={result.date}>
                         <TableCell>
-                          {new Date(result.date).toLocaleDateString("fr-FR")}
+                          {new Date(result.date).toLocaleDateString(getLocaleTag())}
                         </TableCell>
                         <TableCell>{sourceData?.rpe}/10</TableCell>
                         <TableCell>{sourceData?.duration_minutes}</TableCell>

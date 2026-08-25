@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dumbbell, TrendingUp, Weight, BarChart3 } from "lucide-react";
 import { format, subDays } from "date-fns";
-import { fr } from "date-fns/locale";
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend
@@ -108,7 +108,7 @@ export function TonnageDashboard({ categoryId, playerId }: TonnageDashboardProps
 
     return Array.from(byDate.values()).sort((a, b) => a.date.localeCompare(b.date)).map((d) => ({
       ...d,
-      dateLabel: format(new Date(d.date), "dd/MM", { locale: fr }),
+      dateLabel: format(new Date(d.date), "dd/MM", { locale: getDateLocale() }),
       tonnage: Math.round(d.tonnage),
     }));
   }, [logs]);

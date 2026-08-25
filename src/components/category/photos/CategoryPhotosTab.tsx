@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Camera, Plus, Trash2, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import {
   Dialog,
@@ -188,7 +188,7 @@ export function CategoryPhotosTab({ categoryId }: CategoryPhotosTabProps) {
                   </button>
                 )}
                 <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-[10px] px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {format(new Date(photo.created_at), "dd MMM yyyy", { locale: fr })}
+                  {format(new Date(photo.created_at), "dd MMM yyyy", { locale: getDateLocale() })}
                 </div>
               </div>
             ))}
@@ -207,7 +207,7 @@ export function CategoryPhotosTab({ categoryId }: CategoryPhotosTabProps) {
                 className="w-full max-h-[80vh] object-contain rounded"
               />
               <p className="text-xs text-muted-foreground mt-2 text-center">
-                {format(new Date(selectedPhotoData.created_at), "dd MMMM yyyy 'à' HH:mm", { locale: fr })}
+                {format(new Date(selectedPhotoData.created_at), "dd MMMM yyyy 'à' HH:mm", { locale: getDateLocale() })}
               </p>
             </div>
           )}

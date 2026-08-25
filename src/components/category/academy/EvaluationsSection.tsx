@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,38 +13,39 @@ import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { Plus, Trash2, Star, TrendingUp } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface EvaluationsSectionProps {
   categoryId: string;
   players: { id: string; name: string; first_name?: string | null }[] | undefined;
 }
 
-const EVALUATION_PERIODS = [
-  { value: "trimestre_1", label: "1er Trimestre" },
-  { value: "trimestre_2", label: "2e Trimestre" },
-  { value: "trimestre_3", label: "3e Trimestre" },
-  { value: "semestre_1", label: "1er Semestre" },
-  { value: "semestre_2", label: "2e Semestre" },
-  { value: "annuel", label: "Bilan Annuel" },
-];
-
-const SCORE_LABELS: Record<number, string> = {
-  1: "Insuffisant",
-  2: "Faible",
-  3: "Passable",
-  4: "Assez bien",
-  5: "Bien",
-  6: "Assez bien+",
-  7: "Bien+",
-  8: "Très bien",
-  9: "Excellent",
-  10: "Exceptionnel",
-};
-
 export function EvaluationsSection({ categoryId, players }: EvaluationsSectionProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
+
+  const EVALUATION_PERIODS = [
+    { value: "trimestre_1", label: t("academy.evaluations.periods.trimester1") },
+    { value: "trimestre_2", label: t("academy.evaluations.periods.trimester2") },
+    { value: "trimestre_3", label: t("academy.evaluations.periods.trimester3") },
+    { value: "semestre_1", label: t("academy.evaluations.periods.semester1") },
+    { value: "semestre_2", label: t("academy.evaluations.periods.semester2") },
+    { value: "annuel", label: t("academy.evaluations.periods.annual") },
+  ];
+
+  const SCORE_LABELS: Record<number, string> = {
+    1: t("academy.evaluations.scoreLabels.1"),
+    2: t("academy.evaluations.scoreLabels.2"),
+    3: t("academy.evaluations.scoreLabels.3"),
+    4: t("academy.evaluations.scoreLabels.4"),
+    5: t("academy.evaluations.scoreLabels.5"),
+    6: t("academy.evaluations.scoreLabels.6"),
+    7: t("academy.evaluations.scoreLabels.7"),
+    8: t("academy.evaluations.scoreLabels.8"),
+    9: t("academy.evaluations.scoreLabels.9"),
+    10: t("academy.evaluations.scoreLabels.10"),
+  };
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState("");
   const [evaluationDate, setEvaluationDate] = useState(new Date().toISOString().split("T")[0]);
@@ -90,11 +92,11 @@ export function EvaluationsSection({ categoryId, players }: EvaluationsSectionPr
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["player_evaluations", categoryId] });
-      toast.success("Évaluation ajoutée");
+      toast.success(t("academy.evaluations.toast.added"));
       resetForm();
       setDialogOpen(false);
     },
-    onError: () => toast.error("Erreur lors de l'ajout"),
+    onError: () => toast.error(t("academy.evaluations.toast.errorAdding")),
   });
 
   const deleteEvaluation = useMutation({
@@ -104,9 +106,9 @@ export function EvaluationsSection({ categoryId, players }: EvaluationsSectionPr
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["player_evaluations", categoryId] });
-      toast.success("Évaluation supprimée");
+      toast.success(t("academy.evaluations.toast.deleted"));
     },
-    onError: () => toast.error("Erreur lors de la suppression"),
+    onError: () => toast.error(t("academy.evaluations.toast.errorDeleting")),
   });
 
   const resetForm = () => {
@@ -159,19 +161,19 @@ export function EvaluationsSection({ categoryId, players }: EvaluationsSectionPr
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Star className="h-5 w-5" />
-                Évaluations Périodiques
+                {t("academy.evaluations.title")}
               </CardTitle>
-              <CardDescription>Notes et appréciations sur différents critères</CardDescription>
+              <CardDescription>{t("academy.evaluations.description")}</CardDescription>
             </div>
             <Button onClick={() => setDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Nouvelle évaluation
+              {t("academy.evaluations.newEvaluation")}
             </Button>
           </div>
         </CardHeader>
         <CardContent>
           {!evaluations || evaluations.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">Aucune évaluation enregistrée.</p>
+            <p className="text-center text-muted-foreground py-8">{t("academy.evaluations.noEvaluations")}</p>
           ) : (
             <div className="space-y-4">
               {evaluations.map((eval_) => (
@@ -185,7 +187,7 @@ export function EvaluationsSection({ categoryId, players }: EvaluationsSectionPr
                         </Badge>
                       )}
                       <span className="text-sm text-muted-foreground">
-                        {format(new Date(eval_.evaluation_date), "dd MMM yyyy", { locale: fr })}
+                        {format(new Date(eval_.evaluation_date), "dd MMM yyyy", { locale: getDateLocale() })}
                       </span>
                     </div>
                     <div className="flex items-center gap-3">
@@ -203,23 +205,23 @@ export function EvaluationsSection({ categoryId, players }: EvaluationsSectionPr
 
                   <div className="grid grid-cols-5 gap-4 mb-4">
                     <div className="text-center p-2 bg-muted rounded">
-                      <p className="text-xs text-muted-foreground">Technique</p>
+                      <p className="text-xs text-muted-foreground">{t("academy.evaluations.criteria.technical")}</p>
                       <p className={`font-bold ${getScoreColor(eval_.technical_score || 0)}`}>{eval_.technical_score}/10</p>
                     </div>
                     <div className="text-center p-2 bg-muted rounded">
-                      <p className="text-xs text-muted-foreground">Tactique</p>
+                      <p className="text-xs text-muted-foreground">{t("academy.evaluations.criteria.tactical")}</p>
                       <p className={`font-bold ${getScoreColor(eval_.tactical_score || 0)}`}>{eval_.tactical_score}/10</p>
                     </div>
                     <div className="text-center p-2 bg-muted rounded">
-                      <p className="text-xs text-muted-foreground">Physique</p>
+                      <p className="text-xs text-muted-foreground">{t("academy.evaluations.criteria.physical")}</p>
                       <p className={`font-bold ${getScoreColor(eval_.physical_score || 0)}`}>{eval_.physical_score}/10</p>
                     </div>
                     <div className="text-center p-2 bg-muted rounded">
-                      <p className="text-xs text-muted-foreground">Mental</p>
+                      <p className="text-xs text-muted-foreground">{t("academy.evaluations.criteria.mental")}</p>
                       <p className={`font-bold ${getScoreColor(eval_.mental_score || 0)}`}>{eval_.mental_score}/10</p>
                     </div>
                     <div className="text-center p-2 bg-muted rounded">
-                      <p className="text-xs text-muted-foreground">Attitude</p>
+                      <p className="text-xs text-muted-foreground">{t("academy.evaluations.criteria.attitude")}</p>
                       <p className={`font-bold ${getScoreColor(eval_.attitude_score || 0)}`}>{eval_.attitude_score}/10</p>
                     </div>
                   </div>
@@ -228,19 +230,19 @@ export function EvaluationsSection({ categoryId, players }: EvaluationsSectionPr
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                       {eval_.strengths && (
                         <div className="p-3 bg-green-50 dark:bg-green-950 rounded">
-                          <p className="font-medium text-green-700 dark:text-green-300 mb-1">Points forts</p>
+                          <p className="font-medium text-green-700 dark:text-green-300 mb-1">{t("academy.evaluations.strengths")}</p>
                           <p>{eval_.strengths}</p>
                         </div>
                       )}
                       {eval_.areas_to_improve && (
                         <div className="p-3 bg-amber-50 dark:bg-amber-950 rounded">
-                          <p className="font-medium text-amber-700 dark:text-amber-300 mb-1">Axes d'amélioration</p>
+                          <p className="font-medium text-amber-700 dark:text-amber-300 mb-1">{t("academy.evaluations.areasToImprove")}</p>
                           <p>{eval_.areas_to_improve}</p>
                         </div>
                       )}
                       {eval_.overall_comments && (
                         <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded">
-                          <p className="font-medium text-blue-700 dark:text-blue-300 mb-1">Commentaires</p>
+                          <p className="font-medium text-blue-700 dark:text-blue-300 mb-1">{t("academy.evaluations.comments")}</p>
                           <p>{eval_.overall_comments}</p>
                         </div>
                       )}
@@ -256,14 +258,14 @@ export function EvaluationsSection({ categoryId, players }: EvaluationsSectionPr
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Nouvelle évaluation</DialogTitle>
+            <DialogTitle>{t("academy.evaluations.dialog.title")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Joueur</Label>
+                <Label>{t("academy.evaluations.dialog.player")}</Label>
                 <Select value={selectedPlayer} onValueChange={setSelectedPlayer}>
-                  <SelectTrigger><SelectValue placeholder="Sélectionner un joueur" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t("academy.evaluations.dialog.selectPlayer")} /></SelectTrigger>
                   <SelectContent>
                     {players?.map((p) => (
                       <SelectItem key={p.id} value={p.id}>{p.first_name ? `${p.first_name} ${p.name}` : p.name}</SelectItem>
@@ -272,9 +274,9 @@ export function EvaluationsSection({ categoryId, players }: EvaluationsSectionPr
                 </Select>
               </div>
               <div>
-                <Label>Période</Label>
+                <Label>{t("academy.evaluations.dialog.period")}</Label>
                 <Select value={evaluationPeriod} onValueChange={setEvaluationPeriod}>
-                  <SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t("academy.evaluations.dialog.selectPeriod")} /></SelectTrigger>
                   <SelectContent>
                     {EVALUATION_PERIODS.map((p) => (
                       <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
@@ -285,37 +287,37 @@ export function EvaluationsSection({ categoryId, players }: EvaluationsSectionPr
             </div>
 
             <div>
-              <Label>Date d'évaluation</Label>
+              <Label>{t("academy.evaluations.dialog.evaluationDate")}</Label>
               <Input type="date" value={evaluationDate} onChange={(e) => setEvaluationDate(e.target.value)} />
             </div>
 
             <div className="space-y-4 p-4 border rounded-lg">
-              <h4 className="font-medium">Notes (1-10)</h4>
-              <ScoreSlider label="Technique" value={technicalScore} onChange={setTechnicalScore} />
-              <ScoreSlider label="Tactique" value={tacticalScore} onChange={setTacticalScore} />
-              <ScoreSlider label="Physique" value={physicalScore} onChange={setPhysicalScore} />
-              <ScoreSlider label="Mental" value={mentalScore} onChange={setMentalScore} />
-              <ScoreSlider label="Attitude" value={attitudeScore} onChange={setAttitudeScore} />
+              <h4 className="font-medium">{t("academy.evaluations.dialog.scoresTitle")}</h4>
+              <ScoreSlider label={t("academy.evaluations.criteria.technical")} value={technicalScore} onChange={setTechnicalScore} />
+              <ScoreSlider label={t("academy.evaluations.criteria.tactical")} value={tacticalScore} onChange={setTacticalScore} />
+              <ScoreSlider label={t("academy.evaluations.criteria.physical")} value={physicalScore} onChange={setPhysicalScore} />
+              <ScoreSlider label={t("academy.evaluations.criteria.mental")} value={mentalScore} onChange={setMentalScore} />
+              <ScoreSlider label={t("academy.evaluations.criteria.attitude")} value={attitudeScore} onChange={setAttitudeScore} />
             </div>
 
             <div>
-              <Label>Points forts</Label>
-              <Textarea value={strengths} onChange={(e) => setStrengths(e.target.value)} placeholder="Ce que le joueur fait bien..." />
+              <Label>{t("academy.evaluations.dialog.strengths")}</Label>
+              <Textarea value={strengths} onChange={(e) => setStrengths(e.target.value)} placeholder={t("academy.evaluations.dialog.strengthsPlaceholder")} />
             </div>
 
             <div>
-              <Label>Axes d'amélioration</Label>
-              <Textarea value={areasToImprove} onChange={(e) => setAreasToImprove(e.target.value)} placeholder="Ce qui doit être travaillé..." />
+              <Label>{t("academy.evaluations.dialog.areasToImprove")}</Label>
+              <Textarea value={areasToImprove} onChange={(e) => setAreasToImprove(e.target.value)} placeholder={t("academy.evaluations.dialog.areasToImprovePlaceholder")} />
             </div>
 
             <div>
-              <Label>Commentaires généraux</Label>
-              <Textarea value={overallComments} onChange={(e) => setOverallComments(e.target.value)} placeholder="Appréciation générale..." />
+              <Label>{t("academy.evaluations.dialog.overallComments")}</Label>
+              <Textarea value={overallComments} onChange={(e) => setOverallComments(e.target.value)} placeholder={t("academy.evaluations.dialog.overallCommentsPlaceholder")} />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Annuler</Button>
-            <Button onClick={() => addEvaluation.mutate()} disabled={!selectedPlayer}>Enregistrer</Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>{t("academy.evaluations.dialog.cancel")}</Button>
+            <Button onClick={() => addEvaluation.mutate()} disabled={!selectedPlayer}>{t("academy.evaluations.dialog.save")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

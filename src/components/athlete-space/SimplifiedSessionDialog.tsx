@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -20,7 +21,6 @@ import {
 } from "@/components/ui/select";
 import { Loader2, Sparkles } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -170,7 +170,7 @@ export function SimplifiedSessionDialog({
             {t('athleteSpace.components.simplifiedSessionDialog.title')}
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
-            {format(date, "EEEE d MMMM yyyy", { locale: fr })}
+            {format(date, "EEEE d MMMM yyyy", { locale: getDateLocale() })}
           </p>
         </DialogHeader>
 

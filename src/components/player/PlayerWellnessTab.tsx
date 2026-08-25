@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +9,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { AlertTriangle, TrendingUp, TrendingDown, Minus, Activity, Info } from "lucide-react";
 import { format, startOfWeek, startOfMonth } from "date-fns";
-import { fr } from "date-fns/locale";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { sleepScoreLabel } from "@/lib/sleepConversion";
 import { MenstrualCycleSection } from "@/components/category/MenstrualCycleSection";
@@ -111,7 +111,7 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
   let chartData: Array<{ date: string; wellness: number; fatigue: number; stress: number; soreness: number }> = [];
   if (chartPeriod === "day") {
     chartData = slice.map((entry) => ({
-      date: format(new Date(entry.tracking_date), "dd/MM", { locale: fr }),
+      date: format(new Date(entry.tracking_date), "dd/MM", { locale: getDateLocale() }),
       ...buildPoint(entry),
     }));
   } else {
@@ -133,8 +133,8 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
         return {
           date:
             chartPeriod === "week"
-              ? `S${format(d, "I", { locale: fr })}`
-              : format(d, "MMM yy", { locale: fr }),
+              ? `S${format(d, "I", { locale: getDateLocale() })}`
+              : format(d, "MMM yy", { locale: getDateLocale() }),
           wellness: avg(points.map((p) => p.wellness).filter((v) => !isNaN(v))),
           fatigue: avg(points.map((p) => p.fatigue).filter((v) => v != null)),
           stress: avg(points.map((p) => p.stress).filter((v) => v != null)),
@@ -477,7 +477,7 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
                     return (
                       <TableRow key={entry.id}>
                         <TableCell>
-                          {format(new Date(entry.tracking_date), "dd MMM yyyy", { locale: fr })}
+                          {format(new Date(entry.tracking_date), "dd MMM yyyy", { locale: getDateLocale() })}
                         </TableCell>
                         <TableCell className="text-center">
                           <Badge variant={getScoreBadge(entry.sleep_quality)}>{entry.sleep_quality}</Badge>

@@ -1,3 +1,4 @@
+import { getLocaleTag } from "@/lib/i18n/dateLocale";
 import { Card } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
@@ -12,7 +13,7 @@ export default function CGU() {
         </Button>
 
         <h1 className="text-3xl font-bold mb-2">Conditions Générales d'Utilisation</h1>
-        <p className="text-sm text-muted-foreground mb-8">Dernière mise à jour : {new Date().toLocaleDateString("fr-FR")}</p>
+        <p className="text-sm text-muted-foreground mb-8">Dernière mise à jour : {new Date().toLocaleDateString(getLocaleTag())}</p>
 
         <Card className="p-6 sm:p-8 space-y-6 prose prose-sm max-w-none">
           <section>

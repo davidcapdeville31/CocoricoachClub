@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,7 +22,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import {
   Video,
   Film,
@@ -156,7 +156,7 @@ export function VideoAnalysisList({
                     {match && (
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Calendar className="h-3.5 w-3.5" />
-                        {format(new Date(match.match_date), "dd MMM yyyy", { locale: fr })}
+                        {format(new Date(match.match_date), "dd MMM yyyy", { locale: getDateLocale() })}
                       </div>
                     )}
                   </div>

@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
  import { useState } from "react";
  import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
  import { supabase } from "@/integrations/supabase/client";
@@ -14,8 +15,7 @@
 import { CreditCard, Plus, Edit, Trash2, Video, MapPin } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
  import { format } from "date-fns";
- import { fr } from "date-fns/locale";
- 
+  
  export function SuperAdminSubscriptions() {
    const queryClient = useQueryClient();
    const [isAddPlanOpen, setIsAddPlanOpen] = useState(false);
@@ -649,8 +649,8 @@ import { Checkbox } from "@/components/ui/checkbox";
                      <TableCell className="font-medium">{sub.clients?.name}</TableCell>
                      <TableCell>{sub.subscription_plans?.name || "-"}</TableCell>
                      <TableCell>
-                       {format(new Date(sub.start_date), "dd/MM/yyyy", { locale: fr })}
-                       {sub.end_date && ` - ${format(new Date(sub.end_date), "dd/MM/yyyy", { locale: fr })}`}
+                       {format(new Date(sub.start_date), "dd/MM/yyyy", { locale: getDateLocale() })}
+                       {sub.end_date && ` - ${format(new Date(sub.end_date), "dd/MM/yyyy", { locale: getDateLocale() })}`}
                      </TableCell>
                      <TableCell>{sub.amount ? `${sub.amount}€` : "-"}</TableCell>
                      <TableCell>{getStatusBadge(sub.status)}</TableCell>

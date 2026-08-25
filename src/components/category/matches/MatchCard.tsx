@@ -1,3 +1,4 @@
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { MatchSheetsSection } from "@/components/category/admin/MatchSheetsSection";
-import { fr } from "date-fns/locale";
 import {
   Trash2,
   Users,
@@ -319,7 +319,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
           .in("id", participantIds);
 
         const dateLabel = (() => {
-          try { return format(new Date(match.match_date), "EEEE d MMMM", { locale: fr }); }
+          try { return format(new Date(match.match_date), "EEEE d MMMM", { locale: getDateLocale() }); }
           catch { return match.match_date; }
         })();
         const title = isIndividual ? "Compétition annulée" : "Match annulé";
@@ -514,7 +514,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                   : `${match.is_home ? "vs" : "@"} ${match.opponent}`}
               </span>
               <span className="text-xs text-muted-foreground whitespace-nowrap hidden sm:inline">
-                {format(matchDate, "d MMM yyyy", { locale: fr })}
+                {format(matchDate, "d MMM yyyy", { locale: getDateLocale() })}
                 {match.match_time && ` · ${match.match_time.slice(0, 5)}`}
               </span>
             </div>
@@ -575,9 +575,9 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
 
             <div className="text-sm text-muted-foreground mt-1 space-y-1">
               <p>
-                {format(matchDate, "EEEE d MMMM yyyy", { locale: fr })}
+                {format(matchDate, "EEEE d MMMM yyyy", { locale: getDateLocale() })}
                 {match.end_date && match.end_date !== match.match_date && (
-                  <> → {format(new Date(match.end_date), "EEEE d MMMM yyyy", { locale: fr })}</>
+                  <> → {format(new Date(match.end_date), "EEEE d MMMM yyyy", { locale: getDateLocale() })}</>
                 )}
                 {match.match_time && ` à ${match.match_time.slice(0, 5)}`}
               </p>
@@ -1091,7 +1091,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
           : `Match ${match.is_home ? "vs" : "@"} ${match.opponent}`
         }
         eventDetails={{
-          date: format(new Date(match.match_date), "EEEE d MMMM yyyy", { locale: fr }),
+          date: format(new Date(match.match_date), "EEEE d MMMM yyyy", { locale: getDateLocale() }),
           time: match.match_time ? match.match_time.slice(0, 5) : undefined,
           location: match.location || undefined,
         }}
@@ -1130,7 +1130,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
           title={exportScope === "competition"
             ? `${competitionLabel} (${(subMatches?.length || 0) + 1} matchs)`
             : `vs ${match.opponent || competitionLabel}`}
-          subtitle={format(new Date(match.match_date), "EEEE d MMMM yyyy", { locale: fr })}
+          subtitle={format(new Date(match.match_date), "EEEE d MMMM yyyy", { locale: getDateLocale() })}
         />
       )}
     </>

@@ -12,29 +12,31 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Trash2, Phone, Mail, MapPin, Users } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface ContactsSectionProps {
   categoryId: string;
   players: { id: string; name: string }[] | undefined;
 }
 
-const CONTACT_TYPES = [
-  { value: "parent", label: "Parent" },
-  { value: "guardian", label: "Tuteur légal" },
-  { value: "emergency", label: "Contact d'urgence" },
-];
-
-const RELATIONSHIPS = [
-  { value: "pere", label: "Père" },
-  { value: "mere", label: "Mère" },
-  { value: "tuteur", label: "Tuteur" },
-  { value: "grand_parent", label: "Grand-parent" },
-  { value: "oncle_tante", label: "Oncle/Tante" },
-  { value: "autre", label: "Autre" },
-];
-
 export function ContactsSection({ categoryId, players }: ContactsSectionProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
+
+  const CONTACT_TYPES = [
+    { value: "parent", label: t("academy.contacts.types.parent") },
+    { value: "guardian", label: t("academy.contacts.types.guardian") },
+    { value: "emergency", label: t("academy.contacts.types.emergency") },
+  ];
+
+  const RELATIONSHIPS = [
+    { value: "pere", label: t("academy.contacts.relationships.father") },
+    { value: "mere", label: t("academy.contacts.relationships.mother") },
+    { value: "tuteur", label: t("academy.contacts.relationships.guardian") },
+    { value: "grand_parent", label: t("academy.contacts.relationships.grandparent") },
+    { value: "oncle_tante", label: t("academy.contacts.relationships.uncleAunt") },
+    { value: "autre", label: t("academy.contacts.relationships.other") },
+  ];
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState("");
   const [contactType, setContactType] = useState("parent");
@@ -79,11 +81,11 @@ export function ContactsSection({ categoryId, players }: ContactsSectionProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["player_contacts", categoryId] });
-      toast.success("Contact ajouté");
+      toast.success(t("academy.contacts.toast.added"));
       resetForm();
       setDialogOpen(false);
     },
-    onError: () => toast.error("Erreur lors de l'ajout"),
+    onError: () => toast.error(t("academy.contacts.toast.errorAdding")),
   });
 
   const deleteContact = useMutation({
@@ -93,9 +95,9 @@ export function ContactsSection({ categoryId, players }: ContactsSectionProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["player_contacts", categoryId] });
-      toast.success("Contact supprimé");
+      toast.success(t("academy.contacts.toast.deleted"));
     },
-    onError: () => toast.error("Erreur lors de la suppression"),
+    onError: () => toast.error(t("academy.contacts.toast.errorDeleting")),
   });
 
   const resetForm = () => {
@@ -129,19 +131,19 @@ export function ContactsSection({ categoryId, players }: ContactsSectionProps) {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
-                Contacts Parents / Tuteurs
+                {t("academy.contacts.title")}
               </CardTitle>
-              <CardDescription>Informations de contact des familles et contacts d'urgence</CardDescription>
+              <CardDescription>{t("academy.contacts.description")}</CardDescription>
             </div>
             <Button onClick={() => setDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Nouveau contact
+              {t("academy.contacts.newContact")}
             </Button>
           </div>
         </CardHeader>
         <CardContent>
           {!contacts || contacts.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">Aucun contact enregistré.</p>
+            <p className="text-center text-muted-foreground py-8">{t("academy.contacts.noContacts")}</p>
           ) : (
             <div className="space-y-6">
               {contactsByPlayer && Object.entries(contactsByPlayer).map(([playerId, { playerName, contacts: playerContacts }]) => (
@@ -160,7 +162,7 @@ export function ContactsSection({ categoryId, players }: ContactsSectionProps) {
                         </Button>
                         <div className="flex items-center gap-2 mb-2">
                           <span className="font-medium">{contact.first_name} {contact.last_name}</span>
-                          {contact.is_primary && <Badge className="bg-primary">Principal</Badge>}
+                          {contact.is_primary && <Badge className="bg-primary">{t("academy.contacts.primary")}</Badge>}
                         </div>
                         <div className="text-sm text-muted-foreground space-y-1">
                           <p>{RELATIONSHIPS.find((r) => r.value === contact.relationship)?.label || contact.relationship}</p>
@@ -196,13 +198,13 @@ export function ContactsSection({ categoryId, players }: ContactsSectionProps) {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Ajouter un contact</DialogTitle>
+            <DialogTitle>{t("academy.contacts.dialog.title")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Joueur</Label>
+              <Label>{t("academy.contacts.dialog.player")}</Label>
               <Select value={selectedPlayer} onValueChange={setSelectedPlayer}>
-                <SelectTrigger><SelectValue placeholder="Sélectionner un joueur" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t("academy.contacts.dialog.selectPlayer")} /></SelectTrigger>
                 <SelectContent>
                   {players?.map((p) => (
                     <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
@@ -212,17 +214,17 @@ export function ContactsSection({ categoryId, players }: ContactsSectionProps) {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Prénom</Label>
-                <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Jean" />
+                <Label>{t("academy.contacts.dialog.firstName")}</Label>
+                <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder={t("academy.contacts.dialog.firstNamePlaceholder")} />
               </div>
               <div>
-                <Label>Nom</Label>
-                <Input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Dupont" />
+                <Label>{t("academy.contacts.dialog.lastName")}</Label>
+                <Input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder={t("academy.contacts.dialog.lastNamePlaceholder")} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Type de contact</Label>
+                <Label>{t("academy.contacts.dialog.contactType")}</Label>
                 <Select value={contactType} onValueChange={setContactType}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -233,9 +235,9 @@ export function ContactsSection({ categoryId, players }: ContactsSectionProps) {
                 </Select>
               </div>
               <div>
-                <Label>Relation</Label>
+                <Label>{t("academy.contacts.dialog.relationship")}</Label>
                 <Select value={relationship} onValueChange={setRelationship}>
-                  <SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t("academy.contacts.dialog.selectRelationship")} /></SelectTrigger>
                   <SelectContent>
                     {RELATIONSHIPS.map((r) => (
                       <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
@@ -246,30 +248,30 @@ export function ContactsSection({ categoryId, players }: ContactsSectionProps) {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Téléphone</Label>
-                <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="06 12 34 56 78" />
+                <Label>{t("academy.contacts.dialog.phone")}</Label>
+                <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t("academy.contacts.dialog.phonePlaceholder")} />
               </div>
               <div>
-                <Label>Email</Label>
-                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@exemple.com" />
+                <Label>{t("academy.contacts.dialog.email")}</Label>
+                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t("academy.contacts.dialog.emailPlaceholder")} />
               </div>
             </div>
             <div>
-              <Label>Adresse</Label>
-              <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="123 rue de la Paix, 75001 Paris" />
+              <Label>{t("academy.contacts.dialog.address")}</Label>
+              <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder={t("academy.contacts.dialog.addressPlaceholder")} />
             </div>
             <div className="flex items-center space-x-2">
               <Checkbox id="primary" checked={isPrimary} onCheckedChange={(checked) => setIsPrimary(checked === true)} />
-              <Label htmlFor="primary" className="cursor-pointer">Contact principal</Label>
+              <Label htmlFor="primary" className="cursor-pointer">{t("academy.contacts.dialog.primaryContact")}</Label>
             </div>
             <div>
-              <Label>Notes</Label>
-              <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Informations complémentaires..." />
+              <Label>{t("academy.contacts.dialog.notes")}</Label>
+              <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t("academy.contacts.dialog.notesPlaceholder")} />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Annuler</Button>
-            <Button onClick={() => addContact.mutate()} disabled={!selectedPlayer || !firstName || !lastName}>Ajouter</Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>{t("academy.contacts.dialog.cancel")}</Button>
+            <Button onClick={() => addContact.mutate()} disabled={!selectedPlayer || !firstName || !lastName}>{t("academy.contacts.dialog.add")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
