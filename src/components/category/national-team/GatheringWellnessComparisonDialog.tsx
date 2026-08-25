@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ArrowRight, ArrowUp, ArrowDown, Minus, Building2, User, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
 
 interface GatheringWellnessComparisonDialogProps {
   open: boolean;
@@ -40,6 +41,7 @@ export function GatheringWellnessComparisonDialog({
   preAssessment,
   dayOfAssessment,
 }: GatheringWellnessComparisonDialogProps) {
+  const { t } = useTranslation();
   const getChangeIcon = (pre: number | null, dayOf: number | null) => {
     if (!pre || !dayOf) return <Minus className="h-4 w-4 text-muted-foreground" />;
     if (dayOf > pre) return <ArrowUp className="h-4 w-4 text-green-500" />;
