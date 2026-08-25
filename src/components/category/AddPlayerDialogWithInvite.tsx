@@ -552,7 +552,7 @@ export function AddPlayerDialogWithInvite({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UserPlus className="h-5 w-5" />
-            Ajouter un athlète
+            {t("roster.addPlayerDialogInvite.title")}
           </DialogTitle>
         </DialogHeader>
 
@@ -561,10 +561,10 @@ export function AddPlayerDialogWithInvite({
             <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 p-4 rounded-lg space-y-3">
               <p className="text-sm font-medium text-green-800 dark:text-green-200 flex items-center gap-2">
                 <Check className="h-4 w-4" />
-                Athlète ajouté et invitation créée !
+                {t("roster.addPlayerDialogInvite.linkCreated")}
               </p>
               <p className="text-xs text-muted-foreground">
-                Si l'email/SMS ne fonctionne pas, copiez et partagez ce lien manuellement :
+                {t("roster.addPlayerDialogInvite.linkFallback")}
               </p>
               <div className="flex items-center gap-2">
                 <Input value={generatedLink} readOnly className="text-xs" />
@@ -574,7 +574,7 @@ export function AddPlayerDialogWithInvite({
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={handleClose}>Fermer</Button>
+              <Button onClick={handleClose}>{t("roster.addPlayerDialogInvite.close")}</Button>
             </DialogFooter>
           </div>
         ) : (
@@ -584,14 +584,14 @@ export function AddPlayerDialogWithInvite({
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  Limite d'athlètes atteinte ({currentPlayerCount}/{maxAthletes}). Retirez un athlète existant avant d'en ajouter un nouveau.
+                  {t("roster.addPlayerDialogInvite.limitReached", { current: currentPlayerCount, max: maxAthletes })}
                 </AlertDescription>
               </Alert>
             )}
 
             {maxAthletes !== null && !isAthletesFull && (
               <p className="text-xs text-muted-foreground">
-                Athlètes : {currentPlayerCount}/{maxAthletes} dans cette catégorie
+                {t("roster.addPlayerDialogInvite.countInCategory", { current: currentPlayerCount, max: maxAthletes })}
               </p>
             )}
             {/* Photo (optionnelle) */}
@@ -603,7 +603,7 @@ export function AddPlayerDialogWithInvite({
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 space-y-1">
-                <Label htmlFor="newPlayerAvatar" className="text-sm">Photo (optionnel)</Label>
+                <Label htmlFor="newPlayerAvatar" className="text-sm">{t("roster.addPlayerDialogInvite.photo.label")}</Label>
                 <Input
                   id="newPlayerAvatar"
                   type="file"
@@ -612,11 +612,11 @@ export function AddPlayerDialogWithInvite({
                     const file = e.target.files?.[0];
                     if (!file) return;
                     if (!file.type.startsWith("image/")) {
-                      toast.error("Veuillez sélectionner une image");
+                      toast.error(t("roster.addPlayerDialogInvite.photo.invalidType"));
                       return;
                     }
                     if (file.size > 2 * 1024 * 1024) {
-                      toast.error("L'image ne doit pas dépasser 2MB");
+                      toast.error(t("roster.addPlayerDialogInvite.photo.tooLarge"));
                       return;
                     }
                     setAvatarFile(file);
@@ -630,7 +630,7 @@ export function AddPlayerDialogWithInvite({
                     onClick={() => { setAvatarFile(null); setAvatarPreview(null); }}
                     className="text-xs text-muted-foreground hover:text-foreground underline"
                   >
-                    Retirer la photo
+                    {t("roster.addPlayerDialogInvite.photo.remove")}
                   </button>
                 )}
               </div>
@@ -638,7 +638,7 @@ export function AddPlayerDialogWithInvite({
 
             {/* First Name */}
             <div className="space-y-2">
-              <Label htmlFor="firstName">Prénom</Label>
+              <Label htmlFor="firstName">{t("roster.addPlayerDialogInvite.fields.firstName")}</Label>
               <Input
                 id="firstName"
                 value={firstName}
@@ -646,13 +646,13 @@ export function AddPlayerDialogWithInvite({
                   setFirstName(e.target.value);
                   setValidationError("");
                 }}
-                placeholder="Ex: Jean"
+                placeholder={t("roster.addPlayerDialogInvite.placeholders.firstName")}
               />
             </div>
 
             {/* Last Name */}
             <div className="space-y-2">
-              <Label htmlFor="lastName">Nom *</Label>
+              <Label htmlFor="lastName">{t("roster.addPlayerDialogInvite.fields.lastName")}</Label>
               <Input
                 id="lastName"
                 value={lastName}
@@ -660,62 +660,62 @@ export function AddPlayerDialogWithInvite({
                   setLastName(e.target.value);
                   setValidationError("");
                 }}
-                placeholder="Ex: Dupont"
+                placeholder={t("roster.addPlayerDialogInvite.placeholders.lastName")}
                 required
               />
             </div>
 
             {/* Email */}
             <div className="space-y-2">
-              <Label htmlFor="playerEmail">Email</Label>
+              <Label htmlFor="playerEmail">{t("roster.addPlayerDialogInvite.fields.email")}</Label>
               <Input
                 id="playerEmail"
                 type="email"
                 value={playerEmail}
                 onChange={(e) => setPlayerEmail(e.target.value)}
-                placeholder="athlete@email.com (optionnel)"
+                placeholder={t("roster.addPlayerDialogInvite.placeholders.email")}
               />
             </div>
 
             {/* Phone */}
             <div className="space-y-2">
-              <Label htmlFor="playerPhone">Téléphone</Label>
+              <Label htmlFor="playerPhone">{t("roster.addPlayerDialogInvite.fields.phone")}</Label>
               <Input
                 id="playerPhone"
                 type="tel"
                 value={playerPhone}
                 onChange={(e) => setPlayerPhone(e.target.value)}
-                placeholder="+33 6 12 34 56 78"
+                placeholder={t("roster.addPlayerDialogInvite.placeholders.phone")}
               />
               <p className="text-xs text-muted-foreground">
-                Format international recommandé pour les SMS
+                {t("roster.addPlayerDialogInvite.helpers.phone")}
               </p>
             </div>
 
             {/* Sexe */}
             <div className="space-y-2">
-              <Label htmlFor="gender">Sexe</Label>
+              <Label htmlFor="gender">{t("roster.addPlayerDialogInvite.fields.gender")}</Label>
               <Select value={gender} onValueChange={(v) => setGender(v as any)}>
                 <SelectTrigger className="w-full bg-background">
-                  <SelectValue placeholder="Sélectionner un sexe" />
+                  <SelectValue placeholder={t("roster.addPlayerDialogInvite.placeholders.gender")} />
                 </SelectTrigger>
                 <SelectContent className="bg-popover border">
-                  <SelectItem value="male">Masculin</SelectItem>
-                  <SelectItem value="female">Féminin</SelectItem>
-                  <SelectItem value="other">Autre</SelectItem>
+                  <SelectItem value="male">{t("roster.addPlayerDialogInvite.genders.male")}</SelectItem>
+                  <SelectItem value="female">{t("roster.addPlayerDialogInvite.genders.female")}</SelectItem>
+                  <SelectItem value="other">{t("roster.addPlayerDialogInvite.genders.other")}</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">Utilisé pour appliquer automatiquement les barèmes spécifiques (filles / garçons) sur les tests.</p>
+              <p className="text-xs text-muted-foreground">{t("roster.addPlayerDialogInvite.helpers.gender")}</p>
             </div>
 
 
             {/* Position selector for team sports */}
             {isTeamSport && positions.length > 0 && (
               <div className="space-y-2">
-                <Label htmlFor="position">Poste</Label>
+                <Label htmlFor="position">{t("roster.addPlayerDialogInvite.fields.position")}</Label>
                 <Select value={position} onValueChange={setPosition}>
                   <SelectTrigger className="w-full bg-background">
-                    <SelectValue placeholder="Sélectionner un poste" />
+                    <SelectValue placeholder={t("roster.addPlayerDialogInvite.placeholders.position")} />
                   </SelectTrigger>
                   <SelectContent className="bg-background border z-50 max-h-[300px]">
                     {positions.map((pos) => (
@@ -731,9 +731,9 @@ export function AddPlayerDialogWithInvite({
             {/* Athlétisme : multi-disciplines (un athlète peut s'aligner sur plusieurs épreuves) */}
             {isAthletics && (
               <div className="space-y-2 rounded-lg border p-3 bg-muted/20">
-                <Label className="text-sm font-medium">Disciplines pratiquées *</Label>
+                <Label className="text-sm font-medium">{t("roster.addPlayerDialogInvite.disciplines.title")}</Label>
                 <p className="text-xs text-muted-foreground">
-                  Un athlète peut pratiquer plusieurs disciplines et spécialités (ex. sprint 100m + sprint 200m + saut en longueur). La 1ʳᵉ ajoutée sera la principale.
+                  {t("roster.addPlayerDialogInvite.disciplines.description")}
                 </p>
 
                 {disciplinePairs.length > 0 && (
@@ -759,13 +759,13 @@ export function AddPlayerDialogWithInvite({
                           <span>
                             {discLabel}
                             {specLabel ? ` · ${specLabel}` : ""}
-                            {i === 0 ? " (principale)" : ""}
+                            {i === 0 ? t("roster.addPlayerDialogInvite.disciplines.primary") : ""}
                           </span>
                           <button
                             type="button"
                             onClick={() => removeDisciplinePair(i)}
                             className="ml-0.5 rounded-sm hover:bg-foreground/10 p-0.5"
-                            aria-label="Retirer cette discipline"
+                            aria-label={t("roster.addPlayerDialogInvite.disciplines.removeAriaLabel")}
                           >
                             <X className="h-3 w-3" />
                           </button>
@@ -784,7 +784,7 @@ export function AddPlayerDialogWithInvite({
                     }}
                   >
                     <SelectTrigger className="w-full bg-background">
-                      <SelectValue placeholder="Discipline" />
+                      <SelectValue placeholder={t("roster.addPlayerDialogInvite.fields.discipline")} />
                     </SelectTrigger>
                     <SelectContent className="bg-background border z-[200] max-h-[300px]">
                       {ATHLETISME_DISCIPLINES.map((disc) => (
@@ -798,7 +798,7 @@ export function AddPlayerDialogWithInvite({
                   {draftAvailableSpecialties.length > 0 && (
                     <Select value={draftSpecialty} onValueChange={setDraftSpecialty}>
                       <SelectTrigger className="w-full bg-background">
-                        <SelectValue placeholder="Spécialité" />
+                        <SelectValue placeholder={t("roster.addPlayerDialogInvite.fields.specialty")} />
                       </SelectTrigger>
                       <SelectContent className="bg-background border z-[200] max-h-[300px]">
                         {draftAvailableSpecialties.map((spec) => (
@@ -819,7 +819,7 @@ export function AddPlayerDialogWithInvite({
                       !draftDiscipline ||
                       (draftAvailableSpecialties.length > 0 && !draftSpecialty)
                     }
-                    aria-label="Ajouter cette discipline"
+                    aria-label={t("roster.addPlayerDialogInvite.disciplines.addAriaLabel")}
                   >
                     <Plus className="h-4 w-4" />
                   </Button>
@@ -830,7 +830,7 @@ export function AddPlayerDialogWithInvite({
             {/* Discipline unique pour les autres sports (natation, ski, surf, triathlon) */}
             {hasDisciplines && !isAthletics && (
               <div className="space-y-2">
-                <Label htmlFor="discipline">Discipline *</Label>
+                <Label htmlFor="discipline">{t("roster.addPlayerDialogInvite.fields.discipline")}</Label>
                 <Select 
                   value={discipline} 
                   onValueChange={(val) => {
@@ -839,7 +839,7 @@ export function AddPlayerDialogWithInvite({
                   }}
                 >
                   <SelectTrigger className="w-full bg-background">
-                    <SelectValue placeholder="Sélectionner une discipline" />
+                    <SelectValue placeholder={t("roster.addPlayerDialogInvite.placeholders.discipline")} />
                   </SelectTrigger>
                   <SelectContent className="bg-background border z-50 max-h-[300px]">
                     {disciplineOptions.map((disc) => (
@@ -854,10 +854,10 @@ export function AddPlayerDialogWithInvite({
 
             {hasDisciplines && !isAthletics && discipline && availableSpecialties.length > 0 && (
               <div className="space-y-2">
-                <Label htmlFor="specialty">Spécialité *</Label>
+                <Label htmlFor="specialty">{t("roster.addPlayerDialogInvite.fields.specialty")}</Label>
                 <Select value={specialty} onValueChange={setSpecialty}>
                   <SelectTrigger className="w-full bg-background">
-                    <SelectValue placeholder="Sélectionner une spécialité" />
+                    <SelectValue placeholder={t("roster.addPlayerDialogInvite.placeholders.specialty")} />
                   </SelectTrigger>
                   <SelectContent className="bg-background border z-50 max-h-[300px]">
                     {availableSpecialties.map((spec) => (
@@ -914,7 +914,7 @@ export function AddPlayerDialogWithInvite({
                 <Label htmlFor="skiDiscipline">Discipline *</Label>
                 <Select value={discipline} onValueChange={setDiscipline}>
                   <SelectTrigger className="w-full bg-background">
-                    <SelectValue placeholder="Sélectionner une discipline" />
+                    <SelectValue placeholder={t("roster.addPlayerDialogInvite.placeholders.discipline")} />
                   </SelectTrigger>
                   <SelectContent className="bg-background border z-50 max-h-[300px]">
                     {skiDisciplines.map((disc) => (
