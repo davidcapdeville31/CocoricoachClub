@@ -47,11 +47,11 @@ import i18n from "@/i18n";
 
 // Phase colors configuration
 const PHASE_COLORS = {
-  1: { bg: "bg-red-500/20", text: "text-red-700 dark:text-red-400", border: "border-red-500", icon: Shield, get label() { return i18n.t("health:playerRehabTracker.phaseLabels.protection"); } },
-  2: { bg: "bg-orange-500/20", text: "text-orange-700 dark:text-orange-400", border: "border-orange-500", icon: Activity, get label() { return i18n.t("health:playerRehabTracker.phaseLabels.mobilization"); } },
-  3: { bg: "bg-yellow-500/20", text: "text-yellow-700 dark:text-yellow-400", border: "border-yellow-500", icon: Zap, get label() { return i18n.t("health:playerRehabTracker.phaseLabels.strengthening"); } },
-  4: { bg: "bg-blue-500/20", text: "text-blue-700 dark:text-blue-400", border: "border-blue-500", icon: Target, get label() { return i18n.t("health:playerRehabTracker.phaseLabels.returnToField"); } },
-  5: { bg: "bg-green-500/20", text: "text-green-700 dark:text-green-400", border: "border-green-500", icon: Trophy, get label() { return i18n.t("health:playerRehabTracker.phaseLabels.performance"); } },
+  1: { bg: "bg-red-500/20", text: "text-red-700 dark:text-red-400", border: "border-red-500", icon: Shield, get label() { return i18n.t("health.playerRehabTracker.phaseLabels.protection"); } },
+  2: { bg: "bg-orange-500/20", text: "text-orange-700 dark:text-orange-400", border: "border-orange-500", icon: Activity, get label() { return i18n.t("health.playerRehabTracker.phaseLabels.mobilization"); } },
+  3: { bg: "bg-yellow-500/20", text: "text-yellow-700 dark:text-yellow-400", border: "border-yellow-500", icon: Zap, get label() { return i18n.t("health.playerRehabTracker.phaseLabels.strengthening"); } },
+  4: { bg: "bg-blue-500/20", text: "text-blue-700 dark:text-blue-400", border: "border-blue-500", icon: Target, get label() { return i18n.t("health.playerRehabTracker.phaseLabels.returnToField"); } },
+  5: { bg: "bg-green-500/20", text: "text-green-700 dark:text-green-400", border: "border-green-500", icon: Trophy, get label() { return i18n.t("health.playerRehabTracker.phaseLabels.performance"); } },
 };
 
 const getPhaseColor = (phaseNumber: number) => {
@@ -175,7 +175,7 @@ export function PlayerRehabTracker({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["player-rehab-protocol", injuryId] });
-      toast.success(t("health:playerRehabTracker.toastPhaseUpdated"));
+      toast.success(t("health.playerRehabTracker.toastPhaseUpdated"));
     },
   });
 
@@ -195,7 +195,7 @@ export function PlayerRehabTracker({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["player-rehab-protocol", injuryId] });
-      toast.success(t("health:playerRehabTracker.toastProtocolCompleted"));
+      toast.success(t("health.playerRehabTracker.toastProtocolCompleted"));
     },
   });
 
@@ -218,7 +218,7 @@ export function PlayerRehabTracker({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rehab-exercise-logs", rehabProtocol?.id] });
-      toast.success(t("health:playerRehabTracker.toastExerciseLogged"));
+      toast.success(t("health.playerRehabTracker.toastExerciseLogged"));
       setLogDialogOpen(false);
       resetLogForm();
     },
@@ -254,7 +254,7 @@ export function PlayerRehabTracker({
     return (
       <Card>
         <CardContent className="p-6">
-          <p className="text-muted-foreground">{t("health:playerRehabTracker.loadingProtocol")}</p>
+          <p className="text-muted-foreground">{t("health.playerRehabTracker.loadingProtocol")}</p>
         </CardContent>
       </Card>
     );
@@ -266,10 +266,10 @@ export function PlayerRehabTracker({
         <CardContent className="p-6 text-center">
           <Dumbbell className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
           <p className="text-muted-foreground mb-2">
-            {t("health:playerRehabTracker.noProtocolTitle")}
+            {t("health.playerRehabTracker.noProtocolTitle")}
           </p>
           <p className="text-sm text-muted-foreground">
-            {t("health:playerRehabTracker.noProtocolDescription")}
+            {t("health.playerRehabTracker.noProtocolDescription")}
           </p>
         </CardContent>
       </Card>
@@ -287,23 +287,23 @@ export function PlayerRehabTracker({
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Dumbbell className="h-5 w-5" />
-                {t("health:playerRehabTracker.cardTitle")}
+                {t("health.playerRehabTracker.cardTitle")}
               </CardTitle>
               <p className="text-sm text-muted-foreground mt-1">
                 {rehabProtocol.injury_protocols?.name} - {playerName}
               </p>
             </div>
             <Badge variant={rehabProtocol.status === "completed" ? "default" : "secondary"}>
-              {rehabProtocol.status === "completed" ? t("health:playerRehabTracker.statusCompleted") : 
-               rehabProtocol.status === "paused" ? t("health:playerRehabTracker.statusPaused") : t("health:playerRehabTracker.statusInProgress")}
+              {rehabProtocol.status === "completed" ? t("health.playerRehabTracker.statusCompleted") : 
+               rehabProtocol.status === "paused" ? t("health.playerRehabTracker.statusPaused") : t("health.playerRehabTracker.statusInProgress")}
             </Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
             <div className="flex justify-between text-sm mb-2">
-              <span>{t("health:playerRehabTracker.overallProgress")}</span>
-              <span className="font-medium">{t("health:playerRehabTracker.phaseOf", { current: currentPhaseNumber, total: totalPhases })}</span>
+              <span>{t("health.playerRehabTracker.overallProgress")}</span>
+              <span className="font-medium">{t("health.playerRehabTracker.phaseOf", { current: currentPhaseNumber, total: totalPhases })}</span>
             </div>
             <Progress value={progressPercentage} className="h-3" />
           </div>
@@ -316,7 +316,7 @@ export function PlayerRehabTracker({
                   return <PhaseIcon className={`h-5 w-5 ${getPhaseColor(currentPhaseNumber).text}`} />;
                 })()}
                 <Badge className={`${getPhaseColor(currentPhaseNumber).bg} ${getPhaseColor(currentPhaseNumber).text} border-0`}>
-                  {t("health:playerRehabTracker.phaseLabel", { number: currentPhaseNumber, label: getPhaseColor(currentPhaseNumber).label })}
+                  {t("health.playerRehabTracker.phaseLabel", { number: currentPhaseNumber, label: getPhaseColor(currentPhaseNumber).label })}
                 </Badge>
                 <span className="font-semibold">{currentPhase.name}</span>
               </div>
@@ -324,7 +324,7 @@ export function PlayerRehabTracker({
               
               {currentPhase.objectives && currentPhase.objectives.length > 0 && (
                 <div className="mt-3">
-                  <p className="text-xs font-medium text-muted-foreground mb-1">{t("health:playerRehabTracker.objectivesTitle")}</p>
+                  <p className="text-xs font-medium text-muted-foreground mb-1">{t("health.playerRehabTracker.objectivesTitle")}</p>
                   <ul className="text-sm space-y-1">
                     {(currentPhase.objectives as string[]).map((obj, i) => (
                       <li key={i} className="flex items-center gap-2">
@@ -338,7 +338,7 @@ export function PlayerRehabTracker({
 
               {currentPhase.care_instructions && (currentPhase.care_instructions as string[]).length > 0 && (
                 <div className="mt-3">
-                  <p className="text-xs font-medium text-muted-foreground mb-1">{t("health:playerRehabTracker.careTitle")}</p>
+                  <p className="text-xs font-medium text-muted-foreground mb-1">{t("health.playerRehabTracker.careTitle")}</p>
                   <ul className="text-sm space-y-1">
                     {(currentPhase.care_instructions as string[]).map((care, i) => (
                       <li key={i} className="flex items-center gap-2">
@@ -352,7 +352,7 @@ export function PlayerRehabTracker({
 
               {currentPhase.taping_instructions && (currentPhase.taping_instructions as string[]).length > 0 && (
                 <div className="mt-3">
-                  <p className="text-xs font-medium text-muted-foreground mb-1">{t("health:playerRehabTracker.tapeTitle")}</p>
+                  <p className="text-xs font-medium text-muted-foreground mb-1">{t("health.playerRehabTracker.tapeTitle")}</p>
                   <ul className="text-sm space-y-1">
                     {(currentPhase.taping_instructions as string[]).map((tape, i) => (
                       <li key={i} className="flex items-center gap-2">
@@ -365,7 +365,7 @@ export function PlayerRehabTracker({
                     <div className="mt-2">
                       <img
                         src={(currentPhase as any).taping_diagram_url}
-                        alt={t("health:playerRehabTracker.tapeTitle")}
+                        alt={t("health.playerRehabTracker.tapeTitle")}
                         className="w-full max-h-64 object-contain rounded-lg border cursor-pointer hover:opacity-90 transition-opacity"
                         onClick={() => {
                           const img = (currentPhase as any).taping_diagram_url;
@@ -373,7 +373,7 @@ export function PlayerRehabTracker({
                         }}
                       />
                       <p className="text-xs text-muted-foreground mt-1 text-center">
-                        {t("health:playerRehabTracker.clickToEnlarge")}
+                        {t("health.playerRehabTracker.clickToEnlarge")}
                       </p>
                     </div>
                   )}
@@ -391,7 +391,7 @@ export function PlayerRehabTracker({
                 disabled={updatePhase.isPending}
               >
                 <RotateCcw className="h-4 w-4 mr-1" />
-                {t("health:playerRehabTracker.previousPhase")}
+                {t("health.playerRehabTracker.previousPhase")}
               </Button>
             )}
             {currentPhaseNumber < totalPhases && (
@@ -400,7 +400,7 @@ export function PlayerRehabTracker({
                 onClick={() => updatePhase.mutate(currentPhaseNumber + 1)}
                 disabled={updatePhase.isPending}
               >
-                {t("health:playerRehabTracker.nextPhase")}
+                {t("health.playerRehabTracker.nextPhase")}
                 <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
             )}
@@ -412,7 +412,7 @@ export function PlayerRehabTracker({
                 className="bg-green-600 hover:bg-green-700"
               >
                 <CheckCircle2 className="h-4 w-4 mr-1" />
-                {t("health:playerRehabTracker.completeProtocol")}
+                {t("health.playerRehabTracker.completeProtocol")}
               </Button>
             )}
           </div>
@@ -422,7 +422,7 @@ export function PlayerRehabTracker({
       {/* Exercises by Phase */}
       <Card>
         <CardHeader>
-          <CardTitle>{t("health:playerRehabTracker.exercisesByPhase")}</CardTitle>
+          <CardTitle>{t("health.playerRehabTracker.exercisesByPhase")}</CardTitle>
         </CardHeader>
         <CardContent>
           <Accordion type="single" collapsible defaultValue={`phase-${currentPhaseNumber}`}>
@@ -454,12 +454,12 @@ export function PlayerRehabTracker({
                         <p className={`font-medium ${isCurrent ? phaseColor.text : ""}`}>{phase.name}</p>
                         {isCurrent && (
                           <Badge className={`${phaseColor.bg} ${phaseColor.text} border-0 text-xs`}>
-                            {t("health:playerRehabTracker.inProgress")}
+                            {t("health.playerRehabTracker.inProgress")}
                           </Badge>
                         )}
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        {t("health:playerRehabTracker.daysUnit", { min: phase.duration_days_min, max: phase.duration_days_max })}
+                        {t("health.playerRehabTracker.daysUnit", { min: phase.duration_days_min, max: phase.duration_days_max })}
                       </p>
                     </div>
                   </div>
@@ -478,7 +478,7 @@ export function PlayerRehabTracker({
                     {phase.exit_criteria && (phase.exit_criteria as string[]).length > 0 && (
                       <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800">
                         <p className="text-sm font-medium text-amber-700 dark:text-amber-400 mb-2">
-                          {t("health:playerRehabTracker.exitCriteriaTitle")}
+                          {t("health.playerRehabTracker.exitCriteriaTitle")}
                         </p>
                         <ul className="text-sm space-y-1">
                           {(phase.exit_criteria as string[]).map((criteria, i) => (
@@ -507,7 +507,7 @@ export function PlayerRehabTracker({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Clock className="h-5 w-5" />
-              {t("health:playerRehabTracker.recentHistoryTitle")}
+              {t("health.playerRehabTracker.recentHistoryTitle")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -529,12 +529,12 @@ export function PlayerRehabTracker({
                     {log.pain_level !== null && log.pain_level > 5 && (
                       <Badge variant="destructive" className="text-xs">
                         <AlertTriangle className="h-3 w-3 mr-1" />
-                        {t("health:playerRehabTracker.painLevel", { level: log.pain_level })}
+                        {t("health.playerRehabTracker.painLevel", { level: log.pain_level })}
                       </Badge>
                     )}
                     {log.pain_level !== null && log.pain_level <= 5 && (
                       <Badge variant="secondary" className="text-xs">
-                        {t("health:playerRehabTracker.painLevel", { level: log.pain_level })}
+                        {t("health.playerRehabTracker.painLevel", { level: log.pain_level })}
                       </Badge>
                     )}
                   </div>
@@ -549,7 +549,7 @@ export function PlayerRehabTracker({
       <Dialog open={logDialogOpen} onOpenChange={setLogDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("health:playerRehabTracker.dialogTitle")}</DialogTitle>
+            <DialogTitle>{t("health.playerRehabTracker.dialogTitle")}</DialogTitle>
           </DialogHeader>
           {selectedExercise && (
             <div className="space-y-4 py-4">
@@ -561,7 +561,7 @@ export function PlayerRehabTracker({
               </div>
 
               <div className="space-y-2">
-                <Label>{t("health:playerRehabTracker.setsCompleted", { count: setsCompleted })}</Label>
+                <Label>{t("health.playerRehabTracker.setsCompleted", { count: setsCompleted })}</Label>
                 <Slider
                   value={[setsCompleted]}
                   onValueChange={([v]) => setSetsCompleted(v)}
@@ -572,7 +572,7 @@ export function PlayerRehabTracker({
               </div>
 
               <div className="space-y-2">
-                <Label>{t("health:playerRehabTracker.painLevelLabel", { level: painLevel })}</Label>
+                <Label>{t("health.playerRehabTracker.painLevelLabel", { level: painLevel })}</Label>
                 <Slider
                   value={[painLevel]}
                   onValueChange={([v]) => setPainLevel(v)}
@@ -584,13 +584,13 @@ export function PlayerRehabTracker({
                 {painLevel > 5 && (
                   <p className="text-xs text-destructive flex items-center gap-1">
                     <AlertTriangle className="h-3 w-3" />
-                    {t("health:playerRehabTracker.painWarning")}
+                    {t("health.playerRehabTracker.painWarning")}
                   </p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label>{t("health:playerRehabTracker.perceivedDifficulty", { level: difficultyLevel })}</Label>
+                <Label>{t("health.playerRehabTracker.perceivedDifficulty", { level: difficultyLevel })}</Label>
                 <Slider
                   value={[difficultyLevel]}
                   onValueChange={([v]) => setDifficultyLevel(v)}
@@ -601,12 +601,12 @@ export function PlayerRehabTracker({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="notes">{t("health:playerRehabTracker.notesLabel")}</Label>
+                <Label htmlFor="notes">{t("health.playerRehabTracker.notesLabel")}</Label>
                 <Textarea
                   id="notes"
                   value={exerciseNotes}
                   onChange={(e) => setExerciseNotes(e.target.value)}
-                  placeholder={t("health:playerRehabTracker.notesPlaceholder")}
+                  placeholder={t("health.playerRehabTracker.notesPlaceholder")}
                   rows={2}
                 />
               </div>
@@ -614,10 +614,10 @@ export function PlayerRehabTracker({
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setLogDialogOpen(false)}>
-              {t("health:playerRehabTracker.cancel")}
+              {t("health.playerRehabTracker.cancel")}
             </Button>
             <Button onClick={() => logExercise.mutate()} disabled={logExercise.isPending}>
-              {logExercise.isPending ? t("health:playerRehabTracker.saving") : t("health:playerRehabTracker.save")}
+              {logExercise.isPending ? t("health.playerRehabTracker.saving") : t("health.playerRehabTracker.save")}
             </Button>
           </DialogFooter>
         </DialogContent>

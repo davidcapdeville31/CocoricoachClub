@@ -103,7 +103,7 @@ export function AthletePrecisionFieldInput({
     const posLabel = getPositionLabel(xPct, yPct, goalsOnRight);
     const exLabel = currentExercise?.label || exerciseType;
     setClickPos({ x: xPct, y: yPct });
-    setClickLabel(t("athleteSpace:components.precisionFieldInput.shotAt", { exercise: exLabel, position: posLabel }));
+    setClickLabel(t("athleteSpace.components.precisionFieldInput.shotAt", { exercise: exLabel, position: posLabel }));
     setPendingKickType(exerciseType);
     setDialogOpen(true);
   }, [exerciseType, goalsOnRight, currentExercise]);
@@ -145,7 +145,7 @@ export function AthletePrecisionFieldInput({
       const exLabel = currentExercise?.label || exerciseType;
       setZoneKickOrigin(fixedOrigin);
       setClickPos({ x: xPct, y: yPct });
-      setClickLabel(t("athleteSpace:components.precisionFieldInput.shotZoneKick", { exercise: exLabel, origin: originLabel, target: posLabel }));
+      setClickLabel(t("athleteSpace.components.precisionFieldInput.shotZoneKick", { exercise: exLabel, origin: originLabel, target: posLabel }));
       setPendingKickType(null);
       setAttempts("1");
       setSuccesses("0");
@@ -154,14 +154,14 @@ export function AthletePrecisionFieldInput({
       // Free origin: first click = origin
       setZoneKickOrigin({ x: xPct, y: yPct });
       setZoneKickStep("target");
-      toast.info(t("athleteSpace:components.precisionFieldInput.strikeSaved"));
+      toast.info(t("athleteSpace.components.precisionFieldInput.strikeSaved"));
     } else {
       // Free origin: second click = target
       const posLabel = getPositionLabel(xPct, yPct, goalsOnRight);
       const originLabel = getPositionLabel(zoneKickOrigin!.x, zoneKickOrigin!.y, goalsOnRight);
       const exLabel = currentExercise?.label || exerciseType;
       setClickPos({ x: xPct, y: yPct });
-      setClickLabel(t("athleteSpace:components.precisionFieldInput.shotZoneKick", { exercise: exLabel, origin: originLabel, target: posLabel }));
+      setClickLabel(t("athleteSpace.components.precisionFieldInput.shotZoneKick", { exercise: exLabel, origin: originLabel, target: posLabel }));
       setPendingKickType(null);
       setAttempts("1");
       setSuccesses("0");
@@ -173,7 +173,7 @@ export function AthletePrecisionFieldInput({
     const exLabel = currentExercise?.label || exerciseType;
     const legacyY = zone.distanceKey === "devant" ? 20 : zone.distanceKey === "milieu" ? 50 : 80;
     setClickPos({ x: 50, y: legacyY });
-    setClickLabel(t("athleteSpace:components.precisionFieldInput.shotAt", { exercise: exLabel, position: zone.label }));
+    setClickLabel(t("athleteSpace.components.precisionFieldInput.shotAt", { exercise: exLabel, position: zone.label }));
     setPendingKickType(null);
     setAttempts("1");
     setSuccesses("0");
@@ -205,10 +205,10 @@ export function AthletePrecisionFieldInput({
       queryClient.invalidateQueries({ queryKey: ["precision-field-entries"] });
       setDialogOpen(false);
       setClickPos(null);
-      toast.success(success ? t("athleteSpace:components.precisionFieldInput.success") : t("athleteSpace:components.precisionFieldInput.failure"));
+      toast.success(success ? t("athleteSpace.components.precisionFieldInput.success") : t("athleteSpace.components.precisionFieldInput.failure"));
       onEntryAdded?.();
     } catch (err: any) {
-      toast.error(err.message || t("athleteSpace:components.precisionFieldInput.error"));
+      toast.error(err.message || t("athleteSpace.components.precisionFieldInput.error"));
     } finally {
       setSaving(false);
     }
@@ -219,8 +219,8 @@ export function AthletePrecisionFieldInput({
     if (!clickPos) return;
     const att = parseInt(attempts) || 0;
     const suc = parseInt(successes) || 0;
-    if (att <= 0) { toast.error(t("athleteSpace:components.precisionFieldInput.attemptsMustBePositive")); return; }
-    if (suc > att) { toast.error(t("athleteSpace:components.precisionFieldInput.successesMustBeLower")); return; }
+    if (att <= 0) { toast.error(t("athleteSpace.components.precisionFieldInput.attemptsMustBePositive")); return; }
+    if (suc > att) { toast.error(t("athleteSpace.components.precisionFieldInput.successesMustBeLower")); return; }
 
     setSaving(true);
     try {
@@ -257,10 +257,10 @@ export function AthletePrecisionFieldInput({
       setClickPos(null);
       setZoneKickOrigin(null);
       setZoneKickStep("origin");
-      toast.success(t("athleteSpace:components.precisionFieldInput.saved"));
+      toast.success(t("athleteSpace.components.precisionFieldInput.saved"));
       onEntryAdded?.();
     } catch (err: any) {
-      toast.error(err.message || t("athleteSpace:components.precisionFieldInput.error"));
+      toast.error(err.message || t("athleteSpace.components.precisionFieldInput.error"));
     } finally {
       setSaving(false);
     }
@@ -301,7 +301,7 @@ export function AthletePrecisionFieldInput({
     <div className="space-y-3 rounded-lg border border-accent/30 p-3">
       <div className="flex items-center gap-2 mb-2">
         <Target className="h-4 w-4 text-primary" />
-        <span className="font-medium text-sm">{t("athleteSpace:components.precisionFieldInput.title")}</span>
+        <span className="font-medium text-sm">{t("athleteSpace.components.precisionFieldInput.title")}</span>
         {currentCategory && (
           <Badge variant="outline" className="text-[10px]">{currentCategory.label}</Badge>
         )}
@@ -310,7 +310,7 @@ export function AthletePrecisionFieldInput({
       {/* Category selector + exercise type */}
       <div className="flex flex-wrap gap-2 items-end">
         <div className="min-w-[140px]">
-          <Label className="text-xs">{t("athleteSpace:components.precisionFieldInput.category")}</Label>
+          <Label className="text-xs">{t("athleteSpace.components.precisionFieldInput.category")}</Label>
           <Select value={currentCategory?.key || "buteur"} onValueChange={(cat) => {
             const first = EXERCISE_CATEGORIES.find(c => c.key === cat)?.exercises[0];
             if (first) {
@@ -331,7 +331,7 @@ export function AthletePrecisionFieldInput({
         </div>
         {currentMode !== "kicking" && (
           <div className="min-w-[140px]">
-            <Label className="text-xs">{t("athleteSpace:components.precisionFieldInput.exercise")}</Label>
+            <Label className="text-xs">{t("athleteSpace.components.precisionFieldInput.exercise")}</Label>
             <Select value={exerciseType} onValueChange={(v) => {
               setExerciseType(v);
               setZoneKickOrigin(null);
@@ -355,8 +355,8 @@ export function AthletePrecisionFieldInput({
         )}
         {(currentMode === "kicking" || currentMode === "zone_kicks") && (
           <div className="flex gap-1">
-            <Button variant={kickingSide === "left" ? "default" : "outline"} size="sm" className="text-xs h-8" onClick={() => setKickingSide("left")}>{t("athleteSpace:components.precisionFieldInput.leftSide")}</Button>
-            <Button variant={kickingSide === "right" ? "default" : "outline"} size="sm" className="text-xs h-8" onClick={() => setKickingSide("right")}>{t("athleteSpace:components.precisionFieldInput.rightSide")}</Button>
+            <Button variant={kickingSide === "left" ? "default" : "outline"} size="sm" className="text-xs h-8" onClick={() => setKickingSide("left")}>{t("athleteSpace.components.precisionFieldInput.leftSide")}</Button>
+            <Button variant={kickingSide === "right" ? "default" : "outline"} size="sm" className="text-xs h-8" onClick={() => setKickingSide("right")}>{t("athleteSpace.components.precisionFieldInput.rightSide")}</Button>
           </div>
         )}
       </div>
@@ -364,7 +364,7 @@ export function AthletePrecisionFieldInput({
       {/* Buteur: inline type selector */}
       {currentMode === "kicking" && (
         <div className="flex items-center gap-2 flex-wrap">
-          <Label className="text-xs text-muted-foreground mr-1">{t("athleteSpace:components.precisionFieldInput.shotType")}</Label>
+          <Label className="text-xs text-muted-foreground mr-1">{t("athleteSpace.components.precisionFieldInput.shotType")}</Label>
           {BUTEUR_EXERCISES.map(b => {
             const isActive = exerciseType === b.value;
             const ShapeIcon = b.shape === "circle" ? "●" : b.shape === "square" ? "■" : "◆";
@@ -390,7 +390,7 @@ export function AthletePrecisionFieldInput({
         <div className="flex gap-2 text-xs">
           <Badge variant="outline" className="font-mono">{globalRate}%</Badge>
           <Badge variant="secondary" className="font-mono">{totalSuccesses}/{totalAttempts}</Badge>
-          <Badge variant="secondary">{t("athleteSpace:components.precisionFieldInput.shotsCount", { count: allEntries.length, plural: allEntries.length > 1 ? "s" : "" })}</Badge>
+          <Badge variant="secondary">{t("athleteSpace.components.precisionFieldInput.shotsCount", { count: allEntries.length, plural: allEntries.length > 1 ? "s" : "" })}</Badge>
         </div>
       )}
 
@@ -398,7 +398,7 @@ export function AthletePrecisionFieldInput({
       {currentMode === "kicking" && (
         <div className="relative w-full">
           <p className="text-xs text-muted-foreground mb-1">
-            {t("athleteSpace:components.precisionFieldInput.clickInstruction", { exercise: currentExercise?.label })}
+            {t("athleteSpace.components.precisionFieldInput.clickInstruction", { exercise: currentExercise?.label })}
           </p>
           <RugbyFieldSVG
             goalsOnRight={goalsOnRight}
@@ -434,8 +434,8 @@ export function AthletePrecisionFieldInput({
                 {b.label}
               </span>
             ))}
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-green-500" /> {t("athleteSpace:components.precisionFieldInput.recorded")}</span>
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-red-500" /> {t("athleteSpace:components.precisionFieldInput.failed")}</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-green-500" /> {t("athleteSpace.components.precisionFieldInput.recorded")}</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-red-500" /> {t("athleteSpace.components.precisionFieldInput.failed")}</span>
           </div>
         </div>
       )}
@@ -472,15 +472,15 @@ export function AthletePrecisionFieldInput({
                 : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border border-green-300/50"
           )}>
             {getFixedOrigin() ? (
-              <>🎯 <strong>{currentExercise?.label}</strong> {t("athleteSpace:components.precisionFieldInput.fixedStart")} <strong>{t("athleteSpace:components.precisionFieldInput.targetZone")}</strong></>
+              <>🎯 <strong>{currentExercise?.label}</strong> {t("athleteSpace.components.precisionFieldInput.fixedStart")} <strong>{t("athleteSpace.components.precisionFieldInput.targetZone")}</strong></>
             ) : zoneKickStep === "origin" ? (
-              <>📍 <strong>{t("athleteSpace:components.precisionFieldInput.step1Label")}</strong> : {t("athleteSpace:components.precisionFieldInput.step1")} <strong>{t("athleteSpace:components.precisionFieldInput.strikePosition")}</strong></>
+              <>📍 <strong>{t("athleteSpace.components.precisionFieldInput.step1Label")}</strong> : {t("athleteSpace.components.precisionFieldInput.step1")} <strong>{t("athleteSpace.components.precisionFieldInput.strikePosition")}</strong></>
             ) : (
-              <>🎯 <strong>{t("athleteSpace:components.precisionFieldInput.step2Label")}</strong> : {t("athleteSpace:components.precisionFieldInput.step1")} <strong>{t("athleteSpace:components.precisionFieldInput.targetZone")}</strong></>
+              <>🎯 <strong>{t("athleteSpace.components.precisionFieldInput.step2Label")}</strong> : {t("athleteSpace.components.precisionFieldInput.step1")} <strong>{t("athleteSpace.components.precisionFieldInput.targetZone")}</strong></>
             )}
             {zoneKickStep === "target" && !getFixedOrigin() && (
               <Button variant="ghost" size="sm" className="h-5 text-[10px] ml-auto" onClick={() => { setZoneKickOrigin(null); setZoneKickStep("origin"); }}>
-                {t("athleteSpace:components.precisionFieldInput.cancel")}
+                {t("athleteSpace.components.precisionFieldInput.cancel")}
               </Button>
             )}
           </div>
@@ -531,7 +531,7 @@ export function AthletePrecisionFieldInput({
       {/* LINEOUT MODE */}
       {currentMode === "lineout" && (
         <div className="w-full">
-          <p className="text-xs text-muted-foreground mb-1">{t("athleteSpace:components.precisionFieldInput.lineoutInstruction")}</p>
+          <p className="text-xs text-muted-foreground mb-1">{t("athleteSpace.components.precisionFieldInput.lineoutInstruction")}</p>
           <LineoutFieldSVG
             onZoneClick={handleLineoutZoneClick}
             zoneStats={lineoutZoneStats}
@@ -542,7 +542,7 @@ export function AthletePrecisionFieldInput({
       {/* Recent entries for this session */}
       {allEntries.length > 0 && (
         <div className="space-y-1">
-          <p className="text-xs text-muted-foreground font-medium">{t("athleteSpace:components.precisionFieldInput.recordedShots")}</p>
+          <p className="text-xs text-muted-foreground font-medium">{t("athleteSpace.components.precisionFieldInput.recordedShots")}</p>
           <div className="max-h-32 overflow-y-auto space-y-1">
             {allEntries.slice(0, 10).map((entry, i) => {
               const rate = entry.attempts > 0 ? Math.round((entry.successes / entry.attempts) * 100) : 0;
@@ -575,14 +575,14 @@ export function AthletePrecisionFieldInput({
                 onClick={() => saveButeurKick(true)}
                 disabled={saving}
               >
-                {t("athleteSpace:components.precisionFieldInput.success")}
+                {t("athleteSpace.components.precisionFieldInput.success")}
               </Button>
               <Button
                 className="flex-1 h-16 text-lg bg-red-600 hover:bg-red-700"
                 onClick={() => saveButeurKick(false)}
                 disabled={saving}
               >
-                {t("athleteSpace:components.precisionFieldInput.failure")}
+                {t("athleteSpace.components.precisionFieldInput.failure")}
               </Button>
             </div>
           </DialogContent>
@@ -598,11 +598,11 @@ export function AthletePrecisionFieldInput({
             </DialogHeader>
             <div className="space-y-3">
               <div>
-                <Label className="text-xs">{t("athleteSpace:components.precisionFieldInput.attempts")}</Label>
+                <Label className="text-xs">{t("athleteSpace.components.precisionFieldInput.attempts")}</Label>
                 <Input type="number" min={1} value={attempts} onChange={e => setAttempts(e.target.value)} className="h-9" />
               </div>
               <div>
-                <Label className="text-xs">{t("athleteSpace:components.precisionFieldInput.successes")}</Label>
+                <Label className="text-xs">{t("athleteSpace.components.precisionFieldInput.successes")}</Label>
                 <Input type="number" min={0} value={successes} onChange={e => setSuccesses(e.target.value)} className="h-9" />
               </div>
               {parseInt(attempts) > 0 && parseInt(successes) >= 0 && parseInt(successes) <= parseInt(attempts) && (
@@ -612,10 +612,10 @@ export function AthletePrecisionFieldInput({
               )}
             </div>
             <DialogFooter>
-              <Button variant="outline" size="sm" onClick={() => setDialogOpen(false)}>{t("athleteSpace:components.precisionFieldInput.cancelBtn")}</Button>
+              <Button variant="outline" size="sm" onClick={() => setDialogOpen(false)}>{t("athleteSpace.components.precisionFieldInput.cancelBtn")}</Button>
               <Button size="sm" onClick={handleSaveEntry} disabled={saving}>
                 <Check className="h-3.5 w-3.5 mr-1" />
-                {saving ? t("athleteSpace:components.precisionFieldInput.saving") : t("athleteSpace:components.precisionFieldInput.save")}
+                {saving ? t("athleteSpace.components.precisionFieldInput.saving") : t("athleteSpace.components.precisionFieldInput.save")}
               </Button>
             </DialogFooter>
           </DialogContent>

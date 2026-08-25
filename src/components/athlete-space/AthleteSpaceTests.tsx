@@ -154,7 +154,7 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
     }
 
     if (!playerWeight || playerWeight <= 0) {
-      return <>{test.result_value} kg <span className="block text-[10px] font-normal text-muted-foreground">{t("athleteSpace:tests.ratioLoadWeight")}</span></>;
+      return <>{test.result_value} kg <span className="block text-[10px] font-normal text-muted-foreground">{t("athleteSpace.tests.ratioLoadWeight")}</span></>;
     }
 
     const loadKg = value >= 5 ? value : value * playerWeight;
@@ -166,7 +166,7 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
       <>
         {loadText} kg
         <span className="block text-[10px] font-normal text-muted-foreground">
-          {t("athleteSpace:tests.ratioText", { ratio: ratio.toFixed(2).replace(".", ","), load: loadText, weight: weightText })}
+          {t("athleteSpace.tests.ratioText", { ratio: ratio.toFixed(2).replace(".", ","), load: loadText, weight: weightText })}
         </span>
       </>
     );
@@ -191,8 +191,8 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
 
   const availableFilters = useMemo(() => {
     const filters: { value: string; label: string }[] = [];
-    if (categoriesWithData.has("__speed__")) filters.push({ value: "__speed__", label: t("athleteSpace:tests.speed") });
-    if (categoriesWithData.has("__strength__")) filters.push({ value: "__strength__", label: t("athleteSpace:tests.strength") });
+    if (categoriesWithData.has("__speed__")) filters.push({ value: "__speed__", label: t("athleteSpace.tests.speed") });
+    if (categoriesWithData.has("__strength__")) filters.push({ value: "__strength__", label: t("athleteSpace.tests.strength") });
     testCategories.forEach(cat => {
       if (categoriesWithData.has(cat.value)) filters.push({ value: cat.value, label: cat.label });
     });
@@ -207,7 +207,7 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
     if (selectedCategory === "all") return [];
     const map = new Map<string, string>();
     if (selectedCategory === "__speed__") {
-      if (speedTests.length > 0) map.set("__sprint40__", t("athleteSpace:tests.sprint40"));
+      if (speedTests.length > 0) map.set("__sprint40__", t("athleteSpace.tests.sprint40"));
     } else if (selectedCategory === "__strength__") {
       strengthTests.forEach((t: any) => {
         if (t.test_name) map.set(t.test_name, t.test_name);
@@ -239,7 +239,7 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
       <Card className="bg-gradient-card">
         <CardContent className="py-8 text-center">
           <FlaskConical className="h-10 w-10 mx-auto mb-2 text-muted-foreground/50" />
-          <p className="text-sm text-muted-foreground">{t("athleteSpace:tests.noData")}</p>
+          <p className="text-sm text-muted-foreground">{t("athleteSpace.tests.noData")}</p>
         </CardContent>
       </Card>
     );
@@ -252,7 +252,7 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Filter className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium text-muted-foreground">{t("athleteSpace:tests.filterHistory")}</span>
+            <span className="text-sm font-medium text-muted-foreground">{t("athleteSpace.tests.filterHistory")}</span>
           </div>
           <ScrollArea className="w-full whitespace-nowrap">
             <div className="flex gap-2 pb-2">
@@ -262,7 +262,7 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
                   selectedCategory === "all" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
                 }`}
               >
-                {t("athleteSpace:tests.all")}
+                {t("athleteSpace.tests.all")}
               </button>
               {availableFilters.map(f => (
                 <button
@@ -287,7 +287,7 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
                 onChange={(e) => setSelectedTest(e.target.value)}
                 className="w-full sm:w-auto px-3 py-1.5 rounded-lg text-xs font-medium bg-muted text-foreground border border-border focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                <option value="all">{t("athleteSpace:tests.allTests")}</option>
+                <option value="all">{t("athleteSpace.tests.allTests")}</option>
                 {availableTests.map(t => (
                   <option key={t.value} value={t.value}>{t.label}</option>
                 ))}
@@ -302,7 +302,7 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
         <CardHeader className="pb-2">
           <CardTitle className="text-sm flex items-center gap-2">
             <FlaskConical className="h-4 w-4 text-primary" />
-            {t("athleteSpace:tests.fullHistory")}
+            {t("athleteSpace.tests.fullHistory")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -310,10 +310,10 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="whitespace-nowrap">{t("athleteSpace:tests.date")}</TableHead>
-                  <TableHead className="whitespace-nowrap">{t("athleteSpace:tests.category")}</TableHead>
-                  <TableHead className="whitespace-nowrap">{t("athleteSpace:tests.test")}</TableHead>
-                  <TableHead className="text-right whitespace-nowrap">{t("athleteSpace:tests.result")}</TableHead>
+                  <TableHead className="whitespace-nowrap">{t("athleteSpace.tests.date")}</TableHead>
+                  <TableHead className="whitespace-nowrap">{t("athleteSpace.tests.category")}</TableHead>
+                  <TableHead className="whitespace-nowrap">{t("athleteSpace.tests.test")}</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">{t("athleteSpace.tests.result")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -345,8 +345,8 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
                     <TableCell className="whitespace-nowrap text-xs">
                       {format(new Date(test.test_date), "dd/MM/yyyy", { locale: getDateLocale() })}
                     </TableCell>
-                    <TableCell className="text-xs whitespace-nowrap">{t("athleteSpace:tests.speed")}</TableCell>
-                    <TableCell className="text-xs whitespace-nowrap">{t("athleteSpace:tests.sprint40")}</TableCell>
+                    <TableCell className="text-xs whitespace-nowrap">{t("athleteSpace.tests.speed")}</TableCell>
+                    <TableCell className="text-xs whitespace-nowrap">{t("athleteSpace.tests.sprint40")}</TableCell>
                     <TableCell className="text-xs font-semibold text-primary text-right whitespace-nowrap">
                       {test.time_40m_seconds}s
                     </TableCell>
@@ -359,7 +359,7 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
                     <TableCell className="whitespace-nowrap text-xs">
                       {format(new Date(test.test_date), "dd/MM/yyyy", { locale: getDateLocale() })}
                     </TableCell>
-                    <TableCell className="text-xs whitespace-nowrap">{t("athleteSpace:tests.strength")}</TableCell>
+                    <TableCell className="text-xs whitespace-nowrap">{t("athleteSpace.tests.strength")}</TableCell>
                     <TableCell className="text-xs whitespace-nowrap">{test.test_name}</TableCell>
                     <TableCell className="text-xs font-semibold text-primary text-right whitespace-nowrap">
                       {test.weight_kg}kg

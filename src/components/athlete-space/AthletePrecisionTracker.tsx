@@ -52,7 +52,7 @@ export function AthletePrecisionTracker({ categoryId, playerId, sportType }: Pro
       const { data: sessionData } = await supabase.auth.getSession();
       const accessToken = sessionData?.session?.access_token;
       if (!accessToken) {
-        toast.error(t("athleteSpace:components.precisionTracker.sessionExpired"));
+        toast.error(t("athleteSpace.components.precisionTracker.sessionExpired"));
         return;
       }
       const { data, error } = await supabase.functions.invoke("athlete-create-session", {
@@ -65,11 +65,11 @@ export function AthletePrecisionTracker({ categoryId, playerId, sportType }: Pro
         },
       });
       if (error) throw error;
-      if (!data?.success) throw new Error(data?.error || t("athleteSpace:components.precisionTracker.createError"));
-      toast.success(t("athleteSpace:components.precisionTracker.created"));
+      if (!data?.success) throw new Error(data?.error || t("athleteSpace.components.precisionTracker.createError"));
+      toast.success(t("athleteSpace.components.precisionTracker.created"));
       await queryClient.invalidateQueries({ queryKey: ["today-training-sessions", categoryId] });
     } catch (e: any) {
-      toast.error(e?.message || t("athleteSpace:components.precisionTracker.createFail"));
+      toast.error(e?.message || t("athleteSpace.components.precisionTracker.createFail"));
     } finally {
       setCreating(false);
     }
@@ -79,8 +79,8 @@ export function AthletePrecisionTracker({ categoryId, playerId, sportType }: Pro
     <div className="space-y-3">
       <div className="rounded-xl border bg-primary/5 p-3 text-xs text-muted-foreground">
         {isBasket
-          ? t("athleteSpace:components.precisionTracker.basketHint")
-          : t("athleteSpace:components.precisionTracker.fieldHint")}
+          ? t("athleteSpace.components.precisionTracker.basketHint")
+          : t("athleteSpace.components.precisionTracker.fieldHint")}
       </div>
 
       {!isLoading && !hasSession ? (
@@ -88,14 +88,14 @@ export function AthletePrecisionTracker({ categoryId, playerId, sportType }: Pro
           <CardContent className="py-6 text-center space-y-3">
             <CalendarPlus className="h-8 w-8 mx-auto text-amber-600" />
             <h3 className="font-semibold text-amber-800 dark:text-amber-200">
-              {t("athleteSpace:components.precisionTracker.noSessionTitle")}
+              {t("athleteSpace.components.precisionTracker.noSessionTitle")}
             </h3>
             <p className="text-sm text-amber-700 dark:text-amber-300">
-              {t("athleteSpace:components.precisionTracker.noSessionDesc")}
+              {t("athleteSpace.components.precisionTracker.noSessionDesc")}
             </p>
             <Button onClick={handleCreateSession} disabled={creating} className="gap-2">
               {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Target className="h-4 w-4" />}
-              {t("athleteSpace:components.precisionTracker.createSession")}
+              {t("athleteSpace.components.precisionTracker.createSession")}
             </Button>
           </CardContent>
         </Card>

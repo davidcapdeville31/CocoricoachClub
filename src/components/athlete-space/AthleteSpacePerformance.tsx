@@ -30,15 +30,15 @@ export function AthleteSpacePerformance({ playerId, categoryId, sportType }: Pro
         <TabsList className="flex flex-wrap h-auto gap-1 w-full bg-muted/40 rounded-xl p-1">
           <TabsTrigger value="tests" style={triggerStyle} className={triggerClass}>
             <FlaskConical className="h-3.5 w-3.5" />
-            <span>{t("athleteSpace:performance.testsAndProgression")}</span>
+            <span>{t("athleteSpace.performance.testsAndProgression")}</span>
           </TabsTrigger>
           <TabsTrigger value="tonnage" style={triggerStyle} className={triggerClass}>
             <Weight className="h-3.5 w-3.5" />
-            <span>{t("athleteSpace:performance.tonnage")}</span>
+            <span>{t("athleteSpace.performance.tonnage")}</span>
           </TabsTrigger>
           <TabsTrigger value="objectives" style={triggerStyle} className={triggerClass}>
             <Target className="h-3.5 w-3.5" />
-            <span>{t("athleteSpace:performance.objectives")}</span>
+            <span>{t("athleteSpace.performance.objectives")}</span>
           </TabsTrigger>
         </TabsList>
 

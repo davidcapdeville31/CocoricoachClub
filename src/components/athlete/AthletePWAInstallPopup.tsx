@@ -134,9 +134,9 @@ export function AthletePWAInstallPopup({ playerId }: AthletePWAInstallPopupProps
           <div className="mx-auto mb-4 w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
             <Smartphone className="h-10 w-10 text-primary-foreground" />
           </div>
-          <DialogTitle className="text-2xl">{t("athleteSpace:components.pwaInstall.title")}</DialogTitle>
+          <DialogTitle className="text-2xl">{t("athleteSpace.components.pwaInstall.title")}</DialogTitle>
           <DialogDescription className="text-base mt-2">
-            {t("athleteSpace:components.pwaInstall.description")}
+            {t("athleteSpace.components.pwaInstall.description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -146,8 +146,8 @@ export function AthletePWAInstallPopup({ playerId }: AthletePWAInstallPopupProps
               <span className="text-lg">⚡</span>
             </div>
             <div>
-              <p className="font-medium text-sm">{t("athleteSpace:components.pwaInstall.instantAccess")}</p>
-              <p className="text-xs text-muted-foreground">{t("athleteSpace:components.pwaInstall.instantAccessDesc")}</p>
+              <p className="font-medium text-sm">{t("athleteSpace.components.pwaInstall.instantAccess")}</p>
+              <p className="text-xs text-muted-foreground">{t("athleteSpace.components.pwaInstall.instantAccessDesc")}</p>
             </div>
           </div>
 
@@ -156,8 +156,8 @@ export function AthletePWAInstallPopup({ playerId }: AthletePWAInstallPopupProps
               <span className="text-lg">🔔</span>
             </div>
             <div>
-              <p className="font-medium text-sm">{t("athleteSpace:components.pwaInstall.pushNotifications")}</p>
-              <p className="text-xs text-muted-foreground">{t("athleteSpace:components.pwaInstall.pushNotificationsDesc")}</p>
+              <p className="font-medium text-sm">{t("athleteSpace.components.pwaInstall.pushNotifications")}</p>
+              <p className="text-xs text-muted-foreground">{t("athleteSpace.components.pwaInstall.pushNotificationsDesc")}</p>
             </div>
           </div>
 
@@ -166,8 +166,8 @@ export function AthletePWAInstallPopup({ playerId }: AthletePWAInstallPopupProps
               <span className="text-lg">📴</span>
             </div>
             <div>
-              <p className="font-medium text-sm">{t("athleteSpace:components.pwaInstall.offlineMode")}</p>
-              <p className="text-xs text-muted-foreground">{t("athleteSpace:components.pwaInstall.offlineModeDesc")}</p>
+              <p className="font-medium text-sm">{t("athleteSpace.components.pwaInstall.offlineMode")}</p>
+              <p className="text-xs text-muted-foreground">{t("athleteSpace.components.pwaInstall.offlineModeDesc")}</p>
             </div>
           </div>
         </div>
@@ -175,16 +175,16 @@ export function AthletePWAInstallPopup({ playerId }: AthletePWAInstallPopupProps
         <div className="flex flex-col gap-2">
           <Button onClick={handleInstall} className="w-full" size="lg">
             <Download className="mr-2 h-5 w-5" />
-            {t("athleteSpace:components.pwaInstall.install")}
+            {t("athleteSpace.components.pwaInstall.install")}
           </Button>
           <Button onClick={handleLater} variant="ghost" className="w-full">
-            {t("athleteSpace:components.pwaInstall.later")}
+            {t("athleteSpace.components.pwaInstall.later")}
           </Button>
           <button
             onClick={handleNeverShow}
             className="text-xs text-muted-foreground hover:text-foreground transition-colors mx-auto"
           >
-            {t("athleteSpace:components.pwaInstall.neverShow")}
+            {t("athleteSpace.components.pwaInstall.neverShow")}
           </button>
         </div>
       </DialogContent>

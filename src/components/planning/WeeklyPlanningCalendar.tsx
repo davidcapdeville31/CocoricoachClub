@@ -79,7 +79,8 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
   const [precisionSessionId, setPrecisionSessionId] = useState<string | null>(null);
 
   const { t } = useTranslation();
-  const DAYS = (t("planning.weeklyCalendar.days", { returnObjects: true }) as string[]) || DAYS_FALLBACK;
+  const DAYS_RAW = t("planning.weeklyCalendar.days", { returnObjects: true });
+  const DAYS = Array.isArray(DAYS_RAW) ? (DAYS_RAW as string[]) : DAYS_FALLBACK;
 
   const { user } = useAuth();
   const queryClient = useQueryClient();

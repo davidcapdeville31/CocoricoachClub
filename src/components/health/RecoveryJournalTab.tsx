@@ -230,24 +230,24 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["recovery_journal"] });
-      toast.success(t("health:recoveryJournal.toastSuccess"));
+      toast.success(t("health.recoveryJournal.toastSuccess"));
       resetForm();
       setIsDialogOpen(false);
     },
     onError: (error: any) => {
       if (error.code === "23505") {
-        toast.error(t("health:recoveryJournal.toastDuplicate"));
+        toast.error(t("health.recoveryJournal.toastDuplicate"));
       } else {
-        toast.error(t("health:recoveryJournal.toastError"));
+        toast.error(t("health.recoveryJournal.toastError"));
       }
     },
   });
 
   const getRecoveryBadge = (score: number) => {
-    if (score >= 8) return <Badge className="bg-green-500">{t("health:recoveryJournal.recoveryBadges.excellent")}</Badge>;
-    if (score >= 6) return <Badge className="bg-yellow-500 text-black">{t("health:recoveryJournal.recoveryBadges.good")}</Badge>;
-    if (score >= 4) return <Badge className="bg-orange-500">{t("health:recoveryJournal.recoveryBadges.average")}</Badge>;
-    return <Badge variant="destructive">{t("health:recoveryJournal.recoveryBadges.low")}</Badge>;
+    if (score >= 8) return <Badge className="bg-green-500">{t("health.recoveryJournal.recoveryBadges.excellent")}</Badge>;
+    if (score >= 6) return <Badge className="bg-yellow-500 text-black">{t("health.recoveryJournal.recoveryBadges.good")}</Badge>;
+    if (score >= 4) return <Badge className="bg-orange-500">{t("health.recoveryJournal.recoveryBadges.average")}</Badge>;
+    return <Badge variant="destructive">{t("health.recoveryJournal.recoveryBadges.low")}</Badge>;
   };
 
   const getModalitiesCount = (entry: any) => {
@@ -292,7 +292,7 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
       </div>
       {checked && onDurationChange && (
         <div className="flex items-center gap-2">
-          <Label className="text-sm text-muted-foreground">{t("health:recoveryJournal.durationLabel")}</Label>
+          <Label className="text-sm text-muted-foreground">{t("health.recoveryJournal.durationLabel")}</Label>
           <Input
             type="number"
             value={duration || ""}
@@ -310,18 +310,18 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h3 className="text-lg font-semibold">{t("health:recoveryJournal.title")}</h3>
+          <h3 className="text-lg font-semibold">{t("health.recoveryJournal.title")}</h3>
           <p className="text-sm text-muted-foreground">
-            {t("health:recoveryJournal.subtitle")}
+            {t("health.recoveryJournal.subtitle")}
           </p>
         </div>
         <div className="flex gap-2">
           <Select value={selectedPlayer} onValueChange={setSelectedPlayer}>
             <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder={t("health:recoveryJournal.filterPlaceholder")} />
+              <SelectValue placeholder={t("health.recoveryJournal.filterPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("health:recoveryJournal.allPlayers")}</SelectItem>
+              <SelectItem value="all">{t("health.recoveryJournal.allPlayers")}</SelectItem>
               {players?.map((player) => (
                 <SelectItem key={player.id} value={player.id}>
                   {player.name}
@@ -331,7 +331,7 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
           </Select>
           <Button onClick={() => setIsDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            {t("health:recoveryJournal.newEntry")}
+            {t("health.recoveryJournal.newEntry")}
           </Button>
         </div>
       </div>
@@ -342,7 +342,7 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
               <Moon className="h-4 w-4" />
-              {t("health:recoveryJournal.stats.avgSleep")}
+              {t("health.recoveryJournal.stats.avgSleep")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -358,7 +358,7 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
               <Snowflake className="h-4 w-4" />
-              {t("health:recoveryJournal.stats.iceBaths")}
+              {t("health.recoveryJournal.stats.iceBaths")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -371,7 +371,7 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
               <Dumbbell className="h-4 w-4" />
-              {t("health:recoveryJournal.stats.massages")}
+              {t("health.recoveryJournal.stats.massages")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -384,7 +384,7 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
               <Zap className="h-4 w-4" />
-              {t("health:recoveryJournal.stats.avgScore")}
+              {t("health.recoveryJournal.stats.avgScore")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -402,7 +402,7 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
       <Card>
         <CardContent className="pt-6">
           {isLoading ? (
-            <div className="text-center py-8 text-muted-foreground">{t("health:recoveryJournal.loading")}</div>
+            <div className="text-center py-8 text-muted-foreground">{t("health.recoveryJournal.loading")}</div>
           ) : entries && entries.length > 0 ? (
             <div className="space-y-4">
               {entries.map((entry) => (
@@ -431,22 +431,22 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
                         {entry.ice_bath && (
                           <Badge variant="outline" className="text-xs">
                             <Snowflake className="h-3 w-3 mr-1" />
-                            {t("health:recoveryJournal.entryBadges.iceBath")}
+                            {t("health.recoveryJournal.entryBadges.iceBath")}
                           </Badge>
                         )}
                         {entry.massage && (
                           <Badge variant="outline" className="text-xs">
-                            {t("health:recoveryJournal.entryBadges.massage")}
+                            {t("health.recoveryJournal.entryBadges.massage")}
                           </Badge>
                         )}
                         {entry.stretching && (
                           <Badge variant="outline" className="text-xs">
-                            {t("health:recoveryJournal.entryBadges.stretching")}
+                            {t("health.recoveryJournal.entryBadges.stretching")}
                           </Badge>
                         )}
                         {getModalitiesCount(entry) > 4 && (
                           <Badge variant="outline" className="text-xs">
-                            {t("health:recoveryJournal.entryBadges.others", { count: getModalitiesCount(entry) - 4 })}
+                            {t("health.recoveryJournal.entryBadges.others", { count: getModalitiesCount(entry) - 4 })}
                           </Badge>
                         )}
                       </div>
@@ -454,7 +454,7 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-right">
-                      <p className="text-sm text-muted-foreground">{t("health:recoveryJournal.recoveryScoreLabel")}</p>
+                      <p className="text-sm text-muted-foreground">{t("health.recoveryJournal.recoveryScoreLabel")}</p>
                       {getRecoveryBadge(entry.overall_recovery_score || 5)}
                     </div>
                   </div>
@@ -463,7 +463,7 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
             </div>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
-              {t("health:recoveryJournal.empty")}
+              {t("health.recoveryJournal.empty")}
             </div>
           )}
         </CardContent>
@@ -473,25 +473,25 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh]">
           <DialogHeader>
-            <DialogTitle>{t("health:recoveryJournal.dialog.title")}</DialogTitle>
+            <DialogTitle>{t("health.recoveryJournal.dialog.title")}</DialogTitle>
           </DialogHeader>
 
           <ScrollArea className="h-[calc(90vh-180px)] pr-4">
             <Tabs defaultValue="general" className="space-y-4">
               <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="general">{t("health:recoveryJournal.dialog.tabs.general")}</TabsTrigger>
-                <TabsTrigger value="sleep">{t("health:recoveryJournal.dialog.tabs.sleep")}</TabsTrigger>
-                <TabsTrigger value="modalities">{t("health:recoveryJournal.dialog.tabs.modalities")}</TabsTrigger>
-                <TabsTrigger value="scores">{t("health:recoveryJournal.dialog.tabs.scores")}</TabsTrigger>
+                <TabsTrigger value="general">{t("health.recoveryJournal.dialog.tabs.general")}</TabsTrigger>
+                <TabsTrigger value="sleep">{t("health.recoveryJournal.dialog.tabs.sleep")}</TabsTrigger>
+                <TabsTrigger value="modalities">{t("health.recoveryJournal.dialog.tabs.modalities")}</TabsTrigger>
+                <TabsTrigger value="scores">{t("health.recoveryJournal.dialog.tabs.scores")}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="general" className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("health:recoveryJournal.dialog.player")}</Label>
+                    <Label>{t("health.recoveryJournal.dialog.player")}</Label>
                     <Select value={playerId} onValueChange={setPlayerId}>
                       <SelectTrigger>
-                        <SelectValue placeholder={t("health:recoveryJournal.dialog.selectPlaceholder")} />
+                        <SelectValue placeholder={t("health.recoveryJournal.dialog.selectPlaceholder")} />
                       </SelectTrigger>
                       <SelectContent>
                         {players?.map((player) => (
@@ -503,7 +503,7 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("health:recoveryJournal.dialog.date")}</Label>
+                    <Label>{t("health.recoveryJournal.dialog.date")}</Label>
                     <Input
                       type="date"
                       value={entryDate}
@@ -514,18 +514,18 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("health:recoveryJournal.dialog.hydration")}</Label>
+                    <Label>{t("health.recoveryJournal.dialog.hydration")}</Label>
                     <Input
                       type="number"
                       step="0.5"
                       value={waterIntake || ""}
                       onChange={(e) => setWaterIntake(e.target.value ? Number(e.target.value) : undefined)}
-                      placeholder={t("health:recoveryJournal.dialog.hydrationPlaceholder")}
+                      placeholder={t("health.recoveryJournal.dialog.hydrationPlaceholder")}
                     />
                   </div>
                   <div className="flex items-center gap-2 mt-8">
                     <Switch checked={proteinShake} onCheckedChange={setProteinShake} />
-                    <Label>{t("health:recoveryJournal.dialog.proteinShake")}</Label>
+                    <Label>{t("health.recoveryJournal.dialog.proteinShake")}</Label>
                   </div>
                 </div>
               </TabsContent>
@@ -533,18 +533,18 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
               <TabsContent value="sleep" className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("health:recoveryJournal.dialog.sleepDuration")}</Label>
+                    <Label>{t("health.recoveryJournal.dialog.sleepDuration")}</Label>
                     <Input
                       type="number"
                       step="0.5"
                       value={sleepDuration || ""}
                       onChange={(e) => setSleepDuration(e.target.value ? Number(e.target.value) : undefined)}
-                      placeholder={t("health:recoveryJournal.dialog.sleepDurationPlaceholder")}
+                      placeholder={t("health.recoveryJournal.dialog.sleepDurationPlaceholder")}
                     />
                   </div>
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <Label>{t("health:recoveryJournal.dialog.sleepQuality")}</Label>
+                      <Label>{t("health.recoveryJournal.dialog.sleepQuality")}</Label>
                       <span className="text-sm text-muted-foreground">{sleepQuality}/5</span>
                     </div>
                     <Slider
@@ -559,7 +559,7 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>{t("health:recoveryJournal.dialog.bedTime")}</Label>
+                    <Label>{t("health.recoveryJournal.dialog.bedTime")}</Label>
                     <Input
                       type="time"
                       value={bedTime}
@@ -567,7 +567,7 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>{t("health:recoveryJournal.dialog.wakeTime")}</Label>
+                    <Label>{t("health.recoveryJournal.dialog.wakeTime")}</Label>
                     <Input
                       type="time"
                       value={wakeTime}
@@ -577,11 +577,11 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>{t("health:recoveryJournal.dialog.sleepNotes")}</Label>
+                  <Label>{t("health.recoveryJournal.dialog.sleepNotes")}</Label>
                   <Textarea
                     value={sleepNotes}
                     onChange={(e) => setSleepNotes(e.target.value)}
-                    placeholder={t("health:recoveryJournal.dialog.sleepNotesPlaceholder")}
+                    placeholder={t("health.recoveryJournal.dialog.sleepNotesPlaceholder")}
                   />
                 </div>
               </TabsContent>
@@ -589,7 +589,7 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
               <TabsContent value="modalities" className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <RecoveryModalitySwitch
-                    label={t("health:recoveryJournal.dialog.modalities.iceBath")}
+                    label={t("health.recoveryJournal.dialog.modalities.iceBath")}
                     icon={Snowflake}
                     checked={iceBath}
                     onCheckedChange={setIceBath}
@@ -597,7 +597,7 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
                     onDurationChange={setIceBathDuration}
                   >
                     <div className="flex items-center gap-2">
-                      <Label className="text-sm text-muted-foreground">{t("health:recoveryJournal.dialog.modalities.iceBathTemp")}</Label>
+                      <Label className="text-sm text-muted-foreground">{t("health.recoveryJournal.dialog.modalities.iceBathTemp")}</Label>
                       <Input
                         type="number"
                         value={iceBathTemp || ""}
@@ -608,7 +608,7 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
                   </RecoveryModalitySwitch>
 
                   <RecoveryModalitySwitch
-                    label={t("health:recoveryJournal.dialog.modalities.contrastBath")}
+                    label={t("health.recoveryJournal.dialog.modalities.contrastBath")}
                     icon={ThermometerSnowflake}
                     checked={contrastBath}
                     onCheckedChange={setContrastBath}
@@ -617,7 +617,7 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
                   />
 
                   <RecoveryModalitySwitch
-                    label={t("health:recoveryJournal.dialog.modalities.massage")}
+                    label={t("health.recoveryJournal.dialog.modalities.massage")}
                     icon={Dumbbell}
                     checked={massage}
                     onCheckedChange={setMassage}
@@ -627,13 +627,13 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
                     <Input
                       value={massageType}
                       onChange={(e) => setMassageType(e.target.value)}
-                      placeholder={t("health:recoveryJournal.dialog.modalities.massageTypePlaceholder")}
+                      placeholder={t("health.recoveryJournal.dialog.modalities.massageTypePlaceholder")}
                       className="mt-2"
                     />
                   </RecoveryModalitySwitch>
 
                   <RecoveryModalitySwitch
-                    label={t("health:recoveryJournal.dialog.modalities.foamRolling")}
+                    label={t("health.recoveryJournal.dialog.modalities.foamRolling")}
                     icon={Activity}
                     checked={foamRolling}
                     onCheckedChange={setFoamRolling}
@@ -642,7 +642,7 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
                   />
 
                   <RecoveryModalitySwitch
-                    label={t("health:recoveryJournal.dialog.modalities.stretching")}
+                    label={t("health.recoveryJournal.dialog.modalities.stretching")}
                     icon={Activity}
                     checked={stretching}
                     onCheckedChange={setStretching}
@@ -651,7 +651,7 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
                   >
                     <Select value={stretchingType} onValueChange={setStretchingType}>
                       <SelectTrigger className="mt-2">
-                        <SelectValue placeholder={t("health:recoveryJournal.dialog.modalities.stretchingTypePlaceholder")} />
+                        <SelectValue placeholder={t("health.recoveryJournal.dialog.modalities.stretchingTypePlaceholder")} />
                       </SelectTrigger>
                       <SelectContent>
                         {STRETCHING_TYPES.map((type) => (
@@ -664,7 +664,7 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
                   </RecoveryModalitySwitch>
 
                   <RecoveryModalitySwitch
-                    label={t("health:recoveryJournal.dialog.modalities.compression")}
+                    label={t("health.recoveryJournal.dialog.modalities.compression")}
                     icon={Activity}
                     checked={compression}
                     onCheckedChange={setCompression}
@@ -673,7 +673,7 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
                   />
 
                   <RecoveryModalitySwitch
-                    label={t("health:recoveryJournal.dialog.modalities.sauna")}
+                    label={t("health.recoveryJournal.dialog.modalities.sauna")}
                     icon={Droplets}
                     checked={sauna}
                     onCheckedChange={setSauna}
@@ -682,7 +682,7 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
                   />
 
                   <RecoveryModalitySwitch
-                    label={t("health:recoveryJournal.dialog.modalities.cryotherapy")}
+                    label={t("health.recoveryJournal.dialog.modalities.cryotherapy")}
                     icon={Snowflake}
                     checked={cryotherapy}
                     onCheckedChange={setCryotherapy}
@@ -691,7 +691,7 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
                   />
 
                   <RecoveryModalitySwitch
-                    label={t("health:recoveryJournal.dialog.modalities.activeRecovery")}
+                    label={t("health.recoveryJournal.dialog.modalities.activeRecovery")}
                     icon={Activity}
                     checked={activeRecovery}
                     onCheckedChange={setActiveRecovery}
@@ -701,7 +701,7 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
                     <Input
                       value={activeRecoveryType}
                       onChange={(e) => setActiveRecoveryType(e.target.value)}
-                      placeholder={t("health:recoveryJournal.dialog.modalities.activeRecoveryTypePlaceholder")}
+                      placeholder={t("health.recoveryJournal.dialog.modalities.activeRecoveryTypePlaceholder")}
                       className="mt-2"
                     />
                   </RecoveryModalitySwitch>
@@ -712,7 +712,7 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <Label>{t("health:recoveryJournal.dialog.overallRecoveryScore")}</Label>
+                      <Label>{t("health.recoveryJournal.dialog.overallRecoveryScore")}</Label>
                       <span className="text-lg font-bold">{overallRecoveryScore}/10</span>
                     </div>
                     <Slider
@@ -726,7 +726,7 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
 
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <Label>{t("health:recoveryJournal.dialog.energyLevel")}</Label>
+                      <Label>{t("health.recoveryJournal.dialog.energyLevel")}</Label>
                       <span className="text-sm text-muted-foreground">{energyLevel}/5</span>
                     </div>
                     <Slider
@@ -740,7 +740,7 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
 
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <Label>{t("health:recoveryJournal.dialog.muscleReadiness")}</Label>
+                      <Label>{t("health.recoveryJournal.dialog.muscleReadiness")}</Label>
                       <span className="text-sm text-muted-foreground">{muscleReadiness}/5</span>
                     </div>
                     <Slider
@@ -753,11 +753,11 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>{t("health:recoveryJournal.dialog.generalNotes")}</Label>
+                    <Label>{t("health.recoveryJournal.dialog.generalNotes")}</Label>
                     <Textarea
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      placeholder={t("health:recoveryJournal.dialog.generalNotesPlaceholder")}
+                      placeholder={t("health.recoveryJournal.dialog.generalNotesPlaceholder")}
                     />
                   </div>
                 </div>
@@ -767,13 +767,13 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
 
           <DialogFooter className="mt-4">
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              {t("health:recoveryJournal.dialog.cancel")}
+              {t("health.recoveryJournal.dialog.cancel")}
             </Button>
             <Button
               onClick={() => addEntry.mutate()}
               disabled={!playerId || addEntry.isPending}
             >
-              {addEntry.isPending ? t("health:recoveryJournal.dialog.adding") : t("health:recoveryJournal.dialog.add")}
+              {addEntry.isPending ? t("health.recoveryJournal.dialog.adding") : t("health.recoveryJournal.dialog.add")}
             </Button>
           </DialogFooter>
         </DialogContent>

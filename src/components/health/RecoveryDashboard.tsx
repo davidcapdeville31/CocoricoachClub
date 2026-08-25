@@ -94,11 +94,11 @@ function getRecoveryBg(score: number) {
 }
 
 function getRecoveryLabel(score: number) {
-  if (score >= 80) return i18n.t("health:recoveryDashboard.labels.excellent");
-  if (score >= 70) return i18n.t("health:recoveryDashboard.labels.good");
-  if (score >= 55) return i18n.t("health:recoveryDashboard.labels.average");
-  if (score >= 40) return i18n.t("health:recoveryDashboard.labels.low");
-  return i18n.t("health:recoveryDashboard.labels.critical");
+  if (score >= 80) return i18n.t("health.recoveryDashboard.labels.excellent");
+  if (score >= 70) return i18n.t("health.recoveryDashboard.labels.good");
+  if (score >= 55) return i18n.t("health.recoveryDashboard.labels.average");
+  if (score >= 40) return i18n.t("health.recoveryDashboard.labels.low");
+  return i18n.t("health.recoveryDashboard.labels.critical");
 }
 
 function getTrendIcon(trend: string) {
@@ -108,7 +108,7 @@ function getTrendIcon(trend: string) {
 }
 
 function getPredictionBadge(prediction: string, score: number) {
-  const label = i18n.t("health:recoveryDashboard.prediction", { score });
+  const label = i18n.t("health.recoveryDashboard.prediction", { score });
   if (prediction === "good") return <Badge className="bg-green-500/15 text-green-600 border-green-500/30">{label}</Badge>;
   if (prediction === "moderate") return <Badge className="bg-orange-500/15 text-orange-600 border-orange-500/30">{label}</Badge>;
   return <Badge className="bg-red-500/15 text-red-600 border-red-500/30">{label}</Badge>;
@@ -133,7 +133,7 @@ export function RecoveryDashboard({ categoryId }: RecoveryDashboardProps) {
   });
 
   if (isLoading) {
-    return <div className="text-muted-foreground p-4">{t("health:recoveryDashboard.loading")}</div>;
+    return <div className="text-muted-foreground p-4">{t("health.recoveryDashboard.loading")}</div>;
   }
 
   if (!wellnessData || wellnessData.length === 0) {
@@ -141,8 +141,8 @@ export function RecoveryDashboard({ categoryId }: RecoveryDashboardProps) {
       <Card>
         <CardContent className="py-8 text-center text-muted-foreground">
           <Moon className="h-8 w-8 mx-auto mb-2 opacity-50" />
-          <p className="font-medium">{t("health:recoveryDashboard.empty.title")}</p>
-          <p className="text-sm mt-1">{t("health:recoveryDashboard.empty.description")}</p>
+          <p className="font-medium">{t("health.recoveryDashboard.empty.title")}</p>
+          <p className="text-sm mt-1">{t("health.recoveryDashboard.empty.description")}</p>
         </CardContent>
       </Card>
     );
@@ -159,7 +159,7 @@ export function RecoveryDashboard({ categoryId }: RecoveryDashboardProps) {
   const playerRecoveries: PlayerRecovery[] = Object.entries(byPlayer).map(([playerId, entries]) => {
     const playerName = (() => {
       const p = (entries as any[])[0]?.players;
-      return [p?.first_name, p?.name].filter(Boolean).join(" ") || i18n.t("health:recoveryDashboard.unknownPlayer");
+      return [p?.first_name, p?.name].filter(Boolean).join(" ") || i18n.t("health.recoveryDashboard.unknownPlayer");
     })();
 
     const last7 = (entries as any[]).filter((e: any) => e.tracking_date >= format(subDays(new Date(), 7), "yyyy-MM-dd"));
@@ -273,10 +273,10 @@ export function RecoveryDashboard({ categoryId }: RecoveryDashboardProps) {
       <div>
         <h3 className="text-lg font-semibold flex items-center gap-2">
           <Moon className="h-5 w-5" />
-          {t("health:recoveryDashboard.title")}
+          {t("health.recoveryDashboard.title")}
         </h3>
         <p className="text-sm text-muted-foreground">
-          {t("health:recoveryDashboard.subtitle")}
+          {t("health.recoveryDashboard.subtitle")}
         </p>
       </div>
 
@@ -286,7 +286,7 @@ export function RecoveryDashboard({ categoryId }: RecoveryDashboardProps) {
           <CardContent className="pt-4 pb-3">
             <div className="flex items-center gap-2 mb-1">
               <Zap className="h-4 w-4" />
-              <span className="text-xs font-medium">{t("health:recoveryDashboard.kpis.teamRecovery")}</span>
+              <span className="text-xs font-medium">{t("health.recoveryDashboard.kpis.teamRecovery")}</span>
             </div>
             <p className={`text-2xl font-bold ${getRecoveryColor(teamAvgRecovery)}`}>
               {teamAvgRecovery}%
@@ -299,10 +299,10 @@ export function RecoveryDashboard({ categoryId }: RecoveryDashboardProps) {
           <CardContent className="pt-4 pb-3">
             <div className="flex items-center gap-2 mb-1">
               <BedDouble className="h-4 w-4" />
-              <span className="text-xs font-medium">{t("health:recoveryDashboard.kpis.avgSleep")}</span>
+              <span className="text-xs font-medium">{t("health.recoveryDashboard.kpis.avgSleep")}</span>
             </div>
             <p className={`text-2xl font-bold ${teamAvgSleep <= 2 ? "text-green-600" : teamAvgSleep <= 3 ? "text-amber-600" : "text-red-600"}`}>{teamAvgSleep}/5</p>
-            <p className="text-xs text-muted-foreground">{teamAvgSleep <= 2 ? t("health:recoveryDashboard.kpis.goodSleep") : teamAvgSleep <= 3 ? t("health:recoveryDashboard.kpis.averageSleep") : t("health:recoveryDashboard.kpis.insufficientSleep")}</p>
+            <p className="text-xs text-muted-foreground">{teamAvgSleep <= 2 ? t("health.recoveryDashboard.kpis.goodSleep") : teamAvgSleep <= 3 ? t("health.recoveryDashboard.kpis.averageSleep") : t("health.recoveryDashboard.kpis.insufficientSleep")}</p>
           </CardContent>
         </Card>
 
@@ -310,10 +310,10 @@ export function RecoveryDashboard({ categoryId }: RecoveryDashboardProps) {
           <CardContent className="pt-4 pb-3">
             <div className="flex items-center gap-2 mb-1">
               <ThermometerSun className="h-4 w-4" />
-              <span className="text-xs font-medium">{t("health:recoveryDashboard.kpis.avgFatigue")}</span>
+              <span className="text-xs font-medium">{t("health.recoveryDashboard.kpis.avgFatigue")}</span>
             </div>
             <p className="text-2xl font-bold text-amber-600">{teamAvgFatigue}/5</p>
-            <p className="text-xs text-muted-foreground">{teamAvgFatigue <= 2 ? t("health:recoveryDashboard.kpis.optimal") : teamAvgFatigue <= 3 ? t("health:recoveryDashboard.kpis.moderate") : t("health:recoveryDashboard.kpis.high")}</p>
+            <p className="text-xs text-muted-foreground">{teamAvgFatigue <= 2 ? t("health.recoveryDashboard.kpis.optimal") : teamAvgFatigue <= 3 ? t("health.recoveryDashboard.kpis.moderate") : t("health.recoveryDashboard.kpis.high")}</p>
           </CardContent>
         </Card>
 
@@ -321,13 +321,13 @@ export function RecoveryDashboard({ categoryId }: RecoveryDashboardProps) {
           <CardContent className="pt-4 pb-3">
             <div className="flex items-center gap-2 mb-1">
               <AlertTriangle className="h-4 w-4" />
-              <span className="text-xs font-medium">{t("health:recoveryDashboard.kpis.recoveryAlerts")}</span>
+              <span className="text-xs font-medium">{t("health.recoveryDashboard.kpis.recoveryAlerts")}</span>
             </div>
             <p className={`text-2xl font-bold ${poorRecovery.length > 0 ? "text-red-600" : "text-green-600"}`}>
               {poorRecovery.length}
             </p>
             <p className="text-xs text-muted-foreground">
-              {t("health:recoveryDashboard.kpis.declining", { count: decliningPlayers.length })}
+              {t("health.recoveryDashboard.kpis.declining", { count: decliningPlayers.length })}
             </p>
           </CardContent>
         </Card>
@@ -339,7 +339,7 @@ export function RecoveryDashboard({ categoryId }: RecoveryDashboardProps) {
         {dailyData.length > 2 && (
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm">{t("health:recoveryDashboard.charts.teamTrendTitle")}</CardTitle>
+              <CardTitle className="text-sm">{t("health.recoveryDashboard.charts.teamTrendTitle")}</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={220}>
@@ -351,18 +351,18 @@ export function RecoveryDashboard({ categoryId }: RecoveryDashboardProps) {
                   <Tooltip
                     formatter={(value: number, name: string) => {
                       const labels: Record<string, string> = {
-                        recovery: t("health:recoveryDashboard.charts.recoveryPercentLabel"),
-                        sleep: t("health:recoveryDashboard.charts.sleepLabel"),
-                        fatigue: t("health:recoveryDashboard.charts.fatigueLabel"),
+                        recovery: t("health.recoveryDashboard.charts.recoveryPercentLabel"),
+                        sleep: t("health.recoveryDashboard.charts.sleepLabel"),
+                        fatigue: t("health.recoveryDashboard.charts.fatigueLabel"),
                       };
                       return [name === "recovery" ? `${value}%` : `${value}/5`, labels[name] || name];
                     }}
                   />
                   <Legend formatter={(value) => {
                     const labels: Record<string, string> = {
-                      recovery: t("health:recoveryDashboard.charts.recoveryLabel"),
-                      sleep: t("health:recoveryDashboard.charts.sleepLabel"),
-                      fatigue: t("health:recoveryDashboard.charts.fatigueLabel"),
+                      recovery: t("health.recoveryDashboard.charts.recoveryLabel"),
+                      sleep: t("health.recoveryDashboard.charts.sleepLabel"),
+                      fatigue: t("health.recoveryDashboard.charts.fatigueLabel"),
                     };
                     return labels[value] || value;
                   }} />
@@ -381,7 +381,7 @@ export function RecoveryDashboard({ categoryId }: RecoveryDashboardProps) {
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
                 <Brain className="h-4 w-4" />
-                {t("health:recoveryDashboard.charts.playerBarTitle")}
+                {t("health.recoveryDashboard.charts.playerBarTitle")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -392,9 +392,9 @@ export function RecoveryDashboard({ categoryId }: RecoveryDashboardProps) {
                   <YAxis dataKey="name" type="category" tick={{ fontSize: 10 }} width={70} />
                   <Tooltip formatter={(value: number, name: string) => [
                     `${value}%`,
-                    name === "score" ? t("health:recoveryDashboard.charts.current") : t("health:recoveryDashboard.charts.predictionTomorrow")
+                    name === "score" ? t("health.recoveryDashboard.charts.current") : t("health.recoveryDashboard.charts.predictionTomorrow")
                   ]} />
-                  <Legend formatter={(value) => value === "score" ? t("health:recoveryDashboard.charts.current") : t("health:recoveryDashboard.charts.predictionTomorrow")} />
+                  <Legend formatter={(value) => value === "score" ? t("health.recoveryDashboard.charts.current") : t("health.recoveryDashboard.charts.predictionTomorrow")} />
                   <Bar dataKey="score" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} barSize={12}>
                     {barData.map((entry, index) => (
                       <Cell key={index} fill={entry.score >= 70 ? "#22c55e" : entry.score >= 45 ? "#f59e0b" : "#ef4444"} />
@@ -411,8 +411,8 @@ export function RecoveryDashboard({ categoryId }: RecoveryDashboardProps) {
       {/* Player cards */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">{t("health:recoveryDashboard.playerDetail.title")}</CardTitle>
-          <CardDescription>{t("health:recoveryDashboard.playerDetail.description")}</CardDescription>
+          <CardTitle className="text-sm">{t("health.recoveryDashboard.playerDetail.title")}</CardTitle>
+          <CardDescription>{t("health.recoveryDashboard.playerDetail.description")}</CardDescription>
         </CardHeader>
         <CardContent>
           <ScrollArea className="h-[400px]">
@@ -445,30 +445,30 @@ export function RecoveryDashboard({ categoryId }: RecoveryDashboardProps) {
                   />
 
                   <div className="grid grid-cols-3 gap-1 text-xs text-muted-foreground">
-                    <div title={t("health:recoveryDashboard.playerDetail.sleepTitle")}>🛏 {player.sleepQualityAvg}/5</div>
-                    <div title={t("health:recoveryDashboard.playerDetail.fatigueTitle")}>💤 {player.fatigueAvg}/5</div>
-                    <div title={t("health:recoveryDashboard.playerDetail.sorenessTitle")}>🦵 {player.sorenessAvg}/5</div>
+                    <div title={t("health.recoveryDashboard.playerDetail.sleepTitle")}>🛏 {player.sleepQualityAvg}/5</div>
+                    <div title={t("health.recoveryDashboard.playerDetail.fatigueTitle")}>💤 {player.fatigueAvg}/5</div>
+                    <div title={t("health.recoveryDashboard.playerDetail.sorenessTitle")}>🦵 {player.sorenessAvg}/5</div>
                   </div>
 
                   <div className="flex items-center justify-between pt-1 border-t border-border/50">
                     {getPredictionBadge(player.prediction, player.predictionScore)}
-                    <span className="text-xs text-muted-foreground">{t("health:recoveryDashboard.playerDetail.daysOfData", { days: player.daysOfData })}</span>
+                    <span className="text-xs text-muted-foreground">{t("health.recoveryDashboard.playerDetail.daysOfData", { days: player.daysOfData })}</span>
                   </div>
 
                   {/* Micro recommendations */}
                   {player.recoveryScore < 45 && (
                     <p className="text-xs text-red-600 font-medium">
-                      {t("health:recoveryDashboard.playerDetail.recommendationLowRecovery")}
+                      {t("health.recoveryDashboard.playerDetail.recommendationLowRecovery")}
                     </p>
                   )}
                   {player.trend === "declining" && player.recoveryScore >= 45 && (
                     <p className="text-xs text-orange-600">
-                      {t("health:recoveryDashboard.playerDetail.recommendationDecliningTrend")}
+                      {t("health.recoveryDashboard.playerDetail.recommendationDecliningTrend")}
                     </p>
                   )}
                   {player.sleepQualityAvg >= 3.5 && (
                     <p className="text-xs text-indigo-600">
-                      {t("health:recoveryDashboard.playerDetail.recommendationPoorSleep")}
+                      {t("health.recoveryDashboard.playerDetail.recommendationPoorSleep")}
                     </p>
                   )}
                 </div>

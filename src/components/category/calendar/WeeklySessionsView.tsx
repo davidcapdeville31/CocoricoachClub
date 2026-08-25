@@ -55,7 +55,8 @@ export function WeeklySessionsView({
   playerNamesMap,
 }: WeeklySessionsViewProps) {
   const { t } = useTranslation();
-  const DAYS_OF_WEEK = t("planning.calendarViews.daysFull", { returnObjects: true }) as string[];
+  const DAYS_OF_WEEK_RAW = t("planning.calendarViews.daysFull", { returnObjects: true });
+  const DAYS_OF_WEEK = Array.isArray(DAYS_OF_WEEK_RAW) ? (DAYS_OF_WEEK_RAW as string[]) : ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(currentWeek, { weekStartsOn: 1 });
   const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });

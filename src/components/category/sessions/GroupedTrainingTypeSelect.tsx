@@ -36,7 +36,7 @@ export function GroupedTrainingTypeSelect({
   showExerciseIcon = false,
 }: GroupedTrainingTypeSelectProps) {
   const { t } = useTranslation();
-  const effectivePlaceholder = placeholder ?? t("planning:calendarDialogs.sessionForm.selectType");
+  const effectivePlaceholder = placeholder ?? t("planning.calendarDialogs.sessionForm.selectType");
   const hasGroups = hasGroupedTrainingTypes(sportType);
   const groups = getTrainingTypesGrouped(sportType);
   const flatTypes = getTrainingTypesForSport(sportType);
@@ -72,7 +72,7 @@ export function GroupedTrainingTypeSelect({
             <SelectItem value="_custom">
               <span className="flex items-center gap-2 text-primary">
                 <Plus className="h-3 w-3" />
-                {t("planning:calendarDialogs.sessionForm.otherCustom")}
+                {t("planning.calendarDialogs.sessionForm.otherCustom")}
               </span>
             </SelectItem>
           )}

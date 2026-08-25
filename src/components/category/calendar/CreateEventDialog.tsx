@@ -785,7 +785,7 @@ export function CreateEventDialog({
                         <SelectValue placeholder={t("planning.calendarDialogs.createEvent.chooseTheme")} />
                       </SelectTrigger>
                       <SelectContent>
-                        {(t("planning.calendarDialogs.createEvent.mentalThemes", { returnObjects: true }) as string[]).map((theme) => (
+                        {((): string[] => { const r = t("planning.calendarDialogs.createEvent.mentalThemes", { returnObjects: true }); return Array.isArray(r) ? (r as string[]) : []; })().map((theme) => (
                           <SelectItem key={theme} value={theme}>{theme}</SelectItem>
                         ))}
                       </SelectContent>

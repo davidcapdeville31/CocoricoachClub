@@ -79,7 +79,8 @@ export function MonthlyCalendarView({
   onRescheduleSession,
 }: MonthlyCalendarViewProps) {
   const { t } = useTranslation();
-  const DAYS_OF_WEEK = t("planning.calendarViews.daysShort", { returnObjects: true }) as string[];
+  const DAYS_OF_WEEK_RAW = t("planning.calendarViews.daysShort", { returnObjects: true });
+  const DAYS_OF_WEEK = Array.isArray(DAYS_OF_WEEK_RAW) ? (DAYS_OF_WEEK_RAW as string[]) : ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [activeSession, setActiveSession] = useState<Session | null>(null);
   const [feedbackSession, setFeedbackSession] = useState<Session | null>(null);

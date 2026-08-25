@@ -41,11 +41,11 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
   const { t } = useTranslation();
   const qc = useQueryClient();
   const FEELINGS = [
-    { value: 1, label: t("athleteSpace:components.sessionValidationDialog.feelings.great"), emoji: "💪" },
-    { value: 2, label: t("athleteSpace:components.sessionValidationDialog.feelings.good"), emoji: "🙂" },
-    { value: 3, label: t("athleteSpace:components.sessionValidationDialog.feelings.average"), emoji: "😐" },
-    { value: 4, label: t("athleteSpace:components.sessionValidationDialog.feelings.tired"), emoji: "😓" },
-    { value: 5, label: t("athleteSpace:components.sessionValidationDialog.feelings.exhausted"), emoji: "🥵" },
+    { value: 1, label: t("athleteSpace.components.sessionValidationDialog.feelings.great"), emoji: "💪" },
+    { value: 2, label: t("athleteSpace.components.sessionValidationDialog.feelings.good"), emoji: "🙂" },
+    { value: 3, label: t("athleteSpace.components.sessionValidationDialog.feelings.average"), emoji: "😐" },
+    { value: 4, label: t("athleteSpace.components.sessionValidationDialog.feelings.tired"), emoji: "😓" },
+    { value: 5, label: t("athleteSpace.components.sessionValidationDialog.feelings.exhausted"), emoji: "🥵" },
   ];
   const [feeling, setFeeling] = useState<number>(2);
   const [rpe, setRpe] = useState<number>(5);
@@ -89,7 +89,7 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
   const handleSubmit = async () => {
     if (!session || !playerId || !categoryId) return;
     if (!duration || duration <= 0) {
-      toast.error(t("athleteSpace:components.sessionValidationDialog.durationRequired"));
+      toast.error(t("athleteSpace.components.sessionValidationDialog.durationRequired"));
       return;
     }
     setSubmitting(true);
@@ -193,11 +193,11 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
           });
         if (weightError) {
           console.error("Weight log insert error:", weightError);
-          toast.error(t("athleteSpace:components.sessionValidationDialog.validationError"));
+          toast.error(t("athleteSpace.components.sessionValidationDialog.validationError"));
         }
       }
 
-      toast.success(t("athleteSpace:components.sessionValidationDialog.validated"));
+      toast.success(t("athleteSpace.components.sessionValidationDialog.validated"));
       qc.invalidateQueries({ queryKey: ["athlete-space-rpes"] });
       qc.invalidateQueries({ queryKey: ["athlete-space-awcr"] });
       qc.invalidateQueries({ queryKey: ["athlete-space-sessions"] });
@@ -211,7 +211,7 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
       qc.invalidateQueries({ queryKey: ["notifications"] });
       onOpenChange(false);
     } catch (e: any) {
-      toast.error(e?.message || t("athleteSpace:components.sessionValidationDialog.saveError"));
+      toast.error(e?.message || t("athleteSpace.components.sessionValidationDialog.saveError"));
     } finally {
       setSubmitting(false);
     }
@@ -223,10 +223,10 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CheckCircle2 className="h-5 w-5 text-status-optimal" />
-            {t("athleteSpace:components.sessionValidationDialog.title")}
+            {t("athleteSpace.components.sessionValidationDialog.title")}
           </DialogTitle>
           <DialogDescription>
-            {t("athleteSpace:components.sessionValidationDialog.description")}
+            {t("athleteSpace.components.sessionValidationDialog.description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -244,7 +244,7 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
 
           {/* Feeling */}
           <div>
-            <Label className="text-sm mb-2 block">{t("athleteSpace:components.sessionValidationDialog.feelingQuestion")}</Label>
+            <Label className="text-sm mb-2 block">{t("athleteSpace.components.sessionValidationDialog.feelingQuestion")}</Label>
             <div className="grid grid-cols-5 gap-1.5">
               {FEELINGS.map((f) => (
                 <button
@@ -267,7 +267,7 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
           {/* Duration */}
           <div>
             <Label className="text-sm mb-1.5 flex items-center gap-1.5">
-              <Clock className="h-4 w-4 text-primary" /> {t("athleteSpace:components.sessionValidationDialog.duration")}
+              <Clock className="h-4 w-4 text-primary" /> {t("athleteSpace.components.sessionValidationDialog.duration")}
             </Label>
             <Input
               type="number"
@@ -278,7 +278,7 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
             />
             {plannedDuration > 0 && (
               <p className="text-[11px] text-muted-foreground mt-1">
-                {t("athleteSpace:components.sessionValidationDialog.plannedByCoach", { count: plannedDuration })}
+                {t("athleteSpace.components.sessionValidationDialog.plannedByCoach", { count: plannedDuration })}
               </p>
             )}
           </div>
@@ -286,27 +286,27 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
           {/* RPE */}
           <div className="rounded-lg border p-3 bg-muted/10">
             <div className="flex items-center justify-between mb-2">
-              <Label className="text-sm">{t("athleteSpace:components.sessionValidationDialog.rpe")}</Label>
+              <Label className="text-sm">{t("athleteSpace.components.sessionValidationDialog.rpe")}</Label>
               <span className={`text-lg font-bold ${getRpeColor(rpe)}`}>{rpe}/10</span>
             </div>
             <Slider value={[rpe]} onValueChange={([v]) => setRpe(v)} min={1} max={10} step={1} />
             <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
-              <span>{t("athleteSpace:components.sessionValidationDialog.easy")}</span>
-              <span>{t("athleteSpace:components.sessionValidationDialog.moderate")}</span>
-              <span>{t("athleteSpace:components.sessionValidationDialog.max")}</span>
+              <span>{t("athleteSpace.components.sessionValidationDialog.easy")}</span>
+              <span>{t("athleteSpace.components.sessionValidationDialog.moderate")}</span>
+              <span>{t("athleteSpace.components.sessionValidationDialog.max")}</span>
             </div>
             <p className="text-xs text-muted-foreground mt-2">
-              {t("athleteSpace:components.sessionValidationDialog.estimatedLoad", { load: totalLoad })}
+              {t("athleteSpace.components.sessionValidationDialog.estimatedLoad", { load: totalLoad })}
             </p>
           </div>
 
           {/* Comment */}
           <div>
-            <Label className="text-sm mb-1.5 block">{t("athleteSpace:components.sessionValidationDialog.comment")}</Label>
+            <Label className="text-sm mb-1.5 block">{t("athleteSpace.components.sessionValidationDialog.comment")}</Label>
             <Textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder={t("athleteSpace:components.sessionValidationDialog.commentPlaceholder")}
+              placeholder={t("athleteSpace.components.sessionValidationDialog.commentPlaceholder")}
               rows={3}
               maxLength={500}
             />
@@ -314,10 +314,10 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
 
           <div className="flex gap-2 pt-1">
             <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)} disabled={submitting}>
-              {t("athleteSpace:components.sessionValidationDialog.cancel")}
+              {t("athleteSpace.components.sessionValidationDialog.cancel")}
             </Button>
             <Button className="flex-1 gap-1.5" onClick={handleSubmit} disabled={submitting}>
-              <Send className="h-4 w-4" /> {t("athleteSpace:components.sessionValidationDialog.submit")}
+              <Send className="h-4 w-4" /> {t("athleteSpace.components.sessionValidationDialog.submit")}
             </Button>
           </div>
         </div>
