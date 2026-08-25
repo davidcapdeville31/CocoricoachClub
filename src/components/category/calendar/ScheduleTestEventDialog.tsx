@@ -269,7 +269,10 @@ export function ScheduleTestEventDialog({
 
     const rawNotes = s.notes || "";
     const metaMatch = rawNotes.match(/<!--TESTS:(.*?)-->/);
-    let visibleNotes = rawNotes.replace(/<!--TESTS:.*?-->/g, "").trim();
+    let visibleNotes = rawNotes
+      .replace(/<!--TESTS:.*?-->/g, "")
+      .replace(/<!--TESTWINDOW:.*?-->/g, "")
+      .trim();
     // Strip the auto-prepended "Test : ..." / "Batterie : ..." title line
     visibleNotes = visibleNotes.replace(/^(Test\s*:|Batterie[^\n]*).*?(\n|$)/, "").trim();
     setNotes(visibleNotes);
