@@ -129,6 +129,18 @@ export function CalendarDayCell({
     return time.substring(0, 5);
   };
 
+  // Combine and sort matches + sessions chronologically for the day
+  const sortedEvents = useMemo(() => {
+    const events = [
+      ...matches.map((m) => ({ type: "match" as const, data: m, time: m.match_time || "00:00" })),
+      ...sessions.map((s) => ({ type: "session" as const, data: s, time: s.session_start_time || "00:00" })),
+    ];
+    return events.sort((a, b) => a.time.localeCompare(b.time));
+  }, [matches, sessions]);
+
+  const visibleEvents = sortedEvents.slice(0, 3);
+  const hiddenCount = sortedEvents.length - visibleEvents.length;
+
   return (
     <div
       ref={setNodeRef}
