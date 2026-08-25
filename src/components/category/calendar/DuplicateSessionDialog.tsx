@@ -84,7 +84,8 @@ const WEEKDAYS = [
 
 export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId }: Props) {
   const { t } = useTranslation();
-  const weekdaysI18n = t("planning.calendarDialogs.duplicateSession.weekdays", { returnObjects: true }) as { value: number; label: string }[];
+  const weekdaysRaw = t("planning.calendarDialogs.duplicateSession.weekdays", { returnObjects: true });
+  const weekdaysI18n = (Array.isArray(weekdaysRaw) ? weekdaysRaw : []) as { value: number; label: string }[];
   const qc = useQueryClient();
   const { notify } = useSessionNotifications();
   const [mode, setMode] = useState<"single" | "recurring">("single");

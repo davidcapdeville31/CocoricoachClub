@@ -60,7 +60,8 @@ function useViewModes(t: (k: string) => string): { value: ViewMode; label: strin
 }
 
 function useMonthLabels(t: (k: string, o?: Record<string, unknown>) => unknown): string[] {
-  return t("planning.annualView.months", { returnObjects: true }) as unknown as string[];
+  const raw = t("planning.annualView.months", { returnObjects: true });
+  return Array.isArray(raw) ? (raw as unknown as string[]) : ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
 }
 
 const START_MONTH_STORAGE_PREFIX = "planning-start-month:";
