@@ -21,6 +21,9 @@ import {
   buildWeightLogRecords,
   type WeightLogState,
 } from "./AthleteWeightLogInput";
+import { AthleteAbsentLockNotice } from "./AthleteAbsentLockNotice";
+import { useAthleteAttendanceLock } from "@/hooks/useAthleteAttendanceLock";
+
 
 interface Props {
   open: boolean;
