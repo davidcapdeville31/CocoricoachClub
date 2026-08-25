@@ -57,7 +57,10 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
   const [submitting, setSubmitting] = useState(false);
   const [weightLogs, setWeightLogs] = useState<WeightLogState>({});
 
+  const { isAbsent } = useAthleteAttendanceLock(session?.id, playerId);
+
   const { data: blocks = [] } = useQuery({
+
     queryKey: ["validate-session-blocks", session?.id],
     queryFn: async () => {
       if (!session?.id) return [];
