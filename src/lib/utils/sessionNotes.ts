@@ -11,6 +11,8 @@ export function getDisplayNotes(notes: string | null | undefined): string {
     .replace(/<!--BLOCK:.*?-->/g, "")
     .replace(/<!--MENTAL:[\s\S]*?-->/g, "")
     .replace(/\n?<!--TESTS:.*?-->/g, "")
+    .replace(/\n?<!--TESTWINDOW:.*?-->/g, "")
+
     .replace(/\n?<!--PRECISION_EXERCISE:.*?-->/g, "")
     .replace(/\n?\[precision_exercise:.*?\]/g, "")
     .replace(/^\s*\[Séance athlète\]\s*/i, "")
