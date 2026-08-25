@@ -20,12 +20,14 @@ import { format, formatDistanceToNow } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface WellnessReminderButtonProps {
   categoryId: string;
 }
 
 export function WellnessReminderButton({ categoryId }: WellnessReminderButtonProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [onlyMissing, setOnlyMissing] = useState(true);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -113,14 +115,13 @@ export function WellnessReminderButton({ categoryId }: WellnessReminderButtonPro
       const pushes = data?.pushSent ?? 0;
       if (targeted === 0) {
         toast({
-          title: "Aucun athlète à notifier",
-          description:
-            "Tous les athlètes sélectionnés ont déjà rempli leur wellness aujourd'hui.",
+          title: t("health.wellnessReminderButton.toastNoneToNotifyTitle"),
+          description: t("health.wellnessReminderButton.toastNoneToNotifyDescription"),
         });
       } else {
         toast({
-          title: "Rappel envoyé ✅",
-          description: `${targeted} athlète(s) notifié(s) — ${emails} email(s), ${pushes} push.`,
+          title: t("health.wellnessReminderButton.toastSentTitle"),
+          description: t("health.wellnessReminderButton.toastSentDescription", { targeted, emails, pushes }),
         });
       }
       queryClient.invalidateQueries({ queryKey: ["wellness-reminder-last", categoryId] });
@@ -128,8 +129,8 @@ export function WellnessReminderButton({ categoryId }: WellnessReminderButtonPro
       setSelectedIds(new Set());
     } catch (e: any) {
       toast({
-        title: "Erreur",
-        description: e?.message || "Impossible d'envoyer le rappel.",
+        title: t("health.wellnessReminderButton.toastErrorTitle"),
+        description: e?.message || t("health.wellnessReminderButton.toastErrorDescription"),
         variant: "destructive",
       });
     } finally {
@@ -153,8 +154,8 @@ export function WellnessReminderButton({ categoryId }: WellnessReminderButtonPro
           onClick={() => setOpen(true)}
           title={
             alreadySent
-              ? `Déjà envoyé ${sentAgo} (${lastReminder?.targeted_count} athlètes)`
-              : "Envoyer un rappel push + email aux athlètes"
+              ? t("health.wellnessReminderButton.alreadySentTooltip", { time: sentAgo, count: lastReminder?.targeted_count })
+              : t("health.wellnessReminderButton.sendTooltip")
           }
         >
           {alreadySent ? (
@@ -162,18 +163,18 @@ export function WellnessReminderButton({ categoryId }: WellnessReminderButtonPro
           ) : (
             <Megaphone className="h-4 w-4 mr-2" />
           )}
-          Rappeler le Wellness
+          {t("health.wellnessReminderButton.buttonLabel")}
         </Button>
         {alreadySent ? (
           <Badge
             variant="outline"
             className="border-status-optimal/40 bg-status-optimal/10 text-status-optimal text-xs whitespace-nowrap"
           >
-            ✓ Envoyé {sentAgo} · {lastReminder?.targeted_count} ath.
+            {t("health.wellnessReminderButton.alreadySentBadge", { time: sentAgo, count: lastReminder?.targeted_count })}
           </Badge>
         ) : (
           <Badge variant="outline" className="text-xs text-muted-foreground whitespace-nowrap">
-            Aucun rappel aujourd'hui
+            {t("health.wellnessReminderButton.noReminderBadge")}
           </Badge>
         )}
       </div>
@@ -182,10 +183,9 @@ export function WellnessReminderButton({ categoryId }: WellnessReminderButtonPro
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>📣 Rappel Wellness</DialogTitle>
+            <DialogTitle>{t("health.wellnessReminderButton.dialogTitle")}</DialogTitle>
             <DialogDescription>
-              Envoie une notification push + email aux athlètes pour leur
-              rappeler de remplir leur wellness du jour.
+              {t("health.wellnessReminderButton.dialogDescription")}
             </DialogDescription>
           </DialogHeader>
 
@@ -193,11 +193,10 @@ export function WellnessReminderButton({ categoryId }: WellnessReminderButtonPro
             <div className="rounded-lg border border-status-optimal/30 bg-status-optimal/10 p-3 text-sm">
               <p className="font-medium flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-status-optimal" />
-                Rappel déjà envoyé aujourd'hui
+                {t("health.wellnessReminderButton.alreadySentInfoTitle")}
               </p>
               <p className="text-muted-foreground text-xs mt-1">
-                {lastReminder?.targeted_count} athlète(s) notifié(s) {sentAgo}.
-                Évite de spammer — renvoie seulement si nécessaire.
+                {t("health.wellnessReminderButton.alreadySentInfoDescription", { count: lastReminder?.targeted_count, time: sentAgo })}
               </p>
             </div>
           )}
@@ -215,7 +214,7 @@ export function WellnessReminderButton({ categoryId }: WellnessReminderButtonPro
                 }}
               />
               <Label htmlFor="only-missing" className="text-sm cursor-pointer">
-                Seulement ceux qui n'ont pas rempli aujourd'hui
+                {t("health.wellnessReminderButton.onlyMissingLabel")}
                 <span className="ml-1 text-muted-foreground">
                   ({missingPlayers.length}/{players.length})
                 </span>
@@ -224,17 +223,17 @@ export function WellnessReminderButton({ categoryId }: WellnessReminderButtonPro
 
             <div className="space-y-2">
               <Label className="text-sm">
-                Sélection manuelle (optionnel)
+                {t("health.wellnessReminderButton.manualSelectionLabel")}
                 <span className="ml-1 text-xs text-muted-foreground">
-                  — laisser vide = tout le groupe ci-dessus
+                  {t("health.wellnessReminderButton.manualSelectionHint")}
                 </span>
               </Label>
               <ScrollArea className="h-56 rounded-md border p-2">
                 {displayPlayers.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">
                     {onlyMissing
-                      ? "Tous les athlètes ont rempli leur wellness ✅"
-                      : "Aucun athlète."}
+                      ? t("health.wellnessReminderButton.allFilled")
+                      : t("health.wellnessReminderButton.noPlayers")}
                   </p>
                 ) : (
                   <div className="space-y-1">
@@ -256,12 +255,12 @@ export function WellnessReminderButton({ categoryId }: WellnessReminderButtonPro
                           <span className="flex-1">{name}</span>
                           {filled && (
                             <span className="text-xs text-status-optimal">
-                              ✓ rempli
+                              {t("health.wellnessReminderButton.filled")}
                             </span>
                           )}
                           {!p.user_id && (
                             <span className="text-xs text-muted-foreground">
-                              (pas de compte)
+                              {t("health.wellnessReminderButton.noAccount")}
                             </span>
                           )}
                         </label>
@@ -275,18 +274,18 @@ export function WellnessReminderButton({ categoryId }: WellnessReminderButtonPro
 
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOpen(false)}>
-              Annuler
+              {t("health.wellnessReminderButton.cancel")}
             </Button>
             <Button onClick={handleSend} disabled={sending}>
               {sending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Envoi...
+                  {t("health.wellnessReminderButton.sending")}
                 </>
               ) : (
                 <>
                   <Megaphone className="h-4 w-4 mr-2" />
-                  Envoyer le rappel
+                  {t("health.wellnessReminderButton.send")}
                 </>
               )}
             </Button>

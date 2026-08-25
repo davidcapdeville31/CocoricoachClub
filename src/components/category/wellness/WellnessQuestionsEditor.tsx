@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Plus, Trash2, RotateCcw, Save, ListChecks, ChevronDown, ChevronUp, ArrowUp, ArrowDown } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 import {
   DEFAULT_WELLNESS_QUESTIONS,
   mergeWithDefaults,
@@ -36,6 +37,7 @@ function cloneScale(s: WellnessScaleLevel[]): WellnessScaleLevel[] {
 }
 
 export function WellnessQuestionsEditor({ categoryId, hideHeader }: Props) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [questions, setQuestions] = useState<WellnessQuestion[]>(DEFAULT_WELLNESS_QUESTIONS);
   const [dirty, setDirty] = useState(false);
@@ -98,11 +100,11 @@ export function WellnessQuestionsEditor({ categoryId, hideHeader }: Props) {
     // Default to 3 levels; user can add more via "+ Niveau"
     const initialScale = [0, 1, 2].map((i) => {
       const src = baseScale[Math.round((i * (baseScale.length - 1)) / 2)] ?? baseScale[i] ?? baseScale[0];
-      return { ...src, value: i, label: `Niveau ${i + 1}` };
+      return { ...src, value: i, label: t("health.wellnessQuestionsEditor.defaultLevelLabel", { number: i + 1 }) };
     });
     const q: WellnessQuestion = {
       key: id,
-      label: "Nouvelle question",
+      label: t("health.wellnessQuestionsEditor.newQuestionLabel"),
       emoji: "✨",
       enabled: true,
       inverted: false,
@@ -121,7 +123,7 @@ export function WellnessQuestionsEditor({ categoryId, hideHeader }: Props) {
         const last = q.scale[q.scale.length - 1];
         const nextLevel: WellnessScaleLevel = {
           value: q.scale.length,
-          label: `Niveau ${q.scale.length + 1}`,
+          label: t("health.wellnessQuestionsEditor.defaultLevelLabel", { number: q.scale.length + 1 }),
           color: last?.color ?? PRESET_COLORS[0],
         };
         return { ...q, scale: [...q.scale, nextLevel] };
@@ -171,12 +173,12 @@ export function WellnessQuestionsEditor({ categoryId, hideHeader }: Props) {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Questions du wellness enregistrées");
+      toast.success(t("health.wellnessQuestionsEditor.toastSuccess"));
       queryClient.invalidateQueries({ queryKey: ["wellness_question_config", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["wellness_question_config_editor", categoryId] });
       setDirty(false);
     },
-    onError: () => toast.error("Erreur lors de l'enregistrement"),
+    onError: () => toast.error(t("health.wellnessQuestionsEditor.toastError")),
   });
 
   return (
@@ -186,20 +188,20 @@ export function WellnessQuestionsEditor({ categoryId, hideHeader }: Props) {
           <div>
             <CardTitle className="flex items-center gap-2 text-base">
               <ListChecks className="h-4 w-4 text-primary" />
-              Questions du Wellness
+              {t("health.wellnessQuestionsEditor.cardTitle")}
             </CardTitle>
             <CardDescription>
-              Activez, modifiez ou ajoutez des questions. Les libellés et couleurs de chaque niveau sont personnalisables. Sauvegarde appliquée à cette catégorie uniquement.
+              {t("health.wellnessQuestionsEditor.cardDescription")}
             </CardDescription>
           </div>
           <div className="flex gap-2">
             <Button size="sm" variant="outline" onClick={resetAll} disabled={isLoading}>
               <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
-              Réinitialiser
+              {t("health.wellnessQuestionsEditor.reset")}
             </Button>
             <Button size="sm" onClick={() => save.mutate()} disabled={!dirty || save.isPending}>
               <Save className="h-4 w-4 mr-1.5" />
-              Enregistrer
+              {t("health.wellnessQuestionsEditor.save")}
             </Button>
           </div>
         </div>
@@ -223,7 +225,7 @@ export function WellnessQuestionsEditor({ categoryId, hideHeader }: Props) {
                     className="h-5 w-5"
                     onClick={() => moveQuestion(idx, -1)}
                     disabled={idx === 0}
-                    title="Monter"
+                    title={t("health.wellnessQuestionsEditor.moveUp")}
                   >
                     <ArrowUp className="h-3 w-3" />
                   </Button>
@@ -233,7 +235,7 @@ export function WellnessQuestionsEditor({ categoryId, hideHeader }: Props) {
                     className="h-5 w-5"
                     onClick={() => moveQuestion(idx, 1)}
                     disabled={idx === questions.length - 1}
-                    title="Descendre"
+                    title={t("health.wellnessQuestionsEditor.moveDown")}
                   >
                     <ArrowDown className="h-3 w-3" />
                   </Button>
@@ -242,13 +244,13 @@ export function WellnessQuestionsEditor({ categoryId, hideHeader }: Props) {
                   className="w-14 text-center text-lg"
                   value={q.emoji}
                   onChange={(e) => updateQuestion(idx, { emoji: e.target.value.slice(0, 2) })}
-                  aria-label="Emoji"
+                  aria-label={t("health.wellnessQuestionsEditor.emojiLabel")}
                 />
                 <Input
                   className="flex-1"
                   value={q.label}
                   onChange={(e) => updateQuestion(idx, { label: e.target.value })}
-                  placeholder="Libellé de la question"
+                  placeholder={t("health.wellnessQuestionsEditor.labelPlaceholder")}
                 />
                 <div className="flex items-center gap-2 px-2">
                   <Switch
@@ -256,7 +258,7 @@ export function WellnessQuestionsEditor({ categoryId, hideHeader }: Props) {
                     onCheckedChange={(v) => updateQuestion(idx, { enabled: v })}
                   />
                   <span className="text-xs text-muted-foreground hidden sm:inline">
-                    {q.enabled ? "Active" : "Désactivée"}
+                    {q.enabled ? t("health.wellnessQuestionsEditor.active") : t("health.wellnessQuestionsEditor.disabled")}
                   </span>
                 </div>
                 <Button
@@ -267,11 +269,11 @@ export function WellnessQuestionsEditor({ categoryId, hideHeader }: Props) {
                   {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </Button>
                 {q.is_custom ? (
-                  <Button size="icon" variant="ghost" onClick={() => removeQuestion(idx)} title="Supprimer">
+                  <Button size="icon" variant="ghost" onClick={() => removeQuestion(idx)} title={t("health.wellnessQuestionsEditor.deleteTooltip")}>
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
                 ) : (
-                  <Button size="icon" variant="ghost" onClick={() => resetQuestion(idx)} title="Réinitialiser">
+                  <Button size="icon" variant="ghost" onClick={() => resetQuestion(idx)} title={t("health.wellnessQuestionsEditor.resetTooltip")}>
                     <RotateCcw className="h-4 w-4" />
                   </Button>
                 )}
@@ -280,7 +282,7 @@ export function WellnessQuestionsEditor({ categoryId, hideHeader }: Props) {
               {isOpen && (
                 <div className="p-3 pt-0 space-y-3 border-t border-border/50">
                   <div className="flex items-center gap-3 pt-3">
-                    <Label className="text-xs">Sens du barème</Label>
+                    <Label className="text-xs">{t("health.wellnessQuestionsEditor.scaleDirectionLabel")}</Label>
                     <div className="flex items-center gap-2">
                       <Switch
                         checked={q.inverted}
@@ -288,14 +290,14 @@ export function WellnessQuestionsEditor({ categoryId, hideHeader }: Props) {
                       />
                       <span className="text-xs text-muted-foreground">
                         {q.inverted
-                          ? `1 = très bon · ${q.scale.length} = très mauvais`
-                          : `1 = très mauvais · ${q.scale.length} = très bon`}
+                          ? t("health.wellnessQuestionsEditor.scaleDirectionInverted", { count: q.scale.length })
+                          : t("health.wellnessQuestionsEditor.scaleDirectionNormal", { count: q.scale.length })}
                       </span>
                     </div>
                   </div>
 
                   <div className="mt-1.5 p-2.5 rounded-lg bg-muted/50 border border-border/50">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Indication du barème</p>
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">{t("health.wellnessQuestionsEditor.scaleIndicationTitle")}</p>
                     <div className="flex items-center justify-between gap-2 text-xs">
                       <div className="flex items-center gap-1.5">
                         <span className="font-bold text-sm">1</span>
@@ -311,8 +313,8 @@ export function WellnessQuestionsEditor({ categoryId, hideHeader }: Props) {
                     </div>
                     <p className="text-[10px] text-muted-foreground mt-1 italic">
                       {q.inverted
-                        ? `Le score 1 représente l'état le plus favorable, ${q.scale.length} le moins favorable.`
-                        : `Le score 1 représente l'état le moins favorable, ${q.scale.length} le plus favorable.`}
+                        ? t("health.wellnessQuestionsEditor.scaleIndicationInverted", { count: q.scale.length })
+                        : t("health.wellnessQuestionsEditor.scaleIndicationNormal", { count: q.scale.length })}
                     </p>
                   </div>
 
@@ -329,7 +331,7 @@ export function WellnessQuestionsEditor({ categoryId, hideHeader }: Props) {
                           className="flex-1 h-9"
                           value={level.label}
                           onChange={(e) => updateScaleLevel(idx, lIdx, { label: e.target.value })}
-                          placeholder={`Libellé niveau ${level.value}`}
+                          placeholder={t("health.wellnessQuestionsEditor.levelLabelPlaceholder", { value: level.value })}
                         />
                         <div className="flex gap-1">
                           {PRESET_COLORS.map((c) => (
@@ -342,7 +344,7 @@ export function WellnessQuestionsEditor({ categoryId, hideHeader }: Props) {
                                 level.color === c ? "border-foreground scale-110" : "border-transparent",
                               )}
                               style={{ backgroundColor: c }}
-                              aria-label={`Couleur ${c}`}
+                              aria-label={t("health.wellnessQuestionsEditor.colorLabel", { color: c })}
                             />
                           ))}
                         </div>
@@ -353,7 +355,7 @@ export function WellnessQuestionsEditor({ categoryId, hideHeader }: Props) {
                             className="h-8 w-8 shrink-0"
                             onClick={() => removeScaleLevel(idx, lIdx)}
                             disabled={q.scale.length <= 2}
-                            title="Supprimer ce niveau"
+                            title={t("health.wellnessQuestionsEditor.deleteLevelTooltip")}
                           >
                             <Trash2 className="h-3.5 w-3.5 text-destructive" />
                           </Button>
@@ -368,7 +370,7 @@ export function WellnessQuestionsEditor({ categoryId, hideHeader }: Props) {
                         onClick={() => addScaleLevel(idx)}
                       >
                         <Plus className="h-3.5 w-3.5 mr-1.5" />
-                        Ajouter un niveau
+                        {t("health.wellnessQuestionsEditor.addLevel")}
                       </Button>
                     )}
                   </div>
@@ -380,7 +382,7 @@ export function WellnessQuestionsEditor({ categoryId, hideHeader }: Props) {
 
         <Button variant="outline" className="w-full" onClick={addCustomQuestion}>
           <Plus className="h-4 w-4 mr-1.5" />
-          Ajouter une question
+          {t("health.wellnessQuestionsEditor.addQuestion")}
         </Button>
       </CardContent>
     </Card>

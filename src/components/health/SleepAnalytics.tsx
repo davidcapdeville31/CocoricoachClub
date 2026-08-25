@@ -105,7 +105,7 @@ export function SleepAnalytics({ categoryId }: SleepAnalyticsProps) {
   const playerMap: Record<string, { name: string; qualities: number[]; durations: number[]; entries: any[] }> = {};
   wellnessData.forEach((e: any) => {
     if (!playerMap[e.player_id]) {
-      const fullName = [e.players?.first_name, e.players?.name].filter(Boolean).join(" ") || "Inconnu";
+      const fullName = [e.players?.first_name, e.players?.name].filter(Boolean).join(" ") || t("health.sleepAnalytics.unknownPlayer");
       playerMap[e.player_id] = { name: fullName, qualities: [], durations: [], entries: [] };
     }
     playerMap[e.player_id].qualities.push(e.sleep_quality || 0);
