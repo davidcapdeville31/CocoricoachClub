@@ -610,13 +610,21 @@ const groupExercisesForPdf = (exercises: any[]): { groupId: string | null; exerc
 };
 
 // Helper to resolve test label from TEST_CATEGORIES
-const resolveTestLabel = (testType: string, allCategories: any[]): string => {
+const resolveTestLabel = (
+  testType: string,
+  allCategories: any[],
+  customTestNames?: Record<string, string>,
+): string => {
   for (const cat of allCategories) {
     const found = cat.tests?.find((t: any) => t.value === testType);
     if (found) return found.label;
   }
+  if (/^custom:/i.test(testType || "")) {
+    return customTestNames?.[testType.toLowerCase()] || "Test personnalisé";
+  }
   return testType;
 };
+
 
 // Export session details to PDF with enhanced design
 export const exportSessionToPdf = async (
