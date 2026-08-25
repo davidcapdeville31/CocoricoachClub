@@ -39,7 +39,8 @@ import { EditCustomTestDialog, type EditableTest } from "./EditCustomTestDialog"
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { UnifiedTestDialog } from "./UnifiedTestDialog";
-import { ScheduleTestDialog } from "./ScheduleTestDialog";
+import { ScheduleTestDialog, type ScheduleTestTarget } from "./ScheduleTestDialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { TEST_CATEGORIES, getTestLabel, getTestCategoriesForSport, TestCategory } from "@/lib/constants/testCategories";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 
@@ -393,6 +394,8 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
     testTypeLabel: string;
     testUnit: string;
   } | null>(null);
+  const [scheduleMulti, setScheduleMulti] = useState<ScheduleTestTarget[] | null>(null);
+  const [selectedTestIds, setSelectedTestIds] = useState<Set<string>>(new Set());
   const [isCreateTestDialogOpen, setIsCreateTestDialogOpen] = useState(false);
   const [isCreateCategoryDialogOpen, setIsCreateCategoryDialogOpen] = useState(false);
   const [editingTest, setEditingTest] = useState<EditableTest | null>(null);
@@ -745,8 +748,54 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
           if (!visibleCustomTests.length) return null;
           return (
           <div className="mb-4 rounded-2xl border bg-muted/30 p-3">
-            <div className="text-xs font-medium text-muted-foreground mb-2">
-              Tests disponibles dans cette catégorie ({visibleCustomTests.length})
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div className="text-xs font-medium text-muted-foreground">
+                Tests disponibles dans cette catégorie ({visibleCustomTests.length})
+              </div>
+              {!isViewer && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 text-xs"
+                    onClick={() => {
+                      const all = visibleCustomTests.map((t: any) => t.id);
+                      const allSelected = all.every((id: string) => selectedTestIds.has(id));
+                      setSelectedTestIds(allSelected ? new Set() : new Set(all));
+                    }}
+                  >
+                    {visibleCustomTests.every((t: any) => selectedTestIds.has(t.id))
+                      ? "Tout désélectionner"
+                      : "Tout sélectionner"}
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => {
+                      const targets: ScheduleTestTarget[] = visibleCustomTests
+                        .filter((t: any) => selectedTestIds.has(t.id))
+                        .map((t: any) => ({
+                          testCategory: t.test_category,
+                          testType: `custom:${t.id}`,
+                          testCategoryLabel: formatCategoryLabel(t.test_category),
+                          testTypeLabel: t.name,
+                          testUnit: t.unit || "",
+                        }));
+                      if (targets.length === 0) {
+                        toast.error("Coche au moins un test à planifier");
+                        return;
+                      }
+                      setScheduleMulti(targets);
+                      setScheduleTarget(targets[0]);
+                      setIsScheduleDialogOpen(true);
+                    }}
+                  >
+                    <CalendarPlus className="h-3.5 w-3.5 mr-1" />
+                    Planifier la sélection
+                    {selectedTestIds.size > 0 ? ` (${selectedTestIds.size})` : ""}
+                  </Button>
+                </div>
+              )}
             </div>
             <div className="flex flex-wrap gap-2">
               {visibleCustomTests.map((t: any) => (
@@ -776,6 +825,26 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
                    className={`group inline-flex items-center gap-2 rounded-2xl bg-background border hover:border-primary hover:bg-accent transition-colors text-sm cursor-pointer ${(t.image_url || t.icon) ? "p-1.5 pr-3" : "px-2.5 py-1 text-xs"}`}
                    title={isViewer ? (t.description || "") : (t.is_system ? "Test système (modifier crée une copie locale)" : "Cliquer pour modifier ce test")}
                  >
+                   {!isViewer && (
+                     <span
+                       onClick={(e) => e.stopPropagation()}
+                       className="pl-0.5 flex items-center"
+                       title="Sélectionner ce test pour le planifier avec d'autres"
+                     >
+                       <Checkbox
+                         checked={selectedTestIds.has(t.id)}
+                         onCheckedChange={() =>
+                           setSelectedTestIds((prev) => {
+                             const next = new Set(prev);
+                             if (next.has(t.id)) next.delete(t.id);
+                             else next.add(t.id);
+                             return next;
+                           })
+                         }
+                         aria-label={`Sélectionner ${t.name}`}
+                       />
+                     </span>
+                   )}
                    {t.image_url ? (
                      <img
                        src={t.image_url}
@@ -805,6 +874,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
                       tabIndex={0}
                       onClick={(e) => {
                         e.stopPropagation();
+                        setScheduleMulti(null);
                         setScheduleTarget({
                           testCategory: t.test_category,
                           testType: `custom:${t.id}`,
@@ -1021,7 +1091,11 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
             open={isScheduleDialogOpen}
             onOpenChange={(o) => {
               setIsScheduleDialogOpen(o);
-              if (!o) setScheduleTarget(null);
+              if (!o) {
+                setScheduleTarget(null);
+                setScheduleMulti(null);
+                setSelectedTestIds(new Set());
+              }
             }}
             categoryId={categoryId}
             testCategoryLabel={target.testCategoryLabel}
@@ -1029,6 +1103,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
             testCategory={target.testCategory}
             testType={target.testType}
             testUnit={target.testUnit}
+            tests={scheduleMulti ?? undefined}
           />
         );
       })()}
