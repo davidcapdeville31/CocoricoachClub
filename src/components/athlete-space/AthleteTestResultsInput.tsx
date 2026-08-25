@@ -8,6 +8,9 @@ import { FlaskConical, Clock, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
 import { useTranslation } from "react-i18next";
+import { useAthleteAttendanceLock } from "@/hooks/useAthleteAttendanceLock";
+import { AthleteAbsentLockNotice } from "./AthleteAbsentLockNotice";
+
 
 interface TestRef {
   test_category: string;
@@ -47,9 +50,11 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
   const { t } = useTranslation();
   const tests = parseTestsFromNotes(notes);
   const customMap = useCustomTestLabels(tests.map((t) => t.test_type));
+  const { isAbsent } = useAthleteAttendanceLock(sessionId, playerId);
   const [pending, setPending] = useState<any[]>([]);
   const [staffSaved, setStaffSaved] = useState<any[]>([]);
   const [submittingKey, setSubmittingKey] = useState<string | null>(null);
+
 
   const reload = async () => {
     const [{ data: pendingData }, { data: savedData }] = await Promise.all([
@@ -93,8 +98,13 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
 
 
   const handleSendOne = async (test: TestRef) => {
+    if (isAbsent) {
+      toast.error(t("athleteSpace.calendar.attendance.absentLockTitle"));
+      return;
+    }
     const key = `${test.test_category}::${test.test_type}`;
     const raw = value[key];
+
     if (raw == null || raw === "") {
       toast.error(t('athleteSpace.components.testResultsInput.enterFirst'));
       return;
@@ -139,6 +149,8 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
         <FlaskConical className="h-4 w-4 text-primary" />
         {t('athleteSpace.components.testResultsInput.title')}
       </Label>
+      {isAbsent && <AthleteAbsentLockNotice />}
+
       <div className="space-y-2">
         {tests.map((test, idx) => {
           const key = `${test.test_category}::${test.test_type}`;
@@ -181,7 +193,9 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
                     value={value[key] ?? ""}
                     onChange={(e) => onChange({ ...value, [key]: e.target.value })}
                     className="h-8 w-24 text-sm"
+                    disabled={isAbsent}
                   />
+
                   <span className="text-xs text-muted-foreground w-8">{unit}</span>
                   {categoryId && (
                     <Button

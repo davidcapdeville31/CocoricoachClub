@@ -41,6 +41,9 @@ import {
   buildPendingTestRecords,
   type TestResultsState,
 } from "./AthleteTestResultsInput";
+import { AthleteAbsentLockNotice } from "./AthleteAbsentLockNotice";
+import { useAthleteAttendanceLock } from "@/hooks/useAthleteAttendanceLock";
+
 import { collectLatestPlayerWeights } from "@/lib/benchmarks/playerWeights";
 
 interface Props {
@@ -407,6 +410,8 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
     () => parsePrecisionExerciseFromNotes(selectedSessionData?.notes),
     [selectedSessionData?.notes]
   );
+  const { isAbsent: attendanceAbsent } = useAthleteAttendanceLock(selectedSession, playerId);
+
   const isBowlingPrecision = selectedSessionData?.training_type === "bowling_spare";
   const isBowlingGame = selectedSessionData?.training_type === "bowling_game" || selectedSessionData?.training_type === "bowling_practice";
   const isGenericPrecision = selectedSessionData?.training_type === "precision";
@@ -899,7 +904,10 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
 
                 {selectedSession === session.id && (
                   <div className="mt-3 p-4 rounded-lg bg-muted/30 space-y-4">
-                    {session.training_type === "terrain" ? (
+                    {attendanceAbsent ? (
+                      <AthleteAbsentLockNotice />
+                    ) : session.training_type === "terrain" ? (
+
                       <AthleteFieldBlocksRpe
                         sessionId={session.id}
                         playerId={playerId}
@@ -1326,6 +1334,10 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
 
                     <Button
                       onClick={() => {
+                        if (attendanceAbsent) {
+                          toast.error(t("athleteSpace.calendar.attendance.absentLockTitle"));
+                          return;
+                        }
                         const incomplete = countIncompleteWeightLogs(weightLogs);
                         if (incomplete > 0) {
                           const ok = window.confirm(
@@ -1338,6 +1350,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                       disabled={!duration || !isSpareStatsValid || submitRpe.isPending}
                       className="w-full"
                     >
+
                       <CheckCircle2 className="h-4 w-4 mr-2" />
                       {isPrecisionSession ? t("athleteSpace.rpe.validateRpeStats") : t("athleteSpace.rpe.validateRpe")}
                     </Button>

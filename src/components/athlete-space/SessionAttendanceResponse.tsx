@@ -91,6 +91,7 @@ export function SessionAttendanceResponse({
       }
       toast.success(nextStatus === "present" ? t("athleteSpace.calendar.attendance.presentConfirmed") : t("athleteSpace.calendar.attendance.absentRecorded"));
       qc.invalidateQueries({ queryKey: ["ep-attendance", sessionId, playerId] });
+      qc.invalidateQueries({ queryKey: ["athlete-attendance-lock"] });
     } catch (e: any) {
       toast.error(e?.message || t("athleteSpace.calendar.attendance.saveError"));
     } finally {

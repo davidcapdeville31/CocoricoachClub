@@ -21,6 +21,9 @@ import {
   buildWeightLogRecords,
   type WeightLogState,
 } from "./AthleteWeightLogInput";
+import { AthleteAbsentLockNotice } from "./AthleteAbsentLockNotice";
+import { useAthleteAttendanceLock } from "@/hooks/useAthleteAttendanceLock";
+
 
 interface Props {
   open: boolean;
@@ -54,7 +57,10 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
   const [submitting, setSubmitting] = useState(false);
   const [weightLogs, setWeightLogs] = useState<WeightLogState>({});
 
+  const { isAbsent } = useAthleteAttendanceLock(session?.id, playerId);
+
   const { data: blocks = [] } = useQuery({
+
     queryKey: ["validate-session-blocks", session?.id],
     queryFn: async () => {
       if (!session?.id) return [];
@@ -88,6 +94,11 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
 
   const handleSubmit = async () => {
     if (!session || !playerId || !categoryId) return;
+    if (isAbsent) {
+      toast.error(t("athleteSpace.calendar.attendance.absentLockTitle"));
+      return;
+    }
+
     if (!duration || duration <= 0) {
       toast.error(t("athleteSpace.components.sessionValidationDialog.durationRequired"));
       return;
@@ -231,6 +242,8 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
         </DialogHeader>
 
         <div className="space-y-4 py-2">
+          {isAbsent && <AthleteAbsentLockNotice />}
+
           {/* Exercise logs (reps / sets / weight) — feeds tonnage & training load */}
           {session && playerId && (
             <AthleteWeightLogInput

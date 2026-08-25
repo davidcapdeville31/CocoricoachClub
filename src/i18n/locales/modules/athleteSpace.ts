@@ -169,6 +169,8 @@ export const athleteSpaceFr = {
   calendar: {
     attendance: {
       lockedSession: "Séance verrouillée",
+      absentLockTitle: "Saisie verrouillée : tu es déclarée absente",
+      absentLockHint: "Passe ta présence sur « Présent » dans le calendrier pour débloquer la saisie du RPE et des résultats de test.",
       lockedMatch: "Compétition verrouillée",
       presentConfirmed: "Présence confirmée",
       absentRecorded: "Absence enregistrée",
@@ -1029,6 +1031,8 @@ export const athleteSpaceEn = {
   calendar: {
     attendance: {
       lockedSession: "Session locked",
+      absentLockTitle: "Entry locked: you are marked absent",
+      absentLockHint: "Switch your attendance to \"Present\" in the calendar to unlock RPE and test result entry.",
       lockedMatch: "Competition locked",
       presentConfirmed: "Attendance confirmed",
       absentRecorded: "Absence recorded",
