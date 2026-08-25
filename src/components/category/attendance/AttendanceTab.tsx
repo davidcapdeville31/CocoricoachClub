@@ -412,14 +412,39 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
 
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <ClipboardCheck className="h-5 w-5" />
-                  {t("admin.attendance.detailBySession")}
-                </CardTitle>
-                <CardDescription>
-                  {t("admin.attendance.selectSessionHint")}
-                </CardDescription>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <ClipboardCheck className="h-5 w-5" />
+                      {t("admin.attendance.detailBySession")}
+                    </CardTitle>
+                    <CardDescription>
+                      {t("admin.attendance.selectSessionHint")}
+                    </CardDescription>
+                  </div>
+                  {detailSession && (
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5"
+                        onClick={() => handleExportDetail("pdf", detailSession, detailParticipants)}
+                      >
+                        <FileText className="h-4 w-4" /> PDF
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5"
+                        onClick={() => handleExportDetail("excel", detailSession, detailParticipants)}
+                      >
+                        <FileSpreadsheet className="h-4 w-4" /> Excel
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </CardHeader>
+
               <CardContent className="space-y-4">
                 {sessionOptions.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">
