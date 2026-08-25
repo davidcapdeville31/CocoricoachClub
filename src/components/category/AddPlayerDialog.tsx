@@ -206,7 +206,7 @@ export function AddPlayerDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["players", categoryId] });
-      toast.success("Athlète ajouté avec succès");
+      toast.success(t("roster.addPlayerDialog.toasts.added"));
       setPlayerName("");
       setPlayerEmail("");
       setPlayerPhone("");
@@ -225,7 +225,7 @@ export function AddPlayerDialog({
       onOpenChange(false);
     },
     onError: () => {
-      toast.error("Erreur lors de l'ajout de l'athlète");
+      toast.error(t("roster.addPlayerDialog.toasts.addError"));
     },
   });
 
@@ -246,21 +246,19 @@ export function AddPlayerDialog({
 
     // Validate discipline(s) for athletics — multi-discipline supported
     if (isAthletics && disciplinePairs.length === 0) {
-      setValidationError(
-        "Ajoutez au moins une discipline (clique sur + après ton choix de discipline/spécialité)",
-      );
+      setValidationError(t("roster.addPlayerDialog.validation.disciplineRequired"));
       return;
     }
 
     // Validate weight category for judo
     if (isJudo && !discipline) {
-      setValidationError("Veuillez sélectionner une catégorie de poids");
+      setValidationError(t("roster.addPlayerDialog.validation.weightCategoryRequired"));
       return;
     }
 
     // Validate role for aviron
     if (isAviron && !position) {
-      setValidationError("Veuillez sélectionner un rôle");
+      setValidationError(t("roster.addPlayerDialog.validation.roleRequired"));
       return;
     }
 
@@ -297,7 +295,7 @@ export function AddPlayerDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Ajouter un nouvel athlète</DialogTitle>
+          <DialogTitle>{t("roster.addPlayerDialog.title")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">

@@ -101,7 +101,7 @@ export function CategoryCollaborationTab({ categoryId }: CategoryCollaborationTa
           
           return {
             ...member,
-            profile: profile ? { ...profile, full_name: displayName || profile?.email || "Utilisateur" } : null,
+            profile: profile ? { ...profile, full_name: displayName || profile?.email || t("adminStaff.collaboration.defaultUser") } : null,
           };
         })
       );
@@ -169,7 +169,7 @@ export function CategoryCollaborationTab({ categoryId }: CategoryCollaborationTa
           
           return {
             ...member,
-            profile: profile ? { ...profile, full_name: displayName || profile?.email || "Utilisateur" } : null,
+            profile: profile ? { ...profile, full_name: displayName || profile?.email || t("adminStaff.collaboration.defaultUser") } : null,
           };
         })
       );

@@ -2,6 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Check, X, HelpCircle, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 export type ParticipantWithAttendance = {
   player_id: string;
@@ -28,9 +29,12 @@ function getStatus(p: ParticipantWithAttendance): "present" | "absent" | "no_res
 
 export function ParticipantsAttendanceList({
   participants,
-  title = "Participants",
-  emptyLabel = "Aucun athlète attribué à cette séance.",
+  title,
+  emptyLabel,
 }: Props) {
+  const { t } = useTranslation();
+  const resolvedTitle = title ?? t("adminAttendance.participants.defaultTitle");
+  const resolvedEmptyLabel = emptyLabel ?? t("adminAttendance.participants.defaultEmpty");
   const counts = participants.reduce(
     (acc, p) => {
       const s = getStatus(p);
@@ -44,34 +48,34 @@ export function ParticipantsAttendanceList({
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <h4 className="text-sm font-semibold">
-          {title} ({participants.length})
+          {resolvedTitle} ({participants.length})
         </h4>
         {participants.length > 0 && (
           <div className="flex items-center gap-1.5 flex-wrap">
             <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/40 h-5 px-1.5 text-[10px] gap-1">
               <Check className="h-3 w-3" />
-              {counts.present} présent{counts.present > 1 ? "s" : ""}
+              {counts.present} {counts.present > 1 ? t("adminAttendance.participants.presentPlural") : t("adminAttendance.participants.present")}
             </Badge>
             <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/40 h-5 px-1.5 text-[10px] gap-1">
               <X className="h-3 w-3" />
-              {counts.absent} absent{counts.absent > 1 ? "s" : ""}
+              {counts.absent} {counts.absent > 1 ? t("adminAttendance.participants.absentPlural") : t("adminAttendance.participants.absent")}
             </Badge>
             <Badge variant="outline" className="h-5 px-1.5 text-[10px] gap-1">
               <HelpCircle className="h-3 w-3" />
-              {counts.no_response} sans réponse
+              {counts.no_response} {t("adminAttendance.participants.noResponse")}
             </Badge>
           </div>
         )}
       </div>
 
       {participants.length === 0 ? (
-        <p className="text-xs text-muted-foreground">{emptyLabel}</p>
+        <p className="text-xs text-muted-foreground">{resolvedEmptyLabel}</p>
       ) : (
         <div className="grid gap-1.5 sm:grid-cols-2">
           {participants.map((p) => {
             const name = p.players?.first_name
               ? `${p.players.first_name} ${p.players.name ?? ""}`.trim()
-              : p.players?.name || "Athlète";
+              : p.players?.name || t("adminAttendance.participants.defaultAthlete");
             const initials = (p.players?.first_name || p.players?.name || "A")
               .slice(0, 2)
               .toUpperCase();
@@ -93,17 +97,17 @@ export function ParticipantsAttendanceList({
                   <span className="truncate flex-1">{name}</span>
                   {status === "present" && (
                     <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/40 h-5 px-1.5 text-[10px]">
-                      Présent
+                      {t("adminAttendance.participants.presentBadge")}
                     </Badge>
                   )}
                   {status === "absent" && (
                     <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/40 h-5 px-1.5 text-[10px]">
-                      Absent
+                      {t("adminAttendance.participants.absentBadge")}
                     </Badge>
                   )}
                   {status === "no_response" && (
                     <Badge variant="outline" className="h-5 px-1.5 text-[10px]">
-                      Sans réponse
+                      {t("adminAttendance.participants.noResponseBadge")}
                     </Badge>
                   )}
                 </div>
