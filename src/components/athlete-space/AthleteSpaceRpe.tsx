@@ -41,6 +41,9 @@ import {
   buildPendingTestRecords,
   type TestResultsState,
 } from "./AthleteTestResultsInput";
+import { AthleteAbsentLockNotice } from "./AthleteAbsentLockNotice";
+import { useAthleteAttendanceLock } from "@/hooks/useAthleteAttendanceLock";
+
 import { collectLatestPlayerWeights } from "@/lib/benchmarks/playerWeights";
 
 interface Props {
