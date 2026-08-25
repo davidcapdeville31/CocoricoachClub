@@ -747,7 +747,9 @@ export function ImprovedCalendarView({
                           // For test sessions, extract test name from notes (e.g. "📋 Test VMA (1600m)")
                           const isTest = session.training_type === "test";
                           const testName = isTest
-                            ? (displayNotes.split("\n").find((l) => l.trim().startsWith("📋"))?.replace(/^📋\s*/, "").trim() || "")
+                            ? (displayNotes.split("\n").find((l) => l.trim().startsWith("📋"))?.replace(/^📋\s*/, "").trim() ||
+                               sessionTestNames[session.id] ||
+                               "")
                             : "";
                           const titleLabel = isTest && testName
                             ? testName
