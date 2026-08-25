@@ -32,6 +32,8 @@ import {
 } from "@/lib/constants/testCategories";
 import {
   mergeCustomTestsIntoCategories,
+  formatCategoryLabel,
+  formatTestTypeLabel,
   type CustomTestCatalogItem,
 } from "@/components/category/tests/customTestCatalog";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
