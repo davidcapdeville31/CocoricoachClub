@@ -470,9 +470,14 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
       {/* Global Presence Response Stats (athlete self-responses) */}
       {(() => {
         const todayStr = format(new Date(), "yyyy-MM-dd");
-        const filteredSessionIds = new Set((filteredSessions || []).map((s) => s.id));
-        const filteredParticipants = (eventParticipants || []).filter((p) =>
-          filteredSessionIds.has(p.training_session_id),
+        const rowsBySession = new Map<string, EventParticipantRow[]>();
+        for (const p of eventParticipants || []) {
+          const list = rowsBySession.get(p.training_session_id) || [];
+          list.push(p);
+          rowsBySession.set(p.training_session_id, list);
+        }
+        const filteredParticipants = (filteredSessions || []).flatMap((s) =>
+          completeWithRoster(s as AttendanceSession, rowsBySession.get(s.id) || []),
         );
         const presentCount = filteredParticipants.filter((p) => p.attendance_status === "present").length;
         const absentCount = filteredParticipants.filter((p) => p.attendance_status === "absent").length;
@@ -486,12 +491,13 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
           .slice()
           .sort((a, b) => new Date(b.session_date).getTime() - new Date(a.session_date).getTime());
 
-        const detailParticipants = detailSessionId
-          ? detailEventParticipants || []
-          : [];
         const detailSession = detailSessionId
           ? sessionOptions.find((s) => s.id === detailSessionId)
           : null;
+        const detailParticipants = detailSession
+          ? completeWithRoster(detailSession as AttendanceSession, detailEventParticipants || [])
+          : [];
+
 
         return (
           <div className="space-y-4">
