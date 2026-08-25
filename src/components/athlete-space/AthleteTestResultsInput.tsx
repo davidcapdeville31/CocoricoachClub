@@ -304,3 +304,38 @@ export function buildPendingTestRecords(
   }
   return records;
 }
+
+/**
+ * When the coach defined a testing window, a test may only be submitted once for the whole
+ * period. This filters out records already submitted (pending, validated) or saved by staff
+ * inside the window, whatever the session used for the entry.
+ */
+export async function filterTestRecordsAgainstWindow<
+  T extends { test_category: string; test_type: string },
+>(records: T[], notes: string | null, playerId: string): Promise<T[]> {
+  const win = parseTestWindowFromNotes(notes);
+  if (!win || records.length === 0) return records;
+
+  const [{ data: pendingData }, { data: savedData }] = await Promise.all([
+    supabase
+      .from("pending_test_results")
+      .select("test_category, test_type, validation_status")
+      .eq("player_id", playerId)
+      .gte("test_date", win.start)
+      .lte("test_date", win.end),
+    supabase
+      .from("generic_tests")
+      .select("test_category, test_type")
+      .eq("player_id", playerId)
+      .gte("test_date", win.start)
+      .lte("test_date", win.end),
+  ]);
+
+  const taken = new Set<string>();
+  (pendingData || []).forEach((p: any) => {
+    if (p.validation_status !== "rejected") taken.add(`${p.test_category}::${p.test_type}`);
+  });
+  (savedData || []).forEach((p: any) => taken.add(`${p.test_category}::${p.test_type}`));
+
+  return records.filter((r) => !taken.has(`${r.test_category}::${r.test_type}`));
+}

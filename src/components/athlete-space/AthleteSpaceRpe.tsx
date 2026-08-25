@@ -39,6 +39,7 @@ import {
 import {
   AthleteTestResultsInput,
   buildPendingTestRecords,
+  filterTestRecordsAgainstWindow,
   type TestResultsState,
 } from "./AthleteTestResultsInput";
 import { AthleteAbsentLockNotice } from "./AthleteAbsentLockNotice";
@@ -669,7 +670,11 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
       }
 
       // Persist test results into pending_test_results (staff must validate)
-      const testRecords = buildPendingTestRecords(testResultsInput, selectedSessionData?.notes || null);
+      const testRecords = await filterTestRecordsAgainstWindow(
+        buildPendingTestRecords(testResultsInput, selectedSessionData?.notes || null),
+        selectedSessionData?.notes || null,
+        playerId,
+      );
       if (testRecords.length > 0 && selectedSession) {
         const stamped = testRecords.map((r) => ({
           player_id: playerId,
