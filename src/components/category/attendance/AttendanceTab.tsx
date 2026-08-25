@@ -34,7 +34,9 @@ type AttendanceSession = {
   session_end_time?: string | null;
   intensity?: number | null;
   notes?: string | null;
+  created_by_player_id?: string | null;
 };
+
 
 type EventParticipantRow = ParticipantWithAttendance & {
   id?: string;
