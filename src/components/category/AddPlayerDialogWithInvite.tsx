@@ -873,10 +873,10 @@ export function AddPlayerDialogWithInvite({
             {/* Judo weight categories */}
             {isJudo && (
               <div className="space-y-2">
-                <Label htmlFor="weightCategory">Catégorie de poids *</Label>
+                <Label htmlFor="weightCategory">{t("roster.addPlayerDialogInvite.fields.weightCategory")}</Label>
                 <Select value={discipline} onValueChange={setDiscipline}>
                   <SelectTrigger className="w-full bg-background">
-                    <SelectValue placeholder="Sélectionner une catégorie" />
+                    <SelectValue placeholder={t("roster.addPlayerDialogInvite.placeholders.weightCategory")} />
                   </SelectTrigger>
                   <SelectContent className="bg-popover border max-h-[300px]">
                     {JUDO_WEIGHT_CATEGORIES.map((cat) => (
@@ -892,10 +892,10 @@ export function AddPlayerDialogWithInvite({
             {/* Aviron roles */}
             {isAviron && (
               <div className="space-y-2">
-                <Label htmlFor="avironRole">Rôle *</Label>
+                <Label htmlFor="avironRole">{t("roster.addPlayerDialogInvite.fields.avironRole")}</Label>
                 <Select value={position} onValueChange={setPosition}>
                   <SelectTrigger className="w-full bg-background">
-                    <SelectValue placeholder="Sélectionner un rôle" />
+                    <SelectValue placeholder={t("roster.addPlayerDialogInvite.placeholders.avironRole")} />
                   </SelectTrigger>
                   <SelectContent className="bg-background border z-50 max-h-[300px]">
                     {AVIRON_ROLES.map((role) => (
@@ -911,7 +911,7 @@ export function AddPlayerDialogWithInvite({
             {/* Ski/Snow discipline selector (filtered by category) */}
             {showSkiDiscipline && (
               <div className="space-y-2">
-                <Label htmlFor="skiDiscipline">Discipline *</Label>
+                <Label htmlFor="skiDiscipline">{t("roster.addPlayerDialogInvite.fields.skiDiscipline")}</Label>
                 <Select value={discipline} onValueChange={setDiscipline}>
                   <SelectTrigger className="w-full bg-background">
                     <SelectValue placeholder={t("roster.addPlayerDialogInvite.placeholders.discipline")} />
@@ -930,11 +930,11 @@ export function AddPlayerDialogWithInvite({
             {/* FIS fields for ski/snow */}
             {isSki && (
               <div className="space-y-3 border-t pt-3">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Code FIS</p>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t("roster.addPlayerDialogInvite.fields.fisCode")}</p>
                 <div className="space-y-2">
-                  <Label htmlFor="fisCode">Code FIS</Label>
-                  <Input id="fisCode" placeholder="Ex: 9510001" value={fisCode} onChange={(e) => setFisCode(e.target.value)} />
-                  <p className="text-xs text-muted-foreground">💡 Le classement et les points FIS seront importés automatiquement via le code FIS.</p>
+                  <Label htmlFor="fisCode">{t("roster.addPlayerDialogInvite.fields.fisCode")}</Label>
+                  <Input id="fisCode" placeholder={t("roster.addPlayerDialogInvite.placeholders.fisCode")} value={fisCode} onChange={(e) => setFisCode(e.target.value)} />
+                  <p className="text-xs text-muted-foreground">{t("roster.addPlayerDialogInvite.helpers.fisCode")}</p>
                 </div>
                 {fisCode.trim() && (
                   <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-md">
@@ -945,17 +945,17 @@ export function AddPlayerDialogWithInvite({
                     />
                     <label htmlFor="importFisHistory" className="text-sm cursor-pointer flex items-center gap-2">
                       <Download className="h-4 w-4 text-primary" />
-                      Importer automatiquement l'historique des compétitions FIS
+                      {t("roster.addPlayerDialogInvite.helpers.importFisHistory")}
                     </label>
                   </div>
                 )}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
-                    <Label htmlFor="fisObjective">Objectif sportif</Label>
-                    <Input id="fisObjective" placeholder="Ex: Qualification Championnats du Monde" value={fisObjective} onChange={(e) => setFisObjective(e.target.value)} />
+                    <Label htmlFor="fisObjective">{t("roster.addPlayerDialogInvite.fields.fisObjective")}</Label>
+                    <Input id="fisObjective" placeholder={t("roster.addPlayerDialogInvite.placeholders.fisObjective")} value={fisObjective} onChange={(e) => setFisObjective(e.target.value)} />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="fisObjectiveDate">Date objectif</Label>
+                    <Label htmlFor="fisObjectiveDate">{t("roster.addPlayerDialogInvite.fields.fisObjectiveDate")}</Label>
                     <Input id="fisObjectiveDate" type="date" value={fisObjectiveDate} onChange={(e) => setFisObjectiveDate(e.target.value)} />
                   </div>
                 </div>
@@ -966,7 +966,7 @@ export function AddPlayerDialogWithInvite({
             {isSki && (
               <div className="space-y-3 border-t pt-3">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Objectifs annuels</p>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t("roster.addPlayerDialogInvite.objectives.title")}</p>
                   <Button
                     type="button"
                     variant="outline"
@@ -974,18 +974,18 @@ export function AddPlayerDialogWithInvite({
                     className="h-7 text-xs"
                     onClick={() => setYearlyObjectives(prev => [...prev, { label: "", target: "" }])}
                   >
-                    <Plus className="h-3 w-3 mr-1" /> Ajouter
+                    <Plus className="h-3 w-3 mr-1" /> {t("roster.addPlayerDialogInvite.objectives.add")}
                   </Button>
                 </div>
                 {yearlyObjectives.length === 0 && (
-                  <p className="text-xs text-muted-foreground italic">Aucun objectif défini. Ajoutez des objectifs de qualification (ex: JO, Mondiaux…)</p>
+                  <p className="text-xs text-muted-foreground italic">{t("roster.addPlayerDialogInvite.objectives.empty")}</p>
                 )}
                 {yearlyObjectives.map((obj, idx) => (
                   <div key={idx} className="grid grid-cols-[1fr_100px_32px] gap-2 items-end">
                     <div className="space-y-1">
-                      <Label className="text-xs">Objectif</Label>
+                      <Label className="text-xs">{t("roster.addPlayerDialogInvite.objectives.labelField")}</Label>
                       <Input
-                        placeholder="Ex: Qualification JO 2026"
+                        placeholder={t("roster.addPlayerDialogInvite.placeholders.objectiveLabel")}
                         value={obj.label}
                         onChange={(e) => {
                           const updated = [...yearlyObjectives];
@@ -996,10 +996,10 @@ export function AddPlayerDialogWithInvite({
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs">Points requis</Label>
+                      <Label className="text-xs">{t("roster.addPlayerDialogInvite.objectives.pointsField")}</Label>
                       <Input
                         type="number"
-                        placeholder="2000"
+                        placeholder={t("roster.addPlayerDialogInvite.placeholders.objectivePoints")}
                         value={obj.target}
                         onChange={(e) => {
                           const updated = [...yearlyObjectives];
@@ -1025,7 +1025,7 @@ export function AddPlayerDialogWithInvite({
             
             {/* Birth Date */}
             <div className="space-y-2">
-              <Label htmlFor="birthDate">Date de naissance</Label>
+              <Label htmlFor="birthDate">{t("roster.addPlayerDialogInvite.fields.birthDate")}</Label>
               <Input
                 id="birthDate"
                 type="date"
@@ -1043,15 +1043,15 @@ export function AddPlayerDialogWithInvite({
 
             {/* Parents */}
             <div className="space-y-3 rounded-lg border p-3 bg-muted/20">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Coordonnées des parents / tuteurs (optionnel)</p>
-              {[{ data: parent1, set: setParent1, label: "Parent / Tuteur 1" }, { data: parent2, set: setParent2, label: "Parent / Tuteur 2" }].map((p, idx) => (
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t("roster.addPlayerDialogInvite.parents.title")}</p>
+              {[{ data: parent1, set: setParent1, label: t("roster.addPlayerDialogInvite.parents.parent1") }, { data: parent2, set: setParent2, label: t("roster.addPlayerDialogInvite.parents.parent2") }].map((p, idx) => (
                 <div key={idx} className="space-y-2 p-3 rounded-md border bg-background/50">
                   <p className="text-sm font-medium">{p.label}</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <Input placeholder="Nom complet" value={p.data.name} onChange={(e) => p.set({ ...p.data, name: e.target.value })} />
-                    <Input placeholder="Relation (Père, Mère…)" value={p.data.relation} onChange={(e) => p.set({ ...p.data, relation: e.target.value })} />
-                    <Input type="tel" placeholder="Téléphone" value={p.data.phone} onChange={(e) => p.set({ ...p.data, phone: e.target.value })} />
-                    <Input type="email" placeholder="Email" value={p.data.email} onChange={(e) => p.set({ ...p.data, email: e.target.value })} />
+                    <Input placeholder={t("roster.addPlayerDialogInvite.placeholders.parentName")} value={p.data.name} onChange={(e) => p.set({ ...p.data, name: e.target.value })} />
+                    <Input placeholder={t("roster.addPlayerDialogInvite.placeholders.parentRelation")} value={p.data.relation} onChange={(e) => p.set({ ...p.data, relation: e.target.value })} />
+                    <Input type="tel" placeholder={t("roster.addPlayerDialogInvite.placeholders.parentPhone")} value={p.data.phone} onChange={(e) => p.set({ ...p.data, phone: e.target.value })} />
+                    <Input type="email" placeholder={t("roster.addPlayerDialogInvite.placeholders.parentEmail")} value={p.data.email} onChange={(e) => p.set({ ...p.data, email: e.target.value })} />
                   </div>
                 </div>
               ))}
@@ -1060,7 +1060,7 @@ export function AddPlayerDialogWithInvite({
             {/* Coaches (illimité) */}
             <div className="space-y-3 rounded-lg border p-3 bg-muted/20">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Entraîneurs (optionnel)</p>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t("roster.addPlayerDialogInvite.coaches.title")}</p>
                 <Button
                   type="button"
                   variant="outline"
@@ -1068,16 +1068,16 @@ export function AddPlayerDialogWithInvite({
                   className="h-7 text-xs"
                   onClick={() => setCoaches((prev) => [...prev, { full_name: "", role: "", phone: "", email: "" }])}
                 >
-                  <Plus className="h-3 w-3 mr-1" /> Ajouter
+                  <Plus className="h-3 w-3 mr-1" /> {t("roster.addPlayerDialogInvite.coaches.add")}
                 </Button>
               </div>
               {coaches.length === 0 && (
-                <p className="text-xs text-muted-foreground italic">Aucun entraîneur. Cliquez sur « Ajouter » pour en renseigner.</p>
+                <p className="text-xs text-muted-foreground italic">{t("roster.addPlayerDialogInvite.coaches.empty")}</p>
               )}
               {coaches.map((c, idx) => (
                 <div key={idx} className="space-y-2 p-3 rounded-md border bg-background/50 relative">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium">Entraîneur {idx + 1}</p>
+                    <p className="text-sm font-medium">{t("roster.addPlayerDialogInvite.coaches.itemTitle", { index: idx + 1 })}</p>
                     <Button
                       type="button"
                       variant="ghost"
@@ -1089,16 +1089,16 @@ export function AddPlayerDialogWithInvite({
                     </Button>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <Input placeholder="Nom complet" value={c.full_name} onChange={(e) => {
+                    <Input placeholder={t("roster.addPlayerDialogInvite.placeholders.parentName")} value={c.full_name} onChange={(e) => {
                       const u = [...coaches]; u[idx].full_name = e.target.value; setCoaches(u);
                     }} />
-                    <Input placeholder="Spécialité / Rôle" value={c.role} onChange={(e) => {
+                    <Input placeholder={t("roster.addPlayerDialogInvite.placeholders.coachRole")} value={c.role} onChange={(e) => {
                       const u = [...coaches]; u[idx].role = e.target.value; setCoaches(u);
                     }} />
-                    <Input type="tel" placeholder="Téléphone" value={c.phone} onChange={(e) => {
+                    <Input type="tel" placeholder={t("roster.addPlayerDialogInvite.placeholders.parentPhone")} value={c.phone} onChange={(e) => {
                       const u = [...coaches]; u[idx].phone = e.target.value; setCoaches(u);
                     }} />
-                    <Input type="email" placeholder="Email" value={c.email} onChange={(e) => {
+                    <Input type="email" placeholder={t("roster.addPlayerDialogInvite.placeholders.parentEmail")} value={c.email} onChange={(e) => {
                       const u = [...coaches]; u[idx].email = e.target.value; setCoaches(u);
                     }} />
                   </div>
@@ -1120,10 +1120,10 @@ export function AddPlayerDialogWithInvite({
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
                 >
                   <Send className="h-4 w-4 text-primary" />
-                  Inviter l'athlète à créer son compte
+                  {t("roster.addPlayerDialogInvite.sendInvitation")}
                 </label>
                 <p className="text-xs text-muted-foreground">
-                  Un email{playerPhone ? " et SMS" : ""} sera envoyé avec un lien d'inscription
+                  {t("roster.addPlayerDialogInvite.helpers.sendInvitation", { smsSuffix: playerPhone ? t("roster.addPlayerDialogInvite.helpers.smsSuffix") : "" })}
                 </p>
               </div>
             </div>
@@ -1139,7 +1139,7 @@ export function AddPlayerDialogWithInvite({
               onClick={() => onOpenChange(false)}
               disabled={isLoading}
             >
-              Annuler
+              {t("roster.addPlayerDialogInvite.buttons.cancel")}
             </Button>
             <Button
               type="submit"
@@ -1148,15 +1148,15 @@ export function AddPlayerDialogWithInvite({
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {fisImportStatus ? fisImportStatus : isInviting ? "Envoi de l'invitation..." : "Ajout..."}
+                  {fisImportStatus ? fisImportStatus : isInviting ? t("roster.addPlayerDialogInvite.buttons.sending") : t("roster.addPlayerDialogInvite.buttons.adding")}
                 </>
               ) : sendInvitation ? (
                 <>
                   <Send className="mr-2 h-4 w-4" />
-                  Ajouter et inviter
+                  {t("roster.addPlayerDialogInvite.buttons.addAndInvite")}
                 </>
               ) : (
-                "Ajouter"
+                t("roster.addPlayerDialogInvite.buttons.add")
               )}
             </Button>
           </DialogFooter>
