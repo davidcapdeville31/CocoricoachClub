@@ -556,6 +556,11 @@ export const planningFr = {
       createTitle: "Planifier un test physique",
       startTime: "Heure de début",
       endTime: "Heure de fin",
+      windowLabel: "Fenêtre de passage (optionnel)",
+      windowHint:
+        "Si le même test est planifié sur plusieurs séances, définis une période : chaque athlète ne pourra saisir son résultat qu'une seule fois dans cette fenêtre.",
+      windowFrom: "Du",
+      windowTo: "Au",
       individualTests: "Tests à la carte",
       testBattery: "Batterie de tests",
       theme: "Thématique",
