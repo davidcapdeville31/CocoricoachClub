@@ -899,7 +899,10 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
 
                 {selectedSession === session.id && (
                   <div className="mt-3 p-4 rounded-lg bg-muted/30 space-y-4">
-                    {session.training_type === "terrain" ? (
+                    {attendanceAbsent ? (
+                      <AthleteAbsentLockNotice />
+                    ) : session.training_type === "terrain" ? (
+
                       <AthleteFieldBlocksRpe
                         sessionId={session.id}
                         playerId={playerId}
