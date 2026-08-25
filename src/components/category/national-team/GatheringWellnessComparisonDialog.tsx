@@ -266,7 +266,7 @@ export function GatheringWellnessComparisonDialog({
                         <div className="flex flex-wrap gap-1 mb-2">
                           {preAssessment.pain_locations?.map((loc: string) => (
                             <Badge key={loc} variant="destructive" className="text-xs">
-                              {loc}
+                              {t(`health.addGatheringWellnessDialog.painLocations.${loc}`, { defaultValue: loc })}
                             </Badge>
                           ))}
                         </div>
@@ -285,7 +285,7 @@ export function GatheringWellnessComparisonDialog({
                         <div className="flex flex-wrap gap-1 mb-2">
                           {dayOfAssessment.pain_locations?.map((loc: string) => (
                             <Badge key={loc} variant="destructive" className="text-xs">
-                              {loc}
+                              {t(`health.addGatheringWellnessDialog.painLocations.${loc}`, { defaultValue: loc })}
                             </Badge>
                           ))}
                         </div>
