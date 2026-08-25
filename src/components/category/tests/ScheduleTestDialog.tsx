@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { CalendarPlus } from "lucide-react";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
+import { buildTestWindowMeta } from "@/lib/utils/sessionNotes";
 
 export interface ScheduleTestTarget {
   testCategory: string;
