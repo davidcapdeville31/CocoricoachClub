@@ -168,48 +168,46 @@ export function CalendarDayCell({
 
       {/* Events container */}
       <div className="space-y-1 overflow-visible">
-        {/* Matches first */}
-        {matches.slice(0, 2).map((match) => (
-          <MatchVignette
-            key={match.id}
-            match={match}
-            sportType={sportType}
-            creatorName={
-              (match as any).created_by_player_id && playerNamesMap
-                ? playerNamesMap[(match as any).created_by_player_id] ?? null
-                : null
-            }
-            isViewer={isViewer}
-            onClick={() => onViewMatch ? onViewMatch(match) : onDayClick(day)}
-            onNotify={onNotifyMatch ? () => onNotifyMatch(match) : undefined}
-            onStats={onStatsMatch ? () => onStatsMatch(match) : undefined}
-            onEdit={onEditMatch ? () => onEditMatch(match) : undefined}
-            onDelete={onDeleteMatch ? () => onDeleteMatch(match.id) : undefined}
-          />
-        ))}
-
-        {/* Sessions with vignettes */}
-        {sessions.slice(0, 3 - matches.length).map((session) => (
-          <div key={session.id} onClick={(e) => e.stopPropagation()}>
-            <SessionVignette
-              session={session}
-              blocks={sessionBlocks?.[session.id]}
-              onPreview={() => onPreviewSession(session)}
-              onEdit={() => onEditSession(session)}
-              onFeedback={() => onFeedbackSession(session)}
-              onDelete={() => onDeleteSession(session.id)}
-              onNotify={onNotifySession ? () => onNotifySession(session) : undefined}
-              onDuplicate={onDuplicateSession ? () => onDuplicateSession(session) : undefined}
+        {visibleEvents.map((event) =>
+          event.type === "match" ? (
+            <MatchVignette
+              key={event.data.id}
+              match={event.data}
+              sportType={sportType}
+              creatorName={
+                (event.data as any).created_by_player_id && playerNamesMap
+                  ? playerNamesMap[(event.data as any).created_by_player_id] ?? null
+                  : null
+              }
               isViewer={isViewer}
-              isDraggable={!isViewer}
-              playerName={session.created_by_player_id && playerNamesMap ? playerNamesMap[session.created_by_player_id] : null}
+              onClick={() => (onViewMatch ? onViewMatch(event.data) : onDayClick(day))}
+              onNotify={onNotifyMatch ? () => onNotifyMatch(event.data) : undefined}
+              onStats={onStatsMatch ? () => onStatsMatch(event.data) : undefined}
+              onEdit={onEditMatch ? () => onEditMatch(event.data) : undefined}
+              onDelete={onDeleteMatch ? () => onDeleteMatch(event.data.id) : undefined}
             />
-          </div>
-        ))}
+          ) : (
+            <div key={event.data.id} onClick={(e) => e.stopPropagation()}>
+              <SessionVignette
+                session={event.data}
+                blocks={sessionBlocks?.[event.data.id]}
+                onPreview={() => onPreviewSession(event.data)}
+                onEdit={() => onEditSession(event.data)}
+                onFeedback={() => onFeedbackSession(event.data)}
+                onDelete={() => onDeleteSession(event.data.id)}
+                onNotify={onNotifySession ? () => onNotifySession(event.data) : undefined}
+                onDuplicate={onDuplicateSession ? () => onDuplicateSession(event.data) : undefined}
+                isViewer={isViewer}
+                isDraggable={!isViewer}
+                playerName={event.data.created_by_player_id && playerNamesMap ? playerNamesMap[event.data.created_by_player_id] : null}
+              />
+            </div>
+          )
+        )}
 
         {/* More indicator */}
-        {(sessions.length + matches.length) > 3 && (
-          <div 
+        {hiddenCount > 0 && (
+          <div
             className="text-[10px] text-muted-foreground pl-1 cursor-pointer hover:text-primary font-medium"
             onClick={(e) => {
               e.stopPropagation();
@@ -220,7 +218,7 @@ export function CalendarDayCell({
               }
             }}
           >
-            {t("planning.calendarViews.moreEvents", { count: sessions.length + matches.length - 3 })}
+            {t("planning.calendarViews.moreEvents", { count: hiddenCount })}
           </div>
         )}
       </div>
