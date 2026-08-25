@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/collapsible";
 import { ChevronDown, Copy, Trash2, Plus, X } from "lucide-react";
 import { ProgramSessionCard } from "./ProgramSessionCard";
+import { useTranslation } from "react-i18next";
 
 interface ProgramExercise {
   id: string;
@@ -55,13 +56,14 @@ export function ProgramWeekSection({
   onDuplicate,
   onDelete,
 }: ProgramWeekSectionProps) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(true);
 
   const addSession = () => {
     const newSession: ProgramSession = {
       id: crypto.randomUUID(),
       session_number: week.sessions.length + 1,
-      name: `Séance ${week.sessions.length + 1}`,
+      name: t("programmation.week.sessionName", { n: week.sessions.length + 1 }),
       exercises: [],
     };
     onUpdate({
@@ -94,9 +96,9 @@ export function ProgramWeekSection({
               <ChevronDown
                 className={`h-4 w-4 transition-transform ${isOpen ? "" : "-rotate-90"}`}
               />
-              <span className="font-medium">Semaine {week.week_number}</span>
+              <span className="font-medium">{t("programmation.week.title", { n: week.week_number })}</span>
               <span className="text-sm text-muted-foreground">
-                {week.sessions.length} séance{week.sessions.length > 1 ? "s" : ""}
+                {t("programmation.week.sessionCount", { count: week.sessions.length })}
               </span>
             </div>
             <div className="flex items-center gap-1">
@@ -107,7 +109,7 @@ export function ProgramWeekSection({
                   e.stopPropagation();
                   onDuplicate();
                 }}
-                title="Dupliquer la semaine"
+                title={t("programmation.week.duplicateTooltip")}
               >
                 <Copy className="h-4 w-4" />
               </Button>
@@ -119,7 +121,7 @@ export function ProgramWeekSection({
                   onDelete();
                 }}
                 className="text-destructive hover:text-destructive"
-                title="Supprimer la semaine"
+                title={t("programmation.week.deleteTooltip")}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -145,7 +147,7 @@ export function ProgramWeekSection({
               onClick={addSession}
             >
               <Plus className="h-4 w-4 mr-2" />
-              Séance
+              {t("programmation.week.addSession")}
             </Button>
           </div>
         </CollapsibleContent>

@@ -96,7 +96,7 @@ export function PlayerRehabExerciseEditor({
         description: libExercise.description || null,
         sets: 3,
         reps: "10",
-        frequency: "3x/semaine",
+        frequency: t("health.playerRehabExerciseEditor.defaultFrequency"),
         exercise_order: (exercises?.length || 0),
         image_url: libExercise.image_url || null,
         video_url: libExercise.youtube_url || null,
@@ -116,10 +116,10 @@ export function PlayerRehabExerciseEditor({
         player_rehab_protocol_id: playerRehabProtocolId,
         phase_id: phaseId,
         phase_number: phaseNumber,
-        name: "Nouvel exercice",
+        name: t("health.playerRehabExerciseEditor.newExerciseName"),
         sets: 3,
         reps: "10",
-        frequency: "3x/semaine",
+        frequency: t("health.playerRehabExerciseEditor.defaultFrequency"),
         exercise_order: (exercises?.length || 0),
       });
       if (error) throw error;
@@ -157,7 +157,7 @@ export function PlayerRehabExerciseEditor({
   });
 
   const groupedLibrary = libraryExercises?.reduce((acc, ex) => {
-    const cat = ex.category || "Autre";
+    const cat = ex.category || t("health.playerRehabExerciseEditor.otherCategory");
     if (!acc[cat]) acc[cat] = [];
     acc[cat].push(ex);
     return acc;

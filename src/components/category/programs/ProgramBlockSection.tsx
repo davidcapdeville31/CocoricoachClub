@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/collapsible";
 import { ChevronDown, Copy, Trash2, Plus, Layers, Pencil, Check } from "lucide-react";
 import { ProgramWeekSection } from "./ProgramWeekSection";
+import { useTranslation } from "react-i18next";
 
 interface ProgramExercise {
   id: string;
@@ -77,6 +78,7 @@ export function ProgramBlockSection({
   onDelete,
   canDelete,
 }: ProgramBlockSectionProps) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(true);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editName, setEditName] = useState(block.name);
@@ -90,7 +92,7 @@ export function ProgramBlockSection({
       sessions: [{
         id: crypto.randomUUID(),
         session_number: 1,
-        name: "Séance 1",
+        name: t("programmation.week.sessionName", { n: 1 }),
         exercises: [],
       }],
     };
@@ -175,14 +177,14 @@ export function ProgramBlockSection({
                     }}
                     className="h-7 w-56 text-sm font-semibold"
                     autoFocus
-                    placeholder="Ex: Bloc 1 : Réathlétisation"
+                    placeholder={t("programmation.block.namePlaceholder")}
                   />
                   <Button
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7"
                     onClick={handleNameSave}
-                    title="Valider"
+                    title={t("programmation.block.validate")}
                   >
                     <Check className="h-4 w-4 text-emerald-600" />
                   </Button>
@@ -208,14 +210,14 @@ export function ProgramBlockSection({
                       setIsEditingName(true);
                       setEditName(block.name);
                     }}
-                    title="Renommer le bloc"
+                    title={t("programmation.block.rename")}
                   >
                     <Pencil className="h-3.5 w-3.5" />
                   </Button>
                 </div>
               )}
               <span className="text-sm text-muted-foreground">
-                {block.weeks.length} sem. · {totalSessions} séance{totalSessions > 1 ? "s" : ""}
+                {t("programmation.block.weeksSessions", { weeks: block.weeks.length, sessionsCount: totalSessions })}
               </span>
             </div>
             <div className="flex items-center gap-1">
@@ -226,7 +228,7 @@ export function ProgramBlockSection({
                   e.stopPropagation();
                   onDuplicate();
                 }}
-                title="Dupliquer le bloc"
+                title={t("programmation.block.duplicateTooltip")}
               >
                 <Copy className="h-4 w-4" />
               </Button>
@@ -239,7 +241,7 @@ export function ProgramBlockSection({
                     onDelete();
                   }}
                   className="text-destructive hover:text-destructive"
-                  title="Supprimer le bloc"
+                  title={t("programmation.block.deleteTooltip")}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -267,7 +269,7 @@ export function ProgramBlockSection({
               onClick={addWeek}
             >
               <Plus className="h-4 w-4 mr-2" />
-              Semaine
+              {t("programmation.block.addWeek")}
             </Button>
           </div>
         </CollapsibleContent>

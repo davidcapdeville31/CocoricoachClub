@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Play, Copy, Eye, Edit, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface ProgramCardProps {
   program: any;
@@ -26,6 +27,7 @@ export function ProgramCard({
   onViewDetails,
   isViewer = false,
 }: ProgramCardProps) {
+  const { t } = useTranslation();
   const [isHovered, setIsHovered] = useState(false);
 
   const totalWeeks = program.program_weeks?.length || 0;
@@ -37,9 +39,9 @@ export function ProgramCard({
 
   const getLevelLabel = (level: string) => {
     switch (level) {
-      case "beginner": return "Débutant";
-      case "intermediate": return "Intermédiaire";
-      case "advanced": return "Avancé";
+      case "beginner": return t("programmation.card.level.beginner");
+      case "intermediate": return t("programmation.card.level.intermediate");
+      case "advanced": return t("programmation.card.level.advanced");
       default: return level;
     }
   };
@@ -78,7 +80,7 @@ export function ProgramCard({
                 className="gap-2"
               >
                 <Play className="h-4 w-4" />
-                Appliquer
+                {t("programmation.card.apply")}
               </Button>
               <Button 
                 variant="outline" 
@@ -86,7 +88,7 @@ export function ProgramCard({
                 className="gap-2"
               >
                 <Eye className="h-4 w-4" />
-                Détails
+                {t("programmation.card.details")}
               </Button>
               <Button 
                 variant="outline" 
@@ -94,7 +96,7 @@ export function ProgramCard({
                 className="gap-2"
               >
                 <Copy className="h-4 w-4" />
-                Copier
+                {t("programmation.card.copy")}
               </Button>
               <Button 
                 variant="outline" 
@@ -102,7 +104,7 @@ export function ProgramCard({
                 className="gap-2"
               >
                 <Edit className="h-4 w-4" />
-                Modifier
+                {t("programmation.card.edit")}
               </Button>
             </div>
             <Button 
@@ -112,7 +114,7 @@ export function ProgramCard({
               onClick={() => onDelete(program.id)}
             >
               <Trash2 className="h-4 w-4 mr-1" />
-              Supprimer
+              {t("programmation.card.delete")}
             </Button>
           </>
         )}
@@ -123,7 +125,7 @@ export function ProgramCard({
             className="gap-2"
           >
             <Eye className="h-4 w-4" />
-            Voir les détails
+            {t("programmation.card.viewDetails")}
           </Button>
         )}
       </div>
@@ -138,7 +140,7 @@ export function ProgramCard({
                 {getLevelLabel(program.level)}
               </Badge>
               {program.is_active && (
-                <Badge variant="default" className="bg-green-500">Actif</Badge>
+                <Badge variant="default" className="bg-green-500">{t("programmation.card.active")}</Badge>
               )}
               {program.theme && (
                 <Badge variant="outline" className="capitalize">
@@ -157,13 +159,13 @@ export function ProgramCard({
         )}
 
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <span>{totalWeeks} semaine{totalWeeks > 1 ? "s" : ""}</span>
-          <span>{totalSessions} séance{totalSessions > 1 ? "s" : ""}</span>
-          <span>{assignedPlayers} athlète{assignedPlayers > 1 ? "s" : ""}</span>
+          <span>{t("programmation.card.weeks", { count: totalWeeks })}</span>
+          <span>{t("programmation.card.sessions", { count: totalSessions })}</span>
+          <span>{t("programmation.card.athletes", { count: assignedPlayers })}</span>
         </div>
 
         <p className="text-xs text-muted-foreground">
-          Créé le {format(new Date(program.created_at), "dd MMM yyyy", { locale: getDateLocale() })}
+          {t("programmation.card.createdOn", { date: format(new Date(program.created_at), "dd MMM yyyy", { locale: getDateLocale() }) })}
         </p>
       </CardContent>
     </Card>

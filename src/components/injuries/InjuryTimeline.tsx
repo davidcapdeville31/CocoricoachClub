@@ -1,4 +1,5 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +16,7 @@ interface InjuryTimelineProps {
 }
 
 export function InjuryTimeline({ playerId, categoryId, limit = 10 }: InjuryTimelineProps) {
+  const { t } = useTranslation();
   const { data: injuries, isLoading } = useQuery({
     queryKey: ["injury-timeline", playerId, categoryId],
     queryFn: async () => {
@@ -58,19 +60,19 @@ export function InjuryTimeline({ playerId, categoryId, limit = 10 }: InjuryTimel
         return { 
           status: "critical" as const, 
           icon: AlertTriangle, 
-          label: "Active" 
+          label: t("health.injuryTimeline.status.active") 
         };
       case INJURY_STATUS.REHABILITATION:
         return { 
           status: "attention" as const, 
           icon: TrendingUp, 
-          label: "Réathlétisation" 
+          label: t("health.injuryTimeline.status.rehabilitation") 
         };
       case INJURY_STATUS.HEALED:
         return { 
           status: "optimal" as const, 
           icon: CheckCircle, 
-          label: "Guérie" 
+          label: t("health.injuryTimeline.status.healed") 
         };
       default:
         return { 
@@ -99,7 +101,7 @@ export function InjuryTimeline({ playerId, categoryId, limit = 10 }: InjuryTimel
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <Activity className="h-4 w-4" />
-          Historique des Blessures
+          {t("health.injuryTimeline.title")}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -176,7 +178,7 @@ export function InjuryTimeline({ playerId, categoryId, limit = 10 }: InjuryTimel
                           <>
                             <span className="text-muted-foreground">•</span>
                             <span className="text-status-optimal">
-                              Guérie en {healingDays} jours
+                              {t("health.injuryTimeline.healedIn", { days: healingDays })}
                             </span>
                           </>
                         )}
@@ -184,7 +186,7 @@ export function InjuryTimeline({ playerId, categoryId, limit = 10 }: InjuryTimel
                           <>
                             <span className="text-muted-foreground">•</span>
                             <span className="text-status-critical">
-                              Il y a {daysAgo} jour{daysAgo > 1 ? "s" : ""}
+                              {t("health.injuryTimeline.daysAgo", { days: daysAgo, plural: daysAgo > 1 ? "s" : "" })}
                             </span>
                           </>
                         )}
@@ -192,7 +194,7 @@ export function InjuryTimeline({ playerId, categoryId, limit = 10 }: InjuryTimel
 
                       {injury.estimated_return_date && injury.status !== INJURY_STATUS.HEALED && (
                         <p className="text-xs text-muted-foreground">
-                          Retour estimé: {format(new Date(injury.estimated_return_date), "d MMMM yyyy", { locale: getDateLocale() })}
+                          {t("health.injuryTimeline.estimatedReturn", { date: format(new Date(injury.estimated_return_date), "d MMMM yyyy", { locale: getDateLocale() }) })}
                         </p>
                       )}
 
@@ -209,7 +211,7 @@ export function InjuryTimeline({ playerId, categoryId, limit = 10 }: InjuryTimel
           </div>
         ) : (
           <p className="text-center text-muted-foreground py-6">
-            Aucune blessure enregistrée
+            {t("health.injuryTimeline.empty")}
           </p>
         )}
       </CardContent>

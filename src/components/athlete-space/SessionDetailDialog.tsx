@@ -151,7 +151,7 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                 <p className="text-xs uppercase tracking-wide font-semibold text-emerald-700 dark:text-emerald-400">
-                  Mes données saisies
+                  {t('athleteSpace.components.sessionDetailDialog.myDataEntered')}
                 </p>
               </div>
 

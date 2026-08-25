@@ -6,28 +6,30 @@ import { Button } from "@/components/ui/button";
 import { CalendarClock, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   categoryId: string;
 }
 
-// 1 = Lundi ... 0 = Dimanche (compatible avec Date.getDay())
-const DAYS: { value: number; short: string; long: string }[] = [
-  { value: 1, short: "L", long: "Lundi" },
-  { value: 2, short: "M", long: "Mardi" },
-  { value: 3, short: "M", long: "Mercredi" },
-  { value: 4, short: "J", long: "Jeudi" },
-  { value: 5, short: "V", long: "Vendredi" },
-  { value: 6, short: "S", long: "Samedi" },
-  { value: 0, short: "D", long: "Dimanche" },
-];
-
 const DEFAULT_DAYS = [0, 1, 2, 3, 4, 5, 6];
 
 export function WellnessScheduleConfig({ categoryId }: Props) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [selected, setSelected] = useState<number[]>(DEFAULT_DAYS);
   const [dirty, setDirty] = useState(false);
+
+  // 1 = Lundi ... 0 = Dimanche (compatible avec Date.getDay())
+  const DAYS: { value: number; short: string; long: string }[] = [
+    { value: 1, short: t("health.wellnessScheduleConfig.days.monday").charAt(0), long: t("health.wellnessScheduleConfig.days.monday") },
+    { value: 2, short: t("health.wellnessScheduleConfig.days.tuesday").charAt(0), long: t("health.wellnessScheduleConfig.days.tuesday") },
+    { value: 3, short: t("health.wellnessScheduleConfig.days.wednesday").charAt(0), long: t("health.wellnessScheduleConfig.days.wednesday") },
+    { value: 4, short: t("health.wellnessScheduleConfig.days.thursday").charAt(0), long: t("health.wellnessScheduleConfig.days.thursday") },
+    { value: 5, short: t("health.wellnessScheduleConfig.days.friday").charAt(0), long: t("health.wellnessScheduleConfig.days.friday") },
+    { value: 6, short: t("health.wellnessScheduleConfig.days.saturday").charAt(0), long: t("health.wellnessScheduleConfig.days.saturday") },
+    { value: 0, short: t("health.wellnessScheduleConfig.days.sunday").charAt(0), long: t("health.wellnessScheduleConfig.days.sunday") },
+  ];
 
   const { data, isLoading } = useQuery({
     queryKey: ["wellness_schedule", categoryId],
@@ -67,11 +69,11 @@ export function WellnessScheduleConfig({ categoryId }: Props) {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Planning Wellness mis à jour");
+      toast.success(t("health.wellnessScheduleConfig.toastSuccess"));
       queryClient.invalidateQueries({ queryKey: ["wellness_schedule", categoryId] });
       setDirty(false);
     },
-    onError: () => toast.error("Erreur lors de l'enregistrement"),
+    onError: () => toast.error(t("health.wellnessScheduleConfig.toastError")),
   });
 
   const frequency = selected.length;
@@ -84,10 +86,10 @@ export function WellnessScheduleConfig({ categoryId }: Props) {
           <div>
             <CardTitle className="flex items-center gap-2 text-base">
               <CalendarClock className="h-4 w-4 text-primary" />
-              Fréquence du Wellness — Jours
+              {t("health.wellnessScheduleConfig.cardTitle")}
             </CardTitle>
             <CardDescription>
-              Choisissez les jours où les athlètes doivent remplir leur wellness. Ce planning est partagé avec leur espace athlète.
+              {t("health.wellnessScheduleConfig.cardDescription")}
             </CardDescription>
           </div>
           <Button
@@ -96,7 +98,7 @@ export function WellnessScheduleConfig({ categoryId }: Props) {
             disabled={!dirty || save.isPending || selected.length === 0}
           >
             <Save className="h-4 w-4 mr-1.5" />
-            Enregistrer
+            {t("health.wellnessScheduleConfig.save")}
           </Button>
         </div>
       </CardHeader>
@@ -125,10 +127,13 @@ export function WellnessScheduleConfig({ categoryId }: Props) {
         </div>
         <p className="text-xs text-muted-foreground">
           {everyday
-            ? "Wellness demandé tous les jours (7×/semaine)."
+            ? t("health.wellnessScheduleConfig.everyday")
             : selected.length === 0
-              ? "Sélectionnez au moins un jour."
-              : `Wellness demandé ${frequency}×/semaine — ${DAYS.filter(d => selected.includes(d.value)).map(d => d.long).join(", ")}.`}
+              ? t("health.wellnessScheduleConfig.selectAtLeastOne")
+              : t("health.wellnessScheduleConfig.frequencySummary", {
+                  count: frequency,
+                  days: DAYS.filter(d => selected.includes(d.value)).map(d => d.long).join(", "),
+                })}
         </p>
       </CardContent>
     </Card>

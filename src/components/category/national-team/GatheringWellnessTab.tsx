@@ -24,6 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Building2, User, Link2, Eye, ArrowLeftRight } from "lucide-react";
 import { format } from "date-fns";
 import { AddGatheringWellnessDialog } from "./AddGatheringWellnessDialog";
+import { useTranslation } from "react-i18next";
 import { GatheringWellnessComparisonDialog } from "./GatheringWellnessComparisonDialog";
 
 interface GatheringWellnessTabProps {
@@ -37,14 +38,14 @@ const LOAD_COLORS: Record<string, string> = {
   rest: "bg-red-500 text-white",
 };
 
-const LOAD_LABELS: Record<string, string> = {
-  full: "Complète",
-  adapted: "Adaptée",
-  light: "Légère",
-  rest: "Repos",
-};
-
 export function GatheringWellnessTab({ categoryId }: GatheringWellnessTabProps) {
+  const { t } = useTranslation();
+  const LOAD_LABELS: Record<string, string> = {
+    full: t("health.gatheringWellnessTab.loadLabels.full"),
+    adapted: t("health.gatheringWellnessTab.loadLabels.adapted"),
+    light: t("health.gatheringWellnessTab.loadLabels.light"),
+    rest: t("health.gatheringWellnessTab.loadLabels.rest"),
+  };
   const [isAddPreOpen, setIsAddPreOpen] = useState(false);
   const [isAddDayOfOpen, setIsAddDayOfOpen] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<string>("all");
@@ -117,23 +118,23 @@ export function GatheringWellnessTab({ categoryId }: GatheringWellnessTabProps) 
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Joueur</TableHead>
-          <TableHead>Date</TableHead>
-          <TableHead>Événement</TableHead>
-          <TableHead className="text-center">Fatigue</TableHead>
-          <TableHead className="text-center">Sommeil</TableHead>
-          <TableHead className="text-center">Stress</TableHead>
-          <TableHead className="text-center">Motivation</TableHead>
-          <TableHead>Douleurs</TableHead>
-          <TableHead>Charge rec.</TableHead>
-          <TableHead>Lien</TableHead>
+          <TableHead>{t("health.gatheringWellnessTab.table.player")}</TableHead>
+          <TableHead>{t("health.gatheringWellnessTab.table.date")}</TableHead>
+          <TableHead>{t("health.gatheringWellnessTab.table.event")}</TableHead>
+          <TableHead className="text-center">{t("health.gatheringWellnessTab.table.fatigue")}</TableHead>
+          <TableHead className="text-center">{t("health.gatheringWellnessTab.table.sleep")}</TableHead>
+          <TableHead className="text-center">{t("health.gatheringWellnessTab.table.stress")}</TableHead>
+          <TableHead className="text-center">{t("health.gatheringWellnessTab.table.motivation")}</TableHead>
+          <TableHead>{t("health.gatheringWellnessTab.table.pain")}</TableHead>
+          <TableHead>{t("health.gatheringWellnessTab.table.recommendedLoad")}</TableHead>
+          <TableHead>{t("health.gatheringWellnessTab.table.link")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {data.length === 0 ? (
           <TableRow>
             <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
-              Aucun bilan enregistré
+              {t("health.gatheringWellnessTab.empty")}
             </TableCell>
           </TableRow>
         ) : (
@@ -148,7 +149,7 @@ export function GatheringWellnessTab({ categoryId }: GatheringWellnessTabProps) 
                   {format(new Date(assessment.assessment_date), "dd MMM yyyy", { locale: getDateLocale() })}
                 </TableCell>
                 <TableCell>
-                  {assessment.national_team_events?.name || "-"}
+                  {assessment.national_team_events?.name || t("health.gatheringWellnessTab.noEvent")}
                 </TableCell>
                 <TableCell className={`text-center font-semibold ${getScoreColor(assessment.fatigue_level)}`}>
                   {assessment.fatigue_level}/5
@@ -165,10 +166,10 @@ export function GatheringWellnessTab({ categoryId }: GatheringWellnessTabProps) 
                 <TableCell>
                   {assessment.has_pain ? (
                     <Badge variant="destructive" className="text-xs">
-                      Oui ({assessment.pain_locations?.length || 0} zones)
+                      {t("health.gatheringWellnessTab.painYes", { count: assessment.pain_locations?.length || 0 })}
                     </Badge>
                   ) : (
-                    <Badge variant="outline" className="text-xs">Non</Badge>
+                    <Badge variant="outline" className="text-xs">{t("health.gatheringWellnessTab.painNo")}</Badge>
                   )}
                 </TableCell>
                 <TableCell>
@@ -189,7 +190,7 @@ export function GatheringWellnessTab({ categoryId }: GatheringWellnessTabProps) 
                       })}
                     >
                       <ArrowLeftRight className="h-4 w-4 mr-1" />
-                      Comparer
+                      {t("health.gatheringWellnessTab.compare")}
                     </Button>
                   ) : type === "pre_gathering" ? (
                     <Button
@@ -201,10 +202,10 @@ export function GatheringWellnessTab({ categoryId }: GatheringWellnessTabProps) 
                       }}
                     >
                       <Link2 className="h-4 w-4 mr-1" />
-                      Lier Jour J
+                      {t("health.gatheringWellnessTab.linkDayOf")}
                     </Button>
                   ) : (
-                    <span className="text-muted-foreground text-sm">-</span>
+                    <span className="text-muted-foreground text-sm">{t("health.gatheringWellnessTab.noLink")}</span>
                   )}
                 </TableCell>
               </TableRow>
@@ -225,19 +226,19 @@ export function GatheringWellnessTab({ categoryId }: GatheringWellnessTabProps) 
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h3 className="text-lg font-semibold">Bilans de Rassemblement</h3>
+          <h3 className="text-lg font-semibold">{t("health.gatheringWellnessTab.title")}</h3>
           <p className="text-sm text-muted-foreground">
-            Suivi wellness détaillé avant et pendant les rassemblements
+            {t("health.gatheringWellnessTab.subtitle")}
           </p>
         </div>
         <div className="flex gap-2">
           <Button onClick={() => setIsAddPreOpen(true)} variant="outline">
             <Building2 className="h-4 w-4 mr-2" />
-            Bilan Pré-Rassemblement
+            {t("health.gatheringWellnessTab.preGatheringButton")}
           </Button>
           <Button onClick={() => setIsAddDayOfOpen(true)}>
             <User className="h-4 w-4 mr-2" />
-            Bilan Jour J
+            {t("health.gatheringWellnessTab.dayOfButton")}
           </Button>
         </div>
       </div>
@@ -248,7 +249,7 @@ export function GatheringWellnessTab({ categoryId }: GatheringWellnessTabProps) 
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
               <Building2 className="h-4 w-4" />
-              Bilans Pré-Rassemblement
+              {t("health.gatheringWellnessTab.stats.preGathering")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -259,7 +260,7 @@ export function GatheringWellnessTab({ categoryId }: GatheringWellnessTabProps) 
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
               <User className="h-4 w-4" />
-              Bilans Jour J
+              {t("health.gatheringWellnessTab.stats.dayOf")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -270,7 +271,7 @@ export function GatheringWellnessTab({ categoryId }: GatheringWellnessTabProps) 
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
               <Link2 className="h-4 w-4" />
-              Bilans Liés
+              {t("health.gatheringWellnessTab.stats.linked")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -280,7 +281,7 @@ export function GatheringWellnessTab({ categoryId }: GatheringWellnessTabProps) 
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">
-              Athlètes avec douleurs
+              {t("health.gatheringWellnessTab.stats.playersWithPain")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -291,13 +292,13 @@ export function GatheringWellnessTab({ categoryId }: GatheringWellnessTabProps) 
 
       {/* Filter */}
       <div className="flex items-center gap-4">
-        <span className="text-sm text-muted-foreground">Filtrer par événement:</span>
+        <span className="text-sm text-muted-foreground">{t("health.gatheringWellnessTab.filterByEvent")}</span>
         <Select value={selectedEventId} onValueChange={setSelectedEventId}>
           <SelectTrigger className="w-[300px]">
-            <SelectValue placeholder="Tous les événements" />
+            <SelectValue placeholder={t("health.gatheringWellnessTab.allEvents")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tous les événements</SelectItem>
+            <SelectItem value="all">{t("health.gatheringWellnessTab.allEvents")}</SelectItem>
             {events?.map((event) => (
               <SelectItem key={event.id} value={event.id}>
                 {event.name} - {format(new Date(event.start_date), "dd/MM/yyyy")}
@@ -312,11 +313,11 @@ export function GatheringWellnessTab({ categoryId }: GatheringWellnessTabProps) 
         <TabsList>
           <TabsTrigger value="pre_gathering" className="flex items-center gap-2">
             <Building2 className="h-4 w-4" />
-            Pré-Rassemblement ({totalPre})
+            {t("health.gatheringWellnessTab.tabs.preGathering", { count: totalPre })}
           </TabsTrigger>
           <TabsTrigger value="day_of" className="flex items-center gap-2">
             <User className="h-4 w-4" />
-            Jour J ({totalDayOf})
+            {t("health.gatheringWellnessTab.tabs.dayOf", { count: totalDayOf })}
           </TabsTrigger>
         </TabsList>
 
@@ -324,7 +325,7 @@ export function GatheringWellnessTab({ categoryId }: GatheringWellnessTabProps) 
           <Card>
             <CardContent className="pt-6">
               {isLoading ? (
-                <div className="text-center py-8 text-muted-foreground">Chargement...</div>
+                <div className="text-center py-8 text-muted-foreground">{t("health.gatheringWellnessTab.loading")}</div>
               ) : (
                 renderAssessmentTable(preGatheringAssessments, "pre_gathering")
               )}
@@ -336,7 +337,7 @@ export function GatheringWellnessTab({ categoryId }: GatheringWellnessTabProps) 
           <Card>
             <CardContent className="pt-6">
               {isLoading ? (
-                <div className="text-center py-8 text-muted-foreground">Chargement...</div>
+                <div className="text-center py-8 text-muted-foreground">{t("health.gatheringWellnessTab.loading")}</div>
               ) : (
                 renderAssessmentTable(dayOfAssessments, "day_of")
               )}

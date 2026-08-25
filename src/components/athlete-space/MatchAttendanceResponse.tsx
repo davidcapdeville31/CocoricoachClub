@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Check, X, Lock, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   matchId: string;
@@ -20,6 +21,7 @@ type Status = "present" | "absent" | "no_response";
 const LOCK_MINUTES = 30;
 
 export function MatchAttendanceResponse({ matchId, playerId, matchDate, matchTime }: Props) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [saving, setSaving] = useState(false);
   const [showComment, setShowComment] = useState(false);
@@ -58,7 +60,7 @@ export function MatchAttendanceResponse({ matchId, playerId, matchDate, matchTim
 
   const respond = async (nextStatus: "present" | "absent", nextComment?: string) => {
     if (locked) {
-      toast.error("La réponse ne peut plus être modifiée moins de 30 minutes avant la compétition.");
+      t("athleteSpace.calendar.attendance.lockedMatch")
       return;
     }
     setSaving(true);
@@ -71,10 +73,10 @@ export function MatchAttendanceResponse({ matchId, playerId, matchDate, matchTim
         })
         .eq("id", participant.id);
       if (error) throw error;
-      toast.success(nextStatus === "present" ? "Présence confirmée" : "Absence enregistrée");
+      toast.success(nextStatus === "present" ? t("athleteSpace.calendar.attendance.presentConfirmed") : t("athleteSpace.calendar.attendance.absentRecorded"));
       qc.invalidateQueries({ queryKey: ["mp-attendance", matchId, playerId] });
     } catch (e: any) {
-      toast.error(e?.message || "Erreur lors de l'enregistrement");
+      toast.error(e?.message || t("athleteSpace.calendar.attendance.saveError"));
     } finally {
       setSaving(false);
     }
@@ -85,19 +87,19 @@ export function MatchAttendanceResponse({ matchId, playerId, matchDate, matchTim
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
           <Trophy className="h-3.5 w-3.5" />
-          Ta présence
+          {t("athleteSpace.calendar.attendance.yourAttendance")}
           {status === "present" && (
             <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/40 h-5 px-1.5 text-[10px]">
-              Présent
+              {t("athleteSpace.calendar.attendance.present")}
             </Badge>
           )}
           {status === "absent" && (
             <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/40 h-5 px-1.5 text-[10px]">
-              Absent
+              {t("athleteSpace.calendar.attendance.absent")}
             </Badge>
           )}
           {status === "no_response" && (
-            <Badge variant="outline" className="h-5 px-1.5 text-[10px]">Sans réponse</Badge>
+            <Badge variant="outline" className="h-5 px-1.5 text-[10px]">{t("athleteSpace.calendar.attendance.noResponse")}</Badge>
           )}
         </div>
         <div className="flex items-center gap-1.5">
@@ -113,7 +115,7 @@ export function MatchAttendanceResponse({ matchId, playerId, matchDate, matchTim
               respond("present");
             }}
           >
-            <Check className="h-3.5 w-3.5" /> Présent
+            <Check className="h-3.5 w-3.5" /> {t("athleteSpace.calendar.attendance.present")}
           </Button>
           <Button
             type="button"
@@ -127,7 +129,7 @@ export function MatchAttendanceResponse({ matchId, playerId, matchDate, matchTim
               if (status !== "absent") respond("absent");
             }}
           >
-            <X className="h-3.5 w-3.5" /> Absent
+            <X className="h-3.5 w-3.5" /> {t("athleteSpace.calendar.attendance.absent")}
           </Button>
         </div>
       </div>
@@ -137,7 +139,7 @@ export function MatchAttendanceResponse({ matchId, playerId, matchDate, matchTim
           <Textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            placeholder="Raison de l'absence (facultatif)"
+            placeholder={t("athleteSpace.calendar.attendance.absenceReasonPlaceholder")}
             className="min-h-[60px] text-xs"
           />
           <div className="flex justify-end mt-1.5">
@@ -149,7 +151,7 @@ export function MatchAttendanceResponse({ matchId, playerId, matchDate, matchTim
               disabled={saving}
               onClick={() => respond("absent", comment)}
             >
-              Enregistrer le commentaire
+              {t("athleteSpace.calendar.attendance.saveComment")}
             </Button>
           </div>
         </div>
@@ -158,7 +160,7 @@ export function MatchAttendanceResponse({ matchId, playerId, matchDate, matchTim
       {locked && (
         <p className="mt-1.5 flex items-center gap-1 text-[11px] text-muted-foreground">
           <Lock className="h-3 w-3" />
-          La réponse ne peut plus être modifiée moins de 30 minutes avant la compétition.
+          {t("athleteSpace.calendar.attendance.lockedMatch")}
         </p>
       )}
     </div>

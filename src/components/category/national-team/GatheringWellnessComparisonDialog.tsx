@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ArrowRight, ArrowUp, ArrowDown, Minus, Building2, User, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
 
 interface GatheringWellnessComparisonDialogProps {
   open: boolean;
@@ -18,28 +19,29 @@ interface GatheringWellnessComparisonDialogProps {
   dayOfAssessment: any;
 }
 
-const SCORE_LABELS: Record<string, Record<number, string>> = {
-  sleep_quality: { 1: "Très mauvais", 2: "Mauvais", 3: "Moyen", 4: "Bon", 5: "Excellent" },
-  fatigue_level: { 1: "Épuisé", 2: "Fatigué", 3: "Normal", 4: "Énergique", 5: "Très frais" },
-  stress_level: { 1: "Très stressé", 2: "Stressé", 3: "Normal", 4: "Détendu", 5: "Très serein" },
-  muscle_soreness: { 1: "Très douloureux", 2: "Courbatures", 3: "Légères", 4: "Minimes", 5: "Aucune" },
-  motivation_level: { 1: "Démotivé", 2: "Peu motivé", 3: "Normal", 4: "Motivé", 5: "Très motivé" },
-  mood_level: { 1: "Très bas", 2: "Bas", 3: "Normal", 4: "Bon", 5: "Excellent" },
-};
-
-const LOAD_LABELS: Record<string, string> = {
-  full: "Charge complète",
-  adapted: "Charge adaptée",
-  light: "Charge légère",
-  rest: "Repos",
-};
-
 export function GatheringWellnessComparisonDialog({
   open,
   onOpenChange,
   preAssessment,
   dayOfAssessment,
 }: GatheringWellnessComparisonDialogProps) {
+  const { t } = useTranslation();
+
+  const SCORE_LABELS: Record<string, Record<number, string>> = {
+    sleep_quality: { 1: t("health.gatheringWellnessComparisonDialog.scoreLabels.sleep_quality.1"), 2: t("health.gatheringWellnessComparisonDialog.scoreLabels.sleep_quality.2"), 3: t("health.gatheringWellnessComparisonDialog.scoreLabels.sleep_quality.3"), 4: t("health.gatheringWellnessComparisonDialog.scoreLabels.sleep_quality.4"), 5: t("health.gatheringWellnessComparisonDialog.scoreLabels.sleep_quality.5") },
+    fatigue_level: { 1: t("health.gatheringWellnessComparisonDialog.scoreLabels.fatigue_level.1"), 2: t("health.gatheringWellnessComparisonDialog.scoreLabels.fatigue_level.2"), 3: t("health.gatheringWellnessComparisonDialog.scoreLabels.fatigue_level.3"), 4: t("health.gatheringWellnessComparisonDialog.scoreLabels.fatigue_level.4"), 5: t("health.gatheringWellnessComparisonDialog.scoreLabels.fatigue_level.5") },
+    stress_level: { 1: t("health.gatheringWellnessComparisonDialog.scoreLabels.stress_level.1"), 2: t("health.gatheringWellnessComparisonDialog.scoreLabels.stress_level.2"), 3: t("health.gatheringWellnessComparisonDialog.scoreLabels.stress_level.3"), 4: t("health.gatheringWellnessComparisonDialog.scoreLabels.stress_level.4"), 5: t("health.gatheringWellnessComparisonDialog.scoreLabels.stress_level.5") },
+    muscle_soreness: { 1: t("health.gatheringWellnessComparisonDialog.scoreLabels.muscle_soreness.1"), 2: t("health.gatheringWellnessComparisonDialog.scoreLabels.muscle_soreness.2"), 3: t("health.gatheringWellnessComparisonDialog.scoreLabels.muscle_soreness.3"), 4: t("health.gatheringWellnessComparisonDialog.scoreLabels.muscle_soreness.4"), 5: t("health.gatheringWellnessComparisonDialog.scoreLabels.muscle_soreness.5") },
+    motivation_level: { 1: t("health.gatheringWellnessComparisonDialog.scoreLabels.motivation_level.1"), 2: t("health.gatheringWellnessComparisonDialog.scoreLabels.motivation_level.2"), 3: t("health.gatheringWellnessComparisonDialog.scoreLabels.motivation_level.3"), 4: t("health.gatheringWellnessComparisonDialog.scoreLabels.motivation_level.4"), 5: t("health.gatheringWellnessComparisonDialog.scoreLabels.motivation_level.5") },
+    mood_level: { 1: t("health.gatheringWellnessComparisonDialog.scoreLabels.mood_level.1"), 2: t("health.gatheringWellnessComparisonDialog.scoreLabels.mood_level.2"), 3: t("health.gatheringWellnessComparisonDialog.scoreLabels.mood_level.3"), 4: t("health.gatheringWellnessComparisonDialog.scoreLabels.mood_level.4"), 5: t("health.gatheringWellnessComparisonDialog.scoreLabels.mood_level.5") },
+  };
+
+  const LOAD_LABELS: Record<string, string> = {
+    full: t("health.gatheringWellnessComparisonDialog.loadLabels.full"),
+    adapted: t("health.gatheringWellnessComparisonDialog.loadLabels.adapted"),
+    light: t("health.gatheringWellnessComparisonDialog.loadLabels.light"),
+    rest: t("health.gatheringWellnessComparisonDialog.loadLabels.rest"),
+  };
   const getChangeIcon = (pre: number | null, dayOf: number | null) => {
     if (!pre || !dayOf) return <Minus className="h-4 w-4 text-muted-foreground" />;
     if (dayOf > pre) return <ArrowUp className="h-4 w-4 text-green-500" />;
@@ -127,7 +129,7 @@ export function GatheringWellnessComparisonDialog({
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            Comparaison des Bilans - {preAssessment?.players?.name || dayOfAssessment?.players?.name}
+            {t("health.gatheringWellnessComparisonDialog.title", { name: preAssessment?.players?.name || dayOfAssessment?.players?.name })}
           </DialogTitle>
         </DialogHeader>
 
@@ -145,10 +147,10 @@ export function GatheringWellnessComparisonDialog({
                 <p className="text-lg font-semibold">
                   {preAssessment?.assessment_date
                     ? format(new Date(preAssessment.assessment_date), "dd MMMM yyyy", { locale: getDateLocale() })
-                    : "Non rempli"}
+                    : t("health.gatheringWellnessComparisonDialog.notFilled")}
                 </p>
                 {preAssessment?.filled_by && (
-                  <p className="text-sm text-muted-foreground">Par: {preAssessment.filled_by}</p>
+                  <p className="text-sm text-muted-foreground">{t("health.gatheringWellnessComparisonDialog.by", { name: preAssessment.filled_by })}</p>
                 )}
               </CardContent>
             </Card>
@@ -164,10 +166,10 @@ export function GatheringWellnessComparisonDialog({
                 <p className="text-lg font-semibold">
                   {dayOfAssessment?.assessment_date
                     ? format(new Date(dayOfAssessment.assessment_date), "dd MMMM yyyy", { locale: getDateLocale() })
-                    : "Non rempli"}
+                    : t("health.gatheringWellnessComparisonDialog.notFilled")}
                 </p>
                 {dayOfAssessment?.filled_by && (
-                  <p className="text-sm text-muted-foreground">Par: {dayOfAssessment.filled_by}</p>
+                  <p className="text-sm text-muted-foreground">{t("health.gatheringWellnessComparisonDialog.by", { name: dayOfAssessment.filled_by })}</p>
                 )}
               </CardContent>
             </Card>
@@ -176,7 +178,7 @@ export function GatheringWellnessComparisonDialog({
           {/* Global score comparison */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Score Wellness Global</CardTitle>
+              <CardTitle className="text-base">{t("health.gatheringWellnessComparisonDialog.globalScoreTitle")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-3 gap-4 items-center">
@@ -203,33 +205,33 @@ export function GatheringWellnessComparisonDialog({
           {/* Detailed comparison */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Détail des scores</CardTitle>
+              <CardTitle className="text-base">{t("health.gatheringWellnessComparisonDialog.detailTitle")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-4 gap-4 py-2 border-b font-semibold text-sm text-muted-foreground">
-                <div>Métrique</div>
-                <div className="text-center">Pré-Rassemblement</div>
-                <div className="text-center">Évolution</div>
-                <div className="text-center">Jour J</div>
+                <div>{t("health.gatheringWellnessComparisonDialog.metric")}</div>
+                <div className="text-center">{t("health.gatheringWellnessComparisonDialog.preGathering")}</div>
+                <div className="text-center">{t("health.gatheringWellnessComparisonDialog.evolution")}</div>
+                <div className="text-center">{t("health.gatheringWellnessComparisonDialog.dayOf")}</div>
               </div>
-              <ComparisonRow label="Qualité sommeil" field="sleep_quality" />
-              <ComparisonRow label="Fatigue" field="fatigue_level" />
-              <ComparisonRow label="Stress" field="stress_level" />
-              <ComparisonRow label="Courbatures" field="muscle_soreness" />
-              <ComparisonRow label="Motivation" field="motivation_level" />
-              <ComparisonRow label="Humeur" field="mood_level" />
+              <ComparisonRow label={t("health.gatheringWellnessComparisonDialog.sleepQuality")} field="sleep_quality" />
+              <ComparisonRow label={t("health.gatheringWellnessComparisonDialog.fatigue")} field="fatigue_level" />
+              <ComparisonRow label={t("health.gatheringWellnessComparisonDialog.stress")} field="stress_level" />
+              <ComparisonRow label={t("health.gatheringWellnessComparisonDialog.soreness")} field="muscle_soreness" />
+              <ComparisonRow label={t("health.gatheringWellnessComparisonDialog.motivation")} field="motivation_level" />
+              <ComparisonRow label={t("health.gatheringWellnessComparisonDialog.mood")} field="mood_level" />
             </CardContent>
           </Card>
 
           {/* Load comparison */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Charge d'entraînement</CardTitle>
+              <CardTitle className="text-base">{t("health.gatheringWellnessComparisonDialog.trainingLoadTitle")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">Charge 7 jours</p>
+                  <p className="text-sm text-muted-foreground">{t("health.gatheringWellnessComparisonDialog.load7d")}</p>
                   <div className="flex items-center gap-4">
                     <span className="font-semibold">{preAssessment?.training_load_last_7_days || "-"} UA</span>
                     <ArrowRight className="h-4 w-4" />
@@ -237,7 +239,7 @@ export function GatheringWellnessComparisonDialog({
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">Matchs (14 jours)</p>
+                  <p className="text-sm text-muted-foreground">{t("health.gatheringWellnessComparisonDialog.matches14d")}</p>
                   <div className="flex items-center gap-4">
                     <span className="font-semibold">{preAssessment?.matches_played_last_14_days || "-"}</span>
                     <ArrowRight className="h-4 w-4" />
@@ -260,41 +262,41 @@ export function GatheringWellnessComparisonDialog({
               <CardContent>
                 <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <p className="text-sm font-medium mb-2">Pré-Rassemblement</p>
+                    <p className="text-sm font-medium mb-2">{t("health.gatheringWellnessComparisonDialog.preGathering")}</p>
                     {preAssessment?.has_pain ? (
                       <>
                         <div className="flex flex-wrap gap-1 mb-2">
                           {preAssessment.pain_locations?.map((loc: string) => (
                             <Badge key={loc} variant="destructive" className="text-xs">
-                              {loc}
+                              {t(`health.addGatheringWellnessDialog.painLocations.${loc}`, { defaultValue: loc })}
                             </Badge>
                           ))}
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          Intensité: {preAssessment.pain_intensity}/10
+                          {t("health.gatheringWellnessComparisonDialog.intensity", { value: preAssessment.pain_intensity })}
                         </p>
                       </>
                     ) : (
-                      <Badge variant="outline">Aucune douleur</Badge>
+                      <Badge variant="outline">{t("health.gatheringWellnessComparisonDialog.noPain")}</Badge>
                     )}
                   </div>
                   <div>
-                    <p className="text-sm font-medium mb-2">Jour J</p>
+                    <p className="text-sm font-medium mb-2">{t("health.gatheringWellnessComparisonDialog.dayOf")}</p>
                     {dayOfAssessment?.has_pain ? (
                       <>
                         <div className="flex flex-wrap gap-1 mb-2">
                           {dayOfAssessment.pain_locations?.map((loc: string) => (
                             <Badge key={loc} variant="destructive" className="text-xs">
-                              {loc}
+                              {t(`health.addGatheringWellnessDialog.painLocations.${loc}`, { defaultValue: loc })}
                             </Badge>
                           ))}
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          Intensité: {dayOfAssessment.pain_intensity}/10
+                          {t("health.gatheringWellnessComparisonDialog.intensity", { value: dayOfAssessment.pain_intensity })}
                         </p>
                       </>
                     ) : (
-                      <Badge variant="outline">Aucune douleur</Badge>
+                      <Badge variant="outline">{t("health.gatheringWellnessComparisonDialog.noPain")}</Badge>
                     )}
                   </div>
                 </div>
@@ -305,12 +307,12 @@ export function GatheringWellnessComparisonDialog({
           {/* Recommendations comparison */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Recommandations</CardTitle>
+              <CardTitle className="text-base">{t("health.gatheringWellnessComparisonDialog.recommendationsTitle")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-2">Pré-Rassemblement</p>
+                  <p className="text-sm text-muted-foreground mb-2">{t("health.gatheringWellnessComparisonDialog.preGathering")}</p>
                   {preAssessment?.recommended_load && (
                     <Badge variant="outline" className="mb-2">
                       {LOAD_LABELS[preAssessment.recommended_load]}
@@ -321,7 +323,7 @@ export function GatheringWellnessComparisonDialog({
                   )}
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground mb-2">Jour J</p>
+                  <p className="text-sm text-muted-foreground mb-2">{t("health.gatheringWellnessComparisonDialog.dayOf")}</p>
                   {dayOfAssessment?.recommended_load && (
                     <Badge variant="outline" className="mb-2">
                       {LOAD_LABELS[dayOfAssessment.recommended_load]}

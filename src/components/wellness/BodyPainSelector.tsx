@@ -14,81 +14,86 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { usePainConfig, DEFAULT_PAIN_CONFIG, type PainConfig } from "@/lib/wellness/questionConfig";
+import { useTranslation } from "react-i18next";
 
-export type BodyRegion = {
+export type BodyRegionData = {
   id: string;
-  label: string;
-  zone: string;
+  zoneKey: "head" | "upperBody" | "abdomen" | "lowerBody";
   side: "front" | "back";
   cx: number;
   cy: number;
 };
 
-const REGIONS: BodyRegion[] = [
+export type BodyRegion = BodyRegionData & {
+  label: string;
+  zone: string;
+};
+
+const REGIONS_DATA: BodyRegionData[] = [
   // ===== FRONT =====
-  { id: "head_front", label: "Tête", zone: "Tête", side: "front", cx: 50, cy: 9 },
-  { id: "neck_front", label: "Nuque / Cervicales", zone: "Haut du corps", side: "front", cx: 50, cy: 17 },
-  { id: "shoulder_l", label: "Épaule droite", zone: "Haut du corps", side: "front", cx: 38, cy: 21 },
-  { id: "shoulder_r", label: "Épaule gauche", zone: "Haut du corps", side: "front", cx: 62, cy: 21 },
-  { id: "pec_l", label: "Pectoral droit", zone: "Haut du corps", side: "front", cx: 43, cy: 26 },
-  { id: "pec_r", label: "Pectoral gauche", zone: "Haut du corps", side: "front", cx: 57, cy: 26 },
-  { id: "biceps_l", label: "Bras droit (biceps)", zone: "Haut du corps", side: "front", cx: 37, cy: 31 },
-  { id: "biceps_r", label: "Bras gauche (biceps)", zone: "Haut du corps", side: "front", cx: 63, cy: 31 },
-  { id: "abs", label: "Abdominaux", zone: "Abdomen", side: "front", cx: 50, cy: 42 },
-  { id: "oblique_l", label: "Oblique droit", zone: "Abdomen", side: "front", cx: 44, cy: 43 },
-  { id: "oblique_r", label: "Oblique gauche", zone: "Abdomen", side: "front", cx: 56, cy: 43 },
-  { id: "elbow_l_f", label: "Coude droit", zone: "Haut du corps", side: "front", cx: 34, cy: 36 },
-  { id: "elbow_r_f", label: "Coude gauche", zone: "Haut du corps", side: "front", cx: 66, cy: 36 },
-  { id: "forearm_l", label: "Avant-bras droit", zone: "Haut du corps", side: "front", cx: 32, cy: 43 },
-  { id: "forearm_r", label: "Avant-bras gauche", zone: "Haut du corps", side: "front", cx: 68, cy: 43 },
-  { id: "wrist_l_f", label: "Poignet droit", zone: "Haut du corps", side: "front", cx: 31, cy: 49 },
-  { id: "wrist_r_f", label: "Poignet gauche", zone: "Haut du corps", side: "front", cx: 69, cy: 49 },
-  { id: "hand_l_f", label: "Main droite", zone: "Haut du corps", side: "front", cx: 28, cy: 57 },
-  { id: "hand_r_f", label: "Main gauche", zone: "Haut du corps", side: "front", cx: 72, cy: 57 },
-  { id: "hip_l", label: "Hanche droite", zone: "Bas du corps", side: "front", cx: 43, cy: 46 },
-  { id: "hip_r", label: "Hanche gauche", zone: "Bas du corps", side: "front", cx: 57, cy: 46 },
-  { id: "adductor_l", label: "Adducteur droit", zone: "Bas du corps", side: "front", cx: 47, cy: 53 },
-  { id: "adductor_r", label: "Adducteur gauche", zone: "Bas du corps", side: "front", cx: 53, cy: 53 },
-  { id: "quad_l", label: "Cuisse droite (quadriceps)", zone: "Bas du corps", side: "front", cx: 42, cy: 60 },
-  { id: "quad_r", label: "Cuisse gauche (quadriceps)", zone: "Bas du corps", side: "front", cx: 58, cy: 60 },
-  { id: "knee_l", label: "Genou droit", zone: "Bas du corps", side: "front", cx: 43, cy: 70 },
-  { id: "knee_r", label: "Genou gauche", zone: "Bas du corps", side: "front", cx: 57, cy: 70 },
-  { id: "tibia_l", label: "Tibia droit", zone: "Bas du corps", side: "front", cx: 44, cy: 79 },
-  { id: "tibia_r", label: "Tibia gauche", zone: "Bas du corps", side: "front", cx: 56, cy: 79 },
-  { id: "ankle_l_f", label: "Cheville droite", zone: "Bas du corps", side: "front", cx: 45, cy: 87 },
-  { id: "ankle_r_f", label: "Cheville gauche", zone: "Bas du corps", side: "front", cx: 55, cy: 87 },
-  { id: "foot_l_f", label: "Pied droit", zone: "Bas du corps", side: "front", cx: 45, cy: 92 },
-  { id: "foot_r_f", label: "Pied gauche", zone: "Bas du corps", side: "front", cx: 55, cy: 92 },
+  { id: "head_front", zoneKey: "head", side: "front", cx: 50, cy: 9 },
+  { id: "neck_front", zoneKey: "upperBody", side: "front", cx: 50, cy: 17 },
+  { id: "shoulder_l", zoneKey: "upperBody", side: "front", cx: 38, cy: 21 },
+  { id: "shoulder_r", zoneKey: "upperBody", side: "front", cx: 62, cy: 21 },
+  { id: "pec_l", zoneKey: "upperBody", side: "front", cx: 43, cy: 26 },
+  { id: "pec_r", zoneKey: "upperBody", side: "front", cx: 57, cy: 26 },
+  { id: "biceps_l", zoneKey: "upperBody", side: "front", cx: 37, cy: 31 },
+  { id: "biceps_r", zoneKey: "upperBody", side: "front", cx: 63, cy: 31 },
+  { id: "abs", zoneKey: "abdomen", side: "front", cx: 50, cy: 42 },
+  { id: "oblique_l", zoneKey: "abdomen", side: "front", cx: 44, cy: 43 },
+  { id: "oblique_r", zoneKey: "abdomen", side: "front", cx: 56, cy: 43 },
+  { id: "elbow_l_f", zoneKey: "upperBody", side: "front", cx: 34, cy: 36 },
+  { id: "elbow_r_f", zoneKey: "upperBody", side: "front", cx: 66, cy: 36 },
+  { id: "forearm_l", zoneKey: "upperBody", side: "front", cx: 32, cy: 43 },
+  { id: "forearm_r", zoneKey: "upperBody", side: "front", cx: 68, cy: 43 },
+  { id: "wrist_l_f", zoneKey: "upperBody", side: "front", cx: 31, cy: 49 },
+  { id: "wrist_r_f", zoneKey: "upperBody", side: "front", cx: 69, cy: 49 },
+  { id: "hand_l_f", zoneKey: "upperBody", side: "front", cx: 28, cy: 57 },
+  { id: "hand_r_f", zoneKey: "upperBody", side: "front", cx: 72, cy: 57 },
+  { id: "hip_l", zoneKey: "lowerBody", side: "front", cx: 43, cy: 46 },
+  { id: "hip_r", zoneKey: "lowerBody", side: "front", cx: 57, cy: 46 },
+  { id: "adductor_l", zoneKey: "lowerBody", side: "front", cx: 47, cy: 53 },
+  { id: "adductor_r", zoneKey: "lowerBody", side: "front", cx: 53, cy: 53 },
+  { id: "quad_l", zoneKey: "lowerBody", side: "front", cx: 42, cy: 60 },
+  { id: "quad_r", zoneKey: "lowerBody", side: "front", cx: 58, cy: 60 },
+  { id: "knee_l", zoneKey: "lowerBody", side: "front", cx: 43, cy: 70 },
+  { id: "knee_r", zoneKey: "lowerBody", side: "front", cx: 57, cy: 70 },
+  { id: "tibia_l", zoneKey: "lowerBody", side: "front", cx: 44, cy: 79 },
+  { id: "tibia_r", zoneKey: "lowerBody", side: "front", cx: 56, cy: 79 },
+  { id: "ankle_l_f", zoneKey: "lowerBody", side: "front", cx: 45, cy: 87 },
+  { id: "ankle_r_f", zoneKey: "lowerBody", side: "front", cx: 55, cy: 87 },
+  { id: "foot_l_f", zoneKey: "lowerBody", side: "front", cx: 45, cy: 92 },
+  { id: "foot_r_f", zoneKey: "lowerBody", side: "front", cx: 55, cy: 92 },
 
   // ===== BACK =====
-  { id: "head_back", label: "Tête (arrière)", zone: "Tête", side: "back", cx: 50, cy: 9 },
-  { id: "nuque_back", label: "Nuque", zone: "Haut du corps", side: "back", cx: 50, cy: 16 },
-  { id: "trapez", label: "Trapèzes", zone: "Haut du corps", side: "back", cx: 50, cy: 21 },
-  { id: "shoulder_lb", label: "Épaule gauche", zone: "Haut du corps", side: "back", cx: 36, cy: 22 },
-  { id: "shoulder_rb", label: "Épaule droite", zone: "Haut du corps", side: "back", cx: 64, cy: 22 },
-  { id: "dorsal_l", label: "Dorsal gauche", zone: "Haut du corps", side: "back", cx: 43, cy: 29 },
-  { id: "dorsal_r", label: "Dorsal droit", zone: "Haut du corps", side: "back", cx: 57, cy: 29 },
-  { id: "triceps_l", label: "Bras gauche (triceps)", zone: "Haut du corps", side: "back", cx: 36, cy: 31 },
-  { id: "triceps_r", label: "Bras droit (triceps)", zone: "Haut du corps", side: "back", cx: 64, cy: 31 },
-  { id: "elbow_l_b", label: "Coude gauche", zone: "Haut du corps", side: "back", cx: 35, cy: 40 },
-  { id: "elbow_r_b", label: "Coude droit", zone: "Haut du corps", side: "back", cx: 65, cy: 40 },
-  { id: "forearm_l_b", label: "Avant-bras gauche", zone: "Haut du corps", side: "back", cx: 34, cy: 46 },
-  { id: "forearm_r_b", label: "Avant-bras droit", zone: "Haut du corps", side: "back", cx: 66, cy: 46 },
-  { id: "hand_l_b", label: "Main gauche", zone: "Haut du corps", side: "back", cx: 32, cy: 57 },
-  { id: "hand_r_b", label: "Main droite", zone: "Haut du corps", side: "back", cx: 68, cy: 57 },
-  { id: "lumbar", label: "Dos (bas) / Lombaires", zone: "Bas du corps", side: "back", cx: 50, cy: 44 },
-  { id: "glute_l", label: "Fessier gauche", zone: "Bas du corps", side: "back", cx: 44, cy: 51 },
-  { id: "glute_r", label: "Fessier droit", zone: "Bas du corps", side: "back", cx: 56, cy: 51 },
-  { id: "hamstring_l", label: "Ischio-jambier gauche", zone: "Bas du corps", side: "back", cx: 43, cy: 60 },
-  { id: "hamstring_r", label: "Ischio-jambier droit", zone: "Bas du corps", side: "back", cx: 57, cy: 60 },
-  { id: "knee_l_b", label: "Creux poplité gauche", zone: "Bas du corps", side: "back", cx: 43, cy: 70 },
-  { id: "knee_r_b", label: "Creux poplité droit", zone: "Bas du corps", side: "back", cx: 57, cy: 70 },
-  { id: "calf_l", label: "Mollet gauche", zone: "Bas du corps", side: "back", cx: 44, cy: 78 },
-  { id: "calf_r", label: "Mollet droit", zone: "Bas du corps", side: "back", cx: 56, cy: 78 },
-  { id: "achille_l", label: "Tendon d'Achille gauche", zone: "Bas du corps", side: "back", cx: 45, cy: 87 },
-  { id: "achille_r", label: "Tendon d'Achille droit", zone: "Bas du corps", side: "back", cx: 55, cy: 87 },
-  { id: "heel_l", label: "Talon gauche", zone: "Bas du corps", side: "back", cx: 45, cy: 92 },
-  { id: "heel_r", label: "Talon droit", zone: "Bas du corps", side: "back", cx: 55, cy: 92 },
+  { id: "head_back", zoneKey: "head", side: "back", cx: 50, cy: 9 },
+  { id: "nuque_back", zoneKey: "upperBody", side: "back", cx: 50, cy: 16 },
+  { id: "trapez", zoneKey: "upperBody", side: "back", cx: 50, cy: 21 },
+  { id: "shoulder_lb", zoneKey: "upperBody", side: "back", cx: 36, cy: 22 },
+  { id: "shoulder_rb", zoneKey: "upperBody", side: "back", cx: 64, cy: 22 },
+  { id: "dorsal_l", zoneKey: "upperBody", side: "back", cx: 43, cy: 29 },
+  { id: "dorsal_r", zoneKey: "upperBody", side: "back", cx: 57, cy: 29 },
+  { id: "triceps_l", zoneKey: "upperBody", side: "back", cx: 36, cy: 31 },
+  { id: "triceps_r", zoneKey: "upperBody", side: "back", cx: 64, cy: 31 },
+  { id: "elbow_l_b", zoneKey: "upperBody", side: "back", cx: 35, cy: 40 },
+  { id: "elbow_r_b", zoneKey: "upperBody", side: "back", cx: 65, cy: 40 },
+  { id: "forearm_l_b", zoneKey: "upperBody", side: "back", cx: 34, cy: 46 },
+  { id: "forearm_r_b", zoneKey: "upperBody", side: "back", cx: 66, cy: 46 },
+  { id: "hand_l_b", zoneKey: "upperBody", side: "back", cx: 32, cy: 57 },
+  { id: "hand_r_b", zoneKey: "upperBody", side: "back", cx: 68, cy: 57 },
+  { id: "lumbar", zoneKey: "lowerBody", side: "back", cx: 50, cy: 44 },
+  { id: "glute_l", zoneKey: "lowerBody", side: "back", cx: 44, cy: 51 },
+  { id: "glute_r", zoneKey: "lowerBody", side: "back", cx: 56, cy: 51 },
+  { id: "hamstring_l", zoneKey: "lowerBody", side: "back", cx: 43, cy: 60 },
+  { id: "hamstring_r", zoneKey: "lowerBody", side: "back", cx: 57, cy: 60 },
+  { id: "knee_l_b", zoneKey: "lowerBody", side: "back", cx: 43, cy: 70 },
+  { id: "knee_r_b", zoneKey: "lowerBody", side: "back", cx: 57, cy: 70 },
+  { id: "calf_l", zoneKey: "lowerBody", side: "back", cx: 44, cy: 78 },
+  { id: "calf_r", zoneKey: "lowerBody", side: "back", cx: 56, cy: 78 },
+  { id: "achille_l", zoneKey: "lowerBody", side: "back", cx: 45, cy: 87 },
+  { id: "achille_r", zoneKey: "lowerBody", side: "back", cx: 55, cy: 87 },
+  { id: "heel_l", zoneKey: "lowerBody", side: "back", cx: 45, cy: 92 },
+  { id: "heel_r", zoneKey: "lowerBody", side: "back", cx: 55, cy: 92 },
 ];
 
 export interface BodyPainValue {
@@ -180,8 +185,19 @@ function BodyDots({
 }
 
 export function BodyPainSelector({ entries, onChange, categoryId, compact, disabled }: Props) {
+  const { t } = useTranslation();
   const { data: painConfig } = usePainConfig(categoryId);
   const config: PainConfig = painConfig ?? DEFAULT_PAIN_CONFIG;
+
+  const REGIONS: BodyRegion[] = useMemo(
+    () =>
+      REGIONS_DATA.map((r) => ({
+        ...r,
+        label: t(`health.bodyPainSelector.regions.${r.id}`),
+        zone: t(`health.bodyPainSelector.zones.${r.zoneKey}`),
+      })),
+    [t],
+  );
 
   const [selectedRegionId, setSelectedRegionId] = useState<string | undefined>();
 
@@ -227,7 +243,7 @@ export function BodyPainSelector({ entries, onChange, categoryId, compact, disab
       <div className="grid grid-cols-2 gap-2 bg-gradient-to-b from-surface-sunken/60 to-surface-sunken/20 rounded-2xl border p-2 shadow-inner overflow-hidden">
         <div className="relative aspect-square mx-auto w-full max-w-[320px] overflow-hidden">
           <div className="absolute top-1 left-1 z-10 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Face
+            {t("health.bodyPainSelector.front")}
           </div>
           <div className="absolute inset-0">
             <BodySilhouette side="front" />
@@ -243,7 +259,7 @@ export function BodyPainSelector({ entries, onChange, categoryId, compact, disab
         </div>
         <div className="relative aspect-square mx-auto w-full max-w-[320px] overflow-hidden">
           <div className="absolute top-1 left-1 z-10 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Dos
+            {t("health.bodyPainSelector.back")}
           </div>
           <div className="absolute inset-0">
             <BodySilhouette side="back" />
@@ -260,13 +276,13 @@ export function BodyPainSelector({ entries, onChange, categoryId, compact, disab
       </div>
 
       <p className="text-[10px] text-muted-foreground italic text-center">
-        Cliquez sur chaque zone douloureuse. Vous pouvez en ajouter plusieurs.
+        {t("health.bodyPainSelector.instructions")}
       </p>
 
       {/* List of pain entries */}
       {entries.length > 0 && (
         <div className="space-y-2">
-          <Label className="text-xs">Mes douleurs ({entries.length})</Label>
+          <Label className="text-xs">{t("health.bodyPainSelector.myPains", { count: entries.length })}</Label>
           <div className="space-y-2">
             {entries.map((e) => {
               const isOpen = selectedRegionId === e.region_id;
@@ -303,7 +319,7 @@ export function BodyPainSelector({ entries, onChange, categoryId, compact, disab
                       variant="ghost"
                       className="h-7 w-7 shrink-0 text-destructive"
                       onClick={() => removeEntry(e.region_id!)}
-                      aria-label="Supprimer cette douleur"
+                      aria-label={t("health.bodyPainSelector.removePain")}
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -311,13 +327,13 @@ export function BodyPainSelector({ entries, onChange, categoryId, compact, disab
                   {isOpen && (
                     <div className="px-3 pb-3 space-y-2 border-t bg-background/40">
                       <div>
-                        <Label className="text-[11px] mb-1 block">Nature</Label>
+                        <Label className="text-[11px] mb-1 block">{t("health.bodyPainSelector.nature")}</Label>
                         <Select
                           value={e.nature}
                           onValueChange={(v) => updateEntry(e.region_id!, { nature: v })}
                         >
                           <SelectTrigger className="h-9 text-sm">
-                            <SelectValue placeholder="Sélectionner..." />
+                            <SelectValue placeholder={t("health.bodyPainSelector.selectPlaceholder")} />
                           </SelectTrigger>
                           <SelectContent>
                             {config.natures.map((n) => (
@@ -330,7 +346,7 @@ export function BodyPainSelector({ entries, onChange, categoryId, compact, disab
                       </div>
                       <div>
                         <Label className="text-[11px] mb-1 flex items-center justify-between">
-                          <span>Intensité</span>
+                          <span>{t("health.bodyPainSelector.intensity")}</span>
                           <span className="text-[10px] text-muted-foreground">
                             {config.scale.find((s) => s.value === e.intensity)?.label}
                           </span>
@@ -368,7 +384,7 @@ export function BodyPainSelector({ entries, onChange, categoryId, compact, disab
             })}
           </div>
           <p className="text-[10px] text-muted-foreground italic flex items-center gap-1">
-            <Plus className="h-3 w-3" /> Cliquez sur une autre zone du corps pour ajouter une douleur.
+            <Plus className="h-3 w-3" /> {t("health.bodyPainSelector.addAnotherZone")}
           </p>
         </div>
       )}

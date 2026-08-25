@@ -8,12 +8,14 @@ import { toast } from "sonner";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { ProphylaxisProgramDialog } from "./ProphylaxisProgramDialog";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "react-i18next";
 
 interface ProphylaxisTabProps {
   categoryId: string;
 }
 
 export function ProphylaxisTab({ categoryId }: ProphylaxisTabProps) {
+  const { t } = useTranslation();
   const { isViewer } = useViewerModeContext();
   const [showDialog, setShowDialog] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -65,13 +67,13 @@ export function ProphylaxisTab({ categoryId }: ProphylaxisTabProps) {
   });
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Supprimer ce programme de prophylaxie ?")) return;
+    if (!confirm(t("programmation.prophylaxis.confirmDelete"))) return;
     const { error } = await supabase.from("prophylaxis_programs").delete().eq("id", id);
     if (error) {
-      toast.error("Erreur lors de la suppression");
+      toast.error(t("programmation.prophylaxis.deleteError"));
       return;
     }
-    toast.success("Programme supprimé");
+    toast.success(t("programmation.prophylaxis.deleteSuccess"));
     refetch();
   };
 
@@ -80,32 +82,32 @@ export function ProphylaxisTab({ categoryId }: ProphylaxisTabProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-5 w-5 text-primary" />
-          <h2 className="text-xl font-semibold">Programmes Prophylaxie</h2>
+          <h2 className="text-xl font-semibold">{t("programmation.prophylaxis.title")}</h2>
         </div>
         {!isViewer && (
           <Button onClick={() => setShowDialog(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Nouveau programme
+            {t("programmation.prophylaxis.newProgram")}
           </Button>
         )}
       </div>
 
       {isLoading ? (
-        <div className="text-center py-8 text-muted-foreground">Chargement...</div>
+        <div className="text-center py-8 text-muted-foreground">{t("programmation.prophylaxis.loading")}</div>
       ) : !programs?.length ? (
         <Card>
           <CardContent className="py-12 text-center">
             <ShieldCheck className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
             <p className="text-muted-foreground mb-4">
-              Aucun programme de prophylaxie créé
+              {t("programmation.prophylaxis.empty")}
             </p>
             <p className="text-sm text-muted-foreground mb-4">
-              Créez des routines préventives pour les athlètes présentant des faiblesses ou blessures récurrentes
+              {t("programmation.prophylaxis.emptyDesc")}
             </p>
             {!isViewer && (
               <Button onClick={() => setShowDialog(true)}>
                 <Plus className="h-4 w-4 mr-2" />
-                Créer un programme
+                {t("programmation.prophylaxis.create")}
               </Button>
             )}
           </CardContent>
@@ -148,10 +150,10 @@ export function ProphylaxisTab({ categoryId }: ProphylaxisTabProps) {
                   </div>
 
                   <div className="text-xs text-muted-foreground space-y-1">
-                    <p>👤 {assignedNames.length > 0 ? (assignedNames.length <= 2 ? assignedNames.join(", ") : `${assignedNames.length} athlètes`) : "Non assigné"}</p>
-                    <p>📅 Fréquence : {program.frequency || "quotidien"}</p>
-                    <p>📋 {exercises.length} exercice{exercises.length > 1 ? "s" : ""}</p>
-                    {!program.is_active && <Badge variant="secondary" className="text-xs">Inactif</Badge>}
+                    <p>👤 {assignedNames.length > 0 ? (assignedNames.length <= 2 ? assignedNames.join(", ") : t("programmation.prophylaxis.athletesCount", { count: assignedNames.length })) : t("programmation.prophylaxis.unassigned")}</p>
+                    <p>📅 {t("programmation.prophylaxis.frequency")} : {program.frequency || t("programmation.prophylaxis.daily")}</p>
+                    <p>📋 {t("programmation.prophylaxis.exercisesCount", { count: exercises.length })}</p>
+                    {!program.is_active && <Badge variant="secondary" className="text-xs">{t("programmation.prophylaxis.inactive")}</Badge>}
                   </div>
 
                   {program.description && (
@@ -166,7 +168,7 @@ export function ProphylaxisTab({ categoryId }: ProphylaxisTabProps) {
                       onClick={() => setExpandedId(isExpanded ? null : program.id)}
                     >
                       {isExpanded ? <ChevronUp className="h-3 w-3 mr-1" /> : <ChevronDown className="h-3 w-3 mr-1" />}
-                      {isExpanded ? "Masquer" : "Voir les exercices"}
+                      {isExpanded ? t("programmation.prophylaxis.hide") : t("programmation.prophylaxis.viewExercises")}
                     </Button>
                   )}
 
@@ -178,10 +180,10 @@ export function ProphylaxisTab({ categoryId }: ProphylaxisTabProps) {
                           <div key={ex.id} className="text-xs p-2 bg-muted/50 rounded">
                             <span className="font-medium">{i + 1}. {ex.exercise_name}</span>
                             <div className="text-muted-foreground mt-0.5">
-                              {ex.sets && <span>{ex.sets} séries</span>}
+                              {ex.sets && <span>{t("programmation.prophylaxis.setsCount", { count: ex.sets })}</span>}
                               {ex.reps && <span> × {ex.reps}</span>}
                               {ex.duration_seconds && <span> • {ex.duration_seconds}s</span>}
-                              {ex.rest_seconds && <span> • Repos: {ex.rest_seconds}s</span>}
+                              {ex.rest_seconds && <span> • {t("programmation.prophylaxis.rest")}: {ex.rest_seconds}s</span>}
                             </div>
                             {ex.notes && <p className="text-muted-foreground italic mt-0.5">{ex.notes}</p>}
                           </div>

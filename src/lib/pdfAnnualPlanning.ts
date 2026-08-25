@@ -1,4 +1,5 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
+import i18n from "@/i18n";
 import jsPDF from "jspdf";
 import { format, getDaysInMonth, startOfDay, startOfMonth, endOfMonth } from "date-fns";
 
@@ -59,7 +60,7 @@ const luminance = (rgb: [number, number, number]) =>
   (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) / 255;
 
 const dayInitial = (date: Date): string => {
-  const map = ["D", "L", "M", "M", "J", "V", "S"];
+  const map = i18n.t("planning.annualView.pdf.daysInitials", { returnObjects: true }) as unknown as string[];
   return map[date.getDay()];
 };
 
@@ -392,7 +393,7 @@ function renderCalendarPage(pdf: jsPDF, data: AnnualPlanningPdfData) {
   pdf.setTextColor(255, 255, 255);
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(13);
-  pdf.text(`Planification annuelle ${periodLabel}`, margin, 8);
+  pdf.text(i18n.t("planning.annualView.pdf.title", { periodLabel }), margin, 8);
 
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(8);
@@ -401,7 +402,7 @@ function renderCalendarPage(pdf: jsPDF, data: AnnualPlanningPdfData) {
 
   pdf.setFontSize(7.5);
   pdf.text(
-    `Généré le ${format(new Date(), "dd MMMM yyyy", { locale: getDateLocale() })}`,
+    i18n.t("planning.annualView.pdf.generatedOn", { date: format(new Date(), "dd MMMM yyyy", { locale: getDateLocale() }) }),
     pageW - margin,
     8,
     { align: "right" },
@@ -479,10 +480,7 @@ function renderCalendarPage(pdf: jsPDF, data: AnnualPlanningPdfData) {
     monthCyclesArr.push(cs);
   }
 
-  const monthLabels = [
-    "JANV.", "FÉVR.", "MARS", "AVRIL", "MAI", "JUIN",
-    "JUIL.", "AOÛT", "SEPT.", "OCT.", "NOV.", "DÉC.",
-  ];
+  const monthLabels = i18n.t("planning.annualView.pdf.monthsShort", { returnObjects: true }) as unknown as string[];
 
   const today = startOfDay(new Date());
 
@@ -798,7 +796,7 @@ function renderCalendarPage(pdf: jsPDF, data: AnnualPlanningPdfData) {
     drawIntensityRow(idx, cat.name, hexToRgb(cat.color), cat.id);
   });
   // Aggregate row uses a neutral gray label background; cell colors handled inside (green→red)
-  drawIntensityRow(orderedCats.length, "Moyenne de tous les cycles", [90, 100, 120], null);
+  drawIntensityRow(orderedCats.length, i18n.t("planning.annualView.pdf.averageAllCycles"), [90, 100, 120], null);
 
   // ── Intensity color scale 0 → 10 (shared with planning Charge view) ──
   const scaleTop = intRowsTop + intensityRows * intensityRowH + 2;
@@ -816,7 +814,7 @@ function renderCalendarPage(pdf: jsPDF, data: AnnualPlanningPdfData) {
   pdf.setTextColor(40, 45, 60);
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(6.5);
-  pdf.text("Intensité de 0 à 10", margin + 2, scaleTop + scaleBarH / 2 + 1.2);
+  pdf.text(i18n.t("planning.annualView.pdf.intensityScale"), margin + 2, scaleTop + scaleBarH / 2 + 1.2);
 
   // 11 colored cells (0..10)
   const cellW = scaleBarW / 11;
@@ -851,9 +849,9 @@ function renderCalendarPage(pdf: jsPDF, data: AnnualPlanningPdfData) {
   pdf.setFont("helvetica", "italic");
   pdf.setFontSize(5.8);
   pdf.setTextColor(110, 115, 130);
-  pdf.text("Faible · récupération", scaleBarX + 1, scaleTop + scaleBarH + 3);
-  pdf.text("Modérée", scaleBarX + scaleBarW / 2, scaleTop + scaleBarH + 3, { align: "center" });
-  pdf.text("Élevée · maximale", scaleBarX + scaleBarW - 1, scaleTop + scaleBarH + 3, { align: "right" });
+  pdf.text(i18n.t("planning.annualView.pdf.intensityLow"), scaleBarX + 1, scaleTop + scaleBarH + 3);
+  pdf.text(i18n.t("planning.annualView.pdf.intensityModerate"), scaleBarX + scaleBarW / 2, scaleTop + scaleBarH + 3, { align: "center" });
+  pdf.text(i18n.t("planning.annualView.pdf.intensityHigh"), scaleBarX + scaleBarW - 1, scaleTop + scaleBarH + 3, { align: "right" });
 
   // ── Competitions list ──
   let competitionsTop = scaleTop + scaleBarH + 6;
@@ -861,7 +859,7 @@ function renderCalendarPage(pdf: jsPDF, data: AnnualPlanningPdfData) {
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(7.5);
     pdf.setTextColor(40, 45, 60);
-    pdf.text("COMPÉTITIONS", margin, competitionsTop);
+    pdf.text(i18n.t("planning.annualView.pdf.competitionsTitle"), margin, competitionsTop);
 
     const itemY = competitionsTop + 3;
     const perRow = 6;
@@ -878,7 +876,7 @@ function renderCalendarPage(pdf: jsPDF, data: AnnualPlanningPdfData) {
 
       // Date + opponent/competition
       const dateLabel = format(new Date(mt.match_date), "dd/MM", { locale: getDateLocale() });
-      const label = mt.opponent || mt.competition || "Compétition";
+      const label = mt.opponent || mt.competition || i18n.t("planning.annualView.pdf.competitionFallback");
       const fullText = `${dateLabel} · ${label}`;
       pdf.setFont("helvetica", "normal");
       pdf.setFontSize(6.5);
@@ -896,7 +894,7 @@ function renderCalendarPage(pdf: jsPDF, data: AnnualPlanningPdfData) {
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(7.5);
   pdf.setTextColor(40, 45, 60);
-  pdf.text("LÉGENDE", margin, legendY);
+  pdf.text(i18n.t("planning.annualView.pdf.legendTitle"), margin, legendY);
 
   let lx = margin + 18;
   pdf.setFont("helvetica", "normal");
@@ -919,7 +917,7 @@ function renderCalendarPage(pdf: jsPDF, data: AnnualPlanningPdfData) {
   pdf.setTextColor(60, 65, 80);
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(7);
-  pdf.text("Compétition", rightLegendX + 2, legendY);
+  pdf.text(i18n.t("planning.annualView.pdf.legendCompetition"), rightLegendX + 2, legendY);
 
   // (today legend removed per user request)
 

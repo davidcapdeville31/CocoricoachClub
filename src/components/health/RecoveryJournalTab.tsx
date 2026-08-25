@@ -51,7 +51,7 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
   const { t } = useTranslation();
   const STRETCHING_TYPES = STRETCHING_TYPE_VALUES.map((value) => ({
     value,
-    label: t(`health:recoveryJournal.stretchingTypes.${value}`),
+    label: t(`health.recoveryJournal.stretchingTypes.${value}`),
   }));
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<string>("all");

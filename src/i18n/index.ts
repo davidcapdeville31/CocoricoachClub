@@ -14,6 +14,8 @@ import { adminAttendanceFr, adminAttendanceEn } from "./locales/modules/adminAtt
 import { adminRecruitDocsFr, adminRecruitDocsEn } from "./locales/modules/adminRecruitDocs";
 import { adminReportsFr, adminReportsEn } from "./locales/modules/adminReports";
 import { adminStaffFr, adminStaffEn } from "./locales/modules/adminStaff";
+import { programmationFr, programmationEn } from "./locales/modules/programmation";
+import { competitionFr, competitionEn } from "./locales/modules/competition";
 
 const frResources = {
   ...fr,
@@ -22,13 +24,15 @@ const frResources = {
   workload: workloadFr,
   athleteSpace: athleteSpaceFr,
   health: healthFr,
-  admin: adminFr,
-  academy: academyFr,
+  ...adminFr,
+  ...academyFr,
   roster: rosterFr,
   adminAttendance: adminAttendanceFr,
-  adminRecruitDocs: adminRecruitDocsFr,
-  adminReports: adminReportsFr,
-  adminStaff: adminStaffFr,
+  ...adminRecruitDocsFr,
+  ...adminReportsFr,
+  ...adminStaffFr,
+  ...programmationFr,
+  ...competitionFr,
 };
 
 const enResources = {
@@ -38,13 +42,15 @@ const enResources = {
   workload: workloadEn,
   athleteSpace: athleteSpaceEn,
   health: healthEn,
-  admin: adminEn,
-  academy: academyEn,
+  ...adminEn,
+  ...academyEn,
   roster: rosterEn,
   adminAttendance: adminAttendanceEn,
-  adminRecruitDocs: adminRecruitDocsEn,
-  adminReports: adminReportsEn,
-  adminStaff: adminStaffEn,
+  ...adminRecruitDocsEn,
+  ...adminReportsEn,
+  ...adminStaffEn,
+  ...programmationEn,
+  ...competitionEn,
 };
 
 

@@ -35,7 +35,7 @@ export function TapingDetailEditor({
         <div className="relative group">
           <img
             src={tapingDiagramUrl}
-            alt="Schéma de taping"
+            alt={t("health.tapingDetailEditor.diagramAlt")}
             className="w-full max-h-48 object-contain rounded-lg border cursor-pointer hover:opacity-90 transition-opacity"
             onClick={() => setViewingImage(true)}
           />
@@ -84,7 +84,7 @@ export function TapingDetailEditor({
           {tapingDiagramUrl && (
             <img
               src={tapingDiagramUrl}
-              alt="Schéma de taping"
+              alt={t("health.tapingDetailEditor.diagramAlt")}
               className="w-full object-contain rounded-lg"
             />
           )}

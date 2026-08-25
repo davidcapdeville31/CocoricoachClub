@@ -20,6 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 import { SeasonRosterFilterToggle } from "./SeasonRosterFilterToggle";
+import { useTranslation } from "react-i18next";
 
 interface MatchesTabProps {
   categoryId: string;
@@ -33,6 +34,7 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
   const [showPast, setShowPast] = useState(true);
   const { isViewer } = useViewerModeContext();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   // Check if this is an individual sport (judo, bowling)
   const isIndividual = isIndividualSport(sportType || "");
@@ -43,7 +45,7 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
   const createTrainingMatch = useMutation({
     mutationFn: async () => {
       const today = format(new Date(), "yyyy-MM-dd");
-      const label = isTennis ? "Match d'entraînement" : "Entraînement";
+      const label = isTennis ? t("competition.tab.trainingLabelTennis") : t("competition.tab.trainingLabelDefault");
       const { data: inserted, error } = await supabase
         .from("matches")
         .insert({
@@ -78,18 +80,19 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["matches", categoryId] });
       const msg = isTennis
-        ? "Match d'entraînement créé ! Ajoutez la composition puis saisissez les stats."
-        : "Entraînement bowling créé avec tous les joueurs ! Cliquez sur Parties pour saisir les scores.";
+        ? t("competition.tab.toasts.tennisTrainingCreated")
+        : t("competition.tab.toasts.bowlingTrainingCreated");
       toast.success(msg);
     },
-    onError: () => toast.error("Erreur lors de la création"),
+    onError: () => toast.error(t("competition.tab.toasts.trainingCreationError")),
   });
   
   // Labels adaptés selon le sport
-  const itemLabel = isIndividual ? "compétition" : "match";
-  const itemLabelPlural = isIndividual ? "compétitions" : "matchs";
-  const itemLabelCapital = isIndividual ? "Compétition" : "Match";
-  const itemLabelPluralCapital = isIndividual ? "Compétitions" : "Matchs";
+  const itemLabel = isIndividual ? t("competition.terms.competition") : t("competition.terms.match");
+  const itemLabelPlural = isIndividual ? t("competition.terms.competitions") : t("competition.terms.matches");
+  const itemLabelCapital = isIndividual ? t("competition.terms.competitionCapital") : t("competition.terms.matchCapital");
+  const itemLabelPluralCapital = isIndividual ? t("competition.terms.competitionsCapital") : t("competition.terms.matchesCapital");
+  const feminineSuffix = isIndividual ? "e" : "";
 
   const { data: matches, isLoading } = useViewerMatches(categoryId);
   const { isDateInActiveSeason, activeSeasonOnly, activeSeasonName } = useSeasonRosterFilter();
@@ -129,7 +132,7 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
   })();
 
   if (isLoading) {
-    return <p className="text-muted-foreground">Chargement...</p>;
+    return <p className="text-muted-foreground">{t("competition.tab.loading")}</p>;
   }
 
   return (
@@ -139,7 +142,7 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
       </div>
       {activeSeasonOnly && activeSeasonName && (
         <p className="text-xs text-muted-foreground italic">
-          Filtré par saison active : {activeSeasonName}. Désactivez le toggle pour voir toutes les compétitions.
+          {t("competition.tab.seasonFilterNotice", { season: activeSeasonName, itemLabelPlural })}
         </p>
       )}
       <div className="w-full">
@@ -155,10 +158,10 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
                   </div>
                   <div>
                     <h2 className="text-lg font-bold text-white tracking-tight">
-                      Gestion des {itemLabelPlural}
+                      {t("competition.tab.headerTitle", { itemLabelPlural })}
                     </h2>
                     <p className="text-xs text-white/80">
-                      {matches?.length || 0} {itemLabel}{(matches?.length || 0) > 1 ? "s" : ""} au total
+                      {t("competition.tab.headerCount", { count: matches?.length || 0, itemLabel, itemLabelPlural })}
                     </p>
                   </div>
                 </div>
@@ -172,7 +175,7 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
                         className="gap-1 bg-white/15 hover:bg-white/25 text-white border-0 backdrop-blur-sm"
                       >
                         <Settings2 className="h-4 w-4" />
-                        <span className="hidden sm:inline">Modifier les stats par défaut</span>
+                        <span className="hidden sm:inline">{t("competition.tab.editDefaultStats")}</span>
                       </Button>
                     )}
                     {showTrainingButton && (
@@ -184,7 +187,7 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
                         className="gap-2 bg-white/15 hover:bg-white/25 text-white border-0 backdrop-blur-sm"
                       >
                         <Dumbbell className="h-4 w-4" />
-                        {isTennis ? "Match entraînement" : "Entraînement bowling"}
+                        {isTennis ? t("competition.tab.trainingMatchButton") : t("competition.tab.trainingBowlingButton")}
                       </Button>
                     )}
                     <Button
@@ -193,7 +196,7 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
                       className="gap-2 bg-white text-amber-700 hover:bg-amber-50 shadow-lg font-semibold"
                     >
                       <Plus className="h-4 w-4" />
-                      Ajouter {isIndividual ? "une" : "un"} {itemLabel}
+                      {t("competition.tab.addItem", { article: isIndividual ? "une" : "un", itemLabel })}
                     </Button>
                   </div>
                 )}
@@ -207,15 +210,15 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
                     <Calendar className="h-8 w-8 text-amber-600 dark:text-amber-400" />
                   </div>
                   <p className="text-base font-semibold text-foreground mb-1">
-                    {isIndividual ? "Aucune compétition programmée" : "Aucun match programmé"}
+                    {isIndividual ? t("competition.tab.emptyTitleCompetition") : t("competition.tab.emptyTitleMatch")}
                   </p>
                   <p className="text-sm text-muted-foreground mb-5">
-                    Commencez par créer votre {isIndividual ? "première compétition" : "premier match"}
+                    {t("competition.tab.emptyDescription", { itemLabel: isIndividual ? t("competition.tab.firstCompetition") : t("competition.tab.firstMatch") })}
                   </p>
                   {!isViewer && (
                     <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2 bg-amber-600 hover:bg-amber-700 text-white">
                       <Plus className="h-4 w-4" />
-                      Créer {isIndividual ? "la première compétition" : "le premier match"}
+                      {t("competition.tab.createFirst", { itemLabel: isIndividual ? t("competition.tab.firstCompetition") : t("competition.tab.firstMatch") })}
                     </Button>
                   )}
                 </div>
@@ -223,7 +226,7 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
                 <div className="space-y-5">
                   {/* Filter chips */}
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mr-1">Afficher :</span>
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mr-1">{t("competition.tab.displayLabel")}</span>
                     <button
                       type="button"
                       onClick={() => setShowUpcoming(!showUpcoming)}
@@ -235,7 +238,7 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
                       )}
                     >
                       <CalendarClock className="h-3.5 w-3.5" />
-                      À venir
+                      {t("competition.tab.upcoming")}
                       <span className={cn(
                         "ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold",
                         showUpcoming ? "bg-white/25 text-white" : "bg-background text-foreground",
@@ -254,7 +257,7 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
                       )}
                     >
                       <History className="h-3.5 w-3.5" />
-                      Passé{isIndividual ? "e" : ""}s
+                      {isIndividual ? t("competition.tab.pastFeminine") : t("competition.tab.pastMasculine")}
                       <span className={cn(
                         "ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold",
                         showPast ? "bg-white/25 text-white" : "bg-background text-foreground",
@@ -274,10 +277,10 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
                           </div>
                           <div>
                             <h3 className="text-sm font-bold text-foreground">
-                              {itemLabelPluralCapital} à venir
+                              {t("competition.tab.upcomingSectionTitle", { itemLabelPluralCapital })}
                             </h3>
                             <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-                              Prochains événements
+                              {t("competition.tab.upcomingSectionSubtitle")}
                             </p>
                           </div>
                         </div>
@@ -293,7 +296,7 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
                         </div>
                       ) : (
                         <p className="text-xs text-muted-foreground italic text-center py-4">
-                          Aucun{isIndividual ? "e" : ""} {itemLabel} à venir
+                          {t("competition.tab.noneUpcoming", { feminineSuffix, itemLabel })}
                         </p>
                       )}
                     </section>
@@ -309,10 +312,10 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
                           </div>
                           <div>
                             <h3 className="text-sm font-bold text-foreground">
-                              {itemLabelPluralCapital} passé{isIndividual ? "e" : ""}s
+                              {t("competition.tab.pastSectionTitle", { itemLabelPluralCapital, feminineSuffix })}
                             </h3>
                             <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-                              Historique & résultats
+                              {t("competition.tab.pastSectionSubtitle")}
                             </p>
                           </div>
                         </div>
@@ -343,7 +346,7 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
                         </div>
                       ) : (
                         <p className="text-xs text-muted-foreground italic text-center py-4">
-                          Aucun{isIndividual ? "e" : ""} {itemLabel} passé{isIndividual ? "e" : ""}
+                          {t("competition.tab.nonePast", { feminineSuffix, itemLabel })}
                         </p>
                       )}
                     </section>
@@ -352,7 +355,7 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
                   {!showUpcoming && !showPast && (
                     <div className="text-center py-10 rounded-2xl bg-muted/30 border border-dashed">
                       <p className="text-sm text-muted-foreground italic">
-                        Cochez au moins un filtre pour afficher les {itemLabelPlural}.
+                        {t("competition.tab.checkAtLeastOneFilter", { itemLabelPlural })}
                       </p>
                     </div>
                   )}

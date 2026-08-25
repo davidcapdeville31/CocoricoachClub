@@ -20,6 +20,7 @@ import {
   Legend,
 } from "recharts";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { sleepScoreToHours } from "@/lib/sleepConversion";
 
 interface SleepAnalyticsProps {
@@ -27,6 +28,7 @@ interface SleepAnalyticsProps {
 }
 
 export function SleepAnalytics({ categoryId }: SleepAnalyticsProps) {
+  const { t } = useTranslation();
   const [period, setPeriod] = useState<"7" | "14" | "30">("14");
   const [selectedPlayer, setSelectedPlayer] = useState<string>("all");
 
@@ -65,7 +67,7 @@ export function SleepAnalytics({ categoryId }: SleepAnalyticsProps) {
   });
 
   if (isLoading) {
-    return <div className="text-muted-foreground p-4">Chargement...</div>;
+    return <div className="text-muted-foreground p-4">{t("health.sleepAnalytics.loading")}</div>;
   }
 
   if (!wellnessData || wellnessData.length === 0) {
@@ -73,8 +75,8 @@ export function SleepAnalytics({ categoryId }: SleepAnalyticsProps) {
       <Card>
         <CardContent className="py-8 text-center text-muted-foreground">
           <Moon className="h-8 w-8 mx-auto mb-2 opacity-50" />
-          <p className="font-medium">Aucune donnée de sommeil disponible</p>
-          <p className="text-sm mt-1">Les données proviennent du questionnaire Wellness quotidien.</p>
+          <p className="font-medium">{t("health.sleepAnalytics.empty.title")}</p>
+          <p className="text-sm mt-1">{t("health.sleepAnalytics.empty.description")}</p>
         </CardContent>
       </Card>
     );
@@ -103,7 +105,7 @@ export function SleepAnalytics({ categoryId }: SleepAnalyticsProps) {
   const playerMap: Record<string, { name: string; qualities: number[]; durations: number[]; entries: any[] }> = {};
   wellnessData.forEach((e: any) => {
     if (!playerMap[e.player_id]) {
-      const fullName = [e.players?.first_name, e.players?.name].filter(Boolean).join(" ") || "Inconnu";
+      const fullName = [e.players?.first_name, e.players?.name].filter(Boolean).join(" ") || t("health.sleepAnalytics.unknownPlayer");
       playerMap[e.player_id] = { name: fullName, qualities: [], durations: [], entries: [] };
     }
     playerMap[e.player_id].qualities.push(e.sleep_quality || 0);
@@ -190,17 +192,17 @@ export function SleepAnalytics({ categoryId }: SleepAnalyticsProps) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="7">7 derniers jours</SelectItem>
-            <SelectItem value="14">14 derniers jours</SelectItem>
-            <SelectItem value="30">30 derniers jours</SelectItem>
+            <SelectItem value="7">{t("health.sleepAnalytics.periods.last7")}</SelectItem>
+            <SelectItem value="14">{t("health.sleepAnalytics.periods.last14")}</SelectItem>
+            <SelectItem value="30">{t("health.sleepAnalytics.periods.last30")}</SelectItem>
           </SelectContent>
         </Select>
         <Select value={selectedPlayer} onValueChange={setSelectedPlayer}>
           <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Tous les joueurs" />
+            <SelectValue placeholder={t("health.sleepAnalytics.allPlayersPlaceholder")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tous les joueurs</SelectItem>
+            <SelectItem value="all">{t("health.sleepAnalytics.allPlayers")}</SelectItem>
             {players?.map((player) => (
               <SelectItem key={player.id} value={player.id}>
                 {[player.first_name, player.name].filter(Boolean).join(" ")}
@@ -216,7 +218,7 @@ export function SleepAnalytics({ categoryId }: SleepAnalyticsProps) {
           <CardContent className="pt-4 pb-3">
             <div className="flex items-center gap-2 mb-1">
               <Moon className="h-4 w-4 text-indigo-500" />
-              <span className="text-xs font-medium">Qualité moyenne</span>
+              <span className="text-xs font-medium">{t("health.sleepAnalytics.kpis.avgQuality")}</span>
             </div>
             <p className={`text-2xl font-bold ${getQualityColor(teamAvgQuality)}`}>
               {teamAvgQuality}/5
@@ -228,7 +230,7 @@ export function SleepAnalytics({ categoryId }: SleepAnalyticsProps) {
           <CardContent className="pt-4 pb-3">
             <div className="flex items-center gap-2 mb-1">
               <BedDouble className="h-4 w-4 text-violet-500" />
-              <span className="text-xs font-medium">Durée moyenne</span>
+              <span className="text-xs font-medium">{t("health.sleepAnalytics.kpis.avgDuration")}</span>
             </div>
             <p className="text-2xl font-bold text-violet-600">
               {teamAvgDuration}/5
@@ -240,12 +242,12 @@ export function SleepAnalytics({ categoryId }: SleepAnalyticsProps) {
           <CardContent className="pt-4 pb-3">
             <div className="flex items-center gap-2 mb-1">
               <AlertTriangle className="h-4 w-4" />
-              <span className="text-xs font-medium">Sommeil insuffisant</span>
+              <span className="text-xs font-medium">{t("health.sleepAnalytics.kpis.insufficientSleep")}</span>
             </div>
             <p className={`text-2xl font-bold ${playersWithPoorSleep.length > 0 ? "text-red-600" : "text-green-600"}`}>
               {playersWithPoorSleep.length}
             </p>
-            <p className="text-xs text-muted-foreground">joueur{playersWithPoorSleep.length > 1 ? "s" : ""} ≥ 3.5/5</p>
+            <p className="text-xs text-muted-foreground">{t("health.sleepAnalytics.kpis.playersUnit", { plural: playersWithPoorSleep.length > 1 ? "s" : "" })}</p>
           </CardContent>
         </Card>
 
@@ -253,12 +255,12 @@ export function SleepAnalytics({ categoryId }: SleepAnalyticsProps) {
           <CardContent className="pt-4 pb-3">
             <div className="flex items-center gap-2 mb-1">
               <Moon className="h-4 w-4 text-sky-500" />
-              <span className="text-xs font-medium">Données</span>
+              <span className="text-xs font-medium">{t("health.sleepAnalytics.kpis.data")}</span>
             </div>
             <p className="text-2xl font-bold text-sky-600">
               {wellnessData.length}
             </p>
-            <p className="text-xs text-muted-foreground">entrées sur {period}j</p>
+            <p className="text-xs text-muted-foreground">{t("health.sleepAnalytics.kpis.entriesOverPeriod", { period })}</p>
           </CardContent>
         </Card>
       </div>
@@ -269,7 +271,7 @@ export function SleepAnalytics({ categoryId }: SleepAnalyticsProps) {
         {dailyChartData.length > 2 && (
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Évolution quotidienne du sommeil</CardTitle>
+              <CardTitle className="text-sm">{t("health.sleepAnalytics.charts.dailyTrendTitle")}</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={240}>
@@ -279,8 +281,8 @@ export function SleepAnalytics({ categoryId }: SleepAnalyticsProps) {
                   <YAxis domain={[1, 5]} tick={{ fontSize: 11 }} />
                   <Tooltip />
                   <Legend />
-                  <Line type="monotone" dataKey="qualité" stroke="#6366f1" strokeWidth={2} dot={{ r: 3 }} name="Qualité" />
-                  <Line type="monotone" dataKey="durée" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} strokeDasharray="4 2" name="Durée" />
+                  <Line type="monotone" dataKey="qualité" stroke="#6366f1" strokeWidth={2} dot={{ r: 3 }} name={t("health.sleepAnalytics.charts.quality")} />
+                  <Line type="monotone" dataKey="durée" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} strokeDasharray="4 2" name={t("health.sleepAnalytics.charts.duration")} />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
@@ -291,7 +293,7 @@ export function SleepAnalytics({ categoryId }: SleepAnalyticsProps) {
         {barData.length > 1 && (
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Comparaison par joueur</CardTitle>
+              <CardTitle className="text-sm">{t("health.sleepAnalytics.charts.playerComparisonTitle")}</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={240}>
@@ -301,12 +303,12 @@ export function SleepAnalytics({ categoryId }: SleepAnalyticsProps) {
                   <YAxis dataKey="name" type="category" tick={{ fontSize: 10 }} width={70} />
                   <Tooltip />
                   <Legend />
-                   <Bar dataKey="qualité" fill="#6366f1" radius={[0, 4, 4, 0]} barSize={10} name="Qualité">
+                   <Bar dataKey="qualité" fill="#6366f1" radius={[0, 4, 4, 0]} barSize={10} name={t("health.sleepAnalytics.charts.quality")}>
                     {barData.map((entry, index) => (
                       <Cell key={index} fill={entry.qualité <= 2 ? "#22c55e" : entry.qualité <= 3 ? "#f59e0b" : "#ef4444"} />
                     ))}
                   </Bar>
-                  <Bar dataKey="durée" fill="#8b5cf6" radius={[0, 4, 4, 0]} barSize={10} opacity={0.7} name="Durée" />
+                  <Bar dataKey="durée" fill="#8b5cf6" radius={[0, 4, 4, 0]} barSize={10} opacity={0.7} name={t("health.sleepAnalytics.charts.duration")} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -317,7 +319,7 @@ export function SleepAnalytics({ categoryId }: SleepAnalyticsProps) {
       {/* Player detail cards */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm">Détail sommeil par joueur</CardTitle>
+          <CardTitle className="text-sm">{t("health.sleepAnalytics.playerDetail.title")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -333,30 +335,30 @@ export function SleepAnalytics({ categoryId }: SleepAnalyticsProps) {
 
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
-                    <span className="text-xs text-muted-foreground">Qualité moy.</span>
+                    <span className="text-xs text-muted-foreground">{t("health.sleepAnalytics.playerDetail.avgQuality")}</span>
                     <p className={`font-bold ${getQualityColor(player.avgQuality)}`}>
                       {player.avgQuality}/5
                     </p>
                   </div>
                   <div>
-                    <span className="text-xs text-muted-foreground">Durée moy.</span>
+                    <span className="text-xs text-muted-foreground">{t("health.sleepAnalytics.playerDetail.avgDuration")}</span>
                     <p className="font-bold">{player.avgDuration}h</p>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between text-xs text-muted-foreground pt-1 border-t border-border/50">
-                  <span>Min: {player.worstQuality}/5 • Max: {player.bestQuality}/5</span>
-                  <span>{player.daysOfData}j</span>
+                  <span>{t("health.sleepAnalytics.playerDetail.minMax", { min: player.worstQuality, max: player.bestQuality })}</span>
+                  <span>{t("health.sleepAnalytics.playerDetail.daysUnit", { days: player.daysOfData })}</span>
                 </div>
 
                 {player.poorNights > 0 && (
                   <p className="text-xs text-red-600 font-medium">
-                    ⚠️ {player.poorNights} nuit{player.poorNights > 1 ? "s" : ""} de mauvaise qualité
+                    {t("health.sleepAnalytics.playerDetail.poorNights", { count: player.poorNights, plural: player.poorNights > 1 ? "s" : "" })}
                   </p>
                 )}
                 {player.trend === "declining" && (
                   <p className="text-xs text-orange-600">
-                    📉 Qualité en déclin sur la période
+                    {t("health.sleepAnalytics.playerDetail.decliningTrend")}
                   </p>
                 )}
               </div>

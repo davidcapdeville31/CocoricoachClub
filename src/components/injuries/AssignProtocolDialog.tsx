@@ -26,6 +26,8 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, Dumbbell, FileText, Sparkles, Calendar } from "lucide-react";
 import { addDays, format } from "date-fns";
 import { copyProtocolExercisesToPlayer } from "@/lib/helpers/copyProtocolExercises";
+import i18n from "@/i18n";
+import { useTranslation } from "react-i18next";
 
 interface AssignProtocolDialogProps {
   open: boolean;
@@ -65,7 +67,7 @@ async function createCalendarEvents(
       phase_name: phase.name,
       event_date: format(currentDate, 'yyyy-MM-dd'),
       event_type: 'phase_start',
-      title: `Début Phase ${phase.phase_number}: ${phase.name}`,
+      title: i18n.t("health.assignProtocolDialog.calendarEvents.phaseStartTitle", { number: phase.phase_number, name: phase.name }),
       description: phase.description || null,
     });
 
@@ -86,8 +88,8 @@ async function createCalendarEvents(
       phase_name: phase.name,
       event_date: format(phaseEndDate, 'yyyy-MM-dd'),
       event_type: 'checkpoint',
-      title: `Évaluation Phase ${phase.phase_number}: ${phase.name}`,
-      description: `Vérifier les critères de passage pour ${phase.name}`,
+      title: i18n.t("health.assignProtocolDialog.calendarEvents.checkpointTitle", { number: phase.phase_number, name: phase.name }),
+      description: i18n.t("health.assignProtocolDialog.calendarEvents.checkpointDescription", { name: phase.name }),
     });
 
     // Move to next phase
@@ -117,6 +119,7 @@ export function AssignProtocolDialog({
   categoryId,
   injuryType,
 }: AssignProtocolDialogProps) {
+  const { t } = useTranslation();
   const [selectedMode, setSelectedMode] = useState<"existing" | "template">("existing");
   const [selectedProtocolId, setSelectedProtocolId] = useState("");
   const [selectedInjuryType, setSelectedInjuryType] = useState("");
@@ -156,7 +159,7 @@ export function AssignProtocolDialog({
 
   const assignExistingProtocol = useMutation({
     mutationFn: async () => {
-      if (!selectedProtocolId) throw new Error("Aucun protocole sélectionné");
+      if (!selectedProtocolId) throw new Error(t("health.assignProtocolDialog.toastNoProtocolSelected"));
 
       // Get protocol phases
       const selectedProtocol = existingProtocols?.find(p => p.id === selectedProtocolId);
@@ -197,19 +200,19 @@ export function AssignProtocolDialog({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["player-rehab-protocol", injuryId] });
       queryClient.invalidateQueries({ queryKey: ["rehab-calendar-events", playerId] });
-      toast.success("Protocole assigné et ajouté au calendrier");
+      toast.success(t("health.assignProtocolDialog.toastAssignSuccess"));
       handleClose();
     },
     onError: (error) => {
       console.error("Error assigning protocol:", error);
-      toast.error("Erreur lors de l'assignation du protocole");
+      toast.error(t("health.assignProtocolDialog.toastAssignError"));
     },
   });
 
   const assignFromTemplate = useMutation({
     mutationFn: async () => {
       const selectedType = RUGBY_INJURY_TYPES.find(i => i.name === selectedInjuryType);
-      if (!selectedType) throw new Error("Type de blessure non trouvé");
+      if (!selectedType) throw new Error(t("health.assignProtocolDialog.toastInjuryTypeNotFound"));
 
       // Check if protocol already exists
       let protocolId: string;
@@ -329,12 +332,12 @@ export function AssignProtocolDialog({
       queryClient.invalidateQueries({ queryKey: ["player-rehab-protocol", injuryId] });
       queryClient.invalidateQueries({ queryKey: ["injury-protocols-with-phases", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["rehab-calendar-events", playerId] });
-      toast.success("Protocole créé et ajouté au calendrier");
+      toast.success(t("health.assignProtocolDialog.toastCreateSuccess"));
       handleClose();
     },
     onError: (error) => {
       console.error("Error creating protocol:", error);
-      toast.error("Erreur lors de la création du protocole");
+      toast.error(t("health.assignProtocolDialog.toastCreateError"));
     },
   });
 
@@ -369,17 +372,17 @@ export function AssignProtocolDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Dumbbell className="h-5 w-5" />
-            Assigner un protocole de réhabilitation
+            {t("health.assignProtocolDialog.title")}
           </DialogTitle>
           <DialogDescription>
-            Les phases du protocole seront automatiquement ajoutées au calendrier du joueur
+            {t("health.assignProtocolDialog.description")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800 text-sm">
           <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
           <span className="text-blue-700 dark:text-blue-300">
-            Les phases seront planifiées dans le calendrier du joueur
+            {t("health.assignProtocolDialog.calendarNotice")}
           </span>
         </div>
 
@@ -387,11 +390,11 @@ export function AssignProtocolDialog({
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="existing" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
-              Protocole existant
+              {t("health.assignProtocolDialog.tabs.existing")}
             </TabsTrigger>
             <TabsTrigger value="template" className="flex items-center gap-2">
               <Sparkles className="h-4 w-4" />
-              Nouveau (modèle)
+              {t("health.assignProtocolDialog.tabs.template")}
             </TabsTrigger>
           </TabsList>
 
@@ -400,18 +403,18 @@ export function AssignProtocolDialog({
             {!hasExistingProtocols ? (
               <div className="p-6 text-center bg-muted/50 rounded-lg">
                 <FileText className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
-                <p className="text-muted-foreground mb-2">Aucun protocole créé</p>
+                <p className="text-muted-foreground mb-2">{t("health.assignProtocolDialog.noProtocolsTitle")}</p>
                 <p className="text-sm text-muted-foreground">
-                  Créez un protocole depuis l'onglet "Nouveau (modèle)" ou depuis Santé → Protocoles
+                  {t("health.assignProtocolDialog.noProtocolsDescription")}
                 </p>
               </div>
             ) : (
               <>
                 <div className="space-y-2">
-                  <Label>Sélectionner un protocole *</Label>
+                  <Label>{t("health.assignProtocolDialog.selectProtocol")}</Label>
                   <Select value={selectedProtocolId} onValueChange={setSelectedProtocolId}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Choisir un protocole..." />
+                      <SelectValue placeholder={t("health.assignProtocolDialog.choosePlaceholder")} />
                     </SelectTrigger>
                     <SelectContent className="max-h-[300px]">
                       {Object.entries(protocolsByCategory || {}).map(([category, protocols]) => (
@@ -424,10 +427,10 @@ export function AssignProtocolDialog({
                               <div className="flex items-center gap-2">
                                 <span>{protocol.name}</span>
                                 {protocol.is_system_default && (
-                                  <Badge variant="outline" className="text-xs">Système</Badge>
+                                  <Badge variant="outline" className="text-xs">{t("health.assignProtocolDialog.systemBadge")}</Badge>
                                 )}
                                 <span className="text-xs text-muted-foreground">
-                                  ({protocol.protocol_phases?.length || 0} phases)
+                                  {t("health.assignProtocolDialog.phasesCount", { count: protocol.protocol_phases?.length || 0 })}
                                 </span>
                               </div>
                             </SelectItem>
@@ -452,12 +455,12 @@ export function AssignProtocolDialog({
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Clock className="h-4 w-4" />
                       <span>
-                        Durée: {selectedProtocol.typical_duration_days_min} - {selectedProtocol.typical_duration_days_max} jours
+                        {t("health.assignProtocolDialog.duration", { min: selectedProtocol.typical_duration_days_min, max: selectedProtocol.typical_duration_days_max })}
                       </span>
                     </div>
                     {selectedProtocol.protocol_phases && selectedProtocol.protocol_phases.length > 0 && (
                       <div className="space-y-1">
-                        <p className="text-xs font-medium text-muted-foreground">Phases (seront ajoutées au calendrier):</p>
+                        <p className="text-xs font-medium text-muted-foreground">{t("health.assignProtocolDialog.phasesWillBeAdded")}</p>
                         <div className="flex flex-wrap gap-1">
                           {selectedProtocol.protocol_phases
                             .sort((a: any, b: any) => a.phase_number - b.phase_number)
@@ -475,12 +478,12 @@ export function AssignProtocolDialog({
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="notes-existing">Notes (optionnel)</Label>
+              <Label htmlFor="notes-existing">{t("health.assignProtocolDialog.notesLabel")}</Label>
               <Textarea
                 id="notes-existing"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Observations particulières pour ce joueur..."
+                placeholder={t("health.assignProtocolDialog.notesPlaceholder")}
                 rows={2}
               />
             </div>
@@ -491,7 +494,7 @@ export function AssignProtocolDialog({
             {matchingInjury && (
               <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
                 <p className="text-sm">
-                  <span className="font-medium">Suggestion basée sur la blessure:</span> {matchingInjury.name}
+                  <span className="font-medium">{t("health.assignProtocolDialog.suggestionBasedOnInjury")}</span> {matchingInjury.name}
                 </p>
                 <Button
                   variant="link"
@@ -499,16 +502,16 @@ export function AssignProtocolDialog({
                   className="p-0 h-auto"
                   onClick={() => setSelectedInjuryType(matchingInjury.name)}
                 >
-                  Utiliser cette suggestion
+                  {t("health.assignProtocolDialog.useSuggestion")}
                 </Button>
               </div>
             )}
 
             <div className="space-y-2">
-              <Label>Type de blessure (modèle) *</Label>
+              <Label>{t("health.assignProtocolDialog.injuryTypeTemplate")}</Label>
               <Select value={selectedInjuryType} onValueChange={setSelectedInjuryType}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un type de blessure" />
+                  <SelectValue placeholder={t("health.assignProtocolDialog.selectInjuryTypePlaceholder")} />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px]">
                   {RUGBY_INJURY_TYPES.map((injury) => (
@@ -537,22 +540,22 @@ export function AssignProtocolDialog({
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Clock className="h-4 w-4" />
                   <span>
-                    Durée typique: {selectedType.durationMin} - {selectedType.durationMax} jours
+                    {t("health.addInjuryDialog.typicalDuration", { min: selectedType.durationMin, max: selectedType.durationMax })}
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Ce modèle créera un protocole avec 4-5 phases. Les phases seront automatiquement planifiées dans le calendrier du joueur.
+                  {t("health.assignProtocolDialog.templateHint")}
                 </p>
               </div>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="notes-template">Notes (optionnel)</Label>
+              <Label htmlFor="notes-template">{t("health.assignProtocolDialog.notesLabel")}</Label>
               <Textarea
                 id="notes-template"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Observations particulières pour ce joueur..."
+                placeholder={t("health.assignProtocolDialog.notesPlaceholder")}
                 rows={2}
               />
             </div>
@@ -561,21 +564,21 @@ export function AssignProtocolDialog({
 
         <DialogFooter className="mt-4">
           <Button variant="outline" onClick={handleClose}>
-            Annuler
+            {t("health.assignProtocolDialog.cancel")}
           </Button>
           {selectedMode === "existing" ? (
             <Button
               onClick={() => assignExistingProtocol.mutate()}
               disabled={!selectedProtocolId || assignExistingProtocol.isPending}
             >
-              {assignExistingProtocol.isPending ? "Assignation..." : "Assigner le protocole"}
+              {assignExistingProtocol.isPending ? t("health.assignProtocolDialog.assigning") : t("health.assignProtocolDialog.assignProtocol")}
             </Button>
           ) : (
             <Button
               onClick={() => assignFromTemplate.mutate()}
               disabled={!selectedInjuryType || assignFromTemplate.isPending}
             >
-              {assignFromTemplate.isPending ? "Création..." : "Créer et assigner"}
+              {assignFromTemplate.isPending ? t("health.assignProtocolDialog.creating") : t("health.assignProtocolDialog.createAndAssign")}
             </Button>
           )}
         </DialogFooter>

@@ -75,7 +75,7 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
 
   const RECORD_TYPES = RECORD_TYPE_VALUES.map((rt) => ({
     ...rt,
-    label: t(`health:medicalRecords.recordTypes.${rt.key}`),
+    label: t(`health.medicalRecords.recordTypes.${rt.key}`),
   }));
 
   const COMMON_VACCINATIONS = [

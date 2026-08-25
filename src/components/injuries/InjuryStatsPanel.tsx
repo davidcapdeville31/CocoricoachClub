@@ -31,14 +31,16 @@ interface InjuryStatsPanelProps {
 
 type PeriodKey = "30" | "90" | "180" | "season" | "all" | "custom";
 
-const PERIOD_LABELS: Record<PeriodKey, string> = {
-  "30": "30 derniers jours",
-  "90": "90 derniers jours",
-  "180": "6 derniers mois",
-  season: "Saison en cours",
-  all: "Toutes les saisons",
-  custom: "Période personnalisée",
-};
+function getPeriodLabels(t: (key: string) => string): Record<PeriodKey, string> {
+  return {
+    "30": t("health.injuryStatsPanel.periods.last30"),
+    "90": t("health.injuryStatsPanel.periods.last90"),
+    "180": t("health.injuryStatsPanel.periods.last180"),
+    season: t("health.injuryStatsPanel.periods.season"),
+    all: t("health.injuryStatsPanel.periods.all"),
+    custom: t("health.injuryStatsPanel.periods.custom"),
+  };
+}
 
 function getPeriodRange(period: PeriodKey, customFrom?: Date, customTo?: Date): { from: Date | null; to: Date } {
   const now = new Date();
@@ -68,14 +70,16 @@ function classifyInjury(injuryType: string): "musculaire" | "articulaire" | "lig
   return "autre";
 }
 
-const TYPE_LABELS: Record<string, string> = {
-  musculaire: "Musculaires",
-  articulaire: "Articulaires",
-  ligamentaire: "Ligamentaires",
-  osseuse: "Osseuses",
-  tendineuse: "Tendineuses",
-  autre: "Autres",
-};
+function getTypeLabels(t: (key: string) => string): Record<string, string> {
+  return {
+    musculaire: t("health.injuryStatsPanel.types.muscular"),
+    articulaire: t("health.injuryStatsPanel.types.joint"),
+    ligamentaire: t("health.injuryStatsPanel.types.ligament"),
+    osseuse: t("health.injuryStatsPanel.types.bone"),
+    tendineuse: t("health.injuryStatsPanel.types.tendon"),
+    autre: t("health.injuryStatsPanel.types.other"),
+  };
+}
 
 const TYPE_COLORS: Record<string, string> = {
   musculaire: "bg-orange-500/20 text-orange-700 dark:text-orange-400",
@@ -88,6 +92,8 @@ const TYPE_COLORS: Record<string, string> = {
 
 export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
   const { t } = useTranslation();
+  const PERIOD_LABELS = useMemo(() => getPeriodLabels(t), [t]);
+  const TYPE_LABELS = useMemo(() => getTypeLabels(t), [t]);
   const [period, setPeriod] = useState<PeriodKey>("season");
   const [customFrom, setCustomFrom] = useState<Date | undefined>(undefined);
   const [customTo, setCustomTo] = useState<Date | undefined>(undefined);
@@ -236,7 +242,7 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
       ? customFrom && customTo
         ? t("health.injuryStatsPanel.customPeriodRange", { from: format(customFrom, "dd/MM/yyyy"), to: format(customTo, "dd/MM/yyyy") })
         : t("health.injuryStatsPanel.customPeriodLabel")
-      : PERIOD_LABELS[period].toLowerCase();
+      : PERIOD_LABELS[period];
 
   const filteredInjuries = useMemo(
     () =>
