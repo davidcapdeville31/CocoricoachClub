@@ -79,6 +79,8 @@ export function ScheduleTestEventDialog({
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(true);
   const [notes, setNotes] = useState("");
+  const [windowStart, setWindowStart] = useState("");
+  const [windowEnd, setWindowEnd] = useState("");
 
   // Favorites — synced with Programmation > Tests via localStorage + custom event
   const favStorageKey = `tests-fav-categories:${categoryId}`;
