@@ -2,6 +2,7 @@ import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
