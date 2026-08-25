@@ -806,7 +806,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
     
     try {
       const match = matches.find(m => m.id === selectedMatch);
-      if (!match) throw new Error("Match non trouvé");
+      if (!match) throw new Error(t("adminReports.export.common.matchNotFound"));
 
       const { settings: pdfSettings, logoBase64, seasonName: sn2 } = await preparePdfWithSettings(categoryId);
 
@@ -834,19 +834,19 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       const contentWidth = pageWidth - 2 * margin;
 
       // Determine result
-      let resultText = "Match";
+      let resultText = t("adminReports.export.match.resultDefault");
       let resultColor = defaultColors.primary;
       if (match.score_home !== null && match.score_away !== null) {
         const isWin = (match.is_home && match.score_home > match.score_away) || (!match.is_home && match.score_away > match.score_home);
         const isLoss = (match.is_home && match.score_home < match.score_away) || (!match.is_home && match.score_away < match.score_home);
-        resultText = isWin ? "VICTOIRE" : isLoss ? "DÉFAITE" : "MATCH NUL";
+        resultText = isWin ? t("adminReports.export.match.win") : isLoss ? t("adminReports.export.match.loss") : t("adminReports.export.match.draw");
         resultColor = isWin ? defaultColors.success : isLoss ? defaultColors.danger : defaultColors.muted;
       }
 
       let yPos = drawPdfHeaderCustom(
         pdf,
-        `RAPPORT DE MATCH`,
-        `vs ${match.opponent} - ${match.location || 'Lieu non défini'}`,
+        t("adminReports.export.match.pdfTitle"),
+        t("adminReports.export.match.vsLocation", { opponent: match.opponent, location: match.location || t("adminReports.export.match.noLocation") }),
         `${format(new Date(match.match_date), "EEEE d MMMM yyyy", { locale: getDateLocale() })}`,
         pdfSettings,
         logoBase64
@@ -873,13 +873,13 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       pdf.setFontSize(12);
       pdf.setFont("helvetica", "bold");
       pdf.setTextColor(...defaultColors.dark);
-      pdf.text("STATISTIQUES DU MATCH", margin, yPos);
+      pdf.text(t("adminReports.export.match.statsTitle"), margin, yPos);
       yPos += 10;
 
       const matchStatsData = [
-        { label: "Temps effectif", value: match.effective_play_time ? `${match.effective_play_time} min` : '-' },
-        { label: "Séq. la plus longue", value: match.longest_play_sequence ? `${match.longest_play_sequence} sec` : '-' },
-        { label: "Séq. moyenne", value: match.average_play_sequence ? `${match.average_play_sequence} sec` : '-' },
+        { label: t("adminReports.export.match.effectiveTime"), value: match.effective_play_time ? `${match.effective_play_time} min` : '-' },
+        { label: t("adminReports.export.match.longestSequence"), value: match.longest_play_sequence ? `${match.longest_play_sequence} sec` : '-' },
+        { label: t("adminReports.export.match.avgSequence"), value: match.average_play_sequence ? `${match.average_play_sequence} sec` : '-' },
       ];
 
       pdf.setFillColor(...defaultColors.light);
@@ -900,7 +900,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       pdf.setFontSize(12);
       pdf.setFont("helvetica", "bold");
       pdf.setTextColor(...defaultColors.dark);
-      pdf.text("COMPOSITION", margin, yPos);
+      pdf.text(t("adminReports.export.match.compositionTitle"), margin, yPos);
       yPos += 8;
 
       const starters = lineupsRes.data?.filter(l => l.is_starter) || [];
@@ -910,16 +910,16 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         pdf.setFontSize(10);
         pdf.setFont("helvetica", "bold");
         pdf.setTextColor(...defaultColors.success);
-        pdf.text("Titulaires", margin, yPos);
+        pdf.text(t("adminReports.export.match.starters"), margin, yPos);
         yPos += 6;
 
-        const lineupHeaders = ["Joueur", "Position", "Minutes"];
+        const lineupHeaders = [t("adminReports.export.match.headerPlayer"), t("adminReports.export.match.headerPosition"), t("adminReports.export.match.headerMinutes")];
         const lineupColWidths = [80, 50, 50];
         yPos = drawTableHeaderPdf(pdf, lineupHeaders, lineupColWidths, yPos, margin, contentWidth);
 
         starters.forEach((p, index) => {
           yPos = localCheckPageBreak(pdf, yPos, 10);
-          const fullName = [p.players?.first_name, p.players?.name].filter(Boolean).join(" ") || 'Inconnu';
+          const fullName = [p.players?.first_name, p.players?.name].filter(Boolean).join(" ") || t("adminReports.export.common.unknown");
           yPos = drawTableRowPdf(pdf, [
             fullName,
             p.position || p.players?.position || '-',
@@ -933,16 +933,16 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         pdf.setFontSize(10);
         pdf.setFont("helvetica", "bold");
         pdf.setTextColor(...defaultColors.warning);
-        pdf.text("Remplaçants", margin, yPos);
+        pdf.text(t("adminReports.export.match.substitutes"), margin, yPos);
         yPos += 6;
 
-        const subHeaders = ["Joueur", "Position", "Minutes"];
+        const subHeaders = [t("adminReports.export.match.headerPlayer"), t("adminReports.export.match.headerPosition"), t("adminReports.export.match.headerMinutes")];
         const subColWidths = [80, 50, 50];
         yPos = drawTableHeaderPdf(pdf, subHeaders, subColWidths, yPos, margin, contentWidth);
 
         subs.forEach((p, index) => {
           yPos = localCheckPageBreak(pdf, yPos, 10);
-          const fullName = [p.players?.first_name, p.players?.name].filter(Boolean).join(" ") || 'Inconnu';
+          const fullName = [p.players?.first_name, p.players?.name].filter(Boolean).join(" ") || t("adminReports.export.common.unknown");
           yPos = drawTableRowPdf(pdf, [
             fullName,
             p.position || p.players?.position || '-',
@@ -960,7 +960,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         pdf.setFontSize(12);
         pdf.setFont("helvetica", "bold");
         pdf.setTextColor(...defaultColors.dark);
-        pdf.text("STATISTIQUES JOUEURS", margin, yPos);
+        pdf.text(t("adminReports.export.match.playerStatsTitle"), margin, yPos);
         yPos += 8;
 
         // Get the stats to display based on preferences
@@ -987,11 +987,11 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
 
         // Group stats by main category, then by thematic sub-blocks (rugby, basket 3x3, etc.)
         const STAT_CATEGORY_LABELS: Record<string, string> = {
-          scoring: "Marque",
-          attack: "Attaque",
-          defense: "Défense",
-          general: "Général",
-          individual: "Individuel",
+          scoring: t("adminReports.export.match.categoryScoring"),
+          attack: t("adminReports.export.match.categoryAttack"),
+          defense: t("adminReports.export.match.categoryDefense"),
+          general: t("adminReports.export.match.categoryGeneral"),
+          individual: t("adminReports.export.match.categoryIndividual"),
         };
         const categoryOrder = ["scoring", "attack", "defense", "general", "individual"];
         const statsByCategory = new Map<string, StatField[]>();
@@ -1050,7 +1050,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
                 yPos = localCheckPageBreak(pdf, yPos, 20);
               }
 
-              const statHeaders = ["Joueur", ...pageStats.map((s) => s.shortLabel)];
+              const statHeaders = [t("adminReports.export.match.headerPlayer"), ...pageStats.map((s) => s.shortLabel)];
               const nameColWidth = 45;
               const statColWidth = Math.max(15, Math.floor((contentWidth - nameColWidth) / pageStats.length));
               const statColWidths = [nameColWidth, ...pageStats.map(() => statColWidth)];
@@ -1078,7 +1078,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
               playerStats.forEach((stat: any, index) => {
                 yPos = localCheckPageBreak(pdf, yPos, 10);
                 const sportData = stat.sport_data && typeof stat.sport_data === "object" ? (stat.sport_data as Record<string, any>) : {};
-                const playerName = [stat.players?.first_name, stat.players?.name].filter(Boolean).join(" ") || "Inconnu";
+                const playerName = [stat.players?.first_name, stat.players?.name].filter(Boolean).join(" ") || t("adminReports.export.common.unknown");
 
                 const values = [
                   playerName,
@@ -1122,7 +1122,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         pdf.setFontSize(12);
         pdf.setFont("helvetica", "bold");
         pdf.setTextColor(...defaultColors.dark);
-        pdf.text("CARTOGRAPHIE DES TIRS AU BUT", margin, yPos);
+        pdf.text(t("adminReports.export.match.kickingMapTitle"), margin, yPos);
         yPos += 8;
 
         // Draw rugby field
@@ -1185,11 +1185,11 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         // Success/fail legend
         pdf.setFillColor(34, 197, 94);
         pdf.circle(legendX + 2, yPos, 2, 'F');
-        pdf.text("Réussi", legendX + 6, yPos + 1.5);
+        pdf.text(t("adminReports.export.match.success"), legendX + 6, yPos + 1.5);
         legendX += 25;
         pdf.setFillColor(239, 68, 68);
         pdf.circle(legendX + 2, yPos, 2, 'F');
-        pdf.text("Raté", legendX + 6, yPos + 1.5);
+        pdf.text(t("adminReports.export.match.miss"), legendX + 6, yPos + 1.5);
         legendX += 20;
         
         // Type legend
@@ -1197,7 +1197,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
           pdf.setDrawColor(...color);
           pdf.setLineWidth(1);
           pdf.line(legendX, yPos - 1, legendX + 6, yPos - 1);
-          const typeLabel = type === "conversion" ? "Transfo." : type === "penalty" ? "Pénalité" : "Drop";
+          const typeLabel = type === "conversion" ? t("adminReports.export.match.kickTypeConversion") : type === "penalty" ? t("adminReports.export.match.kickTypePenalty") : t("adminReports.export.match.kickTypeDrop");
           pdf.setTextColor(...defaultColors.dark);
           pdf.text(typeLabel, legendX + 8, yPos + 1);
           legendX += 28;
@@ -1218,7 +1218,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         const kicksByPlayer = new Map<string, { name: string; total: number; success: number; byType: Record<string, { total: number; success: number }> }>();
         kickingAttempts.forEach((a: any) => {
           const pid = a.player_id;
-          const pName = a.players ? [a.players.first_name, a.players.name].filter(Boolean).join(" ") : "Inconnu";
+          const pName = a.players ? [a.players.first_name, a.players.name].filter(Boolean).join(" ") : t("adminReports.export.common.unknown");
           if (!kicksByPlayer.has(pid)) kicksByPlayer.set(pid, { name: pName, total: 0, success: 0, byType: {} });
           const pData = kicksByPlayer.get(pid)!;
           pData.total++;
@@ -1229,7 +1229,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         });
 
         if (kicksByPlayer.size > 0) {
-          const kickHeaders = ["Buteur", "Total", "Réussis", "%", "Transfo.", "Pénalités", "Drops"];
+          const kickHeaders = [t("adminReports.export.match.kickHeaderScorer"), t("adminReports.export.match.kickHeaderTotal"), t("adminReports.export.match.kickHeaderSuccessful"), t("adminReports.export.match.kickHeaderPct"), t("adminReports.export.match.kickHeaderConversions"), t("adminReports.export.match.kickHeaderPenalties"), t("adminReports.export.match.kickHeaderDrops")];
           const kickColWidths = [45, 20, 20, 20, 25, 25, 25];
           yPos = drawTableHeaderPdf(pdf, kickHeaders, kickColWidths, yPos, margin, contentWidth);
 
@@ -1263,14 +1263,14 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         pdf.setFontSize(12);
         pdf.setFont("helvetica", "bold");
         pdf.setTextColor(...defaultColors.dark);
-        pdf.text("ROUNDS / COMBATS DE COMPÉTITION", margin, yPos);
+        pdf.text(t("adminReports.export.match.roundsTitle"), margin, yPos);
         yPos += 8;
 
         // Group rounds by player
         const roundsByPlayer = new Map<string, { name: string; discipline?: string; rounds: any[] }>();
         competitionRounds.forEach((r: any) => {
           const pid = r.player_id;
-          const pName = [r.players?.first_name, r.players?.name].filter(Boolean).join(" ") || "Inconnu";
+          const pName = [r.players?.first_name, r.players?.name].filter(Boolean).join(" ") || t("adminReports.export.common.unknown");
           const disc = r.players?.specialty || r.players?.discipline;
           if (!roundsByPlayer.has(pid)) roundsByPlayer.set(pid, { name: pName, discipline: disc, rounds: [] });
           roundsByPlayer.get(pid)!.rounds.push(r);
@@ -1291,10 +1291,10 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
 
           const roundStatsDef = getStatsForSport(sportType, false, playerData.discipline);
           const fixedHeaders = isAthleticsReport
-            ? ["Phase", "Place", "Résultat"]
+            ? [t("adminReports.export.match.headerPhase"), t("adminReports.export.match.headerPlace"), t("adminReports.export.match.headerResult")]
             : isJudoReport
-            ? ["Round", "Adversaire", "Résultat"]
-            : ["Round", "Adversaire", "Résultat"];
+            ? [t("adminReports.export.match.headerRound"), t("adminReports.export.match.headerOpponent"), t("adminReports.export.match.headerResult")]
+            : [t("adminReports.export.match.headerRound"), t("adminReports.export.match.headerOpponent"), t("adminReports.export.match.headerResult")];
           const fixedColWidths = [28, 28, 20];
 
           // Paginate stats in groups of 6
@@ -1321,13 +1321,13 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
               const resultLabel = isJudoReport
                 ? (statData.combatResult === 1 ? 'V' : statData.combatResult === 0 ? 'D' : round.result || '-')
                 : isAthleticsReport
-                ? (round.result === 'qualified' ? 'Q' : round.result === 'eliminated' ? 'Élim.' : round.result || '-')
+                ? (round.result === 'qualified' ? t("adminReports.export.match.qualified") : round.result === 'eliminated' ? t("adminReports.export.match.eliminated") : round.result || '-')
                 : (round.result || '-');
 
               const fixedData = isAthleticsReport
                 ? [
-                    round.phase || `Épreuve ${round.round_number || idx + 1}`,
-                    round.ranking ? `${round.ranking}e` : '-',
+                    round.phase || t("adminReports.export.match.eventFallback", { n: round.round_number || idx + 1 }),
+                    round.ranking ? t("adminReports.export.match.rankingSuffix", { n: round.ranking }) : '-',
                     resultLabel,
                   ]
                 : [
@@ -2033,7 +2033,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
     try {
       const branding = await getExcelBranding(categoryId);
       const match = matches.find(m => m.id === selectedMatch);
-      if (!match) throw new Error("Match non trouvé");
+      if (!match) throw new Error(t("adminReports.export.common.matchNotFound"));
 
       const [lineupsRes, statsRes, statPrefsRes, customStatsRes] = await Promise.all([
         supabase.from("match_lineups").select("*, players(name, first_name, position)").eq("match_id", selectedMatch),
@@ -2061,7 +2061,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         ? allAvailable.filter(s => enabledKeys.includes(s.key))
         : allFields;
 
-      const baseHeaders = ["Joueur", "Position", "Titulaire", "Minutes jouées"];
+      const baseHeaders = [t("adminReports.export.match.csvHeaderPlayer"), t("adminReports.export.match.csvHeaderPosition"), t("adminReports.export.match.csvHeaderStarter"), t("adminReports.export.match.csvHeaderMinutesPlayed")];
       const statHeaders = displayStats.map(s => s.label);
       const allHeaders = [...baseHeaders, ...statHeaders];
 
@@ -2072,18 +2072,18 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         return [
           fullName || "-",
           l.position || l.players?.position || "-",
-          l.is_starter ? "Oui" : "Non",
+          l.is_starter ? t("adminReports.export.common.yes") : t("adminReports.export.common.no"),
           l.minutes_played || 0,
           ...displayStats.map(s => sportData[s.key] ?? "-"),
         ];
       });
 
       const workbook = new ExcelJS.Workbook();
-      const sheet = workbook.addWorksheet("Rapport de Match");
-      const dataStart = addBrandedHeader(sheet, `RAPPORT DE MATCH — vs ${match.opponent}`, branding, [
-        ["Date", format(new Date(match.match_date), "dd/MM/yyyy")],
-        ["Score", `${match.score_home ?? "?"} - ${match.score_away ?? "?"}`],
-        ["Lieu", match.location || "-"],
+      const sheet = workbook.addWorksheet(t("adminReports.export.match.csvSheetName"));
+      const dataStart = addBrandedHeader(sheet, t("adminReports.export.match.csvPdfTitleWithOpponent", { opponent: match.opponent }), branding, [
+        [t("adminReports.export.common.date"), format(new Date(match.match_date), "dd/MM/yyyy")],
+        [t("adminReports.export.match.csvScore"), `${match.score_home ?? "?"} - ${match.score_away ?? "?"}`],
+        [t("adminReports.export.match.csvLocation"), match.location || "-"],
       ]);
       allHeaders.forEach((h, i) => { sheet.getCell(dataStart, i + 1).value = h; });
       styleDataHeaderRow(sheet, dataStart, allHeaders.length, branding.headerColor);
@@ -2096,7 +2096,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       // TOTALS row
       const totalsRowIdx = dataStart + dataRows.length + 1;
       const tRow = sheet.getRow(totalsRowIdx);
-      tRow.getCell(1).value = 'TOTAL';
+      tRow.getCell(1).value = t("adminReports.export.common.total");
       tRow.getCell(1).font = { bold: true, color: { argb: 'FF1E293B' } };
       tRow.getCell(4).value = dataRows.reduce((sum, r) => sum + (Number(r[3]) || 0), 0);
       tRow.getCell(4).font = { bold: true };
@@ -2114,7 +2114,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       // AVERAGES row
       const avgRowIdx = totalsRowIdx + 1;
       const aRow = sheet.getRow(avgRowIdx);
-      aRow.getCell(1).value = 'MOYENNE';
+      aRow.getCell(1).value = t("adminReports.export.common.averageRowLabel");
       aRow.getCell(1).font = { bold: true, italic: true, color: { argb: 'FF1E293B' } };
       const playersWithMinutes = dataRows.filter(r => Number(r[3]) > 0).length || 1;
       aRow.getCell(4).value = Math.round(dataRows.reduce((sum, r) => sum + (Number(r[3]) || 0), 0) / playersWithMinutes);
