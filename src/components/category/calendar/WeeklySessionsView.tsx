@@ -158,79 +158,88 @@ export function WeeklySessionsView({
 
                 {/* Events */}
                 <div className="space-y-1.5">
-                  {/* Matches */}
-                  {dayMatches.map((match) => {
-                    const compColor = getCompetitionColor(match.competition);
-                    const compLabel = match.competition?.trim() || null;
-                    return (
-                    <div
-                      key={match.id}
-                      onClick={() => onViewMatch(match)}
-                      className={cn(
-                        "p-1.5 rounded cursor-pointer transition-colors text-white",
-                        compColor.bg,
-                        compColor.bgHover
-                      )}
-                      title={compLabel ? `${compLabel} · ${match.opponent}` : match.opponent}
-                    >
-                      <div className="flex items-center gap-1 text-xs">
-                        <Swords className="h-3 w-3 shrink-0" />
-                        <span className="font-medium truncate">
-                          {compLabel ? compLabel : `${match.is_home ? "vs" : "@"} ${match.opponent.slice(0, 10)}`}
-                        </span>
-                      </div>
-                      {match.match_time && (
-                        <p className="text-[10px] opacity-90 mt-0.5">
-                          {match.match_time.slice(0, 5)}
-                        </p>
-                      )}
-                    </div>
-                    );
-                  })}
-
-                  {/* Sessions */}
-                  {daySessions.map((session) => {
-                    const bgColor = TRAINING_TYPE_COLORS[session.training_type] || "bg-primary";
-                    const label = getTrainingTypeLabel(session.training_type);
-                    return (
-                      <div
-                        key={session.id}
-                        onClick={() => onViewSession(session)}
-                        className={cn(
-                          "p-1.5 rounded cursor-pointer hover:opacity-80 transition-opacity",
-                          bgColor.replace("bg-", "bg-") + "/20",
-                          "border",
-                          bgColor.replace("bg-", "border-") + "/40"
-                        )}
-                      >
-                        <div className="flex items-center gap-1 text-xs">
-                          {(session as any).created_by_player_id && (
-                            <User className="h-2.5 w-2.5 text-violet-500 shrink-0" />
-                          )}
-                          <div className={cn(
-                            "h-2 w-2 rounded-full shrink-0",
-                            (session as any).created_by_player_id ? "bg-violet-500" : bgColor
-                          )} />
-                          <span className="font-medium truncate">
-                            {(session as any).created_by_player_id && playerNamesMap?.[(session as any).created_by_player_id]
-                              ? `${playerNamesMap[(session as any).created_by_player_id].split(' ')[0]} · `
-                              : ""}
-                            {label.slice(0, 12)}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1 mt-0.5 text-[10px] text-muted-foreground">
-                          {session.session_start_time && (
-                            <span>{session.session_start_time.slice(0, 5)}</span>
-                          )}
-                          {session.intensity && (
-                            <Badge variant="outline" className="text-[9px] px-1 py-0 h-3.5">
-                              I{session.intensity}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
+                  {[
+                    ...dayMatches.map((m) => ({ type: "match" as const, data: m, time: m.match_time || "00:00" })),
+                    ...daySessions.map((s) => ({ type: "session" as const, data: s, time: s.session_start_time || "00:00" })),
+                  ]
+                    .sort((a, b) => a.time.localeCompare(b.time))
+                    .map((event) =>
+                      event.type === "match" ? (
+                        (() => {
+                          const match = event.data;
+                          const compColor = getCompetitionColor(match.competition);
+                          const compLabel = match.competition?.trim() || null;
+                          return (
+                            <div
+                              key={match.id}
+                              onClick={() => onViewMatch(match)}
+                              className={cn(
+                                "p-1.5 rounded cursor-pointer transition-colors text-white",
+                                compColor.bg,
+                                compColor.bgHover
+                              )}
+                              title={compLabel ? `${compLabel} · ${match.opponent}` : match.opponent}
+                            >
+                              <div className="flex items-center gap-1 text-xs">
+                                <Swords className="h-3 w-3 shrink-0" />
+                                <span className="font-medium truncate">
+                                  {compLabel ? compLabel : `${match.is_home ? "vs" : "@"} ${match.opponent.slice(0, 10)}`}
+                                </span>
+                              </div>
+                              {match.match_time && (
+                                <p className="text-[10px] opacity-90 mt-0.5">
+                                  {match.match_time.slice(0, 5)}
+                                </p>
+                              )}
+                            </div>
+                          );
+                        })()
+                      ) : (
+                        (() => {
+                          const session = event.data;
+                          const bgColor = TRAINING_TYPE_COLORS[session.training_type] || "bg-primary";
+                          const label = getTrainingTypeLabel(session.training_type);
+                          return (
+                            <div
+                              key={session.id}
+                              onClick={() => onViewSession(session)}
+                              className={cn(
+                                "p-1.5 rounded cursor-pointer hover:opacity-80 transition-opacity",
+                                bgColor.replace("bg-", "bg-") + "/20",
+                                "border",
+                                bgColor.replace("bg-", "border-") + "/40"
+                              )}
+                            >
+                              <div className="flex items-center gap-1 text-xs">
+                                {(session as any).created_by_player_id && (
+                                  <User className="h-2.5 w-2.5 text-violet-500 shrink-0" />
+                                )}
+                                <div className={cn(
+                                  "h-2 w-2 rounded-full shrink-0",
+                                  (session as any).created_by_player_id ? "bg-violet-500" : bgColor
+                                )} />
+                                <span className="font-medium truncate">
+                                  {(session as any).created_by_player_id && playerNamesMap?.[(session as any).created_by_player_id]
+                                    ? `${playerNamesMap[(session as any).created_by_player_id].split(' ')[0]} · `
+                                    : ""}
+                                  {label.slice(0, 12)}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1 mt-0.5 text-[10px] text-muted-foreground">
+                                {session.session_start_time && (
+                                  <span>{session.session_start_time.slice(0, 5)}</span>
+                                )}
+                                {session.intensity && (
+                                  <Badge variant="outline" className="text-[9px] px-1 py-0 h-3.5">
+                                    I{session.intensity}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()
+                      )
+                    )}
 
                   {!hasEvents && (
                     <p className="text-[10px] text-muted-foreground text-center pt-4">
