@@ -589,6 +589,7 @@ export const planningFr = {
         selectBattery: "Sélectionnez une batterie",
         selectAtLeastOneTest: "Sélectionnez au moins un test",
         selectAtLeastOneAthlete: "Sélectionnez au moins un athlète",
+        invalidWindow: "La fin de la fenêtre de passage doit être après le début",
         updated: "Test mis à jour",
         planned: "Test planifié au calendrier",
         planError: "Erreur lors de la planification",
