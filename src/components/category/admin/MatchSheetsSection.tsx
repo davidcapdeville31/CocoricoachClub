@@ -30,6 +30,7 @@ import { toast } from "sonner";
 import { Plus, FileSpreadsheet, Users, Star, Clock, MapPin, Trash2, Edit, Send, Check } from "lucide-react";
 import { format } from "date-fns";
 import { AthleteIdentityBadges } from "@/components/player/AthleteIdentityBadges";
+import { useTranslation } from "react-i18next";
 
 interface MatchSheetsSectionProps {
   categoryId: string;
@@ -37,6 +38,7 @@ interface MatchSheetsSectionProps {
 }
 
 export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchSheetsSectionProps) {
+  const { t } = useTranslation();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSheet, setEditingSheet] = useState<any>(null);
   const [name, setName] = useState("");
@@ -229,7 +231,7 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
     mutationFn: async () => {
       // Validation: match is required
       if (!matchId) {
-        throw new Error("Veuillez sélectionner un match");
+        throw new Error(t("adminRecruitDocs.matchSheets.matchRequired"));
       }
 
       const sheetData = {
@@ -319,12 +321,12 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
       queryClient.invalidateQueries({ queryKey: ["match_sheets"] });
       queryClient.invalidateQueries({ queryKey: ["match_lineup", matchId] });
       queryClient.invalidateQueries({ queryKey: ["matches"] });
-      toast.success(editingSheet ? "Feuille de match mise à jour" : "Feuille de match créée");
+      toast.success(editingSheet ? t("adminRecruitDocs.matchSheets.toasts.sheetUpdated") : t("adminRecruitDocs.matchSheets.toasts.sheetCreated"));
       setIsDialogOpen(false);
       resetForm();
     },
     onError: (error: any) => {
-      toast.error(error.message || "Erreur lors de l'enregistrement");
+      toast.error(error.message || t("adminRecruitDocs.matchSheets.toasts.saveError"));
     },
   });
 
@@ -338,7 +340,7 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["match_sheets"] });
-      toast.success("Feuille de match supprimée");
+      toast.success(t("adminRecruitDocs.matchSheets.toasts.sheetDeleted"));
     },
   });
 
@@ -352,13 +354,13 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["match_sheets"] });
-      toast.success("Statut mis à jour");
+      toast.success(t("adminRecruitDocs.matchSheets.toasts.statusUpdated"));
     },
   });
 
   const togglePlayer = (playerId: string) => {
     if (attendanceByPlayer[playerId] === "absent") {
-      toast.error("Athlète déclarée absente pour cette compétition");
+      toast.error(t("adminRecruitDocs.matchSheets.toasts.playerAbsent"));
       return;
     }
     setSelectedPlayers({
@@ -373,11 +375,11 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "draft":
-        return <Badge variant="outline">Brouillon</Badge>;
+        return <Badge variant="outline">{t("adminRecruitDocs.matchSheets.draft")}</Badge>;
       case "sent":
-        return <Badge className="bg-blue-100 text-blue-700">Envoyée</Badge>;
+        return <Badge className="bg-blue-100 text-blue-700">{t("adminRecruitDocs.matchSheets.sent")}</Badge>;
       case "confirmed":
-        return <Badge className="bg-green-100 text-green-700">Confirmée</Badge>;
+        return <Badge className="bg-green-100 text-green-700">{t("adminRecruitDocs.matchSheets.confirmed")}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -391,17 +393,17 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
       <div>
         <h3 className="text-lg font-semibold flex items-center gap-2">
           <FileSpreadsheet className="h-5 w-5 text-primary" />
-          Feuilles de Match
+          {t("adminRecruitDocs.matchSheets.title")}
         </h3>
         <p className="text-sm text-muted-foreground">
-          Créez et gérez les compositions d'équipe pour les matchs
+          {t("adminRecruitDocs.matchSheets.subtitle")}
         </p>
       </div>
 
       {isLoading ? (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
-            Chargement...
+            {t("adminRecruitDocs.matchSheets.loading")}
           </CardContent>
         </Card>
       ) : matchSheets && matchSheets.length > 0 ? (
@@ -419,10 +421,10 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
                       <span className="flex items-center gap-1">
                         <Clock className="h-3.5 w-3.5" />
                         {format(new Date(sheet.sheet_date), "dd/MM/yyyy", { locale: getDateLocale() })}
-                        {sheet.match_time && ` à ${sheet.match_time.slice(0, 5)}`}
+                        {sheet.match_time && t("adminRecruitDocs.matchSheets.atTime", { time: sheet.match_time.slice(0, 5) })}
                       </span>
                       {sheet.opponent && (
-                        <span>vs {sheet.opponent}</span>
+                        <span>{t("adminRecruitDocs.matchSheets.vsOpponent", { opponent: sheet.opponent })}</span>
                       )}
                       {sheet.location && (
                         <span className="flex items-center gap-1">
@@ -434,10 +436,10 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
                     <div className="flex items-center gap-2 mt-2">
                       <Badge variant="secondary">
                         <Users className="h-3 w-3 mr-1" />
-                        {sheet.match_sheet_players?.length || 0} joueurs
+                        {t("adminRecruitDocs.matchSheets.playersCount", { count: sheet.match_sheet_players?.length || 0 })}
                       </Badge>
                       <Badge variant="outline">
-                        {sheet.match_sheet_players?.filter((p: any) => p.is_starter).length || 0} titulaires
+                        {t("adminRecruitDocs.matchSheets.startersCount", { count: sheet.match_sheet_players?.filter((p: any) => p.is_starter).length || 0 })}
                       </Badge>
                     </div>
                   </div>
@@ -449,7 +451,7 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
                         onClick={() => updateStatus.mutate({ id: sheet.id, status: "sent" })}
                       >
                         <Send className="h-4 w-4 mr-1" />
-                        Envoyer
+                        {t("adminRecruitDocs.matchSheets.send")}
                       </Button>
                     )}
                     {sheet.status === "sent" && (
@@ -459,7 +461,7 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
                         onClick={() => updateStatus.mutate({ id: sheet.id, status: "confirmed" })}
                       >
                         <Check className="h-4 w-4 mr-1" />
-                        Confirmer
+                        {t("adminRecruitDocs.matchSheets.confirm")}
                       </Button>
                     )}
                     <Button
@@ -487,10 +489,10 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
             <FileSpreadsheet className="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p>Aucune feuille de match créée</p>
+            <p>{t("adminRecruitDocs.matchSheets.noSheet")}</p>
             <Button className="mt-4" onClick={() => openDialog()}>
               <Plus className="h-4 w-4 mr-2" />
-              Créer une feuille
+              {t("adminRecruitDocs.matchSheets.createSheet")}
             </Button>
           </CardContent>
         </Card>
@@ -506,10 +508,10 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
             <div className="relative z-10 px-8 pt-4 pb-6">
               <div>
                 <DialogTitle className="text-xl font-bold tracking-tight text-primary-foreground">
-                  {editingSheet ? "Modifier la feuille de match" : "Nouvelle feuille de match"}
+                  {editingSheet ? t("adminRecruitDocs.matchSheets.editSheetTitle") : t("adminRecruitDocs.matchSheets.newSheetTitle")}
                 </DialogTitle>
                 <p className="text-sm text-primary-foreground/70 mt-0.5">
-                  Composez votre équipe et préparez le match
+                  {t("adminRecruitDocs.matchSheets.headerSubtitle")}
                 </p>
               </div>
             </div>
@@ -520,20 +522,20 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
             <div className="space-y-4 bg-card rounded-xl p-5 border border-border/30 shadow-sm">
               <div className="flex items-center gap-2">
                 <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                <h4 className="text-xs font-semibold uppercase tracking-widest text-primary/70">Informations du match</h4>
+                <h4 className="text-xs font-semibold uppercase tracking-widest text-primary/70">{t("adminRecruitDocs.matchSheets.matchInfoSection")}</h4>
               </div>
               <div className="space-y-2">
-                <Label className="font-medium text-sm">Nom de la feuille *</Label>
+                <Label className="font-medium text-sm">{t("adminRecruitDocs.matchSheets.sheetName")}</Label>
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Ex: Match J5 vs Racing"
+                  placeholder={t("adminRecruitDocs.matchSheets.sheetNamePlaceholder")}
                   className="bg-muted/50 border-border/50 h-11 rounded-xl transition-all duration-200 focus:bg-background focus:shadow-[0_0_0_3px_hsl(var(--primary)/0.1)] focus:border-primary/40"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="font-medium text-sm">Date du match</Label>
+                  <Label className="font-medium text-sm">{t("adminRecruitDocs.matchSheets.matchDate")}</Label>
                   <Input
                     type="date"
                     value={sheetDate}
@@ -542,7 +544,7 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="font-medium text-sm">Heure</Label>
+                  <Label className="font-medium text-sm">{t("adminRecruitDocs.matchSheets.time")}</Label>
                   <Input
                     type="time"
                     value={matchTime}
@@ -553,20 +555,20 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="font-medium text-sm">Adversaire</Label>
+                  <Label className="font-medium text-sm">{t("adminRecruitDocs.matchSheets.opponent")}</Label>
                   <Input
                     value={opponent}
                     onChange={(e) => setOpponent(e.target.value)}
-                    placeholder="Nom de l'équipe adverse"
+                    placeholder={t("adminRecruitDocs.matchSheets.opponentPlaceholder")}
                     className="bg-muted/50 border-border/50 h-11 rounded-xl transition-all duration-200 focus:bg-background focus:shadow-[0_0_0_3px_hsl(var(--primary)/0.1)] focus:border-primary/40"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="font-medium text-sm">Lieu</Label>
+                  <Label className="font-medium text-sm">{t("adminRecruitDocs.matchSheets.location")}</Label>
                   <Input
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    placeholder="Stade / Complexe"
+                    placeholder={t("adminRecruitDocs.matchSheets.locationPlaceholder")}
                     className="bg-muted/50 border-border/50 h-11 rounded-xl transition-all duration-200 focus:bg-background focus:shadow-[0_0_0_3px_hsl(var(--primary)/0.1)] focus:border-primary/40"
                   />
                 </div>
@@ -577,11 +579,11 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
             <div className="space-y-4 bg-card rounded-xl p-5 border border-border/30 shadow-sm">
               <div className="flex items-center gap-2">
                 <div className="h-1.5 w-1.5 rounded-full bg-accent" />
-                <h4 className="text-xs font-semibold uppercase tracking-widest text-accent">Match associé</h4>
+                <h4 className="text-xs font-semibold uppercase tracking-widest text-accent">{t("adminRecruitDocs.matchSheets.linkedMatchSection")}</h4>
               </div>
               <div className="space-y-2">
                 <Label className="font-medium text-sm flex items-center gap-1">
-                  Lier à un match existant <span className="text-destructive">*</span>
+                  {t("adminRecruitDocs.matchSheets.linkExistingMatch")} <span className="text-destructive">*</span>
                 </Label>
                 {matches && matches.length > 0 ? (
                   <Select value={matchId} onValueChange={(value) => {
@@ -604,7 +606,7 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
                     }
                   }}>
                     <SelectTrigger className={`h-11 rounded-xl bg-muted/50 border-border/50 transition-all duration-200 focus:bg-background focus:shadow-[0_0_0_3px_hsl(var(--accent)/0.15)] focus:border-accent/40 ${!matchId ? "border-destructive/50" : ""}`}>
-                      <SelectValue placeholder="Sélectionner un match" />
+                      <SelectValue placeholder={t("adminRecruitDocs.matchSheets.selectMatch")} />
                     </SelectTrigger>
                     <SelectContent>
                       {matches.map((match) => (
@@ -617,7 +619,7 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
                   </Select>
                 ) : (
                   <p className="text-sm text-muted-foreground italic p-4 border border-dashed border-border/60 rounded-xl bg-muted/30">
-                    Aucun match programmé. Créez d'abord un match dans le calendrier global.
+                    {t("adminRecruitDocs.matchSheets.noScheduledMatch")}
                   </p>
                 )}
               </div>
@@ -627,12 +629,12 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
             <div className="space-y-4 bg-card rounded-xl p-5 border border-border/30 shadow-sm">
               <div className="flex items-center gap-2">
                 <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground" />
-                <h4 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Notes & consignes</h4>
+                <h4 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t("adminRecruitDocs.matchSheets.notesSection")}</h4>
               </div>
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Instructions, consignes..."
+                placeholder={t("adminRecruitDocs.matchSheets.notesPlaceholder")}
                 rows={2}
                 className="bg-muted/50 border-border/50 rounded-xl transition-all duration-200 focus:bg-background focus:shadow-[0_0_0_3px_hsl(var(--primary)/0.1)] focus:border-primary/40 resize-none"
               />
@@ -643,11 +645,11 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                  <h4 className="text-xs font-semibold uppercase tracking-widest text-primary/70">Sélection des joueurs</h4>
+                  <h4 className="text-xs font-semibold uppercase tracking-widest text-primary/70">{t("adminRecruitDocs.matchSheets.playersSection")}</h4>
                 </div>
                 <div className="flex gap-2">
-                  <Badge className="rounded-lg font-medium bg-primary/10 text-primary border-primary/20 hover:bg-primary/15">{selectedCount} sélectionnés</Badge>
-                  <Badge className="rounded-lg font-medium bg-accent/10 text-accent border-accent/20 hover:bg-accent/15">{startersCount} titulaires</Badge>
+                  <Badge className="rounded-lg font-medium bg-primary/10 text-primary border-primary/20 hover:bg-primary/15">{t("adminRecruitDocs.matchSheets.selectedCount", { count: selectedCount })}</Badge>
+                  <Badge className="rounded-lg font-medium bg-accent/10 text-accent border-accent/20 hover:bg-accent/15">{t("adminRecruitDocs.matchSheets.startersCountBadge", { count: startersCount })}</Badge>
                 </div>
               </div>
               <div className="border border-border/30 rounded-xl overflow-hidden bg-background shadow-sm">
@@ -656,11 +658,11 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
                     <TableHeader>
                       <TableRow className="bg-primary/5 hover:bg-primary/5 border-b border-border/30">
                         <TableHead className="w-12 h-10 text-xs font-semibold uppercase tracking-wider text-primary/60"></TableHead>
-                        <TableHead className="h-10 text-xs font-semibold uppercase tracking-wider text-primary/60">Joueur</TableHead>
-                        <TableHead className="w-20 h-10 text-xs font-semibold uppercase tracking-wider text-primary/60">N°</TableHead>
-                        <TableHead className="min-w-[140px] h-10 text-xs font-semibold uppercase tracking-wider text-primary/60">Poste</TableHead>
-                        <TableHead className="w-24 text-center h-10 text-xs font-semibold uppercase tracking-wider text-primary/60">Titulaire</TableHead>
-                        <TableHead className="w-24 text-center h-10 text-xs font-semibold uppercase tracking-wider text-primary/60">Capitaine</TableHead>
+                        <TableHead className="h-10 text-xs font-semibold uppercase tracking-wider text-primary/60">{t("adminRecruitDocs.matchSheets.colPlayer")}</TableHead>
+                        <TableHead className="w-20 h-10 text-xs font-semibold uppercase tracking-wider text-primary/60">{t("adminRecruitDocs.matchSheets.colNumber")}</TableHead>
+                        <TableHead className="min-w-[140px] h-10 text-xs font-semibold uppercase tracking-wider text-primary/60">{t("adminRecruitDocs.matchSheets.colPosition")}</TableHead>
+                        <TableHead className="w-24 text-center h-10 text-xs font-semibold uppercase tracking-wider text-primary/60">{t("adminRecruitDocs.matchSheets.colStarter")}</TableHead>
+                        <TableHead className="w-24 text-center h-10 text-xs font-semibold uppercase tracking-wider text-primary/60">{t("adminRecruitDocs.matchSheets.colCaptain")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -699,13 +701,13 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
                                     <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500 drop-shadow-sm" />
                                   )}
                                   {attendanceByPlayer[player.id] === "present" && (
-                                    <Badge className="h-5 px-1.5 text-[10px] bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/40">Présent</Badge>
+                                    <Badge className="h-5 px-1.5 text-[10px] bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/40">{t("adminRecruitDocs.matchSheets.present")}</Badge>
                                   )}
                                   {attendanceByPlayer[player.id] === "absent" && (
-                                    <Badge className="h-5 px-1.5 text-[10px] bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/40">Absent</Badge>
+                                    <Badge className="h-5 px-1.5 text-[10px] bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/40">{t("adminRecruitDocs.matchSheets.absent")}</Badge>
                                   )}
                                   {attendanceByPlayer[player.id] === "no_response" && (
-                                    <Badge variant="outline" className="h-5 px-1.5 text-[10px]">Sans réponse</Badge>
+                                    <Badge variant="outline" className="h-5 px-1.5 text-[10px]">{t("adminRecruitDocs.matchSheets.noResponse")}</Badge>
                                   )}
                                 </span>
                                 <AthleteIdentityBadges
@@ -744,7 +746,7 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
                                   disabled={!playerData.selected}
                                 >
                                   <SelectTrigger className="h-8 text-xs w-full min-w-[140px] rounded-lg bg-muted/40 border-border/40 transition-all duration-150 focus:bg-background">
-                                    <SelectValue placeholder={player.position || "Poste"} />
+                                    <SelectValue placeholder={player.position || t("adminRecruitDocs.matchSheets.positionPlaceholder")} />
                                   </SelectTrigger>
                                   <SelectContent>
                                     {sportPositions.map((pos) => (
@@ -812,7 +814,7 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
           {/* Premium Footer */}
           <div className="px-8 py-5 border-t border-border/30 bg-card flex items-center justify-between gap-3">
             <p className="text-xs text-muted-foreground">
-              {selectedCount > 0 && `${selectedCount} joueur${selectedCount > 1 ? 's' : ''} sélectionné${selectedCount > 1 ? 's' : ''}`}
+              {selectedCount > 0 && t("adminRecruitDocs.matchSheets.selectedPlayersFooter", { count: selectedCount, plural: selectedCount > 1 ? "s" : "" })}
             </p>
             <div className="flex gap-3">
               <Button 
@@ -820,14 +822,14 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
                 onClick={() => setIsDialogOpen(false)}
                 className="rounded-xl px-6 h-11 font-medium hover:bg-muted/60 transition-all duration-200"
               >
-                Annuler
+                {t("adminRecruitDocs.matchSheets.cancel")}
               </Button>
               <Button 
                 onClick={() => saveMatchSheet.mutate()}
                 disabled={!name || saveMatchSheet.isPending}
                 className="rounded-xl px-8 h-11 font-semibold shadow-md hover:shadow-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] bg-gradient-to-r from-primary to-primary/85"
               >
-                {editingSheet ? "Mettre à jour" : "Créer la feuille"}
+                {editingSheet ? t("adminRecruitDocs.matchSheets.updateButton") : t("adminRecruitDocs.matchSheets.createButton")}
               </Button>
             </div>
           </div>

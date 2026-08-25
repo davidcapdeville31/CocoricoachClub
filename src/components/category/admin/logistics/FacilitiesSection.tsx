@@ -13,6 +13,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Building2, Clock, Calendar, MapPin, Users, Trash2 } from "lucide-react";
 import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay } from "date-fns";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 
 interface FacilitiesSectionProps {
   categoryId: string;
@@ -36,17 +38,18 @@ interface Booking {
   facilities?: Facility;
 }
 
-const FACILITY_TYPES = [
-  { value: "field", label: "Terrain" },
-  { value: "gym", label: "Salle de musculation" },
-  { value: "pool", label: "Piscine" },
-  { value: "meeting_room", label: "Salle de réunion" },
-  { value: "video_room", label: "Salle vidéo" },
-  { value: "medical_room", label: "Cabinet médical" },
-  { value: "other", label: "Autre" },
+const getFacilityTypes = () => [
+  { value: "field", label: i18n.t("adminRecruitDocs.logistics.facilities.types.field") },
+  { value: "gym", label: i18n.t("adminRecruitDocs.logistics.facilities.types.gym") },
+  { value: "pool", label: i18n.t("adminRecruitDocs.logistics.facilities.types.pool") },
+  { value: "meeting_room", label: i18n.t("adminRecruitDocs.logistics.facilities.types.meetingRoom") },
+  { value: "video_room", label: i18n.t("adminRecruitDocs.logistics.facilities.types.videoRoom") },
+  { value: "medical_room", label: i18n.t("adminRecruitDocs.logistics.facilities.types.medicalRoom") },
+  { value: "other", label: i18n.t("adminRecruitDocs.logistics.facilities.types.other") },
 ];
 
 export function FacilitiesSection({ categoryId }: FacilitiesSectionProps) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -115,7 +118,7 @@ export function FacilitiesSection({ categoryId }: FacilitiesSectionProps) {
       queryClient.invalidateQueries({ queryKey: ["facilities", categoryId] });
       setShowAddFacilityDialog(false);
       setFacilityForm({ name: "", type: "field", capacity: "", location: "" });
-      toast({ title: "Infrastructure ajoutée" });
+      toast({ title: t("adminRecruitDocs.logistics.facilities.toasts.facilityAdded") });
     },
   });
 
@@ -136,7 +139,7 @@ export function FacilitiesSection({ categoryId }: FacilitiesSectionProps) {
       queryClient.invalidateQueries({ queryKey: ["facility-bookings"] });
       setShowBookingDialog(false);
       setBookingForm({ facility_id: "", date: format(new Date(), "yyyy-MM-dd"), start_time: "09:00", end_time: "10:00", title: "" });
-      toast({ title: "Réservation créée" });
+      toast({ title: t("adminRecruitDocs.logistics.facilities.toasts.bookingCreated") });
     },
   });
 
@@ -147,7 +150,7 @@ export function FacilitiesSection({ categoryId }: FacilitiesSectionProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["facility-bookings"] });
-      toast({ title: "Réservation supprimée" });
+      toast({ title: t("adminRecruitDocs.logistics.facilities.toasts.bookingDeleted") });
     },
   });
 
@@ -163,34 +166,34 @@ export function FacilitiesSection({ categoryId }: FacilitiesSectionProps) {
     <div className="space-y-6">
       {/* Liste des infrastructures */}
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Infrastructures</h3>
+        <h3 className="text-lg font-semibold">{t("adminRecruitDocs.logistics.facilities.title")}</h3>
         <div className="flex gap-2">
           <Dialog open={showAddFacilityDialog} onOpenChange={setShowAddFacilityDialog}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm">
                 <Plus className="h-4 w-4 mr-2" />
-                Infrastructure
+                {t("adminRecruitDocs.logistics.facilities.addFacility")}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Nouvelle Infrastructure</DialogTitle>
+                <DialogTitle>{t("adminRecruitDocs.logistics.facilities.newFacility")}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label>Nom *</Label>
+                  <Label>{t("adminRecruitDocs.logistics.facilities.name")}</Label>
                   <Input
                     value={facilityForm.name}
                     onChange={(e) => setFacilityForm({ ...facilityForm, name: e.target.value })}
-                    placeholder="ex: Terrain A"
+                    placeholder={t("adminRecruitDocs.logistics.facilities.namePlaceholder")}
                   />
                 </div>
                 <div>
-                  <Label>Type</Label>
+                  <Label>{t("adminRecruitDocs.logistics.facilities.type")}</Label>
                   <Select value={facilityForm.type} onValueChange={(v) => setFacilityForm({ ...facilityForm, type: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {FACILITY_TYPES.map((t) => (
+                      {getFacilityTypes().map((t) => (
                         <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
                       ))}
                     </SelectContent>
@@ -198,25 +201,25 @@ export function FacilitiesSection({ categoryId }: FacilitiesSectionProps) {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Capacité</Label>
+                    <Label>{t("adminRecruitDocs.logistics.facilities.capacity")}</Label>
                     <Input
                       type="number"
                       value={facilityForm.capacity}
                       onChange={(e) => setFacilityForm({ ...facilityForm, capacity: e.target.value })}
-                      placeholder="ex: 22"
+                      placeholder={t("adminRecruitDocs.logistics.facilities.capacityPlaceholder")}
                     />
                   </div>
                   <div>
-                    <Label>Localisation</Label>
+                    <Label>{t("adminRecruitDocs.logistics.facilities.localisation")}</Label>
                     <Input
                       value={facilityForm.location}
                       onChange={(e) => setFacilityForm({ ...facilityForm, location: e.target.value })}
-                      placeholder="ex: Complexe sportif"
+                      placeholder={t("adminRecruitDocs.logistics.facilities.localisationPlaceholder")}
                     />
                   </div>
                 </div>
                 <Button onClick={() => addFacilityMutation.mutate(facilityForm)} disabled={!facilityForm.name} className="w-full">
-                  Ajouter
+                  {t("adminRecruitDocs.logistics.facilities.add")}
                 </Button>
               </div>
             </DialogContent>
@@ -226,18 +229,18 @@ export function FacilitiesSection({ categoryId }: FacilitiesSectionProps) {
             <DialogTrigger asChild>
               <Button size="sm">
                 <Calendar className="h-4 w-4 mr-2" />
-                Réserver
+                {t("adminRecruitDocs.logistics.facilities.book")}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Nouvelle Réservation</DialogTitle>
+                <DialogTitle>{t("adminRecruitDocs.logistics.facilities.newBooking")}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label>Infrastructure *</Label>
+                  <Label>{t("adminRecruitDocs.logistics.facilities.facility")}</Label>
                   <Select value={bookingForm.facility_id} onValueChange={(v) => setBookingForm({ ...bookingForm, facility_id: v })}>
-                    <SelectTrigger><SelectValue placeholder="Sélectionner..." /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder={t("adminRecruitDocs.logistics.facilities.selectPlaceholder")} /></SelectTrigger>
                     <SelectContent>
                       {facilities?.map((f) => (
                         <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
@@ -246,7 +249,7 @@ export function FacilitiesSection({ categoryId }: FacilitiesSectionProps) {
                   </Select>
                 </div>
                 <div>
-                  <Label>Date *</Label>
+                  <Label>{t("adminRecruitDocs.logistics.facilities.date")}</Label>
                   <Input
                     type="date"
                     value={bookingForm.date}
@@ -255,7 +258,7 @@ export function FacilitiesSection({ categoryId }: FacilitiesSectionProps) {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Début</Label>
+                    <Label>{t("adminRecruitDocs.logistics.facilities.start")}</Label>
                     <Input
                       type="time"
                       value={bookingForm.start_time}
@@ -263,7 +266,7 @@ export function FacilitiesSection({ categoryId }: FacilitiesSectionProps) {
                     />
                   </div>
                   <div>
-                    <Label>Fin</Label>
+                    <Label>{t("adminRecruitDocs.logistics.facilities.end")}</Label>
                     <Input
                       type="time"
                       value={bookingForm.end_time}
@@ -272,11 +275,11 @@ export function FacilitiesSection({ categoryId }: FacilitiesSectionProps) {
                   </div>
                 </div>
                 <div>
-                  <Label>Motif *</Label>
+                  <Label>{t("adminRecruitDocs.logistics.facilities.reason")}</Label>
                   <Input
                     value={bookingForm.title}
                     onChange={(e) => setBookingForm({ ...bookingForm, title: e.target.value })}
-                    placeholder="ex: Entraînement équipe A"
+                    placeholder={t("adminRecruitDocs.logistics.facilities.reasonPlaceholder")}
                   />
                 </div>
                 <Button
@@ -284,7 +287,7 @@ export function FacilitiesSection({ categoryId }: FacilitiesSectionProps) {
                   disabled={!bookingForm.facility_id || !bookingForm.title}
                   className="w-full"
                 >
-                  Réserver
+                  {t("adminRecruitDocs.logistics.facilities.book")}
                 </Button>
               </div>
             </DialogContent>
@@ -306,7 +309,7 @@ export function FacilitiesSection({ categoryId }: FacilitiesSectionProps) {
                     <div>
                       <h4 className="font-medium">{facility.name}</h4>
                       <p className="text-xs text-muted-foreground">
-                        {FACILITY_TYPES.find((t) => t.value === facility.type)?.label}
+                        {getFacilityTypes().find((t) => t.value === facility.type)?.label}
                       </p>
                     </div>
                   </div>
@@ -331,9 +334,9 @@ export function FacilitiesSection({ categoryId }: FacilitiesSectionProps) {
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
             <Building2 className="h-12 w-12 mx-auto mb-4 opacity-30" />
-            <p>Aucune infrastructure enregistrée</p>
+            <p>{t("adminRecruitDocs.logistics.facilities.noFacility")}</p>
             <Button variant="link" onClick={() => setShowAddFacilityDialog(true)}>
-              Ajouter une infrastructure
+              {t("adminRecruitDocs.logistics.facilities.addFacilityLink")}
             </Button>
           </CardContent>
         </Card>
@@ -342,13 +345,13 @@ export function FacilitiesSection({ categoryId }: FacilitiesSectionProps) {
       {/* Calendrier des réservations */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Planning de la semaine</h3>
+          <h3 className="text-lg font-semibold">{t("adminRecruitDocs.logistics.facilities.weekPlanning")}</h3>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => setCurrentWeekStart(addDays(currentWeekStart, -7))}>
-              Semaine précédente
+              {t("adminRecruitDocs.logistics.facilities.previousWeek")}
             </Button>
             <Button variant="outline" size="sm" onClick={() => setCurrentWeekStart(addDays(currentWeekStart, 7))}>
-              Semaine suivante
+              {t("adminRecruitDocs.logistics.facilities.nextWeek")}
             </Button>
           </div>
         </div>

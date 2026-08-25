@@ -1,4 +1,5 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
+import { useTranslation } from "react-i18next";
 import { useState, useMemo, useCallback } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,6 +53,7 @@ function getAvironRoleLabel(role: string | null): string {
 }
 
 function PlayerInfoHover({ player, isSki }: { player: any; isSki: boolean }) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editData, setEditData] = useState({
@@ -67,38 +69,38 @@ function PlayerInfoHover({ player, isSki }: { player: any; isSki: boolean }) {
   const infoLines: { label: string; value: string }[] = [];
   
   const fullName = player.first_name ? `${player.first_name} ${player.name}` : player.name;
-  infoLines.push({ label: "Nom", value: fullName });
+  infoLines.push({ label: t("roster.playerInfoHover.fields.name"), value: fullName });
 
   if (player.birth_date) {
-    infoLines.push({ label: "Date de naissance", value: format(new Date(player.birth_date), "dd/MM/yyyy") });
+    infoLines.push({ label: t("roster.playerInfoHover.fields.birthDate"), value: format(new Date(player.birth_date), "dd/MM/yyyy") });
   }
   if (player.email) {
-    infoLines.push({ label: "Email", value: player.email });
+    infoLines.push({ label: t("roster.playerInfoHover.fields.email"), value: player.email });
   }
   if (player.phone) {
-    infoLines.push({ label: "Téléphone", value: player.phone });
+    infoLines.push({ label: t("roster.playerInfoHover.fields.phone"), value: player.phone });
   }
   if (isSki && player.fis_code) {
-    infoLines.push({ label: "Code FIS", value: player.fis_code });
+    infoLines.push({ label: t("roster.playerInfoHover.fields.fisCode"), value: player.fis_code });
   }
   if (isSki && player.fis_points != null && player.fis_points > 0) {
-    infoLines.push({ label: "Points FIS", value: String(player.fis_points) });
+    infoLines.push({ label: t("roster.playerInfoHover.fields.fisPoints"), value: String(player.fis_points) });
   }
   if (isSki && player.fis_ranking != null) {
-    infoLines.push({ label: "Classement FIS", value: String(player.fis_ranking) });
+    infoLines.push({ label: t("roster.playerInfoHover.fields.fisRanking"), value: String(player.fis_ranking) });
   }
   if (player.position) {
-    infoLines.push({ label: "Poste", value: player.position });
+    infoLines.push({ label: t("roster.playerInfoHover.fields.position"), value: player.position });
   }
   if (player.discipline) {
-    infoLines.push({ label: "Discipline", value: getDisciplineLabel(player.discipline) });
+    infoLines.push({ label: t("roster.playerInfoHover.fields.discipline"), value: getDisciplineLabel(player.discipline) });
   }
 
   const copyAll = () => {
     const text = infoLines.map(l => `${l.label}: ${l.value}`).join("\n");
     navigator.clipboard.writeText(text);
     setCopied(true);
-    toast.success("Informations copiées !");
+    toast.success(t("roster.playerInfoHover.toasts.copied"));
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -118,10 +120,10 @@ function PlayerInfoHover({ player, isSki }: { player: any; isSki: boolean }) {
 
     const { error } = await supabase.from("players").update(updates as any).eq("id", player.id);
     if (error) {
-      toast.error("Erreur lors de la mise à jour");
+      toast.error(t("roster.playerInfoHover.toasts.updateError"));
       return;
     }
-    toast.success("Informations mises à jour");
+    toast.success(t("roster.playerInfoHover.toasts.updated"));
     queryClient.invalidateQueries({ queryKey: ["players"] });
     setEditing(false);
   };
@@ -133,7 +135,7 @@ function PlayerInfoHover({ player, isSki }: { player: any; isSki: boolean }) {
           variant="ghost"
           size="icon"
           className="h-7 w-7 shrink-0"
-          aria-label="Modifier les informations de l'athlète"
+          aria-label={t("roster.playerInfoHover.editAriaLabel")}
           onClick={(e) => e.stopPropagation()}
         >
           <Pencil className="h-4 w-4 text-muted-foreground" />
@@ -142,7 +144,7 @@ function PlayerInfoHover({ player, isSki }: { player: any; isSki: boolean }) {
       <HoverCardContent className="w-80" align="start" onClick={(e) => e.stopPropagation()}>
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold">Infos athlète</p>
+            <p className="text-sm font-semibold">{t("roster.playerInfoHover.title")}</p>
             <div className="flex gap-1">
               <Button variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={() => {
                 setEditData({
@@ -155,11 +157,11 @@ function PlayerInfoHover({ player, isSki }: { player: any; isSki: boolean }) {
                 });
                 setEditing(!editing);
               }}>
-                {editing ? "Annuler" : "Modifier"}
+                {editing ? t("roster.playerInfoHover.cancel") : t("roster.playerInfoHover.edit")}
               </Button>
               <Button variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={copyAll}>
                 {copied ? <Check className="h-3 w-3" /> : <ClipboardCopy className="h-3 w-3" />}
-                {copied ? "Copié" : "Copier"}
+                {copied ? t("roster.playerInfoHover.copied") : t("roster.playerInfoHover.copy")}
               </Button>
             </div>
           </div>
@@ -167,32 +169,32 @@ function PlayerInfoHover({ player, isSki }: { player: any; isSki: boolean }) {
           {editing ? (
             <div className="space-y-2">
               <div>
-                <Label className="text-xs">Prénom</Label>
-                <Input value={editData.first_name} onChange={(e) => setEditData({...editData, first_name: e.target.value})} className="h-8 text-xs" placeholder="Prénom" />
+                <Label className="text-xs">{t("roster.playerInfoHover.editLabels.firstName")}</Label>
+                <Input value={editData.first_name} onChange={(e) => setEditData({...editData, first_name: e.target.value})} className="h-8 text-xs" placeholder={t("roster.playerInfoHover.placeholders.firstName")} />
               </div>
               <div>
-                <Label className="text-xs">Nom</Label>
-                <Input value={editData.name} onChange={(e) => setEditData({...editData, name: e.target.value})} className="h-8 text-xs" placeholder="Nom" />
+                <Label className="text-xs">{t("roster.playerInfoHover.editLabels.lastName")}</Label>
+                <Input value={editData.name} onChange={(e) => setEditData({...editData, name: e.target.value})} className="h-8 text-xs" placeholder={t("roster.playerInfoHover.placeholders.lastName")} />
               </div>
               <div>
-                <Label className="text-xs">Date de naissance</Label>
+                <Label className="text-xs">{t("roster.playerInfoHover.editLabels.birthDate")}</Label>
                 <Input type="date" value={editData.birth_date} onChange={(e) => setEditData({...editData, birth_date: e.target.value})} className="h-8 text-xs" />
               </div>
               <div>
-                <Label className="text-xs">Email</Label>
-                <Input value={editData.email} onChange={(e) => setEditData({...editData, email: e.target.value})} className="h-8 text-xs" placeholder="email@exemple.com" />
+                <Label className="text-xs">{t("roster.playerInfoHover.editLabels.email")}</Label>
+                <Input value={editData.email} onChange={(e) => setEditData({...editData, email: e.target.value})} className="h-8 text-xs" placeholder={t("roster.playerInfoHover.placeholders.email")} />
               </div>
               <div>
-                <Label className="text-xs">Téléphone</Label>
-                <Input value={editData.phone} onChange={(e) => setEditData({...editData, phone: e.target.value})} className="h-8 text-xs" placeholder="+33..." />
+                <Label className="text-xs">{t("roster.playerInfoHover.editLabels.phone")}</Label>
+                <Input value={editData.phone} onChange={(e) => setEditData({...editData, phone: e.target.value})} className="h-8 text-xs" placeholder={t("roster.playerInfoHover.placeholders.phone")} />
               </div>
               {isSki && (
                 <div>
-                  <Label className="text-xs">Code FIS</Label>
-                  <Input value={editData.fis_code} onChange={(e) => setEditData({...editData, fis_code: e.target.value})} className="h-8 text-xs" placeholder="FIS Code" />
+                  <Label className="text-xs">{t("roster.playerInfoHover.editLabels.fisCode")}</Label>
+                  <Input value={editData.fis_code} onChange={(e) => setEditData({...editData, fis_code: e.target.value})} className="h-8 text-xs" placeholder={t("roster.playerInfoHover.placeholders.fisCode")} />
                 </div>
               )}
-              <Button size="sm" className="w-full h-8 text-xs" onClick={handleSaveEdit}>Enregistrer</Button>
+              <Button size="sm" className="w-full h-8 text-xs" onClick={handleSaveEdit}>{t("roster.playerInfoHover.save")}</Button>
             </div>
           ) : (
             <div className="space-y-1.5">
@@ -215,6 +217,7 @@ interface PlayersTabProps {
 }
 
 export function PlayersTab({ categoryId }: PlayersTabProps) {
+  const { t } = useTranslation();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
@@ -332,12 +335,12 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
   const showPosition = !isIndividual && !showDiscipline && !showRole;
   
   const attributeColumnLabel = isJudo 
-    ? "Catégorie" 
+    ? t("roster.playersTab.columns.attribute.weightCategory") 
     : showDiscipline
-      ? "Discipline"
+      ? t("roster.playersTab.columns.attribute.discipline")
       : isAviron 
-        ? "Rôle" 
-        : "Poste";
+        ? t("roster.playersTab.columns.attribute.role") 
+        : t("roster.playersTab.columns.attribute.position");
 
   // Get positions for the sport (for dropdown display)
   const positions = useMemo(() => getPositionsForSport(sportType), [sportType]);
@@ -420,13 +423,13 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
     onSuccess: (_data, vars) => {
       queryClient.invalidateQueries({ queryKey: ["players"] });
       queryClient.invalidateQueries({ queryKey: ["players", categoryId, "roster", "with-archived"] });
-      toast.success(vars.archive ? "Athlète archivé" : "Athlète réactivé");
+      toast.success(vars.archive ? t("roster.playersTab.toasts.archived") : t("roster.playersTab.toasts.unarchived"));
     },
     onError: (err: Error) => {
       if (err?.message === "PERMISSION_DENIED") {
-        toast.error("Vous n'avez pas les droits pour archiver cet athlète.");
+        toast.error(t("roster.playersTab.toasts.archivePermissionDenied"));
       } else {
-        toast.error("Erreur lors de l'archivage");
+        toast.error(t("roster.playersTab.toasts.archiveError"));
       }
     },
   });
@@ -507,15 +510,15 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
       queryClient.invalidateQueries({ queryKey: ["player-categories"] });
       toast.success(
         res?.partial
-          ? "Athlète retiré de cette catégorie (toujours présent dans ses autres catégories)"
-          : "Athlète supprimé avec succès"
+          ? t("roster.playersTab.toasts.deletedPartial")
+          : t("roster.playersTab.toasts.deleted")
       );
     },
     onError: (err: Error) => {
       if (err?.message === "PERMISSION_DENIED") {
-        toast.error("Vous n'avez pas les droits pour supprimer un athlète. Seuls le propriétaire du club, les administrateurs et les coachs peuvent le faire.");
+        toast.error(t("roster.playersTab.toasts.deletePermissionDenied"));
       } else {
-        toast.error("Erreur lors de la suppression de l'athlète");
+        toast.error(t("roster.playersTab.toasts.deleteError"));
       }
     },
   });
@@ -531,10 +534,10 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["players", categoryId] });
-      toast.success("Spécialité mise à jour");
+      toast.success(t("roster.playersTab.toasts.specialtyUpdated"));
     },
     onError: () => {
-      toast.error("Erreur lors de la mise à jour");
+      toast.error(t("roster.playersTab.toasts.specialtyUpdateError"));
     },
   });
 
@@ -569,7 +572,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                 className="h-6 w-auto min-w-[80px] px-2 text-xs border-dashed"
                 onClick={(e) => e.stopPropagation()}
               >
-                <SelectValue placeholder="+ Spécialité" />
+                <SelectValue placeholder={t("roster.playersTab.specialtyPlaceholder")} />
               </SelectTrigger>
               <SelectContent onClick={(e) => e.stopPropagation()}>
                 {availableSpecialties.map((spec) => (
@@ -614,26 +617,26 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
   };
 
   if (isLoading) {
-    return <p className="text-muted-foreground">Chargement...</p>;
+    return <p className="text-muted-foreground">{t("roster.playersTab.loading")}</p>;
   }
 
   const hasAttributeColumn = showDiscipline || showPosition || showRole;
   const filterPlaceholder = showDiscipline 
-    ? (isJudo ? "Filtrer par catégorie" : "Filtrer par discipline")
-    : "Filtrer par poste";
+    ? (isJudo ? t("roster.playersTab.filterPlaceholder.weightCategory") : t("roster.playersTab.filterPlaceholder.discipline"))
+    : t("roster.playersTab.filterPlaceholder.position");
 
   return (
     <Card className="bg-gradient-card shadow-md">
       <CardHeader className="px-4 sm:px-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-          <CardTitle className="text-lg sm:text-xl">Liste des athlètes</CardTitle>
+          <CardTitle className="text-lg sm:text-xl">{t("roster.playersTab.title")}</CardTitle>
           <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <div className="relative w-full sm:w-[220px]">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Rechercher nom / prénom"
+                placeholder={t("roster.playersTab.searchPlaceholder")}
                 className="pl-8"
               />
             </div>
@@ -643,8 +646,8 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="az">A → Z</SelectItem>
-                <SelectItem value="za">Z → A</SelectItem>
+                <SelectItem value="az">{t("roster.playersTab.sort.az")}</SelectItem>
+                <SelectItem value="za">{t("roster.playersTab.sort.za")}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
@@ -653,9 +656,9 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tous les statuts</SelectItem>
-                <SelectItem value="connected">Connectés</SelectItem>
-                <SelectItem value="pending">En attente</SelectItem>
+                <SelectItem value="all">{t("roster.playersTab.status.all")}</SelectItem>
+                <SelectItem value="connected">{t("roster.playersTab.status.connected")}</SelectItem>
+                <SelectItem value="pending">{t("roster.playersTab.status.pending")}</SelectItem>
               </SelectContent>
             </Select>
             {hasAttributeColumn && availableFilters.length > 0 && (
@@ -667,8 +670,8 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                 <SelectContent>
                   <SelectItem value="all">
                     {showDiscipline 
-                      ? (isJudo ? "Toutes les catégories" : "Toutes les disciplines")
-                      : "Tous les postes"}
+                      ? (isJudo ? t("roster.playersTab.filterAll.weightCategories") : t("roster.playersTab.filterAll.disciplines"))
+                      : t("roster.playersTab.filterAll.positions")}
                   </SelectItem>
                   {availableFilters.map((filter) => (
                     <SelectItem key={filter} value={filter}>
@@ -686,22 +689,22 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                 className="gap-1.5"
               >
                 <Archive className="h-4 w-4" />
-                {showArchived ? "Masquer" : "Afficher"} les archivés ({archivedCount})
+                {showArchived ? t("roster.playersTab.archived.hide") : t("roster.playersTab.archived.show")} {t("roster.playersTab.archived.suffix")} ({archivedCount})
               </Button>
             )}
             {!isViewer && canManageAthletes && (
               <div className="flex items-center gap-2 w-full sm:w-auto">
                 <Button onClick={() => setIsLinkDialogOpen(true)} variant="outline" size="sm" className="gap-1.5 flex-1 sm:flex-none">
                   <Link2 className="h-4 w-4" />
-                  <span className="hidden sm:inline">Rattacher</span>
+                  <span className="hidden sm:inline">{t("roster.playersTab.actions.link")}</span>
                 </Button>
                 <Button onClick={() => setIsBulkDialogOpen(true)} variant="outline" size="sm" className="gap-1.5 flex-1 sm:flex-none">
                   <FileSpreadsheet className="h-4 w-4" />
-                  <span className="hidden sm:inline">Importer ses athlètes depuis un fichier Excel</span>
+                  <span className="hidden sm:inline">{t("roster.playersTab.actions.importExcel")}</span>
                 </Button>
                 <Button onClick={() => setIsAddDialogOpen(true)} size="sm" className="gap-1.5 flex-1 sm:flex-none">
                   <Plus className="h-4 w-4" />
-                  <span>Ajouter</span>
+                  <span>{t("roster.playersTab.actions.add")}</span>
                 </Button>
               </div>
             )}
@@ -715,14 +718,14 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
             <p className="text-muted-foreground mb-4">
               {disciplineFilter !== "all" 
                 ? (showDiscipline 
-                    ? (isJudo ? "Aucun athlète dans cette catégorie de poids" : "Aucun athlète dans cette discipline")
-                    : "Aucun athlète à ce poste")
-                : "Aucun athlète dans cette catégorie"}
+                    ? (isJudo ? t("roster.playersTab.empty.weightCategory") : t("roster.playersTab.empty.discipline"))
+                    : t("roster.playersTab.empty.position"))
+                : t("roster.playersTab.empty.category")}
             </p>
             {!isViewer && canManageAthletes && disciplineFilter === "all" && (
               <Button onClick={() => setIsAddDialogOpen(true)} variant="outline" className="gap-2">
                 <Plus className="h-4 w-4" />
-                Ajouter le premier athlète
+                {t("roster.playersTab.actions.addFirst")}
               </Button>
             )}
           </div>
@@ -765,7 +768,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                         <div className="flex items-center gap-1 min-w-0 flex-wrap">
                           <p className="font-medium truncate">{fullName}</p>
                           {isArchived && (
-                            <Badge variant="warning" className="text-xs">Archivé</Badge>
+                            <Badge variant="warning" className="text-xs">{t("roster.playersTab.badges.archived")}</Badge>
                           )}
 
                           <PlayerInfoHover player={player} isSki={isSki} />
@@ -780,7 +783,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                         <div onClick={(e) => e.stopPropagation()} className="min-w-0">
                           {player.user_id ? (
                             <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300 gap-1">
-                              <Check className="h-3 w-3" /> Connecté
+                              <Check className="h-3 w-3" /> {t("roster.playersTab.badges.connected")}
                             </Badge>
                           ) : inv ? (
                             <div className="flex items-center gap-1.5">
@@ -789,7 +792,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                                   ? "text-destructive border-destructive/30"
                                   : "text-amber-600 border-amber-300 dark:text-amber-400"
                               }>
-                                {status === "expired" ? "Expiré" : "En attente"}
+                                {status === "expired" ? t("roster.playersTab.badges.expired") : t("roster.playersTab.badges.pending")}
                               </Badge>
                               {status === "pending" && (
                                 <Button
@@ -799,7 +802,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                                   onClick={() => {
                                     navigator.clipboard.writeText(link);
                                     setCopiedInviteId(inv.id);
-                                    toast.success("Lien d'inscription copié !");
+                                    toast.success(t("roster.playersTab.inviteLinkCopied"));
                                     setTimeout(() => setCopiedInviteId(null), 2000);
                                   }}
                                 >
@@ -812,7 +815,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                               )}
                             </div>
                           ) : (
-                            <span className="text-xs text-muted-foreground">Pas d'invitation</span>
+                            <span className="text-xs text-muted-foreground">{t("roster.playersTab.badges.noInvitation")}</span>
                           )}
                         </div>
                       )}
@@ -822,7 +825,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
-                            title="Dupliquer dans une autre catégorie"
+                            title={t("roster.playersTab.actions.duplicate")}
                             onClick={() => setDuplicatePlayer(player)}
                           >
                             <CopyPlus className="h-4 w-4 text-muted-foreground" />
@@ -833,7 +836,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
-                            title={isArchived ? "Réactiver l'athlète" : "Archiver l'athlète"}
+                            title={isArchived ? t("roster.playersTab.actions.unarchive") : t("roster.playersTab.actions.archive")}
                             onClick={() =>
                               archivePlayer.mutate({ playerId: player.id, archive: !isArchived })
                             }
@@ -851,7 +854,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                             size="icon"
                             className="h-8 w-8"
                             onClick={() => {
-                              if (confirm(`Êtes-vous sûr de vouloir supprimer l'athlète ${fullName} ?`)) {
+                              if (confirm(t("roster.playersTab.confirmDelete", { name: fullName }))) {
                                 deletePlayer.mutate(player.id);
                               }
                             }}
@@ -866,7 +869,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                           onClick={() => navigate(getPlayerProfilePath(player.id))}
                         >
                           <Eye className="h-4 w-4" />
-                          Profil
+                          {t("roster.playersTab.actions.profile")}
                         </Button>
                       </div>
                     </div>
