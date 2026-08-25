@@ -15,7 +15,7 @@ import { exportAttendancePdf, exportAttendanceExcel, type AttendanceExportRow } 
 import { toast } from "sonner";
 import { format, startOfMonth, endOfMonth, subMonths, subDays, isWithinInterval, parseISO } from "date-fns";
 import { SessionAttendanceDialog } from "./SessionAttendanceDialog";
-import { ParticipantsAttendanceList } from "./ParticipantsAttendanceList";
+import { ParticipantsAttendanceList, type ParticipantWithAttendance } from "./ParticipantsAttendanceList";
 
 import { useTranslation } from "react-i18next";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
@@ -26,14 +26,29 @@ interface AttendanceTabProps {
   categoryId: string;
 }
 
+type AttendanceSession = {
+  id: string;
+  session_date: string;
+  training_type: string;
+  session_start_time?: string | null;
+  session_end_time?: string | null;
+  intensity?: number | null;
+  notes?: string | null;
+};
+
+type EventParticipantRow = ParticipantWithAttendance & {
+  id?: string;
+  training_session_id: string;
+};
+
 const EVENT_PARTICIPANTS_PAGE_SIZE = 1000;
 const EVENT_PARTICIPANTS_SELECT =
   "id, training_session_id, player_id, attendance_status, absence_comment, responded_at, players:player_id(id, name, first_name, avatar_url)";
 
-async function fetchEventParticipantsBySessionIds(sessionIds: string[]) {
+async function fetchEventParticipantsBySessionIds(sessionIds: string[]): Promise<EventParticipantRow[]> {
   if (sessionIds.length === 0) return [];
 
-  const rows: any[] = [];
+  const rows: EventParticipantRow[] = [];
   let from = 0;
 
   while (true) {
@@ -47,7 +62,7 @@ async function fetchEventParticipantsBySessionIds(sessionIds: string[]) {
 
     if (error) throw error;
 
-    const page = data || [];
+    const page = (data || []) as EventParticipantRow[];
     rows.push(...page);
 
     if (page.length < EVENT_PARTICIPANTS_PAGE_SIZE) break;
@@ -60,7 +75,7 @@ async function fetchEventParticipantsBySessionIds(sessionIds: string[]) {
 export function AttendanceTab({ categoryId }: AttendanceTabProps) {
   const { t } = useTranslation();
   const { isViewer } = useViewerModeContext();
-  const [selectedSession, setSelectedSession] = useState<any>(null);
+  const [selectedSession, setSelectedSession] = useState<AttendanceSession | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detailSessionId, setDetailSessionId] = useState<string | null>(null);
   
@@ -194,13 +209,13 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
     };
   };
 
-  const handleOpenAttendance = (session: any) => {
+  const handleOpenAttendance = (session: AttendanceSession) => {
     setSelectedSession(session);
     setDialogOpen(true);
   };
 
 
-  const getSessionLabel = (session: any) => {
+  const getSessionLabel = (session: AttendanceSession) => {
     const cleanTitle = (session.notes || "")
       .replace(/<!--[\s\S]*?-->/g, "")
       .split("\n")
@@ -218,8 +233,8 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
 
   const handleExportDetail = async (
     kind: "pdf" | "excel",
-    session: any,
-    participants: any[],
+    session: AttendanceSession,
+    participants: EventParticipantRow[],
   ) => {
     try {
       const rows: AttendanceExportRow[] = (participants || [])
@@ -262,8 +277,8 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
 
       if (kind === "pdf") await exportAttendancePdf(ctx);
       else await exportAttendanceExcel(ctx);
-    } catch (e: any) {
-      toast.error(e?.message || "Export error");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Export error");
     }
   };
 
@@ -565,7 +580,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                       </p>
                     ) : detailSession && totalParticipants >= 0 && (
                       <ParticipantsAttendanceList
-                        participants={detailParticipants as any}
+                        participants={detailParticipants}
                         title={t("admin.attendance.sessionOn", { date: format(parseISO(detailSession.session_date), "dd/MM/yyyy", { locale: getDateLocale() }) })}
                         emptyLabel={t("admin.attendance.noAthleteAssignedToSession")}
                       />
@@ -589,7 +604,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
           new Date(a.session_date).getTime() - new Date(b.session_date).getTime()
         ) || [];
 
-        const renderSessionItem = (session: any) => {
+        const renderSessionItem = (session: AttendanceSession) => {
           const summary = getSessionAttendanceSummary(session.id, session.session_date);
           const hasAttendance = summary.total > 0;
           const isToday = session.session_date === today;
