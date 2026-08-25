@@ -149,6 +149,8 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
         <FlaskConical className="h-4 w-4 text-primary" />
         {t('athleteSpace.components.testResultsInput.title')}
       </Label>
+      {isAbsent && <AthleteAbsentLockNotice />}
+
       <div className="space-y-2">
         {tests.map((test, idx) => {
           const key = `${test.test_category}::${test.test_type}`;
