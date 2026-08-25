@@ -10,6 +10,7 @@ import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabe
 import { useTranslation } from "react-i18next";
 import { useAthleteAttendanceLock } from "@/hooks/useAthleteAttendanceLock";
 import { AthleteAbsentLockNotice } from "./AthleteAbsentLockNotice";
+import { parseTestWindowFromNotes } from "@/lib/utils/sessionNotes";
 
 
 interface TestRef {
@@ -46,6 +47,12 @@ function labelize(v: string) {
   return v.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+function formatDay(d: string) {
+  const [y, m, day] = d.split("-");
+  return day && m && y ? `${day}/${m}/${y}` : d;
+}
+
+
 export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onChange, categoryId, sessionDate }: Props) {
   const { t } = useTranslation();
   const tests = parseTestsFromNotes(notes);
@@ -56,45 +63,57 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
   const [submittingKey, setSubmittingKey] = useState<string | null>(null);
 
 
-  const reload = async () => {
-    const [{ data: pendingData }, { data: savedData }] = await Promise.all([
-      supabase
-        .from("pending_test_results")
-        .select("test_category, test_type, result_value, result_unit, validation_status")
-        .eq("training_session_id", sessionId)
-        .eq("player_id", playerId),
-      supabase
-        .from("generic_tests")
-        .select("test_category, test_type, result_value, result_unit")
+  const testWindow = parseTestWindowFromNotes(notes);
+
+  const fetchState = async () => {
+    // When the coach defined a testing window, a result submitted on ANY session of the
+    // period counts: the athlete can only submit each test once inside the window.
+    const pendingQuery = supabase
+      .from("pending_test_results")
+      .select("test_category, test_type, result_value, result_unit, validation_status, test_date");
+    const savedQuery = supabase
+      .from("generic_tests")
+      .select("test_category, test_type, result_value, result_unit, test_date");
+
+    if (testWindow) {
+      pendingQuery
         .eq("player_id", playerId)
-        .ilike("notes", `%Session ID: ${sessionId}%`),
+        .gte("test_date", testWindow.start)
+        .lte("test_date", testWindow.end);
+      savedQuery
+        .eq("player_id", playerId)
+        .gte("test_date", testWindow.start)
+        .lte("test_date", testWindow.end);
+    } else {
+      pendingQuery.eq("training_session_id", sessionId).eq("player_id", playerId);
+      savedQuery.eq("player_id", playerId).ilike("notes", `%Session ID: ${sessionId}%`);
+    }
+
+    const [{ data: pendingData }, { data: savedData }] = await Promise.all([
+      pendingQuery,
+      savedQuery,
     ]);
-    setPending(pendingData || []);
-    setStaffSaved(savedData || []);
+    return { pendingData: pendingData || [], savedData: savedData || [] };
+  };
+
+  const reload = async () => {
+    const { pendingData, savedData } = await fetchState();
+    setPending(pendingData);
+    setStaffSaved(savedData);
   };
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [{ data: pendingData }, { data: savedData }] = await Promise.all([
-        supabase
-          .from("pending_test_results")
-          .select("test_category, test_type, result_value, result_unit, validation_status")
-          .eq("training_session_id", sessionId)
-          .eq("player_id", playerId),
-        supabase
-          .from("generic_tests")
-          .select("test_category, test_type, result_value, result_unit")
-          .eq("player_id", playerId)
-          .ilike("notes", `%Session ID: ${sessionId}%`),
-      ]);
+      const { pendingData, savedData } = await fetchState();
       if (!cancelled) {
-        setPending(pendingData || []);
-        setStaffSaved(savedData || []);
+        setPending(pendingData);
+        setStaffSaved(savedData);
       }
     })();
     return () => { cancelled = true; };
-  }, [sessionId, playerId]);
+  }, [sessionId, playerId, testWindow?.start, testWindow?.end]);
+
 
 
   const handleSendOne = async (test: TestRef) => {
@@ -104,6 +123,28 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
     }
     const key = `${test.test_category}::${test.test_type}`;
     const raw = value[key];
+
+    if (testWindow) {
+      // Safety net: one submission per test inside the testing window
+      const { pendingData, savedData } = await fetchState();
+      const already =
+        pendingData.some(
+          (p: any) =>
+            p.test_category === test.test_category &&
+            p.test_type === test.test_type &&
+            p.validation_status !== "rejected",
+        ) ||
+        savedData.some(
+          (p: any) => p.test_category === test.test_category && p.test_type === test.test_type,
+        );
+      if (already) {
+        toast.error(t('athleteSpace.components.testResultsInput.alreadySubmittedInWindow'));
+        setPending(pendingData);
+        setStaffSaved(savedData);
+        return;
+      }
+    }
+
 
     if (raw == null || raw === "") {
       toast.error(t('athleteSpace.components.testResultsInput.enterFirst'));
@@ -150,6 +191,16 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
         {t('athleteSpace.components.testResultsInput.title')}
       </Label>
       {isAbsent && <AthleteAbsentLockNotice />}
+      {testWindow && (
+        <p className="text-[11px] rounded-md bg-primary/10 border border-primary/20 px-2 py-1.5 text-primary">
+          {t('athleteSpace.components.testResultsInput.windowNotice', {
+            start: formatDay(testWindow.start),
+            end: formatDay(testWindow.end),
+          })}
+        </p>
+      )}
+
+
 
       <div className="space-y-2">
         {tests.map((test, idx) => {
@@ -171,6 +222,7 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
               {staffRow ? (
                 <Badge variant="default" className="text-[10px] gap-1" title={t('athleteSpace.components.testResultsInput.title')}>
                   {staffRow.result_value} {staffRow.result_unit || unit} {t('athleteSpace.components.testResultsInput.staffValidated')}
+                  {testWindow && staffRow.test_date ? ` · ${formatDay(staffRow.test_date)}` : ""}
                 </Badge>
               ) : existing ? (
                 <Badge
@@ -182,8 +234,10 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
                   {existing.validation_status === "pending" && t('athleteSpace.components.testResultsInput.pending')}
                   {existing.validation_status === "validated" && t('athleteSpace.components.testResultsInput.validated')}
                   {existing.validation_status === "rejected" && t('athleteSpace.components.testResultsInput.rejected')}
+                  {testWindow && existing.test_date ? ` · ${formatDay(existing.test_date)}` : ""}
                 </Badge>
               ) : (
+
                 <>
                   <Input
                     type="number"

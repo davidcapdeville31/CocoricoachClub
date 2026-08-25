@@ -623,6 +623,10 @@ export const athleteSpaceFr = {
       sendError: "Erreur d'envoi : {{message}}",
       sent: "Résultat envoyé au staff pour validation",
       staffValidated: "✓ staff",
+      windowNotice:
+        "Fenêtre de passage du {{start}} au {{end}} : un seul résultat par test sur toute la période.",
+      alreadySubmittedInWindow:
+        "Résultat déjà enregistré pour ce test sur cette période de passage.",
       pending: " — en attente",
       validated: " ✓",
       rejected: " ✕",
@@ -1485,6 +1489,10 @@ export const athleteSpaceEn = {
       sendError: "Send error: {{message}}",
       sent: "Result sent to staff for validation",
       staffValidated: "✓ staff",
+      windowNotice:
+        "Testing window from {{start}} to {{end}}: only one result per test for the whole period.",
+      alreadySubmittedInWindow:
+        "A result is already recorded for this test within this testing window.",
       pending: " — pending",
       validated: " ✓",
       rejected: " ✕",

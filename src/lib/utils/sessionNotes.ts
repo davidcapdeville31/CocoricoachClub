@@ -11,6 +11,8 @@ export function getDisplayNotes(notes: string | null | undefined): string {
     .replace(/<!--BLOCK:.*?-->/g, "")
     .replace(/<!--MENTAL:[\s\S]*?-->/g, "")
     .replace(/\n?<!--TESTS:.*?-->/g, "")
+    .replace(/\n?<!--TESTWINDOW:.*?-->/g, "")
+
     .replace(/\n?<!--PRECISION_EXERCISE:.*?-->/g, "")
     .replace(/\n?\[precision_exercise:.*?\]/g, "")
     .replace(/^\s*\[Séance athlète\]\s*/i, "")
@@ -108,4 +110,34 @@ export function parsePrecisionExerciseFromNotes(notes: string | null | undefined
   }
 
   return null;
+}
+
+export interface TestWindow {
+  start: string; // yyyy-MM-dd
+  end: string; // yyyy-MM-dd
+}
+
+/**
+ * Parses the optional test campaign window (<!--TESTWINDOW:{"start":"...","end":"..."}-->).
+ * When present, an athlete may only submit each test once inside that date range,
+ * even if the same test is planned on several sessions of the period.
+ */
+export function parseTestWindowFromNotes(notes: string | null | undefined): TestWindow | null {
+  if (!notes) return null;
+  const m = notes.match(/<!--TESTWINDOW:(.*?)-->/);
+  if (!m) return null;
+  try {
+    const parsed = JSON.parse(m[1]);
+    const start = typeof parsed?.start === "string" ? parsed.start : null;
+    const end = typeof parsed?.end === "string" ? parsed.end : null;
+    if (!start || !end) return null;
+    return start <= end ? { start, end } : { start: end, end: start };
+  } catch {
+    return null;
+  }
+}
+
+export function buildTestWindowMeta(start?: string | null, end?: string | null): string {
+  if (!start || !end) return "";
+  return `\n<!--TESTWINDOW:${JSON.stringify({ start, end })}-->`;
 }

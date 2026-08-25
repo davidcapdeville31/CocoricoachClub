@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { CalendarPlus } from "lucide-react";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
+import { buildTestWindowMeta } from "@/lib/utils/sessionNotes";
 
 export interface ScheduleTestTarget {
   testCategory: string;
@@ -51,6 +52,9 @@ export function ScheduleTestDialog({
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("09:30");
+  const [windowStart, setWindowStart] = useState("");
+  const [windowEnd, setWindowEnd] = useState("");
+
   const queryClient = useQueryClient();
   const { notify } = useSessionNotifications();
   const guard = useSeasonGuard(categoryId);
@@ -73,15 +77,21 @@ export function ScheduleTestDialog({
 
       const titleLine = `📋 ${targets.map((t) => t.testTypeLabel).join(" • ")}`;
 
+      if (windowStart && windowEnd && windowEnd < windowStart) {
+        toast.error("La fin de la fenêtre de passage doit être après le début");
+        throw new Error("guard:window");
+      }
+
       const { data, error } = await supabase.from("training_sessions").insert({
         category_id: categoryId,
         session_date: date,
         session_start_time: startTime,
         session_end_time: endTime,
         training_type: "test",
-        notes: `${titleLine}\n<!--TESTS:${testMeta}-->`,
+        notes: `${titleLine}\n<!--TESTS:${testMeta}-->${buildTestWindowMeta(windowStart, windowEnd)}`,
       }).select("id").single();
       if (error) throw error;
+
       return data;
     },
     onSuccess: (data) => {
@@ -163,6 +173,33 @@ export function ScheduleTestDialog({
               />
             </div>
           </div>
+
+          <div className="space-y-2 rounded-lg border border-border p-3">
+            <Label className="text-sm">Fenêtre de passage (optionnel)</Label>
+            <p className="text-[11px] text-muted-foreground">
+              Si tu planifies le même test sur plusieurs séances, définis une période : chaque
+              athlète ne pourra saisir son résultat qu'une seule fois dans cette fenêtre.
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs">Du</Label>
+                <Input
+                  type="date"
+                  value={windowStart}
+                  onChange={(e) => setWindowStart(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Au</Label>
+                <Input
+                  type="date"
+                  value={windowEnd}
+                  onChange={(e) => setWindowEnd(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
         </div>
 
         <DialogFooter>

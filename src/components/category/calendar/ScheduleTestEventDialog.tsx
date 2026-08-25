@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { ClipboardList, Layers, Users, Star, Plus, X } from "lucide-react";
 import { format } from "date-fns";
+import { buildTestWindowMeta, parseTestWindowFromNotes } from "@/lib/utils/sessionNotes";
 import { toast } from "sonner";
 import {
   TEST_CATEGORIES,
@@ -79,6 +80,8 @@ export function ScheduleTestEventDialog({
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(true);
   const [notes, setNotes] = useState("");
+  const [windowStart, setWindowStart] = useState("");
+  const [windowEnd, setWindowEnd] = useState("");
 
   // Favorites — synced with Programmation > Tests via localStorage + custom event
   const favStorageKey = `tests-fav-categories:${categoryId}`;
@@ -267,10 +270,16 @@ export function ScheduleTestEventDialog({
 
     const rawNotes = s.notes || "";
     const metaMatch = rawNotes.match(/<!--TESTS:(.*?)-->/);
-    let visibleNotes = rawNotes.replace(/<!--TESTS:.*?-->/g, "").trim();
+    let visibleNotes = rawNotes
+      .replace(/<!--TESTS:.*?-->/g, "")
+      .replace(/<!--TESTWINDOW:.*?-->/g, "")
+      .trim();
     // Strip the auto-prepended "Test : ..." / "Batterie : ..." title line
     visibleNotes = visibleNotes.replace(/^(Test\s*:|Batterie[^\n]*).*?(\n|$)/, "").trim();
     setNotes(visibleNotes);
+    const win = parseTestWindowFromNotes(rawNotes);
+    setWindowStart(win?.start || "");
+    setWindowEnd(win?.end || "");
 
     if (metaMatch) {
       try {
@@ -463,7 +472,10 @@ export function ScheduleTestEventDialog({
         throw new Error(t("planning.calendarDialogs.scheduleTest.toasts.selectAtLeastOneAthlete"));
 
       const noteContent = `${title}${notes ? `\n${notes}` : ""}`;
-      const fullNotes = `${noteContent}\n<!--TESTS:${JSON.stringify(testsMeta)}-->`;
+      if (windowStart && windowEnd && windowEnd < windowStart) {
+        throw new Error(t("planning.calendarDialogs.scheduleTest.toasts.invalidWindow"));
+      }
+      const fullNotes = `${noteContent}\n<!--TESTS:${JSON.stringify(testsMeta)}-->${buildTestWindowMeta(windowStart, windowEnd)}`;
 
       let savedSessionId: string | null = null;
 
@@ -571,6 +583,26 @@ export function ScheduleTestEventDialog({
               />
             </div>
           </div>
+
+          {/* Test window (campaign) */}
+          <div className="space-y-2 rounded-lg border border-border p-3">
+            <Label className="text-sm">{t("planning.calendarDialogs.scheduleTest.windowLabel")}</Label>
+            <p className="text-[11px] text-muted-foreground">
+              {t("planning.calendarDialogs.scheduleTest.windowHint")}
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs">{t("planning.calendarDialogs.scheduleTest.windowFrom")}</Label>
+                <Input type="date" value={windowStart} onChange={(e) => setWindowStart(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">{t("planning.calendarDialogs.scheduleTest.windowTo")}</Label>
+                <Input type="date" value={windowEnd} onChange={(e) => setWindowEnd(e.target.value)} />
+              </div>
+            </div>
+          </div>
+
+
 
           {/* Test selection */}
           <Tabs value={mode} onValueChange={(v) => setMode(v as "individual" | "battery")}>
