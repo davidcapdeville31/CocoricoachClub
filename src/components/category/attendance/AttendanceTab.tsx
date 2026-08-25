@@ -26,6 +26,37 @@ interface AttendanceTabProps {
   categoryId: string;
 }
 
+const EVENT_PARTICIPANTS_PAGE_SIZE = 1000;
+const EVENT_PARTICIPANTS_SELECT =
+  "id, training_session_id, player_id, attendance_status, absence_comment, responded_at, players:player_id(id, name, first_name, avatar_url)";
+
+async function fetchEventParticipantsBySessionIds(sessionIds: string[]) {
+  if (sessionIds.length === 0) return [];
+
+  const rows: any[] = [];
+  let from = 0;
+
+  while (true) {
+    const { data, error } = await supabase
+      .from("event_participants")
+      .select(EVENT_PARTICIPANTS_SELECT)
+      .in("training_session_id", sessionIds)
+      .order("training_session_id", { ascending: true })
+      .order("player_id", { ascending: true })
+      .range(from, from + EVENT_PARTICIPANTS_PAGE_SIZE - 1);
+
+    if (error) throw error;
+
+    const page = data || [];
+    rows.push(...page);
+
+    if (page.length < EVENT_PARTICIPANTS_PAGE_SIZE) break;
+    from += EVENT_PARTICIPANTS_PAGE_SIZE;
+  }
+
+  return rows;
+}
+
 export function AttendanceTab({ categoryId }: AttendanceTabProps) {
   const { t } = useTranslation();
   const { isViewer } = useViewerModeContext();
@@ -93,13 +124,15 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
   const { data: eventParticipants } = useQuery({
     queryKey: ["event_participants_attendance", categoryId, sessionIds.join(",")],
     enabled: sessionIds.length > 0,
+    queryFn: () => fetchEventParticipantsBySessionIds(sessionIds),
+  });
+
+  const { data: detailEventParticipants, isLoading: detailParticipantsLoading } = useQuery({
+    queryKey: ["event_participants_attendance_detail", detailSessionId],
+    enabled: !!detailSessionId,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("event_participants")
-        .select("id, training_session_id, player_id, attendance_status, absence_comment, responded_at, players:player_id(id, name, first_name, avatar_url)")
-        .in("training_session_id", sessionIds);
-      if (error) throw error;
-      return data || [];
+      if (!detailSessionId) return [];
+      return fetchEventParticipantsBySessionIds([detailSessionId]);
     },
   });
 
@@ -168,13 +201,19 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
 
 
   const getSessionLabel = (session: any) => {
-    // Simplified display: just show "Séance" with time
+    const cleanTitle = (session.notes || "")
+      .replace(/<!--[\s\S]*?-->/g, "")
+      .split("\n")
+      .map((line: string) => line.trim())
+      .find((line: string) => line && !line.startsWith("📋") && !line.startsWith("📍"));
+    const title = cleanTitle || session.training_type || "Séance";
+
     if (session.session_start_time && session.session_end_time) {
-      return `Séance ${session.session_start_time.slice(0, 5)} - ${session.session_end_time.slice(0, 5)}`;
+      return `${title} · ${session.session_start_time.slice(0, 5)} - ${session.session_end_time.slice(0, 5)}`;
     } else if (session.session_start_time) {
-      return `Séance ${session.session_start_time.slice(0, 5)}`;
+      return `${title} · ${session.session_start_time.slice(0, 5)}`;
     }
-    return "Séance";
+    return title;
   };
 
   const handleExportDetail = async (
@@ -405,7 +444,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
           .sort((a, b) => new Date(b.session_date).getTime() - new Date(a.session_date).getTime());
 
         const detailParticipants = detailSessionId
-          ? filteredParticipants.filter((p) => p.training_session_id === detailSessionId)
+          ? detailEventParticipants || []
           : [];
         const detailSession = detailSessionId
           ? sessionOptions.find((s) => s.id === detailSessionId)
@@ -520,7 +559,11 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                       </SelectContent>
                     </Select>
 
-                    {detailSession && totalParticipants >= 0 && (
+                    {detailSession && detailParticipantsLoading ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        {t("common.loading", { defaultValue: "Chargement..." })}
+                      </p>
+                    ) : detailSession && totalParticipants >= 0 && (
                       <ParticipantsAttendanceList
                         participants={detailParticipants as any}
                         title={t("admin.attendance.sessionOn", { date: format(parseISO(detailSession.session_date), "dd/MM/yyyy", { locale: getDateLocale() }) })}
