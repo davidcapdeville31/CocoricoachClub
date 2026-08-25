@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { getLocaleTag } from "@/lib/i18n/dateLocale";
 import { useState, useCallback } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -71,6 +72,7 @@ export function BulkAddPlayersDialog({
   onOpenChange,
   categoryId,
 }: BulkAddPlayersDialogProps) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<"upload" | "review" | "creating" | "done">("upload");
