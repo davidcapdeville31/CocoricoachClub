@@ -76,6 +76,8 @@ export const adminReportsFr = {
         matches: "Matchs",
         athletesUnit: "athlètes",
         playersUnit: "joueurs",
+        date: "Date",
+        averageRowLabel: "MOYENNE",
       },
       tdj: {
         pdfTitle: "SUIVI TEMPS DE JEU",
@@ -166,6 +168,7 @@ export const adminReportsFr = {
         injHeaderExpectedReturn: "Retour estimé",
         statusInjured: "Blessé",
         statusRecovering: "Réathlétisation",
+        injuryDetailTitle: "Détail des {{label}} blessés / en réathlétisation",
       },
       match: {
         resultDefault: "Match",
@@ -268,6 +271,8 @@ export const adminReportsFr = {
         ewmaHigh: "> 1.5: {{count}} {{label}}",
         playingTimeTitle: "TEMPS DE JEU",
         headerAvgPerMatch: "Moy./Match",
+        headerMinutesFull: "Minutes",
+        csvPdfTitle: "VUE D'ENSEMBLE EFFECTIF",
         csvSheetName: "Vue d'Ensemble Effectif",
         csvExtraPlayers: "Joueurs",
         csvExtraMatches: "Matchs",
@@ -426,6 +431,8 @@ export const adminReportsEn = {
         matches: "Matches",
         athletesUnit: "athletes",
         playersUnit: "players",
+        date: "Date",
+        averageRowLabel: "AVERAGE",
       },
       tdj: {
         pdfTitle: "PLAYING TIME TRACKING",
@@ -516,6 +523,7 @@ export const adminReportsEn = {
         injHeaderExpectedReturn: "Expected return",
         statusInjured: "Injured",
         statusRecovering: "Recovering",
+        injuryDetailTitle: "Detail of injured / recovering {{label}}",
       },
       match: {
         resultDefault: "Match",
@@ -618,6 +626,8 @@ export const adminReportsEn = {
         ewmaHigh: "> 1.5: {{count}} {{label}}",
         playingTimeTitle: "PLAYING TIME",
         headerAvgPerMatch: "Avg./Match",
+        headerMinutesFull: "Minutes",
+        csvPdfTitle: "SQUAD OVERVIEW",
         csvSheetName: "Squad Overview",
         csvExtraPlayers: "Players",
         csvExtraMatches: "Matches",
