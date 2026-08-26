@@ -53,6 +53,15 @@ interface Props {
   hideHistory?: boolean;
 }
 
+/**
+ * A "test campaign" session = a test session planned over a period (TESTWINDOW).
+ * It stays visible until every test of the period has a result, so the athlete can
+ * submit some tests one day and the rest another day.
+ */
+function isTestCampaignSession(s: { training_type?: string | null; notes?: string | null }) {
+  return s?.training_type === "test" && !!parseTestWindowFromNotes(s?.notes) && parseTestsFromNotes(s?.notes).length > 0;
+}
+
 type SessionRow = {
   id: string;
   session_date: string;
