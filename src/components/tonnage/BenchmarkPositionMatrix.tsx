@@ -182,7 +182,7 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
     queryFn: async () => {
       const { data, error } = await supabase
         .from("generic_tests")
-        .select("player_id, test_type, test_category, result_value, result_unit, test_date")
+        .select("player_id, test_type, test_category, result_value, result_unit, test_date, created_at")
         .eq("category_id", categoryId)
         .order("test_date", { ascending: true });
       if (error) throw error;
@@ -270,7 +270,7 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
     queryFn: async () => {
       const { data, error } = await supabase
         .from("generic_tests")
-        .select("player_id, test_type, test_category, result_value, result_unit, test_date")
+        .select("player_id, test_type, test_category, result_value, result_unit, test_date, created_at")
         .eq("category_id", categoryId)
         .order("test_date", { ascending: false });
       if (error) throw error;

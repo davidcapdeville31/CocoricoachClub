@@ -153,7 +153,7 @@ function BenchmarkComparisonContent({ categoryId, sportType }: BenchmarkComparis
     queryFn: async () => {
       const { data, error } = await supabase
         .from("generic_tests")
-        .select("player_id, test_category, test_type, result_value, result_unit, test_date")
+        .select("player_id, test_category, test_type, result_value, result_unit, test_date, created_at")
         .eq("category_id", categoryId)
         .order("test_date", { ascending: false });
       if (error) throw error;

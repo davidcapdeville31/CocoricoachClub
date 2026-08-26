@@ -61,5 +61,16 @@ export function labelizeTestType(
     const id = testType.slice("custom:".length).toLowerCase();
     return customMap[`custom:${id}`]?.name || "Test personnalisé";
   }
+  // Ancien format de saisie staff : `custom_<slug>` → on affiche le nom lisible
+  if (/^custom_/i.test(testType || "")) {
+    const slug = testType.slice("custom_".length);
+    const known = Object.values(customMap).find(
+      (v) => v?.name && v.name.toLowerCase().replace(/[\s_-]+/g, "") === slug.toLowerCase().replace(/[\s_-]+/g, ""),
+    );
+    return (
+      known?.name ||
+      slug.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+    );
+  }
   return (testType || "").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
