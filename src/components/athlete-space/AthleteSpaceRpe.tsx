@@ -874,8 +874,14 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
   // Types informatifs : pas de RPE
   const NON_RPE_TYPES = new Set(["medical", "video", "video_analyse", "reunion", "surf_video"]);
   const isNonRpe = (s: typeof todaySessions[0]) => NON_RPE_TYPES.has(s.training_type);
-  const pendingSessions = todaySessions.filter(s => !completedSessionIds.has(s.id) && !isNonRpe(s));
-  const doneSessions = todaySessions.filter(s => completedSessionIds.has(s.id) && !isNonRpe(s));
+  // An open test campaign stays in the "to do" list until every test of the period is filled,
+  // even if the RPE has already been submitted.
+  const pendingSessions = todaySessions.filter(
+    s => (!completedSessionIds.has(s.id) || isOpenCampaign(s)) && !isNonRpe(s),
+  );
+  const doneSessions = todaySessions.filter(
+    s => completedSessionIds.has(s.id) && !isOpenCampaign(s) && !isNonRpe(s),
+  );
   const infoTodaySessions = todaySessions.filter(s => isNonRpe(s));
 
   // Group upcoming sessions by date
