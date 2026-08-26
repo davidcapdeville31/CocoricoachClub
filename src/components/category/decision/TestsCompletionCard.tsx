@@ -114,13 +114,13 @@ export function TestsCompletionCard({ categoryId, date, sessions, players, parti
                 {session.training_type || t("decision.common.session")}
               </p>
 
-              {tests.map((t, idx) => {
+              {tests.map((testRef, idx) => {
                 const done = new Set<string>();
                 const waiting = new Set<string>();
                 genericTests.forEach((g: any) => {
                   if (
-                    g.test_category === t.test_category &&
-                    g.test_type === t.test_type &&
+                    g.test_category === testRef.test_category &&
+                    g.test_type === testRef.test_type &&
                     (g.notes || "").includes(`Session ID: ${session.id}`)
                   ) {
                     done.add(g.player_id);
@@ -129,8 +129,8 @@ export function TestsCompletionCard({ categoryId, date, sessions, players, parti
                 pendingTests.forEach((p: any) => {
                   if (
                     p.training_session_id === session.id &&
-                    p.test_category === t.test_category &&
-                    p.test_type === t.test_type
+                    p.test_category === testRef.test_category &&
+                    p.test_type === testRef.test_type
                   ) {
                     if (p.validation_status === "validated") done.add(p.player_id);
                     else if (p.validation_status === "pending") waiting.add(p.player_id);
@@ -147,7 +147,7 @@ export function TestsCompletionCard({ categoryId, date, sessions, players, parti
                   <div key={idx} className="rounded-lg border p-3 space-y-2 bg-card">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-sm font-medium truncate">
-                        {labelizeTestType(t.test_type, customMap)}
+                        {labelizeTestType(testRef.test_type, customMap)}
                       </span>
                       <span
                         className={cn(
