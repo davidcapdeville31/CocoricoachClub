@@ -68,7 +68,20 @@ export function PendingTestResultsValidation({ categoryId }: Props) {
       qc.invalidateQueries({ queryKey: ["pending-test-results-count", categoryId] });
       qc.invalidateQueries({ queryKey: ["generic_tests"] });
       qc.invalidateQueries({ queryKey: ["generic-tests-evolution", categoryId] });
+      // Rafraîchit immédiatement le tableau "Évolution / Comparaison" (toutes disciplines)
+      [
+        "generic-tests-matrix",
+        "custom-tests-matrix",
+        "weight-tests-matrix",
+        "speed-tests-matrix",
+        "strength-tests-matrix",
+        "body-comp-matrix",
+        "player-measurements-matrix",
+        "benchmarks-matrix",
+        "players-matrix",
+      ].forEach((key) => qc.invalidateQueries({ queryKey: [key, categoryId] }));
     },
+
     onError: (e: any) => {
       if (e?.message !== "blocked") toast.error(e?.message || "Erreur");
     },
