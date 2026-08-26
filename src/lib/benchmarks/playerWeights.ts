@@ -11,6 +11,7 @@ export interface GenericWeightTestRow {
   result_value?: number | string | null;
   result_unit?: string | null;
   test_date?: string | null;
+  created_at?: string | null;
 }
 
 export interface CustomWeightTestLite {
@@ -58,10 +59,19 @@ export function isBodyWeightTestRecord(
     normalizedCategory.includes("compositioncorporelle");
   if (isBodyCategory && (!unit || unit === "kg")) return true;
 
-  if (testType.startsWith("custom:")) {
-    const customId = testType.slice("custom:".length);
-    const custom = customTests.find((ct) => ct.id === customId);
-    if (!custom) return false;
+  // `custom:<uuid>` (référence directe) ou `custom_<slug>` (saisie staff historique)
+  if (testType.startsWith("custom:") || testType.startsWith("custom_")) {
+    const custom = testType.startsWith("custom:")
+      ? customTests.find((ct) => ct.id === testType.slice("custom:".length))
+      : customTests.find((ct) => normalize(ct.name) === normalize(testType.slice("custom_".length)));
+    if (!custom) {
+      // Pas de test personnalisé retrouvé : on se rabat sur le nom du slug.
+      const slug = normalize(testType.slice("custom_".length));
+      return (
+        (!unit || unit === "kg") &&
+        (slug === "poids" || slug === "weight" || slug === "bodyweight" || slug === "poidsdecorps")
+      );
+    }
 
     const customUnit = normalize(custom.unit);
     const customName = normalize(custom.name);
@@ -92,22 +102,34 @@ export function collectLatestPlayerWeights({
   weightTests?: GenericWeightTestRow[];
   customTests?: CustomWeightTestLite[];
 }): Map<string, number> {
-  const latest = new Map<string, { weight: number; date: string }>();
+  const latest = new Map<string, { weight: number; date: string; createdAt: string }>();
 
-  const consider = (playerId: string, weight: unknown, date?: string | null) => {
+  const consider = (
+    playerId: string,
+    weight: unknown,
+    date?: string | null,
+    createdAt?: string | null,
+  ) => {
     if (!isPlausibleBodyWeight(weight)) return;
     const current = latest.get(playerId);
     const sourceDate = date || "";
-    if (!current || sourceDate.localeCompare(current.date) > 0) {
-      latest.set(playerId, { weight: Number(weight), date: sourceDate });
+    const sourceCreated = createdAt || "";
+    const isNewer =
+      !current ||
+      sourceDate.localeCompare(current.date) > 0 ||
+      // Même jour : la saisie la plus récente l'emporte (correction de poids)
+      (sourceDate.localeCompare(current.date) === 0 &&
+        sourceCreated.localeCompare(current.createdAt) > 0);
+    if (isNewer) {
+      latest.set(playerId, { weight: Number(weight), date: sourceDate, createdAt: sourceCreated });
     }
   };
 
-  for (const row of bodyComps) consider(row.player_id, row.weight_kg, row.measurement_date);
-  for (const row of playerMeasurements) consider(row.player_id, row.weight_kg, row.measurement_date);
+  for (const row of bodyComps) consider(row.player_id, row.weight_kg, row.measurement_date, (row as any).created_at);
+  for (const row of playerMeasurements) consider(row.player_id, row.weight_kg, row.measurement_date, (row as any).created_at);
   for (const row of weightTests) {
     if (isBodyWeightTestRecord(row, customTests)) {
-      consider(row.player_id, row.result_value, row.test_date);
+      consider(row.player_id, row.result_value, row.test_date, row.created_at);
     }
   }
 
