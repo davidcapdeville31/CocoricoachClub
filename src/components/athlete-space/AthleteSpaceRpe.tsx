@@ -236,7 +236,8 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
 
         const sessionsWithAttendance = new Set(allAttendance?.map((a) => a.training_session_id));
         const noAttendanceSessions = (allCatSessions || []).filter((s: any) => {
-          if (sessionsWithAttendance.has(s.id) || existingIds.has(s.id)) return false;
+          if (existingIds.has(s.id)) return false;
+          if (sessionsWithAttendance.has(s.id) && !isTestCampaignSession(s)) return false;
           if (s.created_by_player_id && s.created_by_player_id !== playerId) return false;
           const parts = s.event_participants || [];
           if (parts.length > 0) {
