@@ -349,12 +349,12 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
   // Hide a campaign session only once all its tests are filled in
   const visibleSessions = useMemo(
     () =>
-      allSessions.filter((s) => {
+      allSessionsWithCampaigns.filter((s) => {
         if (!isTestCampaignSession(s)) return true;
         const remaining = campaignRemaining[s.id];
         return remaining === undefined || remaining > 0;
       }),
-    [allSessions, campaignRemaining],
+    [allSessionsWithCampaigns, campaignRemaining],
   );
 
   const isOpenCampaign = (s: { id: string; training_type?: string | null; notes?: string | null }) =>
