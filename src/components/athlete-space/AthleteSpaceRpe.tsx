@@ -219,6 +219,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         const { data: allAttendance } = await supabase
           .from("training_attendance")
           .select("training_session_id")
+          .eq("player_id", playerId)
           .in("training_session_id", allCatSessionIds)
           .limit(1000);
 
