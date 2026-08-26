@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -55,6 +56,7 @@ function formatDay(d: string) {
 
 export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onChange, categoryId, sessionDate }: Props) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const tests = parseTestsFromNotes(notes);
   const customMap = useCustomTestLabels(tests.map((t) => t.test_type));
   const { isAbsent } = useAthleteAttendanceLock(sessionId, playerId);
@@ -178,6 +180,9 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
       return;
     }
     toast.success(t('athleteSpace.components.testResultsInput.sent'));
+    queryClient.invalidateQueries({ queryKey: ["athlete-space-test-campaigns"] });
+    queryClient.invalidateQueries({ queryKey: ["athlete-space-past-campaigns"] });
+    queryClient.invalidateQueries({ queryKey: ["athlete-space-sessions"] });
     onChange({ ...value, [key]: "" });
     await reload();
   };

@@ -19,7 +19,7 @@ import { format, parseISO, addDays } from "date-fns";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 import { getTestLabel } from "@/lib/constants/testCategories";
 import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
-import { getDisplayNotes, parsePrecisionExerciseFromNotes, parseTestsFromNotes } from "@/lib/utils/sessionNotes";
+import { getDisplayNotes, parsePrecisionExerciseFromNotes, parseTestsFromNotes, parseTestWindowFromNotes } from "@/lib/utils/sessionNotes";
 import { SPARE_EXERCISE_TYPES } from "@/lib/constants/bowlingBallBrands";
 import { cn } from "@/lib/utils";
 import { GroupedExerciseList } from "@/components/category/GroupedExerciseList";
@@ -51,6 +51,15 @@ interface Props {
   playerId: string;
   categoryId: string;
   hideHistory?: boolean;
+}
+
+/**
+ * A "test campaign" session = a test session planned over a period (TESTWINDOW).
+ * It stays visible until every test of the period has a result, so the athlete can
+ * submit some tests one day and the rest another day.
+ */
+function isTestCampaignSession(s: { training_type?: string | null; notes?: string | null }) {
+  return s?.training_type === "test" && !!parseTestWindowFromNotes(s?.notes) && parseTestsFromNotes(s?.notes).length > 0;
 }
 
 type SessionRow = {
@@ -193,7 +202,9 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
           .limit(1000);
 
         const sessionsWithAttendance = new Set(anyAttendance?.map((a) => a.training_session_id));
-        const visible = filteredSessions.filter((s) => !sessionsWithAttendance.has(s.id));
+        const visible = filteredSessions.filter(
+          (s) => !sessionsWithAttendance.has(s.id) || isTestCampaignSession(s),
+        );
         return enrichSessionsWithBowlingExercise(visible as SessionRow[]);
       }
 
@@ -225,7 +236,8 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
 
         const sessionsWithAttendance = new Set(allAttendance?.map((a) => a.training_session_id));
         const noAttendanceSessions = (allCatSessions || []).filter((s: any) => {
-          if (sessionsWithAttendance.has(s.id) || existingIds.has(s.id)) return false;
+          if (existingIds.has(s.id)) return false;
+          if (sessionsWithAttendance.has(s.id) && !isTestCampaignSession(s)) return false;
           if (s.created_by_player_id && s.created_by_player_id !== playerId) return false;
           const parts = s.event_participants || [];
           if (parts.length > 0) {
@@ -245,8 +257,118 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
     },
   });
 
-  const todaySessions = allSessions.filter(s => s.session_date === today);
-  const upcomingSessions = allSessions.filter(s => s.session_date > today);
+  // Past test-campaign sessions whose period still covers today (e.g. batch planned on
+  // day 1 of a 2-week window): they must stay reachable to finish the remaining tests.
+  const { data: pastCampaignSessions = [] } = useQuery({
+    queryKey: ["athlete-space-past-campaigns", categoryId, playerId, today],
+    queryFn: async () => {
+      const from = format(addDays(new Date(), -120), "yyyy-MM-dd");
+      const { data, error } = await supabase
+        .from("training_sessions")
+        .select("id, session_date, training_type, session_start_time, session_end_time, notes, created_by_player_id, event_participants(player_id)")
+        .eq("category_id", categoryId)
+        .eq("training_type", "test")
+        .gte("session_date", from)
+        .lt("session_date", today)
+        .order("session_date");
+      if (error) throw error;
+      return (data || []).filter((s: any) => {
+        if (!isTestCampaignSession(s)) return false;
+        const win = parseTestWindowFromNotes(s.notes)!;
+        if (today < win.start || today > win.end) return false;
+        if (s.created_by_player_id && s.created_by_player_id !== playerId) return false;
+        const parts = s.event_participants || [];
+        if (parts.length > 0) return parts.some((p: any) => p.player_id === playerId);
+        return true;
+      }) as SessionRow[];
+    },
+    enabled: !!playerId && !!categoryId,
+  });
+
+  // ---- Test campaigns (tests planned over a period) --------------------------------
+  // A campaign session stays visible until every planned test has a result inside the
+  // window: the athlete can submit part of the tests one day and the rest later.
+  const allSessionsWithCampaigns = useMemo(() => {
+    const ids = new Set(allSessions.map((s) => s.id));
+    return [...allSessions, ...pastCampaignSessions.filter((s) => !ids.has(s.id))];
+  }, [allSessions, pastCampaignSessions]);
+
+  const campaignSessions = useMemo(
+    () => allSessionsWithCampaigns.filter((s) => isTestCampaignSession(s)),
+    [allSessionsWithCampaigns],
+  );
+  const campaignSignature = useMemo(
+    () => campaignSessions.map((s) => s.id).sort().join(","),
+    [campaignSessions],
+  );
+
+  const { data: campaignRemaining = {} } = useQuery({
+    queryKey: ["athlete-space-test-campaigns", playerId, campaignSignature, today],
+    queryFn: async () => {
+      const result: Record<string, number> = {};
+      const windows = campaignSessions
+        .map((s) => parseTestWindowFromNotes(s.notes))
+        .filter(Boolean) as Array<{ start: string; end: string }>;
+      if (windows.length === 0) return result;
+      const minStart = windows.map((w) => w.start).sort()[0];
+      const maxEnd = windows.map((w) => w.end).sort().slice(-1)[0];
+
+      const [{ data: pendingData }, { data: savedData }] = await Promise.all([
+        supabase
+          .from("pending_test_results")
+          .select("test_category, test_type, test_date, validation_status")
+          .eq("player_id", playerId)
+          .gte("test_date", minStart)
+          .lte("test_date", maxEnd),
+        supabase
+          .from("generic_tests")
+          .select("test_category, test_type, test_date")
+          .eq("player_id", playerId)
+          .gte("test_date", minStart)
+          .lte("test_date", maxEnd),
+      ]);
+
+      for (const s of campaignSessions) {
+        const win = parseTestWindowFromNotes(s.notes)!;
+        const tests = parseTestsFromNotes(s.notes);
+        const taken = new Set<string>();
+        (pendingData || []).forEach((p: any) => {
+          if (p.validation_status === "rejected") return;
+          if (p.test_date >= win.start && p.test_date <= win.end) taken.add(`${p.test_category}::${p.test_type}`);
+        });
+        (savedData || []).forEach((p: any) => {
+          if (p.test_date >= win.start && p.test_date <= win.end) taken.add(`${p.test_category}::${p.test_type}`);
+        });
+        result[s.id] = tests.filter((tst: any) => !taken.has(`${tst.test_category}::${tst.test_type}`)).length;
+      }
+      return result;
+    },
+    enabled: !!playerId && campaignSessions.length > 0,
+  });
+
+  // Hide a campaign session only once all its tests are filled in
+  const visibleSessions = useMemo(
+    () =>
+      allSessionsWithCampaigns.filter((s) => {
+        if (!isTestCampaignSession(s)) return true;
+        const remaining = campaignRemaining[s.id];
+        return remaining === undefined || remaining > 0;
+      }),
+    [allSessionsWithCampaigns, campaignRemaining],
+  );
+
+  const isOpenCampaign = (s: { id: string; training_type?: string | null; notes?: string | null }) =>
+    isTestCampaignSession(s) && (campaignRemaining[s.id] ?? 1) > 0;
+
+  const todaySessions = visibleSessions.filter(s => {
+    if (s.session_date === today) return true;
+    // A campaign still open stays on the home screen during the whole window
+    if (!isOpenCampaign(s)) return false;
+    const win = parseTestWindowFromNotes(s.notes)!;
+    return today >= win.start && today <= win.end;
+  });
+  const upcomingSessions = visibleSessions.filter(s => s.session_date > today && !todaySessions.includes(s));
+
 
   // Fetch test results for today
   const testSessionIds = todaySessions.filter(s => s.training_type === "test").map(s => s.id);
@@ -702,6 +824,8 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
       queryClient.invalidateQueries({ queryKey: ["athlete-space-rpes"] });
       queryClient.invalidateQueries({ queryKey: ["athlete-space-awcr"] });
       queryClient.invalidateQueries({ queryKey: ["athlete-space-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["athlete-space-test-campaigns"] });
+      queryClient.invalidateQueries({ queryKey: ["athlete-space-past-campaigns"] });
       queryClient.invalidateQueries({ queryKey: ["precision-training-stats"] });
       queryClient.invalidateQueries({ queryKey: ["precision-field-entries"] });
       if (showHrv) {
@@ -752,8 +876,14 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
   // Types informatifs : pas de RPE
   const NON_RPE_TYPES = new Set(["medical", "video", "video_analyse", "reunion", "surf_video"]);
   const isNonRpe = (s: typeof todaySessions[0]) => NON_RPE_TYPES.has(s.training_type);
-  const pendingSessions = todaySessions.filter(s => !completedSessionIds.has(s.id) && !isNonRpe(s));
-  const doneSessions = todaySessions.filter(s => completedSessionIds.has(s.id) && !isNonRpe(s));
+  // An open test campaign stays in the "to do" list until every test of the period is filled,
+  // even if the RPE has already been submitted.
+  const pendingSessions = todaySessions.filter(
+    s => (!completedSessionIds.has(s.id) || isOpenCampaign(s)) && !isNonRpe(s),
+  );
+  const doneSessions = todaySessions.filter(
+    s => completedSessionIds.has(s.id) && !isOpenCampaign(s) && !isNonRpe(s),
+  );
   const infoTodaySessions = todaySessions.filter(s => isNonRpe(s));
 
   // Group upcoming sessions by date
@@ -763,16 +893,36 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
     return acc;
   }, {});
 
+  const renderCampaignNotice = (session: { id: string; training_type?: string | null; notes?: string | null }) => {
+    if (!isOpenCampaign(session)) return null;
+    const win = parseTestWindowFromNotes(session.notes)!;
+    const remaining = campaignRemaining[session.id] ?? parseTestsFromNotes(session.notes).length;
+    return (
+      <div className="text-[11px] mt-1 rounded-md bg-primary/10 border border-primary/20 px-2 py-1 text-primary">
+        ⏳ {t("athleteSpace.rpe.campaignRemaining", {
+          count: remaining,
+          end: format(parseISO(win.end), "dd/MM/yyyy"),
+        })}
+      </div>
+    );
+  };
+
   const renderTestInfo = (session: typeof todaySessions[0]) => {
     if (session.training_type !== "test") return null;
     const testNames = getTestNamesForSession(session.notes);
     const results = session.session_date === today ? getTestResultsForSession(session.id) : [];
     if (testNames.length === 0 && results.length === 0) {
-      return <div className="text-xs text-muted-foreground mt-0.5 italic">{t("athleteSpace.rpe.testPlanned")}</div>;
+      return (
+        <div className="text-xs text-muted-foreground mt-0.5 italic">
+          {t("athleteSpace.rpe.testPlanned")}
+          {renderCampaignNotice(session)}
+        </div>
+      );
     }
     return (
       <div className="text-xs text-muted-foreground mt-0.5">
         {testNames.map((name, idx) => <div key={idx}>📋 {name}</div>)}
+        {renderCampaignNotice(session)}
         {results.map((r, idx) => {
           const unit = r.result_unit || "";
           const customUnit = /^custom:/i.test(r.test_type || "") ? customTestMap[`custom:${r.test_type.slice(7).toLowerCase()}`]?.unit : null;
@@ -1215,7 +1365,11 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                         value={testResultsInput}
                         onChange={setTestResultsInput}
                         categoryId={categoryId}
-                        sessionDate={selectedSessionData?.session_date}
+                        sessionDate={
+                          selectedSessionData && isOpenCampaign(selectedSessionData)
+                            ? today
+                            : selectedSessionData?.session_date
+                        }
                       />
                     )}
 
