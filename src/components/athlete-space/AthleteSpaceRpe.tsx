@@ -1343,7 +1343,11 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                         value={testResultsInput}
                         onChange={setTestResultsInput}
                         categoryId={categoryId}
-                        sessionDate={selectedSessionData?.session_date}
+                        sessionDate={
+                          selectedSessionData && isOpenCampaign(selectedSessionData)
+                            ? today
+                            : selectedSessionData?.session_date
+                        }
                       />
                     )}
 
