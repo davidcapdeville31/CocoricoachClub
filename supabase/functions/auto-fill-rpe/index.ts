@@ -70,7 +70,7 @@ serve(async (req) => {
 
     if (eligibleClubIds.length === 0) {
       return new Response(
-        JSON.stringify({ skipped: true, reason: "No clubs at 23h local", filled: 0 }),
+        JSON.stringify({ skipped: true, reason: "No clubs at 10h local", filled: 0 }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -95,7 +95,7 @@ serve(async (req) => {
       const today = clubDateMap[category.club_id];
       if (!today) continue;
 
-      // Get sessions for today in this category
+      // Get sessions of the previous day in this category
       const { data: sessions, error: sessionsError } = await supabase
         .from("training_sessions")
         .select("id, category_id, planned_intensity, session_start_time, session_end_time, session_date")
