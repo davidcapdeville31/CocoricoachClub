@@ -893,16 +893,36 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
     return acc;
   }, {});
 
+  const renderCampaignNotice = (session: { id: string; training_type?: string | null; notes?: string | null }) => {
+    if (!isOpenCampaign(session)) return null;
+    const win = parseTestWindowFromNotes(session.notes)!;
+    const remaining = campaignRemaining[session.id] ?? parseTestsFromNotes(session.notes).length;
+    return (
+      <div className="text-[11px] mt-1 rounded-md bg-primary/10 border border-primary/20 px-2 py-1 text-primary">
+        ⏳ {t("athleteSpace.rpe.campaignRemaining", {
+          count: remaining,
+          end: format(parseISO(win.end), "dd/MM/yyyy"),
+        })}
+      </div>
+    );
+  };
+
   const renderTestInfo = (session: typeof todaySessions[0]) => {
     if (session.training_type !== "test") return null;
     const testNames = getTestNamesForSession(session.notes);
     const results = session.session_date === today ? getTestResultsForSession(session.id) : [];
     if (testNames.length === 0 && results.length === 0) {
-      return <div className="text-xs text-muted-foreground mt-0.5 italic">{t("athleteSpace.rpe.testPlanned")}</div>;
+      return (
+        <div className="text-xs text-muted-foreground mt-0.5 italic">
+          {t("athleteSpace.rpe.testPlanned")}
+          {renderCampaignNotice(session)}
+        </div>
+      );
     }
     return (
       <div className="text-xs text-muted-foreground mt-0.5">
         {testNames.map((name, idx) => <div key={idx}>📋 {name}</div>)}
+        {renderCampaignNotice(session)}
         {results.map((r, idx) => {
           const unit = r.result_unit || "";
           const customUnit = /^custom:/i.test(r.test_type || "") ? customTestMap[`custom:${r.test_type.slice(7).toLowerCase()}`]?.unit : null;
