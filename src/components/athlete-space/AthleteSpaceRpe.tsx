@@ -257,12 +257,45 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
     },
   });
 
+  // Past test-campaign sessions whose period still covers today (e.g. batch planned on
+  // day 1 of a 2-week window): they must stay reachable to finish the remaining tests.
+  const { data: pastCampaignSessions = [] } = useQuery({
+    queryKey: ["athlete-space-past-campaigns", categoryId, playerId, today],
+    queryFn: async () => {
+      const from = format(addDays(new Date(), -120), "yyyy-MM-dd");
+      const { data, error } = await supabase
+        .from("training_sessions")
+        .select("id, session_date, training_type, session_start_time, session_end_time, notes, created_by_player_id, event_participants(player_id)")
+        .eq("category_id", categoryId)
+        .eq("training_type", "test")
+        .gte("session_date", from)
+        .lt("session_date", today)
+        .order("session_date");
+      if (error) throw error;
+      return (data || []).filter((s: any) => {
+        if (!isTestCampaignSession(s)) return false;
+        const win = parseTestWindowFromNotes(s.notes)!;
+        if (today < win.start || today > win.end) return false;
+        if (s.created_by_player_id && s.created_by_player_id !== playerId) return false;
+        const parts = s.event_participants || [];
+        if (parts.length > 0) return parts.some((p: any) => p.player_id === playerId);
+        return true;
+      }) as SessionRow[];
+    },
+    enabled: !!playerId && !!categoryId,
+  });
+
   // ---- Test campaigns (tests planned over a period) --------------------------------
   // A campaign session stays visible until every planned test has a result inside the
   // window: the athlete can submit part of the tests one day and the rest later.
+  const allSessionsWithCampaigns = useMemo(() => {
+    const ids = new Set(allSessions.map((s) => s.id));
+    return [...allSessions, ...pastCampaignSessions.filter((s) => !ids.has(s.id))];
+  }, [allSessions, pastCampaignSessions]);
+
   const campaignSessions = useMemo(
-    () => allSessions.filter((s) => isTestCampaignSession(s)),
-    [allSessions],
+    () => allSessionsWithCampaigns.filter((s) => isTestCampaignSession(s)),
+    [allSessionsWithCampaigns],
   );
   const campaignSignature = useMemo(
     () => campaignSessions.map((s) => s.id).sort().join(","),
