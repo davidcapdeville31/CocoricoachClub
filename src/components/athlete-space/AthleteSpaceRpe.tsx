@@ -257,8 +257,85 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
     },
   });
 
-  const todaySessions = allSessions.filter(s => s.session_date === today);
-  const upcomingSessions = allSessions.filter(s => s.session_date > today);
+  // ---- Test campaigns (tests planned over a period) --------------------------------
+  // A campaign session stays visible until every planned test has a result inside the
+  // window: the athlete can submit part of the tests one day and the rest later.
+  const campaignSessions = useMemo(
+    () => allSessions.filter((s) => isTestCampaignSession(s)),
+    [allSessions],
+  );
+  const campaignSignature = useMemo(
+    () => campaignSessions.map((s) => s.id).sort().join(","),
+    [campaignSessions],
+  );
+
+  const { data: campaignRemaining = {} } = useQuery({
+    queryKey: ["athlete-space-test-campaigns", playerId, campaignSignature, today],
+    queryFn: async () => {
+      const result: Record<string, number> = {};
+      const windows = campaignSessions
+        .map((s) => parseTestWindowFromNotes(s.notes))
+        .filter(Boolean) as Array<{ start: string; end: string }>;
+      if (windows.length === 0) return result;
+      const minStart = windows.map((w) => w.start).sort()[0];
+      const maxEnd = windows.map((w) => w.end).sort().slice(-1)[0];
+
+      const [{ data: pendingData }, { data: savedData }] = await Promise.all([
+        supabase
+          .from("pending_test_results")
+          .select("test_category, test_type, test_date, validation_status")
+          .eq("player_id", playerId)
+          .gte("test_date", minStart)
+          .lte("test_date", maxEnd),
+        supabase
+          .from("generic_tests")
+          .select("test_category, test_type, test_date")
+          .eq("player_id", playerId)
+          .gte("test_date", minStart)
+          .lte("test_date", maxEnd),
+      ]);
+
+      for (const s of campaignSessions) {
+        const win = parseTestWindowFromNotes(s.notes)!;
+        const tests = parseTestsFromNotes(s.notes);
+        const taken = new Set<string>();
+        (pendingData || []).forEach((p: any) => {
+          if (p.validation_status === "rejected") return;
+          if (p.test_date >= win.start && p.test_date <= win.end) taken.add(`${p.test_category}::${p.test_type}`);
+        });
+        (savedData || []).forEach((p: any) => {
+          if (p.test_date >= win.start && p.test_date <= win.end) taken.add(`${p.test_category}::${p.test_type}`);
+        });
+        result[s.id] = tests.filter((tst: any) => !taken.has(`${tst.test_category}::${tst.test_type}`)).length;
+      }
+      return result;
+    },
+    enabled: !!playerId && campaignSessions.length > 0,
+  });
+
+  // Hide a campaign session only once all its tests are filled in
+  const visibleSessions = useMemo(
+    () =>
+      allSessions.filter((s) => {
+        if (!isTestCampaignSession(s)) return true;
+        const remaining = campaignRemaining[s.id];
+        return remaining === undefined || remaining > 0;
+      }),
+    [allSessions, campaignRemaining],
+  );
+
+  const isOpenCampaign = (s: { id: string; training_type?: string | null; notes?: string | null }) =>
+    isTestCampaignSession(s) && (campaignRemaining[s.id] ?? 1) > 0;
+
+  const todaySessions = visibleSessions.filter(s => {
+    if (s.session_date === today) return true;
+    // A campaign still open stays on the home screen during the whole window
+    if (!isOpenCampaign(s)) return false;
+    const win = parseTestWindowFromNotes(s.notes)!;
+    return today >= win.start && today <= win.end;
+  });
+  const upcomingSessions = visibleSessions.filter(s => s.session_date > today && !todaySessions.includes(s));
+
 
   // Fetch test results for today
   const testSessionIds = todaySessions.filter(s => s.training_type === "test").map(s => s.id);
