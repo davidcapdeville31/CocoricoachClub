@@ -44,7 +44,8 @@ serve(async (req) => {
       );
     }
 
-    // Filter clubs where it's currently 23h in their timezone
+    // Filter clubs where it's currently 10h in their timezone
+    // → on auto-complète les RPE de la veille (et non ceux du jour à 23h)
     const eligibleClubIds: string[] = [];
     const clubDateMap: Record<string, string> = {};
     for (const club of allClubs) {
@@ -52,11 +53,15 @@ serve(async (req) => {
         const tz = club.timezone || "Europe/Paris";
         const nowInTz = new Date().toLocaleString("en-US", { timeZone: tz });
         const localHour = new Date(nowInTz).getHours();
-        if (localHour === 23) {
+        if (localHour === 10) {
           eligibleClubIds.push(club.id);
-          const localDate = new Date().toLocaleString("en-CA", { timeZone: tz });
-          clubDateMap[club.id] = localDate.split(",")[0].trim();
-          console.log(`[auto-fill-rpe] Club "${club.name}" (${tz}) → 23h local ✓ (date=${clubDateMap[club.id]})`);
+          // Date locale de la veille (YYYY-MM-DD)
+          const localDate = new Date().toLocaleString("en-CA", { timeZone: tz }).split(",")[0].trim();
+          const [y, m, d] = localDate.split("-").map(Number);
+          const prev = new Date(Date.UTC(y, m - 1, d));
+          prev.setUTCDate(prev.getUTCDate() - 1);
+          clubDateMap[club.id] = prev.toISOString().split("T")[0];
+          console.log(`[auto-fill-rpe] Club "${club.name}" (${tz}) → 10h local ✓ (veille=${clubDateMap[club.id]})`);
         }
       } catch (e) {
         console.error(`[auto-fill-rpe] Invalid timezone for club "${club.name}": ${club.timezone}`, e);
