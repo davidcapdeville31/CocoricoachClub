@@ -824,6 +824,8 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
       queryClient.invalidateQueries({ queryKey: ["athlete-space-rpes"] });
       queryClient.invalidateQueries({ queryKey: ["athlete-space-awcr"] });
       queryClient.invalidateQueries({ queryKey: ["athlete-space-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["athlete-space-test-campaigns"] });
+      queryClient.invalidateQueries({ queryKey: ["athlete-space-past-campaigns"] });
       queryClient.invalidateQueries({ queryKey: ["precision-training-stats"] });
       queryClient.invalidateQueries({ queryKey: ["precision-field-entries"] });
       if (showHrv) {
