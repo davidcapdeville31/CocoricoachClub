@@ -193,7 +193,9 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
           .limit(1000);
 
         const sessionsWithAttendance = new Set(anyAttendance?.map((a) => a.training_session_id));
-        const visible = filteredSessions.filter((s) => !sessionsWithAttendance.has(s.id));
+        const visible = filteredSessions.filter(
+          (s) => !sessionsWithAttendance.has(s.id) || isTestCampaignSession(s),
+        );
         return enrichSessionsWithBowlingExercise(visible as SessionRow[]);
       }
 
