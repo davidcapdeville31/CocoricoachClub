@@ -29,7 +29,7 @@ export function normalizeTestKey(v: string | null | undefined): string {
   if (!v) return "";
   const base = v
     .toLowerCase()
-    .replace(/^custom:/, "")
+    .replace(/^custom[:_]/, "")
     .replace(/[\s_\-.]+/g, "")
     .trim();
   return TEST_KEY_ALIASES[base] ?? base;
