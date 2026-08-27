@@ -114,7 +114,7 @@ export function PendingTestResultsValidation({ categoryId }: Props) {
               <div className="flex-1 min-w-0">
                 <div className="font-medium truncate text-xs">{name}</div>
                 <div className="text-[11px] text-muted-foreground truncate">
-                  {row.test_type?.replace(/_/g, " ")} • {row.result_value} {row.result_unit || ""}
+                  {labelizeTestType(row.test_type || "", customLabels)} • {row.result_value} {row.result_unit || ""}
                   {row.test_date && ` • ${format(new Date(row.test_date), "d MMM", { locale: getDateLocale() })}`}
                 </div>
               </div>
