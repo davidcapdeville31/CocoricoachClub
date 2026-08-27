@@ -59,13 +59,16 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
   const queryClient = useQueryClient();
   const tests = parseTestsFromNotes(notes);
   const customMap = useCustomTestLabels(tests.map((t) => t.test_type));
-  const { isAbsent } = useAthleteAttendanceLock(sessionId, playerId);
+  const { isAbsent: attendanceAbsent } = useAthleteAttendanceLock(sessionId, playerId);
   const [pending, setPending] = useState<any[]>([]);
   const [staffSaved, setStaffSaved] = useState<any[]>([]);
   const [submittingKey, setSubmittingKey] = useState<string | null>(null);
 
 
   const testWindow = parseTestWindowFromNotes(notes);
+  // Test planifié sur une période : l'absence à la séance du 1er jour ne doit pas
+  // bloquer la saisie, l'athlète fera le test un autre jour de la fenêtre.
+  const isAbsent = attendanceAbsent && !testWindow;
 
   const fetchState = async () => {
     // When the coach defined a testing window, a result submitted on ANY session of the

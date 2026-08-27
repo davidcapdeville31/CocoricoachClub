@@ -1076,7 +1076,20 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
 
                 {selectedSession === session.id && (
                   <div className="mt-3 p-4 rounded-lg bg-muted/30 space-y-4">
-                    {attendanceAbsent ? (
+                    {attendanceAbsent && isOpenCampaign(session) ? (
+                      <div className="space-y-3">
+                        <AthleteAbsentLockNotice />
+                        <AthleteTestResultsInput
+                          sessionId={session.id}
+                          notes={session.notes || null}
+                          playerId={playerId}
+                          value={testResultsInput}
+                          onChange={setTestResultsInput}
+                          categoryId={categoryId}
+                          sessionDate={today}
+                        />
+                      </div>
+                    ) : attendanceAbsent ? (
                       <AthleteAbsentLockNotice />
                     ) : session.training_type === "terrain" ? (
 
