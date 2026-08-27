@@ -144,13 +144,13 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
     queryFn: () => fetchEventParticipantsBySessionIds(sessionIds),
   });
 
+  const daySessions = (sessions || []).filter((s) => s.session_date === detailDay);
+  const daySessionIds = daySessions.map((s) => s.id);
+
   const { data: detailEventParticipants, isLoading: detailParticipantsLoading } = useQuery({
-    queryKey: ["event_participants_attendance_detail", detailSessionId],
-    enabled: !!detailSessionId,
-    queryFn: async () => {
-      if (!detailSessionId) return [];
-      return fetchEventParticipantsBySessionIds([detailSessionId]);
-    },
+    queryKey: ["event_participants_attendance_detail", detailDay, daySessionIds.join(",")],
+    enabled: !!detailDay && daySessionIds.length > 0,
+    queryFn: async () => fetchEventParticipantsBySessionIds(daySessionIds),
   });
 
   // Athlete-created private sessions are not roster-wide: never complete them with the roster
