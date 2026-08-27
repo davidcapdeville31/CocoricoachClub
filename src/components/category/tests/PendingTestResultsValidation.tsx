@@ -103,9 +103,87 @@ export function PendingTestResultsValidation({ categoryId }: Props) {
     },
   });
 
+  const invalidateAll = () => {
+    qc.invalidateQueries({ queryKey: ["pending-test-results", categoryId] });
+    qc.invalidateQueries({ queryKey: ["pending-test-results-count", categoryId] });
+    qc.invalidateQueries({ queryKey: ["generic_tests"] });
+    qc.invalidateQueries({ queryKey: ["generic-tests-evolution", categoryId] });
+    [
+      "generic-tests-matrix",
+      "custom-tests-matrix",
+      "weight-tests-matrix",
+      "speed-tests-matrix",
+      "strength-tests-matrix",
+      "body-comp-matrix",
+      "player-measurements-matrix",
+      "benchmarks-matrix",
+      "players-matrix",
+    ].forEach((key) => qc.invalidateQueries({ queryKey: [key, categoryId] }));
+  };
+
+  const saveEdit = useMutation({
+    mutationFn: async () => {
+      if (!editRow) return;
+      const val = parseFloat(String(editValue).replace(",", "."));
+      if (!Number.isFinite(val)) throw new Error("Valeur invalide");
+      if (!editDate) throw new Error("Date invalide");
+      if (!guard.assertDate(editDate)) throw new Error("blocked");
+      const { error } = await supabase
+        .from("pending_test_results")
+        .update({
+          result_value: val,
+          result_unit: editUnit || null,
+          test_date: editDate,
+        })
+        .eq("id", editRow.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Résultat modifié");
+      setEditRow(null);
+      invalidateAll();
+    },
+    onError: (e: any) => {
+      if (e?.message !== "blocked") toast.error(e?.message || "Erreur");
+    },
+  });
+
+  const validateAll = useMutation({
+    mutationFn: async (rows: any[]) => {
+      const allowed = rows.filter(
+        (r) => guard.isPlayerAllowed(r.player_id) && guard.isDateAllowed(r.test_date),
+      );
+      if (allowed.length === 0) throw new Error("Aucun résultat validable sur la saison active");
+      const { error: insErr } = await supabase.from("generic_tests").insert(
+        allowed.map((row) => ({
+          player_id: row.player_id,
+          category_id: categoryId,
+          test_date: row.test_date,
+          test_category: row.test_category,
+          test_type: row.test_type,
+          result_value: row.result_value,
+          result_unit: row.result_unit,
+        })),
+      );
+      if (insErr) throw insErr;
+      const { error } = await supabase
+        .from("pending_test_results")
+        .update({ validation_status: "validated", validated_at: new Date().toISOString() })
+        .in("id", allowed.map((r) => r.id));
+      if (error) throw error;
+      return allowed.length;
+    },
+    onSuccess: (count) => {
+      toast.success(`${count} test(s) validé(s) et ajoutés à l'historique`);
+      invalidateAll();
+    },
+    onError: (e: any) => toast.error(e?.message || "Erreur"),
+  });
+
   const customLabels = useCustomTestLabels((pending || []).map((r: any) => r.test_type));
 
   if (!pending || pending.length === 0) return null;
+
 
   return (
     <Card className="border-warning/40">
