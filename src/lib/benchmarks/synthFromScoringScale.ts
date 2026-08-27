@@ -61,9 +61,20 @@ function rangesToLevels(ranges: Range[], lowerIsBetter: boolean): SynthLevel[] {
   const sorted = [...ranges].sort((a, b) => (a.points ?? 0) - (b.points ?? 0));
   // levels order = du pire au meilleur (points croissant)
   return sorted.map((r, i) => {
-    const threshold = lowerIsBetter
-      ? r.max ?? r.min ?? null
-      : r.min ?? r.max ?? null;
+    // Les bornes min/max peuvent être saisies dans n'importe quel ordre
+    // (ex. min 6.59 / max 6.3 pour un test où le plus bas est le meilleur).
+    const bounds = [r.min, r.max].filter(
+      (v): v is number => v != null && Number.isFinite(Number(v)),
+    ) as number[];
+    // Seuil = borne la plus permissive du palier :
+    //  - lowerIsBetter : la valeur maximale tolérée (borne haute)
+    //  - sinon : la valeur minimale requise (borne basse)
+    const threshold = bounds.length
+      ? lowerIsBetter
+        ? Math.max(...bounds)
+        : Math.min(...bounds)
+      : null;
+
     return {
       label: r.label && r.label.trim() ? r.label : DEFAULT_LABELS[i] || `Niveau ${i}`,
       threshold: threshold != null ? Number(threshold) : null,
