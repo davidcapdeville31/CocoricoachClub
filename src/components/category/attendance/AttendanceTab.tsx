@@ -11,7 +11,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { ClipboardCheck, Calendar, Users, TrendingUp, ChevronRight, Filter, Clock, AlertCircle, CheckCircle, Check, X, HelpCircle, FileText, FileSpreadsheet } from "lucide-react";
-import { exportAttendancePdf, exportAttendanceExcel, type AttendanceExportRow } from "@/lib/attendanceExport";
+import {
+  exportAttendanceDayPdf,
+  exportAttendanceDayExcel,
+  type AttendanceExportRow,
+  type AttendanceDayRow,
+} from "@/lib/attendanceExport";
 import { toast } from "sonner";
 import { format, startOfMonth, endOfMonth, subMonths, subDays, isWithinInterval, parseISO } from "date-fns";
 import { SessionAttendanceDialog } from "./SessionAttendanceDialog";
