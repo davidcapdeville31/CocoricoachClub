@@ -196,6 +196,17 @@ export function PendingTestResultsValidation({ categoryId }: Props) {
         <CardDescription className="text-xs">
           Résultats saisis par les athlètes en attente de validation pour intégrer l'historique des tests.
         </CardDescription>
+        <div className="pt-2">
+          <Button
+            size="sm"
+            className="h-8 gap-1.5"
+            onClick={() => validateAll.mutate(pending as any[])}
+            disabled={validateAll.isPending}
+          >
+            <CheckCheck className="h-4 w-4" />
+            Valider tous les tests ({pending.length})
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-2">
         {pending.map((row: any) => {
@@ -211,6 +222,15 @@ export function PendingTestResultsValidation({ categoryId }: Props) {
                   {row.test_date && ` • ${format(new Date(row.test_date), "d MMM", { locale: getDateLocale() })}`}
                 </div>
               </div>
+              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="Modifier"
+                onClick={() => {
+                  setEditRow(row);
+                  setEditValue(row.result_value != null ? String(row.result_value) : "");
+                  setEditUnit(row.result_unit || "");
+                  setEditDate(row.test_date || "");
+                }}>
+                <Pencil className="h-4 w-4" />
+              </Button>
               <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-success hover:text-success" title="Valider"
                 onClick={() => decide.mutate({ row, status: "validated" })} disabled={decide.isPending}>
                 <Check className="h-4 w-4" />
@@ -223,6 +243,55 @@ export function PendingTestResultsValidation({ categoryId }: Props) {
           );
         })}
       </CardContent>
+
+      <Dialog open={!!editRow} onOpenChange={(o) => !o && setEditRow(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Modifier le résultat</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="text-xs text-muted-foreground">
+              {editRow ? labelizeTestType(editRow.test_type || "", customLabels) : ""}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-value">Résultat</Label>
+                <Input
+                  id="edit-value"
+                  inputMode="decimal"
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-unit">Unité</Label>
+                <Input
+                  id="edit-unit"
+                  value={editUnit}
+                  onChange={(e) => setEditUnit(e.target.value)}
+                  placeholder="kg, s, m…"
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-date">Date du test</Label>
+              <Input
+                id="edit-date"
+                type="date"
+                value={editDate}
+                onChange={(e) => setEditDate(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditRow(null)}>Annuler</Button>
+            <Button onClick={() => saveEdit.mutate()} disabled={saveEdit.isPending}>
+              Enregistrer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </Card>
   );
 }
