@@ -10,6 +10,7 @@ import { format } from "date-fns";
 
 import { useSeasonGuard } from "@/hooks/use-season-guard";
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
 
 interface Props {
   categoryId: string;
