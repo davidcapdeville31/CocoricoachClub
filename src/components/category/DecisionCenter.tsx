@@ -1213,6 +1213,12 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
           players={players as any}
           participants={todaySessionParticipants as any}
         />
+        <TestCampaignsCompletionCard
+          categoryId={categoryId}
+          date={today}
+          players={players as any}
+        />
+
 
         {/* 1.6️⃣ PRÉSENCES + RPE DU JOUR (colonne empilée) */}
         <div className="space-y-4">
