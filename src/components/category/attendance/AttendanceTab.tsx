@@ -502,16 +502,57 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
         const totalParticipants = filteredParticipants.length;
         const futureSessionsCount = (filteredSessions || []).filter((s) => s.session_date > todayStr).length;
 
-        const sessionOptions = (filteredSessions || [])
-          .slice()
-          .sort((a, b) => new Date(b.session_date).getTime() - new Date(a.session_date).getTime());
+        // Group sessions by day so a whole day is exported/displayed in one table
+        const dayOptions = Array.from(
+          new Set((filteredSessions || []).map((s) => s.session_date)),
+        ).sort((a, b) => b.localeCompare(a));
 
-        const detailSession = detailSessionId
-          ? sessionOptions.find((s) => s.id === detailSessionId)
-          : null;
-        const detailParticipants = detailSession
-          ? completeWithRoster(detailSession as AttendanceSession, detailEventParticipants || [])
-          : [];
+        const detailSessions = (filteredSessions || [])
+          .filter((s) => s.session_date === detailDay)
+          .sort((a, b) => (a.session_start_time || "").localeCompare(b.session_start_time || ""));
+
+        const detailRowsBySession = new Map<string, EventParticipantRow[]>();
+        for (const p of detailEventParticipants || []) {
+          const list = detailRowsBySession.get(p.training_session_id) || [];
+          list.push(p);
+          detailRowsBySession.set(p.training_session_id, list);
+        }
+        detailSessions.forEach((s) => {
+          detailRowsBySession.set(
+            s.id,
+            completeWithRoster(s as AttendanceSession, detailRowsBySession.get(s.id) || []),
+          );
+        });
+
+        // Athlete rows × session columns matrix
+        const matrix = new Map<
+          string,
+          { name: string; cells: Record<string, { status: "present" | "absent" | "no_response"; comment?: string | null }> }
+        >();
+        detailSessions.forEach((s) => {
+          (detailRowsBySession.get(s.id) || []).forEach((p) => {
+            const pl = p.players || {};
+            const name = pl.first_name ? `${pl.first_name} ${pl.name ?? ""}`.trim() : pl.name || "-";
+            const entry = matrix.get(p.player_id) || { name, cells: {} };
+            entry.cells[s.id] = {
+              status: normalizeStatus(p.attendance_status),
+              comment: p.absence_comment,
+            };
+            matrix.set(p.player_id, entry);
+          });
+        });
+        const matrixRows = Array.from(matrix.values()).sort((a, b) => a.name.localeCompare(b.name));
+
+        const statusClasses = {
+          present: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
+          absent: "bg-rose-500/15 text-rose-700 dark:text-rose-400",
+          no_response: "bg-muted text-muted-foreground",
+        } as const;
+        const statusLabels = {
+          present: t("admin.attendance.present"),
+          absent: t("admin.attendance.absent"),
+          no_response: t("admin.attendance.noResponse"),
+        } as const;
 
 
         return (
