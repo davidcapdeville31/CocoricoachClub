@@ -442,7 +442,22 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
   const customTestMap = useCustomTestLabels(allCustomTestTypes);
 
   const getTestResultsForSession = (sessionId: string) => {
-    return testResults.filter(t => t.notes?.includes(`Session ID: ${sessionId}`));
+    const session = allSessionsWithCampaigns.find((s) => s.id === sessionId);
+    const planned = session ? parseTestsFromNotes(session.notes) : [];
+    const plannedKeys = new Set(
+      planned.map((t: any) => `${t.test_category || ""}::${t.test_type || ""}`),
+    );
+    const plannedTypes = new Set(planned.map((t: any) => String(t.test_type || "")));
+    return testResults.filter((t) => {
+      // Résultat saisi par l'athlète depuis cette séance
+      if (t.notes?.includes(`Session ID: ${sessionId}`)) return true;
+      // Résultat saisi côté staff (aucun lien de séance) : on le rattache au test planifié
+      if (/Session ID:/i.test(t.notes || "")) return false;
+      return (
+        plannedKeys.has(`${t.test_category || ""}::${t.test_type || ""}`) ||
+        plannedTypes.has(String(t.test_type || ""))
+      );
+    });
   };
 
   const getTestNamesForSession = (notes: string | null): string[] => {
@@ -450,7 +465,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
     const tests = parseTestsFromNotes(notes);
     return tests.map((t: any) => {
       const type = t.test_type || t.test_category;
-      if (/^custom:/i.test(type || "")) return labelizeTestType(type, customTestMap);
+      if (/^custom[:_]/i.test(type || "")) return labelizeTestType(type, customTestMap);
       return getTestLabel(type) || labelizeTestType(type || "", customTestMap);
     }).filter(Boolean);
   };

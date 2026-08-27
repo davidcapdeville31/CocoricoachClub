@@ -697,7 +697,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                           // Fallback: parse <!--TESTS:[...]--> metadata from notes
                                           const tests = parseTestsFromNotes((session as any).notes);
                                           if (tests.length > 0) {
-                                            const labels = tests.map(tst => /^custom:/i.test(tst.test_type || "") ? labelizeTestType(tst.test_type, customTestMap) : getTestLabel(tst.test_type) || tst.test_type).join(", ");
+                                            const labels = tests.map(tst => /^custom[:_]/i.test(tst.test_type || "") ? labelizeTestType(tst.test_type, customTestMap) : getTestLabel(tst.test_type) || tst.test_type).join(", ");
                                             return t("athleteSpace.calendar.testLabel", { label: labels });
                                           }
                                           // Fallback 2: legacy "Test auto-planifié: <label>" in notes

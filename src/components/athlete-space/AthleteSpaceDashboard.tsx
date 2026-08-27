@@ -135,6 +135,12 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
           const id = code.slice("custom:".length).toLowerCase();
           return customMap[`custom:${id}`] || t("athleteSpace.dashboard.customTest");
         }
+        if (/^custom_/i.test(code || "")) {
+          return code
+            .slice("custom_".length)
+            .replace(/_/g, " ")
+            .replace(/\b\w/g, (c: string) => c.toUpperCase());
+        }
         return getTestLabel(code) || code;
       };
 
