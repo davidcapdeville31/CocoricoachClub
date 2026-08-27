@@ -11,7 +11,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { ClipboardCheck, Calendar, Users, TrendingUp, ChevronRight, Filter, Clock, AlertCircle, CheckCircle, Check, X, HelpCircle, FileText, FileSpreadsheet } from "lucide-react";
-import { exportAttendancePdf, exportAttendanceExcel, type AttendanceExportRow } from "@/lib/attendanceExport";
+import {
+  exportAttendanceDayPdf,
+  exportAttendanceDayExcel,
+  type AttendanceExportRow,
+  type AttendanceDayRow,
+} from "@/lib/attendanceExport";
 import { toast } from "sonner";
 import { format, startOfMonth, endOfMonth, subMonths, subDays, isWithinInterval, parseISO } from "date-fns";
 import { SessionAttendanceDialog } from "./SessionAttendanceDialog";
@@ -79,7 +84,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
   const { isViewer } = useViewerModeContext();
   const [selectedSession, setSelectedSession] = useState<AttendanceSession | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [detailSessionId, setDetailSessionId] = useState<string | null>(null);
+  const [detailDay, setDetailDay] = useState<string | null>(null);
   
   // Date range filter
   const [startDate, setStartDate] = useState(() => {
@@ -144,13 +149,13 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
     queryFn: () => fetchEventParticipantsBySessionIds(sessionIds),
   });
 
+  const daySessions = (sessions || []).filter((s) => s.session_date === detailDay);
+  const daySessionIds = daySessions.map((s) => s.id);
+
   const { data: detailEventParticipants, isLoading: detailParticipantsLoading } = useQuery({
-    queryKey: ["event_participants_attendance_detail", detailSessionId],
-    enabled: !!detailSessionId,
-    queryFn: async () => {
-      if (!detailSessionId) return [];
-      return fetchEventParticipantsBySessionIds([detailSessionId]);
-    },
+    queryKey: ["event_participants_attendance_detail", detailDay, daySessionIds.join(",")],
+    enabled: !!detailDay && daySessionIds.length > 0,
+    queryFn: async () => fetchEventParticipantsBySessionIds(daySessionIds),
   });
 
   // Athlete-created private sessions are not roster-wide: never complete them with the roster
@@ -259,52 +264,62 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
     return title;
   };
 
-  const handleExportDetail = async (
+  const exportLabels = () => ({
+    title: t("admin.attendance.detailBySession"),
+    athlete: t("adminAttendance.participants.defaultAthlete"),
+    status: t("admin.attendance.status", { defaultValue: "Statut" }),
+    reason: t("admin.attendance.reason", { defaultValue: "Motif" }),
+    respondedAt: t("admin.attendance.respondedAt", { defaultValue: "Réponse le" }),
+    present: t("admin.attendance.present"),
+    absent: t("admin.attendance.absent"),
+    noResponse: t("admin.attendance.noResponse"),
+    session: t("admin.attendance.sessionLabel", { defaultValue: "Séance" }),
+    date: t("admin.attendance.dateLabel", { defaultValue: "Date" }),
+  });
+
+  const participantName = (p: EventParticipantRow) => {
+    const pl = p.players || {};
+    return pl.first_name ? `${pl.first_name} ${pl.name ?? ""}`.trim() : pl.name || "-";
+  };
+
+  const normalizeStatus = (s?: string | null): AttendanceExportRow["status"] =>
+    s === "present" || s === "absent" ? s : "no_response";
+
+  /** Export every session of the selected day in a single condensed table. */
+  const handleExportDay = async (
     kind: "pdf" | "excel",
-    session: AttendanceSession,
-    participants: EventParticipantRow[],
+    day: string,
+    sessionsOfDay: AttendanceSession[],
+    rowsBySession: Map<string, EventParticipantRow[]>,
   ) => {
     try {
-      const rows: AttendanceExportRow[] = (participants || [])
-        .map((p) => {
-          const pl = p.players || {};
-          const name = pl.first_name ? `${pl.first_name} ${pl.name ?? ""}`.trim() : pl.name || "-";
-          const status = (p.attendance_status === "present" || p.attendance_status === "absent"
-            ? p.attendance_status
-            : "no_response") as AttendanceExportRow["status"];
-          return {
-            name,
-            status,
-            comment: status === "absent" ? p.absence_comment : null,
-            respondedAt: p.responded_at ? format(new Date(p.responded_at), "dd/MM/yyyy HH:mm") : null,
+      const exportSessions = sessionsOfDay.map((s) => ({ id: s.id, label: getSessionLabel(s) }));
+      const byPlayer = new Map<string, AttendanceDayRow>();
+
+      sessionsOfDay.forEach((s) => {
+        (rowsBySession.get(s.id) || []).forEach((p) => {
+          const name = participantName(p);
+          const existing = byPlayer.get(p.player_id) || { name, cells: {} };
+          existing.cells[s.id] = {
+            status: normalizeStatus(p.attendance_status),
+            comment: p.absence_comment,
           };
-        })
-        .sort((a, b) => {
-          const order = { present: 0, absent: 1, no_response: 2 } as const;
-          return order[a.status] - order[b.status] || a.name.localeCompare(b.name);
+          byPlayer.set(p.player_id, existing);
         });
+      });
+
+      const rows = Array.from(byPlayer.values()).sort((a, b) => a.name.localeCompare(b.name));
 
       const ctx = {
         categoryId,
-        sessionLabel: getSessionLabel(session),
-        sessionDate: format(parseISO(session.session_date), "dd/MM/yyyy"),
+        dayLabel: format(parseISO(day), "dd/MM/yyyy"),
+        sessions: exportSessions,
         rows,
-        labels: {
-          title: t("admin.attendance.detailBySession"),
-          athlete: t("adminAttendance.participants.defaultAthlete"),
-          status: t("admin.attendance.status", { defaultValue: "Statut" }),
-          reason: t("admin.attendance.reason", { defaultValue: "Motif" }),
-          respondedAt: t("admin.attendance.respondedAt", { defaultValue: "Réponse le" }),
-          present: t("admin.attendance.present"),
-          absent: t("admin.attendance.absent"),
-          noResponse: t("admin.attendance.noResponse"),
-          session: t("admin.attendance.sessionLabel", { defaultValue: "Séance" }),
-          date: t("admin.attendance.dateLabel", { defaultValue: "Date" }),
-        },
+        labels: exportLabels(),
       };
 
-      if (kind === "pdf") await exportAttendancePdf(ctx);
-      else await exportAttendanceExcel(ctx);
+      if (kind === "pdf") await exportAttendanceDayPdf(ctx);
+      else await exportAttendanceDayExcel(ctx);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Export error");
     }
@@ -487,16 +502,57 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
         const totalParticipants = filteredParticipants.length;
         const futureSessionsCount = (filteredSessions || []).filter((s) => s.session_date > todayStr).length;
 
-        const sessionOptions = (filteredSessions || [])
-          .slice()
-          .sort((a, b) => new Date(b.session_date).getTime() - new Date(a.session_date).getTime());
+        // Group sessions by day so a whole day is exported/displayed in one table
+        const dayOptions = Array.from(
+          new Set((filteredSessions || []).map((s) => s.session_date)),
+        ).sort((a, b) => b.localeCompare(a));
 
-        const detailSession = detailSessionId
-          ? sessionOptions.find((s) => s.id === detailSessionId)
-          : null;
-        const detailParticipants = detailSession
-          ? completeWithRoster(detailSession as AttendanceSession, detailEventParticipants || [])
-          : [];
+        const detailSessions = (filteredSessions || [])
+          .filter((s) => s.session_date === detailDay)
+          .sort((a, b) => (a.session_start_time || "").localeCompare(b.session_start_time || ""));
+
+        const detailRowsBySession = new Map<string, EventParticipantRow[]>();
+        for (const p of detailEventParticipants || []) {
+          const list = detailRowsBySession.get(p.training_session_id) || [];
+          list.push(p);
+          detailRowsBySession.set(p.training_session_id, list);
+        }
+        detailSessions.forEach((s) => {
+          detailRowsBySession.set(
+            s.id,
+            completeWithRoster(s as AttendanceSession, detailRowsBySession.get(s.id) || []),
+          );
+        });
+
+        // Athlete rows × session columns matrix
+        const matrix = new Map<
+          string,
+          { name: string; cells: Record<string, { status: "present" | "absent" | "no_response"; comment?: string | null }> }
+        >();
+        detailSessions.forEach((s) => {
+          (detailRowsBySession.get(s.id) || []).forEach((p) => {
+            const pl = p.players || {};
+            const name = pl.first_name ? `${pl.first_name} ${pl.name ?? ""}`.trim() : pl.name || "-";
+            const entry = matrix.get(p.player_id) || { name, cells: {} };
+            entry.cells[s.id] = {
+              status: normalizeStatus(p.attendance_status),
+              comment: p.absence_comment,
+            };
+            matrix.set(p.player_id, entry);
+          });
+        });
+        const matrixRows = Array.from(matrix.values()).sort((a, b) => a.name.localeCompare(b.name));
+
+        const statusClasses = {
+          present: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
+          absent: "bg-rose-500/15 text-rose-700 dark:text-rose-400",
+          no_response: "bg-muted text-muted-foreground",
+        } as const;
+        const statusLabels = {
+          present: t("admin.attendance.present"),
+          absent: t("admin.attendance.absent"),
+          no_response: t("admin.attendance.noResponse"),
+        } as const;
 
 
         return (
@@ -562,16 +618,18 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                       {t("admin.attendance.detailBySession")}
                     </CardTitle>
                     <CardDescription>
-                      {t("admin.attendance.selectSessionHint")}
+                      {t("admin.attendance.selectDayHint", {
+                        defaultValue: "Choisissez une journée : tous les événements du jour sont regroupés dans un seul tableau (et un seul export).",
+                      })}
                     </CardDescription>
                   </div>
-                  {detailSession && (
+                  {detailSessions.length > 0 && detailDay && (
                     <div className="flex gap-2">
                       <Button
                         variant="outline"
                         size="sm"
                         className="gap-1.5"
-                        onClick={() => handleExportDetail("pdf", detailSession, detailParticipants)}
+                        onClick={() => handleExportDay("pdf", detailDay, detailSessions as AttendanceSession[], detailRowsBySession)}
                       >
                         <FileText className="h-4 w-4" /> PDF
                       </Button>
@@ -579,7 +637,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                         variant="outline"
                         size="sm"
                         className="gap-1.5"
-                        onClick={() => handleExportDetail("excel", detailSession, detailParticipants)}
+                        onClick={() => handleExportDay("excel", detailDay, detailSessions as AttendanceSession[], detailRowsBySession)}
                       >
                         <FileSpreadsheet className="h-4 w-4" /> Excel
                       </Button>
@@ -589,36 +647,79 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
               </CardHeader>
 
               <CardContent className="space-y-4">
-                {sessionOptions.length === 0 ? (
+                {dayOptions.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">
                     {t("admin.attendance.noSessionsInPeriod")}
                   </p>
                 ) : (
                   <>
-                    <Select value={detailSessionId ?? ""} onValueChange={(v) => setDetailSessionId(v || null)}>
+                    <Select value={detailDay ?? ""} onValueChange={(v) => setDetailDay(v || null)}>
                       <SelectTrigger className="w-full sm:w-[420px]">
-                        <SelectValue placeholder={t("admin.attendance.chooseSession")} />
+                        <SelectValue placeholder={t("admin.attendance.chooseDay", { defaultValue: "Choisir une journée" })} />
                       </SelectTrigger>
                       <SelectContent>
-                        {sessionOptions.map((s) => (
-                          <SelectItem key={s.id} value={s.id}>
-                            {format(parseISO(s.session_date), "dd MMM yyyy", { locale: getDateLocale() })} — {getSessionLabel(s)}
-                          </SelectItem>
-                        ))}
+                        {dayOptions.map((d) => {
+                          const count = (filteredSessions || []).filter((s) => s.session_date === d).length;
+                          return (
+                            <SelectItem key={d} value={d}>
+                              {format(parseISO(d), "EEEE dd MMM yyyy", { locale: getDateLocale() })} — {count}{" "}
+                              {t("admin.attendance.eventsCount", { defaultValue: "événement(s)" })}
+                            </SelectItem>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
 
-                    {detailSession && detailParticipantsLoading ? (
+                    {detailDay && detailParticipantsLoading ? (
                       <p className="text-sm text-muted-foreground text-center py-4">
                         {t("common.loading", { defaultValue: "Chargement..." })}
                       </p>
-                    ) : detailSession && totalParticipants >= 0 && (
-                      <ParticipantsAttendanceList
-                        participants={detailParticipants}
-                        title={t("admin.attendance.sessionOn", { date: format(parseISO(detailSession.session_date), "dd/MM/yyyy", { locale: getDateLocale() }) })}
-                        emptyLabel={t("admin.attendance.noAthleteAssignedToSession")}
-                      />
-                    )}
+                    ) : detailDay && detailSessions.length > 0 ? (
+                      <div className="rounded-xl border overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="min-w-[180px] sticky left-0 bg-card z-10">
+                                {t("adminAttendance.participants.defaultAthlete")}
+                              </TableHead>
+                              {detailSessions.map((s) => (
+                                <TableHead key={s.id} className="min-w-[150px] whitespace-normal align-top">
+                                  {getSessionLabel(s as AttendanceSession)}
+                                </TableHead>
+                              ))}
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {matrixRows.length === 0 ? (
+                              <TableRow>
+                                <TableCell colSpan={detailSessions.length + 1} className="text-center text-muted-foreground py-6">
+                                  {t("admin.attendance.noAthleteAssignedToSession")}
+                                </TableCell>
+                              </TableRow>
+                            ) : (
+                              matrixRows.map((row) => (
+                                <TableRow key={row.name}>
+                                  <TableCell className="font-medium sticky left-0 bg-card z-10">{row.name}</TableCell>
+                                  {detailSessions.map((s) => {
+                                    const cell = row.cells[s.id] || { status: "no_response" as const };
+                                    return (
+                                      <TableCell key={s.id}>
+                                        <span className={`inline-flex px-2 py-0.5 rounded-md text-xs font-medium ${statusClasses[cell.status]}`}>
+                                          {statusLabels[cell.status]}
+                                        </span>
+                                        {cell.status === "absent" && cell.comment && (
+                                          <p className="text-[11px] text-muted-foreground mt-1">{cell.comment}</p>
+                                        )}
+                                      </TableCell>
+                                    );
+                                  })}
+                                </TableRow>
+                              ))
+                            )}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    ) : null}
                   </>
                 )}
               </CardContent>
