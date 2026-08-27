@@ -10,6 +10,7 @@ import { format } from "date-fns";
 
 import { useSeasonGuard } from "@/hooks/use-season-guard";
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
 
 interface Props {
   categoryId: string;
@@ -87,6 +88,8 @@ export function PendingTestResultsValidation({ categoryId }: Props) {
     },
   });
 
+  const customLabels = useCustomTestLabels((pending || []).map((r: any) => r.test_type));
+
   if (!pending || pending.length === 0) return null;
 
   return (
@@ -111,7 +114,7 @@ export function PendingTestResultsValidation({ categoryId }: Props) {
               <div className="flex-1 min-w-0">
                 <div className="font-medium truncate text-xs">{name}</div>
                 <div className="text-[11px] text-muted-foreground truncate">
-                  {row.test_type?.replace(/_/g, " ")} • {row.result_value} {row.result_unit || ""}
+                  {labelizeTestType(row.test_type || "", customLabels)} • {row.result_value} {row.result_unit || ""}
                   {row.test_date && ` • ${format(new Date(row.test_date), "d MMM", { locale: getDateLocale() })}`}
                 </div>
               </div>
