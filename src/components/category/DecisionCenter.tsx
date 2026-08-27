@@ -69,6 +69,7 @@ import { parseTestsFromNotes } from "@/lib/utils/sessionNotes";
 import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
 import { AddWellnessDialog } from "./AddWellnessDialog";
 import { TestsCompletionCard } from "./decision/TestsCompletionCard";
+import { TestCampaignsCompletionCard } from "./decision/TestCampaignsCompletionCard";
 
 import { SessionFeedbackDialog } from "./calendar/SessionFeedbackDialog";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
@@ -1213,6 +1214,12 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
           players={players as any}
           participants={todaySessionParticipants as any}
         />
+        <TestCampaignsCompletionCard
+          categoryId={categoryId}
+          date={today}
+          players={players as any}
+        />
+
 
         {/* 1.6️⃣ PRÉSENCES + RPE DU JOUR (colonne empilée) */}
         <div className="space-y-4">
