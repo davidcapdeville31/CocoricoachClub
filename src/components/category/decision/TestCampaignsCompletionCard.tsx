@@ -50,7 +50,7 @@ const fullName = (p: PlayerLite) => `${p.first_name ? p.first_name + " " : ""}${
  * Générique : fonctionne pour toutes les disciplines.
  */
 export function TestCampaignsCompletionCard({ categoryId, date, players }: Props) {
-  // 1. Sessions de la catégorie contenant une campagne de tests
+  // 1. Sessions de la catégorie contenant des tests (campagne TESTWINDOW ou tests planifiés sur une journée)
   const { data: sessions = [] } = useQuery({
     queryKey: ["decision-test-campaigns-sessions", categoryId, date],
     queryFn: async () => {
@@ -58,7 +58,7 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
         .from("training_sessions")
         .select("id, notes, training_type, session_date, session_start_time")
         .eq("category_id", categoryId)
-        .like("notes", "%TESTWINDOW%")
+        .like("notes", "%<!--TESTS:%")
         .order("session_date", { ascending: true });
       if (error) throw error;
       return data || [];
@@ -66,21 +66,33 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
     refetchInterval: 60_000,
   });
 
-  // 2. Regroupement par fenêtre active
+  // 2. Regroupement par fenêtre active (TESTWINDOW) ou par journée (test planifié sur 1 jour)
   const campaigns = useMemo(() => {
     const map = new Map<
       string,
       { start: string; end: string; sessionIds: string[]; tests: Map<string, TestRef> }
     >();
     (sessions as any[]).forEach((s) => {
+      const testsInNotes = parseTestsFromNotes(s.notes);
+      if (testsInNotes.length === 0) return;
       const win = parseTestWindowFromNotes(s.notes);
-      if (!win) return;
-      if (!(win.start <= date && date <= win.end)) return;
-      const key = `${win.start}_${win.end}`;
-      if (!map.has(key)) map.set(key, { ...win, sessionIds: [], tests: new Map() });
+      let start: string;
+      let end: string;
+      if (win) {
+        if (!(win.start <= date && date <= win.end)) return;
+        start = win.start;
+        end = win.end;
+      } else {
+        // Test planifié sur une seule journée : on l'affiche à partir du jour J
+        if (!s.session_date || s.session_date > date) return;
+        start = s.session_date;
+        end = s.session_date;
+      }
+      const key = `${start}_${end}`;
+      if (!map.has(key)) map.set(key, { start, end, sessionIds: [], tests: new Map() });
       const entry = map.get(key)!;
       entry.sessionIds.push(s.id);
-      parseTestsFromNotes(s.notes).forEach((t) => {
+      testsInNotes.forEach((t) => {
         const k = normalizeTestKey(t.test_type);
         if (k && !entry.tests.has(k)) entry.tests.set(k, t);
       });
@@ -197,9 +209,11 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
                 });
 
                 const total = targetPlayers.length;
-                const doneCount = targetPlayers.filter((p) => done.has(p.id)).length;
-                const pendingCount = targetPlayers.filter((p) => !done.has(p.id) && waiting.has(p.id)).length;
-                const missing = targetPlayers.filter((p) => !done.has(p.id) && !waiting.has(p.id));
+                const doneList = targetPlayers.filter((p) => done.has(p.id));
+                const pendingList = targetPlayers.filter((p) => !done.has(p.id) && waiting.has(p.id));
+                const missingList = targetPlayers.filter((p) => !done.has(p.id) && !waiting.has(p.id));
+                const doneCount = doneList.length;
+                const pendingCount = pendingList.length;
                 const percent = total > 0 ? Math.round((doneCount / total) * 100) : 0;
 
                 return (
@@ -246,20 +260,60 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
                         </Badge>
                       )}
                     </div>
-                    {missing.length > 0 && (
-                      <div className="flex flex-wrap gap-1 pt-1 border-t">
-                        {missing.slice(0, 30).map((p) => (
-                          <Badge key={p.id} variant="outline" className="text-[10px]">
-                            {fullName(p)}
-                          </Badge>
-                        ))}
-                        {missing.length > 30 && (
-                          <Badge variant="outline" className="text-[10px]">
-                            +{missing.length - 30}
-                          </Badge>
-                        )}
+                    <div className="grid grid-cols-2 gap-2 pt-2 border-t">
+                      {/* Colonne verte : athlètes ayant rempli */}
+                      <div className="rounded-md border border-green-500/30 bg-green-500/5 p-1.5">
+                        <p className="text-[10px] font-semibold text-green-700 dark:text-green-400 flex items-center gap-1 px-0.5 pb-1">
+                          <CheckCircle className="h-3 w-3" />
+                          Ont rempli ({doneCount})
+                        </p>
+                        <div className="max-h-28 overflow-y-auto pr-0.5">
+                          <div className="flex flex-wrap gap-1">
+                            {doneList.map((p) => (
+                              <Badge
+                                key={p.id}
+                                className="text-[10px] bg-green-500/15 text-green-700 dark:text-green-300 border border-green-500/40 hover:bg-green-500/20"
+                              >
+                                {fullName(p)}
+                              </Badge>
+                            ))}
+                            {doneCount === 0 && (
+                              <span className="text-[10px] text-muted-foreground italic px-0.5">Aucun</span>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    )}
+                      {/* Colonne rouge : athlètes n'ayant pas rempli */}
+                      <div className="rounded-md border border-red-500/30 bg-red-500/5 p-1.5">
+                        <p className="text-[10px] font-semibold text-red-700 dark:text-red-400 flex items-center gap-1 px-0.5 pb-1">
+                          <Clock className="h-3 w-3" />
+                          Pas rempli ({missingList.length + pendingCount})
+                        </p>
+                        <div className="max-h-28 overflow-y-auto pr-0.5">
+                          <div className="flex flex-wrap gap-1">
+                            {pendingList.map((p) => (
+                              <Badge
+                                key={p.id}
+                                className="text-[10px] bg-yellow-500/15 text-yellow-700 dark:text-yellow-300 border border-yellow-500/40 hover:bg-yellow-500/20"
+                              >
+                                {fullName(p)} · à valider
+                              </Badge>
+                            ))}
+                            {missingList.map((p) => (
+                              <Badge
+                                key={p.id}
+                                className="text-[10px] bg-red-500/15 text-red-700 dark:text-red-300 border border-red-500/40 hover:bg-red-500/20"
+                              >
+                                {fullName(p)}
+                              </Badge>
+                            ))}
+                            {missingList.length === 0 && pendingCount === 0 && (
+                              <span className="text-[10px] text-muted-foreground italic px-0.5">Complet ✅</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 );
               })}
