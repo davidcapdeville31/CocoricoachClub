@@ -260,20 +260,60 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
                         </Badge>
                       )}
                     </div>
-                    {missing.length > 0 && (
-                      <div className="flex flex-wrap gap-1 pt-1 border-t">
-                        {missing.slice(0, 30).map((p) => (
-                          <Badge key={p.id} variant="outline" className="text-[10px]">
-                            {fullName(p)}
-                          </Badge>
-                        ))}
-                        {missing.length > 30 && (
-                          <Badge variant="outline" className="text-[10px]">
-                            +{missing.length - 30}
-                          </Badge>
-                        )}
+                    <div className="grid grid-cols-2 gap-2 pt-2 border-t">
+                      {/* Colonne verte : athlètes ayant rempli */}
+                      <div className="rounded-md border border-green-500/30 bg-green-500/5 p-1.5">
+                        <p className="text-[10px] font-semibold text-green-700 dark:text-green-400 flex items-center gap-1 px-0.5 pb-1">
+                          <CheckCircle className="h-3 w-3" />
+                          Ont rempli ({doneCount})
+                        </p>
+                        <div className="max-h-28 overflow-y-auto pr-0.5">
+                          <div className="flex flex-wrap gap-1">
+                            {doneList.map((p) => (
+                              <Badge
+                                key={p.id}
+                                className="text-[10px] bg-green-500/15 text-green-700 dark:text-green-300 border border-green-500/40 hover:bg-green-500/20"
+                              >
+                                {fullName(p)}
+                              </Badge>
+                            ))}
+                            {doneCount === 0 && (
+                              <span className="text-[10px] text-muted-foreground italic px-0.5">Aucun</span>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    )}
+                      {/* Colonne rouge : athlètes n'ayant pas rempli */}
+                      <div className="rounded-md border border-red-500/30 bg-red-500/5 p-1.5">
+                        <p className="text-[10px] font-semibold text-red-700 dark:text-red-400 flex items-center gap-1 px-0.5 pb-1">
+                          <Clock className="h-3 w-3" />
+                          Pas rempli ({missingList.length + pendingCount})
+                        </p>
+                        <div className="max-h-28 overflow-y-auto pr-0.5">
+                          <div className="flex flex-wrap gap-1">
+                            {pendingList.map((p) => (
+                              <Badge
+                                key={p.id}
+                                className="text-[10px] bg-yellow-500/15 text-yellow-700 dark:text-yellow-300 border border-yellow-500/40 hover:bg-yellow-500/20"
+                              >
+                                {fullName(p)} · à valider
+                              </Badge>
+                            ))}
+                            {missingList.map((p) => (
+                              <Badge
+                                key={p.id}
+                                className="text-[10px] bg-red-500/15 text-red-700 dark:text-red-300 border border-red-500/40 hover:bg-red-500/20"
+                              >
+                                {fullName(p)}
+                              </Badge>
+                            ))}
+                            {missingList.length === 0 && pendingCount === 0 && (
+                              <span className="text-[10px] text-muted-foreground italic px-0.5">Complet ✅</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 );
               })}
