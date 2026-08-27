@@ -1,10 +1,20 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, X, Clock, FlaskConical } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Check, X, Clock, FlaskConical, Pencil, CheckCheck } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -21,6 +31,11 @@ export function PendingTestResultsValidation({ categoryId }: Props) {
   const guard = useSeasonGuard(categoryId);
   const { activeSeasonStart, activeSeasonEnd } = useSeasonRosterFilter();
   const scopeKey = guard.isFiltering ? `${activeSeasonStart}_${activeSeasonEnd}` : "all";
+  const [editRow, setEditRow] = useState<any | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const [editUnit, setEditUnit] = useState("");
+  const [editDate, setEditDate] = useState("");
+
 
   const { data: pending } = useQuery({
     queryKey: ["pending-test-results", categoryId, scopeKey],
@@ -88,9 +103,87 @@ export function PendingTestResultsValidation({ categoryId }: Props) {
     },
   });
 
+  const invalidateAll = () => {
+    qc.invalidateQueries({ queryKey: ["pending-test-results", categoryId] });
+    qc.invalidateQueries({ queryKey: ["pending-test-results-count", categoryId] });
+    qc.invalidateQueries({ queryKey: ["generic_tests"] });
+    qc.invalidateQueries({ queryKey: ["generic-tests-evolution", categoryId] });
+    [
+      "generic-tests-matrix",
+      "custom-tests-matrix",
+      "weight-tests-matrix",
+      "speed-tests-matrix",
+      "strength-tests-matrix",
+      "body-comp-matrix",
+      "player-measurements-matrix",
+      "benchmarks-matrix",
+      "players-matrix",
+    ].forEach((key) => qc.invalidateQueries({ queryKey: [key, categoryId] }));
+  };
+
+  const saveEdit = useMutation({
+    mutationFn: async () => {
+      if (!editRow) return;
+      const val = parseFloat(String(editValue).replace(",", "."));
+      if (!Number.isFinite(val)) throw new Error("Valeur invalide");
+      if (!editDate) throw new Error("Date invalide");
+      if (!guard.assertDate(editDate)) throw new Error("blocked");
+      const { error } = await supabase
+        .from("pending_test_results")
+        .update({
+          result_value: val,
+          result_unit: editUnit || null,
+          test_date: editDate,
+        })
+        .eq("id", editRow.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Résultat modifié");
+      setEditRow(null);
+      invalidateAll();
+    },
+    onError: (e: any) => {
+      if (e?.message !== "blocked") toast.error(e?.message || "Erreur");
+    },
+  });
+
+  const validateAll = useMutation({
+    mutationFn: async (rows: any[]) => {
+      const allowed = rows.filter(
+        (r) => guard.isPlayerAllowed(r.player_id) && guard.isDateAllowed(r.test_date),
+      );
+      if (allowed.length === 0) throw new Error("Aucun résultat validable sur la saison active");
+      const { error: insErr } = await supabase.from("generic_tests").insert(
+        allowed.map((row) => ({
+          player_id: row.player_id,
+          category_id: categoryId,
+          test_date: row.test_date,
+          test_category: row.test_category,
+          test_type: row.test_type,
+          result_value: row.result_value,
+          result_unit: row.result_unit,
+        })),
+      );
+      if (insErr) throw insErr;
+      const { error } = await supabase
+        .from("pending_test_results")
+        .update({ validation_status: "validated", validated_at: new Date().toISOString() })
+        .in("id", allowed.map((r) => r.id));
+      if (error) throw error;
+      return allowed.length;
+    },
+    onSuccess: (count) => {
+      toast.success(`${count} test(s) validé(s) et ajoutés à l'historique`);
+      invalidateAll();
+    },
+    onError: (e: any) => toast.error(e?.message || "Erreur"),
+  });
+
   const customLabels = useCustomTestLabels((pending || []).map((r: any) => r.test_type));
 
   if (!pending || pending.length === 0) return null;
+
 
   return (
     <Card className="border-warning/40">
@@ -103,6 +196,17 @@ export function PendingTestResultsValidation({ categoryId }: Props) {
         <CardDescription className="text-xs">
           Résultats saisis par les athlètes en attente de validation pour intégrer l'historique des tests.
         </CardDescription>
+        <div className="pt-2">
+          <Button
+            size="sm"
+            className="h-8 gap-1.5"
+            onClick={() => validateAll.mutate(pending as any[])}
+            disabled={validateAll.isPending}
+          >
+            <CheckCheck className="h-4 w-4" />
+            Valider tous les tests ({pending.length})
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-2">
         {pending.map((row: any) => {
@@ -118,6 +222,15 @@ export function PendingTestResultsValidation({ categoryId }: Props) {
                   {row.test_date && ` • ${format(new Date(row.test_date), "d MMM", { locale: getDateLocale() })}`}
                 </div>
               </div>
+              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="Modifier"
+                onClick={() => {
+                  setEditRow(row);
+                  setEditValue(row.result_value != null ? String(row.result_value) : "");
+                  setEditUnit(row.result_unit || "");
+                  setEditDate(row.test_date || "");
+                }}>
+                <Pencil className="h-4 w-4" />
+              </Button>
               <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-success hover:text-success" title="Valider"
                 onClick={() => decide.mutate({ row, status: "validated" })} disabled={decide.isPending}>
                 <Check className="h-4 w-4" />
@@ -130,6 +243,55 @@ export function PendingTestResultsValidation({ categoryId }: Props) {
           );
         })}
       </CardContent>
+
+      <Dialog open={!!editRow} onOpenChange={(o) => !o && setEditRow(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Modifier le résultat</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="text-xs text-muted-foreground">
+              {editRow ? labelizeTestType(editRow.test_type || "", customLabels) : ""}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-value">Résultat</Label>
+                <Input
+                  id="edit-value"
+                  inputMode="decimal"
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-unit">Unité</Label>
+                <Input
+                  id="edit-unit"
+                  value={editUnit}
+                  onChange={(e) => setEditUnit(e.target.value)}
+                  placeholder="kg, s, m…"
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-date">Date du test</Label>
+              <Input
+                id="edit-date"
+                type="date"
+                value={editDate}
+                onChange={(e) => setEditDate(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditRow(null)}>Annuler</Button>
+            <Button onClick={() => saveEdit.mutate()} disabled={saveEdit.isPending}>
+              Enregistrer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </Card>
   );
 }
