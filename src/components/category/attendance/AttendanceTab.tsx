@@ -259,52 +259,62 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
     return title;
   };
 
-  const handleExportDetail = async (
+  const exportLabels = () => ({
+    title: t("admin.attendance.detailBySession"),
+    athlete: t("adminAttendance.participants.defaultAthlete"),
+    status: t("admin.attendance.status", { defaultValue: "Statut" }),
+    reason: t("admin.attendance.reason", { defaultValue: "Motif" }),
+    respondedAt: t("admin.attendance.respondedAt", { defaultValue: "Réponse le" }),
+    present: t("admin.attendance.present"),
+    absent: t("admin.attendance.absent"),
+    noResponse: t("admin.attendance.noResponse"),
+    session: t("admin.attendance.sessionLabel", { defaultValue: "Séance" }),
+    date: t("admin.attendance.dateLabel", { defaultValue: "Date" }),
+  });
+
+  const participantName = (p: EventParticipantRow) => {
+    const pl = p.players || {};
+    return pl.first_name ? `${pl.first_name} ${pl.name ?? ""}`.trim() : pl.name || "-";
+  };
+
+  const normalizeStatus = (s?: string | null): AttendanceExportRow["status"] =>
+    s === "present" || s === "absent" ? s : "no_response";
+
+  /** Export every session of the selected day in a single condensed table. */
+  const handleExportDay = async (
     kind: "pdf" | "excel",
-    session: AttendanceSession,
-    participants: EventParticipantRow[],
+    day: string,
+    sessionsOfDay: AttendanceSession[],
+    rowsBySession: Map<string, EventParticipantRow[]>,
   ) => {
     try {
-      const rows: AttendanceExportRow[] = (participants || [])
-        .map((p) => {
-          const pl = p.players || {};
-          const name = pl.first_name ? `${pl.first_name} ${pl.name ?? ""}`.trim() : pl.name || "-";
-          const status = (p.attendance_status === "present" || p.attendance_status === "absent"
-            ? p.attendance_status
-            : "no_response") as AttendanceExportRow["status"];
-          return {
-            name,
-            status,
-            comment: status === "absent" ? p.absence_comment : null,
-            respondedAt: p.responded_at ? format(new Date(p.responded_at), "dd/MM/yyyy HH:mm") : null,
+      const exportSessions = sessionsOfDay.map((s) => ({ id: s.id, label: getSessionLabel(s) }));
+      const byPlayer = new Map<string, AttendanceDayRow>();
+
+      sessionsOfDay.forEach((s) => {
+        (rowsBySession.get(s.id) || []).forEach((p) => {
+          const name = participantName(p);
+          const existing = byPlayer.get(p.player_id) || { name, cells: {} };
+          existing.cells[s.id] = {
+            status: normalizeStatus(p.attendance_status),
+            comment: p.absence_comment,
           };
-        })
-        .sort((a, b) => {
-          const order = { present: 0, absent: 1, no_response: 2 } as const;
-          return order[a.status] - order[b.status] || a.name.localeCompare(b.name);
+          byPlayer.set(p.player_id, existing);
         });
+      });
+
+      const rows = Array.from(byPlayer.values()).sort((a, b) => a.name.localeCompare(b.name));
 
       const ctx = {
         categoryId,
-        sessionLabel: getSessionLabel(session),
-        sessionDate: format(parseISO(session.session_date), "dd/MM/yyyy"),
+        dayLabel: format(parseISO(day), "dd/MM/yyyy"),
+        sessions: exportSessions,
         rows,
-        labels: {
-          title: t("admin.attendance.detailBySession"),
-          athlete: t("adminAttendance.participants.defaultAthlete"),
-          status: t("admin.attendance.status", { defaultValue: "Statut" }),
-          reason: t("admin.attendance.reason", { defaultValue: "Motif" }),
-          respondedAt: t("admin.attendance.respondedAt", { defaultValue: "Réponse le" }),
-          present: t("admin.attendance.present"),
-          absent: t("admin.attendance.absent"),
-          noResponse: t("admin.attendance.noResponse"),
-          session: t("admin.attendance.sessionLabel", { defaultValue: "Séance" }),
-          date: t("admin.attendance.dateLabel", { defaultValue: "Date" }),
-        },
+        labels: exportLabels(),
       };
 
-      if (kind === "pdf") await exportAttendancePdf(ctx);
-      else await exportAttendanceExcel(ctx);
+      if (kind === "pdf") await exportAttendanceDayPdf(ctx);
+      else await exportAttendanceDayExcel(ctx);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Export error");
     }
