@@ -88,6 +88,8 @@ export function PendingTestResultsValidation({ categoryId }: Props) {
     },
   });
 
+  const customLabels = useCustomTestLabels((pending || []).map((r: any) => r.test_type));
+
   if (!pending || pending.length === 0) return null;
 
   return (
