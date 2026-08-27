@@ -69,6 +69,7 @@ import { parseTestsFromNotes } from "@/lib/utils/sessionNotes";
 import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
 import { AddWellnessDialog } from "./AddWellnessDialog";
 import { TestsCompletionCard } from "./decision/TestsCompletionCard";
+import { TestCampaignsCompletionCard } from "./decision/TestCampaignsCompletionCard";
 
 import { SessionFeedbackDialog } from "./calendar/SessionFeedbackDialog";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
