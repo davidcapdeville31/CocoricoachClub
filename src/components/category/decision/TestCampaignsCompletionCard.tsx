@@ -50,7 +50,7 @@ const fullName = (p: PlayerLite) => `${p.first_name ? p.first_name + " " : ""}${
  * Générique : fonctionne pour toutes les disciplines.
  */
 export function TestCampaignsCompletionCard({ categoryId, date, players }: Props) {
-  // 1. Sessions de la catégorie contenant une campagne de tests
+  // 1. Sessions de la catégorie contenant des tests (campagne TESTWINDOW ou tests planifiés sur une journée)
   const { data: sessions = [] } = useQuery({
     queryKey: ["decision-test-campaigns-sessions", categoryId, date],
     queryFn: async () => {
@@ -58,7 +58,7 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
         .from("training_sessions")
         .select("id, notes, training_type, session_date, session_start_time")
         .eq("category_id", categoryId)
-        .like("notes", "%TESTWINDOW%")
+        .like("notes", "%<!--TESTS:%")
         .order("session_date", { ascending: true });
       if (error) throw error;
       return data || [];
@@ -66,21 +66,33 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
     refetchInterval: 60_000,
   });
 
-  // 2. Regroupement par fenêtre active
+  // 2. Regroupement par fenêtre active (TESTWINDOW) ou par journée (test planifié sur 1 jour)
   const campaigns = useMemo(() => {
     const map = new Map<
       string,
       { start: string; end: string; sessionIds: string[]; tests: Map<string, TestRef> }
     >();
     (sessions as any[]).forEach((s) => {
+      const testsInNotes = parseTestsFromNotes(s.notes);
+      if (testsInNotes.length === 0) return;
       const win = parseTestWindowFromNotes(s.notes);
-      if (!win) return;
-      if (!(win.start <= date && date <= win.end)) return;
-      const key = `${win.start}_${win.end}`;
-      if (!map.has(key)) map.set(key, { ...win, sessionIds: [], tests: new Map() });
+      let start: string;
+      let end: string;
+      if (win) {
+        if (!(win.start <= date && date <= win.end)) return;
+        start = win.start;
+        end = win.end;
+      } else {
+        // Test planifié sur une seule journée : on l'affiche à partir du jour J
+        if (!s.session_date || s.session_date > date) return;
+        start = s.session_date;
+        end = s.session_date;
+      }
+      const key = `${start}_${end}`;
+      if (!map.has(key)) map.set(key, { start, end, sessionIds: [], tests: new Map() });
       const entry = map.get(key)!;
       entry.sessionIds.push(s.id);
-      parseTestsFromNotes(s.notes).forEach((t) => {
+      testsInNotes.forEach((t) => {
         const k = normalizeTestKey(t.test_type);
         if (k && !entry.tests.has(k)) entry.tests.set(k, t);
       });
