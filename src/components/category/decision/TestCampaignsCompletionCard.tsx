@@ -209,9 +209,11 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
                 });
 
                 const total = targetPlayers.length;
-                const doneCount = targetPlayers.filter((p) => done.has(p.id)).length;
-                const pendingCount = targetPlayers.filter((p) => !done.has(p.id) && waiting.has(p.id)).length;
-                const missing = targetPlayers.filter((p) => !done.has(p.id) && !waiting.has(p.id));
+                const doneList = targetPlayers.filter((p) => done.has(p.id));
+                const pendingList = targetPlayers.filter((p) => !done.has(p.id) && waiting.has(p.id));
+                const missingList = targetPlayers.filter((p) => !done.has(p.id) && !waiting.has(p.id));
+                const doneCount = doneList.length;
+                const pendingCount = pendingList.length;
                 const percent = total > 0 ? Math.round((doneCount / total) * 100) : 0;
 
                 return (
