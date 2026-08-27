@@ -618,16 +618,18 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                       {t("admin.attendance.detailBySession")}
                     </CardTitle>
                     <CardDescription>
-                      {t("admin.attendance.selectSessionHint")}
+                      {t("admin.attendance.selectDayHint", {
+                        defaultValue: "Choisissez une journée : tous les événements du jour sont regroupés dans un seul tableau (et un seul export).",
+                      })}
                     </CardDescription>
                   </div>
-                  {detailSession && (
+                  {detailSessions.length > 0 && detailDay && (
                     <div className="flex gap-2">
                       <Button
                         variant="outline"
                         size="sm"
                         className="gap-1.5"
-                        onClick={() => handleExportDetail("pdf", detailSession, detailParticipants)}
+                        onClick={() => handleExportDay("pdf", detailDay, detailSessions as AttendanceSession[], detailRowsBySession)}
                       >
                         <FileText className="h-4 w-4" /> PDF
                       </Button>
@@ -635,7 +637,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                         variant="outline"
                         size="sm"
                         className="gap-1.5"
-                        onClick={() => handleExportDetail("excel", detailSession, detailParticipants)}
+                        onClick={() => handleExportDay("excel", detailDay, detailSessions as AttendanceSession[], detailRowsBySession)}
                       >
                         <FileSpreadsheet className="h-4 w-4" /> Excel
                       </Button>
@@ -645,36 +647,79 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
               </CardHeader>
 
               <CardContent className="space-y-4">
-                {sessionOptions.length === 0 ? (
+                {dayOptions.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">
                     {t("admin.attendance.noSessionsInPeriod")}
                   </p>
                 ) : (
                   <>
-                    <Select value={detailSessionId ?? ""} onValueChange={(v) => setDetailSessionId(v || null)}>
+                    <Select value={detailDay ?? ""} onValueChange={(v) => setDetailDay(v || null)}>
                       <SelectTrigger className="w-full sm:w-[420px]">
-                        <SelectValue placeholder={t("admin.attendance.chooseSession")} />
+                        <SelectValue placeholder={t("admin.attendance.chooseDay", { defaultValue: "Choisir une journée" })} />
                       </SelectTrigger>
                       <SelectContent>
-                        {sessionOptions.map((s) => (
-                          <SelectItem key={s.id} value={s.id}>
-                            {format(parseISO(s.session_date), "dd MMM yyyy", { locale: getDateLocale() })} — {getSessionLabel(s)}
-                          </SelectItem>
-                        ))}
+                        {dayOptions.map((d) => {
+                          const count = (filteredSessions || []).filter((s) => s.session_date === d).length;
+                          return (
+                            <SelectItem key={d} value={d}>
+                              {format(parseISO(d), "EEEE dd MMM yyyy", { locale: getDateLocale() })} — {count}{" "}
+                              {t("admin.attendance.eventsCount", { defaultValue: "événement(s)" })}
+                            </SelectItem>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
 
-                    {detailSession && detailParticipantsLoading ? (
+                    {detailDay && detailParticipantsLoading ? (
                       <p className="text-sm text-muted-foreground text-center py-4">
                         {t("common.loading", { defaultValue: "Chargement..." })}
                       </p>
-                    ) : detailSession && totalParticipants >= 0 && (
-                      <ParticipantsAttendanceList
-                        participants={detailParticipants}
-                        title={t("admin.attendance.sessionOn", { date: format(parseISO(detailSession.session_date), "dd/MM/yyyy", { locale: getDateLocale() }) })}
-                        emptyLabel={t("admin.attendance.noAthleteAssignedToSession")}
-                      />
-                    )}
+                    ) : detailDay && detailSessions.length > 0 ? (
+                      <div className="rounded-xl border overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="min-w-[180px] sticky left-0 bg-card z-10">
+                                {t("adminAttendance.participants.defaultAthlete")}
+                              </TableHead>
+                              {detailSessions.map((s) => (
+                                <TableHead key={s.id} className="min-w-[150px] whitespace-normal align-top">
+                                  {getSessionLabel(s as AttendanceSession)}
+                                </TableHead>
+                              ))}
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {matrixRows.length === 0 ? (
+                              <TableRow>
+                                <TableCell colSpan={detailSessions.length + 1} className="text-center text-muted-foreground py-6">
+                                  {t("admin.attendance.noAthleteAssignedToSession")}
+                                </TableCell>
+                              </TableRow>
+                            ) : (
+                              matrixRows.map((row) => (
+                                <TableRow key={row.name}>
+                                  <TableCell className="font-medium sticky left-0 bg-card z-10">{row.name}</TableCell>
+                                  {detailSessions.map((s) => {
+                                    const cell = row.cells[s.id] || { status: "no_response" as const };
+                                    return (
+                                      <TableCell key={s.id}>
+                                        <span className={`inline-flex px-2 py-0.5 rounded-md text-xs font-medium ${statusClasses[cell.status]}`}>
+                                          {statusLabels[cell.status]}
+                                        </span>
+                                        {cell.status === "absent" && cell.comment && (
+                                          <p className="text-[11px] text-muted-foreground mt-1">{cell.comment}</p>
+                                        )}
+                                      </TableCell>
+                                    );
+                                  })}
+                                </TableRow>
+                              ))
+                            )}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    ) : null}
                   </>
                 )}
               </CardContent>
