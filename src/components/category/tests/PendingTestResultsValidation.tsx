@@ -1,10 +1,20 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, X, Clock, FlaskConical } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Check, X, Clock, FlaskConical, Pencil, CheckCheck } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -21,6 +31,11 @@ export function PendingTestResultsValidation({ categoryId }: Props) {
   const guard = useSeasonGuard(categoryId);
   const { activeSeasonStart, activeSeasonEnd } = useSeasonRosterFilter();
   const scopeKey = guard.isFiltering ? `${activeSeasonStart}_${activeSeasonEnd}` : "all";
+  const [editRow, setEditRow] = useState<any | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const [editUnit, setEditUnit] = useState("");
+  const [editDate, setEditDate] = useState("");
+
 
   const { data: pending } = useQuery({
     queryKey: ["pending-test-results", categoryId, scopeKey],
