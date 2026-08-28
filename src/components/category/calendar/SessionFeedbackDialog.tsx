@@ -6,7 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import { Badge } from "@/components/ui/badge";
-import { Activity, ClipboardCheck, Dumbbell, Pencil, Plus, Target, X } from "lucide-react";
+import {
+  Activity,
+  ArrowUpDown,
+  ClipboardCheck,
+  Dumbbell,
+  Pencil,
+  Plus,
+  Search,
+  Target,
+  X,
+} from "lucide-react";
 import { SessionWeightLogTab } from "./SessionWeightLogTab";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
