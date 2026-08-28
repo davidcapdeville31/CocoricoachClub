@@ -459,6 +459,18 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
       () => (todayAttendanceRaw || []).filter((a: any) => keepPlayer(a.player_id) && isDateInActiveSeason(a.attendance_date)),
       [todayAttendanceRaw, allowedIds, isDateInActiveSeason]
     );
+    // Un athlète peut avoir plusieurs séances dans la journée → 1 seule ligne par athlète
+    // (priorité au statut le plus "critique" pour la synthèse du jour)
+    const todayAttendanceByPlayer = useMemo(() => {
+      const rank: Record<string, number> = { absent: 4, excused: 3, late: 2, present: 1 };
+      const map = new Map<string, any>();
+      (todayAttendance as any[]).forEach((a) => {
+        const prev = map.get(a.player_id);
+        if (!prev || (rank[a.status] ?? 0) > (rank[prev.status] ?? 0)) map.set(a.player_id, a);
+      });
+      return Array.from(map.values());
+    }, [todayAttendance]);
+
 
      // Fetch participants assigned to today's sessions
      const { data: todaySessionParticipantsRaw = [] } = useQuery({
