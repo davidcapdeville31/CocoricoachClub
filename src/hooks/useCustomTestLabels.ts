@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { TEST_CATEGORIES } from "@/lib/constants/testCategories";
 
 /**
  * Resolves labels + units for test_types stored as `custom:<uuid>` by
