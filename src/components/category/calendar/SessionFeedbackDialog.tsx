@@ -876,9 +876,30 @@ export function SessionFeedbackDialog({
               {t("planning.calendarDialogs.sessionFeedback.rpeHint")}
             </p>
 
+            <div className="flex items-center gap-2 mb-3">
+              <Search className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <Input
+                type="text"
+                placeholder={t("planning.calendarDialogs.sessionFeedback.searchPlayerPlaceholder")}
+                className="h-8 flex-1 text-xs"
+                value={rpePlayerSearch}
+                onChange={(e) => setRpePlayerSearch(e.target.value)}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 text-xs"
+                title={t("planning.calendarDialogs.sessionFeedback.sortAlphabetical")}
+                onClick={() => setRpePlayerSortAsc((prev) => !prev)}
+              >
+                <ArrowUpDown className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+
             <div className="flex-1 min-h-0 overflow-y-auto pr-2" style={{ maxHeight: "calc(90vh - 240px)" }}>
               <div className="space-y-2">
-                {playersForTests.map((player) => {
+                {filteredRpePlayers.map((player) => {
                   const existing = existingRpe?.find((r) => r.player_id === player.id);
 
                   return (
