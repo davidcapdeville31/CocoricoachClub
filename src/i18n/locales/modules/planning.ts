@@ -618,6 +618,8 @@ export const planningFr = {
       min: "Min",
       edit: "Modifier",
       testsHint: "Résultats des tests planifiés pour cette séance. Chaque valeur est enregistrée automatiquement à la sortie du champ.",
+      searchPlayerPlaceholder: "Rechercher un athlète (nom ou prénom)",
+      sortAlphabetical: "Trier par ordre alphabétique",
       resultPlaceholder: "Résultat",
       athletePendingLabel: " — athlète (à valider)",
       athleteValidatedLabel: " ✓ athlète",
