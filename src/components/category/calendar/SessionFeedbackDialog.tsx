@@ -689,6 +689,25 @@ export function SessionFeedbackDialog({
       });
   };
 
+  const filteredRpePlayers = useMemo(() => {
+    const query = rpePlayerSearch.trim().toLowerCase();
+    return [...playersToShow]
+      .filter((p) => {
+        if (!query) return true;
+        const full = getPlayerFullName(p).toLowerCase();
+        const first = (p.first_name || "").toLowerCase();
+        const last = (p.name || "").toLowerCase();
+        return full.includes(query) || first.includes(query) || last.includes(query);
+      })
+      .sort((a, b) => {
+        const nameA = getPlayerFullName(a).toLowerCase();
+        const nameB = getPlayerFullName(b).toLowerCase();
+        return rpePlayerSortAsc
+          ? nameA.localeCompare(nameB)
+          : nameB.localeCompare(nameA);
+      });
+  }, [playersToShow, rpePlayerSearch, rpePlayerSortAsc]);
+
   const hasNewRpeValues = Object.entries(rpeValues).some(
     ([id, val]) => val.rpe && val.duration && (!playersWithRpe.has(id) || editingRpe.has(id))
   );
