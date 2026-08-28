@@ -129,7 +129,7 @@ export const TEST_CATEGORIES: TestCategory[] = [
     value: "corporel",
     label: "Anthropométrie",
     tests: [
-      { value: "weight", label: "Poids", unit: "kg" },
+      { value: "weight", label: "Pesée", unit: "kg" },
       { value: "bmi", label: "IMC", unit: "" },
       { value: "arm_circumference", label: "Tour de bras", unit: "cm" },
       { value: "hip_circumference", label: "Tour de hanches", unit: "cm" },
