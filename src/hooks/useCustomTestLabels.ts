@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { TEST_CATEGORIES } from "@/lib/constants/testCategories";
 
 /**
  * Resolves labels + units for test_types stored as `custom:<uuid>` by
@@ -71,6 +72,11 @@ export function labelizeTestType(
       known?.name ||
       slug.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
     );
+  }
+  // Fallback : libellé du catalogue système (ex : "weight" → "Pesée")
+  for (const category of TEST_CATEGORIES) {
+    const found = category.tests.find((t) => t.value === testType);
+    if (found) return found.label;
   }
   return (testType || "").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
