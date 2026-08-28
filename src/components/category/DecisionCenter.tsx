@@ -1129,6 +1129,8 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+        {/* 1.5️⃣ WELLNESS + PRÉSENCES + RPE DU JOUR (colonne empilée) */}
+        <div className="space-y-4">
         {/* 1.5️⃣ WELLNESS DU JOUR */}
         <Card className="border-2 border-green-500/20 bg-gradient-to-r from-green-500/5 to-transparent">
           <CardHeader className="pb-2">
@@ -1219,157 +1221,8 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
             </button>
           </CardContent>
         </Card>
-        <TestsCompletionCard
-          categoryId={categoryId}
-          date={today}
-          sessions={todaySessions as any}
-          players={players as any}
-          participants={todaySessionParticipants as any}
-        />
-        <TestCampaignsCompletionCard
-          categoryId={categoryId}
-          date={today}
-          players={players as any}
-        />
 
-        {/* 1.5️⃣ SÉANCES PRÉVUES */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-primary" />
-              {t("decision.sessions.title")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {/* Today */}
-            <div>
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
-                {t("decision.sessions.today")}
-              </p>
-              {todaySessions.length === 0 ? (
-                <p className="text-sm text-muted-foreground italic">{t("decision.sessions.none")}</p>
-              ) : (
-                <div className="space-y-2">
-                  {todaySessions.slice(0, 2).map(session => {
-                    const testNames = getTestNamesFromSession(session);
-                    return (
-                      <div
-                        key={session.id}
-                        className="flex items-center justify-between p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Activity className="h-4 w-4 text-primary" />
-                          <div>
-                            <p className="font-medium text-sm">{getTrainingTypeLabel(session.training_type)}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {session.session_start_time?.slice(0, 5)} • {t("decision.sessions.targetLoad", { value: session.planned_intensity || 5 })}
-                            </p>
-                            {testNames.length > 0 && (
-                              <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
-                                {t("decision.sessions.testLabel", { names: testNames.join(", ") })}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-0.5 shrink-0">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 w-7 p-0"
-                            onClick={() => handleEditSession(session)}
-                            title={t("decision.sessions.edit")}
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 w-7 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                            onClick={() => handleNotifySession(session)}
-                            title={t("decision.sessions.notify")}
-                          >
-                            <Bell className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 w-7 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                            onClick={() => setDeleteSessionId(session.id)}
-                            title={t("decision.sessions.delete")}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* Tomorrow */}
-            <div>
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
-                {t("decision.sessions.tomorrow")}
-              </p>
-              {tomorrowSessions.length === 0 ? (
-                <p className="text-sm text-muted-foreground italic">{t("decision.sessions.none")}</p>
-              ) : (
-                <div className="space-y-2">
-                  {tomorrowSessions.slice(0, 2).map(session => {
-                    const testNames = getTestNamesFromSession(session);
-                    return (
-                      <div
-                        key={session.id}
-                        className="flex items-center justify-between p-2 rounded-lg bg-muted/50"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Activity className="h-4 w-4 text-muted-foreground" />
-                          <div>
-                            <p className="font-medium text-sm">{getTrainingTypeLabel(session.training_type)}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {session.session_start_time?.slice(0, 5)} • {t("decision.sessions.targetLoad", { value: session.planned_intensity || 5 })}
-                            </p>
-                            {testNames.length > 0 && (
-                              <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
-                                {t("decision.sessions.testLabel", { names: testNames.join(", ") })}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* Players to adapt */}
-            {playersToAdapt.length > 0 && (
-              <div className="pt-2 border-t">
-                <p className="text-xs font-medium text-orange-600 dark:text-orange-400 mb-2">
-                  {t("decision.sessions.toAdapt", { count: playersToAdapt.length })}
-                </p>
-                <div className="flex flex-wrap gap-1">
-                  {playersToAdapt.map(p => (
-                    <Badge
-                      key={p.id}
-                      variant="outline"
-                      className="text-xs cursor-pointer hover:bg-muted"
-                      onClick={() => navigate(getPlayerProfilePath(p.id))}
-                    >
-                      {p.name} • {p.reason}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-
-        {/* 1.6️⃣ PRÉSENCES + RPE DU JOUR (colonne empilée) */}
-        <div className="space-y-4">
+        {/* 1.6️⃣ PRÉSENCES + RPE DU JOUR */}
           <Card className="border-2 border-blue-500/20 bg-gradient-to-r from-blue-500/5 to-transparent">
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex items-center gap-2">
@@ -1640,6 +1493,155 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
             );
           })()}
         </div>
+
+        <TestsCompletionCard
+          categoryId={categoryId}
+          date={today}
+          sessions={todaySessions as any}
+          players={players as any}
+          participants={todaySessionParticipants as any}
+        />
+        <TestCampaignsCompletionCard
+          categoryId={categoryId}
+          date={today}
+          players={players as any}
+        />
+
+        {/* 1.5️⃣ SÉANCES PRÉVUES */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" />
+              {t("decision.sessions.title")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {/* Today */}
+            <div>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+                {t("decision.sessions.today")}
+              </p>
+              {todaySessions.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic">{t("decision.sessions.none")}</p>
+              ) : (
+                <div className="space-y-2">
+                  {todaySessions.slice(0, 2).map(session => {
+                    const testNames = getTestNamesFromSession(session);
+                    return (
+                      <div
+                        key={session.id}
+                        className="flex items-center justify-between p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Activity className="h-4 w-4 text-primary" />
+                          <div>
+                            <p className="font-medium text-sm">{getTrainingTypeLabel(session.training_type)}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {session.session_start_time?.slice(0, 5)} • {t("decision.sessions.targetLoad", { value: session.planned_intensity || 5 })}
+                            </p>
+                            {testNames.length > 0 && (
+                              <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
+                                {t("decision.sessions.testLabel", { names: testNames.join(", ") })}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-0.5 shrink-0">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0"
+                            onClick={() => handleEditSession(session)}
+                            title={t("decision.sessions.edit")}
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                            onClick={() => handleNotifySession(session)}
+                            title={t("decision.sessions.notify")}
+                          >
+                            <Bell className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => setDeleteSessionId(session.id)}
+                            title={t("decision.sessions.delete")}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Tomorrow */}
+            <div>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+                {t("decision.sessions.tomorrow")}
+              </p>
+              {tomorrowSessions.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic">{t("decision.sessions.none")}</p>
+              ) : (
+                <div className="space-y-2">
+                  {tomorrowSessions.slice(0, 2).map(session => {
+                    const testNames = getTestNamesFromSession(session);
+                    return (
+                      <div
+                        key={session.id}
+                        className="flex items-center justify-between p-2 rounded-lg bg-muted/50"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Activity className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <p className="font-medium text-sm">{getTrainingTypeLabel(session.training_type)}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {session.session_start_time?.slice(0, 5)} • {t("decision.sessions.targetLoad", { value: session.planned_intensity || 5 })}
+                            </p>
+                            {testNames.length > 0 && (
+                              <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
+                                {t("decision.sessions.testLabel", { names: testNames.join(", ") })}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Players to adapt */}
+            {playersToAdapt.length > 0 && (
+              <div className="pt-2 border-t">
+                <p className="text-xs font-medium text-orange-600 dark:text-orange-400 mb-2">
+                  {t("decision.sessions.toAdapt", { count: playersToAdapt.length })}
+                </p>
+                <div className="flex flex-wrap gap-1">
+                  {playersToAdapt.map(p => (
+                    <Badge
+                      key={p.id}
+                      variant="outline"
+                      className="text-xs cursor-pointer hover:bg-muted"
+                      onClick={() => navigate(getPlayerProfilePath(p.id))}
+                    >
+                      {p.name} • {p.reason}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
 
         </div>
 
