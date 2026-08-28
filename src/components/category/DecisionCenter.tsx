@@ -459,6 +459,18 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
       () => (todayAttendanceRaw || []).filter((a: any) => keepPlayer(a.player_id) && isDateInActiveSeason(a.attendance_date)),
       [todayAttendanceRaw, allowedIds, isDateInActiveSeason]
     );
+    // Un athlète peut avoir plusieurs séances dans la journée → 1 seule ligne par athlète
+    // (priorité au statut le plus "critique" pour la synthèse du jour)
+    const todayAttendanceByPlayer = useMemo(() => {
+      const rank: Record<string, number> = { absent: 4, excused: 3, late: 2, present: 1 };
+      const map = new Map<string, any>();
+      (todayAttendance as any[]).forEach((a) => {
+        const prev = map.get(a.player_id);
+        if (!prev || (rank[a.status] ?? 0) > (rank[prev.status] ?? 0)) map.set(a.player_id, a);
+      });
+      return Array.from(map.values());
+    }, [todayAttendance]);
+
 
      // Fetch participants assigned to today's sessions
      const { data: todaySessionParticipantsRaw = [] } = useQuery({
@@ -1228,15 +1240,15 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
               <CardTitle className="text-base flex items-center gap-2">
                 <ClipboardCheck className="h-5 w-5 text-blue-600" />
                 {t("decision.attendance.title")}
-                {todayAttendance.length > 0 && (
+                {todayAttendanceByPlayer.length > 0 && (
                   <Badge variant="secondary" className="ml-auto text-xs">
-                    {todayAttendance.length} / {players.length}
+                    {todayAttendanceByPlayer.length} / {players.length}
                   </Badge>
                 )}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {todayAttendance.length === 0 ? (
+              {todayAttendanceByPlayer.length === 0 ? (
                 <p className="text-sm text-muted-foreground italic text-center py-4">
                   {t("decision.attendance.none")}
                 </p>
@@ -1245,11 +1257,11 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                   {/* Summary badges */}
                   <div className="flex flex-wrap gap-2">
                     {(() => {
-                      const present = todayAttendance.filter(a => a.status === "present").length;
-                      const late = todayAttendance.filter(a => a.status === "late").length;
-                      const absent = todayAttendance.filter(a => a.status === "absent").length;
-                      const excused = todayAttendance.filter(a => a.status === "excused").length;
-                      const notMarked = players.length - todayAttendance.length;
+                      const present = todayAttendanceByPlayer.filter(a => a.status === "present").length;
+                      const late = todayAttendanceByPlayer.filter(a => a.status === "late").length;
+                      const absent = todayAttendanceByPlayer.filter(a => a.status === "absent").length;
+                      const excused = todayAttendanceByPlayer.filter(a => a.status === "excused").length;
+                      const notMarked = players.length - todayAttendanceByPlayer.length;
                       return (
                         <>
                           {present > 0 && (
@@ -1287,9 +1299,9 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                   </div>
 
                   {/* Detail list for absent/late/excused with reasons */}
-                  {todayAttendance.filter(a => a.status !== "present").length > 0 && (
+                  {todayAttendanceByPlayer.filter(a => a.status !== "present").length > 0 && (
                     <div className="border-t pt-3 space-y-1.5">
-                      {todayAttendance
+                      {todayAttendanceByPlayer
                         .filter(a => a.status !== "present")
                         .map(entry => (
                           <div
