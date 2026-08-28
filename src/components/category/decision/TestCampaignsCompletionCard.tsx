@@ -184,6 +184,36 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
           );
           const targetPlayers = assigned.size > 0 ? players.filter((p) => assigned.has(p.id)) : players;
 
+          // On calcule d'abord les tests non complétés à 100%
+          const activeTestEntries = Array.from(campaign.tests.entries()).map(([key, testRef]) => {
+            const done = new Set<string>();
+            const waiting = new Set<string>();
+
+            (genericTests as any[]).forEach((g) => {
+              if (normalizeTestKey(g.test_type) !== key) return;
+              if (g.test_date < campaign.start || g.test_date > campaign.end) return;
+              done.add(g.player_id);
+            });
+            (pendingTests as any[]).forEach((p) => {
+              if (!campaign.sessionIds.includes(p.training_session_id)) return;
+              if (normalizeTestKey(p.test_type) !== key) return;
+              if (p.validation_status === "validated") done.add(p.player_id);
+              else if (p.validation_status === "pending") waiting.add(p.player_id);
+            });
+
+            const total = targetPlayers.length;
+            const doneList = targetPlayers.filter((p) => done.has(p.id));
+            const pendingList = targetPlayers.filter((p) => !done.has(p.id) && waiting.has(p.id));
+            const missingList = targetPlayers.filter((p) => !done.has(p.id) && !waiting.has(p.id));
+            const doneCount = doneList.length;
+            const pendingCount = pendingList.length;
+            const percent = total > 0 ? Math.round((doneCount / total) * 100) : 0;
+
+            return { key, testRef, doneList, pendingList, missingList, doneCount, pendingCount, total, percent };
+          }).filter((t) => t.percent < 100);
+
+          if (activeTestEntries.length === 0) return null;
+
           return (
             <div key={`${campaign.start}_${campaign.end}`} className="space-y-3">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
@@ -192,30 +222,7 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
                 {format(new Date(campaign.end), "d MMM yyyy", { locale: getDateLocale() })}
               </p>
 
-              {Array.from(campaign.tests.entries()).map(([key, testRef]) => {
-                const done = new Set<string>();
-                const waiting = new Set<string>();
-
-                (genericTests as any[]).forEach((g) => {
-                  if (normalizeTestKey(g.test_type) !== key) return;
-                  if (g.test_date < campaign.start || g.test_date > campaign.end) return;
-                  done.add(g.player_id);
-                });
-                (pendingTests as any[]).forEach((p) => {
-                  if (!campaign.sessionIds.includes(p.training_session_id)) return;
-                  if (normalizeTestKey(p.test_type) !== key) return;
-                  if (p.validation_status === "validated") done.add(p.player_id);
-                  else if (p.validation_status === "pending") waiting.add(p.player_id);
-                });
-
-                const total = targetPlayers.length;
-                const doneList = targetPlayers.filter((p) => done.has(p.id));
-                const pendingList = targetPlayers.filter((p) => !done.has(p.id) && waiting.has(p.id));
-                const missingList = targetPlayers.filter((p) => !done.has(p.id) && !waiting.has(p.id));
-                const doneCount = doneList.length;
-                const pendingCount = pendingList.length;
-                const percent = total > 0 ? Math.round((doneCount / total) * 100) : 0;
-
+              {activeTestEntries.map(({ key, testRef, doneList, pendingList, missingList, doneCount, pendingCount, total, percent }) => {
                 return (
                   <div key={key} className="rounded-lg border p-3 space-y-2 bg-card">
                     <div className="flex items-center justify-between gap-2">
@@ -251,12 +258,6 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
                         <Badge variant="secondary" className="text-[10px] gap-1">
                           <Clock className="h-3 w-3" />
                           {pendingCount} à valider
-                        </Badge>
-                      )}
-                      {percent === 100 && (
-                        <Badge className="text-[10px] gap-1 bg-green-500 text-white">
-                          <CheckCircle className="h-3 w-3" />
-                          Complet
                         </Badge>
                       )}
                     </div>
