@@ -6,7 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import { Badge } from "@/components/ui/badge";
-import { Activity, ClipboardCheck, Dumbbell, Pencil, Plus, Target, X } from "lucide-react";
+import {
+  Activity,
+  ArrowUpDown,
+  ClipboardCheck,
+  Dumbbell,
+  Pencil,
+  Plus,
+  Search,
+  Target,
+  X,
+} from "lucide-react";
 import { SessionWeightLogTab } from "./SessionWeightLogTab";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -68,6 +78,10 @@ export function SessionFeedbackDialog({
   const [sessionTests, setSessionTests] = useState<SessionTest[]>([]);
   const [weightLogs, setWeightLogs] = useState<Record<string, Record<string, { weight: string; sets: string; reps: string }>>>({});
   const [activeTab, setActiveTab] = useState(sessionType === "precision" ? "precision" : "rpe");
+  const [testPlayerSearch, setTestPlayerSearch] = useState<Record<string, string>>({});
+  const [testPlayerSortAsc, setTestPlayerSortAsc] = useState<Record<string, boolean>>({});
+  const [rpePlayerSearch, setRpePlayerSearch] = useState("");
+  const [rpePlayerSortAsc, setRpePlayerSortAsc] = useState(true);
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const guard = useSeasonGuard(categoryId);
@@ -324,6 +338,10 @@ export function SessionFeedbackDialog({
       setSessionTests([]);
       setWeightLogs({});
       setActiveTab(sessionType === "precision" ? "precision" : "rpe");
+      setTestPlayerSearch({});
+      setTestPlayerSortAsc({});
+      setRpePlayerSearch("");
+      setRpePlayerSortAsc(true);
     }
   }, [open, sessionType]);
 
@@ -650,6 +668,46 @@ export function SessionFeedbackDialog({
     return players.filter((p) => invitedPlayerIds.has(p.id));
   }, [players, invitedPlayerIds, playersToShow]);
 
+  const getPlayerFullName = (player: { first_name?: string | null; name: string }) =>
+    player.first_name ? `${player.first_name} ${player.name}` : player.name;
+
+  const getFilteredSortedTestPlayers = (testId: string, basePlayers: typeof playersForTests) => {
+    const query = (testPlayerSearch[testId] || "").trim().toLowerCase();
+    const asc = testPlayerSortAsc[testId] ?? true;
+    return [...basePlayers]
+      .filter((p) => {
+        if (!query) return true;
+        const full = getPlayerFullName(p).toLowerCase();
+        const first = (p.first_name || "").toLowerCase();
+        const last = (p.name || "").toLowerCase();
+        return full.includes(query) || first.includes(query) || last.includes(query);
+      })
+      .sort((a, b) => {
+        const nameA = getPlayerFullName(a).toLowerCase();
+        const nameB = getPlayerFullName(b).toLowerCase();
+        return asc ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+      });
+  };
+
+  const filteredRpePlayers = useMemo(() => {
+    const query = rpePlayerSearch.trim().toLowerCase();
+    return [...playersToShow]
+      .filter((p) => {
+        if (!query) return true;
+        const full = getPlayerFullName(p).toLowerCase();
+        const first = (p.first_name || "").toLowerCase();
+        const last = (p.name || "").toLowerCase();
+        return full.includes(query) || first.includes(query) || last.includes(query);
+      })
+      .sort((a, b) => {
+        const nameA = getPlayerFullName(a).toLowerCase();
+        const nameB = getPlayerFullName(b).toLowerCase();
+        return rpePlayerSortAsc
+          ? nameA.localeCompare(nameB)
+          : nameB.localeCompare(nameA);
+      });
+  }, [playersToShow, rpePlayerSearch, rpePlayerSortAsc]);
+
   const hasNewRpeValues = Object.entries(rpeValues).some(
     ([id, val]) => val.rpe && val.duration && (!playersWithRpe.has(id) || editingRpe.has(id))
   );
@@ -818,9 +876,30 @@ export function SessionFeedbackDialog({
               {t("planning.calendarDialogs.sessionFeedback.rpeHint")}
             </p>
 
+            <div className="flex items-center gap-2 mb-3">
+              <Search className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <Input
+                type="text"
+                placeholder={t("planning.calendarDialogs.sessionFeedback.searchPlayerPlaceholder")}
+                className="h-8 flex-1 text-xs"
+                value={rpePlayerSearch}
+                onChange={(e) => setRpePlayerSearch(e.target.value)}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 text-xs"
+                title={t("planning.calendarDialogs.sessionFeedback.sortAlphabetical")}
+                onClick={() => setRpePlayerSortAsc((prev) => !prev)}
+              >
+                <ArrowUpDown className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+
             <div className="flex-1 min-h-0 overflow-y-auto pr-2" style={{ maxHeight: "calc(90vh - 240px)" }}>
               <div className="space-y-2">
-                {playersForTests.map((player) => {
+                {filteredRpePlayers.map((player) => {
                   const existing = existingRpe?.find((r) => r.player_id === player.id);
 
                   return (
@@ -919,8 +998,35 @@ export function SessionFeedbackDialog({
                         <Badge variant="outline" className="text-[10px]">{test.test_category}</Badge>
                         {unit && <Badge variant="secondary" className="text-[10px]">{unit}</Badge>}
                       </div>
+                      <div className="flex items-center gap-2">
+                        <Search className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                        <Input
+                          type="text"
+                          placeholder={t("planning.calendarDialogs.sessionFeedback.searchPlayerPlaceholder")}
+                          className="h-7 flex-1 text-xs"
+                          value={testPlayerSearch[test.id] || ""}
+                          onChange={(e) =>
+                            setTestPlayerSearch((prev) => ({ ...prev, [test.id]: e.target.value }))
+                          }
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-xs"
+                          title={t("planning.calendarDialogs.sessionFeedback.sortAlphabetical")}
+                          onClick={() =>
+                            setTestPlayerSortAsc((prev) => ({
+                              ...prev,
+                              [test.id]: !(prev[test.id] ?? true),
+                            }))
+                          }
+                        >
+                          <ArrowUpDown className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                       <div className="space-y-1.5">
-                        {playersForTests.map((player) => {
+                        {getFilteredSortedTestPlayers(test.id, playersForTests).map((player) => {
                           const isSaved = test.savedPlayerIds?.has(player.id);
                           const athleteEntry = (athleteSubmitted || []).find(
                             (a: any) =>
