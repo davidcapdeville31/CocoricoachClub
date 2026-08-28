@@ -78,6 +78,10 @@ export function SessionFeedbackDialog({
   const [sessionTests, setSessionTests] = useState<SessionTest[]>([]);
   const [weightLogs, setWeightLogs] = useState<Record<string, Record<string, { weight: string; sets: string; reps: string }>>>({});
   const [activeTab, setActiveTab] = useState(sessionType === "precision" ? "precision" : "rpe");
+  const [testPlayerSearch, setTestPlayerSearch] = useState<Record<string, string>>({});
+  const [testPlayerSortAsc, setTestPlayerSortAsc] = useState<Record<string, boolean>>({});
+  const [rpePlayerSearch, setRpePlayerSearch] = useState("");
+  const [rpePlayerSortAsc, setRpePlayerSortAsc] = useState(true);
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const guard = useSeasonGuard(categoryId);
