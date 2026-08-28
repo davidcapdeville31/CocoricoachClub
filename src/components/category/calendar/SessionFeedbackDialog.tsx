@@ -338,6 +338,10 @@ export function SessionFeedbackDialog({
       setSessionTests([]);
       setWeightLogs({});
       setActiveTab(sessionType === "precision" ? "precision" : "rpe");
+      setTestPlayerSearch({});
+      setTestPlayerSortAsc({});
+      setRpePlayerSearch("");
+      setRpePlayerSortAsc(true);
     }
   }, [open, sessionType]);
 
