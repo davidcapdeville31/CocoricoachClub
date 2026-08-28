@@ -668,6 +668,27 @@ export function SessionFeedbackDialog({
     return players.filter((p) => invitedPlayerIds.has(p.id));
   }, [players, invitedPlayerIds, playersToShow]);
 
+  const getPlayerFullName = (player: { first_name?: string | null; name: string }) =>
+    player.first_name ? `${player.first_name} ${player.name}` : player.name;
+
+  const getFilteredSortedTestPlayers = (testId: string, basePlayers: typeof playersForTests) => {
+    const query = (testPlayerSearch[testId] || "").trim().toLowerCase();
+    const asc = testPlayerSortAsc[testId] ?? true;
+    return [...basePlayers]
+      .filter((p) => {
+        if (!query) return true;
+        const full = getPlayerFullName(p).toLowerCase();
+        const first = (p.first_name || "").toLowerCase();
+        const last = (p.name || "").toLowerCase();
+        return full.includes(query) || first.includes(query) || last.includes(query);
+      })
+      .sort((a, b) => {
+        const nameA = getPlayerFullName(a).toLowerCase();
+        const nameB = getPlayerFullName(b).toLowerCase();
+        return asc ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+      });
+  };
+
   const hasNewRpeValues = Object.entries(rpeValues).some(
     ([id, val]) => val.rpe && val.duration && (!playersWithRpe.has(id) || editingRpe.has(id))
   );
