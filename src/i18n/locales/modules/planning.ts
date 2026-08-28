@@ -1596,6 +1596,8 @@ export const planningEn = {
       min: "Min",
       edit: "Edit",
       testsHint: "Results of the tests planned for this session. Each value is saved automatically on field blur.",
+      searchPlayerPlaceholder: "Search athlete (first or last name)",
+      sortAlphabetical: "Sort alphabetically",
       resultPlaceholder: "Result",
       athletePendingLabel: " — athlete (to validate)",
       athleteValidatedLabel: " ✓ athlete",
