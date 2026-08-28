@@ -105,6 +105,14 @@ export function synthesizeBenchmarksFromCustomTest(ct: {
   for (const v of scale.variants || []) {
     const ranges = v.ranges || [];
     if (!ranges.length) continue;
+    // Ignore les variantes créées mais jamais renseignées (aucun seuil saisi) :
+    // elles écrasaient sinon le barème affiché (colonnes vides / incomplètes).
+    const hasBounds = ranges.some(
+      (r) =>
+        (r.min != null && Number.isFinite(Number(r.min))) ||
+        (r.max != null && Number.isFinite(Number(r.max))),
+    );
+    if (!hasBounds) continue;
     const lower = v.lowerIsBetter ?? scale.lowerIsBetter ?? false;
     const levels = rangesToLevels(ranges, lower);
     const positions = v.filter?.positionGroups || [];
