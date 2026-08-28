@@ -1493,7 +1493,6 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
             );
           })()}
         </div>
-        </div>
 
         <TestsCompletionCard
           categoryId={categoryId}
