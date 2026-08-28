@@ -977,8 +977,35 @@ export function SessionFeedbackDialog({
                         <Badge variant="outline" className="text-[10px]">{test.test_category}</Badge>
                         {unit && <Badge variant="secondary" className="text-[10px]">{unit}</Badge>}
                       </div>
+                      <div className="flex items-center gap-2">
+                        <Search className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                        <Input
+                          type="text"
+                          placeholder={t("planning.calendarDialogs.sessionFeedback.searchPlayerPlaceholder")}
+                          className="h-7 flex-1 text-xs"
+                          value={testPlayerSearch[test.id] || ""}
+                          onChange={(e) =>
+                            setTestPlayerSearch((prev) => ({ ...prev, [test.id]: e.target.value }))
+                          }
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-xs"
+                          title={t("planning.calendarDialogs.sessionFeedback.sortAlphabetical")}
+                          onClick={() =>
+                            setTestPlayerSortAsc((prev) => ({
+                              ...prev,
+                              [test.id]: !(prev[test.id] ?? true),
+                            }))
+                          }
+                        >
+                          <ArrowUpDown className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                       <div className="space-y-1.5">
-                        {playersForTests.map((player) => {
+                        {getFilteredSortedTestPlayers(test.id, playersForTests).map((player) => {
                           const isSaved = test.savedPlayerIds?.has(player.id);
                           const athleteEntry = (athleteSubmitted || []).find(
                             (a: any) =>
