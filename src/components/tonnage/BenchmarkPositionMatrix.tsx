@@ -26,6 +26,7 @@ import { computeBenchmarkLevel } from "@/lib/benchmarks/computeLevel";
 import { matchesBenchmark, normalizeTestKey } from "@/lib/benchmarks/matchTestType";
 import { synthesizeBenchmarks } from "@/lib/benchmarks/synthFromScoringScale";
 import { collectLatestPlayerWeights } from "@/lib/benchmarks/playerWeights";
+import { TEST_CATEGORIES } from "@/lib/constants/testCategories";
 import {
   getPositionGroupsForSport,
   playerBelongsToGroup,
@@ -415,8 +416,13 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
     }
 
     // Preset tests (poids, cooper, body_fat, 40m, clean_1rm...) réalisés sans barème
-    const presetLabel = (key: string) =>
-      key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    const presetLabel = (key: string) => {
+      for (const category of TEST_CATEGORIES) {
+        const test = category.tests.find((t) => t.value === key);
+        if (test) return test.label;
+      }
+      return key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    };
 
     // Generic tests presets
     const genericPresets = new Map<string, { count: number; unit: string | null; category: string | null }>();
