@@ -351,21 +351,37 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
 
       // Choisit un "barème de référence" pour l'affichage : préférer le barème
       // sans filtre (base) plutôt qu'un poste-spécifique.
+      const sameType = benchmarks.filter((x) => x.test_type === b.test_type);
+      const richest = sameType.reduce(
+        (acc, x) => ((x.levels?.length || 0) > (acc.levels?.length || 0) ? x : acc),
+        sameType[0] || b,
+      );
+      const baseCandidate =
+        sameType.find((x) => (!x.filter_value || x.filter_type === "all") && !x.gender_filter) || b;
+      // Si le barème "sans filtre" est moins détaillé (variante vide / partielle),
+      // on prend celui qui a le plus de paliers pour construire les colonnes.
       const base =
-        benchmarks.find(
-          (x) => x.test_type === b.test_type && (!x.filter_value || x.filter_type === "all") && !x.gender_filter,
-        ) || b;
+        (baseCandidate.levels?.length || 0) >= (richest.levels?.length || 0) ? baseCandidate : richest;
 
-      let count = 0;
+      // Compte les résultats de façon dédupliquée (même joueur + même date + même
+      // valeur = une seule saisie), sinon les doublons gonflent le compteur.
+      const seenResults = new Set<string>();
+      const addResult = (playerId: string, date: string, value: any) =>
+        seenResults.add(`${playerId}|${date}|${value}`);
       genericTestsScoped.forEach((t: any) => {
-        if (matchesBenchmark(t.test_type, b.test_type, customTests as any)) count++;
+        if (matchesBenchmark(t.test_type, b.test_type, customTests as any))
+          addResult(t.player_id, t.test_date, t.result_value);
       });
       speedTestsScoped.forEach((t: any) => {
-        if (matchesBenchmark(t.test_type, b.test_type, customTests as any)) count++;
+        if (matchesBenchmark(t.test_type, b.test_type, customTests as any))
+          addResult(t.player_id, t.test_date, t.vma_kmh ?? t.speed_kmh ?? t.time_40m_seconds);
       });
       strengthTestsScoped.forEach((t: any) => {
-        if (matchesBenchmark(t.test_name, b.test_type, customTests as any)) count++;
+        if (matchesBenchmark(t.test_name, b.test_type, customTests as any))
+          addResult(t.player_id, t.test_date, t.weight_kg);
       });
+      const count = seenResults.size;
+
       // Label : nom du test personnalisé si test_type = custom:<id>, sinon nom du barème
       let label = base.name;
       if (base.test_type.startsWith("custom:")) {
