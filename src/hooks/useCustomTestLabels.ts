@@ -73,5 +73,10 @@ export function labelizeTestType(
       slug.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
     );
   }
+  // Fallback : libellé du catalogue système (ex : "weight" → "Pesée")
+  for (const category of TEST_CATEGORIES) {
+    const found = category.tests.find((t) => t.value === testType);
+    if (found) return found.label;
+  }
   return (testType || "").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
