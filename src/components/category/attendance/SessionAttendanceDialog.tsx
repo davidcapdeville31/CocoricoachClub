@@ -201,7 +201,7 @@ export function SessionAttendanceDialog({
   };
 
   const getStatusInfo = (status: string) => {
-    return ATTENDANCE_STATUS.find((s) => s.value === status) || ATTENDANCE_STATUS[0];
+    return ATTENDANCE_STATUS.find((s) => s.value === status) || ATTENDANCE_STATUS[4];
   };
 
   const getStatusCounts = () => {
@@ -211,6 +211,7 @@ export function SessionAttendanceDialog({
       absent: values.filter((a) => a.status === "absent").length,
       excused: values.filter((a) => a.status === "excused").length,
       late: values.filter((a) => a.status === "late").length,
+      noResponse: values.filter((a) => a.status === "no_response").length,
     };
   };
 
