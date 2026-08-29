@@ -116,6 +116,9 @@ export function SessionAttendanceDialog({
         
         initial[p.id] = {
           status: existingAtt?.status || "no_response",
+          reason: existingAtt?.absence_reason || existingAtt?.late_reason || "",
+          lateMinutes: existingAtt?.late_minutes || 0,
+          lateJustified: existingAtt?.late_justified || false,
         };
       });
       setAttendance(initial);
