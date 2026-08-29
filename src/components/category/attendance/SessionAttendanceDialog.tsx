@@ -277,7 +277,7 @@ export function SessionAttendanceDialog({
           <div className="space-y-2 pr-4">
             {players?.map((player) => {
               const playerData = attendance[player.id] || { 
-                status: "present", 
+                status: "no_response", 
                 reason: "", 
                 lateMinutes: 0,
                 lateJustified: false,
