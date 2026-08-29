@@ -1063,13 +1063,13 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="bg-slate-700 text-white font-semibold min-w-[140px]">
+                    <TableHead className="bg-slate-700 text-white font-semibold min-w-[100px] sm:min-w-[140px] whitespace-nowrap text-xs sm:text-sm">
                       Poste
                     </TableHead>
                     {bm.levels.map((l, i) => (
                       <TableHead
                         key={i}
-                        className="text-white font-semibold text-center"
+                        className="text-white font-semibold text-center whitespace-nowrap text-[11px] sm:text-sm px-2 sm:px-4"
                         style={{ backgroundColor: l.color }}
                       >
                         {l.label}
