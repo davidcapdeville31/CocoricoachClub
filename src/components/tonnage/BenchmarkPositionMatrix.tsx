@@ -1143,17 +1143,17 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="min-w-[110px] bg-slate-700 text-white">Poste</TableHead>
-                    <TableHead className="min-w-[180px] bg-slate-700 text-white">Joueur</TableHead>
+                    <TableHead className="min-w-[90px] sm:min-w-[110px] bg-slate-700 text-white whitespace-nowrap text-xs sm:text-sm">Poste</TableHead>
+                    <TableHead className="min-w-[130px] sm:min-w-[180px] bg-slate-700 text-white whitespace-nowrap text-xs sm:text-sm">Joueur</TableHead>
                     {allDates.map((d) => (
                       <TableHead
                         key={d}
-                        className="text-center min-w-[110px] bg-slate-700 text-white"
+                        className="text-center min-w-[90px] sm:min-w-[110px] bg-slate-700 text-white whitespace-nowrap text-xs sm:text-sm"
                       >
                         {fmtDate(d)}
                       </TableHead>
                     ))}
-                    <TableHead className="text-center min-w-[110px] bg-slate-700 text-white">
+                    <TableHead className="text-center min-w-[90px] sm:min-w-[110px] bg-slate-700 text-white whitespace-nowrap text-xs sm:text-sm">
                       Évolution
                     </TableHead>
                   </TableRow>
