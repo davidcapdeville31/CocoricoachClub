@@ -1083,13 +1083,13 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                     const levels = posBm?.levels || [];
                     return (
                       <TableRow key={groupId}>
-                        <TableCell className="bg-slate-100 dark:bg-slate-800 font-medium text-center">
+                        <TableCell className="bg-slate-100 dark:bg-slate-800 font-medium text-center whitespace-nowrap text-xs sm:text-sm px-2 sm:px-4">
                           {info.label}
                         </TableCell>
                         {bm.levels.map((l, i) => (
                           <TableCell
                             key={i}
-                            className="text-center font-mono text-sm"
+                            className="text-center font-mono text-xs sm:text-sm whitespace-nowrap px-2 sm:px-4"
                             style={{ backgroundColor: posBm ? `${l.color}20` : undefined }}
                           >
                             {posBm ? levelRangeString(levels, i, !!posBm.lower_is_better) : "—"}
