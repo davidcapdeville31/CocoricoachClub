@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { 
-  Users, Check, X, Clock, AlertCircle, CheckCircle2
+  Users, Check, X, Clock, AlertCircle, CheckCircle2, HelpCircle
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -42,6 +42,7 @@ const ATTENDANCE_STATUS = [
   { value: "absent", label: () => i18n.t("adminAttendance.dialog.absent"), icon: X, color: "text-red-600", bgColor: "bg-red-100" },
   { value: "excused", label: () => i18n.t("adminAttendance.dialog.excused"), icon: AlertCircle, color: "text-amber-600", bgColor: "bg-amber-100" },
   { value: "late", label: () => i18n.t("adminAttendance.dialog.late"), icon: Clock, color: "text-orange-600", bgColor: "bg-orange-100" },
+  { value: "no_response", label: () => i18n.t("adminAttendance.dialog.noResponse"), icon: HelpCircle, color: "text-muted-foreground", bgColor: "bg-muted" },
 ];
 
 interface PlayerAttendanceData {
@@ -114,7 +115,7 @@ export function SessionAttendanceDialog({
         const existingAtt = existingAttendance?.find((a) => a.player_id === p.id);
         
         initial[p.id] = {
-          status: existingAtt?.status || "present",
+          status: existingAtt?.status || "no_response",
           reason: existingAtt?.absence_reason || existingAtt?.late_reason || "",
           lateMinutes: existingAtt?.late_minutes || 0,
           lateJustified: existingAtt?.late_justified || false,
@@ -200,7 +201,7 @@ export function SessionAttendanceDialog({
   };
 
   const getStatusInfo = (status: string) => {
-    return ATTENDANCE_STATUS.find((s) => s.value === status) || ATTENDANCE_STATUS[0];
+    return ATTENDANCE_STATUS.find((s) => s.value === status) || ATTENDANCE_STATUS[4];
   };
 
   const getStatusCounts = () => {
@@ -210,6 +211,7 @@ export function SessionAttendanceDialog({
       absent: values.filter((a) => a.status === "absent").length,
       excused: values.filter((a) => a.status === "excused").length,
       late: values.filter((a) => a.status === "late").length,
+      noResponse: values.filter((a) => a.status === "no_response").length,
     };
   };
 
@@ -254,10 +256,10 @@ export function SessionAttendanceDialog({
               {counts.absent > 1 ? t("adminAttendance.dialog.absentCountPlural", { count: counts.absent }) : t("adminAttendance.dialog.absentCount", { count: counts.absent })}
             </Badge>
           )}
-          {counts.excused > 0 && (
-            <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">
-              <AlertCircle className="h-3 w-3 mr-1" />
-              {counts.excused > 1 ? t("adminAttendance.dialog.excusedCountPlural", { count: counts.excused }) : t("adminAttendance.dialog.excusedCount", { count: counts.excused })}
+          {counts.noResponse > 0 && (
+            <Badge variant="outline" className="text-muted-foreground">
+              <HelpCircle className="h-3 w-3 mr-1" />
+              {counts.noResponse > 1 ? t("adminAttendance.dialog.noResponseCountPlural", { count: counts.noResponse }) : t("adminAttendance.dialog.noResponseCount", { count: counts.noResponse })}
             </Badge>
           )}
         </div>
@@ -276,7 +278,7 @@ export function SessionAttendanceDialog({
           <div className="space-y-2 pr-4">
             {players?.map((player) => {
               const playerData = attendance[player.id] || { 
-                status: "present", 
+                status: "no_response", 
                 reason: "", 
                 lateMinutes: 0,
                 lateJustified: false,
