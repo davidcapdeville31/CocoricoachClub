@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { 
-  Users, Check, X, Clock, AlertCircle, CheckCircle2
+  Users, Check, X, Clock, AlertCircle, CheckCircle2, HelpCircle
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
