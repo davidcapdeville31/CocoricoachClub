@@ -42,6 +42,7 @@ const ATTENDANCE_STATUS = [
   { value: "absent", label: () => i18n.t("adminAttendance.dialog.absent"), icon: X, color: "text-red-600", bgColor: "bg-red-100" },
   { value: "excused", label: () => i18n.t("adminAttendance.dialog.excused"), icon: AlertCircle, color: "text-amber-600", bgColor: "bg-amber-100" },
   { value: "late", label: () => i18n.t("adminAttendance.dialog.late"), icon: Clock, color: "text-orange-600", bgColor: "bg-orange-100" },
+  { value: "no_response", label: () => i18n.t("adminAttendance.dialog.noResponse"), icon: HelpCircle, color: "text-muted-foreground", bgColor: "bg-muted" },
 ];
 
 interface PlayerAttendanceData {
