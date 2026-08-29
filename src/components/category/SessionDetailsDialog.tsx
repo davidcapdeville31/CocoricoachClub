@@ -44,6 +44,8 @@ import { parseV2MethodConfig, stripV2MethodTags } from "@/lib/program-builder-v2
 import { SessionAthleteEntriesPanel } from "./SessionAthleteEntriesPanel";
 import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
 import { formatCategoryLabel } from "@/components/category/tests/customTestCatalog";
+import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
+
 
 interface SessionDetailsDialogProps {
   open: boolean;
@@ -297,7 +299,7 @@ export function SessionDetailsDialog({
   });
 
   // Fetch event participants (used for tests / scheduled events)
-  const { data: eventParticipants } = useQuery({
+  const { data: rawEventParticipants } = useQuery({
     queryKey: ["session-event-participants", sessionId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -309,6 +311,34 @@ export function SessionDetailsDialog({
     },
     enabled: open && !!sessionId,
   });
+
+  // Roster of the category, used to complete missing athletes as "no response"
+  const { data: rosterPlayers } = useQuery({
+    queryKey: ["session-details-roster", categoryId],
+    queryFn: async () => fetchCategoryRosterPlayers(categoryId),
+    enabled: open && !!categoryId,
+  });
+
+  const isAthletePrivateSession =
+    !!(session as any)?.created_by_player_id || ((session as any)?.notes || "").includes("[Séance athlète]");
+
+  const eventParticipants = useMemo(() => {
+    const rows = rawEventParticipants || [];
+    if (!rows.length && !rosterPlayers?.length) return rows;
+    if (isAthletePrivateSession) return rows;
+    const responded = new Set(rows.map((r: any) => r.player_id));
+    const missing = (rosterPlayers || [])
+      .filter((p: any) => !responded.has(p.id))
+      .map((p: any) => ({
+        player_id: p.id,
+        attendance_status: "no_response",
+        absence_comment: null,
+        responded_at: null,
+        players: { id: p.id, name: p.name, first_name: p.first_name, avatar_url: p.avatar_url },
+      }));
+    return [...rows, ...missing];
+  }, [rawEventParticipants, rosterPlayers, isAthletePrivateSession]);
+
 
   // Parse tests metadata embedded in notes (<!--TESTS:[...]-->)
   const testsMeta = useMemo(() => {
