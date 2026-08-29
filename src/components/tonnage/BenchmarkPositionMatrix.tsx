@@ -1063,13 +1063,13 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="bg-slate-700 text-white font-semibold min-w-[140px]">
+                    <TableHead className="bg-slate-700 text-white font-semibold min-w-[100px] sm:min-w-[140px] whitespace-nowrap text-xs sm:text-sm">
                       Poste
                     </TableHead>
                     {bm.levels.map((l, i) => (
                       <TableHead
                         key={i}
-                        className="text-white font-semibold text-center"
+                        className="text-white font-semibold text-center whitespace-nowrap text-[11px] sm:text-sm px-2 sm:px-4"
                         style={{ backgroundColor: l.color }}
                       >
                         {l.label}
@@ -1083,13 +1083,13 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                     const levels = posBm?.levels || [];
                     return (
                       <TableRow key={groupId}>
-                        <TableCell className="bg-slate-100 dark:bg-slate-800 font-medium text-center">
+                        <TableCell className="bg-slate-100 dark:bg-slate-800 font-medium text-center whitespace-nowrap text-xs sm:text-sm px-2 sm:px-4">
                           {info.label}
                         </TableCell>
                         {bm.levels.map((l, i) => (
                           <TableCell
                             key={i}
-                            className="text-center font-mono text-sm"
+                            className="text-center font-mono text-xs sm:text-sm whitespace-nowrap px-2 sm:px-4"
                             style={{ backgroundColor: posBm ? `${l.color}20` : undefined }}
                           >
                             {posBm ? levelRangeString(levels, i, !!posBm.lower_is_better) : "—"}
@@ -1143,17 +1143,17 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="min-w-[110px] bg-slate-700 text-white">Poste</TableHead>
-                    <TableHead className="min-w-[180px] bg-slate-700 text-white">Joueur</TableHead>
+                    <TableHead className="min-w-[90px] sm:min-w-[110px] bg-slate-700 text-white whitespace-nowrap text-xs sm:text-sm">Poste</TableHead>
+                    <TableHead className="min-w-[130px] sm:min-w-[180px] bg-slate-700 text-white whitespace-nowrap text-xs sm:text-sm">Joueur</TableHead>
                     {allDates.map((d) => (
                       <TableHead
                         key={d}
-                        className="text-center min-w-[110px] bg-slate-700 text-white"
+                        className="text-center min-w-[90px] sm:min-w-[110px] bg-slate-700 text-white whitespace-nowrap text-xs sm:text-sm"
                       >
                         {fmtDate(d)}
                       </TableHead>
                     ))}
-                    <TableHead className="text-center min-w-[110px] bg-slate-700 text-white">
+                    <TableHead className="text-center min-w-[90px] sm:min-w-[110px] bg-slate-700 text-white whitespace-nowrap text-xs sm:text-sm">
                       Évolution
                     </TableHead>
                   </TableRow>
