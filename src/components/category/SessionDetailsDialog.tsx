@@ -44,6 +44,8 @@ import { parseV2MethodConfig, stripV2MethodTags } from "@/lib/program-builder-v2
 import { SessionAthleteEntriesPanel } from "./SessionAthleteEntriesPanel";
 import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
 import { formatCategoryLabel } from "@/components/category/tests/customTestCatalog";
+import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
+
 
 interface SessionDetailsDialogProps {
   open: boolean;
