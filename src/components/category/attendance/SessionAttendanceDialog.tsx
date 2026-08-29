@@ -262,6 +262,7 @@ export function SessionAttendanceDialog({
               {counts.noResponse > 1 ? t("adminAttendance.dialog.noResponseCountPlural", { count: counts.noResponse }) : t("adminAttendance.dialog.noResponseCount", { count: counts.noResponse })}
             </Badge>
           )}
+        </div>
 
         {/* Quick actions */}
         <div className="flex flex-wrap items-center gap-2 p-3 bg-muted rounded-lg flex-shrink-0">
