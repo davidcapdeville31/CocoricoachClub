@@ -115,10 +115,7 @@ export function SessionAttendanceDialog({
         const existingAtt = existingAttendance?.find((a) => a.player_id === p.id);
         
         initial[p.id] = {
-          status: existingAtt?.status || "present",
-          reason: existingAtt?.absence_reason || existingAtt?.late_reason || "",
-          lateMinutes: existingAtt?.late_minutes || 0,
-          lateJustified: existingAtt?.late_justified || false,
+          status: existingAtt?.status || "no_response",
         };
       });
       setAttendance(initial);
