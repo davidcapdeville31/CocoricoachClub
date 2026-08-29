@@ -256,13 +256,12 @@ export function SessionAttendanceDialog({
               {counts.absent > 1 ? t("adminAttendance.dialog.absentCountPlural", { count: counts.absent }) : t("adminAttendance.dialog.absentCount", { count: counts.absent })}
             </Badge>
           )}
-          {counts.excused > 0 && (
-            <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">
-              <AlertCircle className="h-3 w-3 mr-1" />
-              {counts.excused > 1 ? t("adminAttendance.dialog.excusedCountPlural", { count: counts.excused }) : t("adminAttendance.dialog.excusedCount", { count: counts.excused })}
+          {counts.noResponse > 0 && (
+            <Badge variant="outline" className="text-muted-foreground">
+              <HelpCircle className="h-3 w-3 mr-1" />
+              {counts.noResponse > 1 ? t("adminAttendance.dialog.noResponseCountPlural", { count: counts.noResponse }) : t("adminAttendance.dialog.noResponseCount", { count: counts.noResponse })}
             </Badge>
           )}
-        </div>
 
         {/* Quick actions */}
         <div className="flex flex-wrap items-center gap-2 p-3 bg-muted rounded-lg flex-shrink-0">
