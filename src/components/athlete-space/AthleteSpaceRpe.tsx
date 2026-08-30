@@ -429,16 +429,17 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
   });
 
   // Collect all custom test_types used, to resolve labels
+  // (includes campaign sessions coming from pastCampaignSessions)
   const allCustomTestTypes = useMemo(() => {
     const types: string[] = [];
-    allSessions.forEach((s: any) => {
+    allSessionsWithCampaigns.forEach((s: any) => {
       parseTestsFromNotes(s.notes).forEach((t: any) => t?.test_type && types.push(t.test_type));
       const noteCustomCodes = String(s.notes || "").match(/custom:[0-9a-f-]{32,36}/gi) || [];
       noteCustomCodes.forEach((code) => types.push(code));
     });
     (testResults || []).forEach((r: any) => r.test_type && types.push(r.test_type));
     return types;
-  }, [allSessions, testResults]);
+  }, [allSessionsWithCampaigns, testResults]);
   const customTestMap = useCustomTestLabels(allCustomTestTypes);
 
   const getTestResultsForSession = (sessionId: string) => {
