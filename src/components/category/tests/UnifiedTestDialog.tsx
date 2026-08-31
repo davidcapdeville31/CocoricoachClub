@@ -22,7 +22,7 @@ import { mergeCustomTestsIntoCategories, normalizeCustomTestType } from "./custo
 import { ComposedTestInputs } from "./ComposedTestInputs";
 import { isValidFormulaConfig, type FormulaConfig } from "@/lib/tests/formulaEngine";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
-import { computePoints, findMatchingRange, type ScoringScale, type PlayerForScoring } from "@/lib/constants/testUnits";
+import { computePoints, findMatchingRange, displayUnit, type ScoringScale, type PlayerForScoring } from "@/lib/constants/testUnits";
 import { getPositionGroupsForSport, playerBelongsToGroup } from "@/lib/constants/sportPositionGroups";
 import { Badge } from "@/components/ui/badge";
 
