@@ -503,7 +503,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
             )}
           </div>
         </CardTitle>
-        <div className="pt-2">{DateSelector}</div>
+        
       </CardHeader>
 
 
