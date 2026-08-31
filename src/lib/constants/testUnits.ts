@@ -185,7 +185,7 @@ export function getLevelForPercent(percent: number, levels: BatteryLevel[] = DEF
 
 /**
  * Affichage d'une unité : un ratio poids de corps est une division
- * (charge ÷ poids de corps), on affiche donc "/ PDC" et non "× PDC".
+ * (charge ÷ poids de corps), on affiche donc "÷ PDC" et non "× PDC".
  */
 export function displayUnit(unit?: string | null): string {
   if (!unit) return "";

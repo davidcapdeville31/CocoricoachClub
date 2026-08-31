@@ -107,7 +107,7 @@ export function UnifiedTestDialog({
 
   const AVAILABLE_UNITS = [
     { value: "kg", label: "Kilogrammes (kg)" },
-    { value: "× PDC", label: "Ratio poids du corps (÷ PDC)" },
+    { value: "÷ PDC", label: "Ratio poids du corps (÷ PDC)" },
     { value: "N", label: "Newton (N)" },
     { value: "cm", label: "Centimètres (cm)" },
     { value: "m", label: "Mètres (m)" },
@@ -238,7 +238,7 @@ export function UnifiedTestDialog({
 
   // Detect ratio-based tests (unit "× PDC" or legacy "x PDC")
   const currentUnit = (currentTest?.unit || customTestUnit || "").trim();
-  const isRatioTest = currentUnit === "× PDC" || currentUnit === "x PDC" || currentUnit === "×PDC";
+  const isRatioTest = ["÷ PDC", "× PDC", "x PDC", "×PDC", "/ PDC"].includes(currentUnit);
 
   // Fetch latest bodyweight for each effective player (used for ratio auto-compute)
   const effectivePlayerIds = useMemo(() => effectivePlayers.map(p => p.id), [effectivePlayers]);
@@ -310,7 +310,7 @@ export function UnifiedTestDialog({
             player_id: player.id, category_id: categoryId, test_date: date,
             test_category: testCategory, test_type: testType,
             result_value: finalValue,
-            result_unit: isRatioTest ? "× PDC" : (currentTest?.unit || customTestUnit || ""),
+            result_unit: isRatioTest ? "÷ PDC" : (currentTest?.unit || customTestUnit || ""),
             secondary_value: playerSecondaryResults[player.id] ? parseFloat(playerSecondaryResults[player.id]) : null,
             secondary_unit: (isStrengthTest && playerSecondaryResults[player.id]) ? "m/s" : null,
             notes: `Session ID: ${sessionData.id}` + (notes ? `\n${notes}` : "") + ratioNote,

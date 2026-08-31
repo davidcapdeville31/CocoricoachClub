@@ -117,7 +117,7 @@ const DEFAULT_RATIO_LEVELS: BenchmarkLevel[] = [
 function isRatioUnit(u: string | null | undefined) {
   if (!u) return false;
   const s = u.toLowerCase().replace(/\s+/g, "");
-  return s === "×pdc" || s === "xpdc";
+  return s === "×pdc" || s === "xpdc" || s === "÷pdc" || s === "/pdc";
 }
 
 export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelector, forcedKey, onTestOptions, renderOnlyOptions }: Props) {
@@ -1177,7 +1177,7 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                       const evoDelta = first && last
                         ? useKgDelta ? (last.rawKg! - first.rawKg!) : (last.value - first.value)
                         : 0;
-                      const evoUnit = useKgDelta ? " kg" : isRatio ? " ratio" : unitSuffix ? ` ${unitSuffix}` : "";
+                      const evoUnit = useKgDelta ? " kg" : isRatio ? " ÷ PDC" : unitSuffix ? ` ${unitSuffix}` : "";
                       const evoBase = useKgDelta ? first?.rawKg : first?.value;
                       const evoPct =
                         evoBase != null && Number(evoBase) !== 0
