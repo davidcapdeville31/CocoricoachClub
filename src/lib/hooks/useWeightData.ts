@@ -16,18 +16,42 @@ interface Options {
  */
 export function useWeightHistory({ categoryId, playerId }: Options) {
   const { data: questions = [] } = useWellnessQuestions(categoryId);
-  const weightQuestionKeys = questions
+  const configuredWeightQuestionKeys = questions
     .filter((q) => q.is_custom && isWeightQuestionKeyLabel(q.label))
     .map((q) => q.key);
 
   const query = useQuery({
-    queryKey: ["weight-history", categoryId, playerId, weightQuestionKeys.join(",")],
+    queryKey: ["weight-history", categoryId, playerId, configuredWeightQuestionKeys.join(",")],
     enabled: !!categoryId || !!playerId,
     queryFn: async (): Promise<WeightEntry[]> => {
+      let resolvedCategoryId = categoryId;
+      if (!resolvedCategoryId && playerId) {
+        const { data: player } = await supabase
+          .from("players")
+          .select("category_id")
+          .eq("id", playerId)
+          .maybeSingle();
+        resolvedCategoryId = player?.category_id || undefined;
+      }
+
+      let weightQuestionKeys = configuredWeightQuestionKeys;
+      if (weightQuestionKeys.length === 0 && resolvedCategoryId) {
+        const { data: config } = await supabase
+          .from("wellness_question_configs")
+          .select("questions")
+          .eq("category_id", resolvedCategoryId)
+          .maybeSingle();
+        const configuredQuestions = Array.isArray(config?.questions) ? config.questions : [];
+        weightQuestionKeys = configuredQuestions
+          .filter((q: any) => q?.is_custom && isWeightQuestionKeyLabel(q?.label))
+          .map((q: any) => q.key)
+          .filter(Boolean);
+      }
+
       const filter = <T extends { eq: (c: string, v: string) => T }>(q: T) => {
         let out = q;
         if (playerId) out = out.eq("player_id", playerId);
-        else if (categoryId) out = out.eq("category_id", categoryId);
+        else if (resolvedCategoryId) out = out.eq("category_id", resolvedCategoryId);
         return out;
       };
 
@@ -60,5 +84,5 @@ export function useWeightHistory({ categoryId, playerId }: Options) {
     },
   });
 
-  return { entries: query.data || [], isLoading: query.isLoading, weightQuestionKeys };
+  return { entries: query.data || [], isLoading: query.isLoading, weightQuestionKeys: configuredWeightQuestionKeys };
 }
