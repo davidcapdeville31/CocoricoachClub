@@ -182,3 +182,14 @@ export function getLevelForPercent(percent: number, levels: BatteryLevel[] = DEF
   const sorted = [...levels].sort((a, b) => b.minPercent - a.minPercent);
   return sorted.find(l => percent >= l.minPercent) ?? sorted[sorted.length - 1];
 }
+
+/**
+ * Affichage d'une unité : un ratio poids de corps est une division
+ * (charge ÷ poids de corps), on affiche donc "/ PDC" et non "× PDC".
+ */
+export function displayUnit(unit?: string | null): string {
+  if (!unit) return "";
+  const u = unit.trim();
+  if (/^[x×]\s*PDC$/i.test(u) || /^ratio\s*bw$/i.test(u)) return "/ PDC";
+  return u;
+}
