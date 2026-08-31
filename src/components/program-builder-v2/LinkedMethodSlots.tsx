@@ -640,13 +640,24 @@ const DroppableSlot = ({
                 const paramConfig = ALL_LINKED_PARAMS.find(p => p.key === key);
                 if (!paramConfig) return null;
                 type InputParamKey = 'sets' | 'reps' | 'load' | 'percentage' | 'tempo' | 'rpe' | 'rir' | 'rest';
-                const paramValue = ['visibleParams', 'variableSets', 'useVariableSets'].includes(key) 
+                let paramValue = ['visibleParams', 'variableSets', 'useVariableSets'].includes(key) 
                   ? undefined 
                   : params[key as InputParamKey];
-                if (paramValue === undefined) return null;
+                // Fallback: récupérer la valeur depuis les séries variables si le scalaire est absent
+                if ((paramValue === undefined || paramValue === null || paramValue === '') && params.variableSets?.length) {
+                  const setKey = key === 'load' ? 'weight_kg' : key;
+                  const found = params.variableSets.find((s: any) => s?.[setKey] != null && s?.[setKey] !== '');
+                  if (found) paramValue = (found as any)[setKey];
+                }
+                if (paramValue === undefined || paramValue === null || paramValue === '') return null;
                 const isMaxReps = params.reps === 'MAX';
                 const isLockedByMax = isMaxReps && (key === 'rpe' || key === 'rir');
-                const displayValue = isLockedByMax ? (key === 'rpe' ? 10 : 0) : paramValue;
+                const rawDisplay = isLockedByMax ? (key === 'rpe' ? 10 : 0) : paramValue;
+                const displayValue = key === 'percentage'
+                  ? `${rawDisplay}%`
+                  : key === 'load'
+                    ? `${rawDisplay} kg`
+                    : rawDisplay;
                 return (
                   <div key={key} className={cn(
                     "px-2 py-1 rounded-md border min-w-0 max-w-full",
@@ -661,6 +672,7 @@ const DroppableSlot = ({
                     )}>{displayValue}</span>
                   </div>
                 );
+
               })}
               {params.coachNotes && (
                 <div className="w-full mt-1 p-2 rounded-md bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900">
