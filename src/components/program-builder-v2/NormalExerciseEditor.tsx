@@ -1,6 +1,8 @@
 import { useMemo } from "react";
-import { Trash2 } from "lucide-react";
+import { Trash2, Dumbbell } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ExerciseMediaViewer } from "@/components/library/ExerciseMediaViewer";
+import { useExerciseMedia } from "@/lib/hooks/useExerciseMedia";
 
 import { TrainingVariablesManager } from "./TrainingVariablesManager";
 import {
@@ -24,6 +26,8 @@ interface Props {
  * any other variable (charge, tempo, RPE, RIR, repos, %1RM, ...).
  */
 export const NormalExerciseEditor = ({ exercise, onUpdate, onRemove }: Props) => {
+  const { getMedia } = useExerciseMedia();
+  const media = getMedia(exercise.exerciseName);
   const exerciseType: ExerciseType = useMemo(
     () => inferExerciseTypeFromName(exercise.exerciseName),
     [exercise.exerciseName],
@@ -79,7 +83,31 @@ export const NormalExerciseEditor = ({ exercise, onUpdate, onRemove }: Props) =>
   return (
     <div className="rounded-xl bg-muted/40 border border-border/60 px-3 py-2 space-y-2">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-sm font-medium truncate">{exercise.exerciseName}</p>
+        <div className="flex items-center gap-2 min-w-0">
+          <ExerciseMediaViewer
+            exerciseName={exercise.exerciseName}
+            imageUrl={media?.image_url}
+            youtubeUrl={media?.youtube_url}
+          >
+            <button
+              type="button"
+              className="h-9 w-9 rounded-lg overflow-hidden shrink-0 border border-border/60 bg-muted flex items-center justify-center"
+              aria-label={`Voir le média de ${exercise.exerciseName}`}
+            >
+              {media?.image_url ? (
+                <img
+                  src={media.image_url}
+                  alt={exercise.exerciseName}
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                />
+              ) : (
+                <Dumbbell className="h-4 w-4 text-muted-foreground" />
+              )}
+            </button>
+          </ExerciseMediaViewer>
+          <p className="text-sm font-medium truncate">{exercise.exerciseName}</p>
+        </div>
         <Button
           variant="ghost"
           size="icon"
