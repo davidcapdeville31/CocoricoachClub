@@ -17,6 +17,8 @@ import { useSuggestedBenchmarks } from "@/hooks/useSuggestedBenchmarks";
 import { computeBenchmarkLevel } from "@/lib/benchmarks/computeLevel";
 import { matchesBenchmark } from "@/lib/benchmarks/matchTestType";
 import { collectLatestPlayerWeights } from "@/lib/benchmarks/playerWeights";
+import { latestWeightsByPlayer } from "@/lib/weight/weightHistory";
+import { useWeightHistory } from "@/lib/hooks/useWeightData";
 import { getPositionGroupsForSport, playerBelongsToGroup } from "@/lib/constants/sportPositionGroups";
 import { BenchmarkPositionMatrix } from "@/components/tonnage/BenchmarkPositionMatrix";
 import { AllTestsBenchmarkMatrix } from "@/components/tonnage/AllTestsBenchmarkMatrix";

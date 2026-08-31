@@ -18,6 +18,8 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 import { useCustomTestsMap } from "@/hooks/useCustomTestsMap";
 import { collectLatestPlayerWeights } from "@/lib/benchmarks/playerWeights";
+import { latestWeightsByPlayer } from "@/lib/weight/weightHistory";
+import { useWeightHistory } from "@/lib/hooks/useWeightData";
 
 interface PerformanceEvolutionProps {
   categoryId: string;

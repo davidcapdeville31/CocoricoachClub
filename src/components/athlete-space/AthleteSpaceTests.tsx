@@ -9,6 +9,8 @@ import { FlaskConical, Filter } from "lucide-react";
 import { format } from "date-fns";
 import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
 import { collectLatestPlayerWeights } from "@/lib/benchmarks/playerWeights";
+import { latestWeightsByPlayer } from "@/lib/weight/weightHistory";
+import { useWeightHistory } from "@/lib/hooks/useWeightData";
 import { useTranslation } from "react-i18next";
 
 interface Props {

@@ -45,7 +45,8 @@ import {
 import { AthleteAbsentLockNotice } from "./AthleteAbsentLockNotice";
 import { useAthleteAttendanceLock } from "@/hooks/useAthleteAttendanceLock";
 
-import { collectLatestPlayerWeights } from "@/lib/benchmarks/playerWeights";
+import { latestWeightsByPlayer } from "@/lib/weight/weightHistory";
+import { useWeightHistory } from "@/lib/hooks/useWeightData";
 
 interface Props {
   playerId: string;
