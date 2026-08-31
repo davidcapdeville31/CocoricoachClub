@@ -9,6 +9,7 @@
 // hidden HTML-comment pattern in `notes` for richer V2-only configs.
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { encodeVariableSetsTag } from "@/lib/program-builder-v2/variableSetsNotes";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { V2ProgramDraft } from "../CreateTrainingProgramV2";
@@ -177,7 +178,8 @@ export function useSaveProgramV2() {
             const baseNotes = ex.notes ?? "";
             const isTestRef = typeof ex.exerciseId === "string" && ex.exerciseId.startsWith("test:");
             const testTag = isTestRef ? `<!-- v2-test:${ex.exerciseId.slice(5)} -->` : "";
-            const notes = `${blockHeader}${testTag}\n${baseNotes}`.trim();
+            const setsTag = encodeVariableSetsTag(ex.variableSets as any);
+            const notes = `${blockHeader}${testTag}${setsTag}\n${baseNotes}`.trim();
 
             const row: ExerciseInsert = {
               session_id: session.id,

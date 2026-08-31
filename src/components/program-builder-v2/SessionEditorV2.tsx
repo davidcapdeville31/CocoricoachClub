@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { encodeVariableSetsTag, parseVariableSetsTag, stripVariableSetsTag } from "@/lib/program-builder-v2/variableSetsNotes";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -187,7 +188,8 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
           parsedConfig = undefined;
         }
       }
-      const cleanNotes = rawNotes
+      const parsedSets = parseVariableSetsTag(rawNotes);
+      const cleanNotes = stripVariableSetsTag(rawNotes)
         .replace(/<!--\s*v2-block:[^>]+-->/g, "")
         .replace(/<!--\s*v2-test:[^>]+-->/g, "")
         .replace(/<!--\s*v2-(fartlek|cluster|stato|intermittent|drop_set|rest_pause|pyramid_up|pyramid_down|pyramid_full|five_by_five|isometric_overcoming|isometric_yielding|amrap|for_time|death_by|circuit|tabata|emom):.*?-->/gs, "")
@@ -209,6 +211,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
         method: ex.method ?? "normal",
         groupId,
         notes: cleanNotes || undefined,
+        variableSets: parsedSets,
         config: parsedConfig,
         ...(typeof groupOrder === "number" ? { groupOrder } : {}),
       } as any);
@@ -518,7 +521,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
               set_type: methodValue ?? "normal",
               method: methodValue,
               group_id: ex.groupId || null,
-              notes: `${blockTag}${testTag}${userNote}`,
+              notes: `${blockTag}${testTag}${encodeVariableSetsTag((ex as any).variableSets)}${userNote}`,
             };
           }),
         );
@@ -705,7 +708,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
             set_type: methodValue ?? "normal",
             group_id: ex.groupId || null,
             group_order: groupOrder,
-            notes: `${blockTag}${testTag}${configTag}${userNote}`,
+            notes: `${blockTag}${testTag}${configTag}${encodeVariableSetsTag((ex as any).variableSets)}${userNote}`,
           };
         }),
       );

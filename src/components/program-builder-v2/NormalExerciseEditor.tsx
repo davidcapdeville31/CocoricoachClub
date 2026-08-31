@@ -1,12 +1,14 @@
 import { useMemo } from "react";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
 import { TrainingVariablesManager } from "./TrainingVariablesManager";
 import {
   inferExerciseTypeFromName,
   getDefaultVisibleVariables,
   type ExerciseType,
 } from "@/lib/program-builder-v2/exerciseTypes";
+import { convertToVariableSets } from "@/lib/program-builder-v2/variableSetsTypes";
 import type { V2BlockExercise } from "./hooks/useSaveProgramV2";
 
 interface Props {
@@ -14,6 +16,7 @@ interface Props {
   onUpdate: (key: string, value: any) => void;
   onRemove: () => void;
 }
+
 
 /**
  * Editable inline view for a "normal" exercise inside a session block.
@@ -56,6 +59,23 @@ export const NormalExerciseEditor = ({ exercise, onUpdate, onRemove }: Props) =>
     onUpdate(key, value);
   };
 
+  // Per-set (variable sets) editing: the table exposes its own "Séries variables"
+  // collapsible trigger, so we only need to enable it here.
+  const variableSets = useMemo(
+    () =>
+      exercise.variableSets && exercise.variableSets.length > 0
+        ? exercise.variableSets
+        : convertToVariableSets({
+            sets: exercise.sets,
+            reps: exercise.reps,
+            weight_kg: exercise.weight_kg,
+            percentage: exercise.percentage,
+            rpe: exercise.rpe,
+            tempo: exercise.tempo,
+          }),
+    [exercise.variableSets, exercise.sets, exercise.reps, exercise.weight_kg, exercise.percentage, exercise.rpe, exercise.tempo],
+  );
+
   return (
     <div className="rounded-xl bg-muted/40 border border-border/60 px-3 py-2 space-y-2">
       <div className="flex items-center justify-between gap-2">
@@ -75,13 +95,15 @@ export const NormalExerciseEditor = ({ exercise, onUpdate, onRemove }: Props) =>
         onUpdate={handleUpdate}
         visibleVariables={visibleVariables}
         onVisibleVariablesChange={(vars) => onUpdate("visibleVariables", vars)}
-        variableSets={exercise.variableSets}
+        variableSets={variableSets}
         onVariableSetsChange={(sets) => onUpdate("variableSets", sets)}
-        showVariableSets={false}
+        showVariableSets
         compact
       />
     </div>
   );
+
+
 };
 
 export default NormalExerciseEditor;
