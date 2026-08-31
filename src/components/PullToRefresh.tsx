@@ -110,6 +110,11 @@ const PullToRefresh = () => {
 
     const onTouchStart = (e: TouchEvent) => {
       if (refreshing) return;
+      if (isEditingContext(e.target)) {
+        startY.current = null;
+        active.current = false;
+        return;
+      }
       scrollContainerRef.current = getScrollableParent(e.target);
       // On regarde le scroll au moment du touch
       if (getTopOffset(scrollContainerRef.current) > 2) {
