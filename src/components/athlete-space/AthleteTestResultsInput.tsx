@@ -260,7 +260,16 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
           const testLabel = labelizeTestType(test.test_type, customMap);
           const unit = test.result_unit || (test.test_type?.startsWith("custom:") ? customMap[test.test_type]?.unit || "" : "");
           return (
-            <div key={idx} className="rounded-xl border bg-surface-sunken/40 p-2.5 space-y-2">
+            <div
+              key={idx}
+              className={`rounded-xl border-l-4 border bg-surface-sunken/40 p-2.5 space-y-2 ${
+                staffRow || (existing && existing.validation_status !== "rejected")
+                  ? "border-l-green-500"
+                  : existing?.validation_status === "rejected"
+                    ? "border-l-red-500"
+                    : "border-l-amber-500"
+              }`}
+            >
               <div className="text-xs font-medium leading-tight">
                 {testLabel}
                 <span className="text-muted-foreground ml-1">({labelize(test.test_category)})</span>
