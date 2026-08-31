@@ -785,7 +785,7 @@ export const athleteSpaceFr = {
       submit: "Valider et envoyer",
     },
     simplifiedSessionDialog: {
-      title: "Séance — mode simplifié",
+      title: "Séance simplifiée",
       sessionType: "Type de séance",
       chooseType: "Choisir le type",
       description: "Description de la séance",
@@ -799,7 +799,7 @@ export const athleteSpaceFr = {
       durationRequired: "Renseignez une durée > 0",
       rpeRequired: "Le RPE doit être entre 1 et 10",
       sessionExpired: "Session expirée. Reconnectez-vous puis réessayez.",
-      defaultDescription: "Séance {{type}} (mode simplifié)",
+      defaultDescription: "Séance simplifiée",
       durationRpe: "Durée : {{duration}} min · RPE : {{rpe}}/10",
       createError: "Erreur lors de la création",
       added: "Séance ajoutée",
