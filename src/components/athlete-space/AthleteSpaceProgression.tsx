@@ -54,11 +54,11 @@ const formatFrNumber = (value: number, digits = 2) => {
 const buildRatioDisplay = (rawValue: unknown, playerWeight?: number | null) => {
   const value = Number(rawValue);
   if (!Number.isFinite(value)) {
-    return { main: String(rawValue ?? ""), sub: i18n.t("athleteSpace.progression.ratioLoadWeight"), ratio: null as number | null, loadKg: null as number | null };
+    return { main: String(rawValue ?? ""), sub: "÷ PDC", ratio: null as number | null, loadKg: null as number | null };
   }
 
   if (!playerWeight || playerWeight <= 0) {
-    return { main: formatFrNumber(value), sub: i18n.t("athleteSpace.progression.ratioLoadWeight"), ratio: null as number | null, loadKg: value };
+    return { main: formatFrNumber(value), sub: "÷ PDC", ratio: null as number | null, loadKg: value };
   }
 
   const loadKg = value >= 5 ? value : value * playerWeight;

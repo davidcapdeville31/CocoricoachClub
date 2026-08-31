@@ -126,7 +126,7 @@ export function AthleteSpaceTests({ playerId, categoryId, sportType }: Props) {
     }
 
     if (!playerWeight || playerWeight <= 0) {
-      return <>{test.result_value} kg <span className="block text-[10px] font-normal text-muted-foreground">{t("athleteSpace.tests.ratioLoadWeight")}</span></>;
+      return <>{test.result_value} kg <span className="block text-[10px] font-normal text-muted-foreground">÷ PDC</span></>;
     }
 
     const loadKg = value >= 5 ? value : value * playerWeight;
@@ -138,7 +138,7 @@ export function AthleteSpaceTests({ playerId, categoryId, sportType }: Props) {
       <>
         {loadText} kg
         <span className="block text-[10px] font-normal text-muted-foreground">
-          {t("athleteSpace.tests.ratioText", { ratio: ratio.toFixed(2).replace(".", ","), load: loadText, weight: weightText })}
+          {t("athleteSpace.tests.ratioText", { ratio: ratio.toFixed(2).replace(".", ","), load: loadText, weight: weightText }).replace("ratio ", "ratio ÷ ")}
         </span>
       </>
     );

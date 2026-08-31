@@ -1329,7 +1329,7 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                                         <>
                                           {weight && (
                                             <span className="text-[10px] font-normal text-muted-foreground">
-                                              PDC {weight} kg
+                                              ÷ PDC {weight} kg
                                             </span>
                                           )}
                                           <span className="text-[10px] font-normal text-muted-foreground">
