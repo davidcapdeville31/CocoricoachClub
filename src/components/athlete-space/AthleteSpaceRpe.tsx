@@ -185,7 +185,14 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         // Filter out sessions created by other athletes (séance athlète)
         // AND filter by participants if explicitly assigned
         const filteredSessions = (sessions || []).filter((s: any) => {
-          if (s.created_by_player_id && s.created_by_player_id !== playerId) return false;
+          // Séance créée par un autre athlète : visible uniquement si je suis
+          // déclaré comme participant (séance partagée).
+          if (
+            s.created_by_player_id &&
+            s.created_by_player_id !== playerId &&
+            !(s.event_participants || []).some((p: any) => p.player_id === playerId)
+          )
+            return false;
           const parts = s.event_participants || [];
           if (parts.length > 0) {
             return parts.some((p: any) => p.player_id === playerId);
@@ -240,7 +247,14 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         const noAttendanceSessions = (allCatSessions || []).filter((s: any) => {
           if (existingIds.has(s.id)) return false;
           if (sessionsWithAttendance.has(s.id) && !isTestCampaignSession(s)) return false;
-          if (s.created_by_player_id && s.created_by_player_id !== playerId) return false;
+          // Séance créée par un autre athlète : visible uniquement si je suis
+          // déclaré comme participant (séance partagée).
+          if (
+            s.created_by_player_id &&
+            s.created_by_player_id !== playerId &&
+            !(s.event_participants || []).some((p: any) => p.player_id === playerId)
+          )
+            return false;
           const parts = s.event_participants || [];
           if (parts.length > 0) {
             return parts.some((p: any) => p.player_id === playerId);
@@ -278,7 +292,14 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         if (!isTestCampaignSession(s)) return false;
         const win = parseTestWindowFromNotes(s.notes)!;
         if (today < win.start || today > win.end) return false;
-        if (s.created_by_player_id && s.created_by_player_id !== playerId) return false;
+        // Séance créée par un autre athlète : visible uniquement si je suis
+          // déclaré comme participant (séance partagée).
+          if (
+            s.created_by_player_id &&
+            s.created_by_player_id !== playerId &&
+            !(s.event_participants || []).some((p: any) => p.player_id === playerId)
+          )
+            return false;
         const parts = s.event_participants || [];
         if (parts.length > 0) return parts.some((p: any) => p.player_id === playerId);
         return true;
