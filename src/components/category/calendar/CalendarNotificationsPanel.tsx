@@ -45,7 +45,7 @@ export function CalendarNotificationsPanel({ categoryId, onOpenSession }: Calend
       if (error) throw error;
       return (data || []) as CalendarNotification[];
     },
-    enabled: Boolean(categoryId),
+    enabled: Boolean(categoryId && user?.id),
     staleTime: 30_000,
   });
 
