@@ -31,6 +31,7 @@ import { Info } from "lucide-react";
 import { TOURNAMENT_LEVELS, SELECTION_TYPES } from "@/lib/judo/competitionAnalytics";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
 import { MatchParticipantsSelector, syncMatchParticipants } from "./MatchParticipantsSelector";
+import { getJudoAgeCategories, isJudoSport } from "@/lib/constants/judoAgeCategories";
 
 interface AddMatchCalendarDialogProps {
   open: boolean;
@@ -113,7 +114,7 @@ export function AddMatchCalendarDialog({
   const hasTournamentBracket = isPadel || isTennis;
   
   const baseSport = sportType.split('_')[0].toLowerCase();
-  const ageCategories = AGE_CATEGORIES[baseSport] || AGE_CATEGORIES.default;
+  const isJudo = isJudoSport(sportType);
   const [opponent, setOpponent] = useState("");
   const [competition, setCompetition] = useState("");
   const [customCompetition, setCustomCompetition] = useState("");

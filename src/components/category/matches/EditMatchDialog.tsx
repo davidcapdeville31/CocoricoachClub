@@ -29,6 +29,7 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
 import { TOURNAMENT_LEVELS, SELECTION_TYPES } from "@/lib/judo/competitionAnalytics";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
 import { MatchParticipantsSelector, syncMatchParticipants } from "./MatchParticipantsSelector";
+import { getJudoAgeCategories, isJudoSport } from "@/lib/constants/judoAgeCategories";
 
 interface Match {
   id: string;
@@ -88,6 +89,7 @@ export function EditMatchDialog({
   const competitions = getCompetitionsBySport(sportType);
   const isIndividual = isIndividualSport(sportType);
   const isAviron = sportType.toLowerCase().includes("aviron");
+  const isJudo = isJudoSport(sportType);
   
   const [opponent, setOpponent] = useState(match.opponent || "");
   const [competition, setCompetition] = useState("");
