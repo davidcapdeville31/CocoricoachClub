@@ -94,11 +94,6 @@ const OfflineIndicator = () => {
   if (hasOfflineData && lastDataSync && dismissedAt !== lastDataSync.getTime()) {
     const timeSinceSync = Date.now() - lastDataSync.getTime();
     // Show for 3 seconds after sync, auto-dismiss + manual close
-    useEffect(() => {
-      const timer = setTimeout(() => setDismissedAt(lastDataSync.getTime()), 3000);
-      return () => clearTimeout(timer);
-    }, [lastDataSync]);
-
     if (timeSinceSync < 3000) {
       return (
         <div className="fixed top-0 left-0 right-0 z-[100] bg-green-500 text-white py-2 px-4 flex items-center justify-center gap-2 text-sm font-medium animate-in slide-in-from-top-2">
