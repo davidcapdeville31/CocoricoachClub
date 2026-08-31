@@ -869,21 +869,31 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
       if (!draft) return;
       // On agrège la méthode liée comme un groupe d'exercices avec method = draft.method et un groupId commun
       const groupId = `grp-${Date.now()}`;
-      const exercises: V2BlockExercise[] = draft.slottedExercises.map((s) => ({
-        id: `ex-${Date.now()}-${s.slotIndex}-${Math.random().toString(36).slice(2, 6)}`,
-        exerciseId: s.exerciseId,
-        exerciseName: s.exerciseName,
-        sets: Number(s.params?.sets) || 3,
-        reps: s.params?.reps ?? "10",
-        restSeconds: draft.methodRestSeconds ?? 90,
-        tempo: s.params?.tempo,
-        percentage: s.params?.percentage ? Number(s.params.percentage) : undefined,
-        weight_kg: s.params?.load != null ? Number(s.params.load) : undefined,
-        rpe: s.params?.rpe != null ? Number(s.params.rpe) : undefined,
-        rir: s.params?.rir != null ? Number(s.params.rir) : undefined,
-        method: draft.method,
-        groupId,
-      }));
+      const exercises: V2BlockExercise[] = draft.slottedExercises.map((s) => {
+        const firstSetPercentage = (s.params as any)?.variableSets?.find((set: any) => set?.percentage != null)?.percentage;
+        return {
+          id: `ex-${Date.now()}-${s.slotIndex}-${Math.random().toString(36).slice(2, 6)}`,
+          exerciseId: s.exerciseId,
+          exerciseName: s.exerciseName,
+          sets: Number(s.params?.sets) || 3,
+          reps: s.params?.reps ?? "10",
+          restSeconds: draft.methodRestSeconds ?? 90,
+          tempo: s.params?.tempo,
+          percentage: s.params?.percentage
+            ? Number(s.params.percentage)
+            : firstSetPercentage != null
+              ? Number(firstSetPercentage)
+              : undefined,
+          weight_kg: s.params?.load != null ? Number(s.params.load) : undefined,
+          rpe: s.params?.rpe != null ? Number(s.params.rpe) : undefined,
+          rir: s.params?.rir != null ? Number(s.params.rir) : undefined,
+          method: draft.method,
+          groupId,
+          variableSets: (s.params as any)?.variableSets,
+          useVariableSets: (s.params as any)?.useVariableSets,
+        } as any;
+      });
+
       onChange(
         blocks.map((b) =>
           b.id === blockId
