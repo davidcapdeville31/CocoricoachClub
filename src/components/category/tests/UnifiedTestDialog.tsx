@@ -22,7 +22,7 @@ import { mergeCustomTestsIntoCategories, normalizeCustomTestType } from "./custo
 import { ComposedTestInputs } from "./ComposedTestInputs";
 import { isValidFormulaConfig, type FormulaConfig } from "@/lib/tests/formulaEngine";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
-import { computePoints, findMatchingRange, type ScoringScale, type PlayerForScoring } from "@/lib/constants/testUnits";
+import { computePoints, findMatchingRange, displayUnit, type ScoringScale, type PlayerForScoring } from "@/lib/constants/testUnits";
 import { getPositionGroupsForSport, playerBelongsToGroup } from "@/lib/constants/sportPositionGroups";
 import { Badge } from "@/components/ui/badge";
 
@@ -107,7 +107,7 @@ export function UnifiedTestDialog({
 
   const AVAILABLE_UNITS = [
     { value: "kg", label: "Kilogrammes (kg)" },
-    { value: "× PDC", label: "Ratio poids du corps (× PDC)" },
+    { value: "÷ PDC", label: "Ratio poids du corps (÷ PDC)" },
     { value: "N", label: "Newton (N)" },
     { value: "cm", label: "Centimètres (cm)" },
     { value: "m", label: "Mètres (m)" },
@@ -238,7 +238,7 @@ export function UnifiedTestDialog({
 
   // Detect ratio-based tests (unit "× PDC" or legacy "x PDC")
   const currentUnit = (currentTest?.unit || customTestUnit || "").trim();
-  const isRatioTest = currentUnit === "× PDC" || currentUnit === "x PDC" || currentUnit === "×PDC";
+  const isRatioTest = ["÷ PDC", "× PDC", "x PDC", "×PDC", "/ PDC"].includes(currentUnit);
 
   // Fetch latest bodyweight for each effective player (used for ratio auto-compute)
   const effectivePlayerIds = useMemo(() => effectivePlayers.map(p => p.id), [effectivePlayers]);
@@ -304,13 +304,13 @@ export function UnifiedTestDialog({
               throw new Error(`Poids manquant pour ${player.first_name || ""} ${player.name} — saisis un poids anthropo ou passe en mode "Ratio direct".`);
             }
             finalValue = Math.round((rawInput / w) * 1000) / 1000;
-            ratioNote = ` [Ratio auto: ${rawInput}kg / ${w}kg = ${finalValue}× PDC]`;
+            ratioNote = ` [Ratio auto: ${rawInput}kg / ${w}kg = ${finalValue} ÷ PDC]`;
           }
           return {
             player_id: player.id, category_id: categoryId, test_date: date,
             test_category: testCategory, test_type: testType,
             result_value: finalValue,
-            result_unit: isRatioTest ? "× PDC" : (currentTest?.unit || customTestUnit || ""),
+            result_unit: isRatioTest ? "÷ PDC" : (currentTest?.unit || customTestUnit || ""),
             secondary_value: playerSecondaryResults[player.id] ? parseFloat(playerSecondaryResults[player.id]) : null,
             secondary_unit: (isStrengthTest && playerSecondaryResults[player.id]) ? "m/s" : null,
             notes: `Session ID: ${sessionData.id}` + (notes ? `\n${notes}` : "") + ratioNote,
@@ -510,7 +510,7 @@ export function UnifiedTestDialog({
             {effectivePlayers.length > 0 && ((isCustom && customTestName && customTestUnit) || selectedTest) && currentTest && (
               <div className="space-y-2">
                 <Label>
-                  Résultats {currentTest.unit && `(${isRatioTest && ratioInputMode === "kg" ? "kg soulevés → auto × PDC" : currentTest.unit})`}
+                  Résultats {currentTest.unit && `(${isRatioTest && ratioInputMode === "kg" ? "kg soulevés → auto ÷ PDC" : displayUnit(currentTest.unit)})`}
                   {showSecondaryField && " + Vitesse barre (m/s, optionnel)"}
                   {" "}- {filledResultsCount}/{effectivePlayers.length} saisis
                 </Label>
@@ -536,8 +536,8 @@ export function UnifiedTestDialog({
                     </div>
                     <p className="text-[11px] text-muted-foreground">
                       {ratioInputMode === "kg"
-                        ? "La charge est divisée par le dernier poids anthropo enregistré. Le barème s'applique sur le ratio (× PDC)."
-                        : "Saisis directement le ratio (ex: 1.5 = 1.5× le poids de corps)."}
+                        ? "La charge est divisée par le dernier poids anthropo enregistré. Le barème s'applique sur le ratio (÷ PDC)."
+                        : "Saisis directement le ratio (ex: 1.5 = 1.5 ÷ le poids de corps)."}
                     </p>
                   </div>
                 )}
@@ -579,12 +579,12 @@ export function UnifiedTestDialog({
                               type="number" step="0.01"
                               value={playerResults[player.id] || ""}
                               onChange={(e) => updatePlayerResult(player.id, e.target.value)}
-                              placeholder={isRatioTest ? (ratioInputMode === "kg" ? "kg" : "× PDC") : (currentTest.unit || "valeur")}
+                              placeholder={isRatioTest ? (ratioInputMode === "kg" ? "kg" : "÷ PDC") : (currentTest.unit || "valeur")}
                               className="w-24 h-8 text-sm"
                             />
                             {ratioPreview !== null && (
                               <span className="text-[11px] font-semibold text-primary whitespace-nowrap">
-                                = {ratioPreview}× PDC
+                                = {ratioPreview} ÷ PDC
                               </span>
                             )}
                             {showSecondaryField && (

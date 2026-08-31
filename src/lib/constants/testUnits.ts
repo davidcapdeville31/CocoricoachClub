@@ -16,7 +16,7 @@ export const TEST_UNIT_OPTIONS: TestUnitOption[] = [
   { value: "distance_km", label: "Distance (km)", unit: "km", group: "Distance" },
   { value: "load_kg", label: "Charge (kg)", unit: "kg", group: "Charge / Poids" },
   { value: "load_lbs", label: "Charge (lbs)", unit: "lbs", group: "Charge / Poids" },
-  { value: "ratio_bw", label: "Ratio poids du corps (× PDC)", unit: "× PDC", group: "Charge / Poids" },
+  { value: "ratio_bw", label: "Ratio poids du corps (÷ PDC)", unit: "÷ PDC", group: "Charge / Poids" },
   { value: "speed_kmh", label: "Vitesse (km/h)", unit: "km/h", group: "Vitesse" },
   { value: "speed_ms", label: "Vitesse (m/s)", unit: "m/s", group: "Vitesse" },
   { value: "reps", label: "Répétitions", unit: "reps", group: "Quantité" },
@@ -181,4 +181,15 @@ export const DEFAULT_BATTERY_LEVELS: BatteryLevel[] = [
 export function getLevelForPercent(percent: number, levels: BatteryLevel[] = DEFAULT_BATTERY_LEVELS): BatteryLevel {
   const sorted = [...levels].sort((a, b) => b.minPercent - a.minPercent);
   return sorted.find(l => percent >= l.minPercent) ?? sorted[sorted.length - 1];
+}
+
+/**
+ * Affichage d'une unité : un ratio poids de corps est une division
+ * (charge ÷ poids de corps), on affiche donc "÷ PDC" et non "× PDC".
+ */
+export function displayUnit(unit?: string | null): string {
+  if (!unit) return "";
+  const u = unit.trim();
+  if (/^[x×]\s*PDC$/i.test(u) || /^ratio[\s_]*bw$/i.test(u) || /^ratio$/i.test(u)) return "÷ PDC";
+  return u;
 }

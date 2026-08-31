@@ -396,7 +396,7 @@ export function BenchmarkManager({ categoryId, sportType }: BenchmarkManagerProp
                               {b.use_body_weight_ratio && (
                                 <Badge variant="outline" className="text-xs">
                                   <Weight className="h-3 w-3 mr-1" />
-                                  {b.body_weight_multiplier}x PDC
+                              {b.body_weight_multiplier} ÷ PDC
                                 </Badge>
                               )}
                             </div>
@@ -662,7 +662,7 @@ export function BenchmarkManager({ categoryId, sportType }: BenchmarkManagerProp
                       className="bg-background"
                     />
                   </div>
-                  <span className="text-xs w-8 text-muted-foreground">{formUseBodyWeight ? "x PDC" : formUnit}</span>
+                  <span className="text-xs w-8 text-muted-foreground">{formUseBodyWeight ? "÷ PDC" : formUnit}</span>
                   {formLevels.length > 2 && (
                     <Button type="button" variant="ghost" size="icon" onClick={() => removeLevel(index)} className="h-8 w-8 text-destructive">
                       <Trash2 className="h-3 w-3" />

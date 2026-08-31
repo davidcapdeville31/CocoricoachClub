@@ -250,8 +250,8 @@ export const athleteSpaceFr = {
     test: "Test",
     result: "Résultat",
     sprint40: "Sprint 40m",
-    ratioLoadWeight: "ratio charge/poids",
-    ratioText: "ratio {{ratio}} ({{load}}/{{weight}} kg)",
+    ratioLoadWeight: "ratio charge ÷ poids de corps",
+    ratioText: "ratio {{ratio}} ({{load}} kg ÷ {{weight}} kg)",
   },
   progression: {
     filterByCategory: "Filtrer par catégorie",
@@ -1122,8 +1122,8 @@ export const athleteSpaceEn = {
     test: "Test",
     result: "Result",
     sprint40: "40m Sprint",
-    ratioLoadWeight: "load/weight ratio",
-    ratioText: "ratio {{ratio}} ({{load}}/{{weight}} kg)",
+    ratioLoadWeight: "load ÷ body weight ratio",
+    ratioText: "ratio {{ratio}} ({{load}} kg ÷ {{weight}} kg)",
   },
   progression: {
     filterByCategory: "Filter by category",

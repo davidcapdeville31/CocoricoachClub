@@ -54,7 +54,7 @@ const DEFAULT_LABELS = ["Insuffisant", "Moyen", "Bon", "Excellent", "Élite"];
 function isRatioUnit(u: string | null | undefined) {
   if (!u) return false;
   const s = u.toLowerCase().replace(/\s+/g, "");
-  return s === "×pdc" || s === "xpdc" || s === "/pdc";
+  return s === "×pdc" || s === "xpdc" || s === "÷pdc" || s === "/pdc";
 }
 
 function rangesToLevels(ranges: Range[], lowerIsBetter: boolean): SynthLevel[] {

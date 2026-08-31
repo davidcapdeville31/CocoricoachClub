@@ -243,7 +243,7 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
     // Normalise l'unité "× PDC" en "ratio" pour l'affichage et flag isRatio
     const normUnit = (u: string) => u.toLowerCase().replace(/\s+/g, "");
     const withRatioFlag = resolved.map(t => {
-      const isRatio = ["×pdc", "xpdc", "/pdc"].includes(normUnit(t.unit || ""));
+      const isRatio = ["×pdc", "xpdc", "÷pdc", "/pdc"].includes(normUnit(t.unit || ""));
       return { ...t, isRatio, unit: isRatio ? "ratio" : t.unit };
     });
 
@@ -284,7 +284,7 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
   // Extract value from a test record — convertit automatiquement en ratio
   // (charge kg ÷ poids kg) quand le résultat est stocké avec l'unité "× PDC".
   const isRatioUnit = (u: string | null | undefined) =>
-    !!u && ["× pdc", "x pdc", "×pdc", "xpdc"].includes(u.toLowerCase());
+    !!u && ["× pdc", "x pdc", "×pdc", "xpdc", "÷ pdc", "÷pdc", "/ pdc", "/pdc"].includes(u.toLowerCase());
   const extractValue = useCallback((record: any, test: DiscoveredTest): number | null => {
     const applyRatio = (raw: number): number | null => {
       if (!isRatioUnit(record?.result_unit) && !isRatioUnit(test.unit)) return raw;
@@ -609,7 +609,7 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
           <SelectContent>
             {availableTests.map((test) => (
               <SelectItem key={test.key} value={test.key}>
-                {test.label} {test.unit && `(${test.unit})`}
+                {test.label} {test.unit && `(${test.unit === "ratio" ? "÷ PDC" : test.unit})`}
               </SelectItem>
             ))}
           </SelectContent>
@@ -672,7 +672,7 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
         <CardHeader className="pb-2">
           <CardTitle className="text-lg">
             {viewMode === "team" ? "Évolution moyenne" : "Comparaison individuelle"} — {currentTest?.label || "Test"}
-            {currentTest?.unit && ` (${currentTest.unit})`}
+            {currentTest?.unit && ` (${currentTest.unit === "ratio" ? "÷ PDC" : currentTest.unit})`}
           </CardTitle>
         </CardHeader>
         <CardContent>

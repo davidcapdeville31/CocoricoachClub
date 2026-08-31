@@ -117,7 +117,7 @@ const DEFAULT_RATIO_LEVELS: BenchmarkLevel[] = [
 function isRatioUnit(u: string | null | undefined) {
   if (!u) return false;
   const s = u.toLowerCase().replace(/\s+/g, "");
-  return s === "×pdc" || s === "xpdc";
+  return s === "×pdc" || s === "xpdc" || s === "÷pdc" || s === "/pdc";
 }
 
 export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelector, forcedKey, onTestOptions, renderOnlyOptions }: Props) {
@@ -1177,7 +1177,7 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                       const evoDelta = first && last
                         ? useKgDelta ? (last.rawKg! - first.rawKg!) : (last.value - first.value)
                         : 0;
-                      const evoUnit = useKgDelta ? " kg" : isRatio ? " ratio" : unitSuffix ? ` ${unitSuffix}` : "";
+                      const evoUnit = useKgDelta ? " kg" : isRatio ? " ÷ PDC" : unitSuffix ? ` ${unitSuffix}` : "";
                       const evoBase = useKgDelta ? first?.rawKg : first?.value;
                       const evoPct =
                         evoBase != null && Number(evoBase) !== 0
@@ -1268,7 +1268,7 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                             const stepUnit = stepUseKg
                               ? " kg"
                               : isRatio
-                              ? " ratio"
+                              ? " ÷ PDC"
                               : unitSuffix
                               ? ` ${unitSuffix}`
                               : "";
@@ -1329,7 +1329,7 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                                         <>
                                           {weight && (
                                             <span className="text-[10px] font-normal text-muted-foreground">
-                                              PDC {weight} kg
+                                              ÷ PDC {weight} kg
                                             </span>
                                           )}
                                           <span className="text-[10px] font-normal text-muted-foreground">
@@ -1347,7 +1347,7 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                                     <span className="font-mono font-bold text-sm">
                                       {point.value}
                                       <span className="text-[10px] font-normal text-muted-foreground ml-0.5">
-                                        {unitSuffix}
+                                         {isRatio ? " ÷ PDC" : unitSuffix}
                                       </span>
                                     </span>
                                   )}
@@ -1542,7 +1542,7 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                     <div className="mb-2 flex items-center gap-2">
                       <TrendingUp className="h-4 w-4 text-primary" />
                       <h4 className="text-sm font-semibold">
-                        Évolution — {useRatioAxis ? "ratio (charge / poids de corps)" : `valeur${unitSuffix ? ` (${unitSuffix})` : ""}`}
+                        Évolution — {useRatioAxis ? "ratio (charge ÷ poids de corps)" : `valeur${unitSuffix ? ` (${unitSuffix})` : ""}`}
                       </h4>
                     </div>
                     <div className="h-80 w-full">
@@ -1688,7 +1688,7 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                     <Line
                       type="monotone"
                       dataKey="value"
-                      name={useRatioAxis ? "Ratio" : `Valeur${unitSuffix ? ` (${unitSuffix})` : ""}`}
+                      name={useRatioAxis ? "Ratio (÷ PDC)" : `Valeur${unitSuffix ? ` (${unitSuffix})` : ""}`}
                       stroke="hsl(var(--primary))"
                       strokeWidth={2.5}
                       dot={{ r: 5 }}

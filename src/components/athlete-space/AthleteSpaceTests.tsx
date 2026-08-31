@@ -11,6 +11,7 @@ import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
 import { latestWeightsByPlayer } from "@/lib/weight/weightHistory";
 import { useWeightHistory } from "@/lib/hooks/useWeightData";
 import { useTranslation } from "react-i18next";
+import { displayUnit } from "@/lib/constants/testUnits";
 
 interface Props {
   playerId: string;
@@ -121,11 +122,11 @@ export function AthleteSpaceTests({ playerId, categoryId, sportType }: Props) {
     const value = Number(test.result_value);
 
     if (!isBodyWeightRatio || !Number.isFinite(value)) {
-      return <>{test.result_value} {test.result_unit || ""}</>;
+      return <>{test.result_value} {displayUnit(test.result_unit || "")}</>;
     }
 
     if (!playerWeight || playerWeight <= 0) {
-      return <>{test.result_value} kg <span className="block text-[10px] font-normal text-muted-foreground">{t("athleteSpace.tests.ratioLoadWeight")}</span></>;
+      return <>{test.result_value} kg <span className="block text-[10px] font-normal text-muted-foreground">÷ PDC</span></>;
     }
 
     const loadKg = value >= 5 ? value : value * playerWeight;

@@ -23,6 +23,7 @@ import { getDisplayNotes, isSimplifiedSession, parsePrecisionExerciseFromNotes, 
 import { SPARE_EXERCISE_TYPES } from "@/lib/constants/bowlingBallBrands";
 import { cn } from "@/lib/utils";
 import { GroupedExerciseList } from "@/components/category/GroupedExerciseList";
+import { displayUnit } from "@/lib/constants/testUnits";
 import { PrecisionExerciseSelector } from "@/components/precision/PrecisionExerciseSelector";
 import { AthletePrecisionFieldInput } from "./AthletePrecisionFieldInput";
 import { AthleteFieldBlocksRpe } from "./AthleteFieldBlocksRpe";
@@ -932,7 +933,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
           const customUnit = /^custom:/i.test(r.test_type || "") ? customTestMap[`custom:${r.test_type.slice(7).toLowerCase()}`]?.unit : null;
           const isRatio = isBodyWeightRatioUnit(unit) || isBodyWeightRatioUnit(customUnit);
           const value = Number(r.result_value);
-          let display = `${r.result_value} ${unit}`;
+          let display = `${r.result_value} ${displayUnit(unit)}`;
           if (isRatio && Number.isFinite(value)) {
             display = formatBodyWeightRatioResult(value, playerBodyWeight);
           }

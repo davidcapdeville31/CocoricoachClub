@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import { useAthleteAttendanceLock } from "@/hooks/useAthleteAttendanceLock";
 import { AthleteAbsentLockNotice } from "./AthleteAbsentLockNotice";
 import { parseTestWindowFromNotes } from "@/lib/utils/sessionNotes";
+import { displayUnit } from "@/lib/constants/testUnits";
 
 
 interface TestRef {
@@ -229,7 +230,7 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
               </span>
               {staffRow ? (
                 <Badge variant="default" className="text-[10px] gap-1" title={t('athleteSpace.components.testResultsInput.title')}>
-                  {staffRow.result_value} {staffRow.result_unit || unit} {t('athleteSpace.components.testResultsInput.staffValidated')}
+                  {staffRow.result_value} {displayUnit(staffRow.result_unit || unit)} {t('athleteSpace.components.testResultsInput.staffValidated')}
                   {testWindow && staffRow.test_date ? ` · ${formatDay(staffRow.test_date)}` : ""}
                 </Badge>
               ) : existing ? (
@@ -238,7 +239,7 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
                   className="text-[10px] gap-1"
                 >
                   {existing.validation_status === "pending" && <Clock className="h-3 w-3" />}
-                  {existing.result_value} {existing.result_unit || test.result_unit || ""}
+                  {existing.result_value} {displayUnit(existing.result_unit || test.result_unit || "")}
                   {existing.validation_status === "pending" && t('athleteSpace.components.testResultsInput.pending')}
                   {existing.validation_status === "validated" && t('athleteSpace.components.testResultsInput.validated')}
                   {existing.validation_status === "rejected" && t('athleteSpace.components.testResultsInput.rejected')}
@@ -258,7 +259,7 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
                     disabled={isAbsent}
                   />
 
-                  <span className="text-xs text-muted-foreground w-8">{unit}</span>
+                  <span className="text-xs text-muted-foreground w-10">{displayUnit(unit)}</span>
                   {categoryId && (
                     <Button
                       type="button"

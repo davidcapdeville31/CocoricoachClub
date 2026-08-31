@@ -1,4 +1,5 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
+import { displayUnit } from "@/lib/constants/testUnits";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,18 +54,18 @@ const formatFrNumber = (value: number, digits = 2) => {
 const buildRatioDisplay = (rawValue: unknown, playerWeight?: number | null) => {
   const value = Number(rawValue);
   if (!Number.isFinite(value)) {
-    return { main: String(rawValue ?? ""), sub: i18n.t("athleteSpace.progression.ratioLoadWeight"), ratio: null as number | null, loadKg: null as number | null };
+    return { main: String(rawValue ?? ""), sub: "÷ PDC", ratio: null as number | null, loadKg: null as number | null };
   }
 
   if (!playerWeight || playerWeight <= 0) {
-    return { main: formatFrNumber(value), sub: i18n.t("athleteSpace.progression.ratioLoadWeight"), ratio: null as number | null, loadKg: value };
+    return { main: formatFrNumber(value), sub: "÷ PDC", ratio: null as number | null, loadKg: value };
   }
 
   const loadKg = value >= 5 ? value : value * playerWeight;
   const ratio = value >= 5 ? loadKg / playerWeight : value;
   return {
     main: `${i18n.t("athleteSpace.progression.ratioPrefix")} ${formatFrNumber(ratio, 2)}`,
-    sub: `${formatFrNumber(loadKg, 1)}/${formatFrNumber(playerWeight, 1)} kg`,
+    sub: `${formatFrNumber(loadKg, 1)} kg ÷ ${formatFrNumber(playerWeight, 1)} kg`,
     ratio,
     loadKg,
   };
@@ -458,7 +459,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
                             {ratioDisplay ? ratioDisplay.main : test.value}
                             {!ratioDisplay && test.unit && (
                               <span className="text-xs font-normal text-muted-foreground ml-1">
-                                {test.unit}
+                                {displayUnit(test.unit)}
                               </span>
                             )}
                           </p>
