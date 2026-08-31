@@ -975,7 +975,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
     );
   };
 
-  const renderSessionNotes = (notes: string | null) => {
+  const renderSessionNotes = (notes: string | null, isTestSession?: boolean) => {
     if (isSimplifiedSession(notes)) {
       return <p className="text-xs text-muted-foreground mt-0.5 italic">{t("athleteSpace.rpe.simplifiedSessionLabel")}</p>;
     }
@@ -989,7 +989,14 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
       )
       .filter((line, index) => {
         const original = display.split("\n")[index]?.trim() || "";
-        return !(hasStructuredTestLabel && /^test\s*:\s*custom:/i.test(original));
+        if (hasStructuredTestLabel && /^test\s*:\s*custom:/i.test(original)) return false;
+        // Hide auto-generated test/battery titles already shown by renderTestInfo
+        if (isTestSession && index === 0) {
+          if (/^(Batterie de \d+ tests|Battery of \d+ tests|Batterie :|Battery:|Test :|Test:)/i.test(original)) {
+            return false;
+          }
+        }
+        return true;
       })
       .join("\n")
       .trim();
