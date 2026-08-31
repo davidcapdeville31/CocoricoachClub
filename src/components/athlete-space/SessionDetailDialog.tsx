@@ -160,6 +160,58 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
             </div>
           )}
 
+          {/* Déroulé planifié de la séance (blocs) */}
+          {(plannedBlocks?.length || 0) > 0 && (() => {
+            const total = plannedBlocks!.reduce((s: number, b: any) => s + (Number(b.duration_minutes) || 0), 0);
+            return (
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-xs uppercase tracking-wide font-semibold text-muted-foreground">
+                    {t('athleteSpace.components.sessionDetailDialog.plannedBlocks', {
+                      count: plannedBlocks!.length,
+                      plural: plannedBlocks!.length > 1 ? 's' : '',
+                    })}
+                  </p>
+                  {total > 0 && (
+                    <Badge variant="outline" className="text-[10px]">
+                      {t('athleteSpace.components.sessionDetailDialog.plannedTotalDuration', { count: total })}
+                    </Badge>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  {plannedBlocks!.map((b: any, idx: number) => {
+                    const label =
+                      (b.theme && String(b.theme).trim()) ||
+                      getTrainingTypeLabel(b.training_type) ||
+                      b.training_type;
+                    const blockNotes = String(b.notes || "").replace(/<!--[\s\S]*?-->/g, "").trim();
+                    return (
+                      <div key={b.id} className="rounded-md border bg-surface px-3 py-2 text-sm space-y-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-medium">{idx + 1}. {label}</span>
+                          {b.duration_minutes ? (
+                            <Badge variant="secondary" className="text-[10px] gap-1">
+                              <Clock className="h-3 w-3" />
+                              {t('athleteSpace.components.sessionDetailDialog.minutes', { count: b.duration_minutes })}
+                            </Badge>
+                          ) : null}
+                          {b.intensity ? (
+                            <Badge variant="outline" className="text-[10px]">
+                              {t('athleteSpace.components.sessionDetailDialog.plannedBlockIntensity', { intensity: b.intensity })}
+                            </Badge>
+                          ) : null}
+                        </div>
+                        {blockNotes && (
+                          <p className="text-xs whitespace-pre-line text-muted-foreground">{blockNotes}</p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Données personnelles saisies par l'athlète */}
           {hasAthleteData ? (
             <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3 space-y-3">
