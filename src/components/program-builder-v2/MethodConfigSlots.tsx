@@ -1890,7 +1890,8 @@ export const MethodConfigSlots = ({
               {/* Mode Selection */}
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground block">Mode</Label>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
+
                   <Button
                     type="button"
                     variant={emomConfig.mode === 'single' ? "default" : "outline"}
