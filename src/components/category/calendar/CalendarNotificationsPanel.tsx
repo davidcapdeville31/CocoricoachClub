@@ -27,14 +27,17 @@ interface CalendarNotificationsPanelProps {
 
 export function CalendarNotificationsPanel({ categoryId, onOpenSession }: CalendarNotificationsPanelProps) {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   const { data: notifications = [], isLoading } = useQuery({
-    queryKey: ["calendar-athlete-notifications", categoryId],
+    queryKey: ["calendar-athlete-notifications", categoryId, user?.id],
     queryFn: async () => {
+      if (!user?.id) return [];
       const { data, error } = await supabase
         .from("notifications")
         .select("id, title, message, created_at, notification_subtype, metadata")
+        .eq("user_id", user.id)
         .eq("category_id", categoryId)
         .eq("notification_type", "athlete_session")
         .eq("is_read", false)
