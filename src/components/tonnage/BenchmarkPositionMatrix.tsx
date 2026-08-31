@@ -1268,7 +1268,7 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                             const stepUnit = stepUseKg
                               ? " kg"
                               : isRatio
-                              ? " ratio"
+                              ? " ÷ PDC"
                               : unitSuffix
                               ? ` ${unitSuffix}`
                               : "";
@@ -1347,7 +1347,7 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                                     <span className="font-mono font-bold text-sm">
                                       {point.value}
                                       <span className="text-[10px] font-normal text-muted-foreground ml-0.5">
-                                        {unitSuffix}
+                                         {isRatio ? " ÷ PDC" : unitSuffix}
                                       </span>
                                     </span>
                                   )}
@@ -1542,7 +1542,7 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                     <div className="mb-2 flex items-center gap-2">
                       <TrendingUp className="h-4 w-4 text-primary" />
                       <h4 className="text-sm font-semibold">
-                        Évolution — {useRatioAxis ? "ratio (charge / poids de corps)" : `valeur${unitSuffix ? ` (${unitSuffix})` : ""}`}
+                        Évolution — {useRatioAxis ? "ratio (charge ÷ poids de corps)" : `valeur${unitSuffix ? ` (${unitSuffix})` : ""}`}
                       </h4>
                     </div>
                     <div className="h-80 w-full">
@@ -1688,7 +1688,7 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                     <Line
                       type="monotone"
                       dataKey="value"
-                      name={useRatioAxis ? "Ratio" : `Valeur${unitSuffix ? ` (${unitSuffix})` : ""}`}
+                      name={useRatioAxis ? "Ratio (÷ PDC)" : `Valeur${unitSuffix ? ` (${unitSuffix})` : ""}`}
                       stroke="hsl(var(--primary))"
                       strokeWidth={2.5}
                       dot={{ r: 5 }}
