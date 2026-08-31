@@ -37,6 +37,7 @@ import { BowlingAdvancedDialog } from "@/components/bowling/BowlingAdvancedDialo
 import { ScheduleTestEventDialog } from "./ScheduleTestEventDialog";
 import { DailyCalendarView } from "./DailyCalendarView";
 import { CalendarColorLegend } from "./CalendarColorLegend";
+import { CalendarNotificationsPanel } from "./CalendarNotificationsPanel";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -534,6 +535,20 @@ export function ImprovedCalendarView({
             sessions={sessions}
             matches={matches}
             trainingTypeLabels={trainingTypeLabels}
+          />
+          <CalendarNotificationsPanel
+            categoryId={categoryId}
+            onOpenSession={(sessionId) => {
+              const session = sessions.find((item) => item.id === sessionId);
+              if (session) {
+                setActiveSession(null);
+                setFeedbackSession(null);
+                setAllEventsDay(null);
+                setNotifySession(null);
+                setDuplicateSession(null);
+                onViewSession?.(session);
+              }
+            }}
           />
           {!isViewer && (
             <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent px-3 py-2 text-xs sm:text-sm">
