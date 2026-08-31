@@ -1,3 +1,4 @@
+import { TeamWeightOverview } from "@/components/weight/TeamWeightOverview";
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo, useEffect, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
