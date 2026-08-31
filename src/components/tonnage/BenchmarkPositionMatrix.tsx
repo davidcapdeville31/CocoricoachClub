@@ -926,12 +926,14 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
           let min: number | null;
           let max: number | null;
           if (lb) {
-            min = i === 0 ? null : prevT;
-            max = levels[i + 1] ? t : null;
+            // seuils décroissants : niveau i = ]seuil_i+1 ; seuil_i]
+            min = nextT;
+            max = i === 0 ? null : t;
           } else {
             min = i === 0 ? null : t;
-            max = i === 0 ? t : levels[i + 1] ? nextT : null;
+            max = nextT;
           }
+
           baremeRows.push({
             test: testKey,
             poste: info.label,
