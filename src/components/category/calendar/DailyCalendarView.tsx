@@ -9,7 +9,7 @@ import { getCompetitionColor } from "@/lib/constants/competitionColors";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { getDisplayNotes, parseTestsFromNotes } from "@/lib/utils/sessionNotes";
+import { getDisplayNotes, parseTestsFromNotes, getSessionTitleFromNotes } from "@/lib/utils/sessionNotes";
 import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
 import { useTranslation } from "react-i18next";
 
@@ -351,7 +351,7 @@ export function DailyCalendarView({
                           mainColor.replace("bg-", "bg-") + "/20",
                           "text-foreground"
                         )}>
-                          {trainingTypeLabels[session.training_type] || session.training_type}
+                          {(session.training_type === "mental" && getSessionTitleFromNotes(session.notes)) || trainingTypeLabels[session.training_type] || session.training_type}
                         </span>
                         {session.training_type === "test" && testNameForSession(session) && (
                           <p className="text-sm font-semibold">{testNameForSession(session)}</p>

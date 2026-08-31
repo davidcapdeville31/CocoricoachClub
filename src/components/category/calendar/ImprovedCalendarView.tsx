@@ -1,6 +1,6 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo, useRef, useEffect } from "react";
-import { getDisplayNotes, parseTestsFromNotes } from "@/lib/utils/sessionNotes";
+import { getDisplayNotes, parseTestsFromNotes, getSessionTitleFromNotes } from "@/lib/utils/sessionNotes";
 import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
 import { DndContext, DragEndEvent, DragOverlay, pointerWithin } from "@dnd-kit/core";
 import { useQuery } from "@tanstack/react-query";
@@ -760,9 +760,12 @@ export function ImprovedCalendarView({
                                    sessionTestNames[session.id] ||
                                    "")
                                 : "";
+                              const mentalTitle = session.training_type === "mental"
+                                ? getSessionTitleFromNotes(session.notes)
+                                : null;
                               const titleLabel = isTest && testName
                                 ? testName
-                                : (trainingTypeLabels[session.training_type] || session.training_type);
+                                : mentalTitle || (trainingTypeLabels[session.training_type] || session.training_type);
                               const secondaryNotes = isTest
                                 ? displayNotes.split("\n").filter((l) => !l.trim().startsWith("📋")).join(" • ").trim()
                                 : displayNotes;
