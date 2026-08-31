@@ -19,6 +19,7 @@ const OfflineIndicator = () => {
   } = useOfflineSyncContext();
   
   const { isOfflineSession, user } = useAuth();
+  const [dismissedAt, setDismissedAt] = useState<number | null>(null);
 
   // Show preloading status
   if (isPreloading) {
