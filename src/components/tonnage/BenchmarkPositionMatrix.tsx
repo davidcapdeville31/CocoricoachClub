@@ -766,23 +766,28 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
     }
   };
 
-  // Build level range string (e.g. "1,0 – 1,2" or "< 1,0" or "> 1,4")
+  // Build level range string.
+  // `levels` est ordonné du PIRE au MEILLEUR (idx 0 = Insuffisant).
+  // - lowerIsBetter : seuils décroissants, niveau i atteint si value ≤ seuil_i (et > seuil_i+1)
+  // - sinon : seuils croissants, niveau i atteint si value ≥ seuil_i (et < seuil_i+1)
   const levelRangeString = (levels: BenchmarkLevel[], idx: number, lowerIsBetter: boolean) => {
     const lvl = levels[idx];
     if (lvl?.threshold == null) return "—";
     const next = levels[idx + 1];
     const fmt = (n: number) => n.toString().replace(".", ",");
     if (lowerIsBetter) {
-      // First (best) = <= threshold ; last (worst) = > previous ; middle range
-      if (idx === 0) return `≤ ${fmt(lvl.threshold)}`;
-      if (!next) return `> ${fmt(levels[idx - 1].threshold ?? lvl.threshold)}`;
-      return `${fmt(levels[idx - 1].threshold ?? lvl.threshold)} – ${fmt(lvl.threshold)}`;
+      // pire niveau : tout ce qui est au-dessus du seuil du niveau suivant
+      if (idx === 0) return next?.threshold != null ? `> ${fmt(next.threshold)}` : `> ${fmt(lvl.threshold)}`;
+      // meilleur niveau : tout ce qui est en dessous de son seuil
+      if (!next || next.threshold == null) return `≤ ${fmt(lvl.threshold)}`;
+      return `${fmt(next.threshold)} – ${fmt(lvl.threshold)}`;
     }
-    // higher is better: idx 0 (worst) = < threshold ; last (best) = > previous ; middle = t..t+1
-    if (idx === 0) return `< ${fmt(lvl.threshold)}`;
-    if (!next) return `≥ ${fmt(lvl.threshold)}`;
-    return `${fmt(lvl.threshold)} – ${fmt(next.threshold ?? lvl.threshold)}`;
+    // higher is better
+    if (idx === 0) return next?.threshold != null ? `< ${fmt(next.threshold)}` : `< ${fmt(lvl.threshold)}`;
+    if (!next || next.threshold == null) return `≥ ${fmt(lvl.threshold)}`;
+    return `${fmt(lvl.threshold)} – ${fmt(next.threshold)}`;
   };
+
 
   // Export Excel : 2 onglets (Barème / Résultats), format long (1 ligne par joueuse et par date)
   const handleExportCsv = async () => {
