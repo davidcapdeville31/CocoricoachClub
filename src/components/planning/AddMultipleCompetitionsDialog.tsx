@@ -144,9 +144,12 @@ export function AddMultipleCompetitionsDialog({
   const hasTournamentBracket = isPadel || isTennis;
 
   const baseSport = sportType.split("_")[0].toLowerCase();
-  const ageCategories = isJudoSport(sportType)
-    ? getJudoAgeCategories(new Date().getFullYear())
-    : AGE_CATEGORIES[baseSport] || AGE_CATEGORIES.default;
+  const isJudo = isJudoSport(sportType);
+  const ageCategories = AGE_CATEGORIES[baseSport] || AGE_CATEGORIES.default;
+  const getAgeCategoryOptions = (matchDate: string) =>
+    isJudo
+      ? getJudoAgeCategories(matchDate ? new Date(matchDate).getFullYear() : new Date().getFullYear())
+      : ageCategories;
   const COMPETITION_STAGES = getCompetitionStagesBySport(sportType || "XV");
 
   const [drafts, setDrafts] = useState<CompetitionDraft[]>([newDraft()]);
@@ -368,7 +371,7 @@ export function AddMultipleCompetitionsDialog({
                             <SelectValue placeholder="Sélectionner une catégorie" />
                           </SelectTrigger>
                           <SelectContent>
-                            {ageCategories.map((cat) => (
+                            {getAgeCategoryOptions(d.matchDate).map((cat) => (
                               <SelectItem key={cat.value} value={cat.value}>
                                 {cat.label}
                               </SelectItem>
