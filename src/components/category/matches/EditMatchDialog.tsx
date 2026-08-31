@@ -359,7 +359,7 @@ export function EditMatchDialog({
             </div>
           )}
 
-          <CompetitionTagSelector value={competitionTag} onChange={setCompetitionTag} />
+          {!isJudo && <CompetitionTagSelector value={competitionTag} onChange={setCompetitionTag} />}
 
           {/* Phase de compétition — masquée pour les sports individuels (saisie par épreuve/tour) */}
           {!isIndividual && (

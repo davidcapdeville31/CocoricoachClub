@@ -437,7 +437,7 @@ export function AddMatchCalendarDialog({
             </Select>
           </div>
 
-          <CompetitionTagSelector value={competitionTag} onChange={setCompetitionTag} />
+          {!isJudo && <CompetitionTagSelector value={competitionTag} onChange={setCompetitionTag} />}
 
           {isCustomSelected && (
             <div className="space-y-2">
