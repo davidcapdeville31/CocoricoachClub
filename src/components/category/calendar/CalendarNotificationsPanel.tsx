@@ -88,9 +88,11 @@ export function CalendarNotificationsPanel({ categoryId, onOpenSession }: Calend
 
   const markAllRead = useMutation({
     mutationFn: async () => {
+      if (!user?.id) return;
       const { error } = await supabase
         .from("notifications")
         .update({ is_read: true })
+        .eq("user_id", user.id)
         .eq("category_id", categoryId)
         .eq("notification_type", "athlete_session")
         .eq("is_read", false);
