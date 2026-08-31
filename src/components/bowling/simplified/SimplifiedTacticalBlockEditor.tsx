@@ -97,9 +97,9 @@ export function SimplifiedTacticalBlockEditor({
           <Input
             type="number"
             min={1}
-            value={value.duration_min}
+            value={value.duration_min || ""}
             onChange={(e) =>
-              update({ duration_min: parseInt(e.target.value || "0", 10) })
+              update({ duration_min: e.target.value === "" ? 0 : Math.max(0, parseInt(e.target.value, 10) || 0) })
             }
             className="h-9 text-sm"
           />

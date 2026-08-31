@@ -93,8 +93,8 @@ export function BowlingZoneSelector({
                   <Input
                     type="number"
                     min={0}
-                    value={throwsByZone?.[zone] ?? ""}
-                    onChange={(e) => setZoneCount(zone, parseInt(e.target.value || "0", 10))}
+                    value={throwsByZone?.[zone] || ""}
+                    onChange={(e) => setZoneCount(zone, e.target.value === "" ? 0 : Math.max(0, parseInt(e.target.value, 10) || 0))}
                     className="h-8 w-16 text-xs"
                     placeholder="0"
                   />
@@ -111,8 +111,8 @@ export function BowlingZoneSelector({
           <Input
             type="number"
             min={1}
-            value={throwsPerZone ?? ""}
-            onChange={(e) => onThrowsPerZoneChange(parseInt(e.target.value || "0", 10))}
+            value={throwsPerZone || ""}
+            onChange={(e) => onThrowsPerZoneChange(e.target.value === "" ? 0 : Math.max(0, parseInt(e.target.value, 10) || 0))}
             className="h-8 w-24 text-xs"
             placeholder="ex. 10"
           />

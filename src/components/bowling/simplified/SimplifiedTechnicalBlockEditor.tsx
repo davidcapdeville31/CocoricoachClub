@@ -87,8 +87,8 @@ export function SimplifiedTechnicalBlockEditor({ value, index, categoryId, playe
             type="number"
             min={1}
             step={1}
-            value={value.duration_min}
-            onChange={(e) => set("duration_min", Math.max(1, parseInt(e.target.value, 10) || 1))}
+            value={value.duration_min || ""}
+            onChange={(e) => set("duration_min", e.target.value === "" ? 0 : Math.max(0, parseInt(e.target.value, 10) || 0))}
             className="bg-surface-sunken"
           />
         </div>

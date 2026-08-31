@@ -124,8 +124,8 @@ function DurationThrows({ value, onChange, lockThrows = false }: Props & { lockT
         <Input
           type="number"
           min={1}
-          value={value.duration_min}
-          onChange={(e) => update({ duration_min: parseInt(e.target.value || "0", 10) })}
+          value={value.duration_min || ""}
+          onChange={(e) => update({ duration_min: e.target.value === "" ? 0 : Math.max(0, parseInt(e.target.value, 10) || 0) })}
           className="h-9 text-sm bg-surface-sunken"
         />
       </div>
@@ -162,8 +162,8 @@ function DurationThrows({ value, onChange, lockThrows = false }: Props & { lockT
         <Input
           type="number"
           min={1}
-          value={value.planned_throws}
-          onChange={(e) => update({ planned_throws: parseInt(e.target.value || "0", 10) })}
+          value={value.planned_throws || ""}
+          onChange={(e) => update({ planned_throws: e.target.value === "" ? 0 : Math.max(0, parseInt(e.target.value, 10) || 0) })}
           readOnly={lockThrows}
           disabled={lockThrows}
           className={`h-9 text-sm bg-surface-sunken ${lockThrows ? "opacity-70 cursor-not-allowed" : ""}`}
@@ -315,9 +315,9 @@ export function BowlingGamesBuilder(props: Props) {
           <Input
             type="number"
             min={1}
-            value={cfg.games_count ?? ""}
+            value={cfg.games_count || ""}
             onChange={(e) =>
-              onChange({ ...value, config: { ...cfg, games_count: parseInt(e.target.value || "0", 10) } })
+              onChange({ ...value, config: { ...cfg, games_count: e.target.value === "" ? 0 : Math.max(0, parseInt(e.target.value, 10) || 0) } })
             }
             className="h-9 text-sm bg-surface"
           />
