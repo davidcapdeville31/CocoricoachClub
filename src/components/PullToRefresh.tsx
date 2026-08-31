@@ -53,6 +53,47 @@ const getTopOffset = (scrollContainer: HTMLElement | null) => {
   return getScrollTop();
 };
 
+/**
+ * Le pull-to-refresh ne doit JAMAIS déclencher un rechargement quand
+ * l'utilisateur est en train de saisir des données (dialog / sheet ouvert,
+ * champ de saisie actif, scroll verrouillé par Radix…) : cela ferait perdre
+ * toute la séance en cours de création.
+ */
+const isEditingContext = (target: EventTarget | null): boolean => {
+  if (typeof document === "undefined") return false;
+
+  // Radix verrouille le scroll du body quand un Dialog/Sheet modal est ouvert
+  if (document.body.hasAttribute("data-scroll-locked")) return true;
+
+  // Un dialog / sheet / drawer / popover ouvert quelque part dans la page
+  if (
+    document.querySelector(
+      '[role="dialog"],[role="alertdialog"],[data-radix-popper-content-wrapper],[data-vaul-drawer]',
+    )
+  ) {
+    return true;
+  }
+
+  // Champ de saisie focus
+  const activeEl = document.activeElement as HTMLElement | null;
+  if (
+    activeEl &&
+    (activeEl.tagName === "INPUT" ||
+      activeEl.tagName === "TEXTAREA" ||
+      activeEl.tagName === "SELECT" ||
+      activeEl.isContentEditable)
+  ) {
+    return true;
+  }
+
+  // Le geste démarre à l'intérieur d'un formulaire / d'une zone de saisie
+  if (target instanceof Element && target.closest('form,[data-no-pull-refresh="true"]')) {
+    return true;
+  }
+
+  return false;
+};
+
 const PullToRefresh = () => {
   const [pull, setPull] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
