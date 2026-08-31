@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Bell, BellOff, Lock, Mail, Eye, EyeOff, CheckCircle2, AlertCircle } from "lucide-react";
+import { Bell, BellOff, Lock, Mail, Eye, EyeOff, CheckCircle2, AlertCircle, Info } from "lucide-react";
 import { toast } from "sonner";
 import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 import { requestOneSignalPermission, getOneSignalPermission, initOneSignal, buildUserTags, oneSignalLogin, checkOneSignalSubscriptionStatus } from "@/lib/onesignal";
@@ -14,6 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 import { PersonalNotificationPreferences } from "@/components/notifications/PersonalNotificationPreferences";
 import { PWAInstallGuide } from "@/components/PWAInstallGuide";
 import { useTranslation } from "react-i18next";
+import { APP_VERSION_LABEL } from "@/lib/appVersion";
 
 interface AthleteSpaceSettingsProps {
   playerId?: string;
@@ -345,6 +346,21 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
               </div>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* App Version */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Info className="h-4 w-4" />
+            {t("common.version")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            CocoriCoach Club — {APP_VERSION_LABEL}
+          </p>
         </CardContent>
       </Card>
 
