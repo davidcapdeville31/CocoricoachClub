@@ -39,6 +39,21 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
     },
   });
 
+  // Blocs planifiés de la séance (thème, durée, intensité, consignes)
+  const { data: plannedBlocks } = useQuery({
+    queryKey: ["session-planned-blocks", sessionId],
+    enabled: open && !!sessionId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("training_session_blocks")
+        .select("id, training_type, theme, duration_minutes, intensity, notes, block_order")
+        .eq("training_session_id", sessionId)
+        .order("block_order");
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   // Blocs bowling saisis par l'athlète (bowling_simplified / bowling_advanced)
   const { data: bowlingBlocks } = useQuery({
     queryKey: ["athlete-session-bowling-blocks", sessionId, playerId],
