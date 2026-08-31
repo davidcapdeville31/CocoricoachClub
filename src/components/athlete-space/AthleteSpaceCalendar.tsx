@@ -287,8 +287,9 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
 
   // Classify sessions by type
   const testSessions = sessions.filter((s: any) => !!s.test_reminder_id);
-  const athleteSessionList = sessions.filter((s: any) => s.created_by_player_id === playerId && !s.test_reminder_id);
-  const trainingSessions = sessions.filter((s: any) => !s.test_reminder_id && s.created_by_player_id !== playerId);
+  // Séances créées par un athlète (moi ou un coéquipier qui m'a ajouté)
+  const athleteSessionList = sessions.filter((s: any) => !!s.created_by_player_id && !s.test_reminder_id);
+  const trainingSessions = sessions.filter((s: any) => !s.test_reminder_id && !s.created_by_player_id);
 
   const trainingDates = trainingSessions.map(s => new Date(s.session_date));
   const testDates = testSessions.map(s => new Date(s.session_date));
