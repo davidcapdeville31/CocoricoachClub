@@ -1911,7 +1911,8 @@ export const MethodConfigSlots = ({
                     size="sm"
                     onClick={() => setEmomConfig(prev => ({ ...prev, mode: 'circuit', exercisesPerInterval: 2 }))}
                     className={cn(
-                      "h-8 text-xs flex-1",
+                      "h-auto min-h-8 py-1.5 text-xs flex-1 whitespace-normal text-center leading-tight",
+
                       emomConfig.mode === 'circuit' && config.color
                     )}
                   >
