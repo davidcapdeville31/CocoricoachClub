@@ -157,11 +157,11 @@ export function SessionVignette({
           "rounded-lg px-2 py-1.5 text-white text-[11px] font-medium transition-all relative overflow-hidden",
           !hasBlocks && !isAthleteCreated && bgColor,
           isDragging && "shadow-lg ring-2 ring-primary/50",
-          isAthleteCreated && !hasBlocks && "ring-2 ring-violet-400"
+          isAthleteCreated && "ring-2 ring-pink-300"
         )}
         style={
-          isAthleteCreated && !hasBlocks
-            ? { backgroundColor: "#8B5CF6" }
+          isAthleteCreated
+            ? { backgroundColor: ATHLETE_SESSION_COLOR_HEX }
             : hasBlocks ? (() => {
           const uniqueBlocks = blocks.slice(0, 3);
           const colors = uniqueBlocks.map(b => {

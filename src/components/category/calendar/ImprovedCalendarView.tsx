@@ -752,7 +752,9 @@ export function ImprovedCalendarView({
                           ) : (
                             (() => {
                               const session = event.data;
-                              const bgColor = TRAINING_TYPE_COLORS[session.training_type] || "bg-primary";
+                              const bgColor = session.created_by_player_id
+                                ? ATHLETE_SESSION_COLOR_CLASS
+                                : (TRAINING_TYPE_COLORS[session.training_type] || "bg-primary");
                               const displayNotes = session.notes ? getDisplayNotes(session.notes) : "";
                               const isTest = session.training_type === "test";
                               const testName = isTest
