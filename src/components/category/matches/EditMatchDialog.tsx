@@ -110,6 +110,9 @@ export function EditMatchDialog({
   
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
 
+  const seasonYear = matchDate ? new Date(matchDate).getFullYear() : new Date().getFullYear();
+  const ageCategoryOptions = isJudo ? getJudoAgeCategories(seasonYear) : AGE_CATEGORIES;
+
   const queryClient = useQueryClient();
   const guard = useSeasonGuard(match.category_id);
 
@@ -266,7 +269,7 @@ export function EditMatchDialog({
                   <SelectValue placeholder="Sélectionner une catégorie" />
                 </SelectTrigger>
                 <SelectContent>
-                  {AGE_CATEGORIES.map((cat) => (
+                  {ageCategoryOptions.map((cat) => (
                     <SelectItem key={cat.value} value={cat.value}>
                       {cat.label}
                     </SelectItem>
@@ -477,6 +480,9 @@ export function EditMatchDialog({
             value={selectedParticipants}
             onChange={setSelectedParticipants}
             statuses={participantStatuses}
+            sportType={sportType}
+            ageCategory={ageCategory}
+            referenceYear={seasonYear}
           />
 
           <div className="space-y-2">
