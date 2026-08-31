@@ -154,3 +154,7 @@ export function buildTestWindowMeta(start?: string | null, end?: string | null):
   if (!start || !end) return "";
   return `\n<!--TESTWINDOW:${JSON.stringify({ start, end })}-->`;
 }
+
+export function isSimplifiedSession(notes: string | null | undefined): boolean {
+  return !!notes && /<!--\s*SIMPLIFIED_SESSION\s*-->/.test(notes);
+}

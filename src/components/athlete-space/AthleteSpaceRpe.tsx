@@ -19,7 +19,7 @@ import { format, parseISO, addDays } from "date-fns";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 import { getTestLabel } from "@/lib/constants/testCategories";
 import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
-import { getDisplayNotes, parsePrecisionExerciseFromNotes, parseTestsFromNotes, parseTestWindowFromNotes } from "@/lib/utils/sessionNotes";
+import { getDisplayNotes, isSimplifiedSession, parsePrecisionExerciseFromNotes, parseTestsFromNotes, parseTestWindowFromNotes } from "@/lib/utils/sessionNotes";
 import { SPARE_EXERCISE_TYPES } from "@/lib/constants/bowlingBallBrands";
 import { cn } from "@/lib/utils";
 import { GroupedExerciseList } from "@/components/category/GroupedExerciseList";
@@ -943,6 +943,9 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
   };
 
   const renderSessionNotes = (notes: string | null) => {
+    if (isSimplifiedSession(notes)) {
+      return <p className="text-xs text-muted-foreground mt-0.5 italic">{t("athleteSpace.rpe.simplifiedSessionLabel")}</p>;
+    }
     const display = getDisplayNotes(notes);
     if (!display) return null;
     const hasStructuredTestLabel = getTestNamesForSession(notes).length > 0;

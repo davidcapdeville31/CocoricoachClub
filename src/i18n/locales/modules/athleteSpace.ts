@@ -167,6 +167,7 @@ export const athleteSpaceFr = {
     allRpeSubmitted: "Tous les RPE du jour sont enregistrés 👏",
     upcomingSessions: "Séances à venir",
     dDay: "Jour J",
+    simplifiedSessionLabel: "Séance simplifiée",
   },
   calendar: {
     attendance: {
@@ -785,7 +786,7 @@ export const athleteSpaceFr = {
       submit: "Valider et envoyer",
     },
     simplifiedSessionDialog: {
-      title: "Séance — mode simplifié",
+      title: "Séance simplifiée",
       sessionType: "Type de séance",
       chooseType: "Choisir le type",
       description: "Description de la séance",
@@ -799,7 +800,7 @@ export const athleteSpaceFr = {
       durationRequired: "Renseignez une durée > 0",
       rpeRequired: "Le RPE doit être entre 1 et 10",
       sessionExpired: "Session expirée. Reconnectez-vous puis réessayez.",
-      defaultDescription: "Séance {{type}} (mode simplifié)",
+      defaultDescription: "Séance simplifiée",
       durationRpe: "Durée : {{duration}} min · RPE : {{rpe}}/10",
       createError: "Erreur lors de la création",
       added: "Séance ajoutée",
@@ -1035,6 +1036,7 @@ export const athleteSpaceEn = {
     allRpeSubmitted: "All of today's RPEs are recorded 👏",
     upcomingSessions: "Upcoming sessions",
     dDay: "D-Day",
+    simplifiedSessionLabel: "Simplified session",
   },
   calendar: {
     attendance: {
@@ -1653,7 +1655,7 @@ export const athleteSpaceEn = {
       submit: "Validate and send",
     },
     simplifiedSessionDialog: {
-      title: "Session — simplified mode",
+      title: "Simplified session",
       sessionType: "Session type",
       chooseType: "Choose the type",
       description: "Session description",
@@ -1667,7 +1669,7 @@ export const athleteSpaceEn = {
       durationRequired: "Enter a duration > 0",
       rpeRequired: "RPE must be between 1 and 10",
       sessionExpired: "Session expired. Please log in again and retry.",
-      defaultDescription: "{{type}} session (simplified mode)",
+      defaultDescription: "Simplified session",
       durationRpe: "Duration: {{duration}} min · RPE: {{rpe}}/10",
       createError: "Error while creating",
       added: "Session added",

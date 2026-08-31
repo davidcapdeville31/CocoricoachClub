@@ -1,6 +1,6 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo, useRef, useEffect } from "react";
-import { getDisplayNotes, parseTestsFromNotes, getSessionTitleFromNotes } from "@/lib/utils/sessionNotes";
+import { getDisplayNotes, isSimplifiedSession, parseTestsFromNotes, getSessionTitleFromNotes } from "@/lib/utils/sessionNotes";
 import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
 import { DndContext, DragEndEvent, DragOverlay, pointerWithin } from "@dnd-kit/core";
 import { useQuery } from "@tanstack/react-query";
@@ -794,7 +794,9 @@ export function ImprovedCalendarView({
                               const titleLabel = isTest && testName
                                 ? testName
                                 : mentalTitle || (trainingTypeLabels[session.training_type] || session.training_type);
-                              const secondaryNotes = isTest
+                              const secondaryNotes = isSimplifiedSession(session.notes)
+                                ? t("athleteSpace.rpe.simplifiedSessionLabel")
+                                : isTest
                                 ? displayNotes.split("\n").filter((l) => !l.trim().startsWith("📋")).join(" • ").trim()
                                 : displayNotes;
                               return (

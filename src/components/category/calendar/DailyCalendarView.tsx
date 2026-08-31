@@ -9,7 +9,7 @@ import { getCompetitionColor } from "@/lib/constants/competitionColors";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { getDisplayNotes, parseTestsFromNotes, getSessionTitleFromNotes } from "@/lib/utils/sessionNotes";
+import { getDisplayNotes, isSimplifiedSession, parseTestsFromNotes, getSessionTitleFromNotes } from "@/lib/utils/sessionNotes";
 import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
 import { useTranslation } from "react-i18next";
 
@@ -376,7 +376,9 @@ export function DailyCalendarView({
                         
                         {session.notes && (
                           <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
-                            {getDisplayNotes(session.notes)}
+                            {isSimplifiedSession(session.notes)
+                              ? t("athleteSpace.rpe.simplifiedSessionLabel")
+                              : getDisplayNotes(session.notes)}
                           </p>
                         )}
                         
