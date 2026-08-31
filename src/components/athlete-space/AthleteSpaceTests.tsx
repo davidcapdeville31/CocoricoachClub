@@ -63,33 +63,6 @@ export function AthleteSpaceTests({ playerId, categoryId, sportType }: Props) {
     },
   });
 
-  const { data: bodyCompositionWeights = [] } = useQuery({
-    queryKey: ["athlete-space-tests-body-composition-weight", playerId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("body_composition")
-        .select("player_id, weight_kg, measurement_date")
-        .eq("player_id", playerId)
-        .not("weight_kg", "is", null)
-        .order("measurement_date", { ascending: false });
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  const { data: measurementWeights = [] } = useQuery({
-    queryKey: ["athlete-space-tests-measurement-weight", playerId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("player_measurements")
-        .select("player_id, weight_kg, measurement_date")
-        .eq("player_id", playerId)
-        .not("weight_kg", "is", null)
-        .order("measurement_date", { ascending: false });
-      if (error) throw error;
-      return data || [];
-    },
-  });
 
   const customIds = useMemo(() => {
     const ids = new Set<string>();
