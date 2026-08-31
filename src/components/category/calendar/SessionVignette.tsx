@@ -4,6 +4,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { Eye, Pencil, MessageSquare, Trash2, Bell, User, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getTrainingTypeColor, getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
+import { getSessionTitleFromNotes } from "@/lib/utils/sessionNotes";
 import { useMarkAthleteSessionRead } from "@/lib/hooks/useMarkAthleteSessionRead";
 
 // Map Tailwind bg-color classes to actual CSS colors
@@ -104,7 +105,14 @@ export function SessionVignette({
   };
 
   const bgColor = getTrainingTypeColor(session.training_type);
-  const label = getTrainingTypeLabel(session.training_type);
+  // Mental sessions (and other titled event types) store the user-entered
+  // title as the first visible line of the notes — display it instead of
+  // the generic type label.
+  const customTitle = getSessionTitleFromNotes(session.notes);
+  const label =
+    session.training_type === "mental" && customTitle
+      ? customTitle
+      : getTrainingTypeLabel(session.training_type);
   const startTime = formatTime(session.session_start_time);
   const hasBlocks = blocks && blocks.length > 0;
   const blocksLabel = hasBlocks

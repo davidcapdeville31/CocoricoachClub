@@ -20,6 +20,19 @@ export function getDisplayNotes(notes: string | null | undefined): string {
     .trim();
 }
 
+/**
+ * Returns the user-entered session title stored as the first visible line
+ * of the notes (used by mental sessions and other titled event types).
+ * Returns null when no meaningful title is present.
+ */
+export function getSessionTitleFromNotes(notes: string | null | undefined): string | null {
+  const display = getDisplayNotes(notes);
+  if (!display) return null;
+  const firstLine = display.split("\n")[0]?.trim();
+  return firstLine || null;
+}
+
+
 export function parseMentalFromNotes(
   notes: string | null | undefined,
 ): { duration_min?: number; theme?: string } | null {
