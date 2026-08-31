@@ -26,6 +26,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { getTrainingTypesForSport } from "@/lib/constants/trainingTypes";
 import { useTranslation } from "react-i18next";
+import { AthletePartnersSelector } from "@/components/athlete-space/AthletePartnersSelector";
 
 interface Props {
   open: boolean;
@@ -129,6 +130,7 @@ export function SimplifiedSessionDialog({
             training_type: trainingType,
             intensity: rpe,
             notes: notesPayload,
+            partner_player_ids: partnerIds,
           },
         },
       );
@@ -254,6 +256,13 @@ export function SimplifiedSessionDialog({
               );
             })}
           </div>
+          <AthletePartnersSelector
+            categoryId={categoryId}
+            selfPlayerId={athletePlayerId}
+            value={partnerIds}
+            onChange={setPartnerIds}
+          />
+
           <p className="text-xs text-muted-foreground">
             {t('athleteSpace.components.simplifiedSessionDialog.loadInfo')}
           </p>
