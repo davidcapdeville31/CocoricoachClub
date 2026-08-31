@@ -33,6 +33,8 @@ const MENTAL_QUALITIES = [
   { value: "gestion_emotions", label: "Gestion des émotions" },
   { value: "switch", label: "Switch" },
   { value: "concentration", label: "Concentration" },
+  { value: "bilan", label: "Bilan" },
+  { value: "prise_de_conscience", label: "Prise de conscience" },
 ];
 
 const ALL_QUALITIES = [
