@@ -84,16 +84,30 @@ const OfflineIndicator = () => {
   }
 
   // Show success banner briefly after data download
-  if (hasOfflineData && lastDataSync) {
+  if (hasOfflineData && lastDataSync && dismissedAt !== lastDataSync.getTime()) {
     const timeSinceSync = Date.now() - lastDataSync.getTime();
-    // Show for 5 seconds after sync
-    if (timeSinceSync < 5000) {
+    // Show for 3 seconds after sync, auto-dismiss + manual close
+    useEffect(() => {
+      const timer = setTimeout(() => setDismissedAt(lastDataSync.getTime()), 3000);
+      return () => clearTimeout(timer);
+    }, [lastDataSync]);
+
+    if (timeSinceSync < 3000) {
       return (
         <div className="fixed top-0 left-0 right-0 z-[100] bg-green-500 text-white py-2 px-4 flex items-center justify-center gap-2 text-sm font-medium animate-in slide-in-from-top-2">
           <CheckCircle className="w-4 h-4" />
           <span>
             Données hors-ligne prêtes - Dernière sync: {format(lastDataSync, "HH:mm", { locale: getDateLocale() })}
           </span>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-6 w-6 p-0 ml-1 text-white hover:bg-white/20 rounded-full"
+            onClick={() => setDismissedAt(lastDataSync.getTime())}
+            aria-label="Fermer"
+          >
+            <X className="w-4 h-4" />
+          </Button>
         </div>
       );
     }
