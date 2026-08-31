@@ -39,9 +39,7 @@ export function useWeightHistory({ categoryId, playerId }: Options) {
             .from("generic_tests")
             .select("player_id, test_type, test_category, result_value, result_unit, test_date, created_at") as any,
         ),
-        categoryId
-          ? supabase.from("custom_tests").select("id, name, unit, test_category").eq("category_id", categoryId)
-          : Promise.resolve({ data: [] } as any),
+        supabase.from("custom_tests").select("id, name, unit, test_category"),
         weightQuestionKeys.length > 0
           ? filter(
               supabase
