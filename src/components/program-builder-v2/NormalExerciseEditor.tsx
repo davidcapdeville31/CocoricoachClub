@@ -59,17 +59,13 @@ export const NormalExerciseEditor = ({ exercise, onUpdate, onRemove }: Props) =>
     onUpdate(key, value);
   };
 
-  const supportsVariableSets = exerciseType === "strength" || exerciseType === "bodyweight";
-  const [showSets, setShowSets] = useState<boolean>(
-    Boolean(exercise.variableSets && exercise.variableSets.length > 0),
-  );
-
-  const toggleVariableSets = () => {
-    if (!showSets) {
-      if (!exercise.variableSets || exercise.variableSets.length === 0) {
-        onUpdate(
-          "variableSets",
-          convertToVariableSets({
+  // Per-set (variable sets) editing: the table exposes its own "Séries variables"
+  // collapsible trigger, so we only need to enable it here.
+  const variableSets = useMemo(
+    () =>
+      exercise.variableSets && exercise.variableSets.length > 0
+        ? exercise.variableSets
+        : convertToVariableSets({
             sets: exercise.sets,
             reps: exercise.reps,
             weight_kg: exercise.weight_kg,
@@ -77,45 +73,21 @@ export const NormalExerciseEditor = ({ exercise, onUpdate, onRemove }: Props) =>
             rpe: exercise.rpe,
             tempo: exercise.tempo,
           }),
-        );
-      }
-      setShowSets(true);
-    } else {
-      setShowSets(false);
-      onUpdate("variableSets", undefined);
-    }
-  };
+    [exercise.variableSets, exercise.sets, exercise.reps, exercise.weight_kg, exercise.percentage, exercise.rpe, exercise.tempo],
+  );
 
   return (
     <div className="rounded-xl bg-muted/40 border border-border/60 px-3 py-2 space-y-2">
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm font-medium truncate">{exercise.exerciseName}</p>
-        <div className="flex items-center gap-1 shrink-0">
-          {supportsVariableSets && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className={cn(
-                "h-7 px-2 text-xs rounded-2xl border-dashed",
-                showSets && "border-solid border-primary text-primary bg-primary/5",
-              )}
-              onClick={toggleVariableSets}
-              title="Définir des valeurs différentes pour chaque série (série 1 : 12 reps, série 2 : 8 reps...)"
-            >
-              <Rows3 className="h-3.5 w-3.5 mr-1" />
-              Séries variables
-            </Button>
-          )}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 rounded-2xl text-muted-foreground hover:text-destructive"
-            onClick={onRemove}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
-        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7 rounded-2xl text-muted-foreground hover:text-destructive shrink-0"
+          onClick={onRemove}
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
       </div>
       <TrainingVariablesManager
         exerciseType={exerciseType}
@@ -123,13 +95,14 @@ export const NormalExerciseEditor = ({ exercise, onUpdate, onRemove }: Props) =>
         onUpdate={handleUpdate}
         visibleVariables={visibleVariables}
         onVisibleVariablesChange={(vars) => onUpdate("visibleVariables", vars)}
-        variableSets={exercise.variableSets}
+        variableSets={variableSets}
         onVariableSetsChange={(sets) => onUpdate("variableSets", sets)}
-        showVariableSets={showSets}
+        showVariableSets
         compact
       />
     </div>
   );
+
 
 };
 
