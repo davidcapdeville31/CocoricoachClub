@@ -821,3 +821,6 @@ export const TRAINING_TYPE_LABELS: Record<string, string> = {
   tennis_panier: "Panier de balles",
   tennis_mental: "Préparation Mentale",
 };
+
+// Couleur dédiée aux séances ajoutées par les athlètes eux-mêmes
+export const ATHLETE_SESSION_COLOR_CLASS = "bg-pink-500";

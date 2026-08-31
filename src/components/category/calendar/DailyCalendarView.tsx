@@ -2,7 +2,7 @@ import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { format, isToday as checkIsToday, isTomorrow, isYesterday } from "date-fns";
 import { Plus, Clock, MapPin, ChevronRight, Zap, Calendar, Users, Trash2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { TRAINING_TYPE_COLORS } from "@/lib/constants/trainingTypes";
+import { TRAINING_TYPE_COLORS, ATHLETE_SESSION_COLOR_CLASS } from "@/lib/constants/trainingTypes";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
 import { getCompetitionColor } from "@/lib/constants/competitionColors";
 
@@ -308,7 +308,9 @@ export function DailyCalendarView({
                 const session = event.data as Session;
                 const blocks = sessionBlocks?.[session.id] || [];
                 const hasBlocks = blocks.length > 0;
-                const mainColor = TRAINING_TYPE_COLORS[session.training_type] || "bg-primary";
+                const mainColor = (session as any).created_by_player_id
+                  ? ATHLETE_SESSION_COLOR_CLASS
+                  : (TRAINING_TYPE_COLORS[session.training_type] || "bg-primary");
                 
                 return (
                   <div

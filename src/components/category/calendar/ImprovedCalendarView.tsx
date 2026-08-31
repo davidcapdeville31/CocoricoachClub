@@ -12,7 +12,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronLeft, ChevronRight, Plus, Download, Printer, Calendar as CalendarIcon, Filter, X } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, startOfWeek, endOfWeek, isSameDay, isSameMonth, addWeeks, subWeeks, addDays, subDays, parseISO } from "date-fns";
-import { TRAINING_TYPE_COLORS, getTrainingTypesForSport, getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
+import {
+  ATHLETE_SESSION_COLOR_CLASS,
+  TRAINING_TYPE_COLORS,
+  getTrainingTypesForSport,
+  getTrainingTypeLabel,
+} from "@/lib/constants/trainingTypes";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
 import { getCompetitionColor } from "@/lib/constants/competitionColors";
 import { useTranslation } from "react-i18next";
@@ -752,7 +757,9 @@ export function ImprovedCalendarView({
                           ) : (
                             (() => {
                               const session = event.data;
-                              const bgColor = TRAINING_TYPE_COLORS[session.training_type] || "bg-primary";
+                              const bgColor = session.created_by_player_id
+                                ? ATHLETE_SESSION_COLOR_CLASS
+                                : (TRAINING_TYPE_COLORS[session.training_type] || "bg-primary");
                               const displayNotes = session.notes ? getDisplayNotes(session.notes) : "";
                               const isTest = session.training_type === "test";
                               const testName = isTest

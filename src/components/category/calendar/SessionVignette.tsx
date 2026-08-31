@@ -3,7 +3,11 @@ import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { Eye, Pencil, MessageSquare, Trash2, Bell, User, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getTrainingTypeColor, getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
+import {
+  ATHLETE_SESSION_COLOR_CLASS,
+  getTrainingTypeColor,
+  getTrainingTypeLabel,
+} from "@/lib/constants/trainingTypes";
 import { getSessionTitleFromNotes } from "@/lib/utils/sessionNotes";
 import { useMarkAthleteSessionRead } from "@/lib/hooks/useMarkAthleteSessionRead";
 
@@ -156,13 +160,12 @@ export function SessionVignette({
         className={cn(
           "rounded-lg px-2 py-1.5 text-white text-[11px] font-medium transition-all relative overflow-hidden",
           !hasBlocks && !isAthleteCreated && bgColor,
+          isAthleteCreated && ATHLETE_SESSION_COLOR_CLASS,
           isDragging && "shadow-lg ring-2 ring-primary/50",
-          isAthleteCreated && !hasBlocks && "ring-2 ring-violet-400"
+          isAthleteCreated && "ring-2 ring-pink-300"
         )}
         style={
-          isAthleteCreated && !hasBlocks
-            ? { backgroundColor: "#8B5CF6" }
-            : hasBlocks ? (() => {
+          !isAthleteCreated && hasBlocks ? (() => {
           const uniqueBlocks = blocks.slice(0, 3);
           const colors = uniqueBlocks.map(b => {
             const colorClass = getTrainingTypeColor(b.training_type);
