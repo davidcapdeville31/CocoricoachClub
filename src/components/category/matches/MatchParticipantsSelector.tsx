@@ -104,10 +104,23 @@ export function MatchParticipantsSelector({
         </div>
       </div>
 
+      {judoFilterActive && (
+        <p className="text-xs text-muted-foreground">
+          Filtré sur la catégorie d'âge sélectionnée (année civile {year})
+          {hiddenCount > 0 ? ` — ${hiddenCount} athlète${hiddenCount > 1 ? "s" : ""} hors catégorie masqué${hiddenCount > 1 ? "s" : ""}` : ""}
+          .
+        </p>
+      )}
+
       <div className="max-h-[220px] overflow-y-auto rounded-lg border border-border/70 bg-muted/20 p-2 dark:bg-muted/10">
         {list.length === 0 ? (
-          <p className="p-2 text-xs text-muted-foreground">Aucun athlète dans cette catégorie.</p>
+          <p className="p-2 text-xs text-muted-foreground">
+            {judoFilterActive
+              ? "Aucun athlète de cette catégorie d'âge (vérifiez les dates de naissance)."
+              : "Aucun athlète dans cette catégorie."}
+          </p>
         ) : (
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {list.map((player) => {
               const isSelected = value.includes(player.id);
