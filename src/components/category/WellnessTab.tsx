@@ -1,3 +1,4 @@
+import { TeamWeightOverview } from "@/components/weight/TeamWeightOverview";
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo, useEffect, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
@@ -349,6 +350,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
         )}
 
         <TabsContent value="tracking" className="space-y-4">
+          <TeamWeightOverview categoryId={categoryId} />
           {canCustomize && (
             <div className="flex justify-center">
               <Button
