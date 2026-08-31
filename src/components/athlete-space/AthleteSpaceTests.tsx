@@ -138,7 +138,7 @@ export function AthleteSpaceTests({ playerId, categoryId, sportType }: Props) {
       <>
         {loadText} kg
         <span className="block text-[10px] font-normal text-muted-foreground">
-          {t("athleteSpace.tests.ratioText", { ratio: ratio.toFixed(2).replace(".", ","), load: loadText, weight: weightText }).replace("ratio ", "ratio ÷ ")}
+          {t("athleteSpace.tests.ratioText", { ratio: ratio.toFixed(2).replace(".", ","), load: loadText, weight: weightText })}
         </span>
       </>
     );
