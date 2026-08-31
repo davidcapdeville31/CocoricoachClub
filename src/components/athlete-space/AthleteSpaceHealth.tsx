@@ -9,6 +9,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { EditInjuryDialog } from "@/components/injuries/EditInjuryDialog";
+import { AthleteWeightSection } from "@/components/weight/AthleteWeightSection";
 import { Shield, AlertTriangle, CheckCircle2, ChevronDown, ChevronRight, Dumbbell, Pencil, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
