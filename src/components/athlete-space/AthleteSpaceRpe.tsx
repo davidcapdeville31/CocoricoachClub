@@ -975,7 +975,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
     );
   };
 
-  const renderSessionNotes = (notes: string | null) => {
+  const renderSessionNotes = (notes: string | null, isTestSession?: boolean) => {
     if (isSimplifiedSession(notes)) {
       return <p className="text-xs text-muted-foreground mt-0.5 italic">{t("athleteSpace.rpe.simplifiedSessionLabel")}</p>;
     }
@@ -989,7 +989,14 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
       )
       .filter((line, index) => {
         const original = display.split("\n")[index]?.trim() || "";
-        return !(hasStructuredTestLabel && /^test\s*:\s*custom:/i.test(original));
+        if (hasStructuredTestLabel && /^test\s*:\s*custom:/i.test(original)) return false;
+        // Hide auto-generated test/battery titles already shown by renderTestInfo
+        if (isTestSession && index === 0) {
+          if (/^(Batterie de \d+ tests|Battery of \d+ tests|Batterie :|Battery:|Test :|Test:)/i.test(original)) {
+            return false;
+          }
+        }
+        return true;
       })
       .join("\n")
       .trim();
@@ -1053,7 +1060,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                           </span>
                         )}
                       </div>
-                      {renderSessionNotes(s.notes)}
+                      {renderSessionNotes(s.notes, s.training_type === "test")}
                     </div>
                   ))}
                 </div>
@@ -1085,7 +1092,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                     <div>
                       <p className="font-medium text-sm">{getSessionTrainingLabel(session)}</p>
                       {renderTestInfo(session)}
-                      {renderSessionNotes(session.notes)}
+                      {renderSessionNotes(session.notes, session.training_type === "test")}
                       {session.session_start_time && (
                         <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                           <Clock className="h-3 w-3" />
@@ -1647,7 +1654,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                             <div>
                               <p className="font-medium text-sm">{getSessionTrainingLabel(session)}</p>
                               {renderTestInfo(session)}
-                              {renderSessionNotes(session.notes)}
+                              {renderSessionNotes(session.notes, session.training_type === "test")}
                               {session.session_start_time && (
                                 <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                                   <Clock className="h-3 w-3" />
