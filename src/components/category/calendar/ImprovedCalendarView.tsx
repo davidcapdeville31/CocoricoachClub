@@ -36,6 +36,7 @@ import { BowlingSimplifiedDialog } from "@/components/bowling/BowlingSimplifiedD
 import { BowlingAdvancedDialog } from "@/components/bowling/BowlingAdvancedDialog";
 import { ScheduleTestEventDialog } from "./ScheduleTestEventDialog";
 import { DailyCalendarView } from "./DailyCalendarView";
+import { CalendarColorLegend } from "./CalendarColorLegend";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -529,6 +530,11 @@ export function ImprovedCalendarView({
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
+          <CalendarColorLegend
+            sessions={sessions}
+            matches={matches}
+            trainingTypeLabels={trainingTypeLabels}
+          />
           {!isViewer && (
             <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent px-3 py-2 text-xs sm:text-sm">
               <Plus className="h-4 w-4 shrink-0 text-primary" />
