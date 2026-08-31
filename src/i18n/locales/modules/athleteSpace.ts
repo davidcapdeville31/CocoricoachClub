@@ -636,6 +636,7 @@ export const athleteSpaceFr = {
       resultPlaceholder: "Résultat",
       send: "Envoyer",
       footer: "Tes résultats seront envoyés au staff pour validation avant d'être ajoutés à ton historique.",
+      progress: "{{done}}/{{total}} tests remplis ({{percent}}%)",
     },
     weightLogInput: {
       noExercises: "Aucun exercice musculation prévu pour cette séance.",
@@ -1508,6 +1509,7 @@ export const athleteSpaceEn = {
       resultPlaceholder: "Result",
       send: "Send",
       footer: "Your results will be sent to staff for validation before being added to your history.",
+      progress: "{{done}}/{{total}} tests filled in ({{percent}}%)",
     },
     weightLogInput: {
       noExercises: "No weight training exercises planned for this session.",

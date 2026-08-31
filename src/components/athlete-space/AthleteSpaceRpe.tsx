@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Activity, CheckCircle2, Clock, Calendar, Lock, Target, Heart, Dumbbell, ChevronDown, ChevronUp } from "lucide-react";
@@ -901,13 +902,31 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
   const renderCampaignNotice = (session: { id: string; training_type?: string | null; notes?: string | null }) => {
     if (!isOpenCampaign(session)) return null;
     const win = parseTestWindowFromNotes(session.notes)!;
-    const remaining = campaignRemaining[session.id] ?? parseTestsFromNotes(session.notes).length;
+    const total = parseTestsFromNotes(session.notes).length;
+    const remaining = campaignRemaining[session.id] ?? total;
+    const done = Math.max(0, total - remaining);
+    const percent = total > 0 ? Math.round((done / total) * 100) : 0;
+    const tone = percent === 0
+      ? { bar: "[&>div]:bg-red-500", text: "text-red-600" }
+      : percent === 100
+        ? { bar: "[&>div]:bg-green-500", text: "text-green-600" }
+        : { bar: "[&>div]:bg-amber-500", text: "text-amber-600" };
+
     return (
-      <div className="text-[11px] mt-1 rounded-md bg-primary/10 border border-primary/20 px-2 py-1 text-primary">
-        ⏳ {t("athleteSpace.rpe.campaignRemaining", {
-          count: remaining,
-          end: format(parseISO(win.end), "dd/MM/yyyy"),
-        })}
+      <div className="mt-1.5 space-y-1 rounded-md border border-border bg-muted/40 px-2 py-1.5">
+        <div className="flex items-center justify-between gap-2 text-[11px]">
+          <span className="text-muted-foreground">
+            {t("athleteSpace.components.testResultsInput.progress", { done, total, percent })}
+          </span>
+          <span className={cn("font-semibold", tone.text)}>{percent}%</span>
+        </div>
+        <Progress value={percent} className={cn("h-1.5", tone.bar)} />
+        <p className="text-[10px] text-muted-foreground">
+          {t("athleteSpace.rpe.campaignRemaining", {
+            count: remaining,
+            end: format(parseISO(win.end), "dd/MM/yyyy"),
+          })}
+        </p>
       </div>
     );
   };

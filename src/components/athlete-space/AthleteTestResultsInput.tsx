@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { FlaskConical, Clock, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
@@ -193,12 +194,44 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
 
   if (tests.length === 0) return null;
 
+  const isFilled = (test: TestRef) =>
+    staffSaved.some((p) => p.test_category === test.test_category && p.test_type === test.test_type) ||
+    pending.some(
+      (p) =>
+        p.test_category === test.test_category &&
+        p.test_type === test.test_type &&
+        p.validation_status !== "rejected",
+    );
+
+  const doneCount = tests.filter(isFilled).length;
+  const percent = tests.length > 0 ? Math.round((doneCount / tests.length) * 100) : 0;
+  const tone =
+    percent === 100
+      ? { bar: "bg-green-500", text: "text-green-600", ring: "border-green-500/40" }
+      : percent === 0
+        ? { bar: "bg-red-500", text: "text-red-600", ring: "border-red-500/40" }
+        : { bar: "bg-amber-500", text: "text-amber-600", ring: "border-amber-500/40" };
+
   return (
-    <div className="space-y-2 rounded-lg border border-border p-3 bg-muted/30">
+    <div className={`space-y-2 rounded-lg border-2 p-3 bg-muted/30 ${tone.ring}`}>
       <Label className="text-sm flex items-center gap-1.5">
         <FlaskConical className="h-4 w-4 text-primary" />
         {t('athleteSpace.components.testResultsInput.title')}
       </Label>
+
+      <div className="space-y-1">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[11px] text-muted-foreground">
+            {t('athleteSpace.components.testResultsInput.progress', {
+              done: doneCount,
+              total: tests.length,
+              percent,
+            })}
+          </span>
+          <span className={`text-sm font-bold ${tone.text}`}>{percent}%</span>
+        </div>
+        <Progress value={percent} className={`h-2 ${tone.bar}`} />
+      </div>
       {isAbsent && <AthleteAbsentLockNotice />}
       {testWindow && (
         <p className="text-[11px] rounded-md bg-primary/10 border border-primary/20 px-2 py-1.5 text-primary">
@@ -223,7 +256,16 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
           const testLabel = labelizeTestType(test.test_type, customMap);
           const unit = test.result_unit || (test.test_type?.startsWith("custom:") ? customMap[test.test_type]?.unit || "" : "");
           return (
-            <div key={idx} className="rounded-xl border bg-surface-sunken/40 p-2.5 space-y-2">
+            <div
+              key={idx}
+              className={`rounded-xl border-l-4 border bg-surface-sunken/40 p-2.5 space-y-2 ${
+                staffRow || (existing && existing.validation_status !== "rejected")
+                  ? "border-l-green-500"
+                  : existing?.validation_status === "rejected"
+                    ? "border-l-red-500"
+                    : "border-l-amber-500"
+              }`}
+            >
               <div className="text-xs font-medium leading-tight">
                 {testLabel}
                 <span className="text-muted-foreground ml-1">({labelize(test.test_category)})</span>
