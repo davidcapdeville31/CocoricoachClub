@@ -376,7 +376,9 @@ export function DailyCalendarView({
                         
                         {session.notes && (
                           <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
-                            {getDisplayNotes(session.notes)}
+                            {isSimplifiedSession(session.notes)
+                              ? t("athleteSpace.rpe.simplifiedSessionLabel")
+                              : getDisplayNotes(session.notes)}
                           </p>
                         )}
                         
