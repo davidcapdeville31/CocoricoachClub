@@ -1,12 +1,14 @@
-import { useMemo } from "react";
-import { Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Trash2, Rows3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { TrainingVariablesManager } from "./TrainingVariablesManager";
 import {
   inferExerciseTypeFromName,
   getDefaultVisibleVariables,
   type ExerciseType,
 } from "@/lib/program-builder-v2/exerciseTypes";
+import { convertToVariableSets } from "@/lib/program-builder-v2/variableSetsTypes";
 import type { V2BlockExercise } from "./hooks/useSaveProgramV2";
 
 interface Props {
@@ -14,6 +16,7 @@ interface Props {
   onUpdate: (key: string, value: any) => void;
   onRemove: () => void;
 }
+
 
 /**
  * Editable inline view for a "normal" exercise inside a session block.
