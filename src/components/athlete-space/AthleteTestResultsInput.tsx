@@ -230,12 +230,7 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
           </span>
           <span className={`text-sm font-bold ${tone.text}`}>{percent}%</span>
         </div>
-        <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-          <div
-            className={`h-full rounded-full transition-all ${tone.bar}`}
-            style={{ width: `${percent}%` }}
-          />
-        </div>
+        <Progress value={percent} className={`h-2 ${tone.bar}`} />
       </div>
       {isAbsent && <AthleteAbsentLockNotice />}
       {testWindow && (
