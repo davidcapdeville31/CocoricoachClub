@@ -349,6 +349,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
         )}
 
         <TabsContent value="tracking" className="space-y-4">
+          <TeamWeightOverview categoryId={categoryId} />
           {canCustomize && (
             <div className="flex justify-center">
               <Button
