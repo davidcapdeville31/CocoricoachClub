@@ -274,11 +274,32 @@ export function GroupedExerciseList({
           compact ? "text-xs" : "text-sm",
           fieldMode ? "text-slate-400" : "text-muted-foreground"
         )}>
-          <span>{ex.sets} séries</span>
-          {ex.reps && <span>× {ex.reps} reps</span>}
-          {ex.weight_kg && <span>@ {ex.weight_kg} kg</span>}
-          {ex.rest_seconds && <span>- {ex.rest_seconds}s repos</span>}
-          {!compact && ex.tempo && <span>Tempo: {ex.tempo}</span>}
+          {(() => {
+            const vs: any[] = Array.isArray((ex as any).variable_sets) ? (ex as any).variable_sets : [];
+            const pick = (k: string) => {
+              const direct = (ex as any)[k];
+              if (direct !== undefined && direct !== null && direct !== "") return direct;
+              const found = vs.find((s: any) => s?.[k] != null && s?.[k] !== "");
+              return found ? found[k] : undefined;
+            };
+            const percentage = (ex as any).percentage_1rm ?? pick("percentage");
+            const weight = pick("weight_kg");
+            const rpe = pick("rpe");
+            const rir = pick("rir");
+            const tempo = pick("tempo");
+            return (
+              <>
+                {ex.sets && <span>{ex.sets} séries</span>}
+                {ex.reps && <span>× {ex.reps} reps</span>}
+                {percentage != null && percentage !== "" && <span>{percentage}% 1RM</span>}
+                {weight != null && weight !== "" && <span>@ {weight} kg</span>}
+                {ex.rest_seconds && <span>- {ex.rest_seconds}s repos</span>}
+                {tempo && <span>Tempo: {tempo}</span>}
+                {rpe != null && rpe !== "" && <span>RPE: {rpe}</span>}
+                {rir != null && rir !== "" && <span>RIR: {rir}</span>}
+              </>
+            );
+          })()}
           {!compact && ex.contraction_regime && (
             <Badge variant="outline" className="text-[10px] px-1 py-0">
               {contractionLabels[ex.contraction_regime] || ex.contraction_regime}

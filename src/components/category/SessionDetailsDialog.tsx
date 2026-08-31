@@ -563,13 +563,56 @@ export function SessionDetailsDialog({
             </Badge>
           </div>
         </div>
-        <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-          <span>{ex.sets} séries</span>
-          {ex.reps && <span>× {ex.reps} reps</span>}
-          {ex.weight_kg && <span>@ {ex.weight_kg} kg</span>}
-          {ex.rest_seconds && <span>- {ex.rest_seconds}s repos</span>}
-          {ex.tempo && <span>Tempo: {ex.tempo}</span>}
-        </div>
+        {(() => {
+          const vs: any[] = Array.isArray((ex as any).variable_sets) ? (ex as any).variable_sets : [];
+          const pick = (k: string) => {
+            const direct = (ex as any)[k];
+            if (direct !== undefined && direct !== null && direct !== "") return direct;
+            const found = vs.find((s: any) => s?.[k] != null && s?.[k] !== "");
+            return found ? found[k] : undefined;
+          };
+          const percentage = (ex as any).percentage_1rm ?? pick("percentage");
+          const weight = pick("weight_kg");
+          const reps = (ex as any).reps ?? pick("reps");
+          const tempo = pick("tempo");
+          const rpe = pick("rpe");
+          const rir = pick("rir");
+          const rest = (ex as any).rest_seconds ?? pick("rest_seconds");
+          return (
+            <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
+              {ex.sets && <span>{ex.sets} séries</span>}
+              {reps && <span>× {reps} reps</span>}
+              {percentage != null && percentage !== "" && <span>{percentage}% 1RM</span>}
+              {weight != null && weight !== "" && <span>@ {weight} kg</span>}
+              {rest != null && rest !== "" && <span>- {rest}s repos</span>}
+              {tempo && <span>Tempo: {tempo}</span>}
+              {rpe != null && rpe !== "" && <span>RPE: {rpe}</span>}
+              {rir != null && rir !== "" && <span>RIR: {rir}</span>}
+            </div>
+          );
+        })()}
+        {Array.isArray((ex as any).variable_sets) && (ex as any).variable_sets.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {(ex as any).variable_sets.map((s: any, i: number) => {
+              const parts = [
+                s.reps != null && s.reps !== "" ? `${s.reps} reps` : null,
+                s.weight_kg != null ? `${s.weight_kg} kg` : null,
+                s.percentage != null ? `${s.percentage}%` : null,
+                s.rpe != null ? `RPE ${s.rpe}` : null,
+                s.rir != null ? `RIR ${s.rir}` : null,
+                s.tempo ? `Tempo ${s.tempo}` : null,
+                s.rest_seconds != null ? `Repos ${s.rest_seconds}` : null,
+              ].filter(Boolean);
+              if (parts.length === 0) return null;
+              return (
+                <span key={i} className="px-2 py-0.5 rounded-md bg-muted/60 border text-xs">
+                  <span className="text-muted-foreground">S{s.setNumber ?? i + 1}:</span>{" "}
+                  {parts.join(" · ")}
+                </span>
+              );
+            })}
+          </div>
+        )}
         {ex.notes && (() => {
           const cleanNotes = stripV2MethodTags(ex.notes).replace(/<!--[\s\S]*?-->/g, "").trim();
           if (!cleanNotes) return null;
