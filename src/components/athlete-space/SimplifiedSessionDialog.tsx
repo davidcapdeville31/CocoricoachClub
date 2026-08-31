@@ -71,12 +71,14 @@ export function SimplifiedSessionDialog({
   const [notes, setNotes] = useState("");
   const [durationMin, setDurationMin] = useState<number>(60);
   const [rpe, setRpe] = useState<number>(6);
+  const [partnerIds, setPartnerIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (!open) {
       setNotes("");
       setDurationMin(60);
       setRpe(6);
+      setPartnerIds([]);
       setTrainingType(lockedTrainingType || trainingTypes[0]?.value || "musculation");
     }
   }, [open, lockedTrainingType, trainingTypes]);
