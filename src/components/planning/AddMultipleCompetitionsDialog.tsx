@@ -371,7 +371,7 @@ export function AddMultipleCompetitionsDialog({
                             <SelectValue placeholder="Sélectionner une catégorie" />
                           </SelectTrigger>
                           <SelectContent>
-                            {ageCategories.map((cat) => (
+                            {getAgeCategoryOptions(d.matchDate).map((cat) => (
                               <SelectItem key={cat.value} value={cat.value}>
                                 {cat.label}
                               </SelectItem>
