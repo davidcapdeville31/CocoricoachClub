@@ -607,8 +607,11 @@ export function SessionDetailsDialog({
           percentage: ex.percentage_1rm ?? undefined,
           load: (ex as any).weight_kg ?? undefined,
           tempo: ex.tempo,
+          rpe: (ex as any).rpe ?? undefined,
+          rir: (ex as any).rir ?? undefined,
           rest: ex.rest_seconds,
           variableSets: (ex as any).variable_sets ?? undefined,
+          useVariableSets: ((ex as any).variable_sets?.length ?? 0) > 0,
         },
 
       }));
