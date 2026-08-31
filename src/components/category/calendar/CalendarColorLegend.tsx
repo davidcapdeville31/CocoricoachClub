@@ -27,46 +27,32 @@ export function CalendarColorLegend({
   const items = useMemo(() => {
     const entries: { key: string; label: string; colorClass: string }[] = [];
 
-    // Ces deux couleurs expliquent toujours les marqueurs spécifiques du calendrier.
+    // Rose : séances ajoutées par un athlète (marqueur spécifique du calendrier)
     entries.push({
       key: "__athlete__",
       label: t("planning.calendarViews.legend.athlete"),
       colorClass: ATHLETE_SESSION_COLOR_CLASS,
     });
-    entries.push({
-      key: "mental",
-      label: trainingTypeLabels?.mental || getTrainingTypeLabel("mental"),
-      colorClass: "bg-violet-500",
-    });
 
-    // Types de base toujours affichés (correspondent aux types d'événements créables)
+    // Exactement les 8 types d'événements créables depuis "Ajouter un événement"
     const baseTypes = [
       "musculation",
       "collectif",
-      "physique",
-      "technique_individuelle",
-      "test",
       "video",
+      "test",
       "reunion",
       "medical",
-      "repos",
+      "mental",
     ];
 
-    // Ajouter les types d'entraînement présents dans le calendrier.
-    const dynamicTypes = sessions
-      .filter((s) => !s?.created_by_player_id && s?.training_type !== "mental")
-      .map((s) => s?.training_type)
-      .filter(Boolean) as string[];
-
-    const types = Array.from(new Set([...baseTypes, ...dynamicTypes])).filter(
-      (t2) => t2 !== "mental"
-    );
-
-    types.forEach((type) => {
+    baseTypes.forEach((type) => {
       entries.push({
         key: type,
         label: trainingTypeLabels?.[type] || getTrainingTypeLabel(type),
-        colorClass: TRAINING_TYPE_COLORS[type] || "bg-primary",
+        colorClass:
+          type === "mental"
+            ? "bg-violet-500"
+            : TRAINING_TYPE_COLORS[type] || "bg-primary",
       });
     });
 
@@ -85,9 +71,10 @@ export function CalendarColorLegend({
       return true;
     });
 
-    return unique.sort((a, b) => a.label.localeCompare(b.label));
+    return unique;
 
-  }, [sessions, matches, trainingTypeLabels, t]);
+  }, [trainingTypeLabels, t]);
+
 
   if (items.length === 0) return null;
 
