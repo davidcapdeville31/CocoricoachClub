@@ -15,6 +15,7 @@ export const fr = {
     confirm: "Confirmer",
     season: "Saison",
     athletes: "Athlètes",
+    version: "Version",
   },
   language: {
     label: "Langue",
