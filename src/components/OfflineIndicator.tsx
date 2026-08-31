@@ -1,9 +1,10 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
-import { WifiOff, Cloud, RefreshCw, Loader2, Database, CheckCircle, UserCircle } from "lucide-react";
+import { WifiOff, Cloud, RefreshCw, Loader2, Database, CheckCircle, UserCircle, X } from "lucide-react";
 import { useOfflineSyncContext } from "@/contexts/OfflineSyncContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
+import { useState, useEffect } from "react";
 
 const OfflineIndicator = () => {
   const { 
