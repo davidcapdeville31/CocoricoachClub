@@ -604,10 +604,13 @@ export function SessionDetailsDialog({
         params: {
           sets: ex.sets,
           reps: ex.reps,
-          percentage: ex.percentage_1rm,
+          percentage: ex.percentage_1rm ?? undefined,
+          load: (ex as any).weight_kg ?? undefined,
           tempo: ex.tempo,
           rest: ex.rest_seconds,
+          variableSets: (ex as any).variable_sets ?? undefined,
         },
+
       }));
       const restSeconds = group.exercises[0]?.exercise?.rest_seconds ?? undefined;
       return (
