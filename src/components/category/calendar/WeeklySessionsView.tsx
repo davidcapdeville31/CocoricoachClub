@@ -6,7 +6,11 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Calendar, Clock, Swords, Dumbbell, Printer, User } from "lucide-react";
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, eachDayOfInterval, isSameDay } from "date-fns";
 import { cn } from "@/lib/utils";
-import { TRAINING_TYPE_COLORS, getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
+import {
+  ATHLETE_SESSION_COLOR_CLASS,
+  TRAINING_TYPE_COLORS,
+  getTrainingTypeLabel,
+} from "@/lib/constants/trainingTypes";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
 import { getCompetitionColor } from "@/lib/constants/competitionColors";
 import { printElement } from "@/lib/pdfExport";

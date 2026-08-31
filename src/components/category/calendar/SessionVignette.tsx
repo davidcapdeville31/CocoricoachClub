@@ -3,7 +3,11 @@ import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { Eye, Pencil, MessageSquare, Trash2, Bell, User, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getTrainingTypeColor, getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
+import {
+  ATHLETE_SESSION_COLOR_CLASS,
+  getTrainingTypeColor,
+  getTrainingTypeLabel,
+} from "@/lib/constants/trainingTypes";
 import { getSessionTitleFromNotes } from "@/lib/utils/sessionNotes";
 import { useMarkAthleteSessionRead } from "@/lib/hooks/useMarkAthleteSessionRead";
 

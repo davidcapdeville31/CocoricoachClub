@@ -824,4 +824,3 @@ export const TRAINING_TYPE_LABELS: Record<string, string> = {
 
 // Couleur dédiée aux séances ajoutées par les athlètes eux-mêmes
 export const ATHLETE_SESSION_COLOR_CLASS = "bg-pink-500";
-export const ATHLETE_SESSION_COLOR_HEX = "#EC4899";
