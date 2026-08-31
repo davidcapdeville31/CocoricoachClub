@@ -943,6 +943,9 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
   };
 
   const renderSessionNotes = (notes: string | null) => {
+    if (isSimplifiedSession(notes)) {
+      return <p className="text-xs text-muted-foreground mt-0.5 italic">{t("athleteSpace.rpe.simplifiedSessionLabel")}</p>;
+    }
     const display = getDisplayNotes(notes);
     if (!display) return null;
     const hasStructuredTestLabel = getTestNamesForSession(notes).length > 0;
