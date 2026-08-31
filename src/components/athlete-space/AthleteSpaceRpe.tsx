@@ -1060,7 +1060,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                           </span>
                         )}
                       </div>
-                      {renderSessionNotes(s.notes)}
+                      {renderSessionNotes(s.notes, s.training_type === "test")}
                     </div>
                   ))}
                 </div>
