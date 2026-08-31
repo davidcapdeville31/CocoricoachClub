@@ -609,7 +609,7 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
           <SelectContent>
             {availableTests.map((test) => (
               <SelectItem key={test.key} value={test.key}>
-                {test.label} {test.unit && `(${test.unit})`}
+                {test.label} {test.unit && `(${test.unit === "ratio" ? "÷ PDC" : test.unit})`}
               </SelectItem>
             ))}
           </SelectContent>
@@ -672,7 +672,7 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
         <CardHeader className="pb-2">
           <CardTitle className="text-lg">
             {viewMode === "team" ? "Évolution moyenne" : "Comparaison individuelle"} — {currentTest?.label || "Test"}
-            {currentTest?.unit && ` (${currentTest.unit})`}
+            {currentTest?.unit && ` (${currentTest.unit === "ratio" ? "÷ PDC" : currentTest.unit})`}
           </CardTitle>
         </CardHeader>
         <CardContent>

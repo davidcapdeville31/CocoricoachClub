@@ -304,7 +304,7 @@ export function UnifiedTestDialog({
               throw new Error(`Poids manquant pour ${player.first_name || ""} ${player.name} — saisis un poids anthropo ou passe en mode "Ratio direct".`);
             }
             finalValue = Math.round((rawInput / w) * 1000) / 1000;
-            ratioNote = ` [Ratio auto: ${rawInput}kg / ${w}kg = ${finalValue}× PDC]`;
+            ratioNote = ` [Ratio auto: ${rawInput}kg / ${w}kg = ${finalValue} ÷ PDC]`;
           }
           return {
             player_id: player.id, category_id: categoryId, test_date: date,
@@ -510,7 +510,7 @@ export function UnifiedTestDialog({
             {effectivePlayers.length > 0 && ((isCustom && customTestName && customTestUnit) || selectedTest) && currentTest && (
               <div className="space-y-2">
                 <Label>
-                  Résultats {currentTest.unit && `(${isRatioTest && ratioInputMode === "kg" ? "kg soulevés → auto × PDC" : currentTest.unit})`}
+                  Résultats {currentTest.unit && `(${isRatioTest && ratioInputMode === "kg" ? "kg soulevés → auto ÷ PDC" : currentTest.unit})`}
                   {showSecondaryField && " + Vitesse barre (m/s, optionnel)"}
                   {" "}- {filledResultsCount}/{effectivePlayers.length} saisis
                 </Label>
