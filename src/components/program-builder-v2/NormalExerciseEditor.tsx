@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
-import { Trash2, Rows3 } from "lucide-react";
+import { useMemo } from "react";
+import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+
 import { TrainingVariablesManager } from "./TrainingVariablesManager";
 import {
   inferExerciseTypeFromName,
