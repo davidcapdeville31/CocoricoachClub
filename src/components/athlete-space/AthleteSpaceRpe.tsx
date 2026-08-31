@@ -882,6 +882,19 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
   // Types informatifs : pas de RPE
   const NON_RPE_TYPES = new Set(["medical", "video", "video_analyse", "reunion", "surf_video"]);
   const isNonRpe = (s: typeof todaySessions[0]) => NON_RPE_TYPES.has(s.training_type);
+
+  const getSessionCompletion = (session: typeof todaySessions[0]) => {
+    if (session.training_type === "test") {
+      const planned = parseTestsFromNotes(session.notes);
+      const total = planned.length;
+      const done = getTestResultsForSession(session.id).length;
+      const percent = total > 0 ? Math.round((done / total) * 100) : 0;
+      return { percent, done, total };
+    }
+    const percent = completedSessionIds.has(session.id) ? 100 : 0;
+    return { percent, done: percent === 100 ? 1 : 0, total: 1 };
+  };
+
   // An open test campaign stays in the "to do" list until every test of the period is filled,
   // even if the RPE has already been submitted.
   const pendingSessions = todaySessions.filter(
@@ -1081,7 +1094,26 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                         </p>
                       )}
                     </div>
-                    <Badge variant="outline" className="text-xs">{t("athleteSpace.rpe.toFill")}</Badge>
+                    {(() => {
+                      const { percent } = getSessionCompletion(session);
+                      const tone =
+                        percent === 100
+                          ? "text-green-600 border-green-500/50 bg-green-500/10"
+                          : percent === 0
+                            ? "text-red-600 border-red-500/50 bg-red-500/10"
+                            : "text-amber-600 border-amber-500/50 bg-amber-500/10";
+                      const label =
+                        percent === 100
+                          ? t("athleteSpace.rpe.completed")
+                          : percent === 0
+                            ? t("athleteSpace.rpe.toFill")
+                            : t("athleteSpace.rpe.partial", { percent });
+                      return (
+                        <Badge variant="outline" className={cn("text-xs whitespace-nowrap", tone)}>
+                          {label}
+                        </Badge>
+                      );
+                    })()}
                   </div>
                   {renderExerciseToggle(session.id)}
                 </div>
