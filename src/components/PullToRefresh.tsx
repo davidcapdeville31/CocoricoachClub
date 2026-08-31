@@ -158,7 +158,7 @@ const PullToRefresh = () => {
     const onTouchEnd = async () => {
       if (!active.current) return;
       active.current = false;
-      const shouldRefresh = pullRef.current >= TRIGGER_DISTANCE;
+      const shouldRefresh = pullRef.current >= TRIGGER_DISTANCE && !isEditingContext(null);
       startY.current = null;
 
       if (!shouldRefresh) {
