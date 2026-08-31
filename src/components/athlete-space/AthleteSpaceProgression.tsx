@@ -65,7 +65,7 @@ const buildRatioDisplay = (rawValue: unknown, playerWeight?: number | null) => {
   const ratio = value >= 5 ? loadKg / playerWeight : value;
   return {
     main: `${i18n.t("athleteSpace.progression.ratioPrefix")} ${formatFrNumber(ratio, 2)}`,
-    sub: `${formatFrNumber(loadKg, 1)}/${formatFrNumber(playerWeight, 1)} kg`,
+    sub: `${formatFrNumber(loadKg, 1)} kg ÷ ${formatFrNumber(playerWeight, 1)} kg (÷ PDC)`,
     ratio,
     loadKg,
   };
