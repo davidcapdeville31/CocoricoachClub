@@ -1653,7 +1653,7 @@ export const athleteSpaceEn = {
       submit: "Validate and send",
     },
     simplifiedSessionDialog: {
-      title: "Session — simplified mode",
+      title: "Simplified session",
       sessionType: "Session type",
       chooseType: "Choose the type",
       description: "Session description",
@@ -1667,7 +1667,7 @@ export const athleteSpaceEn = {
       durationRequired: "Enter a duration > 0",
       rpeRequired: "RPE must be between 1 and 10",
       sessionExpired: "Session expired. Please log in again and retry.",
-      defaultDescription: "{{type}} session (simplified mode)",
+      defaultDescription: "Simplified session",
       durationRpe: "Duration: {{duration}} min · RPE: {{rpe}}/10",
       createError: "Error while creating",
       added: "Session added",
