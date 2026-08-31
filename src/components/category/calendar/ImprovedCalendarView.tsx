@@ -1,6 +1,6 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo, useRef, useEffect } from "react";
-import { getDisplayNotes, parseTestsFromNotes, getSessionTitleFromNotes } from "@/lib/utils/sessionNotes";
+import { getDisplayNotes, isSimplifiedSession, parseTestsFromNotes, getSessionTitleFromNotes } from "@/lib/utils/sessionNotes";
 import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
 import { DndContext, DragEndEvent, DragOverlay, pointerWithin } from "@dnd-kit/core";
 import { useQuery } from "@tanstack/react-query";
