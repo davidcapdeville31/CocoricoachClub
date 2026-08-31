@@ -1654,7 +1654,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                             <div>
                               <p className="font-medium text-sm">{getSessionTrainingLabel(session)}</p>
                               {renderTestInfo(session)}
-                              {renderSessionNotes(session.notes)}
+                              {renderSessionNotes(session.notes, session.training_type === "test")}
                               {session.session_start_time && (
                                 <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                                   <Clock className="h-3 w-3" />
