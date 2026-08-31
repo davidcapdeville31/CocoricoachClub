@@ -223,11 +223,11 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
           const testLabel = labelizeTestType(test.test_type, customMap);
           const unit = test.result_unit || (test.test_type?.startsWith("custom:") ? customMap[test.test_type]?.unit || "" : "");
           return (
-            <div key={idx} className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs flex-1 min-w-[140px] font-medium">
+            <div key={idx} className="rounded-xl border bg-surface-sunken/40 p-2.5 space-y-2">
+              <div className="text-xs font-medium leading-tight">
                 {testLabel}
                 <span className="text-muted-foreground ml-1">({labelize(test.test_category)})</span>
-              </span>
+              </div>
               {staffRow ? (
                 <Badge variant="default" className="text-[10px] gap-1" title={t('athleteSpace.components.testResultsInput.title')}>
                   {staffRow.result_value} {displayUnit(staffRow.result_unit || unit)} {t('athleteSpace.components.testResultsInput.staffValidated')}
@@ -246,8 +246,7 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
                   {testWindow && existing.test_date ? ` · ${formatDay(existing.test_date)}` : ""}
                 </Badge>
               ) : (
-
-                <>
+                <div className="flex items-center gap-2">
                   <Input
                     type="number"
                     inputMode="decimal"
@@ -255,33 +254,34 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
                     placeholder={t('athleteSpace.components.testResultsInput.resultPlaceholder')}
                     value={value[key] ?? ""}
                     onChange={(e) => onChange({ ...value, [key]: e.target.value })}
-                    className="h-8 w-24 text-sm"
+                    className="h-9 flex-1 text-sm"
                     disabled={isAbsent}
                   />
-
-                  <span className="text-xs text-muted-foreground w-10">{displayUnit(unit)}</span>
+                  {displayUnit(unit) && (
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">{displayUnit(unit)}</span>
+                  )}
                   {categoryId && (
                     <Button
                       type="button"
-                      size="sm"
+                      size="icon"
                       variant="default"
-                      className="h-8 px-2"
+                      className="h-9 w-9 shrink-0"
+                      title={t('athleteSpace.components.testResultsInput.send')}
+                      aria-label={t('athleteSpace.components.testResultsInput.send')}
                       onClick={() => handleSendOne(test)}
                       disabled={submittingKey === key}
                     >
                       {submittingKey === key ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
-                        <>
-                          <Send className="h-3.5 w-3.5 mr-1" />
-                          {t('athleteSpace.components.testResultsInput.send')}
-                        </>
+                        <Send className="h-4 w-4" />
                       )}
                     </Button>
                   )}
-                </>
+                </div>
               )}
             </div>
+
           );
         })}
       </div>
