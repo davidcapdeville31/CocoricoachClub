@@ -394,10 +394,6 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                 </p>
               </div>
             </div>
-            <div className="pt-1">
-              <p className="text-[11px] text-muted-foreground mb-1">{t("athleteSpace.wellness.catchUpPast")}</p>
-              {DateSelector}
-            </div>
           </CardContent>
         </Card>
         {!hideHistory && <AthleteSpaceWellnessHistory playerId={playerId} categoryId={categoryId} />}
@@ -444,10 +440,6 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                 </div>
               );
             })}
-          </div>
-          <div className="border-t pt-3">
-            <p className="text-[11px] text-muted-foreground mb-1">{t("athleteSpace.wellness.catchUpEdit")}</p>
-            {DateSelector}
           </div>
         </CardContent>
       </Card>
@@ -511,7 +503,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
             )}
           </div>
         </CardTitle>
-        <div className="pt-2">{DateSelector}</div>
+        
       </CardHeader>
 
 
