@@ -1,3 +1,4 @@
+import { useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -5,6 +6,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { CheckCircle2, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
+import {
+  getJudoAgeCategories,
+  isEligibleForJudoAgeCategory,
+  isJudoSport,
+} from "@/lib/constants/judoAgeCategories";
 
 interface Props {
   categoryId: string;
@@ -13,6 +19,12 @@ interface Props {
   /** Map player_id → attendance status, shown as a badge (edit mode). */
   statuses?: Record<string, string>;
   label?: string;
+  /** Sport de la catégorie (permet le filtrage par catégorie d'âge, ex. judo). */
+  sportType?: string;
+  /** Catégorie d'âge sélectionnée pour la compétition. */
+  ageCategory?: string;
+  /** Année civile de la saison (par défaut l'année de la date de compétition ou l'année courante). */
+  referenceYear?: number;
 }
 
 const STATUS_BADGE: Record<string, { label: string; className: string }> = {
@@ -36,6 +48,9 @@ export function MatchParticipantsSelector({
   onChange,
   statuses,
   label = "Participants convoqués",
+  sportType,
+  ageCategory,
+  referenceYear,
 }: Props) {
   const { data: players } = useQuery({
     queryKey: ["match-participants-roster", categoryId],
@@ -43,11 +58,34 @@ export function MatchParticipantsSelector({
     enabled: !!categoryId,
   });
 
-  const list = (players || []) as any[];
+  const allPlayers = (players || []) as any[];
+  const year = referenceYear || new Date().getFullYear();
+  const judoFilterActive = isJudoSport(sportType) && !!ageCategory &&
+    getJudoAgeCategories(year).some((o) => o.value === ageCategory);
+
+  const list = useMemo(() => {
+    if (!judoFilterActive) return allPlayers;
+    return allPlayers.filter((p) =>
+      isEligibleForJudoAgeCategory(p.birth_date, ageCategory as string, year),
+    );
+  }, [allPlayers, judoFilterActive, ageCategory, year]);
+
+  const hiddenCount = allPlayers.length - list.length;
+
+  // Retire automatiquement les athlètes devenus hors catégorie
+  useEffect(() => {
+    if (!judoFilterActive) return;
+    const eligibleIds = new Set(list.map((p) => p.id));
+    const filtered = value.filter((id) => eligibleIds.has(id));
+    if (filtered.length !== value.length) onChange(filtered);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [judoFilterActive, ageCategory, list]);
+
   const allSelected = list.length > 0 && list.every((p) => value.includes(p.id));
 
   const toggle = (id: string) =>
     onChange(value.includes(id) ? value.filter((v) => v !== id) : [...value, id]);
+
 
   return (
     <div className="space-y-2">
@@ -66,10 +104,23 @@ export function MatchParticipantsSelector({
         </div>
       </div>
 
+      {judoFilterActive && (
+        <p className="text-xs text-muted-foreground">
+          Filtré sur la catégorie d'âge sélectionnée (année civile {year})
+          {hiddenCount > 0 ? ` — ${hiddenCount} athlète${hiddenCount > 1 ? "s" : ""} hors catégorie masqué${hiddenCount > 1 ? "s" : ""}` : ""}
+          .
+        </p>
+      )}
+
       <div className="max-h-[220px] overflow-y-auto rounded-lg border border-border/70 bg-muted/20 p-2 dark:bg-muted/10">
         {list.length === 0 ? (
-          <p className="p-2 text-xs text-muted-foreground">Aucun athlète dans cette catégorie.</p>
+          <p className="p-2 text-xs text-muted-foreground">
+            {judoFilterActive
+              ? "Aucun athlète de cette catégorie d'âge (vérifiez les dates de naissance)."
+              : "Aucun athlète dans cette catégorie."}
+          </p>
         ) : (
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {list.map((player) => {
               const isSelected = value.includes(player.id);

@@ -31,6 +31,7 @@ import { Info } from "lucide-react";
 import { TOURNAMENT_LEVELS, SELECTION_TYPES } from "@/lib/judo/competitionAnalytics";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
 import { MatchParticipantsSelector, syncMatchParticipants } from "./MatchParticipantsSelector";
+import { getJudoAgeCategories, isJudoSport } from "@/lib/constants/judoAgeCategories";
 
 interface AddMatchCalendarDialogProps {
   open: boolean;
@@ -113,7 +114,7 @@ export function AddMatchCalendarDialog({
   const hasTournamentBracket = isPadel || isTennis;
   
   const baseSport = sportType.split('_')[0].toLowerCase();
-  const ageCategories = AGE_CATEGORIES[baseSport] || AGE_CATEGORIES.default;
+  const isJudo = isJudoSport(sportType);
   const [opponent, setOpponent] = useState("");
   const [competition, setCompetition] = useState("");
   const [customCompetition, setCustomCompetition] = useState("");
@@ -135,6 +136,12 @@ export function AddMatchCalendarDialog({
   
   // Tennis specific fields
   const [matchFormat, setMatchFormat] = useState<string>("simple");
+
+  // Année civile de la saison (base des catégories d'âge)
+  const seasonYear = matchDate ? new Date(matchDate).getFullYear() : new Date().getFullYear();
+  const ageCategories = isJudo
+    ? getJudoAgeCategories(seasonYear)
+    : AGE_CATEGORIES[baseSport] || AGE_CATEGORIES.default;
   
   // Basketball 3x3 (FIBA): format unique = 1ère équipe à 21 pts OU 10 min max (selon ce qui arrive en premier)
   const format3x3 = "fiba_standard";
@@ -566,6 +573,9 @@ export function AddMatchCalendarDialog({
               categoryId={categoryId}
               value={selectedParticipants}
               onChange={setSelectedParticipants}
+              sportType={sportType}
+              ageCategory={ageCategory}
+              referenceYear={seasonYear}
             />
           )}
 

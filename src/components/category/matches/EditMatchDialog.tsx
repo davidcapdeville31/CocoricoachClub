@@ -29,6 +29,7 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
 import { TOURNAMENT_LEVELS, SELECTION_TYPES } from "@/lib/judo/competitionAnalytics";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
 import { MatchParticipantsSelector, syncMatchParticipants } from "./MatchParticipantsSelector";
+import { getJudoAgeCategories, isJudoSport } from "@/lib/constants/judoAgeCategories";
 
 interface Match {
   id: string;
@@ -88,6 +89,7 @@ export function EditMatchDialog({
   const competitions = getCompetitionsBySport(sportType);
   const isIndividual = isIndividualSport(sportType);
   const isAviron = sportType.toLowerCase().includes("aviron");
+  const isJudo = isJudoSport(sportType);
   
   const [opponent, setOpponent] = useState(match.opponent || "");
   const [competition, setCompetition] = useState("");
@@ -107,6 +109,9 @@ export function EditMatchDialog({
   const [selectionType, setSelectionType] = useState<string>(match.selection_type || "club");
   
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
+
+  const seasonYear = matchDate ? new Date(matchDate).getFullYear() : new Date().getFullYear();
+  const ageCategoryOptions = isJudo ? getJudoAgeCategories(seasonYear) : AGE_CATEGORIES;
 
   const queryClient = useQueryClient();
   const guard = useSeasonGuard(match.category_id);
@@ -264,7 +269,7 @@ export function EditMatchDialog({
                   <SelectValue placeholder="Sélectionner une catégorie" />
                 </SelectTrigger>
                 <SelectContent>
-                  {AGE_CATEGORIES.map((cat) => (
+                  {ageCategoryOptions.map((cat) => (
                     <SelectItem key={cat.value} value={cat.value}>
                       {cat.label}
                     </SelectItem>
@@ -475,6 +480,9 @@ export function EditMatchDialog({
             value={selectedParticipants}
             onChange={setSelectedParticipants}
             statuses={participantStatuses}
+            sportType={sportType}
+            ageCategory={ageCategory}
+            referenceYear={seasonYear}
           />
 
           <div className="space-y-2">
