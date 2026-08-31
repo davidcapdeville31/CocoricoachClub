@@ -232,6 +232,7 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
 
   return (
     <div className="space-y-6">
+      <AthleteWeightSection playerId={playerId} categoryId={categoryId} />
       <Card className="bg-gradient-card shadow-md">
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
