@@ -58,6 +58,7 @@ serve(async (req) => {
       notes,
       session_blocks,
       exercises,
+      partner_player_ids,
     } = body ?? {};
 
     if (!category_id || !player_id || !session_date || !training_type) {
@@ -110,6 +111,32 @@ serve(async (req) => {
       if (!pcMatch) {
         return respond({ success: false, error: "Accès refusé pour cette catégorie" });
       }
+    }
+
+    // ── Coéquipiers déclarés par l'athlète (même catégorie) ──
+    const requestedPartners: string[] = Array.isArray(partner_player_ids)
+      ? Array.from(new Set(partner_player_ids.filter((id: unknown) => typeof id === "string" && id && id !== player_id)))
+      : [];
+
+    let partnerIds: string[] = [];
+    if (requestedPartners.length > 0) {
+      const { data: directPartners } = await supabase
+        .from("players")
+        .select("id")
+        .in("id", requestedPartners)
+        .eq("category_id", category_id);
+      const { data: linkedPartners } = await supabase
+        .from("player_categories")
+        .select("player_id")
+        .in("player_id", requestedPartners)
+        .eq("category_id", category_id)
+        .eq("status", "accepted");
+      partnerIds = Array.from(
+        new Set([
+          ...(directPartners || []).map((p: { id: string }) => p.id),
+          ...(linkedPartners || []).map((p: { player_id: string }) => p.player_id),
+        ]),
+      );
     }
 
     const rawIntensity =
@@ -201,10 +228,21 @@ serve(async (req) => {
           }))
       : [];
 
-    if (exerciseRecords.length > 0) {
+    // Les exercices sont dupliqués pour chaque coéquipier afin qu'il puisse
+    // saisir ses propres charges (tonnage / charge d'entraînement).
+    const allExerciseRecords = exerciseRecords.length > 0
+      ? [
+          ...exerciseRecords,
+          ...partnerIds.flatMap((pid) =>
+            exerciseRecords.map((ex) => ({ ...ex, player_id: pid })),
+          ),
+        ]
+      : [];
+
+    if (allExerciseRecords.length > 0) {
       const { error: exercisesError } = await supabase
         .from("gym_session_exercises")
-        .insert(exerciseRecords);
+        .insert(allExerciseRecords);
 
       if (exercisesError) {
         // Cleanup on failure
@@ -220,7 +258,12 @@ serve(async (req) => {
     try {
       await supabase
         .from("event_participants")
-        .insert({ training_session_id: session.id, player_id });
+        .insert(
+          [player_id, ...partnerIds].map((pid) => ({
+            training_session_id: session.id,
+            player_id: pid,
+          })),
+        );
     } catch (partErr) {
       console.warn("[athlete-create-session] participant insert warn:", partErr);
     }
@@ -259,6 +302,51 @@ serve(async (req) => {
       }
     } catch (awcrErr) {
       console.warn("[athlete-create-session] awcr insert warn:", awcrErr);
+    }
+
+    // ── Notifier les coéquipiers ajoutés à la séance ──
+    if (partnerIds.length > 0) {
+      try {
+        const { data: creator } = await supabase
+          .from("players")
+          .select("name")
+          .eq("id", player_id)
+          .maybeSingle();
+        const creatorName = creator?.name || "Un athlète";
+
+        const { data: partnerRows } = await supabase
+          .from("players")
+          .select("id, user_id")
+          .in("id", partnerIds);
+
+        const records = (partnerRows || [])
+          .filter((p: { user_id: string | null }) => !!p.user_id)
+          .map((p: { id: string; user_id: string }) => ({
+            user_id: p.user_id,
+            category_id,
+            title: "🤝 Séance partagée",
+            message: `${creatorName} t'a ajouté à une séance ${training_type} du ${session_date}. Ajoute ton RPE${training_type === "musculation" ? " et tes charges" : ""}.`,
+            notification_type: "athlete_session",
+            notification_subtype: "shared_session",
+            priority: "normal",
+            metadata: {
+              player_id: p.id,
+              created_by_player_id: player_id,
+              session_id: session.id,
+              training_type,
+              session_date,
+            },
+          }));
+
+        if (records.length > 0) {
+          const { error: partnerNotifErr } = await supabase.from("notifications").insert(records);
+          if (partnerNotifErr) {
+            console.warn("[athlete-create-session] partner notif warn:", partnerNotifErr.message);
+          }
+        }
+      } catch (partnerNotifyErr) {
+        console.warn("[athlete-create-session] partner notify warn:", partnerNotifyErr);
+      }
     }
 
     // ── Notifier le staff de la catégorie (in-app + push best-effort) ──
