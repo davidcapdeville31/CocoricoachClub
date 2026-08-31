@@ -4,6 +4,8 @@
  * Fallback générique pour les autres sports : U10 → Master.
  */
 
+import { getJudoAgeCategories } from "@/lib/constants/judoAgeCategories";
+
 export type AgeCategoryOption = { value: string; label: string };
 
 export const AGE_CATEGORIES_BY_SPORT: Record<string, AgeCategoryOption[]> = {
@@ -48,13 +50,6 @@ export const AGE_CATEGORIES_BY_SPORT: Record<string, AgeCategoryOption[]> = {
   ski_freeride: skiCategories(),
   snowboard: skiCategories(),
 
-  // Judo — FFJDA
-  judo: [
-    { value: "cadets", label: "Cadets (14-16)" },
-    { value: "juniors", label: "Juniors (17-19)" },
-    { value: "seniors", label: "Seniors (20+)" },
-    { value: "veterans", label: "Vétérans / Masters (30+)" },
-  ],
 
   // Athlétisme — FFA
   athletisme: athletismeCategories(),
@@ -137,18 +132,28 @@ const GENERIC_U_CATEGORIES: AgeCategoryOption[] = [
   { value: "master", label: "Master (35+)" },
 ];
 
-export function getAgeCategoriesForSport(sportType: string): AgeCategoryOption[] {
+export function getAgeCategoriesForSport(
+  sportType: string,
+  referenceYear: number = new Date().getFullYear(),
+): AgeCategoryOption[] {
   if (AGE_CATEGORIES_BY_SPORT[sportType]) return AGE_CATEGORIES_BY_SPORT[sportType];
 
   // Préfixes dynamiques (ski_*, athletisme_*, bowling_*)
   if (sportType?.startsWith("ski_") || sportType === "snowboard") return skiCategories();
   if (sportType?.startsWith("athletisme")) return athletismeCategories();
   if (sportType?.startsWith("bowling")) return AGE_CATEGORIES_BY_SPORT.bowling;
-  if (sportType?.toLowerCase().startsWith("judo")) return AGE_CATEGORIES_BY_SPORT.judo;
+  if (sportType?.toLowerCase().startsWith("judo")) {
+    // Les années éligibles suivent l'année civile de la saison en cours
+    return getJudoAgeCategories(referenceYear).map((o) => ({ value: o.value, label: o.label }));
+  }
 
   return GENERIC_U_CATEGORIES;
 }
 
-export function getAgeCategoryLabel(sportType: string, value: string): string {
-  return getAgeCategoriesForSport(sportType).find((o) => o.value === value)?.label ?? value;
+export function getAgeCategoryLabel(
+  sportType: string,
+  value: string,
+  referenceYear: number = new Date().getFullYear(),
+): string {
+  return getAgeCategoriesForSport(sportType, referenceYear).find((o) => o.value === value)?.label ?? value;
 }
