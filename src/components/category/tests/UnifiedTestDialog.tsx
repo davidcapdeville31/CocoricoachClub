@@ -107,7 +107,7 @@ export function UnifiedTestDialog({
 
   const AVAILABLE_UNITS = [
     { value: "kg", label: "Kilogrammes (kg)" },
-    { value: "× PDC", label: "Ratio poids du corps (× PDC)" },
+    { value: "× PDC", label: "Ratio poids du corps (÷ PDC)" },
     { value: "N", label: "Newton (N)" },
     { value: "cm", label: "Centimètres (cm)" },
     { value: "m", label: "Mètres (m)" },

@@ -16,7 +16,7 @@ export const TEST_UNIT_OPTIONS: TestUnitOption[] = [
   { value: "distance_km", label: "Distance (km)", unit: "km", group: "Distance" },
   { value: "load_kg", label: "Charge (kg)", unit: "kg", group: "Charge / Poids" },
   { value: "load_lbs", label: "Charge (lbs)", unit: "lbs", group: "Charge / Poids" },
-  { value: "ratio_bw", label: "Ratio poids du corps (× PDC)", unit: "× PDC", group: "Charge / Poids" },
+  { value: "ratio_bw", label: "Ratio poids du corps (÷ PDC)", unit: "× PDC", group: "Charge / Poids" },
   { value: "speed_kmh", label: "Vitesse (km/h)", unit: "km/h", group: "Vitesse" },
   { value: "speed_ms", label: "Vitesse (m/s)", unit: "m/s", group: "Vitesse" },
   { value: "reps", label: "Répétitions", unit: "reps", group: "Quantité" },

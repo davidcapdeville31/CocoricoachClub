@@ -396,7 +396,7 @@ export function BenchmarkManager({ categoryId, sportType }: BenchmarkManagerProp
                               {b.use_body_weight_ratio && (
                                 <Badge variant="outline" className="text-xs">
                                   <Weight className="h-3 w-3 mr-1" />
-                                  {b.body_weight_multiplier}x PDC
+                              {b.body_weight_multiplier} ÷ PDC
                                 </Badge>
                               )}
                             </div>

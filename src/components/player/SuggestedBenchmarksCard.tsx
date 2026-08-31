@@ -48,10 +48,10 @@ export function SuggestedBenchmarksCard({ playerId, categoryId }: SuggestedBench
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {s.test_category} · {s.test_type}
                   {s.unit ? ` · ${s.unit}` : ""}
-                  {s.use_body_weight_ratio && s.body_weight_multiplier && (
+                    {s.use_body_weight_ratio && s.body_weight_multiplier && (
                     <span className="ml-1 inline-flex items-center gap-0.5">
                       <Weight className="h-3 w-3" />
-                      {s.body_weight_multiplier}x PDC
+                      {s.body_weight_multiplier} ÷ PDC
                     </span>
                   )}
                 </p>
