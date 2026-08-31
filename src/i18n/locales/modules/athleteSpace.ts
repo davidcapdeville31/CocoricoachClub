@@ -167,6 +167,7 @@ export const athleteSpaceFr = {
     allRpeSubmitted: "Tous les RPE du jour sont enregistrés 👏",
     upcomingSessions: "Séances à venir",
     dDay: "Jour J",
+    simplifiedSessionLabel: "Séance simplifiée",
   },
   calendar: {
     attendance: {
