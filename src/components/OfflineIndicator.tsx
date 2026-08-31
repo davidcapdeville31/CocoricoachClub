@@ -21,6 +21,13 @@ const OfflineIndicator = () => {
   const { isOfflineSession, user } = useAuth();
   const [dismissedAt, setDismissedAt] = useState<number | null>(null);
 
+  // Auto-dismiss the green offline-ready banner after 3 seconds
+  useEffect(() => {
+    if (!hasOfflineData || !lastDataSync || dismissedAt === lastDataSync.getTime()) return;
+    const timer = setTimeout(() => setDismissedAt(lastDataSync.getTime()), 3000);
+    return () => clearTimeout(timer);
+  }, [hasOfflineData, lastDataSync, dismissedAt]);
+
   // Show preloading status
   if (isPreloading) {
     return (
