@@ -921,18 +921,22 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
               if (exercise.groupId !== groupId) return exercise;
               const isTarget = groupCursor++ === slotIndex;
               if (!isTarget) return exercise;
+              const firstSetPercentage = params.variableSets?.find((s: any) => s?.percentage != null)?.percentage;
               return {
                 ...exercise,
                 sets: Number(params.sets) || exercise.sets,
                 reps: params.reps ?? exercise.reps,
-                percentage: params.percentage,
+                percentage: params.percentage ?? (firstSetPercentage != null ? Number(firstSetPercentage) : undefined),
                 weight_kg: params.load != null ? Number(params.load) : undefined,
                 rpe: params.rpe != null ? Number(params.rpe) : undefined,
                 rir: params.rir != null ? Number(params.rir) : undefined,
                 tempo: params.tempo,
                 restSeconds: params.rest ?? exercise.restSeconds,
-              };
+                variableSets: params.variableSets ?? (exercise as any).variableSets,
+                useVariableSets: params.useVariableSets ?? (exercise as any).useVariableSets,
+              } as any;
             }),
+
           };
         }),
       );
