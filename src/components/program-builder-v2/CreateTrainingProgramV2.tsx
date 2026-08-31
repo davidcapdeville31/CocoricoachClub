@@ -13,6 +13,7 @@
 //   - Method buttons / linked methods
 //   - Save/load via coach_session_templates
 
+import { parseVariableSetsTag, stripVariableSetsTag } from "@/lib/program-builder-v2/variableSetsNotes";
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -244,7 +245,8 @@ export function CreateTrainingProgramV2({
                   parsedConfig = undefined;
                 }
               }
-              const cleanNotes = notes
+              const parsedSets = parseVariableSetsTag(notes);
+              const cleanNotes = stripVariableSetsTag(notes)
                 .replace(/<!-- v2-block:[^>]+ -->/g, "")
                 .replace(/<!-- v2-test:[^>]+ -->/g, "")
                 .replace(/<!--\s*v2-(fartlek|cluster|stato|intermittent|drop_set|rest_pause|pyramid_up|pyramid_down|pyramid_full|five_by_five|isometric_overcoming|isometric_yielding|amrap|for_time|death_by|circuit|tabata|emom):.*?-->/gs, "")
@@ -259,6 +261,7 @@ export function CreateTrainingProgramV2({
                 tempo: ex.tempo ?? undefined,
                 restSeconds: ex.rest_seconds ?? 90,
                 method: ex.method ?? "normal",
+                variableSets: parsedSets,
                 notes: cleanNotes,
                 config:
                   parsedConfig ? parsedConfig :
