@@ -510,7 +510,7 @@ export function UnifiedTestDialog({
             {effectivePlayers.length > 0 && ((isCustom && customTestName && customTestUnit) || selectedTest) && currentTest && (
               <div className="space-y-2">
                 <Label>
-                  Résultats {currentTest.unit && `(${isRatioTest && ratioInputMode === "kg" ? "kg soulevés → auto ÷ PDC" : currentTest.unit})`}
+                  Résultats {currentTest.unit && `(${isRatioTest && ratioInputMode === "kg" ? "kg soulevés → auto ÷ PDC" : displayUnit(currentTest.unit)})`}
                   {showSecondaryField && " + Vitesse barre (m/s, optionnel)"}
                   {" "}- {filledResultsCount}/{effectivePlayers.length} saisis
                 </Label>
