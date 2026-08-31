@@ -401,7 +401,7 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
               </p>
               <GroupedExerciseList exercises={exercises} maxHeight="60vh" />
             </div>
-          ) : !rawNotes && !hasAthleteData ? (
+          ) : !rawNotes && !hasAthleteData && (plannedBlocks?.length || 0) === 0 ? (
             <p className="text-sm text-muted-foreground italic text-center py-6">
               {t('athleteSpace.components.sessionDetailDialog.noDetail')}
             </p>
