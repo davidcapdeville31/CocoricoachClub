@@ -882,6 +882,19 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
   // Types informatifs : pas de RPE
   const NON_RPE_TYPES = new Set(["medical", "video", "video_analyse", "reunion", "surf_video"]);
   const isNonRpe = (s: typeof todaySessions[0]) => NON_RPE_TYPES.has(s.training_type);
+
+  const getSessionCompletion = (session: typeof todaySessions[0]) => {
+    if (session.training_type === "test") {
+      const planned = parseTestsFromNotes(session.notes);
+      const total = planned.length;
+      const done = getTestResultsForSession(session.id).length;
+      const percent = total > 0 ? Math.round((done / total) * 100) : 0;
+      return { percent, done, total };
+    }
+    const percent = completedSessionIds.has(session.id) ? 100 : 0;
+    return { percent, done: percent === 100 ? 1 : 0, total: 1 };
+  };
+
   // An open test campaign stays in the "to do" list until every test of the period is filled,
   // even if the RPE has already been submitted.
   const pendingSessions = todaySessions.filter(
