@@ -1036,6 +1036,7 @@ export const athleteSpaceEn = {
     allRpeSubmitted: "All of today's RPEs are recorded 👏",
     upcomingSessions: "Upcoming sessions",
     dDay: "D-Day",
+    simplifiedSessionLabel: "Simplified session",
   },
   calendar: {
     attendance: {
