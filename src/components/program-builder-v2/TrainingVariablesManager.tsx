@@ -457,31 +457,36 @@ export const TrainingVariablesManager = ({
     );
   }
 
+  const showSetsTable = Boolean(supportsVariableSets && showVariableSets && onVariableSetsChange);
+
   return (
     <div className="space-y-2">
-      <div className="flex flex-wrap items-end gap-2">
-        {displayConfigs.map((config) => {
-          const isLockedByMax = isMaxReps && (config.key === 'rpe' || config.key === 'rir');
-          return (
-            <VariableInput
-              key={config.key}
-              config={config}
-              value={values[config.key]}
-              onChange={(val) => handleUpdateWithSync(config.key, val)}
-              onRemove={() => handleRemove(config.key)}
-              compact={compact}
-              locked={isLockedByMax}
-            />
-          );
-        })}
-        <AddVariableButton
-          availableVariables={hiddenVariables}
-          onAdd={handleAdd}
-        />
-      </div>
-      
+      {/* Scalar inputs row — hidden when variable sets table is active */}
+      {!showSetsTable && (
+        <div className="flex flex-wrap items-end gap-2">
+          {displayConfigs.map((config) => {
+            const isLockedByMax = isMaxReps && (config.key === 'rpe' || config.key === 'rir');
+            return (
+              <VariableInput
+                key={config.key}
+                config={config}
+                value={values[config.key]}
+                onChange={(val) => handleUpdateWithSync(config.key, val)}
+                onRemove={() => handleRemove(config.key)}
+                compact={compact}
+                locked={isLockedByMax}
+              />
+            );
+          })}
+          <AddVariableButton
+            availableVariables={hiddenVariables}
+            onAdd={handleAdd}
+          />
+        </div>
+      )}
+
       {/* Variable Sets Table for strength exercises */}
-      {supportsVariableSets && showVariableSets && onVariableSetsChange && (
+      {showSetsTable && (
         <VariableSetsTable
           sets={variableSets || createInitialSets(values.sets || 3)}
           onChange={(newSets) => {
