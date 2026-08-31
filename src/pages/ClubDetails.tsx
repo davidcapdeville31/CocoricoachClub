@@ -18,6 +18,7 @@ import { SnapshotCategoryButton } from "@/components/category/SnapshotCategoryBu
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { GlobalPlayerSearch } from "@/components/search/GlobalPlayerSearch";
 import { ViewerModeProvider, useViewerModeContext } from "@/contexts/ViewerModeContext";
+import { APP_VERSION_LABEL } from "@/lib/appVersion";
 
 function ClubDetailsContent() {
   const { clubId } = useParams();
@@ -114,6 +115,12 @@ function ClubDetailsContent() {
               <span className="sm:hidden">Retour</span>
             </Button>
             <div className="flex items-center gap-1 sm:gap-2 shrink-0 [&_button]:text-[#ED2939] [&_button:hover]:bg-[#ED2939]/10">
+              <span
+                className="hidden sm:inline-flex items-center px-2 py-1 rounded-md bg-muted text-muted-foreground text-[10px] font-mono border"
+                title={`CocoriCoach Club ${APP_VERSION_LABEL}`}
+              >
+                {APP_VERSION_LABEL}
+              </span>
               <NotificationBell />
               <Button
                 variant="ghost"

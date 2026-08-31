@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Settings as SettingsIcon, Smartphone, RefreshCw } from "lucide-react";
+import { ArrowLeft, Settings as SettingsIcon, Smartphone, RefreshCw, Info } from "lucide-react";
 import { OfflineSyncPanel } from "@/components/OfflineSyncPanel";
 import { PWAInstallGuide } from "@/components/PWAInstallGuide";
 import { PushNotificationSettings } from "@/components/notifications/PushNotificationSettings";
@@ -11,8 +11,11 @@ import { SecuritySettingsPanel } from "@/components/security/SecuritySettingsPan
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { APP_VERSION_LABEL } from "@/lib/appVersion";
+import { useTranslation } from "react-i18next";
 
 export default function Settings() {
+  const { t } = useTranslation();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [pwaReminderDismissed, setPwaReminderDismissed] = useState(false);
@@ -164,6 +167,24 @@ export default function Settings() {
 
           {/* Offline Sync */}
           <OfflineSyncPanel />
+
+          {/* App Version */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Info className="h-5 w-5" />
+                {t("common.version")}
+              </CardTitle>
+              <CardDescription>
+                CocoriCoach Club — {APP_VERSION_LABEL}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Cette information est utile en cas de besoin d'assistance pour vérifier que vous utilisez la même version que le support.
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

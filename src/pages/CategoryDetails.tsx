@@ -16,6 +16,7 @@ import { OverviewTab } from "@/components/category/OverviewTab";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { CategoryCoverUpload, LogoHoverActions } from "@/components/category/CategoryCoverUpload";
 import { resolveHeaderBackgroundUrl } from "@/lib/constants/headerBackgrounds";
+import { APP_VERSION_LABEL } from "@/lib/appVersion";
 import { CustomizeBrandingButton } from "@/components/branding/CustomizeBrandingButton";
 import { LanguageSwitcher } from "@/components/language/LanguageSwitcher";
 import { useTranslation } from "react-i18next";
@@ -398,7 +399,7 @@ function CategoryDetailsContent() {
               </div>
             </div>
             {categoryId && !isViewer && (
-              <div className="flex flex-wrap gap-2 self-center sm:self-auto">
+              <div className="flex flex-wrap gap-2 self-center sm:self-auto items-center">
                 <CategoryCoverUpload 
                   categoryId={categoryId} 
                   currentCoverUrl={category?.cover_image_url}
@@ -408,6 +409,12 @@ function CategoryDetailsContent() {
                 />
                 <SnapshotCategoryButton categoryId={categoryId} categoryName={category?.name} />
                 <LanguageSwitcher />
+                <span
+                  className="hidden sm:inline-flex items-center px-2 py-1 rounded-md bg-white/10 text-white/80 text-[10px] font-mono border border-white/10"
+                  title={`CocoriCoach Club ${APP_VERSION_LABEL}`}
+                >
+                  {APP_VERSION_LABEL}
+                </span>
                 <Button
                   variant="outline"
                   size="icon"
