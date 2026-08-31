@@ -39,14 +39,27 @@ export function CalendarColorLegend({
       colorClass: "bg-violet-500",
     });
 
+    // Types de base toujours affichés (correspondent aux types d'événements créables)
+    const baseTypes = [
+      "musculation",
+      "collectif",
+      "physique",
+      "technique_individuelle",
+      "test",
+      "video",
+      "reunion",
+      "medical",
+      "repos",
+    ];
+
     // Ajouter les types d'entraînement présents dans le calendrier.
-    const types = Array.from(
-      new Set(
-        sessions
-          .filter((s) => !s?.created_by_player_id && s?.training_type !== "mental")
-          .map((s) => s?.training_type)
-          .filter(Boolean) as string[]
-      )
+    const dynamicTypes = sessions
+      .filter((s) => !s?.created_by_player_id && s?.training_type !== "mental")
+      .map((s) => s?.training_type)
+      .filter(Boolean) as string[];
+
+    const types = Array.from(new Set([...baseTypes, ...dynamicTypes])).filter(
+      (t2) => t2 !== "mental"
     );
 
     types.forEach((type) => {
@@ -57,15 +70,23 @@ export function CalendarColorLegend({
       });
     });
 
-    if (matches.length > 0) {
-      entries.push({
-        key: "__match__",
-        label: t("planning.calendarViews.legend.competition"),
-        colorClass: TRAINING_TYPE_COLORS.match || "bg-rose-500",
-      });
-    }
+    entries.push({
+      key: "__match__",
+      label: t("planning.calendarViews.legend.competition"),
+      colorClass: TRAINING_TYPE_COLORS.match || "bg-rose-500",
+    });
 
-    return entries.sort((a, b) => a.label.localeCompare(b.label));
+    // Déduplication par libellé pour éviter les doublons visuels
+    const seen = new Set<string>();
+    const unique = entries.filter((e) => {
+      const k = `${e.label}|${e.colorClass}`;
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+
+    return unique.sort((a, b) => a.label.localeCompare(b.label));
+
   }, [sessions, matches, trainingTypeLabels, t]);
 
   if (items.length === 0) return null;
