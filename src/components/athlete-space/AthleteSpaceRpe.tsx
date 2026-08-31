@@ -1094,7 +1094,26 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                         </p>
                       )}
                     </div>
-                    <Badge variant="outline" className="text-xs">{t("athleteSpace.rpe.toFill")}</Badge>
+                    {(() => {
+                      const { percent } = getSessionCompletion(session);
+                      const tone =
+                        percent === 100
+                          ? "text-green-600 border-green-500/50 bg-green-500/10"
+                          : percent === 0
+                            ? "text-red-600 border-red-500/50 bg-red-500/10"
+                            : "text-amber-600 border-amber-500/50 bg-amber-500/10";
+                      const label =
+                        percent === 100
+                          ? t("athleteSpace.rpe.completed")
+                          : percent === 0
+                            ? t("athleteSpace.rpe.toFill")
+                            : t("athleteSpace.rpe.partial", { percent });
+                      return (
+                        <Badge variant="outline" className={cn("text-xs whitespace-nowrap", tone)}>
+                          {label}
+                        </Badge>
+                      );
+                    })()}
                   </div>
                   {renderExerciseToggle(session.id)}
                 </div>
