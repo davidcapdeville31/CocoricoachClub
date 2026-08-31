@@ -27,20 +27,23 @@ export function CalendarColorLegend({
   const items = useMemo(() => {
     const entries: { key: string; label: string; colorClass: string }[] = [];
 
-    // Séances créées par les athlètes (rose)
-    if (sessions.some((s) => s?.created_by_player_id)) {
-      entries.push({
-        key: "__athlete__",
-        label: t("planning.calendarViews.legend.athlete"),
-        colorClass: ATHLETE_SESSION_COLOR_CLASS,
-      });
-    }
+    // Ces deux couleurs expliquent toujours les marqueurs spécifiques du calendrier.
+    entries.push({
+      key: "__athlete__",
+      label: t("planning.calendarViews.legend.athlete"),
+      colorClass: ATHLETE_SESSION_COLOR_CLASS,
+    });
+    entries.push({
+      key: "mental",
+      label: trainingTypeLabels?.mental || getTrainingTypeLabel("mental"),
+      colorClass: "bg-violet-500",
+    });
 
-    // Types d'entraînement présents dans le calendrier
+    // Ajouter les types d'entraînement présents dans le calendrier.
     const types = Array.from(
       new Set(
         sessions
-          .filter((s) => !s?.created_by_player_id)
+          .filter((s) => !s?.created_by_player_id && s?.training_type !== "mental")
           .map((s) => s?.training_type)
           .filter(Boolean) as string[]
       )
