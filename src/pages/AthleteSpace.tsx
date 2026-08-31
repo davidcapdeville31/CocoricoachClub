@@ -29,6 +29,7 @@ import { AthleteSpaceHealth } from "@/components/athlete-space/AthleteSpaceHealt
 import { AthleteSpacePerformance } from "@/components/athlete-space/AthleteSpacePerformance";
 import { MessagingTab } from "@/components/messaging/MessagingTab";
 import { AthleteSpaceSettings } from "@/components/athlete-space/AthleteSpaceSettings";
+import { APP_VERSION_LABEL } from "@/lib/appVersion";
 import { AthletePersonalInfoDialog } from "@/components/athlete-space/AthletePersonalInfoDialog";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
@@ -511,6 +512,12 @@ export default function AthleteSpace() {
           </div>
           <div className="flex items-center gap-1 shrink-0">
             {canSwitchLanguage && <LanguageSwitcher />}
+            <span
+              className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground text-[10px] font-mono border"
+              title={`CocoriCoach Club ${APP_VERSION_LABEL}`}
+            >
+              {APP_VERSION_LABEL}
+            </span>
             <NotificationBell variant="default" />
             <Button
               size="sm"
