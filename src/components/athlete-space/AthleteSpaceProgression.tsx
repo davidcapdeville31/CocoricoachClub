@@ -458,7 +458,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
                             {ratioDisplay ? ratioDisplay.main : test.value}
                             {!ratioDisplay && test.unit && (
                               <span className="text-xs font-normal text-muted-foreground ml-1">
-                                {test.unit}
+                                {displayUnit(test.unit)}
                               </span>
                             )}
                           </p>

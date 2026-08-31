@@ -536,8 +536,8 @@ export function UnifiedTestDialog({
                     </div>
                     <p className="text-[11px] text-muted-foreground">
                       {ratioInputMode === "kg"
-                        ? "La charge est divisée par le dernier poids anthropo enregistré. Le barème s'applique sur le ratio (× PDC)."
-                        : "Saisis directement le ratio (ex: 1.5 = 1.5× le poids de corps)."}
+                        ? "La charge est divisée par le dernier poids anthropo enregistré. Le barème s'applique sur le ratio (÷ PDC)."
+                        : "Saisis directement le ratio (ex: 1.5 = 1.5 ÷ le poids de corps)."}
                     </p>
                   </div>
                 )}
@@ -579,12 +579,12 @@ export function UnifiedTestDialog({
                               type="number" step="0.01"
                               value={playerResults[player.id] || ""}
                               onChange={(e) => updatePlayerResult(player.id, e.target.value)}
-                              placeholder={isRatioTest ? (ratioInputMode === "kg" ? "kg" : "× PDC") : (currentTest.unit || "valeur")}
+                              placeholder={isRatioTest ? (ratioInputMode === "kg" ? "kg" : "÷ PDC") : (currentTest.unit || "valeur")}
                               className="w-24 h-8 text-sm"
                             />
                             {ratioPreview !== null && (
                               <span className="text-[11px] font-semibold text-primary whitespace-nowrap">
-                                = {ratioPreview}× PDC
+                                = {ratioPreview} ÷ PDC
                               </span>
                             )}
                             {showSecondaryField && (
