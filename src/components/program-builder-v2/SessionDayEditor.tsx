@@ -1192,7 +1192,10 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                            rir: ex.rir,
                            tempo: ex.tempo,
                            rest: ex.restSeconds,
+                           variableSets: (ex as any).variableSets,
+                           useVariableSets: (ex as any).useVariableSets,
                          },
+
                        }))}
                       onRemoveFromSlot={(idx) =>
                         handlePersistedGroupRemove(block.id, item.groupId, idx)
