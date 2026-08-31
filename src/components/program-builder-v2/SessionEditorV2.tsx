@@ -26,6 +26,7 @@ import { SessionDayEditor, type SessionDayEditorHandle } from "./SessionDayEdito
 import { V2ExerciseBankSidebar, type PickedExerciseRich } from "./V2ExerciseBankSidebar";
 import type { V2BlockExercise, V2BlockWithExercises } from "./hooks/useSaveProgramV2";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
+import { AthletePartnersSelector } from "@/components/athlete-space/AthletePartnersSelector";
 
 interface SessionEditorV2Props {
   open: boolean;
@@ -87,6 +88,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
   const [volume, setVolume] = useState<string>("moyen");
   const [plannedRpe, setPlannedRpe] = useState<number>(6);
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
+  const [partnerIds, setPartnerIds] = useState<string[]>([]);
   const [blocks, setBlocks] = useState<V2BlockWithExercises[]>([]);
   const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null);
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
@@ -539,6 +541,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
             notes: finalNotes,
             session_blocks: athleteBlocks,
             exercises: flatEx,
+            partner_player_ids: partnerIds,
           },
         });
         if (error) throw new Error(error.message || "Erreur lors de la création");
@@ -834,6 +837,17 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
                 />
               </div>
             </div>
+
+            {isAthleteMode && athletePlayerId && (
+              <div className="rounded-2xl border bg-muted/40 p-3">
+                <AthletePartnersSelector
+                  categoryId={categoryId}
+                  selfPlayerId={athletePlayerId}
+                  value={partnerIds}
+                  onChange={setPartnerIds}
+                />
+              </div>
+            )}
 
             {!isAthleteMode && <div className="rounded-2xl border bg-muted/40 p-3">
               <div className="mb-2 flex items-center justify-between">

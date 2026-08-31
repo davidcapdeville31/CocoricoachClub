@@ -33,6 +33,7 @@ import {
 } from "@/lib/constants/athleticsImplements";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
+import { AthletePartnersSelector } from "@/components/athlete-space/AthletePartnersSelector";
 
 const BASKET_PRECISION_THEMES = new Set(["basketball_lf", "basketball_paint", "basketball_3pts"]);
 
@@ -170,6 +171,7 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
   const guard = useSeasonGuard(categoryId);
   const isEdit = !!editSession?.id;
   const isAthleteMode = !!athletePlayerId && !isEdit;
+  const [partnerIds, setPartnerIds] = useState<string[]>([]);
 
   const sportLabel = useMemo(() => getFieldSessionLabelForSport(sportType), [sportType]);
   const newSessionTitle = useMemo(() => `Nouvelle ${sportLabel.toLowerCase()}`, [sportLabel]);
@@ -503,6 +505,7 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
             intensity: plannedIntensity ?? 1,
             notes: `${title}${notes ? `\n${notes}` : ""}`,
             session_blocks: blockPayload,
+            partner_player_ids: partnerIds,
           },
         });
         if (efErr) throw new Error(efErr.message);
@@ -929,6 +932,15 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
               <Plus className="h-3.5 w-3.5" /> Ajouter un bloc
             </Button>
           </div>
+
+          {isAthleteMode && athletePlayerId && (
+            <AthletePartnersSelector
+              categoryId={categoryId}
+              selfPlayerId={athletePlayerId}
+              value={partnerIds}
+              onChange={setPartnerIds}
+            />
+          )}
 
           {/* Participants — masqués en mode athlète (séance privée au créateur) */}
           {!isAthleteMode && (

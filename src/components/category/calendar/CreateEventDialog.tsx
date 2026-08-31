@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
 import { useTranslation } from "react-i18next";
+import { AthletePartnersSelector } from "@/components/athlete-space/AthletePartnersSelector";
 
 export interface EditingMentalSession {
   id: string;
@@ -178,6 +179,7 @@ export function CreateEventDialog({
   const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>(athletePlayerId ? [athletePlayerId] : []);
+  const [partnerIds, setPartnerIds] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(false);
   const [mentalDuration, setMentalDuration] = useState<number>(30);
   const [mentalTheme, setMentalTheme] = useState<string>("");
@@ -482,6 +484,7 @@ export function CreateEventDialog({
             training_type: trainingType,
             intensity: isAdminEvent ? null : 1,
             notes: notesPayload,
+            partner_player_ids: partnerIds,
           },
         });
 
@@ -843,6 +846,15 @@ export function CreateEventDialog({
                   rows={2}
                 />
               </div>
+
+              {athletePlayerId && (
+                <AthletePartnersSelector
+                  categoryId={categoryId}
+                  selfPlayerId={athletePlayerId}
+                  value={partnerIds}
+                  onChange={setPartnerIds}
+                />
+              )}
 
               {/* Player selection (hidden when athlete creates for themselves) */}
               {!athletePlayerId && (
