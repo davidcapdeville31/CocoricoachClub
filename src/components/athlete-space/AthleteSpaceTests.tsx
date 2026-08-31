@@ -19,7 +19,7 @@ interface Props {
   sportType?: string;
 }
 
-export function AthleteSpaceTests({ playerId, sportType }: Props) {
+export function AthleteSpaceTests({ playerId, categoryId, sportType }: Props) {
   const { t } = useTranslation();
   const testCategories = useMemo(() => getTestCategoriesForSport(sportType || ""), [sportType]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -128,14 +128,11 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
     },
   });
 
-  const playerWeight = useMemo(() => {
-    return collectLatestPlayerWeights({
-      bodyComps: bodyCompositionWeights as any[],
-      playerMeasurements: measurementWeights as any[],
-      weightTests: genericTests as any[],
-      customTests: customTests as any[],
-    }).get(playerId) || null;
-  }, [bodyCompositionWeights, measurementWeights, genericTests, customTests, playerId]);
+  const { entries: weightHistoryEntries } = useWeightHistory({ categoryId, playerId });
+  const playerWeight = useMemo(
+    () => latestWeightsByPlayer(weightHistoryEntries).get(playerId) || null,
+    [weightHistoryEntries, playerId],
+  );
 
   const customById = useMemo(() => {
     const m = new Map<string, any>();

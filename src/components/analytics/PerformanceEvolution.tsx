@@ -187,15 +187,10 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
     () => Object.values(customTestsMap || {}),
     [customTestsMap],
   );
+  const { entries: weightHistoryEntries } = useWeightHistory({ categoryId });
   const playerWeights = useMemo(
-    () =>
-      collectLatestPlayerWeights({
-        bodyComps: (bodyComps as any) || [],
-        playerMeasurements: playerMeasurements as any,
-        weightTests: (genericTestsRaw as any) || [],
-        customTests: customTestsList as any,
-      }),
-    [bodyComps, playerMeasurements, genericTestsRaw, customTestsList],
+    () => latestWeightsByPlayer(weightHistoryEntries),
+    [weightHistoryEntries],
   );
 
 

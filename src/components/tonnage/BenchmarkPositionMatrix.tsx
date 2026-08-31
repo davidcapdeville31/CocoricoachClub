@@ -283,15 +283,10 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
 
   // Poids le plus récent, toutes sources confondues
   // (body_composition + player_measurements + tests anthropométrie)
+  const { entries: weightHistoryEntries } = useWeightHistory({ categoryId });
   const playerWeights = useMemo(
-    () =>
-      collectLatestPlayerWeights({
-        bodyComps: bodyComps as any,
-        playerMeasurements: playerMeasurements as any,
-        weightTests: weightTests as any,
-        customTests: customTests as any,
-      }),
-    [bodyComps, playerMeasurements, weightTests, customTests],
+    () => latestWeightsByPlayer(weightHistoryEntries),
+    [weightHistoryEntries],
   );
 
 

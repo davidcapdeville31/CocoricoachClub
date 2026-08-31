@@ -45,6 +45,7 @@ import {
 import { AthleteAbsentLockNotice } from "./AthleteAbsentLockNotice";
 import { useAthleteAttendanceLock } from "@/hooks/useAthleteAttendanceLock";
 
+import { collectLatestPlayerWeights } from "@/lib/benchmarks/playerWeights";
 import { latestWeightsByPlayer } from "@/lib/weight/weightHistory";
 import { useWeightHistory } from "@/lib/hooks/useWeightData";
 
@@ -387,47 +388,12 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
     enabled: testSessionIds.length > 0,
   });
 
-  // Fetch latest player body weight for ratio calculations
-  const { data: playerBodyWeight = null } = useQuery({
-    queryKey: ["athlete-space-body-weight", playerId],
-    queryFn: async () => {
-      const { data: pm } = await supabase
-        .from("player_measurements")
-        .select("player_id, weight_kg, measurement_date")
-        .eq("player_id", playerId)
-        .not("weight_kg", "is", null)
-        .order("measurement_date", { ascending: false });
-
-      const { data: bc } = await supabase
-        .from("body_composition")
-        .select("player_id, weight_kg, measurement_date")
-        .eq("player_id", playerId)
-        .not("weight_kg", "is", null)
-        .order("measurement_date", { ascending: false });
-
-      const { data: gt } = await supabase
-        .from("generic_tests")
-        .select("player_id, result_value, result_unit, test_type, test_category, test_date")
-        .eq("player_id", playerId)
-        .order("test_date", { ascending: false })
-        .limit(100);
-
-      const customIds = Array.from(new Set((gt || [])
-        .map((t: any) => typeof t.test_type === "string" && t.test_type.startsWith("custom:") ? t.test_type.slice(7) : null)
-        .filter(Boolean) as string[]));
-      const { data: customTests } = customIds.length > 0
-        ? await supabase.from("custom_tests").select("id, name, unit, test_category").in("id", customIds)
-        : { data: [] as any[] };
-
-      return collectLatestPlayerWeights({
-        bodyComps: (bc || []) as any[],
-        playerMeasurements: (pm || []) as any[],
-        weightTests: (gt || []) as any[],
-        customTests: (customTests || []) as any[],
-      }).get(playerId) || null;
-    },
-    enabled: !!playerId,
-  });
+  // Fetch the latest valid weight from wellness, anthropometry and measurements.
+  const { entries: weightHistoryEntries } = useWeightHistory({ categoryId, playerId });
+  const playerBodyWeight = useMemo(
+    () => latestWeightsByPlayer(weightHistoryEntries).get(playerId) || null,
+    [weightHistoryEntries, playerId],
+  );
 
   // Collect all custom test_types used, to resolve labels
   // (includes campaign sessions coming from pastCampaignSessions)

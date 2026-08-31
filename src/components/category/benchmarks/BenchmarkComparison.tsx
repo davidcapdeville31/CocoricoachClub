@@ -208,15 +208,10 @@ function BenchmarkComparisonContent({ categoryId, sportType }: BenchmarkComparis
     },
   });
 
+  const { entries: weightHistoryEntries } = useWeightHistory({ categoryId });
   const playerWeights = useMemo(
-    () =>
-      collectLatestPlayerWeights({
-        bodyComps: bodyComps as any,
-        playerMeasurements: playerMeasurements as any,
-        weightTests: genericTests as any,
-        customTests: customTests as any,
-      }),
-    [bodyComps, playerMeasurements, genericTests, customTests],
+    () => latestWeightsByPlayer(weightHistoryEntries),
+    [weightHistoryEntries],
   );
 
   // Fusion : benchmarks BDD + variants poste/sexe stockés dans custom_tests.scoring_scale

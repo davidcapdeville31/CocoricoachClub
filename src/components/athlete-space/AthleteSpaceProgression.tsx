@@ -164,22 +164,12 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
     },
   });
 
-  // Aggregate latest body weight across all sources (including custom anthropometry/Poids tests)
-  const playerWeight = useMemo(() => {
-    const bodyComps = bodyCompWeight != null && (playerInfo as any)?.measurement_date
-      ? [{ player_id: playerId, weight_kg: bodyCompWeight, measurement_date: (playerInfo as any).measurement_date }]
-      : [];
-    const playerMeasurements = measurementWeight
-      ? [{ player_id: playerId, weight_kg: measurementWeight.w, measurement_date: measurementWeight.d }]
-      : [];
-
-    return collectLatestPlayerWeights({
-      bodyComps,
-      playerMeasurements,
-      weightTests: genericTests as any[],
-      customTests: customTestsForWeights,
-    }).get(playerId) || null;
-  }, [bodyCompWeight, playerInfo, measurementWeight, genericTests, customTestsForWeights, playerId]);
+  // Aggregate latest body weight across wellness, anthropometry and measurements.
+  const { entries: weightHistoryEntries } = useWeightHistory({ categoryId, playerId });
+  const playerWeight = useMemo(
+    () => latestWeightsByPlayer(weightHistoryEntries).get(playerId) || null,
+    [weightHistoryEntries, playerId],
+  );
 
   // Player position (for "Poste" column and benchmark scale display)
   const { data: playerRow } = useQuery({
