@@ -404,8 +404,8 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
 
     const collator = new Intl.Collator("fr", { sensitivity: "base" });
     const sorted = [...list].sort((a: any, b: any) => {
-      const an = `${a.first_name || ""} ${a.name || ""}`.trim();
-      const bn = `${b.first_name || ""} ${b.name || ""}`.trim();
+      const an = `${a.name || ""} ${a.first_name || ""}`.trim();
+      const bn = `${b.name || ""} ${b.first_name || ""}`.trim();
       return collator.compare(an, bn);
     });
     return sortOrder === "az" ? sorted : sorted.reverse();
