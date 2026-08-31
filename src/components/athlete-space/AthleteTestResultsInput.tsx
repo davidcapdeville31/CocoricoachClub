@@ -193,12 +193,49 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
 
   if (tests.length === 0) return null;
 
+  const isFilled = (test: TestRef) =>
+    staffSaved.some((p) => p.test_category === test.test_category && p.test_type === test.test_type) ||
+    pending.some(
+      (p) =>
+        p.test_category === test.test_category &&
+        p.test_type === test.test_type &&
+        p.validation_status !== "rejected",
+    );
+
+  const doneCount = tests.filter(isFilled).length;
+  const percent = tests.length > 0 ? Math.round((doneCount / tests.length) * 100) : 0;
+  const tone =
+    percent === 100
+      ? { bar: "bg-green-500", text: "text-green-600", ring: "border-green-500/40" }
+      : percent === 0
+        ? { bar: "bg-red-500", text: "text-red-600", ring: "border-red-500/40" }
+        : { bar: "bg-amber-500", text: "text-amber-600", ring: "border-amber-500/40" };
+
   return (
-    <div className="space-y-2 rounded-lg border border-border p-3 bg-muted/30">
+    <div className={`space-y-2 rounded-lg border-2 p-3 bg-muted/30 ${tone.ring}`}>
       <Label className="text-sm flex items-center gap-1.5">
         <FlaskConical className="h-4 w-4 text-primary" />
         {t('athleteSpace.components.testResultsInput.title')}
       </Label>
+
+      <div className="space-y-1">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[11px] text-muted-foreground">
+            {t('athleteSpace.components.testResultsInput.progress', {
+              done: doneCount,
+              total: tests.length,
+              percent,
+            })}
+          </span>
+          <span className={`text-sm font-bold ${tone.text}`}>{percent}%</span>
+        </div>
+        <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all ${tone.bar}`}
+            style={{ width: `${percent}%` }}
+          />
+        </div>
+      </div>
       {isAbsent && <AthleteAbsentLockNotice />}
       {testWindow && (
         <p className="text-[11px] rounded-md bg-primary/10 border border-primary/20 px-2 py-1.5 text-primary">
