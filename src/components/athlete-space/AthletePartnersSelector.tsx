@@ -30,10 +30,17 @@ export function AthletePartnersSelector({ categoryId, selfPlayerId, value, onCha
       const roster = await fetchCategoryRosterPlayers(categoryId);
       return (roster || [])
         .filter((p: any) => p.id !== selfPlayerId)
-        .map((p: any) => ({ id: p.id as string, name: (p.name as string) || "—" }));
+        .map((p: any) => {
+          const last = String(p.name || "").trim();
+          const first = String(p.first_name || "").trim();
+          const label = [last.toUpperCase(), first].filter(Boolean).join(" ") || "—";
+          return { id: p.id as string, name: label };
+        })
+        .sort((a, b) => a.name.localeCompare(b.name, "fr"));
     },
     enabled: !!categoryId,
   });
+
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
