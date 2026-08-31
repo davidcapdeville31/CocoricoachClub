@@ -59,6 +59,8 @@ const AVIRON_DISTANCES = [
   { value: 6000, label: "6000m (Tête de rivière)" },
 ];
 
+import { getJudoAgeCategories, isJudoSport } from "@/lib/constants/judoAgeCategories";
+
 const TENNIS_FORMATS = [
   { value: "simple", label: "Simple" },
   { value: "double", label: "Double" },
@@ -142,7 +144,9 @@ export function AddMultipleCompetitionsDialog({
   const hasTournamentBracket = isPadel || isTennis;
 
   const baseSport = sportType.split("_")[0].toLowerCase();
-  const ageCategories = AGE_CATEGORIES[baseSport] || AGE_CATEGORIES.default;
+  const ageCategories = isJudoSport(sportType)
+    ? getJudoAgeCategories(new Date().getFullYear())
+    : AGE_CATEGORIES[baseSport] || AGE_CATEGORIES.default;
   const COMPETITION_STAGES = getCompetitionStagesBySport(sportType || "XV");
 
   const [drafts, setDrafts] = useState<CompetitionDraft[]>([newDraft()]);

@@ -50,15 +50,10 @@ export const AGE_CATEGORIES_BY_SPORT: Record<string, AgeCategoryOption[]> = {
 
   // Judo — FFJDA
   judo: [
-    { value: "eveil_judo", label: "Éveil Judo (4-5 ans)" },
-    { value: "mini_poussins", label: "Mini-poussins (6-7)" },
-    { value: "poussins", label: "Poussins (8-9)" },
-    { value: "benjamins", label: "Benjamins (10-11)" },
-    { value: "minimes", label: "Minimes (12-13)" },
     { value: "cadets", label: "Cadets (14-16)" },
-    { value: "juniors", label: "Juniors (17-20)" },
-    { value: "seniors", label: "Seniors (21+)" },
-    { value: "veterans", label: "Vétérans (30+)" },
+    { value: "juniors", label: "Juniors (17-19)" },
+    { value: "seniors", label: "Seniors (20+)" },
+    { value: "veterans", label: "Vétérans / Masters (30+)" },
   ],
 
   // Athlétisme — FFA
@@ -149,6 +144,7 @@ export function getAgeCategoriesForSport(sportType: string): AgeCategoryOption[]
   if (sportType?.startsWith("ski_") || sportType === "snowboard") return skiCategories();
   if (sportType?.startsWith("athletisme")) return athletismeCategories();
   if (sportType?.startsWith("bowling")) return AGE_CATEGORIES_BY_SPORT.bowling;
+  if (sportType?.toLowerCase().startsWith("judo")) return AGE_CATEGORIES_BY_SPORT.judo;
 
   return GENERIC_U_CATEGORIES;
 }
