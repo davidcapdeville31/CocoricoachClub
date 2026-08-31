@@ -17,7 +17,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 import { useCustomTestsMap } from "@/hooks/useCustomTestsMap";
-import { collectLatestPlayerWeights } from "@/lib/benchmarks/playerWeights";
+import { latestWeightsByPlayer } from "@/lib/weight/weightHistory";
+import { useWeightHistory } from "@/lib/hooks/useWeightData";
 
 interface PerformanceEvolutionProps {
   categoryId: string;
@@ -185,15 +186,10 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
     () => Object.values(customTestsMap || {}),
     [customTestsMap],
   );
+  const { entries: weightHistoryEntries } = useWeightHistory({ categoryId });
   const playerWeights = useMemo(
-    () =>
-      collectLatestPlayerWeights({
-        bodyComps: (bodyComps as any) || [],
-        playerMeasurements: playerMeasurements as any,
-        weightTests: (genericTestsRaw as any) || [],
-        customTests: customTestsList as any,
-      }),
-    [bodyComps, playerMeasurements, genericTestsRaw, customTestsList],
+    () => latestWeightsByPlayer(weightHistoryEntries),
+    [weightHistoryEntries],
   );
 
 

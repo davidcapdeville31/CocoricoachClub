@@ -83,6 +83,21 @@ export function collectWeightHistory({
   return Array.from(byKey.values()).sort((a, b) => a.date.localeCompare(b.date));
 }
 
+export function latestWeightsByPlayer(entries: WeightEntry[]): Map<string, number> {
+  const latest = new Map<string, WeightEntry>();
+  for (const entry of entries) {
+    const current = latest.get(entry.player_id);
+    if (
+      !current ||
+      entry.date > current.date ||
+      (entry.date === current.date && entry.createdAt >= current.createdAt)
+    ) {
+      latest.set(entry.player_id, entry);
+    }
+  }
+  return new Map(Array.from(latest, ([playerId, entry]) => [playerId, entry.weight]));
+}
+
 export function weightTrend(entries: WeightEntry[]) {
   if (entries.length === 0) return null;
   const last = entries[entries.length - 1];

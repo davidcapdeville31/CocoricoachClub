@@ -9,7 +9,8 @@ import { Target, TrendingUp, Weight } from "lucide-react";
 import { computeBenchmarkLevel } from "@/lib/benchmarks/computeLevel";
 import { matchesBenchmark, normalizeTestKey } from "@/lib/benchmarks/matchTestType";
 import { synthesizeBenchmarks } from "@/lib/benchmarks/synthFromScoringScale";
-import { collectLatestPlayerWeights } from "@/lib/benchmarks/playerWeights";
+import { latestWeightsByPlayer } from "@/lib/weight/weightHistory";
+import { useWeightHistory } from "@/lib/hooks/useWeightData";
 import { getPositionGroupsForSport, playerBelongsToGroup } from "@/lib/constants/sportPositionGroups";
 
 
@@ -206,15 +207,10 @@ function BenchmarkComparisonContent({ categoryId, sportType }: BenchmarkComparis
     },
   });
 
+  const { entries: weightHistoryEntries } = useWeightHistory({ categoryId });
   const playerWeights = useMemo(
-    () =>
-      collectLatestPlayerWeights({
-        bodyComps: bodyComps as any,
-        playerMeasurements: playerMeasurements as any,
-        weightTests: genericTests as any,
-        customTests: customTests as any,
-      }),
-    [bodyComps, playerMeasurements, genericTests, customTests],
+    () => latestWeightsByPlayer(weightHistoryEntries),
+    [weightHistoryEntries],
   );
 
   // Fusion : benchmarks BDD + variants poste/sexe stockés dans custom_tests.scoring_scale

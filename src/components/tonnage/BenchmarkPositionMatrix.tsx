@@ -25,7 +25,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { computeBenchmarkLevel } from "@/lib/benchmarks/computeLevel";
 import { matchesBenchmark, normalizeTestKey } from "@/lib/benchmarks/matchTestType";
 import { synthesizeBenchmarks } from "@/lib/benchmarks/synthFromScoringScale";
-import { collectLatestPlayerWeights } from "@/lib/benchmarks/playerWeights";
+import { latestWeightsByPlayer } from "@/lib/weight/weightHistory";
+import { useWeightHistory } from "@/lib/hooks/useWeightData";
 import { TEST_CATEGORIES } from "@/lib/constants/testCategories";
 import {
   getPositionGroupsForSport,
@@ -281,15 +282,10 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
 
   // Poids le plus récent, toutes sources confondues
   // (body_composition + player_measurements + tests anthropométrie)
+  const { entries: weightHistoryEntries } = useWeightHistory({ categoryId });
   const playerWeights = useMemo(
-    () =>
-      collectLatestPlayerWeights({
-        bodyComps: bodyComps as any,
-        playerMeasurements: playerMeasurements as any,
-        weightTests: weightTests as any,
-        customTests: customTests as any,
-      }),
-    [bodyComps, playerMeasurements, weightTests, customTests],
+    () => latestWeightsByPlayer(weightHistoryEntries),
+    [weightHistoryEntries],
   );
 
 
