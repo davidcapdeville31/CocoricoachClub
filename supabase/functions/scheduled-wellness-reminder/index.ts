@@ -83,6 +83,26 @@ serve(async (req) => {
       );
     }
 
+    // Local day-of-week per club (0 = dimanche ... 6 = samedi)
+    const clubDowMap: Record<string, number> = {};
+    for (const club of allClubs) {
+      if (!eligibleClubIds.includes(club.id)) continue;
+      const tz = club.timezone || "Europe/Paris";
+      clubDowMap[club.id] = new Date(
+        new Date().toLocaleString("en-US", { timeZone: tz })
+      ).getDay();
+    }
+
+    // Respect the per-category wellness schedule (e.g. only Wednesdays)
+    const { data: schedules } = await supabase
+      .from("wellness_schedules")
+      .select("category_id, days_of_week")
+      .in("category_id", categories.map((c: any) => c.id));
+    const scheduleMap: Record<string, number[]> = {};
+    for (const s of schedules || []) {
+      scheduleMap[s.category_id as string] = (s.days_of_week as number[]) || [];
+    }
+
     let totalEmailsSent = 0;
     let totalPushSent = 0;
     const results: any[] = [];
@@ -91,8 +111,15 @@ serve(async (req) => {
     const wellnessDeepLink = `${appBaseUrl}/athlete-space?tab=wellness`;
 
     for (const category of categories) {
+      const days = scheduleMap[category.id];
+      const dow = clubDowMap[category.club_id];
+      if (days && days.length > 0 && dow !== undefined && !days.includes(dow)) {
+        console.log(`[wellness] Category ${category.name}: not scheduled today (dow=${dow}), skipping`);
+        continue;
+      }
       const { data: players, error: playersError } = await supabase
         .from("players")
+
         .select("id, name, email, phone, user_id")
         .eq("category_id", category.id);
 

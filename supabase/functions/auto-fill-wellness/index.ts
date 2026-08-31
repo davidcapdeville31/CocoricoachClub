@@ -167,12 +167,26 @@ serve(async (req) => {
 
     // Build a map of club_id -> today's date in that club's timezone
     const clubDateMap: Record<string, string> = {};
+    const clubDowMap: Record<string, number> = {};
     for (const club of allClubs) {
       if (eligibleClubIds.includes(club.id)) {
         const tz = club.timezone || "Europe/Paris";
         const localNow = new Date().toLocaleString("en-CA", { timeZone: tz });
         clubDateMap[club.id] = localNow.split(",")[0].trim();
+        clubDowMap[club.id] = new Date(
+          new Date().toLocaleString("en-US", { timeZone: tz })
+        ).getDay();
       }
+    }
+
+    // Respect the per-category wellness schedule (only auto-fill on planned days)
+    const { data: schedules } = await supabase
+      .from("wellness_schedules")
+      .select("category_id, days_of_week")
+      .in("category_id", categories.map((c: any) => c.id));
+    const scheduleMap: Record<string, number[]> = {};
+    for (const s of schedules || []) {
+      scheduleMap[s.category_id as string] = (s.days_of_week as number[]) || [];
     }
 
     let totalFilled = 0;
@@ -180,6 +194,14 @@ serve(async (req) => {
     for (const category of categories) {
       const today = clubDateMap[category.club_id];
       if (!today) continue;
+
+      const days = scheduleMap[category.id];
+      const dow = clubDowMap[category.club_id];
+      if (days && days.length > 0 && dow !== undefined && !days.includes(dow)) {
+        console.log(`[auto-fill-wellness] Category ${category.id}: not a wellness day (dow=${dow}), skipping`);
+        continue;
+      }
+
 
       const { data: players } = await supabase
         .from("players")
