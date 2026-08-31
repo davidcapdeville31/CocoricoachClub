@@ -636,7 +636,7 @@ const DroppableSlot = ({
           ) : (
             /* Mode lecture seule: afficher les valeurs */
             <div className="flex flex-wrap gap-2 text-sm min-w-0">
-              {visibleParams.map(key => {
+              {ALL_LINKED_PARAMS.map(p => p.key).map(key => {
                 const paramConfig = ALL_LINKED_PARAMS.find(p => p.key === key);
                 if (!paramConfig) return null;
                 type InputParamKey = 'sets' | 'reps' | 'load' | 'percentage' | 'tempo' | 'rpe' | 'rir' | 'rest';
