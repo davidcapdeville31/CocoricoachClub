@@ -1890,14 +1890,16 @@ export const MethodConfigSlots = ({
               {/* Mode Selection */}
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground block">Mode</Label>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
+
                   <Button
                     type="button"
                     variant={emomConfig.mode === 'single' ? "default" : "outline"}
                     size="sm"
                     onClick={() => setEmomConfig(prev => ({ ...prev, mode: 'single', exercisesPerInterval: 1 }))}
                     className={cn(
-                      "h-8 text-xs flex-1",
+                      "h-auto min-h-8 py-1.5 text-xs flex-1 whitespace-normal text-center leading-tight",
+
                       emomConfig.mode === 'single' && config.color
                     )}
                   >
@@ -1909,7 +1911,8 @@ export const MethodConfigSlots = ({
                     size="sm"
                     onClick={() => setEmomConfig(prev => ({ ...prev, mode: 'circuit', exercisesPerInterval: 2 }))}
                     className={cn(
-                      "h-8 text-xs flex-1",
+                      "h-auto min-h-8 py-1.5 text-xs flex-1 whitespace-normal text-center leading-tight",
+
                       emomConfig.mode === 'circuit' && config.color
                     )}
                   >
