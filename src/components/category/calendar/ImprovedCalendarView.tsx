@@ -794,7 +794,9 @@ export function ImprovedCalendarView({
                               const titleLabel = isTest && testName
                                 ? testName
                                 : mentalTitle || (trainingTypeLabels[session.training_type] || session.training_type);
-                              const secondaryNotes = isTest
+                              const secondaryNotes = isSimplifiedSession(session.notes)
+                                ? t("athleteSpace.rpe.simplifiedSessionLabel")
+                                : isTest
                                 ? displayNotes.split("\n").filter((l) => !l.trim().startsWith("📋")).join(" • ").trim()
                                 : displayNotes;
                               return (
