@@ -15235,6 +15235,14 @@ export type Database = {
           status: string
         }[]
       }
+      get_category_roster_min: {
+        Args: { _category_id: string }
+        Returns: {
+          first_name: string
+          id: string
+          name: string
+        }[]
+      }
       get_current_user_consents: {
         Args: { _user_id?: string }
         Returns: {
