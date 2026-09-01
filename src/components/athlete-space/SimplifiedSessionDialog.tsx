@@ -92,7 +92,8 @@ export function SimplifiedSessionDialog({
   useEffect(() => {
     if (session) {
       setTrainingType(session.training_type);
-      setNotes((session.notes || "").replace(/^<!--SIMPLIFIED_SESSION-->\n?/, "").split("\n").slice(0, -1).join("\n"));
+      const cleanNotes = (session.notes || "").replace(/^\[Séance athlète\]\s*/, "").replace(/^<!--SIMPLIFIED_SESSION-->\n?/, "");
+      setNotes(cleanNotes.split("\n").slice(0, -1).join("\n"));
       const start = session.session_start_time || "09:00";
       const end = session.session_end_time;
       if (end) {
@@ -101,7 +102,7 @@ export function SimplifiedSessionDialog({
         setDurationMin(Math.max(1, (eh * 60 + em) - (sh * 60 + sm)));
       } else setDurationMin(60);
       setRpe(Math.min(10, Math.max(1, Number(session.intensity) || 6)));
-      setPartnerIds([]);
+      setPartnerIds((session.event_participants || []).map((participant) => participant.player_id).filter((id) => id !== athletePlayerId));
     } else if (!open) {
       setNotes("");
       setDurationMin(60);
@@ -109,7 +110,7 @@ export function SimplifiedSessionDialog({
       setPartnerIds([]);
       setTrainingType(lockedTrainingType || trainingTypes[0]?.value || "musculation");
     }
-  }, [open, lockedTrainingType, trainingTypes, session]);
+  }, [open, lockedTrainingType, trainingTypes, session, athletePlayerId]);
 
   const computeEndTime = (start: string, mins: number) => {
     const [h, m] = start.split(":").map(Number);
