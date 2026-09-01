@@ -737,6 +737,10 @@ export function SessionDetailsDialog({
             )}
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setIsNotifyOpen(true)}>
+              <Bell className="h-4 w-4 mr-2" />
+              Notifier
+            </Button>
             <Button variant="outline" size="icon" onClick={handlePrint} title="Imprimer">
               <Printer className="h-4 w-4" />
             </Button>
@@ -745,6 +749,7 @@ export function SessionDetailsDialog({
             </Button>
           </div>
         </DialogHeader>
+
 
 
         <div className="flex-1 overflow-y-auto min-h-0">
