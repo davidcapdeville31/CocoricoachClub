@@ -199,7 +199,7 @@ export function SimplifiedSessionDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-emerald-600" />
-            {t('athleteSpace.components.simplifiedSessionDialog.title')}
+            {isEditing ? "Modifier ma séance" : t('athleteSpace.components.simplifiedSessionDialog.title')}
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
             {format(date, "EEEE d MMMM yyyy", { locale: getDateLocale() })}
