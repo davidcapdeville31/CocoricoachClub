@@ -19,7 +19,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { Dumbbell, Users, Activity, Clock, Calendar, Printer, Calculator, Info, Bell, Target, Video } from "lucide-react";
+import { Dumbbell, Users, Activity, Clock, Calendar, Printer, Calculator, Info, Bell, Target, Video, X } from "lucide-react";
+
 import { getCategoryLabel } from "@/lib/constants/exerciseCategories";
 import { printElement, exportSessionToPdf, preparePdfWithSettings } from "@/lib/pdfExport";
 import { TEST_CATEGORIES } from "@/lib/constants/testCategories";
@@ -735,10 +736,21 @@ export function SessionDetailsDialog({
               </p>
             )}
           </div>
-          <Button variant="outline" size="icon" onClick={handlePrint} title="Imprimer">
-            <Printer className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setIsNotifyOpen(true)}>
+              <Bell className="h-4 w-4 mr-2" />
+              Notifier
+            </Button>
+            <Button variant="outline" size="icon" onClick={handlePrint} title="Imprimer">
+              <Printer className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="icon" onClick={() => onOpenChange(false)} title="Fermer">
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </DialogHeader>
+
+
 
         <div className="flex-1 overflow-y-auto min-h-0">
         {/* Printable content - includes exercises */}
@@ -1244,15 +1256,8 @@ export function SessionDetailsDialog({
         </Tabs>
 
         </div>
-
-        {/* Notify Button in Header */}
-        <div className="absolute top-4 right-12">
-          <Button variant="outline" size="sm" onClick={() => setIsNotifyOpen(true)}>
-            <Bell className="h-4 w-4 mr-2" />
-            Notifier
-          </Button>
-        </div>
       </DialogContent>
+
 
       {/* Notify Athletes Dialog */}
       <NotifyAthletesDialog
