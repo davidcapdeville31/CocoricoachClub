@@ -231,6 +231,34 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
     },
   });
 
+  const { data: periodizationCycles = [] } = useQuery({
+    queryKey: ["athlete-calendar-periodization-cycles", categoryId, playerId],
+    queryFn: async () => {
+      const { data: cycleRows, error } = await supabase
+        .from("periodization_cycles")
+        .select("id, name, color, start_date, end_date, cycle_type, intensity, objective")
+        .eq("category_id", categoryId)
+        .order("start_date", { ascending: true });
+      if (error) throw error;
+      if (!cycleRows?.length) return [];
+
+      const cycleIds = cycleRows.map((cycle: any) => cycle.id);
+      const { data: assignments, error: assignmentError } = await supabase
+        .from("periodization_cycle_players")
+        .select("cycle_id, player_id")
+        .in("cycle_id", cycleIds);
+      if (assignmentError) throw assignmentError;
+      const assignedToPlayer = new Set(
+        (assignments || [])
+          .filter((assignment: any) => assignment.player_id === playerId)
+          .map((assignment: any) => assignment.cycle_id),
+      );
+      const assignedCycleIds = new Set((assignments || []).map((assignment: any) => assignment.cycle_id));
+      return cycleRows.filter((cycle: any) => assignedToPlayer.has(cycle.id) || !assignedCycleIds.has(cycle.id));
+    },
+    enabled: !!categoryId && !!playerId,
+  });
+
   const { data: submittedRpes = [] } = useQuery({
     queryKey: ["athlete-calendar-rpes", playerId],
     queryFn: async () => {
