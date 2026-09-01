@@ -28,6 +28,17 @@ import { getTrainingTypesForSport } from "@/lib/constants/trainingTypes";
 import { useTranslation } from "react-i18next";
 import { AthletePartnersSelector } from "@/components/athlete-space/AthletePartnersSelector";
 
+interface EditableSession {
+  id: string;
+  session_date: string;
+  training_type: string;
+  session_start_time?: string | null;
+  session_end_time?: string | null;
+  intensity?: number | null;
+  notes?: string | null;
+  event_participants?: Array<{ player_id: string }>;
+}
+
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -37,6 +48,8 @@ interface Props {
   sportType?: string;
   /** Optionnel — verrouille le type de séance (ex: musculation). */
   lockedTrainingType?: string;
+  /** Séance personnelle existante à modifier. */
+  session?: EditableSession | null;
 }
 
 /**
@@ -56,9 +69,11 @@ export function SimplifiedSessionDialog({
   athletePlayerId,
   sportType,
   lockedTrainingType,
+  session,
 }: Props) {
   const { t } = useTranslation();
   const qc = useQueryClient();
+  const isEditing = Boolean(session);
 
   // Types de séance disponibles pour ce sport, hors bowling (flow dédié).
   const trainingTypes = useMemo(() => {
@@ -73,16 +88,35 @@ export function SimplifiedSessionDialog({
   const [durationMin, setDurationMin] = useState<number>(60);
   const [rpe, setRpe] = useState<number>(6);
   const [partnerIds, setPartnerIds] = useState<string[]>([]);
+  const [sessionDate, setSessionDate] = useState(format(date, "yyyy-MM-dd"));
+  const [sessionStartTime, setSessionStartTime] = useState("09:00");
 
   useEffect(() => {
-    if (!open) {
+    if (session) {
+      setSessionDate(session.session_date);
+      setTrainingType(session.training_type);
+      const cleanNotes = (session.notes || "").replace(/^\[Séance athlète\]\s*/, "").replace(/^<!--SIMPLIFIED_SESSION-->\n?/, "");
+      setNotes(cleanNotes.split("\n").slice(0, -1).join("\n"));
+      const start = session.session_start_time?.slice(0, 5) || "09:00";
+      setSessionStartTime(start);
+      const end = session.session_end_time;
+      if (end) {
+        const [sh, sm] = start.split(":").map(Number);
+        const [eh, em] = end.split(":").map(Number);
+        setDurationMin(Math.max(1, (eh * 60 + em) - (sh * 60 + sm)));
+      } else setDurationMin(60);
+      setRpe(Math.min(10, Math.max(1, Number(session.intensity) || 6)));
+      setPartnerIds((session.event_participants || []).map((participant) => participant.player_id).filter((id) => id !== athletePlayerId));
+    } else if (!open) {
+      setSessionDate(format(date, "yyyy-MM-dd"));
+      setSessionStartTime("09:00");
       setNotes("");
       setDurationMin(60);
       setRpe(6);
       setPartnerIds([]);
       setTrainingType(lockedTrainingType || trainingTypes[0]?.value || "musculation");
     }
-  }, [open, lockedTrainingType, trainingTypes]);
+  }, [open, lockedTrainingType, trainingTypes, session, athletePlayerId, date]);
 
   const computeEndTime = (start: string, mins: number) => {
     const [h, m] = start.split(":").map(Number);
@@ -109,7 +143,7 @@ export function SimplifiedSessionDialog({
       if (!accessToken) {
         throw new Error(t('athleteSpace.components.simplifiedSessionDialog.sessionExpired'));
       }
-      const start = "09:00";
+      const start = sessionStartTime || "09:00";
       const end = computeEndTime(start, durationMin);
       const notesPayload = [
         "<!--SIMPLIFIED_SESSION-->",
@@ -117,23 +151,22 @@ export function SimplifiedSessionDialog({
         t('athleteSpace.components.simplifiedSessionDialog.durationRpe', { duration: durationMin, rpe }),
       ].join("\n");
 
-      const { data, error } = await supabase.functions.invoke(
-        "athlete-create-session",
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-          body: {
-            category_id: categoryId,
-            player_id: athletePlayerId,
-            session_date: format(date, "yyyy-MM-dd"),
-            session_start_time: start,
-            session_end_time: end,
-            training_type: trainingType,
-            intensity: rpe,
-            notes: notesPayload,
-            partner_player_ids: partnerIds,
-          },
+      const functionName = isEditing ? "athlete-update-session" : "athlete-create-session";
+      const { data, error } = await supabase.functions.invoke(functionName, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        body: {
+          category_id: categoryId,
+          player_id: athletePlayerId,
+          session_id: session?.id,
+          session_date: sessionDate,
+          session_start_time: start,
+          session_end_time: end,
+          training_type: trainingType,
+          intensity: rpe,
+          notes: isEditing ? `[Séance athlète] ${notesPayload}` : notesPayload,
+          partner_player_ids: partnerIds,
         },
-      );
+      });
       if (error) throw error;
       if (!data?.success || !data?.session_id) {
         throw new Error(data?.error || t('athleteSpace.components.simplifiedSessionDialog.createError'));
@@ -142,13 +175,14 @@ export function SimplifiedSessionDialog({
     },
     onSuccess: () => {
       // Rafraîchir immédiatement les calendriers athlète, effectif et staff.
-      // Le préfixe commun couvre aussi la requête du calendrier d'un joueur.
       qc.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
       qc.invalidateQueries({ queryKey: ["sessions", categoryId] });
       qc.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
       qc.invalidateQueries({ queryKey: ["training-stats"] });
       qc.invalidateQueries({ queryKey: ["athlete-calendar-sessions", categoryId] });
-      toast.success(t('athleteSpace.components.simplifiedSessionDialog.added'));
+      qc.invalidateQueries({ queryKey: ["athlete-calendar-sessions", categoryId, athletePlayerId] });
+      qc.invalidateQueries({ queryKey: ["notifications"] });
+      toast.success(isEditing ? "Séance modifiée" : t('athleteSpace.components.simplifiedSessionDialog.added'));
       onOpenChange(false);
     },
     onError: (e: any) => toast.error(e?.message || t('athleteSpace.components.simplifiedSessionDialog.saveError')),
@@ -173,11 +207,23 @@ export function SimplifiedSessionDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-emerald-600" />
-            {t('athleteSpace.components.simplifiedSessionDialog.title')}
+            {isEditing ? "Modifier ma séance" : t('athleteSpace.components.simplifiedSessionDialog.title')}
           </DialogTitle>
-          <p className="text-sm text-muted-foreground">
-            {format(date, "EEEE d MMMM yyyy", { locale: getDateLocale() })}
-          </p>
+          {isEditing ? (
+            <div className="space-y-1.5">
+              <Label htmlFor="simpl-date">Date</Label>
+              <Input
+                id="simpl-date"
+                type="date"
+                value={sessionDate}
+                onChange={(event) => setSessionDate(event.target.value)}
+              />
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {format(date, "EEEE d MMMM yyyy", { locale: getDateLocale() })}
+            </p>
+          )}
         </DialogHeader>
 
         <div className="space-y-4">
@@ -196,6 +242,18 @@ export function SimplifiedSessionDialog({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          )}
+
+          {isEditing && (
+            <div className="space-y-1.5">
+              <Label htmlFor="simpl-start-time">Heure de début</Label>
+              <Input
+                id="simpl-start-time"
+                type="time"
+                value={sessionStartTime}
+                onChange={(event) => setSessionStartTime(event.target.value)}
+              />
             </div>
           )}
 
@@ -282,7 +340,7 @@ export function SimplifiedSessionDialog({
             {submitMutation.isPending ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : null}
-            {t('athleteSpace.components.simplifiedSessionDialog.submit')}
+            {isEditing ? "Enregistrer les modifications" : t('athleteSpace.components.simplifiedSessionDialog.submit')}
           </Button>
         </DialogFooter>
       </DialogContent>

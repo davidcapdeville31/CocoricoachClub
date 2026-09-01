@@ -20,6 +20,7 @@ import {
   HeartPulse,
   Play,
   Trash2,
+  Pencil,
   Brain,
 } from "lucide-react";
 import { format, isWithinInterval, parseISO, eachDayOfInterval, startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns";
@@ -90,6 +91,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   const [isSessionSimplifiedOpen, setIsSessionSimplifiedOpen] = useState(false);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
   const [sessionToDelete, setSessionToDelete] = useState<any | null>(null);
+  const [sessionToEdit, setSessionToEdit] = useState<any | null>(null);
   const [matchToDelete, setMatchToDelete] = useState<any | null>(null);
   const [bowlingMatchEntry, setBowlingMatchEntry] = useState<any | null>(null);
   const [editingMentalSession, setEditingMentalSession] = useState<{ id: string; title: string; durationMin: number; theme: string; notes: string; date: Date } | null>(null);
@@ -165,7 +167,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
     queryFn: async () => {
       const { data, error } = await supabase
         .from("training_sessions")
-        .select("id, session_date, training_type, session_start_time, session_end_time, notes, created_by_player_id, test_reminder_id, event_participants(player_id)")
+        .select("id, session_date, training_type, session_start_time, session_end_time, intensity, notes, created_by_player_id, test_reminder_id, event_participants(player_id)")
         .eq("category_id", categoryId)
         .order("session_date", { ascending: false });
       if (error) throw error;
@@ -811,15 +813,28 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                     </Badge>
                                   )}
                                   {isCompleted && <CheckCircle2 className="h-4 w-4 text-status-optimal" />}
-                                  {!session.test_reminder_id && (
-                                    <button
-                                      type="button"
-                                      onClick={(e) => { e.stopPropagation(); setSessionToDelete(session); }}
-                                      className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                                      title={t("athleteSpace.calendar.deleteSessionTitle")}
-                                    >
-                                      <Trash2 className="h-3.5 w-3.5" />
-                                    </button>
+                                  {isAthleteSession && !session.test_reminder_id && (
+                                    <>
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={(e) => { e.stopPropagation(); setSessionToEdit(session); }}
+                                        className="h-7 w-7 text-muted-foreground hover:text-primary"
+                                        title="Modifier ma séance"
+                                        aria-label="Modifier ma séance"
+                                      >
+                                        <Pencil className="h-3.5 w-3.5" />
+                                      </Button>
+                                      <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); setSessionToDelete(session); }}
+                                        className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                                        title={t("athleteSpace.calendar.deleteSessionTitle")}
+                                      >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                      </button>
+                                    </>
                                   )}
                                   {(exercises.length > 0 || ((session as any).notes || "").replace(/<!--[\s\S]*?-->/g, "").trim() || isBowling || isBasket) && (isExpanded ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />)}
                                 </div>
@@ -1148,12 +1163,18 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
       />
 
       <SimplifiedSessionDialog
-        open={isSessionSimplifiedOpen}
-        onOpenChange={setIsSessionSimplifiedOpen}
-        date={selectedDate || new Date()}
+        open={isSessionSimplifiedOpen || !!sessionToEdit}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsSessionSimplifiedOpen(false);
+            setSessionToEdit(null);
+          }
+        }}
+        date={sessionToEdit ? parseISO(sessionToEdit.session_date) : selectedDate || new Date()}
         categoryId={categoryId}
         athletePlayerId={playerId}
         sportType={sportType}
+        session={sessionToEdit}
       />
 
       <FieldSessionDialog
