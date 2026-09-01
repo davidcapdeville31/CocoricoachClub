@@ -141,6 +141,8 @@ export function SimplifiedSessionDialog({
       return data.session_id as string;
     },
     onSuccess: () => {
+      // Rafraîchir immédiatement les calendriers athlète, effectif et staff.
+      // Le préfixe commun couvre aussi la requête du calendrier d'un joueur.
       qc.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
       qc.invalidateQueries({ queryKey: ["sessions", categoryId] });
       qc.invalidateQueries({ queryKey: ["today_sessions", categoryId] });

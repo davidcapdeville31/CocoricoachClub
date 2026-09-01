@@ -1,4 +1,4 @@
-import { getLocaleTag } from "@/lib/i18n/dateLocale";
+import { getDateLocale, getLocaleTag } from "@/lib/i18n/dateLocale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { X, Dumbbell, Activity, CheckCircle2, Swords, Video, Stethoscope, Users, CalendarDays, LayoutDashboard, Eye } from "lucide-react";
 import { isWithinInterval, parseISO } from "date-fns";
+import { SessionDetailsDialog } from "@/components/category/SessionDetailsDialog";
 import { getDisplayNotes, parseTestsFromNotes } from "@/lib/utils/sessionNotes";
 import { TEST_CATEGORIES } from "@/lib/constants/testCategories";
 import { AnnualPlanningView } from "@/components/planning/AnnualPlanningView";
@@ -63,6 +64,7 @@ export function PlayerCalendarTab({ playerId, categoryId }: PlayerCalendarTabPro
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [viewBowlingSimplifiedId, setViewBowlingSimplifiedId] = useState<{ id: string; date: Date } | null>(null);
   const [viewBowlingAdvancedId, setViewBowlingAdvancedId] = useState<{ id: string; date: Date } | null>(null);
+  const [selectedSession, setSelectedSession] = useState<{ id: string; date: string } | null>(null);
 
   // Fetch training sessions - refetch on focus to catch new events
   const { data: sessions } = useQuery({
@@ -75,8 +77,10 @@ export function PlayerCalendarTab({ playerId, categoryId }: PlayerCalendarTabPro
         .order("session_date", { ascending: false })
         .order("session_start_time", { ascending: false });
       if (error) throw error;
-      // Filtrer : si la séance a des participants explicites, ne l'afficher qu'aux joueurs assignés
+      // Une séance créée par l'athlète reste visible dans son calendrier,
+      // même si les participants explicites ne sont pas encore synchronisés.
       return (data || []).filter((s: any) => {
+        if (s.created_by_player_id === playerId) return true;
         const parts = s.event_participants || [];
         if (!parts.length) return true;
         return parts.some((p: any) => p.player_id === playerId);
@@ -227,6 +231,7 @@ export function PlayerCalendarTab({ playerId, categoryId }: PlayerCalendarTabPro
               <div className="flex justify-center">
                 <Calendar
                   mode="range"
+                  locale={getDateLocale()}
                   selected={dateRange}
                   onSelect={setDateRange}
                   modifiers={{
@@ -282,13 +287,22 @@ export function PlayerCalendarTab({ playerId, categoryId }: PlayerCalendarTabPro
                   {allEvents.length > 0 ? (
                     <div className="space-y-2 max-h-[400px] overflow-y-auto">
                       {allEvents.map((event) => {
-                        if (event._type === 'session') {
-                          const Icon = getTrainingTypeIcon(event.training_type);
-                          return (
-                            <div
-                              key={`session-${event.id}`}
-                              className="p-3 border rounded-lg bg-card hover:bg-accent/10 transition-colors"
-                            >
+                          if (event._type === 'session') {
+                            const Icon = getTrainingTypeIcon(event.training_type);
+                            return (
+                              <div
+                                key={`session-${event.id}`}
+                                className="p-3 border rounded-lg bg-card hover:bg-accent/10 transition-colors cursor-pointer"
+                                onClick={() => setSelectedSession({ id: event.id, date: event.session_date })}
+                                role="button"
+                                tabIndex={0}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
+                                    setSelectedSession({ id: event.id, date: event.session_date });
+                                  }
+                                }}
+                              >
                               <div className="flex justify-between items-start">
                                 <div className="flex items-start gap-2">
                                   <Icon className="h-4 w-4 mt-0.5 text-muted-foreground" />
@@ -471,6 +485,16 @@ export function PlayerCalendarTab({ playerId, categoryId }: PlayerCalendarTabPro
         athletePlayerId={playerId}
         existingSessionId={viewBowlingAdvancedId?.id}
       />
+
+      {selectedSession && (
+        <SessionDetailsDialog
+          open={true}
+          onOpenChange={(open) => !open && setSelectedSession(null)}
+          categoryId={categoryId}
+          sessionId={selectedSession.id}
+          sessionDate={selectedSession.date}
+        />
+      )}
     </Tabs>
   );
 }
