@@ -1,6 +1,6 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo, useRef, useEffect } from "react";
-import { getDisplayNotes, isSimplifiedSession, parseTestsFromNotes, getSessionTitleFromNotes } from "@/lib/utils/sessionNotes";
+import { getDisplayNotes, isSimplifiedSession, parseTestsFromNotes, parseTestWindowFromNotes, getSessionTitleFromNotes } from "@/lib/utils/sessionNotes";
 import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
 import { DndContext, DragEndEvent, DragOverlay, pointerWithin } from "@dnd-kit/core";
 import { useQuery } from "@tanstack/react-query";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronLeft, ChevronRight, Plus, Download, Printer, Calendar as CalendarIcon, Filter, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Download, Printer, Calendar as CalendarIcon, Filter, X, FlaskConical } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, startOfWeek, endOfWeek, isSameDay, isSameMonth, addWeeks, subWeeks, addDays, subDays, parseISO } from "date-fns";
 import {
   ATHLETE_SESSION_COLOR_CLASS,
@@ -220,6 +220,38 @@ export function ImprovedCalendarView({
     });
     return map;
   }, [sessions, customTestLabels]);
+
+  // A campaign remains visible on every day of its configured test window,
+  // rather than only on the session date where it was created.
+  const testCampaigns = useMemo(() => {
+    const campaigns = new Map<string, { id: string; start: string; end: string; label: string }>();
+    sessions.forEach((session) => {
+      const window = parseTestWindowFromNotes(session.notes);
+      const tests = parseTestsFromNotes(session.notes);
+      if (!window || tests.length === 0) return;
+
+      const key = `${window.start}_${window.end}`;
+      const labels = tests.map((test) => labelizeTestType(test.test_type, customTestLabels));
+      const existing = campaigns.get(key);
+      if (existing) {
+        const mergedLabels = new Set(`${existing.label} • ${labels.join(" • ")}`.split(" • "));
+        existing.label = Array.from(mergedLabels).join(" • ");
+      } else {
+        campaigns.set(key, {
+          id: `test-campaign-${key}`,
+          start: window.start,
+          end: window.end,
+          label: labels.join(" • "),
+        });
+      }
+    });
+    return Array.from(campaigns.values());
+  }, [sessions, customTestLabels]);
+
+  const getTestCampaignsForDay = (day: Date) => {
+    const dayStr = format(day, "yyyy-MM-dd");
+    return testCampaigns.filter((campaign) => dayStr >= campaign.start && dayStr <= campaign.end);
+  };
 
   // Build player names map for athlete-created sessions
   const playerNamesMap = useMemo(() => {
@@ -704,8 +736,9 @@ export function ImprovedCalendarView({
                 {calendarDays.map((day, index) => {
                   const daySessions = getSessionsForDay(day);
                   const dayMatches = getMatchesForDay(day);
+                  const dayTestCampaigns = getTestCampaignsForDay(day);
                   const isToday = isSameDay(day, new Date());
-                  const hasEvents = daySessions.length > 0 || dayMatches.length > 0;
+                  const hasEvents = daySessions.length > 0 || dayMatches.length > 0 || dayTestCampaigns.length > 0;
 
                   // Combine matches + sessions and sort chronologically
                   const dayEvents = [
@@ -738,6 +771,22 @@ export function ImprovedCalendarView({
                           {format(day, "d")}
                         </p>
                       </div>
+
+                      {/* Test campaigns span every day in their configured window. */}
+                      {dayTestCampaigns.map((campaign) => (
+                        <div
+                          key={campaign.id}
+                          className="flex items-center gap-2 rounded-lg bg-training-test p-2.5 text-white shadow-sm"
+                          title={`${campaign.label} · ${campaign.start} → ${campaign.end}`}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <FlaskConical className="h-4 w-4 shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold">{t("planning.calendarViews.testCampaign")}</p>
+                            <p className="truncate text-sm font-medium">{campaign.label}</p>
+                          </div>
+                        </div>
+                      ))}
 
                       {/* Events */}
                       <div className="space-y-2">
@@ -854,6 +903,7 @@ export function ImprovedCalendarView({
                   day={day}
                   sessions={getSessionsForDay(day)}
                   matches={getMatchesForDay(day)}
+                  testCampaigns={getTestCampaignsForDay(day)}
                   sportType={sportType}
                   trainingTypeLabels={trainingTypeLabels}
                   isViewer={isViewer}
