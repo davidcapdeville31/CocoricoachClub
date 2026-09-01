@@ -445,7 +445,12 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
     mutationFn: async () => {
       if (!guard.assertDate(date)) throw new Error("guard:date");
       if (isAthleteMode && !guard.assertPlayer(athletePlayerId!)) throw new Error("guard:player");
-      if (selectedPlayers.length > 0 && !guard.assertPlayers(selectedPlayers)) throw new Error("guard:players");
+      {
+        // Ne valider que les athlètes de la catégorie affichés dans le sélecteur.
+        const selectableIds = new Set((players || []).map((p: any) => p.id));
+        const localSelection = selectedPlayers.filter((pid) => selectableIds.has(pid));
+        if (localSelection.length > 0 && !guard.assertPlayers(localSelection)) throw new Error("guard:players");
+      }
       if (!title.trim()) throw new Error("Veuillez saisir un titre");
       if (blocks.length === 0) throw new Error("Ajoutez au moins un bloc");
       if (blocks.some((b) => !b.theme)) throw new Error("Chaque bloc doit avoir un thème");
