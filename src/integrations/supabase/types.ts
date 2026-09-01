@@ -15216,11 +15216,6 @@ export type Database = {
         Returns: Json
       }
       delete_archived_club: { Args: { _club_id: string }; Returns: Json }
-      delete_email: {
-        Args: { message_id: number; queue_name: string }
-        Returns: boolean
-      }
-      email_queue_dispatch: { Args: never; Returns: undefined }
       encrypt_medical_field: {
         Args: {
           _category_id: string
@@ -15230,10 +15225,6 @@ export type Database = {
           _value: string
         }
         Returns: string
-      }
-      enqueue_email: {
-        Args: { payload: Json; queue_name: string }
-        Returns: number
       }
       expire_trial_clients: { Args: never; Returns: undefined }
       get_ambassador_invitation_by_token: {
@@ -15435,15 +15426,6 @@ export type Database = {
         }
         Returns: string
       }
-      move_to_dlq: {
-        Args: {
-          dlq_name: string
-          message_id: number
-          payload: Json
-          source_queue: string
-        }
-        Returns: number
-      }
       notify_athlete_data_added: {
         Args: {
           _category_id: string
@@ -15458,14 +15440,6 @@ export type Database = {
       player_belongs_to_user: {
         Args: { _player_id: string; _user_id: string }
         Returns: boolean
-      }
-      read_email_batch: {
-        Args: { batch_size: number; queue_name: string; vt: number }
-        Returns: {
-          message: Json
-          msg_id: number
-          read_ct: number
-        }[]
       }
       record_user_consent: {
         Args: {
