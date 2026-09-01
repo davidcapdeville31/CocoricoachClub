@@ -1,6 +1,6 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { format, isToday as checkIsToday, isTomorrow, isYesterday } from "date-fns";
-import { Plus, Clock, MapPin, ChevronRight, Zap, Calendar, Users, Trash2, Pencil } from "lucide-react";
+import { Plus, Clock, MapPin, ChevronRight, Zap, Calendar, Users, Trash2, Pencil, FlaskConical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TRAINING_TYPE_COLORS, ATHLETE_SESSION_COLOR_CLASS } from "@/lib/constants/trainingTypes";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
@@ -34,6 +34,13 @@ interface Match {
 }
 
 
+interface TestCampaign {
+  id: string;
+  start: string;
+  end: string;
+  label: string;
+}
+
 interface SessionBlock {
   id: string;
   training_type: string;
@@ -44,6 +51,7 @@ interface DailyCalendarViewProps {
   day: Date;
   sessions: Session[];
   matches: Match[];
+  testCampaigns?: TestCampaign[];
   sportType: string | undefined;
   trainingTypeLabels: Record<string, string>;
   isViewer: boolean;
@@ -59,6 +67,7 @@ export function DailyCalendarView({
   day,
   sessions,
   matches,
+  testCampaigns = [],
   sportType,
   trainingTypeLabels,
   isViewer,
@@ -71,7 +80,7 @@ export function DailyCalendarView({
 }: DailyCalendarViewProps) {
   const { t } = useTranslation();
   const isToday = checkIsToday(day);
-  const hasEvents = sessions.length > 0 || matches.length > 0;
+  const hasEvents = sessions.length > 0 || matches.length > 0 || testCampaigns.length > 0;
 
   // Readable names for tests embedded in test sessions
   const allSessionTestTypes = sessions.flatMap((s) => parseTestsFromNotes(s.notes).map((tt) => tt.test_type));
@@ -210,6 +219,19 @@ export function DailyCalendarView({
       <div className="bg-card rounded-2xl border shadow-sm overflow-hidden">
         {hasEvents ? (
           <div className="divide-y">
+            {testCampaigns.map((campaign) => (
+              <div key={campaign.id} className="flex items-center gap-3 p-4">
+                <div className="w-1.5 self-stretch rounded-full bg-training-test" />
+                <div className="flex items-center gap-2 min-w-0">
+                  <FlaskConical className="h-4 w-4 shrink-0 text-training-test" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-muted-foreground">{t("planning.calendarViews.testCampaign")}</p>
+                    <p className="truncate font-medium text-foreground">{campaign.label}</p>
+                    <p className="text-xs text-muted-foreground">{campaign.start} → {campaign.end}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
             {allEvents.map((event, idx) => {
               if (event.type === 'match') {
                 const match = event.data as Match;
