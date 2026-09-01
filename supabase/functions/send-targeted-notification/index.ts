@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sendTemplateEmailWithLog } from "../_shared/transactional-email-templates/send-log.ts";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -375,28 +377,16 @@ serve(async (req: Request) => {
 
           for (const recipient of emails) {
             try {
-              const { error: emailError } = await supabase.functions.invoke(
-                "send-transactional-email",
-                {
-                  body: {
-                    templateName: "app-notification",
-                    recipientEmail: recipient,
-                    idempotencyKey: `targeted-notif-${recipient}-${Date.now()}`,
-                    templateData: {
-                      title,
-                      message: extendedMessage,
-                      ctaLabel: "Ouvrir l'application",
-                      ctaUrl,
-                    },
-                  },
-                }
-              );
-              if (emailError) {
-                console.error("[send-targeted-notification] ❌ Email error:", emailError);
-                results.errors.push(`Email (${recipient}): ${emailError.message ?? String(emailError)}`);
-              } else {
-                results.emailsSent = (results.emailsSent || 0) + 1;
-              }
+              const result = await sendTemplateEmailWithLog(supabase, "app-notification", recipient, {
+                idempotencyKey: `targeted-notif-${recipient}-${Date.now()}`,
+                templateData: {
+                  title,
+                  message: extendedMessage,
+                  ctaLabel: "Ouvrir l'application",
+                  ctaUrl,
+                },
+              });
+              if (result.sent) results.emailsSent += 1;
             } catch (e: unknown) {
               results.errors.push(`Email error (${recipient}): ${e instanceof Error ? e.message : String(e)}`);
             }

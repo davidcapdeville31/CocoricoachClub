@@ -21,8 +21,6 @@ project_id = "env(SUPABASE_PROJECT_ID)"
     verify_jwt = false
   [functions.predict-injuries]
     verify_jwt = true
-  [functions.process-email-queue]
-    verify_jwt = true
   [functions.push-notifications]
     verify_jwt = false
   [functions.send-athlete-invitation]
@@ -39,13 +37,10 @@ project_id = "env(SUPABASE_PROJECT_ID)"
     verify_jwt = false
   [functions.accept-invitation-signup]
     verify_jwt = false
-  [functions.send-transactional-email]
-    verify_jwt = true
   [functions.preview-transactional-email]
     verify_jwt = false
-  [functions.handle-email-unsubscribe]
+  [functions.handle-email-events]
     verify_jwt = false
-  [functions.handle-email-suppression]
-    verify_jwt = false
+
   [functions.translate-content]
     verify_jwt = true

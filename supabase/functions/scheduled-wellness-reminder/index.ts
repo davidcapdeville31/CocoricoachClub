@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { filterByPreferences } from "../_shared/notification-preferences.ts";
+import { sendTemplateEmailWithLog } from "../_shared/transactional-email-templates/send-log.ts";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -137,34 +139,24 @@ serve(async (req) => {
       const allowedEmailSet = new Set(allowedEmailUserIds);
       const allowedPushSet = new Set(allowedPushUserIds);
 
-      // ── EMAIL via send-transactional-email (queued, logged, retry-safe) ───
+      // ── EMAIL via Lovable-managed delivery ─────────────────────────────
+
       const emailTargets = players
         .filter((p) => p.email && p.user_id && allowedEmailSet.has(p.user_id))
         .map((p) => ({ email: p.email!, userId: p.user_id! }));
 
       for (const target of emailTargets) {
         try {
-          const { error: emailError } = await supabase.functions.invoke(
-            "send-transactional-email",
-            {
-              body: {
-                templateName: "app-notification",
-                recipientEmail: target.email,
-                idempotencyKey: `wellness-reminder-${target.userId}-${new Date().toISOString().slice(0, 10)}`,
-                templateData: {
-                  title: "🌅 Wellness du jour",
-                  message: `Bonjour ! N'oublie pas de renseigner ton Wellness du jour (${category.name}) pour aider ton staff à suivre ta récupération.`,
-                  ctaLabel: "❤️ Remplir mon Wellness",
-                  ctaUrl: wellnessDeepLink,
-                },
-              },
-            }
-          );
-          if (emailError) {
-            console.error(`[wellness] Email error for ${target.email}:`, emailError);
-          } else {
-            totalEmailsSent += 1;
-          }
+          const result = await sendTemplateEmailWithLog(supabase, "app-notification", target.email, {
+            idempotencyKey: `wellness-reminder-${target.userId}-${new Date().toISOString().slice(0, 10)}`,
+            templateData: {
+              title: "🌅 Wellness du jour",
+              message: `Bonjour ! N'oublie pas de renseigner ton Wellness du jour (${category.name}) pour aider ton staff à suivre ta récupération.`,
+              ctaLabel: "❤️ Remplir mon Wellness",
+              ctaUrl: wellnessDeepLink,
+            },
+          });
+          if (result.sent) totalEmailsSent += 1;
         } catch (error) {
           console.error("[wellness] Email send error:", error);
         }
@@ -213,7 +205,7 @@ serve(async (req) => {
 
       results.push({
         category: category.name,
-        emailsSent: emailRecipients.length,
+        emailsSent: emailTargets.length,
         pushTargeted: pushUserIds.length,
         type: "wellness_reminder",
       });
