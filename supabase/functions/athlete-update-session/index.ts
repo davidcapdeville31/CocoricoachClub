@@ -75,8 +75,24 @@ serve(async (req) => {
       .eq("id", session_id)
       .maybeSingle();
     if (!session) return respond({ success: false, error: "Séance introuvable" });
-    if (session.category_id !== category_id || player.category_id !== category_id) {
+    if (session.category_id !== category_id) {
       return respond({ success: false, error: "Catégorie invalide" });
+    }
+
+    const hasPrimaryCategory = player.category_id === category_id;
+    let hasLinkedCategory = false;
+    if (!hasPrimaryCategory) {
+      const { data: linkedCategory } = await supabase
+        .from("player_categories")
+        .select("id")
+        .eq("player_id", player_id)
+        .eq("category_id", category_id)
+        .eq("status", "accepted")
+        .maybeSingle();
+      hasLinkedCategory = Boolean(linkedCategory);
+    }
+    if (!hasPrimaryCategory && !hasLinkedCategory) {
+      return respond({ success: false, error: "Accès refusé pour cette catégorie" });
     }
 
     const isOwnerUser = player.user_id === userId;
