@@ -261,6 +261,19 @@ serve(async (req) => {
       if (error) throw error;
 
       const matchIds = matches?.map(m => m.id) || [];
+      if (matchIds.length === 0) {
+        return json({ success: true, matches: [], completedMatchIds: [] });
+      }
+
+      // The athlete portal must only expose competitions assigned to this athlete.
+      const { data: participations, error: participationError } = await supabase
+        .from("match_participants")
+        .select("match_id")
+        .eq("player_id", player_id)
+        .in("match_id", matchIds);
+      if (participationError) throw participationError;
+      const participantMatchIds = new Set(participations?.map(p => p.match_id) || []);
+
       const { data: lineups } = await supabase
         .from("match_lineups")
         .select("match_id")
@@ -278,7 +291,7 @@ serve(async (req) => {
 
       return json({
         success: true,
-        matches: matches?.filter(m => lineupMatchIds.has(m.id)) || [],
+        matches: matches?.filter(m => participantMatchIds.has(m.id) && lineupMatchIds.has(m.id)) || [],
         completedMatchIds: Array.from(statsMatchIds),
       });
     }
