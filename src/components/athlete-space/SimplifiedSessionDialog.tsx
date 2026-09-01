@@ -36,6 +36,7 @@ interface EditableSession {
   session_end_time?: string | null;
   intensity?: number | null;
   notes?: string | null;
+  event_participants?: Array<{ player_id: string }>;
 }
 
 interface Props {
