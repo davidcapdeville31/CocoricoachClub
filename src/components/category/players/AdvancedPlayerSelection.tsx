@@ -61,6 +61,7 @@ export function AdvancedPlayerSelection({
   players: externalPlayers,
   maxHeight = "200px",
   showInjuredFilter = true,
+  allowAll = true,
 }: AdvancedPlayerSelectionProps) {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
