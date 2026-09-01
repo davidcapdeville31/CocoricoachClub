@@ -250,7 +250,7 @@ export function ImprovedCalendarView({
     return Array.from(campaigns.values());
   }, [sessions, customTestLabels]);
 
-  const openTestCampaign = (campaign: { sessionId: string; trainingType: string }) => {
+  const openTestCampaign = (campaign: { sessionId?: string; trainingType?: string }) => {
     const session = sessions.find((s) => s.id === campaign.sessionId);
     if (session) setFeedbackSession(session);
   };
