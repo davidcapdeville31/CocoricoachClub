@@ -64,7 +64,7 @@ export function EditCycleDialog({ open, onOpenChange, cycle, categoryId, categor
   const [weeklyDetails, setWeeklyDetails] = useState<WeeklyDetail[]>(
     Array.isArray(cycle.weekly_details) ? (cycle.weekly_details as WeeklyDetail[]) : []
   );
-  const [selectionMode, setSelectionMode] = useState<"all" | "specific">("all");
+  const [selectionMode, setSelectionMode] = useState<"all" | "specific">("specific");
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const { data: existingAssignments = [] } = useQuery({
     queryKey: ["periodization-cycle-players", cycle.id],
@@ -135,7 +135,7 @@ export function EditCycleDialog({ open, onOpenChange, cycle, categoryId, categor
     onError: () => toast.error("Erreur lors de la mise à jour"),
   });
 
-  const isValid = name.trim() && periodizationCategoryId && startDate && endDate && endDate >= startDate;
+  const isValid = name.trim() && periodizationCategoryId && startDate && endDate && endDate >= startDate && selectedPlayers.length > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

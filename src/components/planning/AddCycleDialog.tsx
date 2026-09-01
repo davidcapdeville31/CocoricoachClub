@@ -119,7 +119,7 @@ export function AddCycleDialog({ open, onOpenChange, categoryId, categories, pre
     setSelectedPlayers([]);
   };
 
-  const isValid = name.trim() && periodizationCategoryId && startDate && endDate && endDate >= startDate;
+  const isValid = name.trim() && periodizationCategoryId && startDate && endDate && endDate >= startDate && selectedPlayers.length > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
