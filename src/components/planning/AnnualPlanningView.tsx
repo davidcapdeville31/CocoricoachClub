@@ -177,9 +177,9 @@ export function AnnualPlanningView({ categoryId, readOnly = false, playerId }: A
   }, [categories, categoryId, categoryData, isViewer, queryClient]);
 
   const { data: cycles = [] } = useQuery({
-    queryKey: ["periodization_cycles", categoryId, selectedYear.getFullYear(), startMonth],
+    queryKey: ["periodization_cycles", categoryId, selectedYear.getFullYear(), startMonth, playerId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: cycleRows, error } = await supabase
         .from("periodization_cycles")
         .select("*")
         .eq("category_id", categoryId)
@@ -187,7 +187,21 @@ export function AnnualPlanningView({ categoryId, readOnly = false, playerId }: A
         .lte("start_date", format(yearEnd, "yyyy-MM-dd"))
         .order("start_date");
       if (error) throw error;
-      return data as unknown as PeriodizationCycle[];
+      if (!readOnly || !playerId || !cycleRows?.length) return (cycleRows || []) as unknown as PeriodizationCycle[];
+
+      const cycleIds = cycleRows.map((cycle: any) => cycle.id);
+      const { data: assignments, error: assignmentError } = await supabase
+        .from("periodization_cycle_players")
+        .select("cycle_id, player_id")
+        .in("cycle_id", cycleIds);
+      if (assignmentError) throw assignmentError;
+      const assignedToPlayer = new Set(
+        (assignments || [])
+          .filter((assignment: any) => assignment.player_id === playerId)
+          .map((assignment: any) => assignment.cycle_id),
+      );
+      const assignedCycleIds = new Set((assignments || []).map((assignment: any) => assignment.cycle_id));
+      return cycleRows.filter((cycle: any) => assignedToPlayer.has(cycle.id) || !assignedCycleIds.has(cycle.id)) as unknown as PeriodizationCycle[];
     },
   });
 
