@@ -725,6 +725,7 @@ export function ImprovedCalendarView({
                       onPreviewSession={(session) => onViewSession?.(session)}
                       onEditSession={(session) => onEditSession?.(session)}
                       onFeedbackSession={(session) => setFeedbackSession(session)}
+                      onTestCampaignClick={(campaign) => openTestCampaign(campaign)}
                       onDeleteSession={(sessionId) => setDeleteSessionId(sessionId)}
                       onNotifySession={(session) => setNotifySession(session)}
                       onDuplicateSession={(session) => setDuplicateSession(session)}
@@ -787,9 +788,10 @@ export function ImprovedCalendarView({
                       {dayTestCampaigns.map((campaign) => (
                         <div
                           key={campaign.id}
-                          className="flex items-center gap-2 rounded-lg bg-training-test p-2.5 text-primary-foreground shadow-sm"
+                          role="button"
+                          className="flex cursor-pointer items-center gap-2 rounded-lg bg-training-test p-2.5 text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
                           title={`${campaign.label} · ${campaign.start} → ${campaign.end}`}
-                          onClick={(e) => e.stopPropagation()}
+                          onClick={(e) => { e.stopPropagation(); openTestCampaign(campaign); }}
                         >
                           <FlaskConical className="h-4 w-4 shrink-0" />
                           <div className="min-w-0">
@@ -924,6 +926,7 @@ export function ImprovedCalendarView({
                   onAddEvent={handleDayClickWithAdd}
                   onDeleteMatch={onDeleteMatch}
                   onLineupMatch={onLineupMatch}
+                  onTestCampaignClick={(campaign) => openTestCampaign(campaign)}
                 />
               ))
             )}
