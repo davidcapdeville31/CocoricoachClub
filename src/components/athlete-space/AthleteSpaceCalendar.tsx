@@ -227,9 +227,22 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         .order("match_date", { ascending: false });
       if (error) throw error;
       // Exclude technical "training" matches (used as containers for bowling training stats)
-      return (data || []).filter((m: any) => m.event_type !== "training");
+      const rows = (data || []).filter((m: any) => m.event_type !== "training");
+      if (!playerId || rows.length === 0) return rows;
+
+      // Only keep competitions the athlete is actually assigned to (or personal ones)
+      const { data: participations, error: participationError } = await supabase
+        .from("match_participants")
+        .select("match_id")
+        .eq("player_id", playerId)
+        .in("match_id", rows.map((m: any) => m.id));
+      if (participationError) throw participationError;
+      const assignedIds = new Set((participations || []).map((p: any) => p.match_id));
+      return rows.filter((m: any) => assignedIds.has(m.id) || m.created_by_player_id === playerId);
     },
+    enabled: !!categoryId,
   });
+
 
   const { data: periodizationCycles = [] } = useQuery({
     queryKey: ["athlete-calendar-periodization-cycles", categoryId, playerId],
