@@ -68,9 +68,11 @@ export function SimplifiedSessionDialog({
   athletePlayerId,
   sportType,
   lockedTrainingType,
+  session,
 }: Props) {
   const { t } = useTranslation();
   const qc = useQueryClient();
+  const isEditing = Boolean(session);
 
   // Types de séance disponibles pour ce sport, hors bowling (flow dédié).
   const trainingTypes = useMemo(() => {
