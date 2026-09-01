@@ -563,6 +563,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                   test: { backgroundColor: `${TEST_COLOR}25`, borderRadius: "6px", fontWeight: 700, color: TEST_COLOR, outline: `2px dashed ${TEST_COLOR}`, outlineOffset: "-2px" },
                   match: { backgroundColor: `${MATCH_COLOR}25`, borderRadius: "6px", fontWeight: 700, color: MATCH_COLOR, outline: `2px solid ${MATCH_COLOR}`, outlineOffset: "-2px" },
                   athleteSession: { borderRadius: "6px", outline: `2px solid ${ATHLETE_SESSION_COLOR}`, outlineOffset: "-2px", color: ATHLETE_SESSION_COLOR, fontWeight: 600 },
+                  cycle: { backgroundColor: "hsl(var(--brand-500) / 0.12)", borderRadius: "6px", fontWeight: 600, color: "hsl(var(--brand-500))", outline: "1px solid hsl(var(--brand-500) / 0.45)", outlineOffset: "-2px" },
                   prophylaxis: { boxShadow: `inset 0 -3px 0 0 ${PROPHYLAXIS_COLOR}` },
                   rehab: { boxShadow: `inset 3px 0 0 0 ${REHAB_COLOR}` },
                 }}
