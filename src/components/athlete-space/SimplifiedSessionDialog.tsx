@@ -163,7 +163,7 @@ export function SimplifiedSessionDialog({
           session_end_time: end,
           training_type: trainingType,
           intensity: rpe,
-          notes: notesPayload,
+          notes: isEditing ? `[Séance athlète] ${notesPayload}` : notesPayload,
           partner_player_ids: partnerIds,
         },
       });

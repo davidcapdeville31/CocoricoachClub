@@ -2,6 +2,8 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -43,9 +45,9 @@ serve(async (req) => {
     } = body ?? {};
 
     if (
-      typeof category_id !== "string" ||
-      typeof session_id !== "string" ||
-      typeof player_id !== "string" ||
+      typeof category_id !== "string" || !UUID_RE.test(category_id) ||
+      typeof session_id !== "string" || !UUID_RE.test(session_id) ||
+      typeof player_id !== "string" || !UUID_RE.test(player_id) ||
       typeof session_date !== "string" ||
       !/^\d{4}-\d{2}-\d{2}$/.test(session_date) ||
       typeof training_type !== "string" ||
@@ -59,6 +61,15 @@ serve(async (req) => {
     }
     if (notes !== undefined && (typeof notes !== "string" || notes.length > 10000)) {
       return respond({ success: false, error: "Les notes sont invalides" });
+    }
+    if (session_start_time !== undefined && session_start_time !== null && (typeof session_start_time !== "string" || !/^\d{2}:\d{2}(:\d{2})?$/.test(session_start_time))) {
+      return respond({ success: false, error: "L'heure de début est invalide" });
+    }
+    if (session_end_time !== undefined && session_end_time !== null && (typeof session_end_time !== "string" || !/^\d{2}:\d{2}(:\d{2})?$/.test(session_end_time))) {
+      return respond({ success: false, error: "L'heure de fin est invalide" });
+    }
+    if (partner_player_ids !== undefined && (!Array.isArray(partner_player_ids) || partner_player_ids.length > 50 || partner_player_ids.some((id: unknown) => typeof id !== "string" || !UUID_RE.test(id)))) {
+      return respond({ success: false, error: "Les partenaires sont invalides" });
     }
 
     // Ownership: the logged-in user must own this player (or be staff of the category)
