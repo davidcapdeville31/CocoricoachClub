@@ -223,7 +223,7 @@ export function DailyCalendarView({
               <div key={campaign.id} className="flex items-center gap-3 p-4">
                 <div className="w-1.5 self-stretch rounded-full bg-training-test" />
                 <div className="flex items-center gap-2 min-w-0">
-                  <FlaskConical className="h-4 w-4 shrink-0 text-training-test" />
+                  <FlaskConical className="h-4 w-4 shrink-0 text-muted-foreground" />
                   <div className="min-w-0">
                     <p className="text-xs font-semibold text-muted-foreground">{t("planning.calendarViews.testCampaign")}</p>
                     <p className="truncate font-medium text-foreground">{campaign.label}</p>

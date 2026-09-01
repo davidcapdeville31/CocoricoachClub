@@ -180,7 +180,7 @@ export function CalendarDayCell({
       {activeTestCampaigns.map((campaign) => (
         <div
           key={`test-campaign-${campaign.id}`}
-          className="flex items-center gap-1 rounded-lg bg-training-test px-2 py-1.5 text-[11px] font-medium text-white"
+          className="flex items-center gap-1 rounded-lg bg-training-test px-2 py-1.5 text-[11px] font-medium text-primary-foreground"
           title={`${campaign.label} · ${campaign.start} → ${campaign.end}`}
           onClick={(e) => e.stopPropagation()}
         >

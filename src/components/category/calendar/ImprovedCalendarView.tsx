@@ -779,7 +779,7 @@ export function ImprovedCalendarView({
                       {dayTestCampaigns.map((campaign) => (
                         <div
                           key={campaign.id}
-                          className="flex items-center gap-2 rounded-lg bg-training-test p-2.5 text-white shadow-sm"
+                          className="flex items-center gap-2 rounded-lg bg-training-test p-2.5 text-primary-foreground shadow-sm"
                           title={`${campaign.label} · ${campaign.start} → ${campaign.end}`}
                           onClick={(e) => e.stopPropagation()}
                         >
