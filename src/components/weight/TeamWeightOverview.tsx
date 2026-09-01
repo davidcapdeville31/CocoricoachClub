@@ -136,7 +136,7 @@ export function TeamWeightOverview({ categoryId }: Props) {
                     {r.trend!.delta30 > 0 ? "+" : ""}
                     {r.trend!.delta30} kg
                   </p>
-                </button>
+                </Button>
               );
             })}
           </div>
