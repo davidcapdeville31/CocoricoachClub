@@ -737,7 +737,9 @@ export function ImprovedCalendarView({
                 {calendarDays.map((day, index) => {
                   const daySessions = getSessionsForDay(day);
                   const dayMatches = getMatchesForDay(day);
-                  const dayTestCampaigns = getTestCampaignsForDay(day);
+                  const dayTestCampaigns = selectedEventTypes.length === 0 || selectedEventTypes.includes("test")
+                    ? getTestCampaignsForDay(day)
+                    : [];
                   const isToday = isSameDay(day, new Date());
                   const hasEvents = daySessions.length > 0 || dayMatches.length > 0 || dayTestCampaigns.length > 0;
 
