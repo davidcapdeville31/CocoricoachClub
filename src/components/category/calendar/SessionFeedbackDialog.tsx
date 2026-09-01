@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { getTestCategoriesForSport, TestCategory } from "@/lib/constants/testCategories";
+import { displayUnit } from "@/lib/constants/testUnits";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { isRugbyType } from "@/lib/constants/sportTypes";
@@ -286,50 +287,56 @@ export function SessionFeedbackDialog({
     enabled: open && !!sessionId,
   });
 
-  // Pre-populate tests from session config or existing results when dialog opens
+  // Pre-populate tests: ALL planned tests of the session are always shown, and existing
+  // results are merged into them (so saving one test never hides the others).
   useEffect(() => {
     if (sessionTests.length > 0 || !open) return;
-    
-    // First try to load from existing results
-    if (existingTestResults && existingTestResults.length > 0) {
-      const testGroups = new Map<string, SessionTest>();
-      existingTestResults.forEach(t => {
-        const key = `${t.test_category}_${t.test_type}`;
-        if (!testGroups.has(key)) {
-          testGroups.set(key, {
-            id: crypto.randomUUID(),
-            test_category: t.test_category,
-            test_type: t.test_type,
-            result_unit: t.result_unit || "",
-            player_results: {},
-            savedPlayerIds: new Set<string>(),
-            isExisting: true,
-            isPreselected: true,
-          });
-        }
-        const group = testGroups.get(key)!;
-        if (t.player_id && t.result_value != null) {
-          group.player_results[t.player_id] = t.result_value.toString();
-          group.savedPlayerIds!.add(t.player_id);
-        }
-      });
-      setSessionTests(Array.from(testGroups.values()));
-      return;
-    }
-    
-    // Otherwise use config from session notes
-    if (parsedTestConfig.length > 0) {
-      const entries: SessionTest[] = parsedTestConfig.map(t => ({
+    if (parsedTestConfig.length === 0 && (!existingTestResults || existingTestResults.length === 0)) return;
+
+    const groups = new Map<string, SessionTest>();
+
+    // 1. Every planned test from the session config
+    parsedTestConfig.forEach((t) => {
+      const key = `${t.test_category}_${t.test_type}`;
+      if (groups.has(key)) return;
+      groups.set(key, {
         id: crypto.randomUUID(),
         test_category: t.test_category,
         test_type: t.test_type,
         result_unit: t.result_unit || "",
         player_results: {},
+        savedPlayerIds: new Set<string>(),
         isPreselected: true,
-      }));
-      setSessionTests(entries);
-    }
+      });
+    });
+
+    // 2. Merge already-saved results (adds groups that are not in the config)
+    (existingTestResults || []).forEach((t) => {
+      const key = `${t.test_category}_${t.test_type}`;
+      if (!groups.has(key)) {
+        groups.set(key, {
+          id: crypto.randomUUID(),
+          test_category: t.test_category,
+          test_type: t.test_type,
+          result_unit: t.result_unit || "",
+          player_results: {},
+          savedPlayerIds: new Set<string>(),
+          isExisting: true,
+          isPreselected: true,
+        });
+      }
+      const group = groups.get(key)!;
+      group.isExisting = true;
+      if (!group.result_unit && t.result_unit) group.result_unit = t.result_unit;
+      if (t.player_id && t.result_value != null) {
+        group.player_results[t.player_id] = t.result_value.toString();
+        group.savedPlayerIds!.add(t.player_id);
+      }
+    });
+
+    setSessionTests(Array.from(groups.values()));
   }, [parsedTestConfig, existingTestResults, open]);
+
 
   // Reset values when dialog closes
   useEffect(() => {
@@ -594,53 +601,6 @@ export function SessionFeedbackDialog({
         player_results: { ...t.player_results, [playerId]: value },
       };
     }));
-  };
-
-  /**
-   * Autosave a single test result on blur. Persists immediately into `generic_tests`,
-   * marks the cell as saved (read-only badge), and refreshes related queries so the
-   * value is preserved if the user closes/reopens the dialog without clicking "Enregistrer".
-   */
-  const autosaveTestResult = async (testId: string, playerId: string, rawValue: string) => {
-    const value = (rawValue || "").trim();
-    if (!value) return;
-    const numeric = parseFloat(value);
-    if (isNaN(numeric)) return;
-
-    const test = sessionTests.find(t => t.id === testId);
-    if (!test || !test.test_type) return;
-    if (test.savedPlayerIds?.has(playerId)) return;
-    if (!session?.session_date) return;
-
-    try {
-      const { error } = await supabase.from("generic_tests").insert({
-        player_id: playerId,
-        category_id: categoryId,
-        test_date: session.session_date,
-        test_category: test.test_category,
-        test_type: test.test_type,
-        result_value: numeric,
-        result_unit: test.result_unit || null,
-        notes: `Séance du ${session.session_date} (Session ID: ${sessionId})`,
-      });
-      if (error) throw error;
-
-      // Mark as saved locally so the UI shows the read-only badge immediately
-      setSessionTests(tests => tests.map(t => {
-        if (t.id !== testId) return t;
-        const next = new Set(t.savedPlayerIds || []);
-        next.add(playerId);
-        return { ...t, savedPlayerIds: next };
-      }));
-
-      queryClient.invalidateQueries({ queryKey: ["generic_tests", categoryId] });
-      queryClient.invalidateQueries({ queryKey: ["today_session_tests"] });
-      queryClient.invalidateQueries({ queryKey: ["generic-tests-evolution", categoryId] });
-      queryClient.invalidateQueries({ queryKey: ["generic-tests-multi-comparison", categoryId] });
-    } catch (e: any) {
-      console.error("Autosave test result failed:", e);
-      toast.error(t("planning.calendarDialogs.sessionFeedback.toasts.autosaveError"));
-    }
   };
 
   const presentPlayerIds = new Set(
@@ -989,7 +949,8 @@ export function SessionFeedbackDialog({
               <div className="flex-1 min-h-0 overflow-y-auto pr-2 space-y-4" style={{ maxHeight: "calc(90vh - 240px)" }}>
                 {sessionTests.map((test) => {
                   const testLabel = labelizeTestType(test.test_type, customTestMap);
-                  const unit = test.result_unit || (test.test_type?.startsWith("custom:") ? customTestMap[test.test_type]?.unit || "" : "");
+                  const rawUnit = test.result_unit || (test.test_type?.startsWith("custom:") ? customTestMap[test.test_type]?.unit || "" : "");
+                  const unit = displayUnit(rawUnit);
                   return (
                     <div key={test.id} className="rounded-lg border border-border p-3 bg-muted/30 space-y-2">
                       <div className="flex items-center gap-2">
@@ -1066,7 +1027,6 @@ export function SessionFeedbackDialog({
                                     className="w-24 h-8 text-sm"
                                     value={val}
                                     onChange={(e) => updatePlayerTestResult(test.id, player.id, e.target.value)}
-                                    onBlur={(e) => autosaveTestResult(test.id, player.id, e.target.value)}
                                   />
                                   <span className="text-xs text-muted-foreground w-8">{unit}</span>
                                 </>
@@ -1114,8 +1074,14 @@ export function SessionFeedbackDialog({
                 </Button>
                 {!isAutoSaveTab && (
                   <Button
-                    onClick={() => saveData.mutate()}
-                    disabled={saveData.isPending || (!hasNewRpeValues && !hasTestResults && !hasWeightLogs)}
+                    onClick={() => {
+                      if (!hasNewRpeValues && !hasTestResults && !hasWeightLogs) {
+                        toast.info(t("planning.calendarDialogs.sessionFeedback.toasts.nothingToSave"));
+                        return;
+                      }
+                      saveData.mutate();
+                    }}
+                    disabled={saveData.isPending}
                   >
                     {saveData.isPending ? t("planning.calendarDialogs.sessionFeedback.saving") : t("planning.calendarDialogs.sessionFeedback.save")}
                   </Button>
