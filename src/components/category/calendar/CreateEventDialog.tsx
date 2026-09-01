@@ -435,9 +435,12 @@ export function CreateEventDialog({
         if (upErr) throw upErr;
 
         // Delta-sync participants (keeps existing attendance answers untouched).
+        // On ne retire que les athlètes présents dans le sélecteur : un participant
+        // d'une autre catégorie (séance partagée) reste conservé.
         const previous = existingParticipants || [];
+        const selectableIds = new Set((players || []).map((p: any) => p.id));
         const toAdd = selectedPlayers.filter((id) => !previous.includes(id));
-        const toRemove = previous.filter((id) => !selectedPlayers.includes(id));
+        const toRemove = previous.filter((id) => !selectedPlayers.includes(id) && selectableIds.has(id));
         if (toAdd.length > 0) {
           await supabase.from("event_participants").insert(
             toAdd.map((playerId) => ({
