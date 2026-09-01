@@ -135,7 +135,7 @@ export function SimplifiedSessionDialog({
       if (!accessToken) {
         throw new Error(t('athleteSpace.components.simplifiedSessionDialog.sessionExpired'));
       }
-      const start = "09:00";
+      const start = session?.session_start_time?.slice(0, 5) || "09:00";
       const end = computeEndTime(start, durationMin);
       const notesPayload = [
         "<!--SIMPLIFIED_SESSION-->",
@@ -143,23 +143,22 @@ export function SimplifiedSessionDialog({
         t('athleteSpace.components.simplifiedSessionDialog.durationRpe', { duration: durationMin, rpe }),
       ].join("\n");
 
-      const { data, error } = await supabase.functions.invoke(
-        "athlete-create-session",
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-          body: {
-            category_id: categoryId,
-            player_id: athletePlayerId,
-            session_date: format(date, "yyyy-MM-dd"),
-            session_start_time: start,
-            session_end_time: end,
-            training_type: trainingType,
-            intensity: rpe,
-            notes: notesPayload,
-            partner_player_ids: partnerIds,
-          },
+      const functionName = isEditing ? "athlete-update-session" : "athlete-create-session";
+      const { data, error } = await supabase.functions.invoke(functionName, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        body: {
+          category_id: categoryId,
+          player_id: athletePlayerId,
+          session_id: session?.id,
+          session_date: format(date, "yyyy-MM-dd"),
+          session_start_time: start,
+          session_end_time: end,
+          training_type: trainingType,
+          intensity: rpe,
+          notes: notesPayload,
+          partner_player_ids: partnerIds,
         },
-      );
+      });
       if (error) throw error;
       if (!data?.success || !data?.session_id) {
         throw new Error(data?.error || t('athleteSpace.components.simplifiedSessionDialog.createError'));
