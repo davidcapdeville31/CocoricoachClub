@@ -28,6 +28,16 @@ import { getTrainingTypesForSport } from "@/lib/constants/trainingTypes";
 import { useTranslation } from "react-i18next";
 import { AthletePartnersSelector } from "@/components/athlete-space/AthletePartnersSelector";
 
+interface EditableSession {
+  id: string;
+  session_date: string;
+  training_type: string;
+  session_start_time?: string | null;
+  session_end_time?: string | null;
+  intensity?: number | null;
+  notes?: string | null;
+}
+
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -37,6 +47,8 @@ interface Props {
   sportType?: string;
   /** Optionnel — verrouille le type de séance (ex: musculation). */
   lockedTrainingType?: string;
+  /** Séance personnelle existante à modifier. */
+  session?: EditableSession | null;
 }
 
 /**
