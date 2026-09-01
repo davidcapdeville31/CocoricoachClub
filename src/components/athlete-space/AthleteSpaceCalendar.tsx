@@ -167,7 +167,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
     queryFn: async () => {
       const { data, error } = await supabase
         .from("training_sessions")
-        .select("id, session_date, training_type, session_start_time, session_end_time, notes, created_by_player_id, test_reminder_id, event_participants(player_id)")
+        .select("id, session_date, training_type, session_start_time, session_end_time, intensity, notes, created_by_player_id, test_reminder_id, event_participants(player_id)")
         .eq("category_id", categoryId)
         .order("session_date", { ascending: false });
       if (error) throw error;

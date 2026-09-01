@@ -1,11 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+import { createClient } from "npm:@supabase/supabase-js@2";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -33,8 +28,9 @@ serve(async (req) => {
     const userId = userData.user?.id;
     if (userError || !userId) return respond({ success: false, error: "Session invalide" });
 
-    const body = await req.json();
+    const body = await req.json().catch(() => null);
     const {
+      category_id,
       session_id,
       player_id,
       session_date,
@@ -46,7 +42,24 @@ serve(async (req) => {
       partner_player_ids,
     } = body ?? {};
 
-    if (!session_id || !player_id) return respond({ success: false, error: "Données manquantes" });
+    if (
+      typeof category_id !== "string" ||
+      typeof session_id !== "string" ||
+      typeof player_id !== "string" ||
+      typeof session_date !== "string" ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(session_date) ||
+      typeof training_type !== "string" ||
+      training_type.length < 1 ||
+      training_type.length > 100
+    ) {
+      return respond({ success: false, error: "Données de séance invalides" });
+    }
+    if (intensity !== undefined && (typeof intensity !== "number" || intensity < 1 || intensity > 10)) {
+      return respond({ success: false, error: "L'intensité doit être comprise entre 1 et 10" });
+    }
+    if (notes !== undefined && (typeof notes !== "string" || notes.length > 10000)) {
+      return respond({ success: false, error: "Les notes sont invalides" });
+    }
 
     // Ownership: the logged-in user must own this player (or be staff of the category)
     const { data: player } = await supabase
@@ -62,6 +75,9 @@ serve(async (req) => {
       .eq("id", session_id)
       .maybeSingle();
     if (!session) return respond({ success: false, error: "Séance introuvable" });
+    if (session.category_id !== category_id || player.category_id !== category_id) {
+      return respond({ success: false, error: "Catégorie invalide" });
+    }
 
     const isOwnerUser = player.user_id === userId;
     let isStaff = false;
@@ -83,13 +99,14 @@ serve(async (req) => {
       return respond({ success: false, error: "Vous ne pouvez modifier que vos propres séances" });
     }
 
-    const updates: Record<string, unknown> = {};
-    if (session_date) updates.session_date = session_date;
-    if (training_type) updates.training_type = training_type;
-    if (session_start_time !== undefined) updates.session_start_time = session_start_time || null;
-    if (session_end_time !== undefined) updates.session_end_time = session_end_time || null;
-    if (intensity !== undefined) updates.intensity = intensity ?? null;
-    if (notes !== undefined) updates.notes = notes ?? null;
+    const updates: Record<string, unknown> = {
+      session_date,
+      training_type,
+      session_start_time: session_start_time || null,
+      session_end_time: session_end_time || null,
+      intensity: intensity ?? null,
+      notes: notes ?? null,
+    };
 
     if (Object.keys(updates).length > 0) {
       const { error: updateError } = await supabase
