@@ -34,6 +34,8 @@ interface TestCampaign {
   start: string;
   end: string;
   label: string;
+  sessionId?: string;
+  trainingType?: string;
 }
 
 interface SessionBlock {
@@ -65,6 +67,7 @@ interface CalendarDayCellProps {
   onEditMatch?: (match: Match) => void;
   onDeleteMatch?: (matchId: string) => void;
   onShowAllEvents?: (day: Date) => void;
+  onTestCampaignClick?: (campaign: TestCampaign) => void;
   playerNamesMap?: Record<string, string>;
 }
 
@@ -89,6 +92,7 @@ export function CalendarDayCell({
   onEditMatch,
   onDeleteMatch,
   onShowAllEvents,
+  onTestCampaignClick,
   playerNamesMap,
 }: CalendarDayCellProps) {
   const { t } = useTranslation();
@@ -180,9 +184,10 @@ export function CalendarDayCell({
       {activeTestCampaigns.map((campaign) => (
         <div
           key={`test-campaign-${campaign.id}`}
-          className="flex items-center gap-1 rounded-lg bg-training-test px-2 py-1.5 text-[11px] font-medium text-primary-foreground"
+          role="button"
+          className="flex cursor-pointer items-center gap-1 rounded-lg bg-training-test px-2 py-1.5 text-[11px] font-medium text-primary-foreground transition-opacity hover:opacity-90"
           title={`${campaign.label} · ${campaign.start} → ${campaign.end}`}
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e) => { e.stopPropagation(); onTestCampaignClick?.(campaign); }}
         >
           <FlaskConical className="h-3 w-3 shrink-0" />
           <span className="truncate">{campaign.label}</span>

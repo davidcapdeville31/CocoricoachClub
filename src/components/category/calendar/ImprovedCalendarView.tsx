@@ -224,7 +224,7 @@ export function ImprovedCalendarView({
   // A campaign remains visible on every day of its configured test window,
   // rather than only on the session date where it was created.
   const testCampaigns = useMemo(() => {
-    const campaigns = new Map<string, { id: string; start: string; end: string; label: string }>();
+    const campaigns = new Map<string, { id: string; start: string; end: string; label: string; sessionId: string; trainingType: string }>();
     sessions.forEach((session) => {
       const window = parseTestWindowFromNotes(session.notes);
       const tests = parseTestsFromNotes(session.notes);
@@ -242,11 +242,19 @@ export function ImprovedCalendarView({
           start: window.start,
           end: window.end,
           label: labels.join(" • "),
+          sessionId: session.id,
+          trainingType: session.training_type,
         });
       }
     });
     return Array.from(campaigns.values());
   }, [sessions, customTestLabels]);
+
+  const openTestCampaign = (campaign: { sessionId?: string; trainingType?: string }) => {
+    const session = sessions.find((s) => s.id === campaign.sessionId);
+    if (session) setFeedbackSession(session);
+  };
+
 
   const getTestCampaignsForDay = (day: Date) => {
     const dayStr = format(day, "yyyy-MM-dd");
@@ -717,6 +725,7 @@ export function ImprovedCalendarView({
                       onPreviewSession={(session) => onViewSession?.(session)}
                       onEditSession={(session) => onEditSession?.(session)}
                       onFeedbackSession={(session) => setFeedbackSession(session)}
+                      onTestCampaignClick={(campaign) => openTestCampaign(campaign)}
                       onDeleteSession={(sessionId) => setDeleteSessionId(sessionId)}
                       onNotifySession={(session) => setNotifySession(session)}
                       onDuplicateSession={(session) => setDuplicateSession(session)}
@@ -779,9 +788,10 @@ export function ImprovedCalendarView({
                       {dayTestCampaigns.map((campaign) => (
                         <div
                           key={campaign.id}
-                          className="flex items-center gap-2 rounded-lg bg-training-test p-2.5 text-primary-foreground shadow-sm"
+                          role="button"
+                          className="flex cursor-pointer items-center gap-2 rounded-lg bg-training-test p-2.5 text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
                           title={`${campaign.label} · ${campaign.start} → ${campaign.end}`}
-                          onClick={(e) => e.stopPropagation()}
+                          onClick={(e) => { e.stopPropagation(); openTestCampaign(campaign); }}
                         >
                           <FlaskConical className="h-4 w-4 shrink-0" />
                           <div className="min-w-0">
@@ -916,6 +926,7 @@ export function ImprovedCalendarView({
                   onAddEvent={handleDayClickWithAdd}
                   onDeleteMatch={onDeleteMatch}
                   onLineupMatch={onLineupMatch}
+                  onTestCampaignClick={(campaign) => openTestCampaign(campaign)}
                 />
               ))
             )}
