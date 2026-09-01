@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { format, isSameMonth, isSameDay } from "date-fns";
-import { Bell } from "lucide-react";
+import { Bell, FlaskConical } from "lucide-react";
 import { SessionVignette } from "./SessionVignette";
 import { MatchVignette } from "./MatchVignette";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
@@ -29,6 +29,13 @@ interface Match {
   is_home: boolean | null;
 }
 
+interface TestCampaign {
+  id: string;
+  start: string;
+  end: string;
+  label: string;
+}
+
 interface SessionBlock {
   id: string;
   training_type: string;
@@ -42,6 +49,7 @@ interface CalendarDayCellProps {
   currentMonth: Date;
   sessions: Session[];
   matches: Match[];
+  testCampaigns?: TestCampaign[];
   sportType: string | undefined;
   isViewer: boolean;
   onDayClick: (day: Date) => void;
@@ -65,6 +73,7 @@ export function CalendarDayCell({
   currentMonth,
   sessions,
   matches,
+  testCampaigns = [],
   sportType,
   isViewer,
   onDayClick,
@@ -91,6 +100,7 @@ export function CalendarDayCell({
 
   const isCurrentMonth = isSameMonth(day, currentMonth);
   const isToday = isSameDay(day, new Date());
+  const activeTestCampaigns = testCampaigns.filter((campaign) => dateStr >= campaign.start && dateStr <= campaign.end);
 
   // Fetch session blocks for sessions on this day
   const sessionIds = sessions.map(s => s.id);
@@ -165,6 +175,19 @@ export function CalendarDayCell({
       >
         {format(day, "d")}
       </div>
+
+      {/* Test campaign periods remain visible on every day of their window. */}
+      {activeTestCampaigns.map((campaign) => (
+        <div
+          key={`test-campaign-${campaign.id}`}
+          className="flex items-center gap-1 rounded-lg bg-training-test px-2 py-1.5 text-[11px] font-medium text-primary-foreground"
+          title={`${campaign.label} · ${campaign.start} → ${campaign.end}`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <FlaskConical className="h-3 w-3 shrink-0" />
+          <span className="truncate">{campaign.label}</span>
+        </div>
+      ))}
 
       {/* Events container */}
       <div className="space-y-1 overflow-visible">
