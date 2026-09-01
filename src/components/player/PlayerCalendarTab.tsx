@@ -287,8 +287,8 @@ export function PlayerCalendarTab({ playerId, categoryId }: PlayerCalendarTabPro
                   {allEvents.length > 0 ? (
                     <div className="space-y-2 max-h-[400px] overflow-y-auto">
                       {allEvents.map((event) => {
-                        if (event._type === 'session') {
-                          const Icon = getTrainingTypeIcon(event.training_type);
+                          if (event._type === 'session') {
+                            const Icon = getTrainingTypeIcon(event.training_type);
                             return (
                               <div
                                 key={`session-${event.id}`}
