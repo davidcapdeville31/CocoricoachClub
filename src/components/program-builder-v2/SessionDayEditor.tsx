@@ -5,7 +5,7 @@
 // Les autres ConfigMethod (Drop Set, EMOM, AMRAP, Tabata, etc.) déclenchent
 // MethodConfigSlots.
 
-import { forwardRef, useCallback, useImperativeHandle, useMemo, useState } from "react";
+import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
