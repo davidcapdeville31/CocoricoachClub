@@ -168,14 +168,15 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
   const nextTest = nextTests && nextTests.length > 0 ? nextTests[0] : null;
 
   const { data: nextMatch } = useQuery({
-    queryKey: ["athlete-space-next-match", categoryId],
+    queryKey: ["athlete-space-next-match", categoryId, playerId],
     queryFn: async () => {
       const today = new Date().toISOString().split("T")[0];
       const weekEnd = format(endOfWeek(addWeeks(new Date(), 1), { weekStartsOn: 1 }), "yyyy-MM-dd");
       const { data, error } = await supabase
         .from("matches")
-        .select("*")
+        .select("*, match_participants!inner(player_id)")
         .eq("category_id", categoryId)
+        .eq("match_participants.player_id", playerId)
         .gte("match_date", today)
         .lte("match_date", weekEnd)
         .order("match_date", { ascending: true })
@@ -185,6 +186,7 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
       return data;
     },
   });
+
 
   const { data: upcomingSessions } = useQuery({
     queryKey: ["athlete-space-upcoming-sessions", categoryId, playerId],
