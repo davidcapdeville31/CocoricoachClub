@@ -109,6 +109,7 @@ export function SimplifiedSessionDialog({
       setPartnerIds((session.event_participants || []).map((participant) => participant.player_id).filter((id) => id !== athletePlayerId));
     } else if (!open) {
       setSessionDate(format(date, "yyyy-MM-dd"));
+      setSessionStartTime("09:00");
       setNotes("");
       setDurationMin(60);
       setRpe(6);
@@ -142,7 +143,7 @@ export function SimplifiedSessionDialog({
       if (!accessToken) {
         throw new Error(t('athleteSpace.components.simplifiedSessionDialog.sessionExpired'));
       }
-      const start = session?.session_start_time?.slice(0, 5) || "09:00";
+      const start = sessionStartTime || "09:00";
       const end = computeEndTime(start, durationMin);
       const notesPayload = [
         "<!--SIMPLIFIED_SESSION-->",
