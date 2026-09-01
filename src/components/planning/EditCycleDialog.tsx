@@ -78,13 +78,8 @@ export function EditCycleDialog({ open, onOpenChange, cycle, categoryId, categor
     },
   });
   useEffect(() => {
-    if (existingAssignments.length > 0) {
-      setSelectionMode("specific");
-      setSelectedPlayers(existingAssignments.map((assignment: { player_id: string }) => assignment.player_id));
-    } else {
-      setSelectionMode("all");
-      setSelectedPlayers([]);
-    }
+    setSelectionMode("specific");
+    setSelectedPlayers(existingAssignments.map((assignment: { player_id: string }) => assignment.player_id));
   }, [existingAssignments]);
   const avg = averageWeekly(weeklyDetails);
   const effectiveIntensity = avg ? avg.intensity : intensity;
