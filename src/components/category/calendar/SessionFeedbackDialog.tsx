@@ -286,50 +286,56 @@ export function SessionFeedbackDialog({
     enabled: open && !!sessionId,
   });
 
-  // Pre-populate tests from session config or existing results when dialog opens
+  // Pre-populate tests: ALL planned tests of the session are always shown, and existing
+  // results are merged into them (so saving one test never hides the others).
   useEffect(() => {
     if (sessionTests.length > 0 || !open) return;
-    
-    // First try to load from existing results
-    if (existingTestResults && existingTestResults.length > 0) {
-      const testGroups = new Map<string, SessionTest>();
-      existingTestResults.forEach(t => {
-        const key = `${t.test_category}_${t.test_type}`;
-        if (!testGroups.has(key)) {
-          testGroups.set(key, {
-            id: crypto.randomUUID(),
-            test_category: t.test_category,
-            test_type: t.test_type,
-            result_unit: t.result_unit || "",
-            player_results: {},
-            savedPlayerIds: new Set<string>(),
-            isExisting: true,
-            isPreselected: true,
-          });
-        }
-        const group = testGroups.get(key)!;
-        if (t.player_id && t.result_value != null) {
-          group.player_results[t.player_id] = t.result_value.toString();
-          group.savedPlayerIds!.add(t.player_id);
-        }
-      });
-      setSessionTests(Array.from(testGroups.values()));
-      return;
-    }
-    
-    // Otherwise use config from session notes
-    if (parsedTestConfig.length > 0) {
-      const entries: SessionTest[] = parsedTestConfig.map(t => ({
+    if (parsedTestConfig.length === 0 && (!existingTestResults || existingTestResults.length === 0)) return;
+
+    const groups = new Map<string, SessionTest>();
+
+    // 1. Every planned test from the session config
+    parsedTestConfig.forEach((t) => {
+      const key = `${t.test_category}_${t.test_type}`;
+      if (groups.has(key)) return;
+      groups.set(key, {
         id: crypto.randomUUID(),
         test_category: t.test_category,
         test_type: t.test_type,
         result_unit: t.result_unit || "",
         player_results: {},
+        savedPlayerIds: new Set<string>(),
         isPreselected: true,
-      }));
-      setSessionTests(entries);
-    }
+      });
+    });
+
+    // 2. Merge already-saved results (adds groups that are not in the config)
+    (existingTestResults || []).forEach((t) => {
+      const key = `${t.test_category}_${t.test_type}`;
+      if (!groups.has(key)) {
+        groups.set(key, {
+          id: crypto.randomUUID(),
+          test_category: t.test_category,
+          test_type: t.test_type,
+          result_unit: t.result_unit || "",
+          player_results: {},
+          savedPlayerIds: new Set<string>(),
+          isExisting: true,
+          isPreselected: true,
+        });
+      }
+      const group = groups.get(key)!;
+      group.isExisting = true;
+      if (!group.result_unit && t.result_unit) group.result_unit = t.result_unit;
+      if (t.player_id && t.result_value != null) {
+        group.player_results[t.player_id] = t.result_value.toString();
+        group.savedPlayerIds!.add(t.player_id);
+      }
+    });
+
+    setSessionTests(Array.from(groups.values()));
   }, [parsedTestConfig, existingTestResults, open]);
+
 
   // Reset values when dialog closes
   useEffect(() => {
