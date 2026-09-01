@@ -1,4 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors'
+
 import { createEmailWebhookHandler } from 'npm:@lovable.dev/email-js@0.1.0'
 
 const getDatabase = () => {

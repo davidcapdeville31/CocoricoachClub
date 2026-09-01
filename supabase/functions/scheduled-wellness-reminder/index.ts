@@ -205,7 +205,7 @@ serve(async (req) => {
 
       results.push({
         category: category.name,
-        emailsSent: emailRecipients.length,
+        emailsSent: emailTargets.length,
         pushTargeted: pushUserIds.length,
         type: "wellness_reminder",
       });
