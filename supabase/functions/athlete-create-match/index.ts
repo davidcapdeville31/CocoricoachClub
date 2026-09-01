@@ -93,11 +93,19 @@ serve(async (req) => {
       .single();
     if (insertError) throw insertError;
 
-    // Auto-create lineup entry so the athlete is the sole participant
-    await supabase.from("match_lineups").insert({
+    // Keep athlete-created competitions visible in the same assigned-only flow.
+    const { error: participantError } = await supabase.from("match_participants").insert({
       match_id: inserted.id,
       player_id,
     });
+    if (participantError) throw participantError;
+
+    // Auto-create lineup entry so the athlete is the sole participant
+    const { error: lineupError } = await supabase.from("match_lineups").insert({
+      match_id: inserted.id,
+      player_id,
+    });
+    if (lineupError) throw lineupError;
 
     return respond({ success: true, match_id: inserted.id });
   } catch (e: any) {
