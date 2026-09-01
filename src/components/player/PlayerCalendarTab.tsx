@@ -64,6 +64,7 @@ export function PlayerCalendarTab({ playerId, categoryId }: PlayerCalendarTabPro
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [viewBowlingSimplifiedId, setViewBowlingSimplifiedId] = useState<{ id: string; date: Date } | null>(null);
   const [viewBowlingAdvancedId, setViewBowlingAdvancedId] = useState<{ id: string; date: Date } | null>(null);
+  const [selectedSession, setSelectedSession] = useState<{ id: string; date: string } | null>(null);
 
   // Fetch training sessions - refetch on focus to catch new events
   const { data: sessions } = useQuery({
@@ -228,6 +229,7 @@ export function PlayerCalendarTab({ playerId, categoryId }: PlayerCalendarTabPro
               <div className="flex justify-center">
                 <Calendar
                   mode="range"
+                  locale={getDateLocale()}
                   selected={dateRange}
                   onSelect={setDateRange}
                   modifiers={{
@@ -285,11 +287,20 @@ export function PlayerCalendarTab({ playerId, categoryId }: PlayerCalendarTabPro
                       {allEvents.map((event) => {
                         if (event._type === 'session') {
                           const Icon = getTrainingTypeIcon(event.training_type);
-                          return (
-                            <div
-                              key={`session-${event.id}`}
-                              className="p-3 border rounded-lg bg-card hover:bg-accent/10 transition-colors"
-                            >
+                            return (
+                              <div
+                                key={`session-${event.id}`}
+                                className="p-3 border rounded-lg bg-card hover:bg-accent/10 transition-colors cursor-pointer"
+                                onClick={() => setSelectedSession({ id: event.id, date: event.session_date })}
+                                role="button"
+                                tabIndex={0}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
+                                    setSelectedSession({ id: event.id, date: event.session_date });
+                                  }
+                                }}
+                              >
                               <div className="flex justify-between items-start">
                                 <div className="flex items-start gap-2">
                                   <Icon className="h-4 w-4 mt-0.5 text-muted-foreground" />
@@ -472,6 +483,16 @@ export function PlayerCalendarTab({ playerId, categoryId }: PlayerCalendarTabPro
         athletePlayerId={playerId}
         existingSessionId={viewBowlingAdvancedId?.id}
       />
+
+      {selectedSession && (
+        <SessionDetailsDialog
+          open={true}
+          onOpenChange={(open) => !open && setSelectedSession(null)}
+          categoryId={categoryId}
+          sessionId={selectedSession.id}
+          sessionDate={selectedSession.date}
+        />
+      )}
     </Tabs>
   );
 }
