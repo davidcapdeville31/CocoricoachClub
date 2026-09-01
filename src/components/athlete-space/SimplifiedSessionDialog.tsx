@@ -167,13 +167,14 @@ export function SimplifiedSessionDialog({
     },
     onSuccess: () => {
       // Rafraîchir immédiatement les calendriers athlète, effectif et staff.
-      // Le préfixe commun couvre aussi la requête du calendrier d'un joueur.
       qc.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
       qc.invalidateQueries({ queryKey: ["sessions", categoryId] });
       qc.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
       qc.invalidateQueries({ queryKey: ["training-stats"] });
       qc.invalidateQueries({ queryKey: ["athlete-calendar-sessions", categoryId] });
-      toast.success(t('athleteSpace.components.simplifiedSessionDialog.added'));
+      qc.invalidateQueries({ queryKey: ["athlete-calendar-sessions", categoryId, athletePlayerId] });
+      qc.invalidateQueries({ queryKey: ["notifications"] });
+      toast.success(isEditing ? "Séance modifiée" : t('athleteSpace.components.simplifiedSessionDialog.added'));
       onOpenChange(false);
     },
     onError: (e: any) => toast.error(e?.message || t('athleteSpace.components.simplifiedSessionDialog.saveError')),
