@@ -89,6 +89,7 @@ export function SimplifiedSessionDialog({
   const [rpe, setRpe] = useState<number>(6);
   const [partnerIds, setPartnerIds] = useState<string[]>([]);
   const [sessionDate, setSessionDate] = useState(format(date, "yyyy-MM-dd"));
+  const [sessionStartTime, setSessionStartTime] = useState("09:00");
 
   useEffect(() => {
     if (session) {
@@ -96,7 +97,8 @@ export function SimplifiedSessionDialog({
       setTrainingType(session.training_type);
       const cleanNotes = (session.notes || "").replace(/^\[Séance athlète\]\s*/, "").replace(/^<!--SIMPLIFIED_SESSION-->\n?/, "");
       setNotes(cleanNotes.split("\n").slice(0, -1).join("\n"));
-      const start = session.session_start_time || "09:00";
+      const start = session.session_start_time?.slice(0, 5) || "09:00";
+      setSessionStartTime(start);
       const end = session.session_end_time;
       if (end) {
         const [sh, sm] = start.split(":").map(Number);
