@@ -21,6 +21,7 @@ interface Props {
 /** Staff-wide view of every athlete's latest body weight and its evolution. */
 export function TeamWeightOverview({ categoryId }: Props) {
   const { entries, isLoading } = useWeightHistory({ categoryId });
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
 
   const { data: players = [] } = useQuery({
@@ -50,6 +51,16 @@ export function TeamWeightOverview({ categoryId }: Props) {
   }, [entries, players, allowedIds]);
 
   const withData = rows.filter((r) => r.trend);
+  const activeId = selectedId && withData.some((r) => r.id === selectedId) ? selectedId : withData[0]?.id || null;
+  const activeName = withData.find((r) => r.id === activeId)?.name || "";
+  const chartData = useMemo(
+    () =>
+      entries
+        .filter((e) => e.player_id === activeId)
+        .slice(-60)
+        .map((e) => ({ date: format(new Date(e.date), "dd/MM"), fullDate: e.date, weight: e.weight })),
+    [entries, activeId],
+  );
 
   const exportCsv = () => {
     downloadCsv(
@@ -98,7 +109,14 @@ export function TeamWeightOverview({ categoryId }: Props) {
               const Icon = !d ? Minus : d > 0 ? TrendingUp : TrendingDown;
               const color = !d ? "text-muted-foreground" : d > 0 ? "text-warning" : "text-status-optimal";
               return (
-                <div key={r.id} className="rounded-xl border bg-surface-sunken p-3">
+                <button
+                  type="button"
+                  key={r.id}
+                  onClick={() => setSelectedId(r.id)}
+                  className={`text-left rounded-xl border bg-surface-sunken p-3 transition-colors hover:border-primary ${
+                    r.id === activeId ? "border-primary ring-1 ring-primary/40" : ""
+                  }`}
+                >
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-sm font-medium truncate">{r.name}</p>
                     <Badge variant="secondary" className="text-[10px] shrink-0">
@@ -117,10 +135,52 @@ export function TeamWeightOverview({ categoryId }: Props) {
                     {r.trend!.delta30 > 0 ? "+" : ""}
                     {r.trend!.delta30} kg
                   </p>
-                </div>
+                </button>
               );
             })}
           </div>
+        )}
+        {activeId && chartData.length > 1 && (
+          <div className="mt-4 rounded-xl border bg-surface-sunken p-3">
+            <p className="text-sm font-medium mb-2">Évolution du poids — {activeName}</p>
+            <ResponsiveContainer width="100%" height={240}>
+              <LineChart data={chartData} margin={{ top: 10, right: 12, left: 0, bottom: 4 }}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis dataKey="date" className="text-[10px]" />
+                <YAxis
+                  domain={[
+                    (dataMin: number) => Math.floor(dataMin - 2),
+                    (dataMax: number) => Math.ceil(dataMax + 2),
+                  ]}
+                  className="text-[10px]"
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--popover))",
+                    border: "1px solid hsl(var(--border))",
+                    fontSize: "12px",
+                    borderRadius: "8px",
+                  }}
+                  formatter={(v: number) => [`${v} kg`, "Poids"]}
+                  labelFormatter={(_, payload: any[]) => payload?.[0]?.payload?.fullDate || ""}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="weight"
+                  stroke={NAV_COLORS.sante.base}
+                  strokeWidth={3}
+                  dot={{ r: 3 }}
+                  activeDot={{ r: 6 }}
+                  name="Poids"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+        {activeId && chartData.length <= 1 && (
+          <p className="text-[11px] text-muted-foreground mt-3">
+            Une seule mesure pour {activeName} : la courbe s'affichera dès la deuxième pesée.
+          </p>
         )}
         {rows.length - withData.length > 0 && (
           <p className="text-[11px] text-muted-foreground mt-3">
