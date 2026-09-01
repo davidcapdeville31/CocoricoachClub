@@ -691,7 +691,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
             )}
           </div>
 
-          {/* Poids du corps (optionnel) */}
+          {/* Poids du corps */}
           <div className="space-y-1">
             <Label className="text-xs flex items-center gap-1.5">
               {t("athleteSpace.wellness.weightToday")}

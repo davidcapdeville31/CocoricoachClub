@@ -392,7 +392,7 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
             />
           </div>
 
-          {/* Poids du corps (optionnel) — met à jour l'anthropométrie */}
+          {/* Poids du corps — met à jour l'anthropométrie */}
           <div className="space-y-2 p-4 bg-muted/50 rounded-lg">
             <Label htmlFor="wellness-weight" className="flex items-center gap-1.5">
               {t("health.addWellness.weightLabel")}
