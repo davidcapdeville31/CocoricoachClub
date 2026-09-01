@@ -286,7 +286,7 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
       <AthleteSpaceRpe playerId={playerId} categoryId={categoryId} hideHistory />
 
       {/* Cycle en cours — visibilité de la planification du coach */}
-      <CurrentCyclesCard categoryId={categoryId} />
+      <CurrentCyclesCard categoryId={categoryId} playerId={playerId} />
 
       {/* Status + EWMA */}
       <Card className="shadow-sm border" style={{ borderColor: `${NAV_COLORS.performance.base}40`, backgroundColor: `${NAV_COLORS.performance.base}08` }}>

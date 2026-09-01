@@ -23,9 +23,9 @@ export function CurrentCyclesCard({ categoryId }: Props) {
   const today = new Date().toISOString().split("T")[0];
 
   const { data: cycles = [], isLoading } = useQuery({
-    queryKey: ["athlete-current-cycles", categoryId, today],
+    queryKey: ["athlete-current-cycles", categoryId, playerId, today],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: cycleRows, error } = await supabase
         .from("periodization_cycles")
         .select("id, name, color, cycle_type, intensity, start_date, end_date, objective, periodization_category_id, periodization_categories(name, color)")
         .eq("category_id", categoryId)
@@ -33,9 +33,28 @@ export function CurrentCyclesCard({ categoryId }: Props) {
         .gte("end_date", today)
         .order("start_date", { ascending: true });
       if (error) throw error;
-      return data || [];
+      if (!playerId || !cycleRows?.length) return cycleRows || [];
+
+      const cycleIds = cycleRows.map((cycle: any) => cycle.id);
+      const { data: assignments, error: assignmentError } = await supabase
+        .from("periodization_cycle_players")
+        .select("cycle_id")
+        .in("cycle_id", cycleIds)
+        .eq("player_id", playerId);
+      if (assignmentError) throw assignmentError;
+      const assignedIds = new Set((assignments || []).map((assignment: any) => assignment.cycle_id));
+
+      // An athlete sees their assigned cycles. Cycles without any assignment
+      // remain category-wide and are visible to the whole category.
+      const { data: allAssignments, error: allAssignmentsError } = await supabase
+        .from("periodization_cycle_players")
+        .select("cycle_id")
+        .in("cycle_id", cycleIds);
+      if (allAssignmentsError) throw allAssignmentsError;
+      const assignedCycleIds = new Set((allAssignments || []).map((assignment: any) => assignment.cycle_id));
+      return cycleRows.filter((cycle: any) => assignedIds.has(cycle.id) || !assignedCycleIds.has(cycle.id));
     },
-    enabled: !!categoryId,
+    enabled: !!categoryId && !!playerId,
   });
 
   if (isLoading || cycles.length === 0) return null;

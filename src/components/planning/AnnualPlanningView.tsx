@@ -25,6 +25,7 @@ import { useTranslation } from "react-i18next";
 interface AnnualPlanningViewProps {
   categoryId: string;
   readOnly?: boolean;
+  playerId?: string;
 }
 
 interface PeriodizationCategory {
