@@ -226,6 +226,16 @@ export function AddCycleDialog({ open, onOpenChange, categoryId, categories, pre
           />
 
 
+          <AdvancedPlayerSelection
+            categoryId={categoryId}
+            selectedPlayers={selectedPlayers}
+            onSelectionChange={setSelectedPlayers}
+            selectionMode={selectionMode}
+            onSelectionModeChange={setSelectionMode}
+            showInjuredFilter={false}
+            maxHeight="180px"
+          />
+
           <div>
             <Label>Objectif</Label>
             <Input
