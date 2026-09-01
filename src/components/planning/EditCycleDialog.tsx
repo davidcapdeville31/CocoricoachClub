@@ -64,6 +64,28 @@ export function EditCycleDialog({ open, onOpenChange, cycle, categoryId, categor
   const [weeklyDetails, setWeeklyDetails] = useState<WeeklyDetail[]>(
     Array.isArray(cycle.weekly_details) ? (cycle.weekly_details as WeeklyDetail[]) : []
   );
+  const [selectionMode, setSelectionMode] = useState<"all" | "specific">("all");
+  const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
+  const { data: existingAssignments = [] } = useQuery({
+    queryKey: ["periodization-cycle-players", cycle.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("periodization_cycle_players")
+        .select("player_id")
+        .eq("cycle_id", cycle.id);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+  useEffect(() => {
+    if (existingAssignments.length > 0) {
+      setSelectionMode("specific");
+      setSelectedPlayers(existingAssignments.map((assignment: { player_id: string }) => assignment.player_id));
+    } else {
+      setSelectionMode("all");
+      setSelectedPlayers([]);
+    }
+  }, [existingAssignments]);
   const avg = averageWeekly(weeklyDetails);
   const effectiveIntensity = avg ? avg.intensity : intensity;
   const effectiveVolume = avg ? avg.volume : volume;
