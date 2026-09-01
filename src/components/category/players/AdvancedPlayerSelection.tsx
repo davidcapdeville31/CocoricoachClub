@@ -217,17 +217,19 @@ export function AdvancedPlayerSelection({
           {t("roster.advancedSelection.title")}
         </Label>
         <div className="flex gap-2">
-          <Button
-            type="button"
-            variant={selectionMode === "all" ? "default" : "outline"}
-            size="sm"
-            onClick={() => {
-              onSelectionModeChange("all");
-              onSelectionChange([]);
-            }}
-          >
-            {t("roster.advancedSelection.all")}
-          </Button>
+          {allowAll && (
+            <Button
+              type="button"
+              variant={selectionMode === "all" ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                onSelectionModeChange("all");
+                onSelectionChange([]);
+              }}
+            >
+              {t("roster.advancedSelection.all")}
+            </Button>
+          )}
           <Button
             type="button"
             variant={selectionMode === "specific" ? "default" : "outline"}
