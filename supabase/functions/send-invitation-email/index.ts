@@ -83,34 +83,19 @@ const handler = async (req: Request): Promise<Response> => {
     const linkHash = invitationLink.split("token=")[1]?.slice(0, 32) ?? Date.now().toString();
     const idempotencyKey = `invitation-${invitationType}-${linkHash}`;
 
-    // Forward to send-transactional-email so the email leaves
-    // from noreply@cocoricoachclub.com (verified Lovable Email sender),
-    // ensuring consistent branding & no SSL/sender warnings.
     const serviceClient = createClient(supabaseUrl, serviceRoleKey);
-    const { data, error } = await serviceClient.functions.invoke(
-      "send-transactional-email",
-      {
-        body: {
-          templateName: "invitation",
-          recipientEmail: email,
-          idempotencyKey,
-          templateData: {
-            invitationType,
-            inviterName,
-            clubName,
-            categoryName,
-            roleLabel,
-            athleteName,
-            invitationLink,
-          },
-        },
+    const data = await sendTemplateEmailWithLog(serviceClient, "invitation", email, {
+      idempotencyKey,
+      templateData: {
+        invitationType,
+        inviterName,
+        clubName,
+        categoryName,
+        roleLabel,
+        athleteName,
+        invitationLink,
       },
-    );
-
-    if (error) {
-      console.error("send-transactional-email error:", error);
-      throw new Error(error.message ?? "Failed to enqueue invitation email");
-    }
+    });
 
     return new Response(
       JSON.stringify({ success: true, data }),

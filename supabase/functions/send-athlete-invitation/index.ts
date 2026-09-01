@@ -71,38 +71,26 @@ const handler = async (req: Request): Promise<Response> => {
 
     const results: { email?: any; sms?: any } = {};
 
-    // ── EMAIL via Lovable Emails (send-transactional-email) ──────────────
-    // Sends from noreply@cocoricoachclub.com (verified sender) to keep all
-    // outgoing emails consistent across the app — no SSL/sender warnings.
+    // ── EMAIL via Lovable-managed delivery ───────────────────────────────
     if (channels.includes("email") && email) {
       const linkHash = invitationLink.split("token=")[1]?.slice(0, 32) ?? Date.now().toString();
       const idempotencyKey = `invitation-athlete-${linkHash}`;
-
       const serviceClient = createClient(supabaseUrl, serviceRoleKey);
-      const { data: emailResult, error: emailError } = await serviceClient.functions.invoke(
-        "send-transactional-email",
-        {
-          body: {
-            templateName: "invitation",
-            recipientEmail: email,
-            idempotencyKey,
-            templateData: {
-              invitationType: "athlete",
-              clubName,
-              categoryName,
-              athleteName: displayName,
-              invitationLink,
-            },
-          },
-        },
-      );
 
-      if (emailError) {
-        console.error("send-transactional-email error:", emailError);
-        results.email = { error: emailError.message };
-      } else {
-        results.email = emailResult;
-        console.log("Email invitation enqueued:", emailResult);
+      try {
+        results.email = await sendTemplateEmailWithLog(serviceClient, "invitation", email, {
+          idempotencyKey,
+          templateData: {
+            invitationType: "athlete",
+            clubName,
+            categoryName,
+            athleteName: displayName,
+            invitationLink,
+          },
+        });
+      } catch (error) {
+        console.error("Managed invitation email error:", error);
+        results.email = { error: error instanceof Error ? error.message : String(error) };
       }
     }
 
