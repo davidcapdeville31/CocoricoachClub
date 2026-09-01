@@ -604,6 +604,10 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                     <span>{t("athleteSpace.calendar.legend.rehab")}</span>
                   </div>
                 )}
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded" style={{ backgroundColor: "hsl(var(--brand-500) / 0.12)", border: "1px solid hsl(var(--brand-500) / 0.45)" }} />
+                  <span>{t("athleteSpace.calendar.legend.cycle", "Cycle de travail")}</span>
+                </div>
                 {!isBowling && (
                   <div className="flex items-center gap-1.5">
                     <div className="w-3 h-1 rounded-full" style={{ backgroundColor: PROPHYLAXIS_COLOR }} />

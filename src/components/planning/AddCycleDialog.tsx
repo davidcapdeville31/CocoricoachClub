@@ -232,10 +232,11 @@ export function AddCycleDialog({ open, onOpenChange, categoryId, categories, pre
             categoryId={categoryId}
             selectedPlayers={selectedPlayers}
             onSelectionChange={setSelectedPlayers}
-            selectionMode={selectionMode}
-            onSelectionModeChange={setSelectionMode}
-            showInjuredFilter={false}
-            maxHeight="180px"
+             selectionMode={selectionMode}
+             onSelectionModeChange={setSelectionMode}
+             showInjuredFilter={false}
+             allowAll={false}
+             maxHeight="180px"
           />
 
           <div>
