@@ -44,7 +44,7 @@ export function AddCycleDialog({ open, onOpenChange, categoryId, categories, pre
   const [dominantQuality, setDominantQuality] = useState("");
   const [customColor, setCustomColor] = useState("");
   const [weeklyDetails, setWeeklyDetails] = useState<WeeklyDetail[]>([]);
-  const [selectionMode, setSelectionMode] = useState<"all" | "specific">("all");
+  const [selectionMode, setSelectionMode] = useState<"all" | "specific">("specific");
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const queryClient = useQueryClient();
 
@@ -113,7 +113,7 @@ export function AddCycleDialog({ open, onOpenChange, categoryId, categories, pre
     setDominantQuality("");
     setCustomColor("");
     setWeeklyDetails([]);
-    setSelectionMode("all");
+    setSelectionMode("specific");
     setSelectedPlayers([]);
   };
 
