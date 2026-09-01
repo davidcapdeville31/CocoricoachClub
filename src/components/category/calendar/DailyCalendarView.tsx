@@ -39,6 +39,8 @@ interface TestCampaign {
   start: string;
   end: string;
   label: string;
+  sessionId?: string;
+  trainingType?: string;
 }
 
 interface SessionBlock {
@@ -61,6 +63,7 @@ interface DailyCalendarViewProps {
   onAddEvent?: (day: Date) => void;
   onDeleteMatch?: (matchId: string) => void;
   onLineupMatch?: (matchId: string) => void;
+  onTestCampaignClick?: (campaign: TestCampaign) => void;
 }
 
 export function DailyCalendarView({
@@ -77,6 +80,7 @@ export function DailyCalendarView({
   onAddEvent,
   onDeleteMatch,
   onLineupMatch,
+  onTestCampaignClick,
 }: DailyCalendarViewProps) {
   const { t } = useTranslation();
   const isToday = checkIsToday(day);
@@ -220,7 +224,12 @@ export function DailyCalendarView({
         {hasEvents ? (
           <div className="divide-y">
             {testCampaigns.map((campaign) => (
-              <div key={campaign.id} className="flex items-center gap-3 p-4">
+              <div
+                key={campaign.id}
+                role="button"
+                onClick={() => onTestCampaignClick?.(campaign)}
+                className="flex cursor-pointer items-center gap-3 p-4 transition-colors hover:bg-accent/50"
+              >
                 <div className="w-1.5 self-stretch rounded-full bg-training-test" />
                 <div className="flex items-center gap-2 min-w-0">
                   <FlaskConical className="h-4 w-4 shrink-0 text-muted-foreground" />
