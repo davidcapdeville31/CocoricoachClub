@@ -47,6 +47,8 @@ interface AdvancedPlayerSelectionProps {
   players?: Player[];
   maxHeight?: string;
   showInjuredFilter?: boolean;
+  /** Hide category-wide mode when every assignment must target named athletes. */
+  allowAll?: boolean;
 }
 
 export function AdvancedPlayerSelection({
@@ -59,6 +61,7 @@ export function AdvancedPlayerSelection({
   players: externalPlayers,
   maxHeight = "200px",
   showInjuredFilter = true,
+  allowAll = true,
 }: AdvancedPlayerSelectionProps) {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
@@ -214,17 +217,19 @@ export function AdvancedPlayerSelection({
           {t("roster.advancedSelection.title")}
         </Label>
         <div className="flex gap-2">
-          <Button
-            type="button"
-            variant={selectionMode === "all" ? "default" : "outline"}
-            size="sm"
-            onClick={() => {
-              onSelectionModeChange("all");
-              onSelectionChange([]);
-            }}
-          >
-            {t("roster.advancedSelection.all")}
-          </Button>
+          {allowAll && (
+            <Button
+              type="button"
+              variant={selectionMode === "all" ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                onSelectionModeChange("all");
+                onSelectionChange([]);
+              }}
+            >
+              {t("roster.advancedSelection.all")}
+            </Button>
+          )}
           <Button
             type="button"
             variant={selectionMode === "specific" ? "default" : "outline"}

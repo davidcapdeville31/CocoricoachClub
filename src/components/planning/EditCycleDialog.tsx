@@ -1,6 +1,6 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
-import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { CycleFormFields } from "./CycleFormFields";
 import { CycleColorPicker } from "./CycleColorPicker";
 import { WeeklyIntensityVolumeDetails, averageWeekly, type WeeklyDetail } from "./WeeklyIntensityVolumeDetails";
+import { AdvancedPlayerSelection } from "@/components/category/players/AdvancedPlayerSelection";
 
 
 interface EditCycleDialogProps {
@@ -63,6 +64,23 @@ export function EditCycleDialog({ open, onOpenChange, cycle, categoryId, categor
   const [weeklyDetails, setWeeklyDetails] = useState<WeeklyDetail[]>(
     Array.isArray(cycle.weekly_details) ? (cycle.weekly_details as WeeklyDetail[]) : []
   );
+  const [selectionMode, setSelectionMode] = useState<"all" | "specific">("specific");
+  const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
+  const { data: existingAssignments = [] } = useQuery({
+    queryKey: ["periodization-cycle-players", cycle.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("periodization_cycle_players")
+        .select("player_id")
+        .eq("cycle_id", cycle.id);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+  useEffect(() => {
+    setSelectionMode("specific");
+    setSelectedPlayers(existingAssignments.map((assignment: { player_id: string }) => assignment.player_id));
+  }, [existingAssignments]);
   const avg = averageWeekly(weeklyDetails);
   const effectiveIntensity = avg ? avg.intensity : intensity;
   const effectiveVolume = avg ? avg.volume : volume;
@@ -88,16 +106,31 @@ export function EditCycleDialog({ open, onOpenChange, cycle, categoryId, categor
         } as any)
         .eq("id", cycle.id);
       if (error) throw error;
+
+      const { error: deleteAssignmentsError } = await supabase
+        .from("periodization_cycle_players")
+        .delete()
+        .eq("cycle_id", cycle.id);
+      if (deleteAssignmentsError) throw deleteAssignmentsError;
+      if (selectionMode === "specific" && selectedPlayers.length > 0) {
+        const { error: assignmentError } = await supabase
+          .from("periodization_cycle_players")
+          .insert(selectedPlayers.map((playerId) => ({ cycle_id: cycle.id, player_id: playerId })));
+        if (assignmentError) throw assignmentError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["periodization_cycles", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["periodization-cycle-players", cycle.id] });
+      queryClient.invalidateQueries({ queryKey: ["athlete-current-cycles"] });
+      queryClient.invalidateQueries({ queryKey: ["athlete-calendar-periodization-cycles"] });
       toast.success("Cycle mis à jour");
       onOpenChange(false);
     },
     onError: () => toast.error("Erreur lors de la mise à jour"),
   });
 
-  const isValid = name.trim() && periodizationCategoryId && startDate && endDate && endDate >= startDate;
+  const isValid = name.trim() && periodizationCategoryId && startDate && endDate && endDate >= startDate && selectedPlayers.length > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -202,6 +235,17 @@ export function EditCycleDialog({ open, onOpenChange, cycle, categoryId, categor
             onChange={setWeeklyDetails}
           />
 
+
+          <AdvancedPlayerSelection
+            categoryId={categoryId}
+            selectedPlayers={selectedPlayers}
+            onSelectionChange={setSelectedPlayers}
+             selectionMode={selectionMode}
+             onSelectionModeChange={setSelectionMode}
+             showInjuredFilter={false}
+             allowAll={false}
+             maxHeight="180px"
+          />
 
           <div>
             <Label>Objectif</Label>

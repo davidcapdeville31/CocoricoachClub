@@ -17,6 +17,8 @@ import { toast } from "sonner";
 import { CycleFormFields } from "./CycleFormFields";
 import { CycleColorPicker } from "./CycleColorPicker";
 import { WeeklyIntensityVolumeDetails, averageWeekly, type WeeklyDetail } from "./WeeklyIntensityVolumeDetails";
+import { AdvancedPlayerSelection } from "@/components/category/players/AdvancedPlayerSelection";
+
 
 
 interface AddCycleDialogProps {
@@ -42,6 +44,8 @@ export function AddCycleDialog({ open, onOpenChange, categoryId, categories, pre
   const [dominantQuality, setDominantQuality] = useState("");
   const [customColor, setCustomColor] = useState("");
   const [weeklyDetails, setWeeklyDetails] = useState<WeeklyDetail[]>([]);
+  const [selectionMode, setSelectionMode] = useState<"all" | "specific">("specific");
+  const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const queryClient = useQueryClient();
 
   const avg = averageWeekly(weeklyDetails);
@@ -65,7 +69,7 @@ export function AddCycleDialog({ open, onOpenChange, categoryId, categories, pre
   const createCycle = useMutation({
     mutationFn: async () => {
       if (!startDate || !endDate) throw new Error("Dates requises");
-      const { error } = await supabase.from("periodization_cycles").insert({
+      const { data: cycle, error } = await supabase.from("periodization_cycles").insert({
         periodization_category_id: periodizationCategoryId,
         category_id: categoryId,
         name,
@@ -79,11 +83,19 @@ export function AddCycleDialog({ open, onOpenChange, categoryId, categories, pre
         volume: effectiveVolume || null,
         dominant_quality: dominantQuality || null,
         weekly_details: weeklyDetails.length > 0 ? weeklyDetails : null,
-      } as any);
+      } as any).select("id").single();
       if (error) throw error;
+      if (selectionMode === "specific" && selectedPlayers.length > 0) {
+        const { error: assignmentError } = await supabase
+          .from("periodization_cycle_players")
+          .insert(selectedPlayers.map((playerId) => ({ cycle_id: cycle.id, player_id: playerId })));
+        if (assignmentError) throw assignmentError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["periodization_cycles", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["athlete-current-cycles"] });
+      queryClient.invalidateQueries({ queryKey: ["athlete-calendar-periodization-cycles"] });
       toast.success("Cycle créé avec succès");
       resetForm();
       onOpenChange(false);
@@ -103,9 +115,11 @@ export function AddCycleDialog({ open, onOpenChange, categoryId, categories, pre
     setDominantQuality("");
     setCustomColor("");
     setWeeklyDetails([]);
+    setSelectionMode("specific");
+    setSelectedPlayers([]);
   };
 
-  const isValid = name.trim() && periodizationCategoryId && startDate && endDate && endDate >= startDate;
+  const isValid = name.trim() && periodizationCategoryId && startDate && endDate && endDate >= startDate && selectedPlayers.length > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -213,6 +227,17 @@ export function AddCycleDialog({ open, onOpenChange, categoryId, categories, pre
             onChange={setWeeklyDetails}
           />
 
+
+          <AdvancedPlayerSelection
+            categoryId={categoryId}
+            selectedPlayers={selectedPlayers}
+            onSelectionChange={setSelectedPlayers}
+             selectionMode={selectionMode}
+             onSelectionModeChange={setSelectionMode}
+             showInjuredFilter={false}
+             allowAll={false}
+             maxHeight="180px"
+          />
 
           <div>
             <Label>Objectif</Label>

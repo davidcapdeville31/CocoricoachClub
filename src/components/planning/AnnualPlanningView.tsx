@@ -25,6 +25,7 @@ import { useTranslation } from "react-i18next";
 interface AnnualPlanningViewProps {
   categoryId: string;
   readOnly?: boolean;
+  playerId?: string;
 }
 
 interface PeriodizationCategory {
@@ -66,7 +67,7 @@ function useMonthLabels(t: (k: string, o?: Record<string, unknown>) => unknown):
 
 const START_MONTH_STORAGE_PREFIX = "planning-start-month:";
 
-export function AnnualPlanningView({ categoryId, readOnly = false }: AnnualPlanningViewProps) {
+export function AnnualPlanningView({ categoryId, readOnly = false, playerId }: AnnualPlanningViewProps) {
   const { t } = useTranslation();
   const VIEW_MODES = useViewModes(t);
   const MONTH_LABELS = useMonthLabels(t);
@@ -176,9 +177,9 @@ export function AnnualPlanningView({ categoryId, readOnly = false }: AnnualPlann
   }, [categories, categoryId, categoryData, isViewer, queryClient]);
 
   const { data: cycles = [] } = useQuery({
-    queryKey: ["periodization_cycles", categoryId, selectedYear.getFullYear(), startMonth],
+    queryKey: ["periodization_cycles", categoryId, selectedYear.getFullYear(), startMonth, playerId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: cycleRows, error } = await supabase
         .from("periodization_cycles")
         .select("*")
         .eq("category_id", categoryId)
@@ -186,7 +187,15 @@ export function AnnualPlanningView({ categoryId, readOnly = false }: AnnualPlann
         .lte("start_date", format(yearEnd, "yyyy-MM-dd"))
         .order("start_date");
       if (error) throw error;
-      return data as unknown as PeriodizationCycle[];
+      if (!readOnly || !playerId || !cycleRows?.length) return (cycleRows || []) as unknown as PeriodizationCycle[];
+
+      const { data: assignments, error: assignmentError } = await supabase
+        .from("periodization_cycle_players")
+        .select("cycle_id")
+        .eq("player_id", playerId);
+      if (assignmentError) throw assignmentError;
+      const assignedCycleIds = new Set((assignments || []).map((assignment: any) => assignment.cycle_id));
+      return cycleRows.filter((cycle: any) => assignedCycleIds.has(cycle.id)) as unknown as PeriodizationCycle[];
     },
   });
 

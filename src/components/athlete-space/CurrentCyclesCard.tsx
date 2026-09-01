@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 
 interface Props {
   categoryId: string;
+  playerId: string;
 }
 
 const CYCLE_TYPE_META: Record<string, { short: string; className: string; icon: string }> = {
@@ -17,14 +18,14 @@ const CYCLE_TYPE_META: Record<string, { short: string; className: string; icon: 
   PC: { short: "PC", className: "bg-red-500/15 text-red-600 dark:text-red-300 border-red-500/30", icon: "⚡" },
 };
 
-export function CurrentCyclesCard({ categoryId }: Props) {
+export function CurrentCyclesCard({ categoryId, playerId }: Props) {
   const { t } = useTranslation();
   const today = new Date().toISOString().split("T")[0];
 
   const { data: cycles = [], isLoading } = useQuery({
-    queryKey: ["athlete-current-cycles", categoryId, today],
+    queryKey: ["athlete-current-cycles", categoryId, playerId, today],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: cycleRows, error } = await supabase
         .from("periodization_cycles")
         .select("id, name, color, cycle_type, intensity, start_date, end_date, objective, periodization_category_id, periodization_categories(name, color)")
         .eq("category_id", categoryId)
@@ -32,9 +33,17 @@ export function CurrentCyclesCard({ categoryId }: Props) {
         .gte("end_date", today)
         .order("start_date", { ascending: true });
       if (error) throw error;
-      return data || [];
+      if (!playerId || !cycleRows?.length) return cycleRows || [];
+
+      const { data: assignments, error: assignmentError } = await supabase
+        .from("periodization_cycle_players")
+        .select("cycle_id")
+        .eq("player_id", playerId);
+      if (assignmentError) throw assignmentError;
+      const assignedIds = new Set((assignments || []).map((assignment: any) => assignment.cycle_id));
+      return cycleRows.filter((cycle: any) => assignedIds.has(cycle.id));
     },
-    enabled: !!categoryId,
+    enabled: !!categoryId && !!playerId,
   });
 
   if (isLoading || cycles.length === 0) return null;
