@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { getTestCategoriesForSport, TestCategory } from "@/lib/constants/testCategories";
+import { displayUnit } from "@/lib/constants/testUnits";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { isRugbyType } from "@/lib/constants/sportTypes";
@@ -600,53 +601,6 @@ export function SessionFeedbackDialog({
         player_results: { ...t.player_results, [playerId]: value },
       };
     }));
-  };
-
-  /**
-   * Autosave a single test result on blur. Persists immediately into `generic_tests`,
-   * marks the cell as saved (read-only badge), and refreshes related queries so the
-   * value is preserved if the user closes/reopens the dialog without clicking "Enregistrer".
-   */
-  const autosaveTestResult = async (testId: string, playerId: string, rawValue: string) => {
-    const value = (rawValue || "").trim();
-    if (!value) return;
-    const numeric = parseFloat(value);
-    if (isNaN(numeric)) return;
-
-    const test = sessionTests.find(t => t.id === testId);
-    if (!test || !test.test_type) return;
-    if (test.savedPlayerIds?.has(playerId)) return;
-    if (!session?.session_date) return;
-
-    try {
-      const { error } = await supabase.from("generic_tests").insert({
-        player_id: playerId,
-        category_id: categoryId,
-        test_date: session.session_date,
-        test_category: test.test_category,
-        test_type: test.test_type,
-        result_value: numeric,
-        result_unit: test.result_unit || null,
-        notes: `Séance du ${session.session_date} (Session ID: ${sessionId})`,
-      });
-      if (error) throw error;
-
-      // Mark as saved locally so the UI shows the read-only badge immediately
-      setSessionTests(tests => tests.map(t => {
-        if (t.id !== testId) return t;
-        const next = new Set(t.savedPlayerIds || []);
-        next.add(playerId);
-        return { ...t, savedPlayerIds: next };
-      }));
-
-      queryClient.invalidateQueries({ queryKey: ["generic_tests", categoryId] });
-      queryClient.invalidateQueries({ queryKey: ["today_session_tests"] });
-      queryClient.invalidateQueries({ queryKey: ["generic-tests-evolution", categoryId] });
-      queryClient.invalidateQueries({ queryKey: ["generic-tests-multi-comparison", categoryId] });
-    } catch (e: any) {
-      console.error("Autosave test result failed:", e);
-      toast.error(t("planning.calendarDialogs.sessionFeedback.toasts.autosaveError"));
-    }
   };
 
   const presentPlayerIds = new Set(
