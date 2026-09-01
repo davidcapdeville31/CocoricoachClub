@@ -241,8 +241,10 @@ export function PlayerCalendarTab({ playerId, categoryId }: PlayerCalendarTabPro
                   }}
                   modifiersStyles={{
                     session: {
+                      backgroundColor: "hsl(var(--primary) / 0.18)",
+                      color: "hsl(var(--primary))",
+                      borderRadius: "4px",
                       fontWeight: "bold",
-                      textDecoration: "underline",
                     },
                     match: {
                       backgroundColor: "hsl(346, 77%, 50%, 0.2)",
@@ -250,7 +252,7 @@ export function PlayerCalendarTab({ playerId, categoryId }: PlayerCalendarTabPro
                       fontWeight: "bold",
                     },
                     rehab: {
-                      backgroundColor: "hsl(var(--primary) / 0.2)",
+                      backgroundColor: "hsl(38, 92%, 50%, 0.25)",
                       borderRadius: "4px",
                     },
                   }}
