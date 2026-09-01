@@ -57,6 +57,12 @@ export function CalendarColorLegend({
     });
 
     entries.push({
+      key: "__test_campaign__",
+      label: t("planning.calendarViews.legend.testCampaign"),
+      colorClass: "bg-training-test",
+    });
+
+    entries.push({
       key: "__match__",
       label: t("planning.calendarViews.legend.competition"),
       colorClass: TRAINING_TYPE_COLORS.match || "bg-rose-500",

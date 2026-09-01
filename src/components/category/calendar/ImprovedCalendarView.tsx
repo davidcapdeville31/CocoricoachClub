@@ -709,6 +709,7 @@ export function ImprovedCalendarView({
                       currentMonth={currentDate}
                       sessions={getSessionsForDay(day)}
                       matches={getMatchesForDay(day)}
+                      testCampaigns={selectedEventTypes.length === 0 || selectedEventTypes.includes("test") ? getTestCampaignsForDay(day) : []}
                       sportType={sportType}
                       isViewer={isViewer}
                       onDayClick={handleDayClickWithAdd}
@@ -903,7 +904,7 @@ export function ImprovedCalendarView({
                   day={day}
                   sessions={getSessionsForDay(day)}
                   matches={getMatchesForDay(day)}
-                  testCampaigns={getTestCampaignsForDay(day)}
+                  testCampaigns={selectedEventTypes.length === 0 || selectedEventTypes.includes("test") ? getTestCampaignsForDay(day) : []}
                   sportType={sportType}
                   trainingTypeLabels={trainingTypeLabels}
                   isViewer={isViewer}

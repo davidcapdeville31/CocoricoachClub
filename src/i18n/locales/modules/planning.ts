@@ -52,7 +52,7 @@ export const planningFr = {
     moreEvents: "+{{count}} autres",
     tipAddEvent: "Astuce : cliquez sur un jour pour ajouter un événement",
     testCampaign: "Période de tests",
-    legend: { title: "Légende des couleurs", athlete: "Séance ajoutée par un athlète", competition: "Compétition / Match" },
+    legend: { title: "Légende des couleurs", athlete: "Séance ajoutée par un athlète", competition: "Compétition / Match", testCampaign: "Période de tests" },
     notifications: {
       title: "Notifications du calendrier",
       subtitle: "Ces séances nécessitent votre attention.",
@@ -1040,7 +1040,7 @@ export const planningEn = {
     moreEvents: "+{{count}} more",
     tipAddEvent: "Tip: click a day to add an event",
     testCampaign: "Test period",
-    legend: { title: "Colour legend", athlete: "Session added by an athlete", competition: "Competition / Match" },
+    legend: { title: "Colour legend", athlete: "Session added by an athlete", competition: "Competition / Match", testCampaign: "Test period" },
     notifications: {
       title: "Calendar notifications",
       subtitle: "These sessions require your attention.",
