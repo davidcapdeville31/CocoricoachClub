@@ -1,4 +1,4 @@
-import { getLocaleTag } from "@/lib/i18n/dateLocale";
+import { getDateLocale, getLocaleTag } from "@/lib/i18n/dateLocale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { X, Dumbbell, Activity, CheckCircle2, Swords, Video, Stethoscope, Users, CalendarDays, LayoutDashboard, Eye } from "lucide-react";
 import { isWithinInterval, parseISO } from "date-fns";
+import { SessionDetailsDialog } from "@/components/category/SessionDetailsDialog";
 import { getDisplayNotes, parseTestsFromNotes } from "@/lib/utils/sessionNotes";
 import { TEST_CATEGORIES } from "@/lib/constants/testCategories";
 import { AnnualPlanningView } from "@/components/planning/AnnualPlanningView";
