@@ -554,6 +554,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                   test: testDates,
                   match: matchDates,
                   athleteSession: athleteSessionDates,
+                  cycle: cycleDates,
                   prophylaxis: prophylaxisDates,
                   rehab: rehabDates,
                 }}
