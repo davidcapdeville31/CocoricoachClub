@@ -224,7 +224,7 @@ export function ImprovedCalendarView({
   // A campaign remains visible on every day of its configured test window,
   // rather than only on the session date where it was created.
   const testCampaigns = useMemo(() => {
-    const campaigns = new Map<string, { id: string; start: string; end: string; label: string }>();
+    const campaigns = new Map<string, { id: string; start: string; end: string; label: string; sessionId: string; trainingType: string }>();
     sessions.forEach((session) => {
       const window = parseTestWindowFromNotes(session.notes);
       const tests = parseTestsFromNotes(session.notes);
@@ -242,11 +242,19 @@ export function ImprovedCalendarView({
           start: window.start,
           end: window.end,
           label: labels.join(" • "),
+          sessionId: session.id,
+          trainingType: session.training_type,
         });
       }
     });
     return Array.from(campaigns.values());
   }, [sessions, customTestLabels]);
+
+  const openTestCampaign = (campaign: { sessionId: string; trainingType: string }) => {
+    const session = sessions.find((s) => s.id === campaign.sessionId);
+    if (session) setFeedbackSession(session);
+  };
+
 
   const getTestCampaignsForDay = (day: Date) => {
     const dayStr = format(day, "yyyy-MM-dd");
