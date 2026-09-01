@@ -325,6 +325,15 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
     }
   });
   const athleteSessionDates = athleteSessionList.map(s => new Date(s.session_date));
+  const cycleDates = useMemo(() => {
+    const dates: Date[] = [];
+    periodizationCycles.forEach((cycle: any) => {
+      try {
+        dates.push(...eachDayOfInterval({ start: parseISO(cycle.start_date), end: parseISO(cycle.end_date) }));
+      } catch { /* ignore invalid cycle dates */ }
+    });
+    return dates;
+  }, [periodizationCycles]);
 
   // Compute prophylaxis dates for calendar modifiers
   const prophylaxisDates = useMemo(() => {
