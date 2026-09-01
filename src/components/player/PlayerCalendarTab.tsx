@@ -77,8 +77,10 @@ export function PlayerCalendarTab({ playerId, categoryId }: PlayerCalendarTabPro
         .order("session_date", { ascending: false })
         .order("session_start_time", { ascending: false });
       if (error) throw error;
-      // Filtrer : si la séance a des participants explicites, ne l'afficher qu'aux joueurs assignés
+      // Une séance créée par l'athlète reste visible dans son calendrier,
+      // même si les participants explicites ne sont pas encore synchronisés.
       return (data || []).filter((s: any) => {
+        if (s.created_by_player_id === playerId) return true;
         const parts = s.event_participants || [];
         if (!parts.length) return true;
         return parts.some((p: any) => p.player_id === playerId);
