@@ -89,14 +89,26 @@ export function SimplifiedSessionDialog({
   const [partnerIds, setPartnerIds] = useState<string[]>([]);
 
   useEffect(() => {
-    if (!open) {
+    if (session) {
+      setTrainingType(session.training_type);
+      setNotes((session.notes || "").replace(/^<!--SIMPLIFIED_SESSION-->\n?/, "").split("\n").slice(0, -1).join("\n"));
+      const start = session.session_start_time || "09:00";
+      const end = session.session_end_time;
+      if (end) {
+        const [sh, sm] = start.split(":").map(Number);
+        const [eh, em] = end.split(":").map(Number);
+        setDurationMin(Math.max(1, (eh * 60 + em) - (sh * 60 + sm)));
+      } else setDurationMin(60);
+      setRpe(Math.min(10, Math.max(1, Number(session.intensity) || 6)));
+      setPartnerIds([]);
+    } else if (!open) {
       setNotes("");
       setDurationMin(60);
       setRpe(6);
       setPartnerIds([]);
       setTrainingType(lockedTrainingType || trainingTypes[0]?.value || "musculation");
     }
-  }, [open, lockedTrainingType, trainingTypes]);
+  }, [open, lockedTrainingType, trainingTypes, session]);
 
   const computeEndTime = (start: string, mins: number) => {
     const [h, m] = start.split(":").map(Number);
