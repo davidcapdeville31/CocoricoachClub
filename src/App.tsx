@@ -44,7 +44,6 @@ import MentionsLegales from "./pages/legal/MentionsLegales";
 import PolitiqueConfidentialite from "./pages/legal/PolitiqueConfidentialite";
 import CGU from "./pages/legal/CGU";
 import PolitiqueCookies from "./pages/legal/PolitiqueCookies";
-import UnsubscribePage from "./pages/Unsubscribe";
 import { CookieConsentBanner } from "./components/legal/CookieConsentBanner";
 import { MaintenanceGate } from "./components/MaintenanceGate";
 import { useRadixPointerEventsGuard } from "@/hooks/useRadixPointerEventsGuard";
@@ -197,9 +196,8 @@ const App = () => (
                     <Route path="/mentions-legales" element={<MentionsLegales />} />
                     <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
                     <Route path="/cgu" element={<CGU />} />
-                    <Route path="/politique-cookies" element={<PolitiqueCookies />} />
-                    <Route path="/unsubscribe" element={<UnsubscribePage />} />
-                    <Route path="*" element={<NotFound />} />
+                     <Route path="/politique-cookies" element={<PolitiqueCookies />} />
+                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </MaintenanceGate>
               </OfflineSyncProvider>

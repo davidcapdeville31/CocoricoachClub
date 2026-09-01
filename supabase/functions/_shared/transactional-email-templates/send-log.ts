@@ -1,10 +1,8 @@
+import { createClient } from 'npm:@supabase/supabase-js@2'
 import { sendTemplateEmail, type SendTemplateEmailOptions, type SendTemplateEmailResult } from './send-email.ts'
 
-type EmailLogClient = {
-  from: (table: string) => {
-    insert: (row: Record<string, unknown>) => Promise<{ error: { message?: string } | null }>
-  }
-}
+type EmailLogClient = ReturnType<typeof createClient>
+
 
 export async function sendTemplateEmailWithLog(
   supabase: EmailLogClient,
