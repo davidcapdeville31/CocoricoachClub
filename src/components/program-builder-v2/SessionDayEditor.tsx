@@ -5,7 +5,7 @@
 // Les autres ConfigMethod (Drop Set, EMOM, AMRAP, Tabata, etc.) déclenchent
 // MethodConfigSlots.
 
-import { forwardRef, useCallback, useImperativeHandle, useMemo, useState } from "react";
+import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -438,22 +438,28 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
     [blocks, onChange],
   );
 
+  // Ref sur la dernière version des blocs : permet d'enchaîner plusieurs
+  // updateExerciseField() dans le même tick (ex. variableSets + sets) sans
+  // que le second appel écrase le premier avec un état périmé.
+  const blocksRef = useRef(blocks);
+  blocksRef.current = blocks;
+
   const updateExerciseField = useCallback(
     (blockId: string, exerciseId: string, key: string, value: any) => {
-      onChange(
-        blocks.map((b) =>
-          b.id === blockId
-            ? {
-                ...b,
-                exercises: (b.exercises ?? []).map((e) =>
-                  e.id === exerciseId ? { ...e, [key]: value } : e,
-                ),
-              }
-            : b,
-        ),
+      const next = blocksRef.current.map((b) =>
+        b.id === blockId
+          ? {
+              ...b,
+              exercises: (b.exercises ?? []).map((e) =>
+                e.id === exerciseId ? { ...e, [key]: value } : e,
+              ),
+            }
+          : b,
       );
+      blocksRef.current = next;
+      onChange(next);
     },
-    [blocks, onChange],
+    [onChange],
   );
 
   // Démarre une méthode liée (Biset/Superset/...) → affiche la carte LinkedMethodSlots

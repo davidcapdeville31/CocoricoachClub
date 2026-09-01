@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Users } from "lucide-react";
 import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
+import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 
 interface Props {
@@ -27,16 +28,30 @@ export function AthletePartnersSelector({ categoryId, selfPlayerId, value, onCha
   const { data: players = [] } = useQuery({
     queryKey: ["athlete-partners-roster", categoryId, selfPlayerId],
     queryFn: async () => {
-      const roster = await fetchCategoryRosterPlayers(categoryId);
-      return (roster || [])
-        .filter((p: any) => p.id !== selfPlayerId)
-        .map((p: any) => {
-          const last = String(p.name || "").trim();
-          const first = String(p.first_name || "").trim();
-          const label = [last.toUpperCase(), first].filter(Boolean).join(" ") || "—";
-          return { id: p.id as string, name: label };
-        })
-        .sort((a, b) => a.name.localeCompare(b.name, "fr"));
+      const format = (rows: any[]) =>
+        (rows || [])
+          .filter((p: any) => p.id !== selfPlayerId)
+          .map((p: any) => {
+            const last = String(p.name || "").trim();
+            const first = String(p.first_name || "").trim();
+            const label = [last.toUpperCase(), first].filter(Boolean).join(" ") || "—";
+            return { id: p.id as string, name: label };
+          })
+          .sort((a, b) => a.name.localeCompare(b.name, "fr"));
+
+      // Les athlètes n'ont pas accès en lecture directe aux autres joueurs (RLS) :
+      // on passe par une fonction sécurisée qui ne renvoie que nom/prénom.
+      const { data: rpcRows, error: rpcError } = await supabase.rpc("get_category_roster_min", {
+        _category_id: categoryId,
+      });
+      if (!rpcError && rpcRows && rpcRows.length > 0) return format(rpcRows as any[]);
+
+      try {
+        const roster = await fetchCategoryRosterPlayers(categoryId);
+        return format(roster as any[]);
+      } catch {
+        return [];
+      }
     },
     enabled: !!categoryId,
   });
@@ -51,8 +66,6 @@ export function AthletePartnersSelector({ categoryId, selfPlayerId, value, onCha
   const toggle = (id: string) => {
     onChange(value.includes(id) ? value.filter((v) => v !== id) : [...value, id]);
   };
-
-  if (players.length === 0) return null;
 
   return (
     <div className="space-y-2">
