@@ -523,14 +523,20 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
           .from("training_session_blocks")
           .delete()
           .eq("training_session_id", sessionId);
-        // Sync participants without wiping existing attendance responses
+        // Sync participants without wiping existing attendance responses.
+        // ⚠️ On ne retire QUE des athlètes réellement affichés dans le sélecteur :
+        // un participant issu d'une autre catégorie/structure (séance partagée entre
+        // athlètes) n'apparaît pas dans la liste et ne doit jamais être supprimé.
         {
           const { data: existingParts } = await supabase
             .from("event_participants")
             .select("id, player_id")
             .eq("training_session_id", sessionId);
           const desired = new Set(selectedPlayers);
-          const toRemove = (existingParts || []).filter((p: any) => !desired.has(p.player_id)).map((p: any) => p.id);
+          const selectableIds = new Set((players || []).map((p: any) => p.id));
+          const toRemove = (existingParts || [])
+            .filter((p: any) => !desired.has(p.player_id) && selectableIds.has(p.player_id))
+            .map((p: any) => p.id);
           const existingIds = new Set((existingParts || []).map((p: any) => p.player_id));
           const toAdd = selectedPlayers.filter((pid) => !existingIds.has(pid));
           if (toRemove.length > 0) {
