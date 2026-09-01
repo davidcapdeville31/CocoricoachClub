@@ -90,6 +90,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   const [isSessionSimplifiedOpen, setIsSessionSimplifiedOpen] = useState(false);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
   const [sessionToDelete, setSessionToDelete] = useState<any | null>(null);
+  const [sessionToEdit, setSessionToEdit] = useState<any | null>(null);
   const [matchToDelete, setMatchToDelete] = useState<any | null>(null);
   const [bowlingMatchEntry, setBowlingMatchEntry] = useState<any | null>(null);
   const [editingMentalSession, setEditingMentalSession] = useState<{ id: string; title: string; durationMin: number; theme: string; notes: string; date: Date } | null>(null);
