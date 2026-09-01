@@ -113,6 +113,8 @@ export function AddCycleDialog({ open, onOpenChange, categoryId, categories, pre
     setDominantQuality("");
     setCustomColor("");
     setWeeklyDetails([]);
+    setSelectionMode("all");
+    setSelectedPlayers([]);
   };
 
   const isValid = name.trim() && periodizationCategoryId && startDate && endDate && endDate >= startDate;
