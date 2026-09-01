@@ -308,7 +308,7 @@ export function SimplifiedSessionDialog({
             {submitMutation.isPending ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : null}
-            {t('athleteSpace.components.simplifiedSessionDialog.submit')}
+            {isEditing ? "Enregistrer les modifications" : t('athleteSpace.components.simplifiedSessionDialog.submit')}
           </Button>
         </DialogFooter>
       </DialogContent>
