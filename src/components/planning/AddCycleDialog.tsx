@@ -69,7 +69,7 @@ export function AddCycleDialog({ open, onOpenChange, categoryId, categories, pre
   const createCycle = useMutation({
     mutationFn: async () => {
       if (!startDate || !endDate) throw new Error("Dates requises");
-      const { error } = await supabase.from("periodization_cycles").insert({
+      const { data: cycle, error } = await supabase.from("periodization_cycles").insert({
         periodization_category_id: periodizationCategoryId,
         category_id: categoryId,
         name,
@@ -83,8 +83,14 @@ export function AddCycleDialog({ open, onOpenChange, categoryId, categories, pre
         volume: effectiveVolume || null,
         dominant_quality: dominantQuality || null,
         weekly_details: weeklyDetails.length > 0 ? weeklyDetails : null,
-      } as any);
+      } as any).select("id").single();
       if (error) throw error;
+      if (selectionMode === "specific" && selectedPlayers.length > 0) {
+        const { error: assignmentError } = await supabase
+          .from("periodization_cycle_players")
+          .insert(selectedPlayers.map((playerId) => ({ cycle_id: cycle.id, player_id: playerId })));
+        if (assignmentError) throw assignmentError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["periodization_cycles", categoryId] });
