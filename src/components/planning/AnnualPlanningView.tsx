@@ -67,7 +67,7 @@ function useMonthLabels(t: (k: string, o?: Record<string, unknown>) => unknown):
 
 const START_MONTH_STORAGE_PREFIX = "planning-start-month:";
 
-export function AnnualPlanningView({ categoryId, readOnly = false }: AnnualPlanningViewProps) {
+export function AnnualPlanningView({ categoryId, readOnly = false, playerId }: AnnualPlanningViewProps) {
   const { t } = useTranslation();
   const VIEW_MODES = useViewModes(t);
   const MONTH_LABELS = useMonthLabels(t);

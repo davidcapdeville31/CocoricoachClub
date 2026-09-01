@@ -18,7 +18,7 @@ const CYCLE_TYPE_META: Record<string, { short: string; className: string; icon: 
   PC: { short: "PC", className: "bg-red-500/15 text-red-600 dark:text-red-300 border-red-500/30", icon: "⚡" },
 };
 
-export function CurrentCyclesCard({ categoryId }: Props) {
+export function CurrentCyclesCard({ categoryId, playerId }: Props) {
   const { t } = useTranslation();
   const today = new Date().toISOString().split("T")[0];
 
