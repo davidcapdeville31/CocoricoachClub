@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { CycleFormFields } from "./CycleFormFields";
 import { CycleColorPicker } from "./CycleColorPicker";
 import { WeeklyIntensityVolumeDetails, averageWeekly, type WeeklyDetail } from "./WeeklyIntensityVolumeDetails";
+import { AdvancedPlayerSelection } from "@/components/category/players/AdvancedPlayerSelection";
 
 
 interface EditCycleDialogProps {
