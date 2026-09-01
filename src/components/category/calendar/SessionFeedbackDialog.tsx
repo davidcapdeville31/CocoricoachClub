@@ -995,7 +995,8 @@ export function SessionFeedbackDialog({
               <div className="flex-1 min-h-0 overflow-y-auto pr-2 space-y-4" style={{ maxHeight: "calc(90vh - 240px)" }}>
                 {sessionTests.map((test) => {
                   const testLabel = labelizeTestType(test.test_type, customTestMap);
-                  const unit = test.result_unit || (test.test_type?.startsWith("custom:") ? customTestMap[test.test_type]?.unit || "" : "");
+                  const rawUnit = test.result_unit || (test.test_type?.startsWith("custom:") ? customTestMap[test.test_type]?.unit || "" : "");
+                  const unit = displayUnit(rawUnit);
                   return (
                     <div key={test.id} className="rounded-lg border border-border p-3 bg-muted/30 space-y-2">
                       <div className="flex items-center gap-2">
@@ -1072,7 +1073,6 @@ export function SessionFeedbackDialog({
                                     className="w-24 h-8 text-sm"
                                     value={val}
                                     onChange={(e) => updatePlayerTestResult(test.id, player.id, e.target.value)}
-                                    onBlur={(e) => autosaveTestResult(test.id, player.id, e.target.value)}
                                   />
                                   <span className="text-xs text-muted-foreground w-8">{unit}</span>
                                 </>
@@ -1120,8 +1120,14 @@ export function SessionFeedbackDialog({
                 </Button>
                 {!isAutoSaveTab && (
                   <Button
-                    onClick={() => saveData.mutate()}
-                    disabled={saveData.isPending || (!hasNewRpeValues && !hasTestResults && !hasWeightLogs)}
+                    onClick={() => {
+                      if (!hasNewRpeValues && !hasTestResults && !hasWeightLogs) {
+                        toast.info(t("planning.calendarDialogs.sessionFeedback.toasts.nothingToSave"));
+                        return;
+                      }
+                      saveData.mutate();
+                    }}
+                    disabled={saveData.isPending}
                   >
                     {saveData.isPending ? t("planning.calendarDialogs.sessionFeedback.saving") : t("planning.calendarDialogs.sessionFeedback.save")}
                   </Button>
