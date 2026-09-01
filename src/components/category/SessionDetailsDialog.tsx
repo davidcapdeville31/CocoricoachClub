@@ -736,10 +736,16 @@ export function SessionDetailsDialog({
               </p>
             )}
           </div>
-          <Button variant="outline" size="icon" onClick={handlePrint} title="Imprimer">
-            <Printer className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="icon" onClick={handlePrint} title="Imprimer">
+              <Printer className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="icon" onClick={() => onOpenChange(false)} title="Fermer">
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </DialogHeader>
+
 
         <div className="flex-1 overflow-y-auto min-h-0">
         {/* Printable content - includes exercises */}
