@@ -111,6 +111,18 @@ export function EditCycleDialog({ open, onOpenChange, cycle, categoryId, categor
         } as any)
         .eq("id", cycle.id);
       if (error) throw error;
+
+      const { error: deleteAssignmentsError } = await supabase
+        .from("periodization_cycle_players")
+        .delete()
+        .eq("cycle_id", cycle.id);
+      if (deleteAssignmentsError) throw deleteAssignmentsError;
+      if (selectionMode === "specific" && selectedPlayers.length > 0) {
+        const { error: assignmentError } = await supabase
+          .from("periodization_cycle_players")
+          .insert(selectedPlayers.map((playerId) => ({ cycle_id: cycle.id, player_id: playerId })));
+        if (assignmentError) throw assignmentError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["periodization_cycles", categoryId] });
