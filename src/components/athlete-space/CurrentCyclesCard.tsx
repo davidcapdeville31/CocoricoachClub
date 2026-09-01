@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 
 interface Props {
   categoryId: string;
+  playerId: string;
 }
 
 const CYCLE_TYPE_META: Record<string, { short: string; className: string; icon: string }> = {
