@@ -126,6 +126,9 @@ export function EditCycleDialog({ open, onOpenChange, cycle, categoryId, categor
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["periodization_cycles", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["periodization-cycle-players", cycle.id] });
+      queryClient.invalidateQueries({ queryKey: ["athlete-current-cycles"] });
+      queryClient.invalidateQueries({ queryKey: ["athlete-calendar-periodization-cycles"] });
       toast.success("Cycle mis à jour");
       onOpenChange(false);
     },

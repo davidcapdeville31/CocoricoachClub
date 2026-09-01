@@ -94,6 +94,8 @@ export function AddCycleDialog({ open, onOpenChange, categoryId, categories, pre
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["periodization_cycles", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["athlete-current-cycles"] });
+      queryClient.invalidateQueries({ queryKey: ["athlete-calendar-periodization-cycles"] });
       toast.success("Cycle créé avec succès");
       resetForm();
       onOpenChange(false);

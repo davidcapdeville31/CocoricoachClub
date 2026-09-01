@@ -393,6 +393,9 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
 
   const selectedDateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null;
   const daySessions = sessions.filter(s => s.session_date === selectedDateStr);
+  const dayCycles = periodizationCycles.filter((cycle: any) =>
+    !!selectedDateStr && selectedDateStr >= cycle.start_date && selectedDateStr <= cycle.end_date,
+  );
   const dayMatches = matches.filter(m => {
     if (!selectedDateStr) return false;
     if (!m.end_date || m.end_date === m.match_date) return m.match_date === selectedDateStr;
@@ -477,7 +480,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
     }, {} as Record<string, typeof sessionExercises>);
   }, [sessionExercises]);
 
-  const hasDayEvents = daySessions.length > 0 || dayMatches.length > 0 || dayProphylaxis.length > 0 || dayRehab.length > 0;
+  const hasDayEvents = daySessions.length > 0 || dayMatches.length > 0 || dayCycles.length > 0 || dayProphylaxis.length > 0 || dayRehab.length > 0;
 
   return (
     <div className="space-y-4">
@@ -622,6 +625,26 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
 
                   ) : (
                     <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                      {/* Assigned work cycles */}
+                      {dayCycles.map((cycle: any) => (
+                        <div
+                          key={cycle.id}
+                          className="rounded-lg border-l-4 p-3"
+                          style={{ borderLeftColor: cycle.color || "hsl(var(--brand-500))", backgroundColor: "hsl(var(--brand-500) / 0.08)" }}
+                        >
+                          <div className="flex items-start gap-2">
+                            <Activity className="h-4 w-4 mt-0.5 shrink-0" style={{ color: cycle.color || "hsl(var(--brand-500))" }} />
+                            <div className="min-w-0">
+                              <p className="font-medium text-sm">{cycle.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {format(parseISO(cycle.start_date), "d MMM", { locale: getDateLocale() })} → {format(parseISO(cycle.end_date), "d MMM yyyy", { locale: getDateLocale() })}
+                              </p>
+                              {cycle.objective && <p className="text-xs text-muted-foreground mt-1">{cycle.objective}</p>}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
                       {/* Matches */}
                       {dayMatches.map(match => {
                         const isPersonalMine = match.is_personal && match.created_by_player_id === playerId;
