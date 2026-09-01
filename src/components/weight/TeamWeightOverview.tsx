@@ -109,11 +109,12 @@ export function TeamWeightOverview({ categoryId }: Props) {
               const Icon = !d ? Minus : d > 0 ? TrendingUp : TrendingDown;
               const color = !d ? "text-muted-foreground" : d > 0 ? "text-warning" : "text-status-optimal";
               return (
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   key={r.id}
                   onClick={() => setSelectedId(r.id)}
-                  className={`text-left rounded-xl border bg-surface-sunken p-3 transition-colors hover:border-primary ${
+                  className={`h-auto w-full justify-start rounded-xl border bg-surface-sunken p-3 text-left transition-colors hover:border-primary ${
                     r.id === activeId ? "border-primary ring-1 ring-primary/40" : ""
                   }`}
                 >
