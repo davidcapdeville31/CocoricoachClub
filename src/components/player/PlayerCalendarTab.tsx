@@ -89,20 +89,25 @@ export function PlayerCalendarTab({ playerId, categoryId }: PlayerCalendarTabPro
     refetchOnWindowFocus: true,
   });
 
-  // Fetch matches for this category
+  // Fetch matches where this player is assigned (or that he created himself)
   const { data: matches } = useQuery({
-    queryKey: ["matches", categoryId],
+    queryKey: ["matches", categoryId, playerId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("matches")
-        .select("*")
+        .select("*, match_participants(player_id)")
         .eq("category_id", categoryId)
         .order("match_date", { ascending: false });
       if (error) throw error;
-      return data;
+      return (data || []).filter((m: any) => {
+        if (m.created_by_player_id === playerId) return true;
+        const parts = m.match_participants || [];
+        return parts.some((p: any) => p.player_id === playerId);
+      });
     },
     refetchOnWindowFocus: true,
   });
+
 
   // Fetch rehab calendar events for this player
   const { data: rehabEvents } = useQuery({
