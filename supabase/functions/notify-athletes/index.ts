@@ -282,31 +282,19 @@ const handler = async (req: Request): Promise<Response> => {
 
           const idemKey = `notify-${eventType}-${athlete.user_id ?? athlete.email}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-          const { error: emailError } = await supabaseService.functions.invoke(
-            "send-transactional-email",
-            {
-              body: {
-                templateName: "app-notification",
-                recipientEmail: athlete.email,
-                idempotencyKey: idemKey,
-                templateData: {
-                  siteName: APP_NAME,
-                  siteUrl: APP_URL,
-                  title: subject,
-                  message: fullMessage,
-                  ctaLabel: "Ouvrir l'application",
-                  ctaUrl: APP_URL,
-                },
-              },
-            }
-          );
+          const result = await sendTemplateEmailWithLog(supabaseService, "app-notification", athlete.email, {
+            idempotencyKey: idemKey,
+            templateData: {
+              siteName: APP_NAME,
+              siteUrl: APP_URL,
+              title: subject,
+              message: fullMessage,
+              ctaLabel: "Ouvrir l'application",
+              ctaUrl: APP_URL,
+            },
+          });
 
-          if (emailError) {
-            console.error(`Failed to send email to ${athlete.email}:`, emailError);
-            results.errors.push(`Email ${athlete.email}: ${emailError.message ?? String(emailError)}`);
-          } else {
-            results.emailsSent++;
-          }
+          if (result.sent) results.emailsSent++;
         } catch (e: unknown) {
           const errorMessage = e instanceof Error ? e.message : String(e);
           results.errors.push(`Email ${athlete.email}: ${errorMessage}`);

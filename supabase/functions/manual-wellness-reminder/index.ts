@@ -154,23 +154,16 @@ serve(async (req) => {
     const stamp = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, "");
     for (const t of emailTargets) {
       try {
-        const { error: emailErr } = await supabase.functions.invoke(
-          "send-transactional-email",
-          {
-            body: {
-              templateName: "app-notification",
-              recipientEmail: t.email,
-              idempotencyKey: `manual-wellness-${t.userId}-${stamp}`,
-              templateData: {
-                title: "❤️ Rappel Wellness",
-                message: `Ton coach te rappelle de remplir ton Wellness du jour (${category.name}). Ça prend 30 secondes !`,
-                ctaLabel: "Remplir mon Wellness",
-                ctaUrl: wellnessDeepLink,
-              },
-            },
-          }
-        );
-        if (!emailErr) emailsSent += 1;
+        const result = await sendTemplateEmailWithLog(supabase, "app-notification", t.email, {
+          idempotencyKey: `manual-wellness-${t.userId}-${stamp}`,
+          templateData: {
+            title: "❤️ Rappel Wellness",
+            message: `Ton coach te rappelle de remplir ton Wellness du jour (${category.name}). Ça prend 30 secondes !`,
+            ctaLabel: "Remplir mon Wellness",
+            ctaUrl: wellnessDeepLink,
+          },
+        });
+        if (result.sent) emailsSent += 1;
       } catch (e) {
         console.error("[manual-wellness] email error", e);
       }

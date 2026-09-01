@@ -242,32 +242,20 @@ serve(async (req) => {
       }
     }
 
-    // ── EMAIL via send-transactional-email (queued, logged, retry-safe) ───
+    // ── EMAIL via Lovable-managed delivery ───────────────────────────────
     if (channels.email && emails.length > 0) {
       for (const recipient of emails) {
         try {
-          const { error: emailError } = await supabase.functions.invoke(
-            "send-transactional-email",
-            {
-              body: {
-                templateName: "app-notification",
-                recipientEmail: recipient,
-                idempotencyKey: `global-notif-${target_type}-${recipient}-${Date.now()}`,
-                templateData: {
-                  title,
-                  message,
-                  ctaLabel: "Ouvrir l'application",
-                  ctaUrl: "https://cocoricoachclub.com",
-                },
-              },
-            }
-          );
-          if (emailError) {
-            console.error("Email error:", emailError);
-            errors.push(`Email (${recipient}): ${emailError.message ?? String(emailError)}`);
-          } else {
-            emailSent += 1;
-          }
+          const result = await sendTemplateEmailWithLog(supabase, "app-notification", recipient, {
+            idempotencyKey: `global-notif-${target_type}-${recipient}-${Date.now()}`,
+            templateData: {
+              title,
+              message,
+              ctaLabel: "Ouvrir l'application",
+              ctaUrl: "https://cocoricoachclub.com",
+            },
+          });
+          if (result.sent) emailSent += 1;
         } catch (e) {
           const msg = e instanceof Error ? e.message : String(e);
           console.error("Email exception:", msg);
