@@ -7,7 +7,6 @@ import {
   Button,
   Container,
   Head,
-  Img,
   Heading,
   Html,
   Preview,
@@ -23,21 +22,24 @@ export const RecoveryEmail = ({
   siteName,
   confirmationUrl,
 }: RecoveryEmailProps) => (
-  <Html lang="fr" dir="ltr">
-    <Head />
-    <Preview>Réinitialise ton mot de passe sur {siteName}</Preview>
+  <Html lang="en" dir="ltr">
+    <Head>
+      <style>{darkModeCss}</style>
+    </Head>
+    <Preview>Reset your password for {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Img src="https://mbloebaovvvgfwxsdzgo.supabase.co/storage/v1/object/public/email-assets/cocoricoach-logo.png" alt="CocoriCoach Club" width="160" style={logo} />
-        <Heading style={h1}>Réinitialisation du mot de passe</Heading>
+        <Heading style={h1}>Reset your password</Heading>
         <Text style={text}>
-          Nous avons reçu une demande de réinitialisation de ton mot de passe sur {siteName}. Clique sur le bouton ci-dessous pour choisir un nouveau mot de passe.
+          We received a request to reset your password for {siteName}. Click
+          the button below to choose a new password.
         </Text>
-        <Button style={button} href={confirmationUrl}>
-          Réinitialiser mon mot de passe
+        <Button className="dm-btn" style={button} href={confirmationUrl}>
+          Reset Password
         </Button>
         <Text style={footer}>
-          Si tu n'as pas demandé cette réinitialisation, ignore cet email — ton mot de passe restera inchangé.
+          If you didn't request a password reset, you can safely ignore this
+          email. Your password will not be changed.
         </Text>
       </Container>
     </Body>
@@ -46,38 +48,35 @@ export const RecoveryEmail = ({
 
 export default RecoveryEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Inter, Arial, sans-serif' }
-const container = { padding: '32px 28px', maxWidth: '560px' }
-const logo = { margin: "0 0 24px", display: "block" }
-const _brand = {
-  fontSize: '14px',
-  fontWeight: 'bold' as const,
-  color: '#0B1F3A',
-  letterSpacing: '0.5px',
-  margin: '0 0 24px',
-  textTransform: 'uppercase' as const,
-}
+const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
+const container = { padding: '20px 25px' }
 const h1 = {
-  fontSize: '24px',
+  fontSize: '22px',
   fontWeight: 'bold' as const,
-  color: '#0B1F3A',
+  color: '#000000',
   margin: '0 0 20px',
 }
 const text = {
-  fontSize: '15px',
-  color: '#1F2933',
-  lineHeight: '1.6',
-  margin: '0 0 20px',
+  fontSize: '14px',
+  color: '#55575d',
+  lineHeight: '1.5',
+  margin: '0 0 25px',
 }
 const button = {
-  backgroundColor: '#0B1F3A',
+  backgroundColor: '#000000',
   color: '#ffffff',
-  fontSize: '15px',
-  fontWeight: 'bold' as const,
-  borderRadius: '12px',
-  padding: '14px 24px',
+  fontSize: '14px',
+  border: '1px solid #000000',
+  borderRadius: '8px',
+  padding: '12px 20px',
   textDecoration: 'none',
-  display: 'inline-block',
-  margin: '8px 0 16px',
 }
-const footer = { fontSize: '12px', color: '#6B7280', margin: '32px 0 0', lineHeight: '1.5' }
+const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+// Rendered as a text child, which React may HTML-escape: keep this CSS free of >, &, and quotes.
+const darkModeCss = `
+  @media (prefers-color-scheme: dark) {
+    .dm-btn { background-color: #ffffff !important; color: #000000 !important; }
+  }
+  [data-ogsc] .dm-btn { background-color: #ffffff !important; color: #000000 !important; }
+  [data-ogsb] .dm-btn { background-color: #ffffff !important; color: #000000 !important; }
+`

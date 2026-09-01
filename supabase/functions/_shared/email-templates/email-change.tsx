@@ -7,7 +7,6 @@ import {
   Button,
   Container,
   Head,
-  Img,
   Heading,
   Html,
   Link,
@@ -17,6 +16,11 @@ import {
 
 interface EmailChangeEmailProps {
   siteName: string
+  // oldEmail is the user's current address (HookData.OldEmail). For the
+  // NEW-recipient half of a secure email_change fanout, `email` equals the
+  // recipient (NEW), so the "from" line must render oldEmail to read
+  // "from OLD to NEW" instead of "from NEW to NEW".
+  oldEmail: string
   email: string
   newEmail: string
   confirmationUrl: string
@@ -24,31 +28,38 @@ interface EmailChangeEmailProps {
 
 export const EmailChangeEmail = ({
   siteName,
-  email,
+  oldEmail,
   newEmail,
   confirmationUrl,
 }: EmailChangeEmailProps) => (
-  <Html lang="fr" dir="ltr">
-    <Head />
-    <Preview>Confirme ton changement d'email pour {siteName}</Preview>
+  <Html lang="en" dir="ltr">
+    <Head>
+      <style>{darkModeCss}</style>
+    </Head>
+    <Preview>Confirm your email change for {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Img src="https://mbloebaovvvgfwxsdzgo.supabase.co/storage/v1/object/public/email-assets/cocoricoach-logo.png" alt="CocoriCoach Club" width="160" style={logo} />
-        <Heading style={h1}>Confirme ton changement d'email</Heading>
+        <Heading style={h1}>Confirm your email change</Heading>
         <Text style={text}>
-          Tu as demandé à modifier ton adresse email sur {siteName} de{' '}
-          <Link href={`mailto:${email}`} style={link}>{email}</Link>{' '}
-          vers{' '}
-          <Link href={`mailto:${newEmail}`} style={link}>{newEmail}</Link>.
+          You requested to change your email address for {siteName} from{' '}
+          <Link href={`mailto:${oldEmail}`} style={link}>
+            {oldEmail}
+          </Link>{' '}
+          to{' '}
+          <Link href={`mailto:${newEmail}`} style={link}>
+            {newEmail}
+          </Link>
+          .
         </Text>
         <Text style={text}>
-          Clique sur le bouton ci-dessous pour confirmer ce changement :
+          Click the button below to confirm this change:
         </Text>
-        <Button style={button} href={confirmationUrl}>
-          Confirmer le changement
+        <Button className="dm-btn" style={button} href={confirmationUrl}>
+          Confirm Email Change
         </Button>
         <Text style={footer}>
-          Si tu n'as pas demandé ce changement, sécurise ton compte immédiatement.
+          If you didn't request this change, please secure your account
+          immediately.
         </Text>
       </Container>
     </Body>
@@ -57,39 +68,36 @@ export const EmailChangeEmail = ({
 
 export default EmailChangeEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Inter, Arial, sans-serif' }
-const container = { padding: '32px 28px', maxWidth: '560px' }
-const logo = { margin: "0 0 24px", display: "block" }
-const _brand = {
-  fontSize: '14px',
-  fontWeight: 'bold' as const,
-  color: '#0B1F3A',
-  letterSpacing: '0.5px',
-  margin: '0 0 24px',
-  textTransform: 'uppercase' as const,
-}
+const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
+const container = { padding: '20px 25px' }
 const h1 = {
-  fontSize: '24px',
+  fontSize: '22px',
   fontWeight: 'bold' as const,
-  color: '#0B1F3A',
+  color: '#000000',
   margin: '0 0 20px',
 }
 const text = {
-  fontSize: '15px',
-  color: '#1F2933',
-  lineHeight: '1.6',
-  margin: '0 0 20px',
+  fontSize: '14px',
+  color: '#55575d',
+  lineHeight: '1.5',
+  margin: '0 0 25px',
 }
-const link = { color: '#17A2B8', textDecoration: 'underline' }
+const link = { color: 'inherit', textDecoration: 'underline' }
 const button = {
-  backgroundColor: '#0B1F3A',
+  backgroundColor: '#000000',
   color: '#ffffff',
-  fontSize: '15px',
-  fontWeight: 'bold' as const,
-  borderRadius: '12px',
-  padding: '14px 24px',
+  fontSize: '14px',
+  border: '1px solid #000000',
+  borderRadius: '8px',
+  padding: '12px 20px',
   textDecoration: 'none',
-  display: 'inline-block',
-  margin: '8px 0 16px',
 }
-const footer = { fontSize: '12px', color: '#6B7280', margin: '32px 0 0', lineHeight: '1.5' }
+const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+// Rendered as a text child, which React may HTML-escape: keep this CSS free of >, &, and quotes.
+const darkModeCss = `
+  @media (prefers-color-scheme: dark) {
+    .dm-btn { background-color: #ffffff !important; color: #000000 !important; }
+  }
+  [data-ogsc] .dm-btn { background-color: #ffffff !important; color: #000000 !important; }
+  [data-ogsb] .dm-btn { background-color: #ffffff !important; color: #000000 !important; }
+`
