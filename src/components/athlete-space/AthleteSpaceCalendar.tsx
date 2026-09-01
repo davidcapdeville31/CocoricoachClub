@@ -812,15 +812,28 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                     </Badge>
                                   )}
                                   {isCompleted && <CheckCircle2 className="h-4 w-4 text-status-optimal" />}
-                                  {!session.test_reminder_id && (
-                                    <button
-                                      type="button"
-                                      onClick={(e) => { e.stopPropagation(); setSessionToDelete(session); }}
-                                      className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                                      title={t("athleteSpace.calendar.deleteSessionTitle")}
-                                    >
-                                      <Trash2 className="h-3.5 w-3.5" />
-                                    </button>
+                                  {isAthleteSession && !session.test_reminder_id && (
+                                    <>
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={(e) => { e.stopPropagation(); setSessionToEdit(session); }}
+                                        className="h-7 w-7 text-muted-foreground hover:text-primary"
+                                        title="Modifier ma séance"
+                                        aria-label="Modifier ma séance"
+                                      >
+                                        <Pencil className="h-3.5 w-3.5" />
+                                      </Button>
+                                      <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); setSessionToDelete(session); }}
+                                        className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                                        title={t("athleteSpace.calendar.deleteSessionTitle")}
+                                      >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                      </button>
+                                    </>
                                   )}
                                   {(exercises.length > 0 || ((session as any).notes || "").replace(/<!--[\s\S]*?-->/g, "").trim() || isBowling || isBasket) && (isExpanded ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />)}
                                 </div>
