@@ -20,6 +20,7 @@ import {
   HeartPulse,
   Play,
   Trash2,
+  Pencil,
   Brain,
 } from "lucide-react";
 import { format, isWithinInterval, parseISO, eachDayOfInterval, startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns";
@@ -1162,12 +1163,18 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
       />
 
       <SimplifiedSessionDialog
-        open={isSessionSimplifiedOpen}
-        onOpenChange={setIsSessionSimplifiedOpen}
-        date={selectedDate || new Date()}
+        open={isSessionSimplifiedOpen || !!sessionToEdit}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsSessionSimplifiedOpen(false);
+            setSessionToEdit(null);
+          }
+        }}
+        date={sessionToEdit ? parseISO(sessionToEdit.session_date) : selectedDate || new Date()}
         categoryId={categoryId}
         athletePlayerId={playerId}
         sportType={sportType}
+        session={sessionToEdit}
       />
 
       <FieldSessionDialog
