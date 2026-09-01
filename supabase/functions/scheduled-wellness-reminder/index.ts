@@ -139,7 +139,8 @@ serve(async (req) => {
       const allowedEmailSet = new Set(allowedEmailUserIds);
       const allowedPushSet = new Set(allowedPushUserIds);
 
-      // ── EMAIL via send-transactional-email (queued, logged, retry-safe) ───
+      // ── EMAIL via Lovable-managed delivery ─────────────────────────────
+
       const emailTargets = players
         .filter((p) => p.email && p.user_id && allowedEmailSet.has(p.user_id))
         .map((p) => ({ email: p.email!, userId: p.user_id! }));
