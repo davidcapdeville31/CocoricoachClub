@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,9 @@ import { useWeightHistory } from "@/lib/hooks/useWeightData";
 import { weightTrend } from "@/lib/weight/weightHistory";
 import { downloadCsv, generateCsv } from "@/lib/csv";
 import { Button } from "@/components/ui/button";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
+
 
 interface Props {
   categoryId: string;
