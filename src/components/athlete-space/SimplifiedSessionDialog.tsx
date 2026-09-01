@@ -88,9 +88,11 @@ export function SimplifiedSessionDialog({
   const [durationMin, setDurationMin] = useState<number>(60);
   const [rpe, setRpe] = useState<number>(6);
   const [partnerIds, setPartnerIds] = useState<string[]>([]);
+  const [sessionDate, setSessionDate] = useState(format(date, "yyyy-MM-dd"));
 
   useEffect(() => {
     if (session) {
+      setSessionDate(session.session_date);
       setTrainingType(session.training_type);
       const cleanNotes = (session.notes || "").replace(/^\[Séance athlète\]\s*/, "").replace(/^<!--SIMPLIFIED_SESSION-->\n?/, "");
       setNotes(cleanNotes.split("\n").slice(0, -1).join("\n"));
@@ -104,13 +106,14 @@ export function SimplifiedSessionDialog({
       setRpe(Math.min(10, Math.max(1, Number(session.intensity) || 6)));
       setPartnerIds((session.event_participants || []).map((participant) => participant.player_id).filter((id) => id !== athletePlayerId));
     } else if (!open) {
+      setSessionDate(format(date, "yyyy-MM-dd"));
       setNotes("");
       setDurationMin(60);
       setRpe(6);
       setPartnerIds([]);
       setTrainingType(lockedTrainingType || trainingTypes[0]?.value || "musculation");
     }
-  }, [open, lockedTrainingType, trainingTypes, session, athletePlayerId]);
+  }, [open, lockedTrainingType, trainingTypes, session, athletePlayerId, date]);
 
   const computeEndTime = (start: string, mins: number) => {
     const [h, m] = start.split(":").map(Number);
@@ -152,7 +155,7 @@ export function SimplifiedSessionDialog({
           category_id: categoryId,
           player_id: athletePlayerId,
           session_id: session?.id,
-          session_date: format(date, "yyyy-MM-dd"),
+          session_date: sessionDate,
           session_start_time: start,
           session_end_time: end,
           training_type: trainingType,
@@ -203,9 +206,21 @@ export function SimplifiedSessionDialog({
             <Sparkles className="h-5 w-5 text-emerald-600" />
             {isEditing ? "Modifier ma séance" : t('athleteSpace.components.simplifiedSessionDialog.title')}
           </DialogTitle>
-          <p className="text-sm text-muted-foreground">
-            {format(date, "EEEE d MMMM yyyy", { locale: getDateLocale() })}
-          </p>
+          {isEditing ? (
+            <div className="space-y-1.5">
+              <Label htmlFor="simpl-date">Date</Label>
+              <Input
+                id="simpl-date"
+                type="date"
+                value={sessionDate}
+                onChange={(event) => setSessionDate(event.target.value)}
+              />
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {format(date, "EEEE d MMMM yyyy", { locale: getDateLocale() })}
+            </p>
+          )}
         </DialogHeader>
 
         <div className="space-y-4">
