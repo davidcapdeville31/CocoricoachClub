@@ -47,6 +47,8 @@ interface AdvancedPlayerSelectionProps {
   players?: Player[];
   maxHeight?: string;
   showInjuredFilter?: boolean;
+  /** Hide category-wide mode when every assignment must target named athletes. */
+  allowAll?: boolean;
 }
 
 export function AdvancedPlayerSelection({
