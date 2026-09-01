@@ -245,6 +245,18 @@ export function SimplifiedSessionDialog({
             </div>
           )}
 
+          {isEditing && (
+            <div className="space-y-1.5">
+              <Label htmlFor="simpl-start-time">Heure de début</Label>
+              <Input
+                id="simpl-start-time"
+                type="time"
+                value={sessionStartTime}
+                onChange={(event) => setSessionStartTime(event.target.value)}
+              />
+            </div>
+          )}
+
           <div className="space-y-1.5">
             <Label htmlFor="simpl-notes">{t('athleteSpace.components.simplifiedSessionDialog.description')}</Label>
             <Textarea
