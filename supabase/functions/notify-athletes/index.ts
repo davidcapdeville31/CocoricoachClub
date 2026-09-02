@@ -82,7 +82,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const body: NotifyAthletesRequest = await req.json();
-  const { athletes, message, channels, eventType, eventDetails, category_id, skipBell } = body;
+    const { athletes, message, channels, eventType, eventDetails, category_id, skipBell } = body;
 
     if (!athletes || athletes.length === 0) throw new Error("No athletes provided");
     if (!channels || channels.length === 0) throw new Error("No notification channels selected");

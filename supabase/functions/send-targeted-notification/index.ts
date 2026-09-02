@@ -21,7 +21,7 @@ interface TargetedNotificationRequest {
   roles?: string[];
   club_id?: string;
   target_user_ids?: string[];
-  channels: ("push" | "email" | "sms")[];
+  channels: "push"[];
   event_type?: "session" | "match" | "event" | "custom";
   session_id?: string;
   /** If set, sends ONLY to players tagged with participates_training_<training_session_id>.
