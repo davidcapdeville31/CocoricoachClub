@@ -147,7 +147,6 @@ serve(async (req) => {
 
     let pushSent = 0;
 
-
     // Push
     if (oneSignalAppId && oneSignalApiKey) {
       const pushUserIds = targetedPlayers

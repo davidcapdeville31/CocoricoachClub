@@ -139,7 +139,6 @@ serve(async (req) => {
         await filterByPreferences(supabase, allUserIds, "wellness_reminder");
       const allowedPushSet = new Set(allowedPushUserIds);
 
-
       // ── PUSH via OneSignal ─────────────────────────────────────────────
       const pushUserIds = players
         .filter((p) => p.user_id && allowedPushSet.has(p.user_id!))
