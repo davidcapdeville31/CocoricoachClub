@@ -6,9 +6,8 @@ import {
   type NotificationCategory,
 } from "../_shared/notification-preferences.ts";
 
-// Emails de notification désactivés à la demande du club : push uniquement.
-// (Les emails d'authentification et d'invitation restent actifs.)
-const APP_NOTIFICATION_EMAILS_ENABLED = false;
+// Notifications sortantes limitées aux push à la demande du club.
+// Les emails d'authentification et d'invitation restent actifs.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -273,7 +272,7 @@ const handler = async (req: Request): Promise<Response> => {
       const pushAllowed = !athlete.user_id || allowedPushSet.has(athlete.user_id);
 
 
-      if (channels.includes("sms") && athlete.phone) {
+      if (false && channels.includes("sms") && athlete.phone) {
         try {
           let formattedPhone = athlete.phone.replace(/\s/g, "");
           if (!formattedPhone.startsWith("+")) {

@@ -4,9 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 import { filterByPreferences } from "../_shared/notification-preferences.ts";
 
-// Emails de notification désactivés à la demande du club : push uniquement.
-// (Les emails d'authentification et d'invitation restent actifs.)
-const APP_NOTIFICATION_EMAILS_ENABLED = false;
+// Les rappels wellness sont envoyés en push uniquement.
 
 
 const corsHeaders = {
