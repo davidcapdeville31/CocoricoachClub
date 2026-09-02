@@ -256,7 +256,11 @@ export const JUDO_WEIGHT_CATEGORIES_WOMEN: PlayerAttributeOption[] = [
 
 // Combined weight categories for general selection
 export const JUDO_WEIGHT_CATEGORIES: PlayerAttributeOption[] = [
+  { value: "judo_-46kg", label: "-46 kg (M)" },
   { value: "judo_-48kg", label: "-48 kg (F)" },
+  { value: "judo_-50kg", label: "-50 kg (M)" },
+  { value: "judo_-55kg", label: "-55 kg (M)" },
+
   { value: "judo_-52kg", label: "-52 kg (F)" },
   { value: "judo_-57kg", label: "-57 kg (F)" },
   { value: "judo_-60kg", label: "-60 kg (M)" },
