@@ -110,6 +110,14 @@ const PullToRefresh = () => {
 
     const onTouchStart = (e: TouchEvent) => {
       if (refreshing) return;
+      // Geste multi-doigts (pinch / zoom) : jamais de pull-to-refresh
+      if (e.touches.length > 1) {
+        startY.current = null;
+        active.current = false;
+        pullRef.current = 0;
+        setPull(0);
+        return;
+      }
       if (isEditingContext(e.target)) {
         startY.current = null;
         active.current = false;
@@ -128,6 +136,14 @@ const PullToRefresh = () => {
     };
 
     const onTouchMove = (e: TouchEvent) => {
+      // Un deuxième doigt apparaît en cours de geste (pinch pour dézoomer) : on annule
+      if (e.touches.length > 1) {
+        active.current = false;
+        startY.current = null;
+        pullRef.current = 0;
+        setPull(0);
+        return;
+      }
       if (!active.current || startY.current === null || refreshing) return;
       // Si pendant le geste on a déjà scrollé, on annule
       if (getTopOffset(scrollContainerRef.current) > 2 && pullRef.current === 0) {

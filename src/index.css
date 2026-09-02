@@ -609,3 +609,14 @@ All colors MUST be HSL.
 [data-radix-popper-content-wrapper] {
   z-index: 9999 !important;
 }
+
+/* iOS: empêche le zoom automatique du navigateur au focus d'un champ
+   (déclenché quand la police est < 16px). Sans ça, l'utilisateur doit
+   dézoomer à la main, ce qui pouvait déclencher un rafraîchissement. */
+@media (max-width: 767px) and (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
