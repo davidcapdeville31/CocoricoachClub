@@ -10,6 +10,8 @@ import {
 } from "@/lib/constants/trainingTypes";
 import { getSessionTitleFromNotes } from "@/lib/utils/sessionNotes";
 import { useMarkAthleteSessionRead } from "@/lib/hooks/useMarkAthleteSessionRead";
+import { useIsMobile } from "@/hooks/use-mobile";
+
 
 // Map Tailwind bg-color classes to actual CSS colors
 const TAILWIND_COLOR_MAP: Record<string, string> = {
