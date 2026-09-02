@@ -63,7 +63,6 @@ const FILTER_TYPES: Record<string, { label: string; options: { value: string; la
       { value: "-50", label: "-50 kg" },
       { value: "-55", label: "-55 kg" },
       { value: "-60", label: "-60 kg" },
-
       { value: "-66", label: "-66 kg" },
       { value: "-73", label: "-73 kg" },
       { value: "-81", label: "-81 kg" },
