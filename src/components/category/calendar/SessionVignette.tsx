@@ -138,6 +138,7 @@ export function SessionVignette({
   const handleActionClick = (e: React.MouseEvent, action: () => void) => {
     e.stopPropagation();
     e.preventDefault();
+    setIsHovered(false);
     action();
   };
 
@@ -199,7 +200,7 @@ export function SessionVignette({
         })() : undefined}
       >
         {/* Drag handle - only visible and active when NOT hovered */}
-        {!isHovered && !isDragging && isDraggable && !isViewer && (
+        {!isHovered && !isDragging && isDraggable && !isViewer && !isMobile && (
           <div
             {...attributes}
             {...listeners}
