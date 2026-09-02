@@ -15,6 +15,8 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+const APP_URL = "https://cocoricoachclub.com";
+
 interface NotifyAthletesRequest {
   athletes: Array<{
     name: string;
@@ -149,49 +151,6 @@ const handler = async (req: Request): Promise<Response> => {
       const pushAllowed = !athlete.user_id || allowedPushSet.has(athlete.user_id);
 
 
-      if (false) {
-        try {
-          let formattedPhone = athlete.phone.replace(/\s/g, "");
-          if (!formattedPhone.startsWith("+")) {
-            if (formattedPhone.startsWith("0")) {
-              formattedPhone = "+33" + formattedPhone.substring(1);
-            } else {
-              formattedPhone = "+" + formattedPhone;
-            }
-          }
-
-          let smsContent = `${subject}\n${message}`;
-          if (eventDetails?.date) smsContent += `\n${eventDetails.date}`;
-          if (eventDetails?.time) smsContent += ` a ${eventDetails.time}`;
-          if (eventDetails?.location) smsContent += `\n${eventDetails.location}`;
-          if (smsContent.length > 300) smsContent = smsContent.substring(0, 297) + "...";
-
-          const smsResponse = await fetch("https://api.onesignal.com/notifications", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Key ${ONESIGNAL_REST_API_KEY}`,
-            },
-            body: JSON.stringify({
-              app_id: ONESIGNAL_APP_ID,
-              include_phone_numbers: [formattedPhone],
-              sms_from: "CocoriCoach",
-              contents: { en: smsContent },
-              name: `SMS to ${athlete.name}`,
-            }),
-          });
-
-          if (smsResponse.ok) {
-            results.smsSent++;
-          } else {
-            const errorData = await smsResponse.json();
-            results.errors.push(`SMS ${athlete.phone}: ${JSON.stringify(errorData)}`);
-          }
-        } catch (e: unknown) {
-          const errorMessage = e instanceof Error ? e.message : String(e);
-          results.errors.push(`SMS ${athlete.phone}: ${errorMessage}`);
-        }
-      }
 
       if (channels.includes("push") && athlete.user_id && pushAllowed) {
         try {
