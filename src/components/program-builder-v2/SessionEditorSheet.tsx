@@ -62,6 +62,7 @@ export function SessionEditorSheet({
 
   return createPortal(
     <div
+      data-no-pull-refresh="true"
       className="fixed inset-0 z-[80] bg-background flex flex-col animate-in fade-in-0 duration-200"
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
