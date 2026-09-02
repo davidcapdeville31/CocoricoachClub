@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { sendTemplateEmailWithLog } from "../_shared/transactional-email-templates/send-log.ts";
+
 
 // Emails de notification désactivés à la demande du club : push uniquement.
 // (Les emails d'authentification et d'invitation restent actifs.)
@@ -247,27 +247,6 @@ serve(async (req) => {
       }
     }
 
-    // ── EMAIL via Lovable-managed delivery ───────────────────────────────
-    if (APP_NOTIFICATION_EMAILS_ENABLED && channels.email && emails.length > 0) {
-      for (const recipient of emails) {
-        try {
-          const result = await sendTemplateEmailWithLog(supabase, "app-notification", recipient, {
-            idempotencyKey: `global-notif-${target_type}-${recipient}-${Date.now()}`,
-            templateData: {
-              title,
-              message,
-              ctaLabel: "Ouvrir l'application",
-              ctaUrl: "https://cocoricoachclub.com",
-            },
-          });
-          if (result.sent) emailSent += 1;
-        } catch (e) {
-          const msg = e instanceof Error ? e.message : String(e);
-          console.error("Email exception:", msg);
-          errors.push(`Email (${recipient}): ${msg}`);
-        }
-      }
-    }
 
     return new Response(
       JSON.stringify({

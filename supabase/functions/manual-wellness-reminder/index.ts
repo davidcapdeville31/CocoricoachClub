@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { sendTemplateEmailWithLog } from "../_shared/transactional-email-templates/send-log.ts";
+
 
 import { filterByPreferences } from "../_shared/notification-preferences.ts";
 
@@ -151,28 +151,6 @@ serve(async (req) => {
     let emailsSent = 0;
     let pushSent = 0;
 
-    // Emails
-    const emailTargets = targetedPlayers
-      .filter((p) => p.email && p.user_id && allowedEmailSet.has(p.user_id!))
-      .map((p) => ({ email: p.email!, userId: p.user_id! }));
-
-    const stamp = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, "");
-    for (const t of (APP_NOTIFICATION_EMAILS_ENABLED ? emailTargets : [])) {
-      try {
-        const result = await sendTemplateEmailWithLog(supabase, "app-notification", t.email, {
-          idempotencyKey: `manual-wellness-${t.userId}-${stamp}`,
-          templateData: {
-            title: "❤️ Rappel Wellness",
-            message: `Ton coach te rappelle de remplir ton Wellness du jour (${category.name}). Ça prend 30 secondes !`,
-            ctaLabel: "Remplir mon Wellness",
-            ctaUrl: wellnessDeepLink,
-          },
-        });
-        if (result.sent) emailsSent += 1;
-      } catch (e) {
-        console.error("[manual-wellness] email error", e);
-      }
-    }
 
     // Push
     if (oneSignalAppId && oneSignalApiKey) {

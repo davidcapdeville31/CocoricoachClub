@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { sendTemplateEmailWithLog } from "../_shared/transactional-email-templates/send-log.ts";
+
 import {
   filterByPreferences,
   type NotificationCategory,
@@ -272,37 +272,6 @@ const handler = async (req: Request): Promise<Response> => {
       const emailAllowed = !athlete.user_id || allowedEmailSet.has(athlete.user_id);
       const pushAllowed = !athlete.user_id || allowedPushSet.has(athlete.user_id);
 
-      if (APP_NOTIFICATION_EMAILS_ENABLED && channels.includes("email") && athlete.email && emailAllowed) {
-        try {
-          // Build details lines for the message body
-          const detailsLines: string[] = [];
-          if (eventDetails?.date) detailsLines.push(`📅 ${eventDetails.date}`);
-          if (eventDetails?.time) detailsLines.push(`🕐 ${eventDetails.time}`);
-          if (eventDetails?.location) detailsLines.push(`📍 ${eventDetails.location}`);
-          const fullMessage = detailsLines.length
-            ? `Bonjour ${athlete.name},\n\n${message}\n\n${detailsLines.join("\n")}`
-            : `Bonjour ${athlete.name},\n\n${message}`;
-
-          const idemKey = `notify-${eventType}-${athlete.user_id ?? athlete.email}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-
-          const result = await sendTemplateEmailWithLog(supabaseService, "app-notification", athlete.email, {
-            idempotencyKey: idemKey,
-            templateData: {
-              siteName: APP_NAME,
-              siteUrl: APP_URL,
-              title: subject,
-              message: fullMessage,
-              ctaLabel: "Ouvrir l'application",
-              ctaUrl: APP_URL,
-            },
-          });
-
-          if (result.sent) results.emailsSent++;
-        } catch (e: unknown) {
-          const errorMessage = e instanceof Error ? e.message : String(e);
-          results.errors.push(`Email ${athlete.email}: ${errorMessage}`);
-        }
-      }
 
       if (channels.includes("sms") && athlete.phone) {
         try {

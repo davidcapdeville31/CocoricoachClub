@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { sendTemplateEmailWithLog } from "../_shared/transactional-email-templates/send-log.ts";
+
 
 // Emails de notification désactivés à la demande du club : push uniquement.
 // (Les emails d'authentification et d'invitation restent actifs.)
@@ -344,61 +344,6 @@ serve(async (req: Request) => {
       }
     }
 
-    // ── EMAIL ──────────────────────────────────────────────────────────────────
-    if (APP_NOTIFICATION_EMAILS_ENABLED && channels.includes("email")) {
-      // Collect target user IDs for email: from explicit list OR from category members
-      let emailTargetIds = [...targetUserIds];
-      
-      // If using tag filters (no explicit user IDs), resolve category members
-      if (emailTargetIds.length === 0 && (category_ids?.length || club_id)) {
-        try {
-          let query = supabase.from("category_members").select("user_id");
-          if (category_ids?.length) {
-            query = query.in("category_id", category_ids);
-          }
-          if (expandedRoles.length > 0) {
-            query = query.in("role", expandedRoles);
-          }
-          const { data: members } = await query;
-          emailTargetIds = members?.map((m: any) => m.user_id).filter(Boolean) || [];
-        } catch (e) {
-          console.warn("[send-targeted-notification] Error resolving category members for email:", e);
-        }
-      }
-
-      if (emailTargetIds.length > 0) {
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("id, email, full_name")
-          .in("id", emailTargetIds);
-
-        const emails = profiles?.filter((p) => p.email).map((p) => p.email!) || [];
-
-        if (emails.length > 0) {
-          const ctaUrl = event_details?.url || "https://cocoricoachclub.com";
-          let extendedMessage = message;
-          if (event_details?.date) extendedMessage += `\n\n📅 ${event_details.date}`;
-          if (event_details?.location) extendedMessage += `\n📍 ${event_details.location}`;
-
-          for (const recipient of emails) {
-            try {
-              const result = await sendTemplateEmailWithLog(supabase, "app-notification", recipient, {
-                idempotencyKey: `targeted-notif-${recipient}-${Date.now()}`,
-                templateData: {
-                  title,
-                  message: extendedMessage,
-                  ctaLabel: "Ouvrir l'application",
-                  ctaUrl,
-                },
-              });
-              if (result.sent) results.emailsSent += 1;
-            } catch (e: unknown) {
-              results.errors.push(`Email error (${recipient}): ${e instanceof Error ? e.message : String(e)}`);
-            }
-          }
-          console.log(`[send-targeted-notification] ✅ Emails enqueued for ${results.emailsSent} recipient(s)`);
-        }
-      }
     }
 
     // ── SMS (only when we have explicit user IDs) ─────────────────────────────
