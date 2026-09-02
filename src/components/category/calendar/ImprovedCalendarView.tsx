@@ -32,6 +32,7 @@ import { SessionNotifyDialog } from "./SessionNotifyDialog";
 import { MatchNotifyDialog } from "./MatchNotifyDialog";
 import { CreateEventDialog } from "./CreateEventDialog";
 import { FieldSessionDialog } from "./FieldSessionDialog";
+import { SimplifiedSessionDialog } from "@/components/athlete-space/SimplifiedSessionDialog";
 import { BowlingSimplifiedDialog } from "@/components/bowling/BowlingSimplifiedDialog";
 import { BowlingAdvancedDialog } from "@/components/bowling/BowlingAdvancedDialog";
 import { ScheduleTestEventDialog } from "./ScheduleTestEventDialog";
@@ -136,6 +137,7 @@ export function ImprovedCalendarView({
   const [pendingExternalType, setPendingExternalType] = useState<"session" | "match" | "test" | "field_session" | null>(null);
   const [scheduleTestDate, setScheduleTestDate] = useState<Date | null>(null);
   const [fieldSessionDate, setFieldSessionDate] = useState<Date | null>(null);
+  const [sessionSimplifiedDate, setSessionSimplifiedDate] = useState<Date | null>(null);
   const [bowlingSimplifiedDate, setBowlingSimplifiedDate] = useState<Date | null>(null);
   const [bowlingAdvancedDate, setBowlingAdvancedDate] = useState<Date | null>(null);
   const addEventDateRef = useRef<Date | null>(null);
@@ -975,6 +977,12 @@ export function ImprovedCalendarView({
           setPendingExternalType(type);
           setAddEventDate(null);
         }}
+        onSelectSessionSimplified={() => {
+          const dateToUse = addEventDateRef.current || addEventDate;
+          addEventDateRef.current = null;
+          setAddEventDate(null);
+          if (dateToUse) setSessionSimplifiedDate(dateToUse);
+        }}
         onSelectBowlingSimplified={() => {
           const dateToUse = addEventDateRef.current || addEventDate;
           addEventDateRef.current = null;
@@ -995,6 +1003,16 @@ export function ImprovedCalendarView({
         onOpenChange={(open) => !open && setScheduleTestDate(null)}
         date={scheduleTestDate || new Date()}
         categoryId={categoryId}
+      />
+
+      {/* Simplified staff session dialog */}
+      <SimplifiedSessionDialog
+        open={!!sessionSimplifiedDate}
+        onOpenChange={(open) => !open && setSessionSimplifiedDate(null)}
+        date={sessionSimplifiedDate || new Date()}
+        categoryId={categoryId}
+        sportType={sportType}
+        lockedTrainingType="musculation"
       />
 
       {/* Field Session Dialog */}
