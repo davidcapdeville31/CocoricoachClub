@@ -258,15 +258,37 @@ serve(async (req) => {
     try {
       await supabase
         .from("event_participants")
-        .insert(
-          [player_id, ...partnerIds].map((pid) => ({
+        .insert([
+          {
+            training_session_id: session.id,
+            player_id,
+            attendance_status: "present",
+            responded_at: new Date().toISOString(),
+          },
+          // Les partenaires cochés doivent répondre eux-mêmes (présent/absent)
+          ...partnerIds.map((pid) => ({
             training_session_id: session.id,
             player_id: pid,
           })),
-        );
+        ]);
     } catch (partErr) {
       console.warn("[athlete-create-session] participant insert warn:", partErr);
     }
+
+    // Le créateur est automatiquement compté présent dans l'assiduité
+    try {
+      const { error: attErr } = await supabase.from("training_attendance").insert({
+        training_session_id: session.id,
+        player_id,
+        category_id,
+        attendance_date: session_date,
+        status: "present",
+      });
+      if (attErr) console.warn("[athlete-create-session] attendance warn:", attErr.message);
+    } catch (attCatch) {
+      console.warn("[athlete-create-session] attendance warn:", attCatch);
+    }
+
 
     // ── Alimenter la charge d'entraînement (awcr_tracking) ──
     // Quand l'athlète a renseigné RPE (intensity) et une durée (via start/end),
