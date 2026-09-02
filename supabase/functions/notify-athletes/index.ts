@@ -19,13 +19,11 @@ const corsHeaders = {
 interface NotifyAthletesRequest {
   athletes: Array<{
     name: string;
-    email?: string;
-    phone?: string;
     user_id?: string;
   }>;
   subject: string;
   message: string;
-  channels: ("push" | "email" | "sms")[];
+  channels: "push"[];
   eventType: "session" | "match" | "event" | "custom" | "convocation";
   eventDetails?: {
     date?: string;

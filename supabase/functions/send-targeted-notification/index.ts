@@ -238,7 +238,7 @@ serve(async (req: Request) => {
       );
     }
 
-    const results = { pushSent: 0, emailsSent: 0, smsSent: 0, errors: [] as string[] };
+    const results = { pushSent: 0, errors: [] as string[] };
 
     // Build push message with event details appended
     let pushMessage = message;
