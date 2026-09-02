@@ -1012,6 +1012,7 @@ export function ImprovedCalendarView({
         date={sessionSimplifiedDate || new Date()}
         categoryId={categoryId}
         sportType={sportType}
+        staffMode
         lockedTrainingType="musculation"
       />
 
