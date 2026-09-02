@@ -344,49 +344,6 @@ serve(async (req: Request) => {
     }
 
 
-    // ── SMS (only when we have explicit user IDs) ─────────────────────────────
-    if (false && channels.includes("sms") && targetUserIds.length > 0) {
-      const { data: players } = await supabase
-        .from("players")
-        .select("user_id, phone")
-        .in("user_id", targetUserIds)
-        .not("phone", "is", null);
-
-      if (players && players.length > 0) {
-        for (const player of players) {
-          if (!player.phone) continue;
-          let phone = player.phone.replace(/\s/g, "");
-          if (!phone.startsWith("+")) {
-            phone = phone.startsWith("0") ? "+33" + phone.substring(1) : "+" + phone;
-          }
-
-          let smsContent = `${title}\n${message}`;
-          if (event_details?.date) smsContent += `\n📅 ${event_details.date}`;
-          if (event_details?.location) smsContent += `\n📍 ${event_details.location}`;
-          if (smsContent.length > 300) smsContent = smsContent.substring(0, 297) + "...";
-
-          try {
-            const res = await fetch("https://api.onesignal.com/notifications", {
-              method: "POST",
-              headers: { "Content-Type": "application/json", Authorization: `Key ${ONESIGNAL_REST_API_KEY}` },
-              body: JSON.stringify({
-                app_id: ONESIGNAL_APP_ID,
-                include_phone_numbers: [phone],
-                sms_from: "CocoriCoach",
-                contents: { en: smsContent },
-              }),
-            });
-            if (res.ok) results.smsSent++;
-            else {
-              const err = await res.json();
-              results.errors.push(`SMS ${phone}: ${JSON.stringify(err)}`);
-            }
-          } catch (e: unknown) {
-            results.errors.push(`SMS ${phone}: ${e instanceof Error ? e.message : String(e)}`);
-          }
-        }
-      }
-    }
 
     console.log("[send-targeted-notification] Results:", results);
 
