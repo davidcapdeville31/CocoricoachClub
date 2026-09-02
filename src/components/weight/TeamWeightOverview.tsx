@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Scale, TrendingDown, TrendingUp, Minus } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
 import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
 import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
