@@ -1646,7 +1646,11 @@ export function getDisciplineLabel(disciplineValue: string): string {
     { value: "athletisme_trail", label: "Trail" },
     { value: "athletisme_ultra_trail", label: "Ultra-Trail" },
     // Judo weight categories - Men
+    { value: "judo_-46kg", label: "-46 kg" },
+    { value: "judo_-50kg", label: "-50 kg" },
+    { value: "judo_-55kg", label: "-55 kg" },
     { value: "judo_-60kg", label: "-60 kg" },
+
     { value: "judo_-66kg", label: "-66 kg" },
     { value: "judo_-73kg", label: "-73 kg" },
     { value: "judo_-81kg", label: "-81 kg" },

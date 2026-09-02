@@ -231,7 +231,11 @@ export const ATHLETISME_SPECIALTIES: Record<string, SpecialtyOption[]> = {
 
 // Weight categories for Judo (used in AddPlayerDialog)
 export const JUDO_WEIGHT_CATEGORIES_MEN: PlayerAttributeOption[] = [
+  { value: "judo_-46kg", label: "-46 kg" },
+  { value: "judo_-50kg", label: "-50 kg" },
+  { value: "judo_-55kg", label: "-55 kg" },
   { value: "judo_-60kg", label: "-60 kg" },
+
   { value: "judo_-66kg", label: "-66 kg" },
   { value: "judo_-73kg", label: "-73 kg" },
   { value: "judo_-81kg", label: "-81 kg" },
@@ -252,7 +256,11 @@ export const JUDO_WEIGHT_CATEGORIES_WOMEN: PlayerAttributeOption[] = [
 
 // Combined weight categories for general selection
 export const JUDO_WEIGHT_CATEGORIES: PlayerAttributeOption[] = [
+  { value: "judo_-46kg", label: "-46 kg (M)" },
   { value: "judo_-48kg", label: "-48 kg (F)" },
+  { value: "judo_-50kg", label: "-50 kg (M)" },
+  { value: "judo_-55kg", label: "-55 kg (M)" },
+
   { value: "judo_-52kg", label: "-52 kg (F)" },
   { value: "judo_-57kg", label: "-57 kg (F)" },
   { value: "judo_-60kg", label: "-60 kg (M)" },
