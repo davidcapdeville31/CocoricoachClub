@@ -174,17 +174,7 @@ serve(async (req) => {
       );
     }
 
-    // Fetch emails for target users
-    const { data: profiles, error: profErr } = await supabase
-      .from("profiles")
-      .select("id, email, full_name")
-      .in("id", userIds);
-    if (profErr) throw profErr;
-
-    const emails = (profiles ?? []).filter((p) => p.email).map((p) => p.email!);
-
     let pushSent = 0;
-    let emailSent = 0;
     const errors: string[] = [];
 
     // ── Insert in-app notifications (best effort) ──────────────────────────
@@ -251,9 +241,7 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         total_users: userIds.length,
-        total_emails: emails.length,
         push_sent: pushSent,
-        email_sent: emailSent,
         errors: errors.length > 0 ? errors : undefined,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }

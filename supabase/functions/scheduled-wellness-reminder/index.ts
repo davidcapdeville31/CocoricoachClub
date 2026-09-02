@@ -107,7 +107,6 @@ serve(async (req) => {
       scheduleMap[s.category_id as string] = (s.days_of_week as number[]) || [];
     }
 
-    let totalEmailsSent = 0;
     let totalPushSent = 0;
     const results: any[] = [];
 
@@ -134,11 +133,10 @@ serve(async (req) => {
 
       if (!players || players.length === 0) continue;
 
-      // Filter by per-user notification preferences
+      // Filter by per-user push preferences
       const allUserIds = players.filter((p) => p.user_id).map((p) => p.user_id!);
-      const { pushUserIds: allowedPushUserIds, emailUserIds: allowedEmailUserIds } =
+      const { pushUserIds: allowedPushUserIds } =
         await filterByPreferences(supabase, allUserIds, "wellness_reminder");
-      const allowedEmailSet = new Set(allowedEmailUserIds);
       const allowedPushSet = new Set(allowedPushUserIds);
 
 
@@ -185,19 +183,17 @@ serve(async (req) => {
 
       results.push({
         category: category.name,
-        emailsSent: emailTargets.length,
         pushTargeted: pushUserIds.length,
         type: "wellness_reminder",
       });
     }
 
-    console.log(`[wellness] Total: ${totalEmailsSent} emails, ${totalPushSent} push sent`);
+    console.log(`[wellness] Total: ${totalPushSent} push sent`);
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: `${totalEmailsSent} email(s) + ${totalPushSent} push sent`,
-        emailsSent: totalEmailsSent,
+        message: `${totalPushSent} push sent`,
         pushSent: totalPushSent,
         eligibleClubs: eligibleClubIds.length,
         results,

@@ -141,12 +141,10 @@ serve(async (req) => {
     const wellnessDeepLink = `${appBaseUrl}/athlete-space?tab=wellness`;
 
     const allUserIds = targetedPlayers.filter((p) => p.user_id).map((p) => p.user_id!);
-    const { pushUserIds: allowedPushUserIds, emailUserIds: allowedEmailUserIds } =
+    const { pushUserIds: allowedPushUserIds } =
       await filterByPreferences(supabase, allUserIds, "wellness_reminder");
-    const allowedEmailSet = new Set(allowedEmailUserIds);
     const allowedPushSet = new Set(allowedPushUserIds);
 
-    let emailsSent = 0;
     let pushSent = 0;
 
 
@@ -195,7 +193,7 @@ serve(async (req) => {
       category_id: categoryId,
       sent_by: user.id,
       targeted_count: targetedPlayers.length,
-      emails_sent: emailsSent,
+      emails_sent: 0,
       push_sent: pushSent,
     });
 
@@ -203,7 +201,7 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         targeted: targetedPlayers.length,
-        emailsSent,
+        emailsSent: 0,
         pushSent,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
