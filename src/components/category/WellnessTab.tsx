@@ -489,7 +489,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
           </div>
         ) : (
           <>
-            <div className="rounded-md border overflow-x-auto">
+            <div className="rounded-md border overflow-auto max-h-[60vh]">
               <Table className="min-w-max">
                 <TableHeader>
                   <TableRow>
