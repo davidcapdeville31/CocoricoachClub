@@ -45,7 +45,7 @@ export function TeamWeightOverview({ categoryId }: Props) {
         const trend = weightTrend(byPlayer.get(p.id) || []);
         return {
           id: p.id,
-          name: `${p.last_name || ""} ${p.first_name || ""}`.trim(),
+          name: `${(p.last_name || "").toUpperCase()} ${p.first_name || ""}`.trim(),
           trend,
         };
       })
