@@ -2,6 +2,11 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendTemplateEmailWithLog } from "../_shared/transactional-email-templates/send-log.ts";
 
+// Emails de notification désactivés à la demande du club : push uniquement.
+// (Les emails d'authentification et d'invitation restent actifs.)
+const APP_NOTIFICATION_EMAILS_ENABLED = false;
+
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -243,7 +248,7 @@ serve(async (req) => {
     }
 
     // ── EMAIL via Lovable-managed delivery ───────────────────────────────
-    if (channels.email && emails.length > 0) {
+    if (APP_NOTIFICATION_EMAILS_ENABLED && channels.email && emails.length > 0) {
       for (const recipient of emails) {
         try {
           const result = await sendTemplateEmailWithLog(supabase, "app-notification", recipient, {

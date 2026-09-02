@@ -4,6 +4,11 @@ import { sendTemplateEmailWithLog } from "../_shared/transactional-email-templat
 
 import { filterByPreferences } from "../_shared/notification-preferences.ts";
 
+// Emails de notification désactivés à la demande du club : push uniquement.
+// (Les emails d'authentification et d'invitation restent actifs.)
+const APP_NOTIFICATION_EMAILS_ENABLED = false;
+
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -152,7 +157,7 @@ serve(async (req) => {
       .map((p) => ({ email: p.email!, userId: p.user_id! }));
 
     const stamp = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, "");
-    for (const t of emailTargets) {
+    for (const t of (APP_NOTIFICATION_EMAILS_ENABLED ? emailTargets : [])) {
       try {
         const result = await sendTemplateEmailWithLog(supabase, "app-notification", t.email, {
           idempotencyKey: `manual-wellness-${t.userId}-${stamp}`,

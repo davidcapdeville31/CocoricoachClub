@@ -3,6 +3,11 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendTemplateEmailWithLog } from "../_shared/transactional-email-templates/send-log.ts";
 
 import {
+
+// Emails de notification désactivés à la demande du club : push uniquement.
+// (Les emails d'authentification et d'invitation restent actifs.)
+const APP_NOTIFICATION_EMAILS_ENABLED = false;
+
   filterByPreferences,
   type NotificationCategory,
 } from "../_shared/notification-preferences.ts";
@@ -269,7 +274,7 @@ const handler = async (req: Request): Promise<Response> => {
       const emailAllowed = !athlete.user_id || allowedEmailSet.has(athlete.user_id);
       const pushAllowed = !athlete.user_id || allowedPushSet.has(athlete.user_id);
 
-      if (channels.includes("email") && athlete.email && emailAllowed) {
+      if (APP_NOTIFICATION_EMAILS_ENABLED && channels.includes("email") && athlete.email && emailAllowed) {
         try {
           // Build details lines for the message body
           const detailsLines: string[] = [];

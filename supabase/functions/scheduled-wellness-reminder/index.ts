@@ -3,6 +3,11 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { filterByPreferences } from "../_shared/notification-preferences.ts";
 import { sendTemplateEmailWithLog } from "../_shared/transactional-email-templates/send-log.ts";
 
+// Emails de notification désactivés à la demande du club : push uniquement.
+// (Les emails d'authentification et d'invitation restent actifs.)
+const APP_NOTIFICATION_EMAILS_ENABLED = false;
+
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -145,7 +150,7 @@ serve(async (req) => {
         .filter((p) => p.email && p.user_id && allowedEmailSet.has(p.user_id))
         .map((p) => ({ email: p.email!, userId: p.user_id! }));
 
-      for (const target of emailTargets) {
+      for (const target of (APP_NOTIFICATION_EMAILS_ENABLED ? emailTargets : [])) {
         try {
           const result = await sendTemplateEmailWithLog(supabase, "app-notification", target.email, {
             idempotencyKey: `wellness-reminder-${target.userId}-${new Date().toISOString().slice(0, 10)}`,

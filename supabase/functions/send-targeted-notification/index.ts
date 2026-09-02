@@ -2,6 +2,11 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendTemplateEmailWithLog } from "../_shared/transactional-email-templates/send-log.ts";
 
+// Emails de notification désactivés à la demande du club : push uniquement.
+// (Les emails d'authentification et d'invitation restent actifs.)
+const APP_NOTIFICATION_EMAILS_ENABLED = false;
+
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -340,7 +345,7 @@ serve(async (req: Request) => {
     }
 
     // ── EMAIL ──────────────────────────────────────────────────────────────────
-    if (channels.includes("email")) {
+    if (APP_NOTIFICATION_EMAILS_ENABLED && channels.includes("email")) {
       // Collect target user IDs for email: from explicit list OR from category members
       let emailTargetIds = [...targetUserIds];
       
