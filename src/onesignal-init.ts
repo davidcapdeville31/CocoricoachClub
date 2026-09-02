@@ -29,9 +29,27 @@ window.OneSignalDeferred = window.OneSignalDeferred || [];
     });
     window.OneSignal = OneSignal;
     console.log("[OneSignal] SDK v16 initialized");
+
+    // Listen for badge updates from the service worker and apply them to the app icon.
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.addEventListener("message", (event) => {
+        if (event.data?.type === "UPDATE_APP_BADGE") {
+          const count = typeof event.data.count === "number" ? event.data.count : 0;
+          if ("setAppBadge" in navigator) {
+            navigator.setAppBadge(count).catch(() => {});
+          }
+        }
+      });
+    }
+
+    // Clear the badge when the app is opened.
+    if ("clearAppBadge" in navigator) {
+      navigator.clearAppBadge().catch(() => {});
+    }
   } catch (error) {
     console.warn("[OneSignal] SDK initialization failed, continuing without push", error);
   }
 });
+
 
 export {};
