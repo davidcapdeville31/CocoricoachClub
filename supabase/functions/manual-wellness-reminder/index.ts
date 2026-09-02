@@ -96,7 +96,7 @@ serve(async (req) => {
     // Fetch players in category
     let playersQuery = supabase
       .from("players")
-      .select("id, name, email, user_id")
+      .select("id, name, user_id")
       .eq("category_id", categoryId);
     if (targetPlayerIds && targetPlayerIds.length > 0) {
       playersQuery = playersQuery.in("id", targetPlayerIds);
@@ -137,8 +137,7 @@ serve(async (req) => {
       );
     }
 
-    const appBaseUrl = "https://cocoricoachclub.com";
-    const wellnessDeepLink = `${appBaseUrl}/athlete-space?tab=wellness`;
+    const wellnessDeepLink = "https://cocoricoachclub.com/athlete-space?tab=wellness";
 
     const allUserIds = targetedPlayers.filter((p) => p.user_id).map((p) => p.user_id!);
     const { pushUserIds: allowedPushUserIds } =

@@ -110,8 +110,7 @@ serve(async (req) => {
     let totalPushSent = 0;
     const results: any[] = [];
 
-    const appBaseUrl = "https://cocoricoachclub.com";
-    const wellnessDeepLink = `${appBaseUrl}/athlete-space?tab=wellness`;
+    const wellnessDeepLink = "https://cocoricoachclub.com/athlete-space?tab=wellness";
 
     for (const category of categories) {
       const days = scheduleMap[category.id];
@@ -122,8 +121,7 @@ serve(async (req) => {
       }
       const { data: players, error: playersError } = await supabase
         .from("players")
-
-        .select("id, name, email, phone, user_id")
+        .select("id, name, user_id")
         .eq("category_id", category.id);
 
       if (playersError) {
