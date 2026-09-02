@@ -88,7 +88,9 @@ export function SessionVignette({
   playerName,
 }: SessionVignetteProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const isMobile = useIsMobile();
   const markAthleteSessionRead = useMarkAthleteSessionRead();
+
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: session.id,
