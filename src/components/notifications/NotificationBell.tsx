@@ -49,6 +49,12 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
       return `/categories/${categoryId}?tab=sante&subtab=wellness-health${date ? `&wellnessDate=${date}` : ""}`;
     }
 
+    // Wellness renseigné par un athlète → onglet Santé › Wellness à la date saisie
+    if (n.notification_type === "wellness_submitted" && categoryId) {
+      const date = meta.tracking_date;
+      return `/categories/${categoryId}?tab=sante&subtab=wellness-health${date ? `&wellnessDate=${date}` : ""}`;
+    }
+
     // Bilan RPE d'une séance → Charge d'entraînement › RPE Prévu/Réel, filtré sur la séance
     if (n.notification_type === "session_rpe_digest" && categoryId && sessionId) {
       const date = meta.session_date;
