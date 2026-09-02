@@ -24,19 +24,14 @@ interface NotifyAthletesRequest {
   }>;
   subject: string;
   message: string;
-  channels: ("email" | "sms" | "push")[];
+  channels: ("push" | "email" | "sms")[];
   eventType: "session" | "match" | "event" | "custom" | "convocation";
   eventDetails?: {
     date?: string;
     time?: string;
     location?: string;
   };
-  /** Optional: server fetches club + category names to personalize emails */
   category_id?: string;
-  /** Optional explicit overrides */
-  clubName?: string;
-  categoryName?: string;
-  /** When true, skip inserting in-app bell notifications (caller already did it) */
   skipBell?: boolean;
 }
 
@@ -154,7 +149,7 @@ const handler = async (req: Request): Promise<Response> => {
       const pushAllowed = !athlete.user_id || allowedPushSet.has(athlete.user_id);
 
 
-      if (false && channels.includes("sms") && athlete.phone) {
+      if (false) {
         try {
           let formattedPhone = athlete.phone.replace(/\s/g, "");
           if (!formattedPhone.startsWith("+")) {
