@@ -1,6 +1,10 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { sendTemplateEmailWithLog } from "../_shared/transactional-email-templates/send-log.ts";
+import { createClient } from "npm:@supabase/supabase-js@2";
+
+
+// Notifications sortantes limitées aux push à la demande du club.
+// Les emails d'authentification et d'invitation restent actifs.
+
 
 
 const corsHeaders = {
@@ -16,7 +20,6 @@ interface SendGlobalNotificationRequest {
   target_ids?: string[]; // club ids OR client ids depending on target_type
   channels: {
     push?: boolean;
-    email?: boolean;
   };
   notification_type?: string;
 }
@@ -165,22 +168,12 @@ serve(async (req) => {
 
     if (userIds.length === 0) {
       return new Response(
-        JSON.stringify({ success: true, push_sent: 0, email_sent: 0, total_users: 0, warning: "No target users found" }),
+        JSON.stringify({ success: true, push_sent: 0, total_users: 0, warning: "No target users found" }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Fetch emails for target users
-    const { data: profiles, error: profErr } = await supabase
-      .from("profiles")
-      .select("id, email, full_name")
-      .in("id", userIds);
-    if (profErr) throw profErr;
-
-    const emails = (profiles ?? []).filter((p) => p.email).map((p) => p.email!);
-
     let pushSent = 0;
-    let emailSent = 0;
     const errors: string[] = [];
 
     // ── Insert in-app notifications (best effort) ──────────────────────────
@@ -242,35 +235,12 @@ serve(async (req) => {
       }
     }
 
-    // ── EMAIL via Lovable-managed delivery ───────────────────────────────
-    if (channels.email && emails.length > 0) {
-      for (const recipient of emails) {
-        try {
-          const result = await sendTemplateEmailWithLog(supabase, "app-notification", recipient, {
-            idempotencyKey: `global-notif-${target_type}-${recipient}-${Date.now()}`,
-            templateData: {
-              title,
-              message,
-              ctaLabel: "Ouvrir l'application",
-              ctaUrl: "https://cocoricoachclub.com",
-            },
-          });
-          if (result.sent) emailSent += 1;
-        } catch (e) {
-          const msg = e instanceof Error ? e.message : String(e);
-          console.error("Email exception:", msg);
-          errors.push(`Email (${recipient}): ${msg}`);
-        }
-      }
-    }
 
     return new Response(
       JSON.stringify({
         success: true,
         total_users: userIds.length,
-        total_emails: emails.length,
         push_sent: pushSent,
-        email_sent: emailSent,
         errors: errors.length > 0 ? errors : undefined,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }

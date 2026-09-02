@@ -1,6 +1,10 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { sendTemplateEmailWithLog } from "../_shared/transactional-email-templates/send-log.ts";
+import { createClient } from "npm:@supabase/supabase-js@2";
+
+
+// Notifications sortantes limitées aux push à la demande du club.
+// Les emails d'authentification et d'invitation restent actifs.
+
 
 
 const corsHeaders = {
@@ -17,7 +21,7 @@ interface TargetedNotificationRequest {
   roles?: string[];
   club_id?: string;
   target_user_ids?: string[];
-  channels: ("push" | "email" | "sms")[];
+  channels: "push"[];
   event_type?: "session" | "match" | "event" | "custom";
   session_id?: string;
   /** If set, sends ONLY to players tagged with participates_training_<training_session_id>.
@@ -79,37 +83,6 @@ function buildTagFilters(
   return [...locationFilters, { operator: "AND" }, ...roleFilters];
 }
 
-function buildEmailHtml(
-  title: string,
-  message: string,
-  eventDetails?: { date?: string; time?: string; location?: string }
-): string {
-  const eventInfo = eventDetails
-    ? `<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin:16px 0;">
-      ${eventDetails.date ? `<p style="margin:4px 0;"><strong>📅 Date:</strong> ${eventDetails.date}</p>` : ""}
-      ${eventDetails.time ? `<p style="margin:4px 0;"><strong>🕐 Heure:</strong> ${eventDetails.time}</p>` : ""}
-      ${eventDetails.location ? `<p style="margin:4px 0;"><strong>📍 Lieu:</strong> ${eventDetails.location}</p>` : ""}
-    </div>`
-    : "";
-
-  return `<!DOCTYPE html><html>
-  <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
-  <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f4f4f5;margin:0;padding:20px;">
-    <div style="max-width:600px;margin:0 auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 6px rgba(0,0,0,.1);">
-      <div style="background:linear-gradient(135deg,#059669 0%,#10b981 100%);padding:32px;text-align:center;">
-        <h1 style="color:white;margin:0;font-size:24px;">🏉 CocoriCoach</h1>
-      </div>
-      <div style="padding:32px;">
-        <h2 style="color:#1f2937;margin:16px 0;">${title}</h2>
-        <p style="color:#4b5563;line-height:1.6;white-space:pre-wrap;">${message}</p>
-        ${eventInfo}
-      </div>
-      <div style="background:#f9fafb;padding:20px;text-align:center;border-top:1px solid #e5e7eb;">
-        <p style="color:#9ca3af;font-size:12px;margin:0;">© ${new Date().getFullYear()} CocoriCoach</p>
-      </div>
-    </div>
-  </body></html>`;
-}
 
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -234,7 +207,7 @@ serve(async (req: Request) => {
       );
     }
 
-    const results = { pushSent: 0, emailsSent: 0, smsSent: 0, errors: [] as string[] };
+    const results = { pushSent: 0, errors: [] as string[] };
 
     // Build push message with event details appended
     let pushMessage = message;
@@ -339,106 +312,7 @@ serve(async (req: Request) => {
       }
     }
 
-    // ── EMAIL ──────────────────────────────────────────────────────────────────
-    if (channels.includes("email")) {
-      // Collect target user IDs for email: from explicit list OR from category members
-      let emailTargetIds = [...targetUserIds];
-      
-      // If using tag filters (no explicit user IDs), resolve category members
-      if (emailTargetIds.length === 0 && (category_ids?.length || club_id)) {
-        try {
-          let query = supabase.from("category_members").select("user_id");
-          if (category_ids?.length) {
-            query = query.in("category_id", category_ids);
-          }
-          if (expandedRoles.length > 0) {
-            query = query.in("role", expandedRoles);
-          }
-          const { data: members } = await query;
-          emailTargetIds = members?.map((m: any) => m.user_id).filter(Boolean) || [];
-        } catch (e) {
-          console.warn("[send-targeted-notification] Error resolving category members for email:", e);
-        }
-      }
 
-      if (emailTargetIds.length > 0) {
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("id, email, full_name")
-          .in("id", emailTargetIds);
-
-        const emails = profiles?.filter((p) => p.email).map((p) => p.email!) || [];
-
-        if (emails.length > 0) {
-          const ctaUrl = event_details?.url || "https://cocoricoachclub.com";
-          let extendedMessage = message;
-          if (event_details?.date) extendedMessage += `\n\n📅 ${event_details.date}`;
-          if (event_details?.location) extendedMessage += `\n📍 ${event_details.location}`;
-
-          for (const recipient of emails) {
-            try {
-              const result = await sendTemplateEmailWithLog(supabase, "app-notification", recipient, {
-                idempotencyKey: `targeted-notif-${recipient}-${Date.now()}`,
-                templateData: {
-                  title,
-                  message: extendedMessage,
-                  ctaLabel: "Ouvrir l'application",
-                  ctaUrl,
-                },
-              });
-              if (result.sent) results.emailsSent += 1;
-            } catch (e: unknown) {
-              results.errors.push(`Email error (${recipient}): ${e instanceof Error ? e.message : String(e)}`);
-            }
-          }
-          console.log(`[send-targeted-notification] ✅ Emails enqueued for ${results.emailsSent} recipient(s)`);
-        }
-      }
-    }
-
-    // ── SMS (only when we have explicit user IDs) ─────────────────────────────
-    if (channels.includes("sms") && targetUserIds.length > 0) {
-      const { data: players } = await supabase
-        .from("players")
-        .select("user_id, phone")
-        .in("user_id", targetUserIds)
-        .not("phone", "is", null);
-
-      if (players && players.length > 0) {
-        for (const player of players) {
-          if (!player.phone) continue;
-          let phone = player.phone.replace(/\s/g, "");
-          if (!phone.startsWith("+")) {
-            phone = phone.startsWith("0") ? "+33" + phone.substring(1) : "+" + phone;
-          }
-
-          let smsContent = `${title}\n${message}`;
-          if (event_details?.date) smsContent += `\n📅 ${event_details.date}`;
-          if (event_details?.location) smsContent += `\n📍 ${event_details.location}`;
-          if (smsContent.length > 300) smsContent = smsContent.substring(0, 297) + "...";
-
-          try {
-            const res = await fetch("https://api.onesignal.com/notifications", {
-              method: "POST",
-              headers: { "Content-Type": "application/json", Authorization: `Key ${ONESIGNAL_REST_API_KEY}` },
-              body: JSON.stringify({
-                app_id: ONESIGNAL_APP_ID,
-                include_phone_numbers: [phone],
-                sms_from: "CocoriCoach",
-                contents: { en: smsContent },
-              }),
-            });
-            if (res.ok) results.smsSent++;
-            else {
-              const err = await res.json();
-              results.errors.push(`SMS ${phone}: ${JSON.stringify(err)}`);
-            }
-          } catch (e: unknown) {
-            results.errors.push(`SMS ${phone}: ${e instanceof Error ? e.message : String(e)}`);
-          }
-        }
-      }
-    }
 
     console.log("[send-targeted-notification] Results:", results);
 

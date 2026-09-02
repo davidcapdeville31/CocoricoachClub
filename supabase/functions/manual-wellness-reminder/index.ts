@@ -1,8 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { sendTemplateEmailWithLog } from "../_shared/transactional-email-templates/send-log.ts";
+import { createClient } from "npm:@supabase/supabase-js@2";
+
 
 import { filterByPreferences } from "../_shared/notification-preferences.ts";
+
+// Les rappels wellness sont envoyés en push uniquement.
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -93,7 +96,7 @@ serve(async (req) => {
     // Fetch players in category
     let playersQuery = supabase
       .from("players")
-      .select("id, name, email, user_id")
+      .select("id, name, user_id")
       .eq("category_id", categoryId);
     if (targetPlayerIds && targetPlayerIds.length > 0) {
       playersQuery = playersQuery.in("id", targetPlayerIds);
@@ -101,7 +104,7 @@ serve(async (req) => {
     const { data: players, error: playersErr } = await playersQuery;
     if (playersErr) throw playersErr;
     if (!players || players.length === 0) {
-      return new Response(JSON.stringify({ message: "No players targeted", emailsSent: 0, pushSent: 0 }), {
+      return new Response(JSON.stringify({ message: "No players targeted", pushSent: 0 }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -129,45 +132,19 @@ serve(async (req) => {
         push_sent: 0,
       });
       return new Response(
-        JSON.stringify({ message: "All athletes already filled wellness today", emailsSent: 0, pushSent: 0, targeted: 0 }),
+        JSON.stringify({ message: "All athletes already filled wellness today", pushSent: 0, targeted: 0 }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const appBaseUrl = "https://cocoricoachclub.com";
-    const wellnessDeepLink = `${appBaseUrl}/athlete-space?tab=wellness`;
+    const wellnessDeepLink = "https://cocoricoachclub.com/athlete-space?tab=wellness";
 
     const allUserIds = targetedPlayers.filter((p) => p.user_id).map((p) => p.user_id!);
-    const { pushUserIds: allowedPushUserIds, emailUserIds: allowedEmailUserIds } =
+    const { pushUserIds: allowedPushUserIds } =
       await filterByPreferences(supabase, allUserIds, "wellness_reminder");
-    const allowedEmailSet = new Set(allowedEmailUserIds);
     const allowedPushSet = new Set(allowedPushUserIds);
 
-    let emailsSent = 0;
     let pushSent = 0;
-
-    // Emails
-    const emailTargets = targetedPlayers
-      .filter((p) => p.email && p.user_id && allowedEmailSet.has(p.user_id!))
-      .map((p) => ({ email: p.email!, userId: p.user_id! }));
-
-    const stamp = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, "");
-    for (const t of emailTargets) {
-      try {
-        const result = await sendTemplateEmailWithLog(supabase, "app-notification", t.email, {
-          idempotencyKey: `manual-wellness-${t.userId}-${stamp}`,
-          templateData: {
-            title: "❤️ Rappel Wellness",
-            message: `Ton coach te rappelle de remplir ton Wellness du jour (${category.name}). Ça prend 30 secondes !`,
-            ctaLabel: "Remplir mon Wellness",
-            ctaUrl: wellnessDeepLink,
-          },
-        });
-        if (result.sent) emailsSent += 1;
-      } catch (e) {
-        console.error("[manual-wellness] email error", e);
-      }
-    }
 
     // Push
     if (oneSignalAppId && oneSignalApiKey) {
@@ -214,7 +191,7 @@ serve(async (req) => {
       category_id: categoryId,
       sent_by: user.id,
       targeted_count: targetedPlayers.length,
-      emails_sent: emailsSent,
+      emails_sent: 0,
       push_sent: pushSent,
     });
 
@@ -222,7 +199,6 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         targeted: targetedPlayers.length,
-        emailsSent,
         pushSent,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }

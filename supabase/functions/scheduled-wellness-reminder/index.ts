@@ -1,7 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2";
 import { filterByPreferences } from "../_shared/notification-preferences.ts";
-import { sendTemplateEmailWithLog } from "../_shared/transactional-email-templates/send-log.ts";
+
+// Les rappels wellness sont envoyés en push uniquement.
+
 
 
 const corsHeaders = {
@@ -105,12 +107,10 @@ serve(async (req) => {
       scheduleMap[s.category_id as string] = (s.days_of_week as number[]) || [];
     }
 
-    let totalEmailsSent = 0;
     let totalPushSent = 0;
     const results: any[] = [];
 
-    const appBaseUrl = "https://cocoricoachclub.com";
-    const wellnessDeepLink = `${appBaseUrl}/athlete-space?tab=wellness`;
+    const wellnessDeepLink = "https://cocoricoachclub.com/athlete-space?tab=wellness";
 
     for (const category of categories) {
       const days = scheduleMap[category.id];
@@ -121,8 +121,7 @@ serve(async (req) => {
       }
       const { data: players, error: playersError } = await supabase
         .from("players")
-
-        .select("id, name, email, phone, user_id")
+        .select("id, name, user_id")
         .eq("category_id", category.id);
 
       if (playersError) {
@@ -132,35 +131,11 @@ serve(async (req) => {
 
       if (!players || players.length === 0) continue;
 
-      // Filter by per-user notification preferences
+      // Filter by per-user push preferences
       const allUserIds = players.filter((p) => p.user_id).map((p) => p.user_id!);
-      const { pushUserIds: allowedPushUserIds, emailUserIds: allowedEmailUserIds } =
+      const { pushUserIds: allowedPushUserIds } =
         await filterByPreferences(supabase, allUserIds, "wellness_reminder");
-      const allowedEmailSet = new Set(allowedEmailUserIds);
       const allowedPushSet = new Set(allowedPushUserIds);
-
-      // ── EMAIL via Lovable-managed delivery ─────────────────────────────
-
-      const emailTargets = players
-        .filter((p) => p.email && p.user_id && allowedEmailSet.has(p.user_id))
-        .map((p) => ({ email: p.email!, userId: p.user_id! }));
-
-      for (const target of emailTargets) {
-        try {
-          const result = await sendTemplateEmailWithLog(supabase, "app-notification", target.email, {
-            idempotencyKey: `wellness-reminder-${target.userId}-${new Date().toISOString().slice(0, 10)}`,
-            templateData: {
-              title: "🌅 Wellness du jour",
-              message: `Bonjour ! N'oublie pas de renseigner ton Wellness du jour (${category.name}) pour aider ton staff à suivre ta récupération.`,
-              ctaLabel: "❤️ Remplir mon Wellness",
-              ctaUrl: wellnessDeepLink,
-            },
-          });
-          if (result.sent) totalEmailsSent += 1;
-        } catch (error) {
-          console.error("[wellness] Email send error:", error);
-        }
-      }
 
       // ── PUSH via OneSignal ─────────────────────────────────────────────
       const pushUserIds = players
@@ -205,19 +180,17 @@ serve(async (req) => {
 
       results.push({
         category: category.name,
-        emailsSent: emailTargets.length,
         pushTargeted: pushUserIds.length,
         type: "wellness_reminder",
       });
     }
 
-    console.log(`[wellness] Total: ${totalEmailsSent} emails, ${totalPushSent} push sent`);
+    console.log(`[wellness] Total: ${totalPushSent} push sent`);
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: `${totalEmailsSent} email(s) + ${totalPushSent} push sent`,
-        emailsSent: totalEmailsSent,
+        message: `${totalPushSent} push sent`,
         pushSent: totalPushSent,
         eligibleClubs: eligibleClubIds.length,
         results,
