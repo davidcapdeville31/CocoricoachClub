@@ -1174,6 +1174,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         categoryId={categoryId}
         athletePlayerId={playerId}
         sportType={sportType}
+        lockedTrainingType="musculation"
         session={sessionToEdit}
       />
 
