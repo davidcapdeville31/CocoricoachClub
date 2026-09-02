@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Scale, TrendingDown, TrendingUp, Minus } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
 import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
 import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
@@ -100,45 +101,68 @@ export function TeamWeightOverview({ categoryId }: Props) {
       <CardContent>
         {isLoading ? (
           <p className="text-sm text-muted-foreground">Chargement…</p>
-        ) : withData.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Aucun poids enregistré pour cette catégorie.</p>
+        ) : rows.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Aucun athlète dans cette catégorie.</p>
         ) : (
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {withData.map((r) => {
-              const d = r.trend!.deltaPrev;
-              const Icon = !d ? Minus : d > 0 ? TrendingUp : TrendingDown;
-              const color = !d ? "text-muted-foreground" : d > 0 ? "text-warning" : "text-status-optimal";
-              return (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  key={r.id}
-                  onClick={() => setSelectedId(r.id)}
-                  className={`h-auto w-full justify-start rounded-xl border bg-surface-sunken p-3 text-left transition-colors hover:border-primary ${
-                    r.id === activeId ? "border-primary ring-1 ring-primary/40" : ""
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-sm font-medium truncate">{r.name}</p>
-                    <Badge variant="secondary" className="text-[10px] shrink-0">
-                      {r.trend!.count}
-                    </Badge>
-                  </div>
-                  <div className="flex items-baseline gap-2 mt-1">
-                    <span className="text-lg font-bold">{r.trend!.current} kg</span>
-                    <span className={`text-xs flex items-center gap-0.5 ${color}`}>
-                      <Icon className="h-3 w-3" />
-                      {d == null ? "—" : `${d > 0 ? "+" : ""}${d}`}
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground">
-                    {format(new Date(r.trend!.currentDate), "dd/MM/yyyy")} · 30j :{" "}
-                    {r.trend!.delta30 > 0 ? "+" : ""}
-                    {r.trend!.delta30} kg
-                  </p>
-                </Button>
-              );
-            })}
+          <div className="rounded-xl border overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Athlète</TableHead>
+                  <TableHead className="text-right">Dernier poids</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead className="text-right">Évolution</TableHead>
+                  <TableHead className="text-right">Sur 30 jours</TableHead>
+                  <TableHead className="text-right">Mesures</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rows.map((r) => {
+                  const d = r.trend?.deltaPrev ?? null;
+                  const Icon = !d ? Minus : d > 0 ? TrendingUp : TrendingDown;
+                  const color = !d ? "text-muted-foreground" : d > 0 ? "text-warning" : "text-status-optimal";
+                  return (
+                    <TableRow
+                      key={r.id}
+                      onClick={() => r.trend && setSelectedId(r.id)}
+                      className={`${r.trend ? "cursor-pointer" : "opacity-60"} ${
+                        r.id === activeId ? "bg-primary/5" : ""
+                      }`}
+                    >
+                      <TableCell className="font-medium">{r.name}</TableCell>
+                      <TableCell className="text-right font-bold">
+                        {r.trend ? `${r.trend.current} kg` : "—"}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-xs">
+                        {r.trend ? format(new Date(r.trend.currentDate), "dd/MM/yyyy") : "—"}
+                      </TableCell>
+                      <TableCell className={`text-right ${color}`}>
+                        {r.trend ? (
+                          <span className="inline-flex items-center gap-1 justify-end">
+                            <Icon className="h-3 w-3" />
+                            {d == null ? "—" : `${d > 0 ? "+" : ""}${d} kg`}
+                          </span>
+                        ) : (
+                          "—"
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right text-xs">
+                        {r.trend ? `${r.trend.delta30 > 0 ? "+" : ""}${r.trend.delta30} kg` : "—"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {r.trend ? (
+                          <Badge variant="secondary" className="text-[10px]">
+                            {r.trend.count}
+                          </Badge>
+                        ) : (
+                          "—"
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
           </div>
         )}
         {activeId && chartData.length > 1 && (
