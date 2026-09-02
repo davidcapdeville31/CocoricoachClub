@@ -104,7 +104,7 @@ serve(async (req) => {
     const { data: players, error: playersErr } = await playersQuery;
     if (playersErr) throw playersErr;
     if (!players || players.length === 0) {
-      return new Response(JSON.stringify({ message: "No players targeted", emailsSent: 0, pushSent: 0 }), {
+      return new Response(JSON.stringify({ message: "No players targeted", pushSent: 0 }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -132,7 +132,7 @@ serve(async (req) => {
         push_sent: 0,
       });
       return new Response(
-        JSON.stringify({ message: "All athletes already filled wellness today", emailsSent: 0, pushSent: 0, targeted: 0 }),
+        JSON.stringify({ message: "All athletes already filled wellness today", pushSent: 0, targeted: 0 }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -199,7 +199,6 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         targeted: targetedPlayers.length,
-        emailsSent: 0,
         pushSent,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }

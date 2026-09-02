@@ -20,7 +20,6 @@ interface SendGlobalNotificationRequest {
   target_ids?: string[]; // club ids OR client ids depending on target_type
   channels: {
     push?: boolean;
-    email?: boolean;
   };
   notification_type?: string;
 }
@@ -169,7 +168,7 @@ serve(async (req) => {
 
     if (userIds.length === 0) {
       return new Response(
-        JSON.stringify({ success: true, push_sent: 0, email_sent: 0, total_users: 0, warning: "No target users found" }),
+        JSON.stringify({ success: true, push_sent: 0, total_users: 0, warning: "No target users found" }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
