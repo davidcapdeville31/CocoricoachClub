@@ -10,6 +10,8 @@ import {
 } from "@/lib/constants/trainingTypes";
 import { getSessionTitleFromNotes } from "@/lib/utils/sessionNotes";
 import { useMarkAthleteSessionRead } from "@/lib/hooks/useMarkAthleteSessionRead";
+import { useIsMobile } from "@/hooks/use-mobile";
+
 
 // Map Tailwind bg-color classes to actual CSS colors
 const TAILWIND_COLOR_MAP: Record<string, string> = {
@@ -88,7 +90,9 @@ export function SessionVignette({
   playerName,
 }: SessionVignetteProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const isMobile = useIsMobile();
   const markAthleteSessionRead = useMarkAthleteSessionRead();
+
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: session.id,
@@ -134,6 +138,7 @@ export function SessionVignette({
   const handleActionClick = (e: React.MouseEvent, action: () => void) => {
     e.stopPropagation();
     e.preventDefault();
+    setIsHovered(false);
     action();
   };
 
@@ -150,11 +155,25 @@ export function SessionVignette({
         isHovered && "z-50"
       )}
       onMouseEnter={() => {
+        if (isMobile) return;
         setIsHovered(true);
         if (isAthleteCreated) markAthleteSessionRead(session.id);
       }}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseLeave={() => {
+        if (isMobile) return;
+        setIsHovered(false);
+      }}
+      onClick={(e) => {
+        if (!isMobile) return;
+        e.stopPropagation();
+        setIsHovered((prev) => {
+          const next = !prev;
+          if (next && isAthleteCreated) markAthleteSessionRead(session.id);
+          return next;
+        });
+      }}
     >
+
       {/* Main Session Block */}
       <div
         className={cn(
@@ -181,7 +200,7 @@ export function SessionVignette({
         })() : undefined}
       >
         {/* Drag handle - only visible and active when NOT hovered */}
-        {!isHovered && !isDragging && isDraggable && !isViewer && (
+        {!isHovered && !isDragging && isDraggable && !isViewer && !isMobile && (
           <div
             {...attributes}
             {...listeners}
