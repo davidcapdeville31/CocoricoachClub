@@ -2,7 +2,7 @@
 // OpponentScoutingSheet — Fiche scouting Judo haut niveau
 // Dialog plein écran, 6+ sections accordéon, autosave debouncé
 // ============================================================
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
