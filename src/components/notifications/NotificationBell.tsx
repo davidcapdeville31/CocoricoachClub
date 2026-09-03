@@ -112,10 +112,7 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
       if (asAthlete) return `/athlete-space?tab=calendar&match=${meta.match_id}`;
       return `/categories/${categoryId}?tab=competition&match=${meta.match_id}`;
     }
-    if (n.injury_id && meta.player_id) {
-      return `/players/${meta.player_id}`;
-    }
-    if (meta.player_id) {
+    if (meta.player_id && !asAthlete) {
       return `/players/${meta.player_id}`;
     }
     if (typeof meta.url === "string" && meta.url) {
