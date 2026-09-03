@@ -1,6 +1,7 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
@@ -180,6 +181,24 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
       });
     },
   });
+
+  // Deep-link depuis une notification cloche : ?session=<id> ouvre la séance
+  const [searchParams, setSearchParams] = useSearchParams();
+  const deepLinkSessionId = searchParams.get("session");
+  useEffect(() => {
+    if (!deepLinkSessionId) return;
+    const target = (sessions as any[]).find((s) => s.id === deepLinkSessionId);
+    const dateParam = searchParams.get("date");
+    const targetDate = target?.session_date || dateParam;
+    if (!targetDate) return;
+    setSelectedDate(parseISO(String(targetDate)));
+    if (target) setExpandedItemId(`session-${target.id}`);
+    const next = new URLSearchParams(searchParams);
+    next.delete("session");
+    next.delete("date");
+    setSearchParams(next, { replace: true });
+  }, [deepLinkSessionId, sessions, searchParams, setSearchParams]);
+
 
   const testReminderIds = useMemo(
     () => Array.from(new Set(sessions.map((s: any) => s.test_reminder_id).filter(Boolean))) as string[],
