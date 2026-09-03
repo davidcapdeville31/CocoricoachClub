@@ -2,7 +2,8 @@
 // OpponentScoutingSheet — Fiche scouting Judo haut niveau
 // Dialog plein écran, 6+ sections accordéon, autosave debouncé
 // ============================================================
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -46,8 +47,13 @@ import {
   AlertTriangle,
   Eye,
   Loader2,
+  CalendarDays,
+  Link2,
+  MessageSquare,
+  Pencil,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useCurrentUserIdentity } from "@/hooks/useCurrentUserIdentity";
 import { useOpponentScouting, type ScoutingProfile } from "./useOpponentScouting";
 import {
   ChipGroup,
@@ -90,6 +96,36 @@ interface Props {
   onOpenChange: (o: boolean) => void;
   opponentId: string | null;
 }
+
+interface ScoutingComment {
+  id: string;
+  opponent_id: string;
+  club_id: string;
+  author_id: string | null;
+  author_name: string | null;
+  event_date: string | null;
+  event_name: string | null;
+  comment: string;
+  video_url: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+const formatHistoryDate = (value: string | null) => {
+  if (!value) return "Date non renseignée";
+  return new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium" }).format(
+    new Date(`${value}T12:00:00`),
+  );
+};
+
+const isHttpUrl = (value: string) => {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+};
 
 // ============================================================
 // Tokui-waza row component
@@ -593,14 +629,136 @@ function ScoutingHeader({
 // MAIN COMPONENT
 // ============================================================
 export function OpponentScoutingSheet({ open, onOpenChange, opponentId }: Props) {
+  const queryClient = useQueryClient();
   const { profile, isLoading, saving, dirty, update, flush } = useOpponentScouting(
     open ? opponentId : null,
   );
+  const [historyDate, setHistoryDate] = useState("");
+  const [historyEvent, setHistoryEvent] = useState("");
+  const [historyComment, setHistoryComment] = useState("");
+  const [historyVideo, setHistoryVideo] = useState("");
+  const [editingHistory, setEditingHistory] = useState<ScoutingComment | null>(null);
+
+  const { data: history = [], isLoading: historyLoading } = useQuery({
+    queryKey: ["opponent-scouting-comments", profile?.id],
+    enabled: open && !!profile?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("opponent_scouting_comments")
+        .select("*")
+        .eq("opponent_id", profile?.id as string)
+        .order("event_date", { ascending: false, nullsFirst: false })
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data || []) as ScoutingComment[];
+    },
+  });
+
+  const resetHistoryForm = () => {
+    setHistoryDate("");
+    setHistoryEvent("");
+    setHistoryComment("");
+    setHistoryVideo("");
+    setEditingHistory(null);
+  };
+
+  const saveHistory = useMutation({
+    mutationFn: async () => {
+      if (!profile) throw new Error("Profil adversaire introuvable");
+      const comment = historyComment.trim();
+      const video = historyVideo.trim();
+      if (!comment) throw new Error("Le commentaire est obligatoire");
+      if (video && !isHttpUrl(video)) throw new Error("Le lien vidéo doit être une URL valide");
+
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      if (authError || !authData.user) throw new Error("Session utilisateur introuvable");
+      const authorName =
+        authData.user.user_metadata?.full_name ||
+        authData.user.user_metadata?.name ||
+        authData.user.email ||
+        "Utilisateur";
+      const values = {
+        event_date: historyDate || null,
+        event_name: historyEvent.trim() || null,
+        comment,
+        video_url: video || null,
+      };
+
+      if (editingHistory) {
+        const { error } = await supabase
+          .from("opponent_scouting_comments")
+          .update(values)
+          .eq("id", editingHistory.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("opponent_scouting_comments").insert({
+          opponent_id: profile.id,
+          club_id: profile.club_id,
+          author_id: authData.user.id,
+          author_name: authorName,
+          ...values,
+        });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["opponent-scouting-comments", profile?.id] });
+      toast.success(editingHistory ? "Commentaire modifié" : "Observation ajoutée");
+      resetHistoryForm();
+    },
+    onError: (error: Error) => toast.error(error.message || "Impossible d'enregistrer l'observation"),
+  });
+
+  const deleteHistory = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("opponent_scouting_comments").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["opponent-scouting-comments", profile?.id] });
+      toast.success("Observation supprimée");
+    },
+    onError: (error: Error) => toast.error(error.message || "Impossible de supprimer l'observation"),
+  });
+
+  const startHistoryEdit = (entry: ScoutingComment) => {
+    setEditingHistory(entry);
+    setHistoryDate(entry.event_date || "");
+    setHistoryEvent(entry.event_name || "");
+    setHistoryComment(entry.comment);
+    setHistoryVideo(entry.video_url || "");
+  };
 
   const handleClose = async () => {
     await flush();
+    resetHistoryForm();
     onOpenChange(false);
   };
+
+  const { userId, getClubRole, isClubOwner } = useCurrentUserIdentity();
+  const isStaff = !!profile?.club_id && (!!getClubRole(profile.club_id) || isClubOwner(profile.club_id));
+
+  useEffect(() => {
+    if (!open || !profile?.id) return;
+    const channel = supabase
+      .channel(`opponent-scouting-comments-${profile.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "opponent_scouting_comments",
+          filter: `opponent_id=eq.${profile.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["opponent-scouting-comments", profile.id] });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [open, profile?.id, queryClient]);
 
   // Helpers de patch par sous-bloc
   const patchGeneral = (k: string, v: any) =>
@@ -1028,6 +1186,149 @@ export function OpponentScoutingSheet({ open, onOpenChange, opponentId }: Props)
                       rows={3}
                       placeholder="Champion régional 2023, 3e France Junior 2024…"
                     />
+                  </div>
+                </SectionCard>
+
+                {/* ============ HISTORIQUE DES COMBATS ============ */}
+                <SectionCard
+                  id="history"
+                  title="Historique des combats"
+                  subtitle="Observations partagées entre le staff et les athlètes"
+                  icon={<MessageSquare className="h-4 w-4" />}
+                  tone="control"
+                  defaultOpen
+                >
+                  <div className="rounded-xl border bg-muted/20 p-3 space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="scouting-event-date">Date du tournoi</Label>
+                        <Input
+                          id="scouting-event-date"
+                          type="date"
+                          value={historyDate}
+                          onChange={(event) => setHistoryDate(event.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="scouting-event-name">Tournoi / compétition</Label>
+                        <Input
+                          id="scouting-event-name"
+                          value={historyEvent}
+                          onChange={(event) => setHistoryEvent(event.target.value)}
+                          placeholder="Ex. Championnat de France"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="scouting-comment">Commentaire *</Label>
+                      <Textarea
+                        id="scouting-comment"
+                        value={historyComment}
+                        onChange={(event) => setHistoryComment(event.target.value)}
+                        rows={3}
+                        placeholder="Déroulement du combat, réactions, points forts et axes à retenir…"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="scouting-video">Lien vidéo</Label>
+                      <Input
+                        id="scouting-video"
+                        type="url"
+                        value={historyVideo}
+                        onChange={(event) => setHistoryVideo(event.target.value)}
+                        placeholder="https://youtube.com/..."
+                      />
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        onClick={() => saveHistory.mutate()}
+                      >
+                        <Plus className="h-4 w-4 mr-1.5" />
+                        {editingHistory ? "Enregistrer les modifications" : "Ajouter l'observation"}
+                      </Button>
+                      {editingHistory && (
+                        <Button type="button" variant="outline" onClick={resetHistoryForm}>
+                          Annuler la modification
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {historyLoading ? (
+                      <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Chargement de l'historique…
+                      </div>
+                    ) : history.length === 0 ? (
+                      <div className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+                        <MessageSquare className="h-5 w-5 mx-auto mb-2 opacity-60" />
+                        Aucun combat documenté pour le moment.
+                      </div>
+                    ) : (
+                      history.map((entry) => {
+                        const canManage = isStaff || entry.author_id === userId;
+                        return (
+                          <article key={entry.id} className="rounded-xl border bg-card p-3 space-y-2">
+                            <div className="flex flex-wrap items-start justify-between gap-2">
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <h4 className="font-semibold text-sm">
+                                    {entry.event_name || "Observation de combat"}
+                                  </h4>
+                                  <Badge variant="secondary" className="gap-1 text-xs">
+                                    <CalendarDays className="h-3 w-3" />
+                                    {formatHistoryDate(entry.event_date)}
+                                  </Badge>
+                                </div>
+                                <p className="text-[11px] text-muted-foreground mt-1">
+                                  Par {entry.author_name || "Utilisateur"}
+                                </p>
+                              </div>
+                              {canManage && (
+                                <div className="flex items-center gap-1">
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    title="Modifier l'observation"
+                                    onClick={() => startHistoryEdit(entry)}
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    title="Supprimer l'observation"
+                                    onClick={() => {
+                                      if (window.confirm("Supprimer cette observation ?")) {
+                                        deleteHistory.mutate(entry.id);
+                                      }
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                            <p className="text-sm whitespace-pre-wrap break-words">{entry.comment}</p>
+                            {entry.video_url && (
+                              <a
+                                href={entry.video_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline break-all"
+                              >
+                                <Link2 className="h-4 w-4 shrink-0" />
+                                Voir la vidéo du combat
+                              </a>
+                            )}
+                          </article>
+                        );
+                      })
+                    )}
                   </div>
                 </SectionCard>
 
