@@ -47,8 +47,13 @@ import {
   AlertTriangle,
   Eye,
   Loader2,
+  CalendarDays,
+  Link2,
+  MessageSquare,
+  Pencil,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useCurrentUserIdentity } from "@/hooks/useCurrentUserIdentity";
 import { useOpponentScouting, type ScoutingProfile } from "./useOpponentScouting";
 import {
   ChipGroup,
@@ -729,6 +734,9 @@ export function OpponentScoutingSheet({ open, onOpenChange, opponentId }: Props)
     resetHistoryForm();
     onOpenChange(false);
   };
+
+  const { userId, getClubRole } = useCurrentUserIdentity();
+  const isStaff = !!profile?.club_id && !!getClubRole(profile.club_id);
 
   // Helpers de patch par sous-bloc
   const patchGeneral = (k: string, v: any) =>
