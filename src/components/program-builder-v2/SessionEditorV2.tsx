@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { encodeVariableSetsTag, parseVariableSetsTag, stripVariableSetsTag } from "@/lib/program-builder-v2/variableSetsNotes";
+import { encodeExtraVariablesTag, parseExtraVariablesTag, stripExtraVariablesTag } from "@/lib/program-builder-v2/extraVariablesNotes";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
