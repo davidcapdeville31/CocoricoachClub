@@ -735,8 +735,30 @@ export function OpponentScoutingSheet({ open, onOpenChange, opponentId }: Props)
     onOpenChange(false);
   };
 
-  const { userId, getClubRole } = useCurrentUserIdentity();
-  const isStaff = !!profile?.club_id && !!getClubRole(profile.club_id);
+  const { userId, getClubRole, isClubOwner } = useCurrentUserIdentity();
+  const isStaff = !!profile?.club_id && (!!getClubRole(profile.club_id) || isClubOwner(profile.club_id));
+
+  useEffect(() => {
+    if (!open || !profile?.id) return;
+    const channel = supabase
+      .channel(`opponent-scouting-comments-${profile.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "opponent_scouting_comments",
+          filter: `opponent_id=eq.${profile.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["opponent-scouting-comments", profile.id] });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [open, profile?.id, queryClient]);
 
   // Helpers de patch par sous-bloc
   const patchGeneral = (k: string, v: any) =>
