@@ -35,6 +35,31 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  /** Rôles de l'utilisateur par catégorie : permet de router vers l'espace athlète */
+  const { data: memberRoles = [] } = useQuery({
+    queryKey: ["notification-member-roles", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data, error } = await supabase
+        .from("category_members")
+        .select("category_id, role")
+        .eq("user_id", user.id);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id,
+    staleTime: 5 * 60_000,
+  });
+
+  const isAthleteInCategory = (categoryId?: string | null) => {
+    if (!memberRoles.length) return false;
+    const rows = categoryId
+      ? memberRoles.filter((m) => m.category_id === categoryId)
+      : memberRoles;
+    if (!rows.length) return false;
+    return rows.every((m) => m.role === "athlete");
+  };
+
   /** Cible de navigation d'une notification (séance, retour de séance, blessure…) */
   const getNotificationTarget = (n: Notification): string | null => {
     // Les demandes de rattachement se traitent directement dans la liste
@@ -42,6 +67,8 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
     const meta = n.metadata || {};
     const categoryId = n.category_id || meta.category_id;
     const sessionId = meta.session_id || meta.training_session_id;
+    const asAthlete = isAthleteInCategory(categoryId);
+
 
     // Bilan de remplissage → onglet Wellness filtré sur la date du bilan
     if (n.notification_type === "daily_completion_digest" && categoryId) {
