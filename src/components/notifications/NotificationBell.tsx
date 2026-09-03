@@ -98,11 +98,18 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
     }
 
 
-
-    if (sessionId && categoryId) {
+    // Séance (créée / modifiée / annulée…) : athlète → son calendrier, staff → planification
+    if (sessionId) {
+      const date = meta.session_date || meta.date;
+      if (asAthlete || !categoryId) {
+        const params = new URLSearchParams({ tab: "calendar", session: String(sessionId) });
+        if (date) params.set("date", String(date));
+        return `/athlete-space?${params.toString()}`;
+      }
       return `/categories/${categoryId}?tab=planification&session=${sessionId}`;
     }
     if (meta.match_id && categoryId) {
+      if (asAthlete) return `/athlete-space?tab=calendar&match=${meta.match_id}`;
       return `/categories/${categoryId}?tab=competition&match=${meta.match_id}`;
     }
     if (n.injury_id && meta.player_id) {
