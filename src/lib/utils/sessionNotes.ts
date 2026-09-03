@@ -8,6 +8,8 @@ export function getDisplayNotes(notes: string | null | undefined): string {
     .replace(/<!--v2-meta:.*?-->/g, "")
     .replace(/<!--\s*v2-block:[^>]+-->/g, "")
     .replace(/<!--\s*v2-test:[^>]+-->/g, "")
+    .replace(/<!--\s*v2-sets:.*?-->/gs, "")
+    .replace(/<!--\s*v2-xvars:.*?-->/gs, "")
     .replace(/<!--BLOCK:.*?-->/g, "")
     .replace(/<!--MENTAL:[\s\S]*?-->/g, "")
     .replace(/\n?<!--TESTS:.*?-->/g, "")

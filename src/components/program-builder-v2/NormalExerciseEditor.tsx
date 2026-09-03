@@ -41,8 +41,11 @@ export const NormalExerciseEditor = ({ exercise, onUpdate, onRemove }: Props) =>
     [exercise.visibleVariables, exerciseType],
   );
 
-  // Map V2BlockExercise fields to TrainingVariablesManager values shape
+  // Map V2BlockExercise fields to TrainingVariablesManager values shape.
+  // Extra (cardio / ergo / course) variables live directly on the exercise
+  // object, so we spread them to keep their inputs editable.
   const values: Record<string, any> = {
+    ...(exercise as Record<string, any>),
     sets: exercise.sets,
     reps: exercise.reps,
     percentage: exercise.percentage,

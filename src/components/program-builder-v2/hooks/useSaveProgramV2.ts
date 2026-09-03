@@ -10,6 +10,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { encodeVariableSetsTag } from "@/lib/program-builder-v2/variableSetsNotes";
+import { encodeExtraVariablesTag } from "@/lib/program-builder-v2/extraVariablesNotes";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { V2ProgramDraft } from "../CreateTrainingProgramV2";
@@ -33,6 +34,20 @@ export interface V2BlockExercise {
   groupId?: string;
   notes?: string;
   config?: Record<string, unknown>; // serialised method-specific config
+  // Cardio / ergo / locomotion / skill variables (no dedicated DB column)
+  durationSeconds?: number;
+  distanceMeters?: number;
+  calories?: number;
+  watts?: number;
+  cadence?: number;
+  runDistanceMeters?: number;
+  runDurationSeconds?: number;
+  paceSecondsPerKm?: number;
+  elevationMeters?: number;
+  assistance_kg?: number;
+  attempts?: number;
+  successRate?: number;
+  [key: string]: any;
 }
 
 export interface V2BlockWithExercises extends TrainingBlock {
@@ -179,7 +194,8 @@ export function useSaveProgramV2() {
             const isTestRef = typeof ex.exerciseId === "string" && ex.exerciseId.startsWith("test:");
             const testTag = isTestRef ? `<!-- v2-test:${ex.exerciseId.slice(5)} -->` : "";
             const setsTag = encodeVariableSetsTag(ex.variableSets as any);
-            const notes = `${blockHeader}${testTag}${setsTag}\n${baseNotes}`.trim();
+            const xvarsTag = encodeExtraVariablesTag(ex as any);
+            const notes = `${blockHeader}${testTag}${setsTag}${xvarsTag}\n${baseNotes}`.trim();
 
             const row: ExerciseInsert = {
               session_id: session.id,
