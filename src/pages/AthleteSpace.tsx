@@ -553,9 +553,14 @@ export default function AthleteSpace() {
 
       <main className="max-w-5xl mx-auto px-4 py-6">
        <Tabs
-         defaultValue={searchParams.get("tab") || "dashboard"}
+         value={searchParams.get("tab") || "dashboard"}
          className="w-full"
-         onValueChange={(v) => { if (v === "documents") markDocNotifsRead(); }}
+         onValueChange={(v) => {
+           if (v === "documents") markDocNotifsRead();
+           const next = new URLSearchParams(searchParams);
+           next.set("tab", v);
+           setSearchParams(next, { replace: true });
+         }}
        >
              <TabsList className="w-full flex overflow-x-auto gap-1 h-auto flex-nowrap justify-start bg-transparent p-0 mb-6 pb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
               <TabsTrigger 
