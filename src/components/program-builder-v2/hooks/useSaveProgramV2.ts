@@ -33,6 +33,20 @@ export interface V2BlockExercise {
   groupId?: string;
   notes?: string;
   config?: Record<string, unknown>; // serialised method-specific config
+  // Cardio / ergo / locomotion / skill variables (no dedicated DB column)
+  durationSeconds?: number;
+  distanceMeters?: number;
+  calories?: number;
+  watts?: number;
+  cadence?: number;
+  runDistanceMeters?: number;
+  runDurationSeconds?: number;
+  paceSecondsPerKm?: number;
+  elevationMeters?: number;
+  assistance_kg?: number;
+  attempts?: number;
+  successRate?: number;
+  [key: string]: any;
 }
 
 export interface V2BlockWithExercises extends TrainingBlock {
