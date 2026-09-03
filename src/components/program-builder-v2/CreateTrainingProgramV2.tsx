@@ -14,6 +14,7 @@
 //   - Save/load via coach_session_templates
 
 import { parseVariableSetsTag, stripVariableSetsTag } from "@/lib/program-builder-v2/variableSetsNotes";
+import { parseExtraVariablesTag, stripExtraVariablesTag } from "@/lib/program-builder-v2/extraVariablesNotes";
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -246,12 +247,15 @@ export function CreateTrainingProgramV2({
                 }
               }
               const parsedSets = parseVariableSetsTag(notes);
-              const cleanNotes = stripVariableSetsTag(notes)
+              const parsedExtras = parseExtraVariablesTag(notes);
+              const cleanNotes = stripExtraVariablesTag(stripVariableSetsTag(notes))
                 .replace(/<!-- v2-block:[^>]+ -->/g, "")
                 .replace(/<!-- v2-test:[^>]+ -->/g, "")
                 .replace(/<!--\s*v2-(fartlek|cluster|stato|intermittent|drop_set|rest_pause|pyramid_up|pyramid_down|pyramid_full|five_by_five|isometric_overcoming|isometric_yielding|amrap|for_time|death_by|circuit|tabata|emom):.*?-->/gs, "")
                 .trim();
               block.exercises!.push({
+                ...(parsedExtras?.values ?? {}),
+                ...(parsedExtras?.visibleVariables ? { visibleVariables: parsedExtras.visibleVariables } : {}),
                 id: ex.id,
                 exerciseId: testMatch ? `test:${testMatch[1]}` : (ex.library_exercise_id ?? undefined),
                 exerciseName: ex.exercise_name,

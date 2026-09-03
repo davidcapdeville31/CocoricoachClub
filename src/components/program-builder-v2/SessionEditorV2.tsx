@@ -191,7 +191,8 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
         }
       }
       const parsedSets = parseVariableSetsTag(rawNotes);
-      const cleanNotes = stripVariableSetsTag(rawNotes)
+      const parsedExtras = parseExtraVariablesTag(rawNotes);
+      const cleanNotes = stripExtraVariablesTag(stripVariableSetsTag(rawNotes))
         .replace(/<!--\s*v2-block:[^>]+-->/g, "")
         .replace(/<!--\s*v2-test:[^>]+-->/g, "")
         .replace(/<!--\s*v2-(fartlek|cluster|stato|intermittent|drop_set|rest_pause|pyramid_up|pyramid_down|pyramid_full|five_by_five|isometric_overcoming|isometric_yielding|amrap|for_time|death_by|circuit|tabata|emom):.*?-->/gs, "")
@@ -202,6 +203,8 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
       if (groupId) groupedIndexes.set(groupKey, (groupOrder ?? 0) + 1);
 
       block.exercises!.push({
+        ...(parsedExtras?.values ?? {}),
+        ...(parsedExtras?.visibleVariables ? { visibleVariables: parsedExtras.visibleVariables } : {}),
         id: ex.id,
         exerciseId: ex.library_exercise_id || undefined,
         exerciseName: ex.exercise_name,
@@ -523,7 +526,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
               set_type: methodValue ?? "normal",
               method: methodValue,
               group_id: ex.groupId || null,
-              notes: `${blockTag}${testTag}${encodeVariableSetsTag((ex as any).variableSets)}${userNote}`,
+              notes: `${blockTag}${testTag}${encodeVariableSetsTag((ex as any).variableSets)}${encodeExtraVariablesTag(ex as any)}${userNote}`,
             };
           }),
         );
@@ -711,7 +714,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
             set_type: methodValue ?? "normal",
             group_id: ex.groupId || null,
             group_order: groupOrder,
-            notes: `${blockTag}${testTag}${configTag}${encodeVariableSetsTag((ex as any).variableSets)}${userNote}`,
+            notes: `${blockTag}${testTag}${configTag}${encodeVariableSetsTag((ex as any).variableSets)}${encodeExtraVariablesTag(ex as any)}${userNote}`,
           };
         }),
       );
