@@ -1,6 +1,7 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
@@ -191,7 +192,6 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
     const targetDate = target?.session_date || dateParam;
     if (!targetDate) return;
     setSelectedDate(parseISO(String(targetDate)));
-    setCurrentMonth(startOfMonth(parseISO(String(targetDate))));
     if (target) setExpandedItemId(`session-${target.id}`);
     const next = new URLSearchParams(searchParams);
     next.delete("session");
