@@ -7410,6 +7410,56 @@ export type Database = {
           },
         ]
       }
+      opponent_scouting_comments: {
+        Row: {
+          author_id: string | null
+          author_name: string | null
+          club_id: string
+          comment: string
+          created_at: string
+          event_date: string | null
+          event_name: string | null
+          id: string
+          opponent_id: string
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          author_id?: string | null
+          author_name?: string | null
+          club_id: string
+          comment: string
+          created_at?: string
+          event_date?: string | null
+          event_name?: string | null
+          id?: string
+          opponent_id: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          author_id?: string | null
+          author_name?: string | null
+          club_id?: string
+          comment?: string
+          created_at?: string
+          event_date?: string | null
+          event_name?: string | null
+          id?: string
+          opponent_id?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opponent_scouting_comments_opponent_id_fkey"
+            columns: ["opponent_id"]
+            isOneToOne: false
+            referencedRelation: "opponent_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       padel_session_equipment: {
         Row: {
           created_at: string
