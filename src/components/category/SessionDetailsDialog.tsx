@@ -723,12 +723,14 @@ export function SessionDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl w-[95vw] max-h-[90vh] flex flex-col overflow-hidden">
-        <DialogHeader className="flex flex-row items-center justify-between shrink-0">
-          <div>
+      <DialogContent hideClose className="max-w-3xl w-[95vw] max-h-[90vh] flex flex-col overflow-hidden">
+        <DialogHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shrink-0">
+          <div className="min-w-0 flex-1">
             <DialogTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Séance du {format(new Date(sessionDate), "PPP", { locale: getDateLocale() })}
+              <Calendar className="h-5 w-5 shrink-0" />
+              <span className="truncate">
+                Séance du {format(new Date(sessionDate), "PPP", { locale: getDateLocale() })}
+              </span>
             </DialogTitle>
             {blockWeekInfo && (
               <p className="text-sm text-muted-foreground mt-1">
@@ -736,7 +738,7 @@ export function SessionDetailsDialog({
               </p>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap justify-end">
             <Button variant="outline" size="sm" onClick={() => setIsNotifyOpen(true)}>
               <Bell className="h-4 w-4 mr-2" />
               Notifier
