@@ -61,6 +61,16 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
       return `/categories/${categoryId}?tab=performance&subtab=training-load&loadtab=rpe&session=${sessionId}${date ? `&sessionDate=${date}` : ""}`;
     }
 
+    // Rappel RPE athlète → espace athlète, onglet RPE
+    if (n.notification_type === "rpe_reminder" || n.notification_type === "wellness_reminder") {
+      const tab = n.notification_type === "rpe_reminder" ? "rpe" : "wellness";
+      const params = new URLSearchParams({ tab });
+      if (sessionId) params.set("session", String(sessionId));
+      if (categoryId) params.set("categoryId", String(categoryId));
+      return `/athlete-space?${params.toString()}`;
+    }
+
+
 
     if (sessionId && categoryId) {
       return `/categories/${categoryId}?tab=planification&session=${sessionId}`;
