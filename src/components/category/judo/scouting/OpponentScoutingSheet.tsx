@@ -1167,6 +1167,149 @@ export function OpponentScoutingSheet({ open, onOpenChange, opponentId }: Props)
                   </div>
                 </SectionCard>
 
+                {/* ============ HISTORIQUE DES COMBATS ============ */}
+                <SectionCard
+                  id="history"
+                  title="Historique des combats"
+                  subtitle="Observations partagées entre le staff et les athlètes"
+                  icon={<MessageSquare className="h-4 w-4" />}
+                  tone="control"
+                  defaultOpen
+                >
+                  <div className="rounded-xl border bg-muted/20 p-3 space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="scouting-event-date">Date du tournoi</Label>
+                        <Input
+                          id="scouting-event-date"
+                          type="date"
+                          value={historyDate}
+                          onChange={(event) => setHistoryDate(event.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="scouting-event-name">Tournoi / compétition</Label>
+                        <Input
+                          id="scouting-event-name"
+                          value={historyEvent}
+                          onChange={(event) => setHistoryEvent(event.target.value)}
+                          placeholder="Ex. Championnat de France"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="scouting-comment">Commentaire *</Label>
+                      <Textarea
+                        id="scouting-comment"
+                        value={historyComment}
+                        onChange={(event) => setHistoryComment(event.target.value)}
+                        rows={3}
+                        placeholder="Déroulement du combat, réactions, points forts et axes à retenir…"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="scouting-video">Lien vidéo</Label>
+                      <Input
+                        id="scouting-video"
+                        type="url"
+                        value={historyVideo}
+                        onChange={(event) => setHistoryVideo(event.target.value)}
+                        placeholder="https://youtube.com/..."
+                      />
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        onClick={() => saveHistory.mutate()}
+                      >
+                        <Plus className="h-4 w-4 mr-1.5" />
+                        {editingHistory ? "Enregistrer les modifications" : "Ajouter l'observation"}
+                      </Button>
+                      {editingHistory && (
+                        <Button type="button" variant="outline" onClick={resetHistoryForm}>
+                          Annuler la modification
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {historyLoading ? (
+                      <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Chargement de l'historique…
+                      </div>
+                    ) : history.length === 0 ? (
+                      <div className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+                        <MessageSquare className="h-5 w-5 mx-auto mb-2 opacity-60" />
+                        Aucun combat documenté pour le moment.
+                      </div>
+                    ) : (
+                      history.map((entry) => {
+                        const canManage = isStaff || entry.author_id === userId;
+                        return (
+                          <article key={entry.id} className="rounded-xl border bg-card p-3 space-y-2">
+                            <div className="flex flex-wrap items-start justify-between gap-2">
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <h4 className="font-semibold text-sm">
+                                    {entry.event_name || "Observation de combat"}
+                                  </h4>
+                                  <Badge variant="secondary" className="gap-1 text-xs">
+                                    <CalendarDays className="h-3 w-3" />
+                                    {formatHistoryDate(entry.event_date)}
+                                  </Badge>
+                                </div>
+                                <p className="text-[11px] text-muted-foreground mt-1">
+                                  Par {entry.author_name || "Utilisateur"}
+                                </p>
+                              </div>
+                              {canManage && (
+                                <div className="flex items-center gap-1">
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    title="Modifier l'observation"
+                                    onClick={() => startHistoryEdit(entry)}
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    title="Supprimer l'observation"
+                                    onClick={() => {
+                                      if (window.confirm("Supprimer cette observation ?")) {
+                                        deleteHistory.mutate(entry.id);
+                                      }
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                            <p className="text-sm whitespace-pre-wrap break-words">{entry.comment}</p>
+                            {entry.video_url && (
+                              <a
+                                href={entry.video_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline break-all"
+                              >
+                                <Link2 className="h-4 w-4 shrink-0" />
+                                Voir la vidéo du combat
+                              </a>
+                            )}
+                          </article>
+                        );
+                      })
+                    )}
+                  </div>
+                </SectionCard>
+
                 {/* ============ PLAN TACTIQUE (Phase 2 – preview) ============ */}
                 <SectionCard
                   id="plan"
