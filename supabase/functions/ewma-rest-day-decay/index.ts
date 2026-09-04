@@ -99,10 +99,11 @@ serve(async (req) => {
 
       const playerIds = players.map((p) => p.id);
 
+      // Check across ALL categories: an athlete who trained in another category
+      // that day must not receive a rest-day (RPE 0) row.
       const { data: existingToday } = await supabase
         .from("awcr_tracking")
         .select("player_id")
-        .eq("category_id", category.id)
         .eq("session_date", today)
         .in("player_id", playerIds);
 

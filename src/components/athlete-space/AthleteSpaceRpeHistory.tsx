@@ -28,9 +28,18 @@ export function AthleteSpaceRpeHistory({ playerId, categoryId }: Props) {
         .order("session_date", { ascending: true })
         .limit(60);
       if (error) throw error;
-      return data || [];
+      const rows = data || [];
+      // Les jours de repos (RPE 0, sans séance) ne doivent pas s'afficher
+      // lorsqu'une séance réelle existe le même jour.
+      const datesWithSession = new Set(
+        rows.filter((r: any) => (r.rpe ?? 0) > 0 || r.training_session_id).map((r: any) => r.session_date),
+      );
+      return rows.filter(
+        (r: any) => !((r.rpe ?? 0) === 0 && !r.training_session_id && datesWithSession.has(r.session_date)),
+      );
     },
   });
+
 
   // Tonnage history (musculation logs) — last 60 days
   const { data: tonnageLogs = [] } = useQuery({
