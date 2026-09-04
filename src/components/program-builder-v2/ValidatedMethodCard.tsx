@@ -164,6 +164,7 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit, readOnly }: Pr
   const useMethodExercises = ["emom", "circuit", "tabata", "death_by"].includes(method) && methodExercises.length > 0;
   const series: any[] = useMethodExercises
     ? methodExercises.map((ex: any) => ({
+        ...ex,
         reps: ex.reps,
         percentage: ex.percentage,
         load: ex.load,
