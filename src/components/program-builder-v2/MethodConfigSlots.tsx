@@ -928,6 +928,26 @@ const CircuitExerciseSlot = ({
 
   const activeVars = visibleVariables || ['percentage', 'load', 'tempo', 'rpe'];
 
+  // Auto-affichage des variables cardio / course selon le type d'exercice choisi
+  // (rameur, skierg, assault bike, vélo, course, natation...) — toutes disciplines.
+  const autoVars = useMemo(() => {
+    if (!exercise?.exerciseName) return [] as string[];
+    const type = inferExerciseTypeFromName(exercise.exerciseName);
+    if (type === 'cardio_machine') return ['durationSeconds', 'distanceMeters', 'calories'];
+    if (type === 'cardio_locomotion') return ['runDistanceMeters', 'runDurationSeconds', 'elevationMeters'];
+    return [] as string[];
+  }, [exercise?.exerciseName]);
+
+  useEffect(() => {
+    if (!onAddVariable || autoVars.length === 0) return;
+    autoVars.forEach((key) => {
+      if (!activeVars.includes(key)) onAddVariable(key);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoVars.join(","), activeVars.join(",")]);
+
+
+
   return (
     <div className="space-y-1.5">
       <div
