@@ -45,7 +45,24 @@ const DYNAMIC_VARIABLES: DynamicVariable[] = [
   { key: 'rir', label: 'RIR', field: 'rir' as keyof DropSetSeries, placeholder: '2', type: 'number', min: 0, max: 10 },
   { key: 'angle', label: 'Angle', field: 'angle', placeholder: '90', unit: '°', type: 'number' },
   { key: 'timeUnderTension', label: 'TST', field: 'timeUnderTension', placeholder: '6', unit: 's', type: 'number' },
+  // Cardio machines (rameur, skierg, assault bike, vélo...)
+  { key: 'durationSeconds', label: 'Durée', field: 'durationSeconds' as keyof DropSetSeries, placeholder: '300', unit: 's', type: 'number' },
+  { key: 'distanceMeters', label: 'Distance', field: 'distanceMeters' as keyof DropSetSeries, placeholder: '1000', unit: 'm', type: 'number' },
+  { key: 'calories', label: 'Calories', field: 'calories' as keyof DropSetSeries, placeholder: '50', unit: 'cal', type: 'number' },
+  { key: 'watts', label: 'Watts', field: 'watts' as keyof DropSetSeries, placeholder: '150', unit: 'W', type: 'number' },
+  { key: 'cadence', label: 'Cadence', field: 'cadence' as keyof DropSetSeries, placeholder: '80', unit: 'rpm', type: 'number' },
+  // Course / locomotion
+  { key: 'runDistanceMeters', label: 'Distance course', field: 'runDistanceMeters' as keyof DropSetSeries, placeholder: '400', unit: 'm', type: 'number' },
+  { key: 'runDurationSeconds', label: 'Durée course', field: 'runDurationSeconds' as keyof DropSetSeries, placeholder: '600', unit: 's', type: 'number' },
+  { key: 'paceSecondsPerKm', label: 'Allure', field: 'paceSecondsPerKm' as keyof DropSetSeries, placeholder: '330', unit: '/km', type: 'number' },
+  { key: 'elevationMeters', label: 'Dénivelé', field: 'elevationMeters' as keyof DropSetSeries, placeholder: '100', unit: 'm', type: 'number' },
 ];
+
+/** Variables cardio / course, affichées automatiquement selon le type d'exercice. */
+const CARDIO_VARIABLE_KEYS = [
+  'durationSeconds', 'distanceMeters', 'calories', 'watts', 'cadence',
+  'runDistanceMeters', 'runDurationSeconds', 'paceSecondsPerKm', 'elevationMeters',
+] as const;
 
 interface DropSetSeries {
   reps: string;
@@ -58,6 +75,16 @@ interface DropSetSeries {
   angle?: number;
   timeUnderTension?: number;
   load?: number;
+  // Cardio machines / course (génériques, toutes disciplines)
+  durationSeconds?: number;
+  distanceMeters?: number;
+  calories?: number;
+  watts?: number;
+  cadence?: number;
+  runDistanceMeters?: number;
+  runDurationSeconds?: number;
+  paceSecondsPerKm?: number;
+  elevationMeters?: number;
   contractionType?: 'eccentric' | 'concentric' | 'isometric' | 'explosive' | 'plyometric';
   reductionType?: 'percentage' | 'kg';
   reductionValue?: number;
@@ -70,6 +97,7 @@ interface DropSetSeries {
   // Consignes spécifiques (coach notes) pour cet exercice
   notes?: string;
 }
+
 
 // Death By configuration
 interface DeathByConfig {
