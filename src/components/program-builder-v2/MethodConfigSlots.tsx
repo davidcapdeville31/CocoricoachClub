@@ -1202,7 +1202,42 @@ const CircuitExerciseSlot = ({
                 />
               </div>
             )}
+            {/* Variables cardio / course (rameur, vélo, assault bike, run...) */}
+            {CARDIO_VARIABLE_KEYS.filter((key) => activeVars.includes(key)).map((key) => {
+              const meta = DYNAMIC_VARIABLES.find((v) => v.key === key)!;
+              const isTime = key === 'durationSeconds' || key === 'runDurationSeconds' || key === 'paceSecondsPerKm';
+              return (
+                <div key={key} className="flex flex-col gap-1">
+                  <div className="flex items-center gap-1">
+                    <Label className="text-[10px] text-muted-foreground font-medium">
+                      {meta.label}{meta.unit && !isTime ? ` (${meta.unit})` : ''}
+                    </Label>
+                    {onRemoveVariable && (
+                      <button type="button" onClick={() => onRemoveVariable(key)} className="h-3 w-3 flex items-center justify-center text-destructive hover:text-destructive/80">
+                        <X className="h-2.5 w-2.5" />
+                      </button>
+                    )}
+                  </div>
+                  {isTime ? (
+                    <TimeInput
+                      value={(seriesData as any)?.[key] || 0}
+                      onChange={(seconds) => onUpdateSeries(key as keyof DropSetSeries, seconds || undefined)}
+                    />
+                  ) : (
+                    <NumericInput
+                      value={(seriesData as any)?.[key]}
+                      onChange={(val) => onUpdateSeries(key as keyof DropSetSeries, parseInt(val) || undefined)}
+                      className="h-8"
+                      placeholder={meta.placeholder}
+                      minChars={4}
+                      maxChars={7}
+                    />
+                  )}
+                </div>
+              );
+            })}
           </div>
+
         </div>
       )}
 
