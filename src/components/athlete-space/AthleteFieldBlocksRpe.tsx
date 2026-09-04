@@ -12,6 +12,8 @@ interface Props {
   sessionId: string;
   playerId: string;
   categoryId: string;
+  /** Date réelle de la séance (yyyy-MM-dd) — la charge doit être datée ce jour-là */
+  sessionDate?: string;
   onAllSubmitted?: () => void;
 }
 
