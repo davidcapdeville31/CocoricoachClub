@@ -168,7 +168,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
     queryFn: async () => {
       const { data, error } = await supabase
         .from("training_sessions")
-        .select("id, session_date, training_type, session_start_time, session_end_time, intensity, notes, created_by_player_id, test_reminder_id, event_participants(player_id)")
+        .select("id, session_date, training_type, session_start_time, session_end_time, intensity, notes, created_by_player_id, test_reminder_id, created_at, event_participants(player_id)")
         .eq("category_id", categoryId)
         .order("session_date", { ascending: false });
       if (error) throw error;
@@ -543,7 +543,14 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
           {(() => {
             const todayStr = format(new Date(), "yyyy-MM-dd");
             const upcoming = sessions
-              .filter((s: any) => s.session_date >= todayStr && s.created_by_player_id !== playerId)
+              .filter((s: any) => {
+                if (s.created_by_player_id === playerId) return false;
+                if (s.session_date >= todayStr) return true;
+                // Séance passée ajoutée a posteriori par le staff : réponse encore attendue
+                if (!s.created_at) return false;
+                const start = new Date(`${s.session_date}T${(s.session_start_time || "00:00").slice(0, 5)}:00`);
+                return new Date(s.created_at).getTime() > start.getTime();
+              })
               .sort((a: any, b: any) => a.session_date.localeCompare(b.session_date))
               .slice(0, 5);
             if (upcoming.length === 0) return null;
@@ -572,6 +579,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                         playerId={playerId}
                         sessionDate={s.session_date}
                         sessionStartTime={s.session_start_time}
+                        sessionCreatedAt={(s as any).created_at}
                       />
                     </div>
                   ))}
@@ -866,6 +874,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                   playerId={playerId}
                                   sessionDate={session.session_date}
                                   sessionStartTime={session.session_start_time}
+                                  sessionCreatedAt={(session as any).created_at}
                                 />
                               </div>
                             )}
