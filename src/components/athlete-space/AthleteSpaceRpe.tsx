@@ -472,7 +472,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         .from("awcr_tracking")
         .select("training_session_id")
         .eq("player_id", playerId)
-        .eq("session_date", today);
+        .gte("session_date", format(addDays(new Date(), -120), "yyyy-MM-dd"));
       if (error) throw error;
       return data || [];
     },
@@ -721,7 +721,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         const { error: spareError } = await supabase.from("bowling_spare_training").insert({
           player_id: playerId,
           category_id: categoryId,
-          session_date: today,
+          session_date: sessionDate,
           training_session_id: selectedSession,
           exercise_type: spareExerciseType,
           attempts: attemptsValue,
@@ -738,7 +738,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         const { error: precisionError } = await supabase.from("precision_training").insert({
           player_id: playerId,
           category_id: categoryId,
-          session_date: today,
+          session_date: sessionDate,
           training_session_id: selectedSession,
           exercise_type_id: precisionExerciseId || null,
           exercise_label: precisionExerciseLabel || t("athleteSpace.rpe.precision"),
@@ -758,7 +758,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         const { error: hrvError } = await supabase.from("hrv_records").insert({
           player_id: playerId,
           category_id: categoryId,
-          record_date: today,
+          record_date: sessionDate,
           record_type: hrvRecordType,
           training_session_id: selectedSession,
           hrv_ms: hrvMs ? parseFloat(hrvMs) : null,
