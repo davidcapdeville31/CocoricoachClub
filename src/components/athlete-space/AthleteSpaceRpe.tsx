@@ -115,6 +115,8 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
   const queryClient = useQueryClient();
   const today = new Date().toISOString().split("T")[0];
   const endDate = addDays(new Date(), 14).toISOString().split("T")[0];
+  // Les séances passées récentes restent renseignables (séance créée après coup)
+  const startDate = addDays(new Date(), -14).toISOString().split("T")[0];
 
   // Fetch category sport type for precision exercises
   const { data: categoryData } = useQuery({
@@ -161,13 +163,13 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
 
   // Fetch sessions assigned to this player: today + upcoming (next 14 days)
   const { data: allSessions = [] } = useQuery({
-    queryKey: ["athlete-space-sessions", categoryId, playerId, today, endDate],
+    queryKey: ["athlete-space-sessions", categoryId, playerId, startDate, endDate],
     queryFn: async () => {
       const { data: attendance, error: attError } = await supabase
         .from("training_attendance")
         .select("training_session_id")
         .eq("player_id", playerId)
-        .gte("attendance_date", today)
+        .gte("attendance_date", startDate)
         .lte("attendance_date", endDate);
       if (attError) throw attError;
 
@@ -178,7 +180,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
           .from("training_sessions")
           .select("id, session_date, training_type, session_start_time, session_end_time, notes, created_by_player_id, event_participants(player_id)")
           .eq("category_id", categoryId)
-          .gte("session_date", today)
+          .gte("session_date", startDate)
           .lte("session_date", endDate)
           .order("session_date")
           .order("session_start_time");
@@ -231,7 +233,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         .from("training_sessions")
         .select("id, session_date, training_type, session_start_time, session_end_time, notes, created_by_player_id, event_participants(player_id)")
         .eq("category_id", categoryId)
-        .gte("session_date", today)
+        .gte("session_date", startDate)
         .lte("session_date", endDate);
 
       const existingIds = new Set((data || []).map((s) => s.id));
