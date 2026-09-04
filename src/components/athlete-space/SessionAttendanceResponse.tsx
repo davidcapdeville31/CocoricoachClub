@@ -14,6 +14,9 @@ interface Props {
   playerId: string;
   sessionDate: string; // yyyy-MM-dd
   sessionStartTime: string | null; // HH:mm(:ss)
+  /** Date de création de la séance : si elle est postérieure au début de la séance
+   *  (séance ajoutée a posteriori par le staff), la réponse reste ouverte. */
+  sessionCreatedAt?: string | null;
 }
 
 type Status = "present" | "absent" | "no_response";
@@ -25,6 +28,7 @@ export function SessionAttendanceResponse({
   playerId,
   sessionDate,
   sessionStartTime,
+  sessionCreatedAt,
 }: Props) {
   const { t } = useTranslation();
   const qc = useQueryClient();
@@ -55,8 +59,11 @@ export function SessionAttendanceResponse({
     const time = (sessionStartTime || "00:00").slice(0, 5);
     const start = new Date(`${sessionDate}T${time}:00`);
     const lockAt = new Date(start.getTime() - LOCK_MINUTES * 60_000);
-    return { locked: new Date() >= lockAt, sessionStart: start };
-  }, [sessionDate, sessionStartTime]);
+    // Séance créée a posteriori (après son propre début) : la réponse reste ouverte
+    const createdAt = sessionCreatedAt ? new Date(sessionCreatedAt) : null;
+    const createdAfterStart = !!createdAt && createdAt.getTime() > lockAt.getTime();
+    return { locked: !createdAfterStart && new Date() >= lockAt, sessionStart: start };
+  }, [sessionDate, sessionStartTime, sessionCreatedAt]);
 
   if (isLoading) return null;
 
