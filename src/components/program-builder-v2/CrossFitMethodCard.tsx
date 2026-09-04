@@ -1,3 +1,4 @@
+import { getCardioBadges } from "@/lib/program-builder-v2/cardioBadges";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
