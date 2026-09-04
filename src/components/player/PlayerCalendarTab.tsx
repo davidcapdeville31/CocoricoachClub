@@ -77,13 +77,16 @@ export function PlayerCalendarTab({ playerId, categoryId }: PlayerCalendarTabPro
         .order("session_date", { ascending: false })
         .order("session_start_time", { ascending: false });
       if (error) throw error;
-      // Une séance créée par l'athlète reste visible dans son calendrier,
-      // même si les participants explicites ne sont pas encore synchronisés.
+      // Une séance créée par l'athlète reste visible dans son calendrier.
+      // Une séance créée par un autre athlète n'apparaît que s'il y est explicitement associé.
       return (data || []).filter((s: any) => {
-        if (s.created_by_player_id === playerId) return true;
         const parts = s.event_participants || [];
+        const isParticipant = parts.some((p: any) => p.player_id === playerId);
+        if (s.created_by_player_id) {
+          return s.created_by_player_id === playerId || isParticipant;
+        }
         if (!parts.length) return true;
-        return parts.some((p: any) => p.player_id === playerId);
+        return isParticipant;
       });
     },
     refetchOnWindowFocus: true,
