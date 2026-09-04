@@ -1151,6 +1151,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                         sessionId={session.id}
                         playerId={playerId}
                         categoryId={categoryId}
+                        sessionDate={session.session_date}
                         onAllSubmitted={() => setSelectedSession(null)}
                       />
                     ) : (
