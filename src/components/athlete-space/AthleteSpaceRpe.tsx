@@ -115,6 +115,8 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
   const queryClient = useQueryClient();
   const today = new Date().toISOString().split("T")[0];
   const endDate = addDays(new Date(), 14).toISOString().split("T")[0];
+  // Les séances passées récentes restent renseignables (séance créée après coup)
+  const startDate = addDays(new Date(), -14).toISOString().split("T")[0];
 
   // Fetch category sport type for precision exercises
   const { data: categoryData } = useQuery({
@@ -161,13 +163,13 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
 
   // Fetch sessions assigned to this player: today + upcoming (next 14 days)
   const { data: allSessions = [] } = useQuery({
-    queryKey: ["athlete-space-sessions", categoryId, playerId, today, endDate],
+    queryKey: ["athlete-space-sessions", categoryId, playerId, startDate, endDate],
     queryFn: async () => {
       const { data: attendance, error: attError } = await supabase
         .from("training_attendance")
         .select("training_session_id")
         .eq("player_id", playerId)
-        .gte("attendance_date", today)
+        .gte("attendance_date", startDate)
         .lte("attendance_date", endDate);
       if (attError) throw attError;
 
@@ -178,7 +180,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
           .from("training_sessions")
           .select("id, session_date, training_type, session_start_time, session_end_time, notes, created_by_player_id, event_participants(player_id)")
           .eq("category_id", categoryId)
-          .gte("session_date", today)
+          .gte("session_date", startDate)
           .lte("session_date", endDate)
           .order("session_date")
           .order("session_start_time");
@@ -231,7 +233,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         .from("training_sessions")
         .select("id, session_date, training_type, session_start_time, session_end_time, notes, created_by_player_id, event_participants(player_id)")
         .eq("category_id", categoryId)
-        .gte("session_date", today)
+        .gte("session_date", startDate)
         .lte("session_date", endDate);
 
       const existingIds = new Set((data || []).map((s) => s.id));
@@ -472,7 +474,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         .from("awcr_tracking")
         .select("training_session_id")
         .eq("player_id", playerId)
-        .eq("session_date", today);
+        .gte("session_date", format(addDays(new Date(), -120), "yyyy-MM-dd"));
       if (error) throw error;
       return data || [];
     },
@@ -721,7 +723,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         const { error: spareError } = await supabase.from("bowling_spare_training").insert({
           player_id: playerId,
           category_id: categoryId,
-          session_date: today,
+          session_date: sessionDate,
           training_session_id: selectedSession,
           exercise_type: spareExerciseType,
           attempts: attemptsValue,
@@ -738,7 +740,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         const { error: precisionError } = await supabase.from("precision_training").insert({
           player_id: playerId,
           category_id: categoryId,
-          session_date: today,
+          session_date: sessionDate,
           training_session_id: selectedSession,
           exercise_type_id: precisionExerciseId || null,
           exercise_label: precisionExerciseLabel || t("athleteSpace.rpe.precision"),
@@ -758,7 +760,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         const { error: hrvError } = await supabase.from("hrv_records").insert({
           player_id: playerId,
           category_id: categoryId,
-          record_date: today,
+          record_date: sessionDate,
           record_type: hrvRecordType,
           training_session_id: selectedSession,
           hrv_ms: hrvMs ? parseFloat(hrvMs) : null,
@@ -1151,6 +1153,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                         sessionId={session.id}
                         playerId={playerId}
                         categoryId={categoryId}
+                        sessionDate={session.session_date}
                         onAllSubmitted={() => setSelectedSession(null)}
                       />
                     ) : (
