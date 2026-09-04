@@ -462,6 +462,12 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit, readOnly }: Pr
                     RIR {s.rir}
                   </Badge>
                 )}
+                {getCardioBadges(s).map((b) => (
+                  <Badge key={b.key} variant="secondary" className="text-[10px] px-1.5 py-0.5">
+                    {b.label}
+                  </Badge>
+                ))}
+
                 {s.reductionValue != null && idx > 0 && (
                   <Badge
                     variant="outline"
