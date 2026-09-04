@@ -1,3 +1,4 @@
+import { getCardioBadges } from "@/lib/program-builder-v2/cardioBadges";
 /**
  * ValidatedMethodCard
  * -------------------
@@ -164,6 +165,7 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit, readOnly }: Pr
   const useMethodExercises = ["emom", "circuit", "tabata", "death_by"].includes(method) && methodExercises.length > 0;
   const series: any[] = useMethodExercises
     ? methodExercises.map((ex: any) => ({
+        ...ex,
         reps: ex.reps,
         percentage: ex.percentage,
         load: ex.load,
@@ -461,6 +463,12 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit, readOnly }: Pr
                     RIR {s.rir}
                   </Badge>
                 )}
+                {getCardioBadges(s).map((b) => (
+                  <Badge key={b.key} variant="secondary" className="text-[10px] px-1.5 py-0.5">
+                    {b.label}
+                  </Badge>
+                ))}
+
                 {s.reductionValue != null && idx > 0 && (
                   <Badge
                     variant="outline"

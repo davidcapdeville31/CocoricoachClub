@@ -1,3 +1,4 @@
+import { getCardioBadges } from "@/lib/program-builder-v2/cardioBadges";
 /**
  * MethodDetailRenderer — Affichage universel des méthodes côté athlète
  * 
@@ -310,6 +311,12 @@ const CrossFitConfigDetail = ({ exercise }: { exercise: any }) => {
                 )}
                 {ex.percentage && <VarBadge label="%" value={ex.percentage} unit="%" />}
                 {ex.load && <VarBadge label="" value={`${ex.load}kg`} />}
+                {getCardioBadges(ex).map((b) => (
+                  <Badge key={b.key} variant="secondary" className="text-[10px] px-1.5 py-0">
+                    {b.label}
+                  </Badge>
+                ))}
+
               </div>
               {ex.notes && String(ex.notes).trim() !== "" && (
                 <p className="text-[11px] italic text-muted-foreground whitespace-pre-line mt-0.5 ml-[30px]">

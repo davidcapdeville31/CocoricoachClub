@@ -1,3 +1,4 @@
+import { getCardioBadges } from "@/lib/program-builder-v2/cardioBadges";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -160,6 +161,10 @@ export const CrossFitMethodCard = ({
                 {ex.percentage && <Badge variant="secondary" className="text-xs">{ex.percentage}%</Badge>}
                 {ex.load && <Badge variant="secondary" className="text-xs">{ex.load}kg</Badge>}
                 {ex.rpe && <Badge variant="secondary" className="text-xs">RPE {ex.rpe}</Badge>}
+                {getCardioBadges(ex as any).map((b) => (
+                  <Badge key={b.key} variant="secondary" className="text-xs">{b.label}</Badge>
+                ))}
+
               </div>
               {ex.notes && String(ex.notes).trim() !== '' && (
                 <div className="px-4 pb-2 ml-8">

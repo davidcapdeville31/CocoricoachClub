@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { inferExerciseTypeFromName } from "@/lib/program-builder-v2/exerciseTypes";
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -45,7 +47,24 @@ const DYNAMIC_VARIABLES: DynamicVariable[] = [
   { key: 'rir', label: 'RIR', field: 'rir' as keyof DropSetSeries, placeholder: '2', type: 'number', min: 0, max: 10 },
   { key: 'angle', label: 'Angle', field: 'angle', placeholder: '90', unit: '°', type: 'number' },
   { key: 'timeUnderTension', label: 'TST', field: 'timeUnderTension', placeholder: '6', unit: 's', type: 'number' },
+  // Cardio machines (rameur, skierg, assault bike, vélo...)
+  { key: 'durationSeconds', label: 'Durée', field: 'durationSeconds' as keyof DropSetSeries, placeholder: '300', unit: 's', type: 'number' },
+  { key: 'distanceMeters', label: 'Distance', field: 'distanceMeters' as keyof DropSetSeries, placeholder: '1000', unit: 'm', type: 'number' },
+  { key: 'calories', label: 'Calories', field: 'calories' as keyof DropSetSeries, placeholder: '50', unit: 'cal', type: 'number' },
+  { key: 'watts', label: 'Watts', field: 'watts' as keyof DropSetSeries, placeholder: '150', unit: 'W', type: 'number' },
+  { key: 'cadence', label: 'Cadence', field: 'cadence' as keyof DropSetSeries, placeholder: '80', unit: 'rpm', type: 'number' },
+  // Course / locomotion
+  { key: 'runDistanceMeters', label: 'Distance course', field: 'runDistanceMeters' as keyof DropSetSeries, placeholder: '400', unit: 'm', type: 'number' },
+  { key: 'runDurationSeconds', label: 'Durée course', field: 'runDurationSeconds' as keyof DropSetSeries, placeholder: '600', unit: 's', type: 'number' },
+  { key: 'paceSecondsPerKm', label: 'Allure', field: 'paceSecondsPerKm' as keyof DropSetSeries, placeholder: '330', unit: '/km', type: 'number' },
+  { key: 'elevationMeters', label: 'Dénivelé', field: 'elevationMeters' as keyof DropSetSeries, placeholder: '100', unit: 'm', type: 'number' },
 ];
+
+/** Variables cardio / course, affichées automatiquement selon le type d'exercice. */
+const CARDIO_VARIABLE_KEYS = [
+  'durationSeconds', 'distanceMeters', 'calories', 'watts', 'cadence',
+  'runDistanceMeters', 'runDurationSeconds', 'paceSecondsPerKm', 'elevationMeters',
+] as const;
 
 interface DropSetSeries {
   reps: string;
@@ -58,6 +77,16 @@ interface DropSetSeries {
   angle?: number;
   timeUnderTension?: number;
   load?: number;
+  // Cardio machines / course (génériques, toutes disciplines)
+  durationSeconds?: number;
+  distanceMeters?: number;
+  calories?: number;
+  watts?: number;
+  cadence?: number;
+  runDistanceMeters?: number;
+  runDurationSeconds?: number;
+  paceSecondsPerKm?: number;
+  elevationMeters?: number;
   contractionType?: 'eccentric' | 'concentric' | 'isometric' | 'explosive' | 'plyometric';
   reductionType?: 'percentage' | 'kg';
   reductionValue?: number;
@@ -70,6 +99,7 @@ interface DropSetSeries {
   // Consignes spécifiques (coach notes) pour cet exercice
   notes?: string;
 }
+
 
 // Death By configuration
 interface DeathByConfig {
@@ -900,6 +930,26 @@ const CircuitExerciseSlot = ({
 
   const activeVars = visibleVariables || ['percentage', 'load', 'tempo', 'rpe'];
 
+  // Auto-affichage des variables cardio / course selon le type d'exercice choisi
+  // (rameur, skierg, assault bike, vélo, course, natation...) — toutes disciplines.
+  const autoVars = useMemo(() => {
+    if (!exercise?.exerciseName) return [] as string[];
+    const type = inferExerciseTypeFromName(exercise.exerciseName);
+    if (type === 'cardio_machine') return ['durationSeconds', 'distanceMeters', 'calories'];
+    if (type === 'cardio_locomotion') return ['runDistanceMeters', 'runDurationSeconds', 'elevationMeters'];
+    return [] as string[];
+  }, [exercise?.exerciseName]);
+
+  useEffect(() => {
+    if (!onAddVariable || autoVars.length === 0) return;
+    autoVars.forEach((key) => {
+      if (!activeVars.includes(key)) onAddVariable(key);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoVars.join(","), activeVars.join(",")]);
+
+
+
   return (
     <div className="space-y-1.5">
       <div
@@ -1174,7 +1224,42 @@ const CircuitExerciseSlot = ({
                 />
               </div>
             )}
+            {/* Variables cardio / course (rameur, vélo, assault bike, run...) */}
+            {CARDIO_VARIABLE_KEYS.filter((key) => activeVars.includes(key)).map((key) => {
+              const meta = DYNAMIC_VARIABLES.find((v) => v.key === key)!;
+              const isTime = key === 'durationSeconds' || key === 'runDurationSeconds' || key === 'paceSecondsPerKm';
+              return (
+                <div key={key} className="flex flex-col gap-1">
+                  <div className="flex items-center gap-1">
+                    <Label className="text-[10px] text-muted-foreground font-medium">
+                      {meta.label}{meta.unit && !isTime ? ` (${meta.unit})` : ''}
+                    </Label>
+                    {onRemoveVariable && (
+                      <button type="button" onClick={() => onRemoveVariable(key)} className="h-3 w-3 flex items-center justify-center text-destructive hover:text-destructive/80">
+                        <X className="h-2.5 w-2.5" />
+                      </button>
+                    )}
+                  </div>
+                  {isTime ? (
+                    <TimeInput
+                      value={(seriesData as any)?.[key] || 0}
+                      onChange={(seconds) => onUpdateSeries(key as keyof DropSetSeries, seconds || undefined)}
+                    />
+                  ) : (
+                    <NumericInput
+                      value={(seriesData as any)?.[key]}
+                      onChange={(val) => onUpdateSeries(key as keyof DropSetSeries, parseInt(val) || undefined)}
+                      className="h-8"
+                      placeholder={meta.placeholder}
+                      minChars={4}
+                      maxChars={7}
+                    />
+                  )}
+                </div>
+              );
+            })}
           </div>
+
         </div>
       )}
 
@@ -1427,7 +1512,9 @@ export const MethodConfigSlots = ({
       if (hasAny('rir')) vars.push('rir');
       if (hasAny('angle')) vars.push('angle');
       if (hasAny('timeUnderTension')) vars.push('timeUnderTension');
+      CARDIO_VARIABLE_KEYS.forEach((k) => { if (hasAny(k)) vars.push(k); });
       return withMax(vars);
+
     }
     // Default for fresh creation
     const vars: string[] = [];
@@ -1503,7 +1590,9 @@ export const MethodConfigSlots = ({
       rir: 'rir',
       angle: 'angle',
       timeUnderTension: 'timeUnderTension',
+      ...Object.fromEntries(CARDIO_VARIABLE_KEYS.map((k) => [k, k])),
     };
+
     const field = fieldToKey[varKey];
     if (field) {
       setSeries(prev => prev.map(s => ({ ...s, [field]: undefined })));
@@ -1642,7 +1731,9 @@ export const MethodConfigSlots = ({
   const sanitizeSeries = (list: DropSetSeries[]): DropSetSeries[] => {
     const optionalKeys: Array<keyof DropSetSeries> = [
       'percentage', 'load', 'tempo', 'rpe', 'rir', 'angle', 'timeUnderTension',
+      ...CARDIO_VARIABLE_KEYS,
     ] as Array<keyof DropSetSeries>;
+
     return list.map((s) => {
       const copy: any = { ...s };
       for (const key of optionalKeys) {
