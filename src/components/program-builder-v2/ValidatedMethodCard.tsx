@@ -1,3 +1,4 @@
+import { getCardioBadges } from "@/lib/program-builder-v2/cardioBadges";
 /**
  * ValidatedMethodCard
  * -------------------
