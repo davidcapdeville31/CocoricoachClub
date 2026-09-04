@@ -293,7 +293,8 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
       return (data || []).filter((s: any) => {
         if (!isTestCampaignSession(s)) return false;
         const win = parseTestWindowFromNotes(s.notes)!;
-        if (today < win.start || today > win.end) return false;
+        // La fenêtre expirée reste accessible : l'athlète peut saisir un résultat en retard.
+        if (today < win.start) return false;
         // Séance créée par un autre athlète : visible uniquement si je suis
           // déclaré comme participant (séance partagée).
           if (
@@ -336,7 +337,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         .filter(Boolean) as Array<{ start: string; end: string }>;
       if (windows.length === 0) return result;
       const minStart = windows.map((w) => w.start).sort()[0];
-      const maxEnd = windows.map((w) => w.end).sort().slice(-1)[0];
+      const maxEnd = [windows.map((w) => w.end).sort().slice(-1)[0], today].sort().slice(-1)[0];
 
       const [{ data: pendingData }, { data: savedData }] = await Promise.all([
         supabase
@@ -355,14 +356,16 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
 
       for (const s of campaignSessions) {
         const win = parseTestWindowFromNotes(s.notes)!;
+        // Fenêtre expirée : on accepte aussi les saisies effectuées après la date de fin.
+        const winEnd = win.end >= today ? win.end : today;
         const tests = parseTestsFromNotes(s.notes);
         const taken = new Set<string>();
         (pendingData || []).forEach((p: any) => {
           if (p.validation_status === "rejected") return;
-          if (p.test_date >= win.start && p.test_date <= win.end) taken.add(`${p.test_category}::${p.test_type}`);
+          if (p.test_date >= win.start && p.test_date <= winEnd) taken.add(`${p.test_category}::${p.test_type}`);
         });
         (savedData || []).forEach((p: any) => {
-          if (p.test_date >= win.start && p.test_date <= win.end) taken.add(`${p.test_category}::${p.test_type}`);
+          if (p.test_date >= win.start && p.test_date <= winEnd) taken.add(`${p.test_category}::${p.test_type}`);
         });
         result[s.id] = tests.filter((tst: any) => !taken.has(`${tst.test_category}::${tst.test_type}`)).length;
       }
@@ -390,7 +393,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
     // A campaign still open stays on the home screen during the whole window
     if (!isOpenCampaign(s)) return false;
     const win = parseTestWindowFromNotes(s.notes)!;
-    return today >= win.start && today <= win.end;
+    return today >= win.start;
   });
   const upcomingSessions = visibleSessions.filter(s => s.session_date > today && !todaySessions.includes(s));
 
