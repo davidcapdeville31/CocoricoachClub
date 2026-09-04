@@ -19,66 +19,99 @@ import {
 
 
 /**
- * Build EWMA chart data from DB-computed values (acute_load, chronic_load, awcr).
- * The DB trigger compute_ewma_loads has access to full history, so these values
- * are more accurate than frontend recalculation from a limited time window.
+ * Construit la série EWMA à partir des lignes brutes `awcr_tracking`.
+ *
+ * Les valeurs `acute_load` / `chronic_load` calculées en base sont volontairement
+ * ignorées ici : elles sont calculées LIGNE PAR LIGNE, donc
+ *  - plusieurs séances (ou plusieurs lignes) le même jour appliquent plusieurs fois
+ *    le facteur de lissage sur la même journée,
+ *  - les jours sans ligne ne décroissent pas du tout,
+ * ce qui écrase l'EWMA aiguë et fait apparaître un "sous-entraînement" permanent.
+ *
+ * Ici on reconstruit une vraie série journalière (somme des charges par athlète et
+ * par jour, jours de repos remplis à 0), on calcule l'EWMA 7j/28j par athlète, puis
+ * on moyenne entre athlètes pour la vue équipe.
  */
 function buildEWMAFromDbData(awcrData: any[], playerId?: string): EWMAResult[] {
-  // If individual player, data is already filtered; for team, aggregate per date
-  const dataByDate = new Map<string, { acute: number; chronic: number; rawValue: number; count: number }>();
-
-  const entries = playerId 
-    ? awcrData.filter(d => d.player_id === playerId)
+  const entries = playerId
+    ? awcrData.filter((d) => d.player_id === playerId)
     : awcrData;
+  if (entries.length === 0) return [];
 
-  // Track unique players per date for team averaging
-  const playersByDate = new Map<string, Set<string>>();
+  const DAY = 24 * 60 * 60 * 1000;
+  const LAMBDA_ACUTE = 2 / (7 + 1);
+  const LAMBDA_CHRONIC = 2 / (28 + 1);
 
-  entries.forEach(entry => {
-    const date = entry.session_date;
-    if (!playersByDate.has(date)) playersByDate.set(date, new Set());
-    playersByDate.get(date)!.add(entry.player_id);
+  // Somme des charges par athlète et par jour
+  const perPlayer = new Map<string, Map<string, number>>();
+  let minTs = Infinity;
+  let maxTs = -Infinity;
 
-    const existing = dataByDate.get(date);
-    const load = entry.training_load || (entry.rpe * entry.duration_minutes) || 0;
-
-    if (existing) {
-      // For team view: sum loads and use latest EWMA values per player, then average
-      existing.rawValue += load;
-      // Use the entry with the most recent/highest acute_load as representative
-      if (entry.acute_load != null && entry.chronic_load != null) {
-        existing.acute += entry.acute_load;
-        existing.chronic += entry.chronic_load;
-      }
-      existing.count = playersByDate.get(date)!.size;
-    } else {
-      dataByDate.set(date, {
-        acute: entry.acute_load ?? 0,
-        chronic: entry.chronic_load ?? 0,
-        rawValue: load,
-        count: 1,
-      });
-    }
+  entries.forEach((entry) => {
+    const date = String(entry.session_date).slice(0, 10);
+    const ts = new Date(date).getTime();
+    if (!Number.isFinite(ts)) return;
+    minTs = Math.min(minTs, ts);
+    maxTs = Math.max(maxTs, ts);
+    const load =
+      entry.training_load != null && Number.isFinite(Number(entry.training_load))
+        ? Number(entry.training_load)
+        : (Number(entry.rpe) || 0) * (Number(entry.duration_minutes) || 0);
+    const pid = entry.player_id || "unknown";
+    if (!perPlayer.has(pid)) perPlayer.set(pid, new Map());
+    const days = perPlayer.get(pid)!;
+    days.set(date, (days.get(date) || 0) + load);
   });
 
-  // Convert to EWMAResult array, averaging for team
-  return Array.from(dataByDate.entries())
-    .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
-    .map(([date, data]) => {
-      const n = Math.max(data.count, 1);
-      const acute = Math.round((data.acute / n) * 100) / 100;
-      const chronic = Math.round((data.chronic / n) * 100) / 100;
-      const ratio = chronic > 0 ? Math.round((acute / chronic) * 100) / 100 : 0;
-      return {
-        date,
-        rawValue: Math.round((data.rawValue / n) * 100) / 100,
-        acute,
-        chronic,
-        ratio,
-        riskLevel: getRiskLevel(ratio),
-      };
+  if (!Number.isFinite(minTs) || !Number.isFinite(maxTs)) return [];
+
+  // Calendrier continu (jours de repos inclus)
+  const calendar: string[] = [];
+  for (let t = minTs; t <= maxTs; t += DAY) {
+    calendar.push(new Date(t).toISOString().slice(0, 10));
+  }
+
+  // Agrégats par jour, moyennés sur les athlètes présents dans la période
+  const agg = new Map<string, { acute: number; chronic: number; raw: number }>();
+  calendar.forEach((d) => agg.set(d, { acute: 0, chronic: 0, raw: 0 }));
+
+  perPlayer.forEach((days) => {
+    let acute = 0;
+    let chronic = 0;
+    calendar.forEach((date, i) => {
+      const value = days.get(date) || 0;
+      if (i === 0) {
+        acute = value;
+        chronic = value;
+      } else {
+        acute = LAMBDA_ACUTE * value + (1 - LAMBDA_ACUTE) * acute;
+        chronic = LAMBDA_CHRONIC * value + (1 - LAMBDA_CHRONIC) * chronic;
+      }
+      const bucket = agg.get(date)!;
+      bucket.acute += acute;
+      bucket.chronic += chronic;
+      bucket.raw += value;
     });
+  });
+
+  const n = Math.max(perPlayer.size, 1);
+
+  return calendar.map((date) => {
+    const bucket = agg.get(date)!;
+    const acute = Math.round((bucket.acute / n) * 100) / 100;
+    const chronic = Math.round((bucket.chronic / n) * 100) / 100;
+    const ratio = chronic > 0 ? Math.round((acute / chronic) * 100) / 100 : 0;
+    return {
+      date,
+      rawValue: Math.round((bucket.raw / n) * 100) / 100,
+      acute,
+      chronic,
+      ratio,
+      riskLevel: getRiskLevel(ratio),
+    };
+  });
 }
+
 
 interface UseTrainingLoadOptions {
   categoryId: string;
