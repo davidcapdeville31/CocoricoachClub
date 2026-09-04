@@ -12,6 +12,7 @@ import {
   calculateAWCR,
   calculateLoadSummary,
   transformToDailyLoadData,
+  fillMissingDays,
   METRICS_CONFIG,
   getAvailableMetrics,
   getRiskLevel,
@@ -286,7 +287,7 @@ export function useTrainingLoad({
 
   // Transform and calculate
   const dailyData: DailyLoadData[] = awcrData && gpsData 
-    ? transformToDailyLoadData(awcrData, gpsData)
+    ? fillMissingDays(transformToDailyLoadData(awcrData, gpsData))
     : [];
 
   // Get metric configuration
@@ -530,7 +531,7 @@ export function useTeamTrainingLoad({
         };
       }
     } else {
-      const dailyData = transformToDailyLoadData(playerAwcr, playerGps);
+      const dailyData = fillMissingDays(transformToDailyLoadData(playerAwcr, playerGps));
       summary = calculateLoadSummary(dailyData, METRICS_CONFIG[metric].dataKey);
     }
 
