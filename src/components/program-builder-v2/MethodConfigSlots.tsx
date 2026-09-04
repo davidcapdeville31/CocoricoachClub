@@ -1588,7 +1588,9 @@ export const MethodConfigSlots = ({
       rir: 'rir',
       angle: 'angle',
       timeUnderTension: 'timeUnderTension',
+      ...Object.fromEntries(CARDIO_VARIABLE_KEYS.map((k) => [k, k])),
     };
+
     const field = fieldToKey[varKey];
     if (field) {
       setSeries(prev => prev.map(s => ({ ...s, [field]: undefined })));
