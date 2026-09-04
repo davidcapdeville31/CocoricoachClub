@@ -381,9 +381,55 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
       return;
     }
 
-    // 2) Drop sur un bloc (zone "drop-${blockId}") OU sur un slot Stato-Dynamique
+    // Helper : retrouve le vrai blockId depuis un id de slot (peut contenir des suffixes)
+    const resolveBlockId = (raw: string | undefined): string | null => {
+      if (!raw) return null;
+      const allBlockIds = blocks.map((b) => b.id);
+      if (allBlockIds.includes(raw)) return raw;
+      const sorted = [...allBlockIds].sort((a, b) => b.length - a.length);
+      for (const bid of sorted) {
+        if (raw === bid || raw.startsWith(`${bid}-`)) return bid;
+      }
+      return null;
+    };
+
+    // 2) Drop sur un slot de phase (AMRAP, For Time, Circuit, EMOM, Tabata, Death By)
+    if (overData?.type === "method-phase-slot") {
+      const m = overId.match(/^method-phase-slot-(.+)-(\d+)$/);
+      if (m) {
+        const blockId = resolveBlockId(m[1]);
+        const slotIndex = parseInt(m[2], 10);
+        if (blockId && !Number.isNaN(slotIndex)) {
+          handle.insertExternalExerciseAtSlot(blockId, slotIndex, {
+            id: data.exercise.id,
+            name: data.exercise.exercise_name,
+          });
+          setActiveBlock(blockId);
+          toast.success(`« ${data.exercise.exercise_name} » ajouté au slot`);
+          return;
+        }
+      }
+      return;
+    }
+
+    // 3) Drop sur un slot de méthode "config" simple (drop set, pyramide, rest-pause...)
+    if (overData?.type === "method-config-slot") {
+      const m = overId.match(/^method-config-slot-(.+)$/);
+      const blockId = resolveBlockId(m?.[1]);
+      if (blockId) {
+        handle.insertExternalExercise(blockId, {
+          id: data.exercise.id,
+          name: data.exercise.exercise_name,
+        });
+        setActiveBlock(blockId);
+        toast.success(`« ${data.exercise.exercise_name} » ajouté`);
+      }
+      return;
+    }
+
+    // 4) Drop sur un bloc (zone "drop-${blockId}") OU sur un slot Stato-Dynamique
     if (overId.startsWith("stato-slot-")) {
-      const blockId = overId.replace(/^stato-slot-/, "");
+      const blockId = resolveBlockId(overId.replace(/^stato-slot-/, "")) ?? overId.replace(/^stato-slot-/, "");
       handle.insertExternalExercise(blockId, {
         id: data.exercise.id,
         name: data.exercise.exercise_name,
@@ -392,6 +438,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
       toast.success(`« ${data.exercise.exercise_name} » ajouté à la Stato-Dynamique`);
       return;
     }
+
     if (overId.startsWith("drop-")) {
       const blockId = overId.replace(/^drop-/, "");
       handle.insertExternalExercise(blockId, {
