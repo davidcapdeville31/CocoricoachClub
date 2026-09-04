@@ -1512,7 +1512,9 @@ export const MethodConfigSlots = ({
       if (hasAny('rir')) vars.push('rir');
       if (hasAny('angle')) vars.push('angle');
       if (hasAny('timeUnderTension')) vars.push('timeUnderTension');
+      CARDIO_VARIABLE_KEYS.forEach((k) => { if (hasAny(k)) vars.push(k); });
       return withMax(vars);
+
     }
     // Default for fresh creation
     const vars: string[] = [];
