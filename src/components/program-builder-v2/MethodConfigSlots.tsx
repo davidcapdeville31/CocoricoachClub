@@ -1727,7 +1727,9 @@ export const MethodConfigSlots = ({
   const sanitizeSeries = (list: DropSetSeries[]): DropSetSeries[] => {
     const optionalKeys: Array<keyof DropSetSeries> = [
       'percentage', 'load', 'tempo', 'rpe', 'rir', 'angle', 'timeUnderTension',
+      ...CARDIO_VARIABLE_KEYS,
     ] as Array<keyof DropSetSeries>;
+
     return list.map((s) => {
       const copy: any = { ...s };
       for (const key of optionalKeys) {
