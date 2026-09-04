@@ -134,7 +134,7 @@ serve(async (req) => {
           const { data: parts } = await supabase
             .from("event_participants")
             .select("player_id")
-            .eq("event_id", session.id);
+            .eq("training_session_id", session.id);
           participantIds = Array.from(
             new Set([
               session.created_by_player_id,
