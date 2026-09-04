@@ -14,6 +14,9 @@ interface Props {
   playerId: string;
   sessionDate: string; // yyyy-MM-dd
   sessionStartTime: string | null; // HH:mm(:ss)
+  /** Date de création de la séance : si elle est postérieure au début de la séance
+   *  (séance ajoutée a posteriori par le staff), la réponse reste ouverte. */
+  sessionCreatedAt?: string | null;
 }
 
 type Status = "present" | "absent" | "no_response";
