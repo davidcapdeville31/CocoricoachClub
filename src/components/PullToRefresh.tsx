@@ -205,17 +205,34 @@ const PullToRefresh = () => {
       scrollContainerRef.current = null;
     };
 
-    // passive:false sur touchmove pour pouvoir preventDefault
-    window.addEventListener("touchstart", onTouchStart, { passive: true });
-    window.addEventListener("touchmove", onTouchMove, { passive: false });
-    window.addEventListener("touchend", onTouchEnd, { passive: true });
-    window.addEventListener("touchcancel", onTouchEnd, { passive: true });
+    // Le listener touchmove NON passif bloque le scroll natif (compositeur) :
+    // on ne l'attache QUE pendant un geste susceptible de déclencher le pull,
+    // sinon tout le scroll de l'app devient saccadé sur mobile.
+    const attachMove = () => {
+      window.addEventListener("touchmove", onTouchMove, { passive: false });
+    };
+    const detachMove = () => {
+      window.removeEventListener("touchmove", onTouchMove as any);
+    };
+
+    const handleTouchStart = (e: TouchEvent) => {
+      onTouchStart(e);
+      if (active.current) attachMove();
+    };
+    const handleTouchEnd = () => {
+      detachMove();
+      void onTouchEnd();
+    };
+
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
+    window.addEventListener("touchend", handleTouchEnd, { passive: true });
+    window.addEventListener("touchcancel", handleTouchEnd, { passive: true });
 
     return () => {
-      window.removeEventListener("touchstart", onTouchStart);
-      window.removeEventListener("touchmove", onTouchMove as any);
-      window.removeEventListener("touchend", onTouchEnd);
-      window.removeEventListener("touchcancel", onTouchEnd);
+      window.removeEventListener("touchstart", handleTouchStart);
+      detachMove();
+      window.removeEventListener("touchend", handleTouchEnd);
+      window.removeEventListener("touchcancel", handleTouchEnd);
     };
   }, [refreshing]);
 

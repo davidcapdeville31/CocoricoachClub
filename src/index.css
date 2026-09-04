@@ -620,3 +620,27 @@ All colors MUST be HSL.
     font-size: 16px !important;
   }
 }
+
+/* Scroll mobile fluide : évite les saccades liées aux conteneurs scrollables
+   imbriqués et active l'accélération matérielle sur iOS. */
+@media (pointer: coarse) {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+  .overflow-auto,
+  .overflow-y-auto,
+  .overflow-scroll,
+  [data-radix-scroll-area-viewport] {
+    -webkit-overflow-scrolling: touch;
+  }
+  /* Le flou d'arrière-plan est très coûteux pendant le scroll sur mobile */
+  .backdrop-blur-xl,
+  .backdrop-blur-lg {
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+}
