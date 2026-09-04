@@ -406,6 +406,30 @@ export function transformToDailyLoadData(
 }
 
 /**
+ * Complète les jours manquants d'une série journalière avec une charge nulle.
+ * Indispensable pour l'EWMA / ACWR : sans jours de repos explicites, les
+ * fenêtres 7j et 28j ne portent pas sur le même nombre de jours calendaires
+ * et le ratio devient faussement bas ("sous-entraînement" permanent).
+ */
+export function fillMissingDays(dailyData: DailyLoadData[]): DailyLoadData[] {
+  if (dailyData.length === 0) return [];
+  const sorted = [...dailyData].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
+  const byDate = new Map(sorted.map((d) => [d.date, d]));
+  const DAY = 24 * 60 * 60 * 1000;
+  const start = new Date(sorted[0].date).getTime();
+  const end = new Date(sorted[sorted.length - 1].date).getTime();
+  const out: DailyLoadData[] = [];
+  for (let t = start; t <= end; t += DAY) {
+    const key = new Date(t).toISOString().slice(0, 10);
+    out.push(byDate.get(key) || { date: key, rpe: 0, duration: 0, sRPE: 0 });
+  }
+  return out;
+}
+
+
+/**
  * Default thresholds for alerts
  */
 export const DEFAULT_THRESHOLDS = {
