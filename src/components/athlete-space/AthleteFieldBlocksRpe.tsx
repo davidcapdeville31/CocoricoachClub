@@ -24,7 +24,7 @@ const getRpeColor = (val: number) => {
   return "text-destructive";
 };
 
-export function AthleteFieldBlocksRpe({ sessionId, playerId, categoryId, onAllSubmitted }: Props) {
+export function AthleteFieldBlocksRpe({ sessionId, playerId, categoryId, sessionDate, onAllSubmitted }: Props) {
   const qc = useQueryClient();
 
   const { data: blocks = [] } = useQuery({
@@ -96,7 +96,7 @@ export function AthleteFieldBlocksRpe({ sessionId, playerId, categoryId, onAllSu
       await supabase.from("awcr_tracking").insert({
         player_id: playerId,
         category_id: categoryId,
-        session_date: new Date().toISOString().split("T")[0],
+        session_date: sessionDate || new Date().toISOString().split("T")[0],
         rpe,
         duration_minutes: totalDuration || null,
         training_session_id: sessionId,
