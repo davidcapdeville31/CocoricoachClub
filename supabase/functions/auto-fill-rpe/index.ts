@@ -98,7 +98,7 @@ serve(async (req) => {
       // Get sessions of the previous day in this category
       const { data: sessions, error: sessionsError } = await supabase
         .from("training_sessions")
-        .select("id, category_id, planned_intensity, session_start_time, session_end_time, session_date")
+        .select("id, category_id, planned_intensity, session_start_time, session_end_time, session_date, created_by_player_id")
         .eq("category_id", category.id)
         .eq("session_date", today);
 
@@ -128,6 +128,19 @@ serve(async (req) => {
 
         if (attendance && attendance.length > 0) {
           participantIds = attendance.map((a) => a.player_id);
+        } else if (session.created_by_player_id) {
+          // Séance créée par un athlète (privée) : seuls le créateur et les
+          // partenaires explicitement associés sont concernés — jamais tout l'effectif.
+          const { data: parts } = await supabase
+            .from("event_participants")
+            .select("player_id")
+            .eq("training_session_id", session.id);
+          participantIds = Array.from(
+            new Set([
+              session.created_by_player_id,
+              ...(parts || []).map((p: any) => p.player_id),
+            ].filter(Boolean)),
+          );
         } else {
           const { data: allPlayers } = await supabase
             .from("players")
@@ -140,16 +153,29 @@ serve(async (req) => {
 
         if (participantIds.length === 0) continue;
 
+        // Déjà un RPE pour cette séance ?
         const { data: existingRpe } = await supabase
           .from("awcr_tracking")
           .select("player_id")
           .eq("training_session_id", session.id)
           .in("player_id", participantIds);
 
-        const submittedIds = new Set(existingRpe?.map((r) => r.player_id) || []);
+        // Déjà un RPE manuel saisi ce jour-là par l'athlète ? → ne pas écraser/diluer
+        const { data: manualSameDay } = await supabase
+          .from("awcr_tracking")
+          .select("player_id")
+          .eq("session_date", session.session_date)
+          .eq("auto_filled", false)
+          .in("player_id", participantIds);
+
+        const submittedIds = new Set([
+          ...(existingRpe || []).map((r) => r.player_id),
+          ...(manualSameDay || []).map((r) => r.player_id),
+        ]);
         const missingIds = participantIds.filter((id) => !submittedIds.has(id));
 
         if (missingIds.length === 0) continue;
+
 
         console.log(
           `[auto-fill-rpe] Session ${session.id} (date=${today}): auto-filling ${missingIds.length} players with RPE=${defaultRpe}`
