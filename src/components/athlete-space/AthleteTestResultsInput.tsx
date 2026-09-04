@@ -83,14 +83,17 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
       .select("test_category, test_type, result_value, result_unit, test_date");
 
     if (testWindow) {
+      // Fenêtre expirée : on inclut les saisies faites après la fin de période.
+      const today = new Date().toISOString().slice(0, 10);
+      const windowEnd = testWindow.end >= today ? testWindow.end : today;
       pendingQuery
         .eq("player_id", playerId)
         .gte("test_date", testWindow.start)
-        .lte("test_date", testWindow.end);
+        .lte("test_date", windowEnd);
       savedQuery
         .eq("player_id", playerId)
         .gte("test_date", testWindow.start)
-        .lte("test_date", testWindow.end);
+        .lte("test_date", windowEnd);
     } else {
       pendingQuery.eq("training_session_id", sessionId).eq("player_id", playerId);
       savedQuery.eq("player_id", playerId).ilike("notes", `%Session ID: ${sessionId}%`);
@@ -366,6 +369,8 @@ export async function filterTestRecordsAgainstWindow<
 >(records: T[], notes: string | null, playerId: string): Promise<T[]> {
   const win = parseTestWindowFromNotes(notes);
   if (!win || records.length === 0) return records;
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const winEnd = win.end >= todayStr ? win.end : todayStr;
 
   const [{ data: pendingData }, { data: savedData }] = await Promise.all([
     supabase
@@ -373,13 +378,13 @@ export async function filterTestRecordsAgainstWindow<
       .select("test_category, test_type, validation_status")
       .eq("player_id", playerId)
       .gte("test_date", win.start)
-      .lte("test_date", win.end),
+      .lte("test_date", winEnd),
     supabase
       .from("generic_tests")
       .select("test_category, test_type")
       .eq("player_id", playerId)
       .gte("test_date", win.start)
-      .lte("test_date", win.end),
+      .lte("test_date", winEnd),
   ]);
 
   const taken = new Set<string>();
