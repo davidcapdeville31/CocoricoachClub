@@ -276,9 +276,11 @@ export function GroupedExerciseList({
         )}>
           {(() => {
             const vs: any[] = Array.isArray((ex as any).variable_sets) ? (ex as any).variable_sets : [];
+            const xvars = parseExtraVariablesTag((ex as any).notes)?.values ?? {};
             const pick = (k: string) => {
               const direct = (ex as any)[k];
               if (direct !== undefined && direct !== null && direct !== "") return direct;
+              if (xvars[k] !== undefined && xvars[k] !== null && xvars[k] !== "") return xvars[k];
               const found = vs.find((s: any) => s?.[k] != null && s?.[k] !== "");
               return found ? found[k] : undefined;
             };
@@ -287,10 +289,12 @@ export function GroupedExerciseList({
             const rpe = pick("rpe");
             const rir = pick("rir");
             const tempo = pick("tempo");
+            const cardioBadges = getCardioBadges({ ...xvars, ...(ex as any) });
             return (
               <>
                 {ex.sets && <span>{ex.sets} séries</span>}
                 {ex.reps && <span>× {ex.reps} reps</span>}
+                {cardioBadges.map((b) => <span key={b.key}>{b.label}</span>)}
                 {percentage != null && percentage !== "" && <span>{percentage}% 1RM</span>}
                 {weight != null && weight !== "" && <span>@ {weight} kg</span>}
                 {ex.rest_seconds && <span>- {ex.rest_seconds}s repos</span>}
@@ -300,6 +304,7 @@ export function GroupedExerciseList({
               </>
             );
           })()}
+
           {!compact && ex.contraction_regime && (
             <Badge variant="outline" className="text-[10px] px-1 py-0">
               {contractionLabels[ex.contraction_regime] || ex.contraction_regime}
