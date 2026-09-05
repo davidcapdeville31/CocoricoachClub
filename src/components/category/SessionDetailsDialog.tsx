@@ -566,9 +566,11 @@ export function SessionDetailsDialog({
         </div>
         {(() => {
           const vs: any[] = Array.isArray((ex as any).variable_sets) ? (ex as any).variable_sets : [];
+          const xvars = parseExtraVariablesTag((ex as any).notes)?.values ?? {};
           const pick = (k: string) => {
             const direct = (ex as any)[k];
             if (direct !== undefined && direct !== null && direct !== "") return direct;
+            if ((xvars as any)[k] !== undefined && (xvars as any)[k] !== null && (xvars as any)[k] !== "") return (xvars as any)[k];
             const found = vs.find((s: any) => s?.[k] != null && s?.[k] !== "");
             return found ? found[k] : undefined;
           };
@@ -579,10 +581,12 @@ export function SessionDetailsDialog({
           const rpe = pick("rpe");
           const rir = pick("rir");
           const rest = (ex as any).rest_seconds ?? pick("rest_seconds");
+          const cardioBadges = getCardioBadges({ ...(xvars as any), ...(ex as any) });
           return (
             <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
               {ex.sets && <span>{ex.sets} séries</span>}
               {reps && <span>× {reps} reps</span>}
+              {cardioBadges.map((b) => <span key={b.key}>{b.label}</span>)}
               {percentage != null && percentage !== "" && <span>{percentage}% 1RM</span>}
               {weight != null && weight !== "" && <span>@ {weight} kg</span>}
               {rest != null && rest !== "" && <span>- {rest}s repos</span>}
@@ -592,6 +596,7 @@ export function SessionDetailsDialog({
             </div>
           );
         })()}
+
         {Array.isArray((ex as any).variable_sets) && (ex as any).variable_sets.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1">
             {(ex as any).variable_sets.map((s: any, i: number) => {
