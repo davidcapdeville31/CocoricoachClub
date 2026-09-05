@@ -42,6 +42,8 @@ import { FartlekCard } from "@/components/program-builder-v2/FartlekCard";
 import { ParticipantsAttendanceList } from "@/components/category/attendance/ParticipantsAttendanceList";
 import { ReadOnlyMethodCard } from "@/components/program-builder-v2/ReadOnlyMethodCard";
 import { parseV2MethodConfig, stripV2MethodTags } from "@/lib/program-builder-v2/parseV2MethodConfig";
+import { parseExtraVariablesTag } from "@/lib/program-builder-v2/extraVariablesNotes";
+import { getCardioBadges } from "@/lib/program-builder-v2/cardioBadges";
 import { SessionAthleteEntriesPanel } from "./SessionAthleteEntriesPanel";
 import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
 import { formatCategoryLabel } from "@/components/category/tests/customTestCatalog";
