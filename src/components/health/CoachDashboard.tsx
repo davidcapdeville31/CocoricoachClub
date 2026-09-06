@@ -617,8 +617,8 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
                 return (
                   <div key={`ill-${illness.id}`} className="p-4 border rounded-lg space-y-3 bg-orange-500/5 border-orange-500/30">
                     <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-semibold text-base">{illness.players?.name}</p>
+                    <div>
+                        <p className="font-semibold text-base">{formatPlayerName(illness.players)}</p>
                         <p className="text-sm text-orange-600 font-medium">{illness.illness_type}</p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
