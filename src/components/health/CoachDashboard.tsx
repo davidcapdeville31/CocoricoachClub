@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -56,6 +57,39 @@ const safeDiffDays = (dateLeft: Date | string | null | undefined, dateRight: Dat
 interface CoachDashboardProps {
   categoryId: string;
 }
+
+// Clickable stat card: shows the list of athletes belonging to the block
+const ClickableStatCard = ({
+  title,
+  names,
+  children,
+}: {
+  title: string;
+  names: string[];
+  children: React.ReactNode;
+}) => (
+  <Popover>
+    <PopoverTrigger asChild>
+      <button type="button" className="text-left w-full h-full cursor-pointer rounded-xl transition-shadow hover:ring-2 hover:ring-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+        {children}
+      </button>
+    </PopoverTrigger>
+    <PopoverContent className="w-64 p-3" align="start">
+      <p className="font-semibold text-sm mb-2">{title}</p>
+      <ScrollArea className="max-h-60">
+        {names.length > 0 ? (
+          <ul className="space-y-1">
+            {names.map((n, i) => (
+              <li key={`${n}-${i}`} className="text-sm py-1 px-2 rounded bg-muted/50">{n}</li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-xs text-muted-foreground">—</p>
+        )}
+      </ScrollArea>
+    </PopoverContent>
+  </Popover>
+);
 
 import { useSeasonFilteredPlayerIds, makePlayerIdFilter } from "@/hooks/use-season-filtered-players";
 import { useMemo as useMemoCoachDash } from "react";
