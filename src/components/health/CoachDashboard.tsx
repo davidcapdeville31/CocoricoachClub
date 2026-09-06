@@ -379,6 +379,21 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
     return normalizedScore < 2.5;
   });
 
+  // Athlete name lists for each clickable stat block
+  const playerNameById = new Map<string, string>((players || []).map((p: any) => [p.id, p.name as string]));
+  const resolveName = (id: string | undefined, fallback?: string) =>
+    (id && playerNameById.get(id)) || fallback || "—";
+  const availableNames = (players || [])
+    .filter((p: any) => !unavailableIds.has(p.id))
+    .map((p: any) => p.name as string)
+    .sort((a: string, b: string) => a.localeCompare(b, "fr"));
+  const injuredSickNames = [
+    ...((injuries || []).map((i: any) => resolveName(i.player_id, i.players?.name))),
+    ...((illnesses || []).map((i: any) => resolveName(i.player_id, i.players?.name))),
+  ];
+  const highEwmaNames = highEwma.map((p: any) => resolveName(p.player_id ?? p.playerId));
+  const lowWellnessNames = lowWellnessPlayers.map((w: any) => resolveName(w.player_id, w.players?.name));
+
   // Birthdays this month
   const birthdaysThisMonth = players?.filter((p) => {
     if (!p.birth_date) return false;
