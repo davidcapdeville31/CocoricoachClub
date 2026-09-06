@@ -237,12 +237,12 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
       data?.forEach((entry: any) => {
         (daysByPlayer[entry.player_id] ||= new Set()).add(entry.session_date);
         if (!latestByPlayer[entry.player_id] && entry.awcr != null) {
-          const playerName = [entry.players?.first_name, entry.players?.name].filter(Boolean).join(" ");
+          const playerName = formatPlayerName(entry.players);
           latestByPlayer[entry.player_id] = {
             ewmaRatio: Number(entry.awcr),
             acute: Number(entry.acute_load) || 0,
             chronic: Number(entry.chronic_load) || 0,
-            name: playerName || "Unknown",
+            name: playerName,
             date: entry.session_date,
             historyDays: 0,
           };
