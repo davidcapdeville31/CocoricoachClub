@@ -388,19 +388,19 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
   });
 
   // Athlete name lists for each clickable stat block
-  const playerNameById = new Map<string, string>((players || []).map((p: any) => [p.id, p.name as string]));
-  const resolveName = (id: string | undefined, fallback?: string) =>
-    (id && playerNameById.get(id)) || fallback || "—";
+  const playerNameById = new Map<string, string>((players || []).map((p: any) => [p.id, formatPlayerName(p)]));
+  const resolveName = (id: string | undefined, fallback?: any) =>
+    (id && playerNameById.get(id)) || formatPlayerName(fallback) || "—";
   const availableNames = (players || [])
     .filter((p: any) => !unavailableIds.has(p.id))
-    .map((p: any) => p.name as string)
+    .map((p: any) => formatPlayerName(p))
     .sort((a: string, b: string) => a.localeCompare(b, "fr"));
   const injuredSickNames = [
-    ...((injuries || []).map((i: any) => resolveName(i.player_id, i.players?.name))),
-    ...((illnesses || []).map((i: any) => resolveName(i.player_id, i.players?.name))),
+    ...((injuries || []).map((i: any) => resolveName(i.player_id, i.players))),
+    ...((illnesses || []).map((i: any) => resolveName(i.player_id, i.players))),
   ];
   const highEwmaNames = highEwma.map((p: any) => p.name || "—");
-  const lowWellnessNames = lowWellnessPlayers.map((w: any) => resolveName(w.player_id, w.players?.name));
+  const lowWellnessNames = lowWellnessPlayers.map((w: any) => resolveName(w.player_id, w.players));
 
   // Birthdays this month
   const birthdaysThisMonth = players?.filter((p) => {
