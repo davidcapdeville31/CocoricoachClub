@@ -82,19 +82,21 @@ const ClickableStatCard = ({
         {children}
       </button>
     </PopoverTrigger>
-    <PopoverContent className="w-72 p-3 max-h-[80vh] flex flex-col" align="start">
-      <p className="font-semibold text-sm mb-2 shrink-0">{title}</p>
-      <ScrollArea className="h-72 w-full pr-2">
+    <PopoverContent className="w-80 p-0 overflow-hidden" align="start">
+      <div className="p-3 border-b bg-muted/30">
+        <p className="font-semibold text-sm">{title}</p>
+      </div>
+      <div className="h-80 overflow-y-auto p-3">
         {names.length > 0 ? (
-          <ul className="space-y-1">
+          <ul className="space-y-1.5">
             {names.map((n, i) => (
-              <li key={`${n}-${i}`} className="text-sm py-1 px-2 rounded bg-muted/50">{n}</li>
+              <li key={`${n}-${i}`} className="text-sm py-1.5 px-2 rounded bg-muted/50">{n}</li>
             ))}
           </ul>
         ) : (
           <p className="text-xs text-muted-foreground">—</p>
         )}
-      </ScrollArea>
+      </div>
     </PopoverContent>
   </Popover>
 );
