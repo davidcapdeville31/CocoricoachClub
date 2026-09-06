@@ -48,6 +48,14 @@ const safeFormat = (date: Date | string | null | undefined, fmt: string, options
   return isValid(d) ? format(d, fmt, options) : "N/A";
 };
 
+const formatPlayerName = (player: any): string => {
+  if (!player) return "—";
+  const first = (player.first_name || "").trim();
+  const last = (player.name || "").trim();
+  if (!first && !last) return "—";
+  return [last, first].filter(Boolean).join(" ").trim();
+};
+
 const safeDiffDays = (dateLeft: Date | string | null | undefined, dateRight: Date): number => {
   if (!dateLeft) return 0;
   const d = typeof dateLeft === "string" ? new Date(dateLeft) : dateLeft;
