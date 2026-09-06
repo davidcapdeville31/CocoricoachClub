@@ -177,7 +177,7 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
       const sixtyDaysAgo = format(addDays(new Date(), -60), "yyyy-MM-dd");
       const { data, error } = await supabase
         .from("awcr_tracking")
-        .select("player_id, awcr, acute_load, chronic_load, players(name, first_name)")
+        .select("player_id, session_date, awcr, acute_load, chronic_load, players(name, first_name)")
         .eq("category_id", categoryId)
         .gte("session_date", sixtyDaysAgo)
         .order("session_date", { ascending: false });
@@ -187,22 +187,33 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
       }
 
       // Get latest EWMA per player - use the stored awcr field (correct EWMA ratio)
-      const latestByPlayer: Record<string, { ewmaRatio: number; acute: number; chronic: number; name: string }> = {};
+      const latestByPlayer: Record<
+        string,
+        { ewmaRatio: number; acute: number; chronic: number; name: string; date: string; historyDays: number }
+      > = {};
+      const daysByPlayer: Record<string, Set<string>> = {};
       data?.forEach((entry: any) => {
+        (daysByPlayer[entry.player_id] ||= new Set()).add(entry.session_date);
         if (!latestByPlayer[entry.player_id] && entry.awcr != null) {
           const playerName = [entry.players?.first_name, entry.players?.name].filter(Boolean).join(" ");
           latestByPlayer[entry.player_id] = {
-            ewmaRatio: entry.awcr,
-            acute: entry.acute_load || 0,
-            chronic: entry.chronic_load || 0,
+            ewmaRatio: Number(entry.awcr),
+            acute: Number(entry.acute_load) || 0,
+            chronic: Number(entry.chronic_load) || 0,
             name: playerName || "Unknown",
+            date: entry.session_date,
+            historyDays: 0,
           };
         }
+      });
+      Object.keys(latestByPlayer).forEach((pid) => {
+        latestByPlayer[pid].historyDays = daysByPlayer[pid]?.size || 0;
       });
       return latestByPlayer;
     },
     retry: 1,
   });
+
   const ewmaData = useMemoCoachDash(() => {
     if (!ewmaDataRaw) return ewmaDataRaw;
     if (!allowedIds) return ewmaDataRaw;
@@ -294,12 +305,24 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
   const availabilityRate = totalPlayers > 0 ? (availablePlayers / totalPlayers) * 100 : 0;
 
   // EWMA analysis (replacing AWCR)
-  // Filter out players with insufficient chronic load data (< 50) to avoid misleading ratios
+  // Only keep reliable ratios: enough chronic load, at least 21 days of history,
+  // and a recent data point (< 10 days) so stale values don't pollute the buckets.
   const MIN_CHRONIC_LOAD = 50;
-  const ewmaValues = Object.values(ewmaData || {}).filter((p) => p.chronic >= MIN_CHRONIC_LOAD);
+  const MIN_HISTORY_DAYS = 21;
+  const MAX_STALE_DAYS = 10;
+  const staleLimit = format(addDays(new Date(), -MAX_STALE_DAYS), "yyyy-MM-dd");
+  const allEwmaEntries = Object.values(ewmaData || {}) as any[];
+  const ewmaValues = allEwmaEntries.filter(
+    (p) =>
+      p.chronic >= MIN_CHRONIC_LOAD &&
+      (p.historyDays ?? 0) >= MIN_HISTORY_DAYS &&
+      (!p.date || p.date >= staleLimit),
+  );
+  const excludedEwmaCount = allEwmaEntries.length - ewmaValues.length;
   const highEwma = ewmaValues.filter((p) => p.ewmaRatio > 1.3);
-  const lowEwma = ewmaValues.filter((p) => p.ewmaRatio < 0.8);
-  const optimalEwma = ewmaValues.filter((p) => p.ewmaRatio >= 0.8 && p.ewmaRatio <= 1.3);
+  const lowEwma = ewmaValues.filter((p) => p.ewmaRatio < 0.85);
+  const optimalEwma = ewmaValues.filter((p) => p.ewmaRatio >= 0.85 && p.ewmaRatio <= 1.3);
+
 
   // Wellness analysis - get latest per player
   const latestWellness: Record<string, any> = {};
@@ -679,6 +702,16 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
               </div>
             </div>
           )}
+          {ewmaValues.length > 0 && (
+            <p className="text-xs text-muted-foreground mt-4">
+              {ewmaValues.length} athlète{ewmaValues.length > 1 ? "s" : ""} analysé
+              {ewmaValues.length > 1 ? "s" : ""} · zone optimale 0.85 – 1.30
+              {excludedEwmaCount > 0 && (
+                <> · {excludedEwmaCount} exclu{excludedEwmaCount > 1 ? "s" : ""} (moins de 21 jours d'historique, charge chronique insuffisante ou données de plus de 10 jours)</>
+              )}
+            </p>
+          )}
+
         </CardContent>
       </Card>
 
