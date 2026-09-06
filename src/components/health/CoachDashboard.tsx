@@ -48,6 +48,14 @@ const safeFormat = (date: Date | string | null | undefined, fmt: string, options
   return isValid(d) ? format(d, fmt, options) : "N/A";
 };
 
+const formatPlayerName = (player: any): string => {
+  if (!player) return "—";
+  const first = (player.first_name || "").trim();
+  const last = (player.name || "").trim();
+  if (!first && !last) return "—";
+  return [last, first].filter(Boolean).join(" ").trim();
+};
+
 const safeDiffDays = (dateLeft: Date | string | null | undefined, dateRight: Date): number => {
   if (!dateLeft) return 0;
   const d = typeof dateLeft === "string" ? new Date(dateLeft) : dateLeft;
@@ -229,12 +237,12 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
       data?.forEach((entry: any) => {
         (daysByPlayer[entry.player_id] ||= new Set()).add(entry.session_date);
         if (!latestByPlayer[entry.player_id] && entry.awcr != null) {
-          const playerName = [entry.players?.first_name, entry.players?.name].filter(Boolean).join(" ");
+          const playerName = formatPlayerName(entry.players);
           latestByPlayer[entry.player_id] = {
             ewmaRatio: Number(entry.awcr),
             acute: Number(entry.acute_load) || 0,
             chronic: Number(entry.chronic_load) || 0,
-            name: playerName || "Unknown",
+            name: playerName,
             date: entry.session_date,
             historyDays: 0,
           };
@@ -380,19 +388,19 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
   });
 
   // Athlete name lists for each clickable stat block
-  const playerNameById = new Map<string, string>((players || []).map((p: any) => [p.id, p.name as string]));
-  const resolveName = (id: string | undefined, fallback?: string) =>
-    (id && playerNameById.get(id)) || fallback || "—";
+  const playerNameById = new Map<string, string>((players || []).map((p: any) => [p.id, formatPlayerName(p)]));
+  const resolveName = (id: string | undefined, fallback?: any) =>
+    (id && playerNameById.get(id)) || formatPlayerName(fallback) || "—";
   const availableNames = (players || [])
     .filter((p: any) => !unavailableIds.has(p.id))
-    .map((p: any) => p.name as string)
+    .map((p: any) => formatPlayerName(p))
     .sort((a: string, b: string) => a.localeCompare(b, "fr"));
   const injuredSickNames = [
-    ...((injuries || []).map((i: any) => resolveName(i.player_id, i.players?.name))),
-    ...((illnesses || []).map((i: any) => resolveName(i.player_id, i.players?.name))),
+    ...((injuries || []).map((i: any) => resolveName(i.player_id, i.players))),
+    ...((illnesses || []).map((i: any) => resolveName(i.player_id, i.players))),
   ];
   const highEwmaNames = highEwma.map((p: any) => p.name || "—");
-  const lowWellnessNames = lowWellnessPlayers.map((w: any) => resolveName(w.player_id, w.players?.name));
+  const lowWellnessNames = lowWellnessPlayers.map((w: any) => resolveName(w.player_id, w.players));
 
   // Birthdays this month
   const birthdaysThisMonth = players?.filter((p) => {
@@ -507,7 +515,7 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
                 {dueSoonMedical?.map((record) => (
                   <div key={record.id} className="flex items-center gap-1.5 text-[10px]">
                     <Syringe className="h-3 w-3 text-muted-foreground shrink-0" />
-                    <span className="truncate flex-1">{record.players?.name}</span>
+                    <span className="truncate flex-1">{formatPlayerName(record.players)}</span>
                     <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">
                       {safeDiffDays(record.next_due_date, new Date())}j
                     </Badge>
@@ -516,14 +524,14 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
                 {rtpProtocols?.map((protocol: any) => (
                   <div key={protocol.id} className="flex items-center gap-1.5 text-[10px]">
                     <Activity className="h-3 w-3 text-muted-foreground shrink-0" />
-                    <span className="truncate flex-1">{protocol.players?.name}</span>
+                    <span className="truncate flex-1">{formatPlayerName(protocol.players)}</span>
                     <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4">RTP</Badge>
                   </div>
                 ))}
                 {birthdaysThisMonth?.map((player) => (
                   <div key={player.id} className="flex items-center gap-1.5 text-[10px]">
                     <Cake className="h-3 w-3 text-pink-500 shrink-0" />
-                    <span className="truncate flex-1">{player.name}</span>
+                    <span className="truncate flex-1">{formatPlayerName(player)}</span>
                     <span className="text-[9px] text-muted-foreground">
                       {safeFormat(player.birth_date ? parseISO(player.birth_date) : null, "dd/MM", { locale: getDateLocale() })}
                     </span>
@@ -554,8 +562,8 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
                 return (
                   <div key={`inj-${injury.id}`} className="p-4 border rounded-lg space-y-3">
                     <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-semibold text-base">{injury.players?.name}</p>
+                    <div>
+                        <p className="font-semibold text-base">{formatPlayerName(injury.players)}</p>
                         <p className="text-sm text-destructive font-medium">{injury.injury_type}</p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
@@ -609,8 +617,8 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
                 return (
                   <div key={`ill-${illness.id}`} className="p-4 border rounded-lg space-y-3 bg-orange-500/5 border-orange-500/30">
                     <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-semibold text-base">{illness.players?.name}</p>
+                    <div>
+                        <p className="font-semibold text-base">{formatPlayerName(illness.players)}</p>
                         <p className="text-sm text-orange-600 font-medium">{illness.illness_type}</p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
