@@ -1,5 +1,5 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
@@ -66,7 +66,7 @@ const ClickableStatCard = ({
 }: {
   title: string;
   names: string[];
-  children: React.ReactNode;
+  children: ReactNode;
 }) => (
   <Popover>
     <PopoverTrigger asChild>
