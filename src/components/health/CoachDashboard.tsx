@@ -305,12 +305,24 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
   const availabilityRate = totalPlayers > 0 ? (availablePlayers / totalPlayers) * 100 : 0;
 
   // EWMA analysis (replacing AWCR)
-  // Filter out players with insufficient chronic load data (< 50) to avoid misleading ratios
+  // Only keep reliable ratios: enough chronic load, at least 21 days of history,
+  // and a recent data point (< 10 days) so stale values don't pollute the buckets.
   const MIN_CHRONIC_LOAD = 50;
-  const ewmaValues = Object.values(ewmaData || {}).filter((p) => p.chronic >= MIN_CHRONIC_LOAD);
+  const MIN_HISTORY_DAYS = 21;
+  const MAX_STALE_DAYS = 10;
+  const staleLimit = format(addDays(new Date(), -MAX_STALE_DAYS), "yyyy-MM-dd");
+  const allEwmaEntries = Object.values(ewmaData || {}) as any[];
+  const ewmaValues = allEwmaEntries.filter(
+    (p) =>
+      p.chronic >= MIN_CHRONIC_LOAD &&
+      (p.historyDays ?? 0) >= MIN_HISTORY_DAYS &&
+      (!p.date || p.date >= staleLimit),
+  );
+  const excludedEwmaCount = allEwmaEntries.length - ewmaValues.length;
   const highEwma = ewmaValues.filter((p) => p.ewmaRatio > 1.3);
-  const lowEwma = ewmaValues.filter((p) => p.ewmaRatio < 0.8);
-  const optimalEwma = ewmaValues.filter((p) => p.ewmaRatio >= 0.8 && p.ewmaRatio <= 1.3);
+  const lowEwma = ewmaValues.filter((p) => p.ewmaRatio < 0.85);
+  const optimalEwma = ewmaValues.filter((p) => p.ewmaRatio >= 0.85 && p.ewmaRatio <= 1.3);
+
 
   // Wellness analysis - get latest per player
   const latestWellness: Record<string, any> = {};
