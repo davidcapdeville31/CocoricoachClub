@@ -177,7 +177,7 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
       const sixtyDaysAgo = format(addDays(new Date(), -60), "yyyy-MM-dd");
       const { data, error } = await supabase
         .from("awcr_tracking")
-        .select("player_id, awcr, acute_load, chronic_load, players(name, first_name)")
+        .select("player_id, session_date, awcr, acute_load, chronic_load, players(name, first_name)")
         .eq("category_id", categoryId)
         .gte("session_date", sixtyDaysAgo)
         .order("session_date", { ascending: false });
@@ -187,22 +187,33 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
       }
 
       // Get latest EWMA per player - use the stored awcr field (correct EWMA ratio)
-      const latestByPlayer: Record<string, { ewmaRatio: number; acute: number; chronic: number; name: string }> = {};
+      const latestByPlayer: Record<
+        string,
+        { ewmaRatio: number; acute: number; chronic: number; name: string; date: string; historyDays: number }
+      > = {};
+      const daysByPlayer: Record<string, Set<string>> = {};
       data?.forEach((entry: any) => {
+        (daysByPlayer[entry.player_id] ||= new Set()).add(entry.session_date);
         if (!latestByPlayer[entry.player_id] && entry.awcr != null) {
           const playerName = [entry.players?.first_name, entry.players?.name].filter(Boolean).join(" ");
           latestByPlayer[entry.player_id] = {
-            ewmaRatio: entry.awcr,
-            acute: entry.acute_load || 0,
-            chronic: entry.chronic_load || 0,
+            ewmaRatio: Number(entry.awcr),
+            acute: Number(entry.acute_load) || 0,
+            chronic: Number(entry.chronic_load) || 0,
             name: playerName || "Unknown",
+            date: entry.session_date,
+            historyDays: 0,
           };
         }
+      });
+      Object.keys(latestByPlayer).forEach((pid) => {
+        latestByPlayer[pid].historyDays = daysByPlayer[pid]?.size || 0;
       });
       return latestByPlayer;
     },
     retry: 1,
   });
+
   const ewmaData = useMemoCoachDash(() => {
     if (!ewmaDataRaw) return ewmaDataRaw;
     if (!allowedIds) return ewmaDataRaw;
