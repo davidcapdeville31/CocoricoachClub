@@ -702,6 +702,16 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
               </div>
             </div>
           )}
+          {ewmaValues.length > 0 && (
+            <p className="text-xs text-muted-foreground mt-4">
+              {ewmaValues.length} athlète{ewmaValues.length > 1 ? "s" : ""} analysé
+              {ewmaValues.length > 1 ? "s" : ""} · zone optimale 0.85 – 1.30
+              {excludedEwmaCount > 0 && (
+                <> · {excludedEwmaCount} exclu{excludedEwmaCount > 1 ? "s" : ""} (moins de 21 jours d'historique, charge chronique insuffisante ou données de plus de 10 jours)</>
+              )}
+            </p>
+          )}
+
         </CardContent>
       </Card>
 
