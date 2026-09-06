@@ -1,5 +1,5 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -56,6 +57,39 @@ const safeDiffDays = (dateLeft: Date | string | null | undefined, dateRight: Dat
 interface CoachDashboardProps {
   categoryId: string;
 }
+
+// Clickable stat card: shows the list of athletes belonging to the block
+const ClickableStatCard = ({
+  title,
+  names,
+  children,
+}: {
+  title: string;
+  names: string[];
+  children: ReactNode;
+}) => (
+  <Popover>
+    <PopoverTrigger asChild>
+      <button type="button" className="text-left w-full h-full cursor-pointer rounded-xl transition-shadow hover:ring-2 hover:ring-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+        {children}
+      </button>
+    </PopoverTrigger>
+    <PopoverContent className="w-64 p-3" align="start">
+      <p className="font-semibold text-sm mb-2">{title}</p>
+      <ScrollArea className="max-h-60">
+        {names.length > 0 ? (
+          <ul className="space-y-1">
+            {names.map((n, i) => (
+              <li key={`${n}-${i}`} className="text-sm py-1 px-2 rounded bg-muted/50">{n}</li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-xs text-muted-foreground">—</p>
+        )}
+      </ScrollArea>
+    </PopoverContent>
+  </Popover>
+);
 
 import { useSeasonFilteredPlayerIds, makePlayerIdFilter } from "@/hooks/use-season-filtered-players";
 import { useMemo as useMemoCoachDash } from "react";
@@ -345,6 +379,21 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
     return normalizedScore < 2.5;
   });
 
+  // Athlete name lists for each clickable stat block
+  const playerNameById = new Map<string, string>((players || []).map((p: any) => [p.id, p.name as string]));
+  const resolveName = (id: string | undefined, fallback?: string) =>
+    (id && playerNameById.get(id)) || fallback || "—";
+  const availableNames = (players || [])
+    .filter((p: any) => !unavailableIds.has(p.id))
+    .map((p: any) => p.name as string)
+    .sort((a: string, b: string) => a.localeCompare(b, "fr"));
+  const injuredSickNames = [
+    ...((injuries || []).map((i: any) => resolveName(i.player_id, i.players?.name))),
+    ...((illnesses || []).map((i: any) => resolveName(i.player_id, i.players?.name))),
+  ];
+  const highEwmaNames = highEwma.map((p: any) => p.name || "—");
+  const lowWellnessNames = lowWellnessPlayers.map((w: any) => resolveName(w.player_id, w.players?.name));
+
   // Birthdays this month
   const birthdaysThisMonth = players?.filter((p) => {
     if (!p.birth_date) return false;
@@ -370,7 +419,8 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
 
       {/* Main KPIs + Rappels */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-        <Card className="bg-gradient-to-br from-green-500/20 to-green-600/10 border-green-500/30">
+        <ClickableStatCard title={t("health.coachDashboard.availability")} names={availableNames}>
+        <Card className="bg-gradient-to-br from-green-500/20 to-green-600/10 border-green-500/30 h-full">
           <CardHeader className="pb-1 px-3 pt-3">
             <CardTitle className="text-xs flex items-center gap-1.5">
               <Users className="h-3.5 w-3.5" />
@@ -387,8 +437,10 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
             </p>
           </CardContent>
         </Card>
+        </ClickableStatCard>
 
-        <Card className="bg-gradient-to-br from-red-500/20 to-red-600/10 border-red-500/30">
+        <ClickableStatCard title={t("health.coachDashboard.injuriesIllnesses")} names={injuredSickNames}>
+        <Card className="bg-gradient-to-br from-red-500/20 to-red-600/10 border-red-500/30 h-full">
           <CardHeader className="pb-1 px-3 pt-3">
             <CardTitle className="text-xs flex items-center gap-1.5">
               <Activity className="h-3.5 w-3.5" />
@@ -402,8 +454,10 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
             </p>
           </CardContent>
         </Card>
+        </ClickableStatCard>
 
-        <Card className="bg-gradient-to-br from-orange-500/20 to-orange-600/10 border-orange-500/30">
+        <ClickableStatCard title={t("health.coachDashboard.highEwma")} names={highEwmaNames}>
+        <Card className="bg-gradient-to-br from-orange-500/20 to-orange-600/10 border-orange-500/30 h-full">
           <CardHeader className="pb-1 px-3 pt-3">
             <CardTitle className="text-xs flex items-center gap-1.5">
               <TrendingUp className="h-3.5 w-3.5" />
@@ -417,8 +471,10 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
             </p>
           </CardContent>
         </Card>
+        </ClickableStatCard>
 
-        <Card className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 border-blue-500/30">
+        <ClickableStatCard title={t("health.coachDashboard.lowWellness")} names={lowWellnessNames}>
+        <Card className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 border-blue-500/30 h-full">
           <CardHeader className="pb-1 px-3 pt-3">
             <CardTitle className="text-xs flex items-center gap-1.5">
               <HeartPulse className="h-3.5 w-3.5" />
@@ -432,6 +488,7 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
             </p>
           </CardContent>
         </Card>
+        </ClickableStatCard>
 
         {/* Rappels à venir - compact */}
         <Card className="bg-gradient-to-br from-purple-500/20 to-purple-600/10 border-purple-500/30">
