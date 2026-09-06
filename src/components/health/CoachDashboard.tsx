@@ -391,7 +391,7 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
     ...((injuries || []).map((i: any) => resolveName(i.player_id, i.players?.name))),
     ...((illnesses || []).map((i: any) => resolveName(i.player_id, i.players?.name))),
   ];
-  const highEwmaNames = highEwma.map((p: any) => resolveName(p.player_id ?? p.playerId));
+  const highEwmaNames = highEwma.map((p: any) => p.name || "—");
   const lowWellnessNames = lowWellnessPlayers.map((w: any) => resolveName(w.player_id, w.players?.name));
 
   // Birthdays this month
@@ -419,7 +419,8 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
 
       {/* Main KPIs + Rappels */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-        <Card className="bg-gradient-to-br from-green-500/20 to-green-600/10 border-green-500/30">
+        <ClickableStatCard title={t("health.coachDashboard.availability")} names={availableNames}>
+        <Card className="bg-gradient-to-br from-green-500/20 to-green-600/10 border-green-500/30 h-full">
           <CardHeader className="pb-1 px-3 pt-3">
             <CardTitle className="text-xs flex items-center gap-1.5">
               <Users className="h-3.5 w-3.5" />
@@ -436,8 +437,10 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
             </p>
           </CardContent>
         </Card>
+        </ClickableStatCard>
 
-        <Card className="bg-gradient-to-br from-red-500/20 to-red-600/10 border-red-500/30">
+        <ClickableStatCard title={t("health.coachDashboard.injuriesIllnesses")} names={injuredSickNames}>
+        <Card className="bg-gradient-to-br from-red-500/20 to-red-600/10 border-red-500/30 h-full">
           <CardHeader className="pb-1 px-3 pt-3">
             <CardTitle className="text-xs flex items-center gap-1.5">
               <Activity className="h-3.5 w-3.5" />
@@ -451,8 +454,10 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
             </p>
           </CardContent>
         </Card>
+        </ClickableStatCard>
 
-        <Card className="bg-gradient-to-br from-orange-500/20 to-orange-600/10 border-orange-500/30">
+        <ClickableStatCard title={t("health.coachDashboard.highEwma")} names={highEwmaNames}>
+        <Card className="bg-gradient-to-br from-orange-500/20 to-orange-600/10 border-orange-500/30 h-full">
           <CardHeader className="pb-1 px-3 pt-3">
             <CardTitle className="text-xs flex items-center gap-1.5">
               <TrendingUp className="h-3.5 w-3.5" />
@@ -466,8 +471,10 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
             </p>
           </CardContent>
         </Card>
+        </ClickableStatCard>
 
-        <Card className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 border-blue-500/30">
+        <ClickableStatCard title={t("health.coachDashboard.lowWellness")} names={lowWellnessNames}>
+        <Card className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 border-blue-500/30 h-full">
           <CardHeader className="pb-1 px-3 pt-3">
             <CardTitle className="text-xs flex items-center gap-1.5">
               <HeartPulse className="h-3.5 w-3.5" />
@@ -481,6 +488,7 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
             </p>
           </CardContent>
         </Card>
+        </ClickableStatCard>
 
         {/* Rappels à venir - compact */}
         <Card className="bg-gradient-to-br from-purple-500/20 to-purple-600/10 border-purple-500/30">
