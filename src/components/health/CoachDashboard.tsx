@@ -515,7 +515,7 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
                 {dueSoonMedical?.map((record) => (
                   <div key={record.id} className="flex items-center gap-1.5 text-[10px]">
                     <Syringe className="h-3 w-3 text-muted-foreground shrink-0" />
-                    <span className="truncate flex-1">{record.players?.name}</span>
+                    <span className="truncate flex-1">{formatPlayerName(record.players)}</span>
                     <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">
                       {safeDiffDays(record.next_due_date, new Date())}j
                     </Badge>
@@ -524,14 +524,14 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
                 {rtpProtocols?.map((protocol: any) => (
                   <div key={protocol.id} className="flex items-center gap-1.5 text-[10px]">
                     <Activity className="h-3 w-3 text-muted-foreground shrink-0" />
-                    <span className="truncate flex-1">{protocol.players?.name}</span>
+                    <span className="truncate flex-1">{formatPlayerName(protocol.players)}</span>
                     <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4">RTP</Badge>
                   </div>
                 ))}
                 {birthdaysThisMonth?.map((player) => (
                   <div key={player.id} className="flex items-center gap-1.5 text-[10px]">
                     <Cake className="h-3 w-3 text-pink-500 shrink-0" />
-                    <span className="truncate flex-1">{player.name}</span>
+                    <span className="truncate flex-1">{formatPlayerName(player)}</span>
                     <span className="text-[9px] text-muted-foreground">
                       {safeFormat(player.birth_date ? parseISO(player.birth_date) : null, "dd/MM", { locale: getDateLocale() })}
                     </span>
