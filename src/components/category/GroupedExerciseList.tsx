@@ -292,10 +292,15 @@ export function GroupedExerciseList({
             const rir = pick("rir");
             const tempo = pick("tempo");
             const cardioBadges = getCardioBadges({ ...xvars, ...(ex as any) });
+            // Cardio / course : ne pas afficher les séries/reps par défaut (3x10)
+            const hideSetsReps =
+              cardioBadges.length > 0 &&
+              (percentage == null || percentage === "") &&
+              (weight == null || weight === "");
             return (
               <>
-                {ex.sets && <span>{ex.sets} séries</span>}
-                {ex.reps && <span>× {ex.reps} reps</span>}
+                {!hideSetsReps && ex.sets && <span>{ex.sets} séries</span>}
+                {!hideSetsReps && ex.reps && <span>× {ex.reps} reps</span>}
                 {cardioBadges.map((b) => <span key={b.key}>{b.label}</span>)}
                 {percentage != null && percentage !== "" && <span>{percentage}% 1RM</span>}
                 {weight != null && weight !== "" && <span>@ {weight} kg</span>}

@@ -584,10 +584,15 @@ export function SessionDetailsDialog({
           const rir = pick("rir");
           const rest = (ex as any).rest_seconds ?? pick("rest_seconds");
           const cardioBadges = getCardioBadges({ ...(xvars as any), ...(ex as any) });
+          // Cardio / course : ne pas afficher les séries/reps par défaut (3x10)
+          const hideSetsReps =
+            cardioBadges.length > 0 &&
+            (percentage == null || percentage === "") &&
+            (weight == null || weight === "");
           return (
             <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-              {ex.sets && <span>{ex.sets} séries</span>}
-              {reps && <span>× {reps} reps</span>}
+              {!hideSetsReps && ex.sets && <span>{ex.sets} séries</span>}
+              {!hideSetsReps && reps && <span>× {reps} reps</span>}
               {cardioBadges.map((b) => <span key={b.key}>{b.label}</span>)}
               {percentage != null && percentage !== "" && <span>{percentage}% 1RM</span>}
               {weight != null && weight !== "" && <span>@ {weight} kg</span>}
