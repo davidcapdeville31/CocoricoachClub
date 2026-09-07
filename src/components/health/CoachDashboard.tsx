@@ -82,11 +82,18 @@ const ClickableStatCard = ({
         {children}
       </button>
     </PopoverTrigger>
-    <PopoverContent className="w-80 p-0 overflow-hidden" align="start">
-      <div className="p-3 border-b bg-muted/30">
+    <PopoverContent
+      className="w-80 p-0 overflow-hidden flex flex-col"
+      align="start"
+      collisionPadding={16}
+      avoidCollisions
+      style={{ maxHeight: "min(60vh, var(--radix-popover-content-available-height))" }}
+    >
+      <div className="p-3 border-b bg-muted/30 shrink-0">
         <p className="font-semibold text-sm">{title}</p>
       </div>
-      <div className="h-80 overflow-y-auto p-3">
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-3">
+
         {names.length > 0 ? (
           <ul className="space-y-1.5">
             {names.map((n, i) => (
