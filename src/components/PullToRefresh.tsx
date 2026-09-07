@@ -107,6 +107,10 @@ const PullToRefresh = () => {
     if (isInIframe() && !isPreviewHost()) return;
     const isTouch = "ontouchstart" in window || (navigator as any).maxTouchPoints > 0;
     if (!isTouch) return;
+    // Android gère nativement le pull-to-refresh : notre implémentation maison
+    // n'y apporte rien et risque d'interférer avec le scroll de la page.
+    if (/Android/i.test(navigator.userAgent)) return;
+
 
     const onTouchStart = (e: TouchEvent) => {
       if (refreshing) return;
