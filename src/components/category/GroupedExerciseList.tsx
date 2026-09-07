@@ -306,7 +306,7 @@ export function GroupedExerciseList({
                 {cardioBadges.map((b) => <span key={b.key}>{b.label}</span>)}
                 {percentage != null && percentage !== "" && <span>{percentage}% 1RM</span>}
                 {weight != null && weight !== "" && <span>@ {weight} kg</span>}
-                {ex.rest_seconds && <span>- {ex.rest_seconds}s repos</span>}
+                {ex.rest_seconds != null && Number(ex.rest_seconds) > 0 && <span>- {ex.rest_seconds}s repos</span>}
                 {tempo && <span>Tempo: {tempo}</span>}
                 {rpe != null && rpe !== "" && <span>RPE: {rpe}</span>}
                 {rir != null && rir !== "" && <span>RIR: {rir}</span>}
