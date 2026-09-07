@@ -162,7 +162,10 @@ const PullToRefresh = () => {
         }
         return;
       }
-      const eased = Math.min(MAX_PULL, delta * 0.55);
+      // Sous 16px, on laisse le navigateur gérer le geste : indispensable pour
+      // ne jamais bloquer le scroll natif (Android notamment).
+      if (delta < 16) return;
+      const eased = Math.min(MAX_PULL, (delta - 16) * 0.55);
       pullRef.current = eased;
       setPull(eased);
       // Empêche le bounce iOS / scroll natif quand on tire vers le bas
@@ -170,6 +173,7 @@ const PullToRefresh = () => {
         try { e.preventDefault(); } catch {}
       }
     };
+
 
     const onTouchEnd = async () => {
       if (!active.current) return;
