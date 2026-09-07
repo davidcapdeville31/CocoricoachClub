@@ -292,19 +292,21 @@ export function GroupedExerciseList({
             const rir = pick("rir");
             const tempo = pick("tempo");
             const cardioBadges = getCardioBadges({ ...xvars, ...(ex as any) });
-            // Cardio / course : ne pas afficher les séries/reps par défaut (3x10)
-            const hideSetsReps =
-              cardioBadges.length > 0 &&
-              (percentage == null || percentage === "") &&
-              (weight == null || weight === "");
+            // Cardio / course : ne jamais afficher les séries/reps par défaut (3x10)
+            const hideSetsReps = cardioBadges.length > 0;
+            const setsVal = Number((ex as any).sets);
+            const repsVal = Number((ex as any).reps);
+            const showSets = !hideSetsReps && Number.isFinite(setsVal) && setsVal > 0;
+            const showReps = !hideSetsReps && Number.isFinite(repsVal) && repsVal > 0;
             return (
               <>
-                {!hideSetsReps && ex.sets && <span>{ex.sets} séries</span>}
-                {!hideSetsReps && ex.reps && <span>× {ex.reps} reps</span>}
+                {showSets && <span>{ex.sets} séries</span>}
+                {showReps && <span>× {ex.reps} reps</span>}
+
                 {cardioBadges.map((b) => <span key={b.key}>{b.label}</span>)}
                 {percentage != null && percentage !== "" && <span>{percentage}% 1RM</span>}
                 {weight != null && weight !== "" && <span>@ {weight} kg</span>}
-                {ex.rest_seconds && <span>- {ex.rest_seconds}s repos</span>}
+                {ex.rest_seconds != null && Number(ex.rest_seconds) > 0 && <span>- {ex.rest_seconds}s repos</span>}
                 {tempo && <span>Tempo: {tempo}</span>}
                 {rpe != null && rpe !== "" && <span>RPE: {rpe}</span>}
                 {rir != null && rir !== "" && <span>RIR: {rir}</span>}

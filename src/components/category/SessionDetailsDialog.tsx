@@ -584,19 +584,21 @@ export function SessionDetailsDialog({
           const rir = pick("rir");
           const rest = (ex as any).rest_seconds ?? pick("rest_seconds");
           const cardioBadges = getCardioBadges({ ...(xvars as any), ...(ex as any) });
-          // Cardio / course : ne pas afficher les séries/reps par défaut (3x10)
-          const hideSetsReps =
-            cardioBadges.length > 0 &&
-            (percentage == null || percentage === "") &&
-            (weight == null || weight === "");
+          // Cardio / course : ne jamais afficher les séries/reps par défaut (3x10)
+          const hideSetsReps = cardioBadges.length > 0;
+          const setsVal = Number((ex as any).sets);
+          const repsVal = Number(reps);
+          const showSets = !hideSetsReps && Number.isFinite(setsVal) && setsVal > 0;
+          const showReps = !hideSetsReps && Number.isFinite(repsVal) && repsVal > 0;
           return (
             <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-              {!hideSetsReps && ex.sets && <span>{ex.sets} séries</span>}
-              {!hideSetsReps && reps && <span>× {reps} reps</span>}
+              {showSets && <span>{ex.sets} séries</span>}
+              {showReps && <span>× {reps} reps</span>}
               {cardioBadges.map((b) => <span key={b.key}>{b.label}</span>)}
               {percentage != null && percentage !== "" && <span>{percentage}% 1RM</span>}
               {weight != null && weight !== "" && <span>@ {weight} kg</span>}
-              {rest != null && rest !== "" && <span>- {rest}s repos</span>}
+              {rest != null && rest !== "" && Number(rest) > 0 && <span>- {rest}s repos</span>}
+
               {tempo && <span>Tempo: {tempo}</span>}
               {rpe != null && rpe !== "" && <span>RPE: {rpe}</span>}
               {rir != null && rir !== "" && <span>RIR: {rir}</span>}
