@@ -626,11 +626,14 @@ All colors MUST be HSL.
 @media (pointer: coarse) {
   html {
     -webkit-text-size-adjust: 100%;
+    touch-action: pan-y pinch-zoom;
   }
   body {
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: contain;
+    overscroll-behavior-y: auto;
+    touch-action: pan-y pinch-zoom;
   }
+
   .overflow-auto,
   .overflow-y-auto,
   .overflow-scroll,
