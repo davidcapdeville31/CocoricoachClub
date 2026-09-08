@@ -92,6 +92,32 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
     },
   });
 
+  // Poids enregistré pour la date sélectionnée (dernière mesure du jour)
+  const { data: existingWeight } = useQuery({
+    queryKey: ["athlete-space-weight", playerId, selectedDateStr],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("body_composition")
+        .select("id, weight_kg, created_at")
+        .eq("player_id", playerId)
+        .eq("measurement_date", selectedDateStr)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data as { id: string; weight_kg: number; created_at: string } | null;
+    },
+  });
+
+  // Fenêtre de correction du poids : 24 h après la saisie (et date max = hier)
+  const WEIGHT_EDIT_WINDOW_MS = 24 * 3600 * 1000;
+  const dateIsRecent =
+    startOfDay(new Date()).getTime() - selectedDate.getTime() <= WEIGHT_EDIT_WINDOW_MS;
+  const weightRowRecent = existingWeight
+    ? Date.now() - new Date(existingWeight.created_at).getTime() <= WEIGHT_EDIT_WINDOW_MS
+    : true;
+  const canEditWeight = dateIsRecent && weightRowRecent;
+
   // Liste des jours déjà remplis (sur les 30 derniers jours) pour les afficher dans le calendrier
   const { data: filledDates } = useQuery({
     queryKey: ["athlete-space-wellness-filled-dates", playerId],
@@ -172,7 +198,10 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
       setPainEntries([]);
       setNotes("");
     }
-  }, [activeQuestions, existingWellness, selectedDateStr]);
+
+    // Pré-remplit le poids déjà enregistré pour cette date (correction 24 h)
+    setWeightKg(existingWeight?.weight_kg != null ? String(existingWeight.weight_kg) : "");
+  }, [activeQuestions, existingWellness, existingWeight, selectedDateStr]);
 
   const allFieldsFilled = useMemo(() => {
     // Une valeur par défaut valide est acceptée : pas besoin de re-cliquer
@@ -261,17 +290,29 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
         }
       }
 
-      // Save weight into body_composition (optional)
+      // Save weight into body_composition (optional).
+      // Correction possible pendant 24 h : on met à jour la mesure existante
+      // au lieu d'en créer une nouvelle (évite les doublons / erreurs).
       const w = parseFloat(weightKg);
-      if (!isNaN(w) && w > 0) {
-        const { error: bcError } = await supabase.from("body_composition").insert({
-          player_id: playerId,
-          category_id: categoryId,
-          measurement_date: selectedDateStr,
-          weight_kg: w,
-          notes: "Auto-suivi via portail athlète",
-        });
-        if (bcError) console.error("Body composition save error:", bcError);
+      if (!isNaN(w) && w >= 20 && w <= 250) {
+        if (existingWeight && weightRowRecent) {
+          if (Number(existingWeight.weight_kg) !== w) {
+            const { error: bcError } = await supabase
+              .from("body_composition")
+              .update({ weight_kg: w })
+              .eq("id", existingWeight.id);
+            if (bcError) console.error("Body composition update error:", bcError);
+          }
+        } else if (!existingWeight && dateIsRecent) {
+          const { error: bcError } = await supabase.from("body_composition").insert({
+            player_id: playerId,
+            category_id: categoryId,
+            measurement_date: selectedDateStr,
+            weight_kg: w,
+            notes: "Auto-suivi via portail athlète",
+          });
+          if (bcError) console.error("Body composition save error:", bcError);
+        }
       }
     },
     onSuccess: () => {
@@ -283,6 +324,8 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
       queryClient.invalidateQueries({ queryKey: ["athlete-space-wellness"] });
       queryClient.invalidateQueries({ queryKey: ["athlete-space-wellness-today"] });
       queryClient.invalidateQueries({ queryKey: ["athlete-space-wellness-filled-dates", playerId] });
+      queryClient.invalidateQueries({ queryKey: ["athlete-space-weight", playerId] });
+      queryClient.invalidateQueries({ queryKey: ["weight-history"] });
       if (showHrv) {
         queryClient.invalidateQueries({ queryKey: ["hrv_records"] });
       }
@@ -691,21 +734,34 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
             )}
           </div>
 
-          {/* Poids du corps */}
+          {/* Poids du corps — modifiable pendant 24 h après la saisie */}
           <div className="space-y-1">
             <Label className="text-xs flex items-center gap-1.5">
               {t("athleteSpace.wellness.weightToday")}
             </Label>
-            <Input
-              type="number"
-              step="0.1"
-              min="20"
-              max="250"
-              placeholder={t("athleteSpace.wellness.weightPlaceholder")}
-              value={weightKg}
-              onChange={(e) => setWeightKg(e.target.value)}
-              className="h-8 text-sm max-w-[140px]"
-            />
+            {canEditWeight ? (
+              <>
+                <Input
+                  type="number"
+                  step="0.1"
+                  min="20"
+                  max="250"
+                  placeholder={t("athleteSpace.wellness.weightPlaceholder")}
+                  value={weightKg}
+                  onChange={(e) => setWeightKg(e.target.value)}
+                  className="h-8 text-sm max-w-[140px]"
+                />
+                {existingWeight && (
+                  <p className="text-[10px] text-muted-foreground">
+                    {t("athleteSpace.wellness.weightEditableHint", "Corrigible pendant 24 h après la saisie")}
+                  </p>
+                )}
+              </>
+            ) : (
+              <p className="text-sm font-medium">
+                {existingWeight ? `${existingWeight.weight_kg} kg` : "—"}
+              </p>
+            )}
           </div>
 
 
