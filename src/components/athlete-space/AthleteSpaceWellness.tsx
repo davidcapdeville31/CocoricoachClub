@@ -324,6 +324,8 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
       queryClient.invalidateQueries({ queryKey: ["athlete-space-wellness"] });
       queryClient.invalidateQueries({ queryKey: ["athlete-space-wellness-today"] });
       queryClient.invalidateQueries({ queryKey: ["athlete-space-wellness-filled-dates", playerId] });
+      queryClient.invalidateQueries({ queryKey: ["athlete-space-weight", playerId] });
+      queryClient.invalidateQueries({ queryKey: ["weight-history"] });
       if (showHrv) {
         queryClient.invalidateQueries({ queryKey: ["hrv_records"] });
       }
@@ -732,21 +734,34 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
             )}
           </div>
 
-          {/* Poids du corps */}
+          {/* Poids du corps — modifiable pendant 24 h après la saisie */}
           <div className="space-y-1">
             <Label className="text-xs flex items-center gap-1.5">
               {t("athleteSpace.wellness.weightToday")}
             </Label>
-            <Input
-              type="number"
-              step="0.1"
-              min="20"
-              max="250"
-              placeholder={t("athleteSpace.wellness.weightPlaceholder")}
-              value={weightKg}
-              onChange={(e) => setWeightKg(e.target.value)}
-              className="h-8 text-sm max-w-[140px]"
-            />
+            {canEditWeight ? (
+              <>
+                <Input
+                  type="number"
+                  step="0.1"
+                  min="20"
+                  max="250"
+                  placeholder={t("athleteSpace.wellness.weightPlaceholder")}
+                  value={weightKg}
+                  onChange={(e) => setWeightKg(e.target.value)}
+                  className="h-8 text-sm max-w-[140px]"
+                />
+                {existingWeight && (
+                  <p className="text-[10px] text-muted-foreground">
+                    {t("athleteSpace.wellness.weightEditableHint", "Corrigible pendant 24 h après la saisie")}
+                  </p>
+                )}
+              </>
+            ) : (
+              <p className="text-sm font-medium">
+                {existingWeight ? `${existingWeight.weight_kg} kg` : "—"}
+              </p>
+            )}
           </div>
 
 
