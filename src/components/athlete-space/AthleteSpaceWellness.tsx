@@ -92,6 +92,32 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
     },
   });
 
+  // Poids enregistré pour la date sélectionnée (dernière mesure du jour)
+  const { data: existingWeight } = useQuery({
+    queryKey: ["athlete-space-weight", playerId, selectedDateStr],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("body_composition")
+        .select("id, weight_kg, created_at")
+        .eq("player_id", playerId)
+        .eq("measurement_date", selectedDateStr)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data as { id: string; weight_kg: number; created_at: string } | null;
+    },
+  });
+
+  // Fenêtre de correction du poids : 24 h après la saisie (et date max = hier)
+  const WEIGHT_EDIT_WINDOW_MS = 24 * 3600 * 1000;
+  const dateIsRecent =
+    startOfDay(new Date()).getTime() - selectedDate.getTime() <= WEIGHT_EDIT_WINDOW_MS;
+  const weightRowRecent = existingWeight
+    ? Date.now() - new Date(existingWeight.created_at).getTime() <= WEIGHT_EDIT_WINDOW_MS
+    : true;
+  const canEditWeight = dateIsRecent && weightRowRecent;
+
   // Liste des jours déjà remplis (sur les 30 derniers jours) pour les afficher dans le calendrier
   const { data: filledDates } = useQuery({
     queryKey: ["athlete-space-wellness-filled-dates", playerId],
