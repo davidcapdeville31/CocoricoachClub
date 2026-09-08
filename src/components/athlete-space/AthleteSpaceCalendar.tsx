@@ -665,6 +665,8 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                   cycle: cycleDates,
                   prophylaxis: prophylaxisDates,
                   rehab: rehabDates,
+                  wellnessDone: wellnessDoneDates,
+                  wellnessTodo: wellnessTodoDates,
                 }}
                 modifiersStyles={{
                   training: { backgroundColor: `${TRAINING_COLOR}25`, borderRadius: "6px", fontWeight: 600, color: TRAINING_COLOR, outline: `2px solid ${TRAINING_COLOR}`, outlineOffset: "-2px" },
@@ -674,7 +676,10 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                   cycle: { backgroundColor: "hsl(var(--brand-500) / 0.12)", borderRadius: "6px", fontWeight: 600, color: "hsl(var(--brand-500))", outline: "1px solid hsl(var(--brand-500) / 0.45)", outlineOffset: "-2px" },
                   prophylaxis: { boxShadow: `inset 0 -3px 0 0 ${PROPHYLAXIS_COLOR}` },
                   rehab: { boxShadow: `inset 3px 0 0 0 ${REHAB_COLOR}` },
+                  wellnessDone: { boxShadow: `inset 0 3px 0 0 ${WELLNESS_DONE_COLOR}` },
+                  wellnessTodo: { boxShadow: `inset 0 3px 0 0 ${WELLNESS_TODO_COLOR}` },
                 }}
+
                 locale={getDateLocale()}
                 weekStartsOn={1}
                 className="rounded-md border pointer-events-auto"
