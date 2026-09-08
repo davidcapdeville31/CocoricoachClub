@@ -198,7 +198,10 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
       setPainEntries([]);
       setNotes("");
     }
-  }, [activeQuestions, existingWellness, selectedDateStr]);
+
+    // Pré-remplit le poids déjà enregistré pour cette date (correction 24 h)
+    setWeightKg(existingWeight?.weight_kg != null ? String(existingWeight.weight_kg) : "");
+  }, [activeQuestions, existingWellness, existingWeight, selectedDateStr]);
 
   const allFieldsFilled = useMemo(() => {
     // Une valeur par défaut valide est acceptée : pas besoin de re-cliquer
