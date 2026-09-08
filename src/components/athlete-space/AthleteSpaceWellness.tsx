@@ -290,17 +290,29 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
         }
       }
 
-      // Save weight into body_composition (optional)
+      // Save weight into body_composition (optional).
+      // Correction possible pendant 24 h : on met à jour la mesure existante
+      // au lieu d'en créer une nouvelle (évite les doublons / erreurs).
       const w = parseFloat(weightKg);
-      if (!isNaN(w) && w > 0) {
-        const { error: bcError } = await supabase.from("body_composition").insert({
-          player_id: playerId,
-          category_id: categoryId,
-          measurement_date: selectedDateStr,
-          weight_kg: w,
-          notes: "Auto-suivi via portail athlète",
-        });
-        if (bcError) console.error("Body composition save error:", bcError);
+      if (!isNaN(w) && w >= 20 && w <= 250) {
+        if (existingWeight && weightRowRecent) {
+          if (Number(existingWeight.weight_kg) !== w) {
+            const { error: bcError } = await supabase
+              .from("body_composition")
+              .update({ weight_kg: w })
+              .eq("id", existingWeight.id);
+            if (bcError) console.error("Body composition update error:", bcError);
+          }
+        } else if (!existingWeight && dateIsRecent) {
+          const { error: bcError } = await supabase.from("body_composition").insert({
+            player_id: playerId,
+            category_id: categoryId,
+            measurement_date: selectedDateStr,
+            weight_kg: w,
+            notes: "Auto-suivi via portail athlète",
+          });
+          if (bcError) console.error("Body composition save error:", bcError);
+        }
       }
     },
     onSuccess: () => {
