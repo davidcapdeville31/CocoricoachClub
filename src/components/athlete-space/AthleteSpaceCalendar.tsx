@@ -75,6 +75,9 @@ const REHAB_COLOR = "#f59e0b"; // Réhab (orange)
 const TRAINING_COLOR = "#3b82f6"; // Entraînement (bleu)
 const TEST_COLOR = "#06b6d4"; // Test (cyan)
 const MATCH_COLOR = "#ef4444"; // Match/Compétition (rouge)
+const WELLNESS_DONE_COLOR = "#22c55e"; // Wellness rempli (vert)
+const WELLNESS_TODO_COLOR = "#f97316"; // Wellness à remplir (orange)
+
 
 export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props) {
   const { t } = useTranslation();
