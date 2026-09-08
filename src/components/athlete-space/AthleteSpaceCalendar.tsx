@@ -514,6 +514,69 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
     }, {} as Record<string, typeof sessionExercises>);
   }, [sessionExercises]);
 
+  // ---- Wellness (visible dans le calendrier) ----
+  const { data: wellnessSchedule } = useQuery({
+    queryKey: ["athlete-calendar-wellness-schedule", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("wellness_schedules")
+        .select("days_of_week")
+        .eq("category_id", categoryId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!categoryId,
+  });
+
+  const { data: wellnessEntries = [] } = useQuery({
+    queryKey: ["athlete-calendar-wellness", playerId],
+    queryFn: async () => {
+      const from = format(subMonths(new Date(), 2), "yyyy-MM-dd");
+      const { data, error } = await supabase
+        .from("wellness_tracking")
+        .select("tracking_date, fatigue_level, sleep_quality, muscle_soreness, stress_level, mood")
+        .eq("player_id", playerId)
+        .gte("tracking_date", from);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!playerId,
+  });
+
+  const wellnessByDate = useMemo(() => {
+    const map: Record<string, any> = {};
+    (wellnessEntries as any[]).forEach(w => { map[w.tracking_date] = w; });
+    return map;
+  }, [wellnessEntries]);
+
+  const wellnessDoneDates = useMemo(
+    () => Object.keys(wellnessByDate).map(d => parseISO(d)),
+    [wellnessByDate],
+  );
+
+  const scheduledWellnessDays: number[] = (wellnessSchedule as any)?.days_of_week ?? [0, 1, 2, 3, 4, 5, 6];
+
+  const wellnessTodoDates = useMemo(() => {
+    const today = new Date();
+    const days = eachDayOfInterval({ start: subMonths(today, 1), end: today });
+    return days.filter(d => {
+      const key = format(d, "yyyy-MM-dd");
+      return scheduledWellnessDays.includes(d.getDay()) && !wellnessByDate[key];
+    });
+  }, [scheduledWellnessDays, wellnessByDate]);
+
+  const dayWellnessInfo = useMemo(() => {
+    if (!selectedDate || !selectedDateStr) return null;
+    const entry = wellnessByDate[selectedDateStr];
+    if (entry) return { done: true as const, entry };
+    const isPastOrToday = selectedDate <= new Date();
+    if (isPastOrToday && scheduledWellnessDays.includes(selectedDate.getDay())) {
+      return { done: false as const, entry: null };
+    }
+    return null;
+  }, [selectedDate, selectedDateStr, wellnessByDate, scheduledWellnessDays]);
+
   const hasDayEvents = daySessions.length > 0 || dayMatches.length > 0 || dayCycles.length > 0 || dayProphylaxis.length > 0 || dayRehab.length > 0 || !!dayWellnessInfo;
 
   return (
