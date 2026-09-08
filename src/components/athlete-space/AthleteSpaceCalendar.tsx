@@ -751,7 +751,54 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
 
                   ) : (
                     <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                      {/* Wellness du jour */}
+                      {dayWellnessInfo && (
+                        <div
+                          className="rounded-lg border-l-4 p-3"
+                          style={{
+                            borderLeftColor: dayWellnessInfo.done ? WELLNESS_DONE_COLOR : WELLNESS_TODO_COLOR,
+                            backgroundColor: `${dayWellnessInfo.done ? WELLNESS_DONE_COLOR : WELLNESS_TODO_COLOR}14`,
+                          }}
+                        >
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <div className="flex items-center gap-2">
+                              <HeartPulse
+                                className="h-4 w-4 shrink-0"
+                                style={{ color: dayWellnessInfo.done ? WELLNESS_DONE_COLOR : WELLNESS_TODO_COLOR }}
+                              />
+                              <div>
+                                <p className="font-medium text-sm">
+                                  {dayWellnessInfo.done ? "Wellness rempli" : "Wellness à remplir"}
+                                </p>
+                                {dayWellnessInfo.done && (
+                                  <p className="text-xs text-muted-foreground">
+                                    {[
+                                      dayWellnessInfo.entry?.fatigue_level != null && `Fatigue ${dayWellnessInfo.entry.fatigue_level}/5`,
+                                      dayWellnessInfo.entry?.sleep_quality != null && `Sommeil ${dayWellnessInfo.entry.sleep_quality}/5`,
+                                      dayWellnessInfo.entry?.muscle_soreness != null && `Courbatures ${dayWellnessInfo.entry.muscle_soreness}/5`,
+                                    ].filter(Boolean).join(" · ")}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant={dayWellnessInfo.done ? "outline" : "default"}
+                              onClick={() => {
+                                const next = new URLSearchParams(searchParams);
+                                next.set("tab", "wellness");
+                                if (selectedDateStr) next.set("date", selectedDateStr);
+                                setSearchParams(next);
+                              }}
+                            >
+                              {dayWellnessInfo.done ? "Voir / modifier" : "Remplir"}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Assigned work cycles */}
+
                       {dayCycles.map((cycle: any) => (
                         <div
                           key={cycle.id}
