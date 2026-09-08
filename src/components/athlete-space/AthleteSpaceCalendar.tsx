@@ -75,6 +75,9 @@ const REHAB_COLOR = "#f59e0b"; // Réhab (orange)
 const TRAINING_COLOR = "#3b82f6"; // Entraînement (bleu)
 const TEST_COLOR = "#06b6d4"; // Test (cyan)
 const MATCH_COLOR = "#ef4444"; // Match/Compétition (rouge)
+const WELLNESS_DONE_COLOR = "#22c55e"; // Wellness rempli (vert)
+const WELLNESS_TODO_COLOR = "#f97316"; // Wellness à remplir (orange)
+
 
 export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props) {
   const { t } = useTranslation();
@@ -514,7 +517,70 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
     }, {} as Record<string, typeof sessionExercises>);
   }, [sessionExercises]);
 
-  const hasDayEvents = daySessions.length > 0 || dayMatches.length > 0 || dayCycles.length > 0 || dayProphylaxis.length > 0 || dayRehab.length > 0;
+  // ---- Wellness (visible dans le calendrier) ----
+  const { data: wellnessSchedule } = useQuery({
+    queryKey: ["athlete-calendar-wellness-schedule", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("wellness_schedules")
+        .select("days_of_week")
+        .eq("category_id", categoryId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!categoryId,
+  });
+
+  const { data: wellnessEntries = [] } = useQuery({
+    queryKey: ["athlete-calendar-wellness", playerId],
+    queryFn: async () => {
+      const from = format(subMonths(new Date(), 2), "yyyy-MM-dd");
+      const { data, error } = await supabase
+        .from("wellness_tracking")
+        .select("tracking_date, fatigue_level, sleep_quality, muscle_soreness, stress_level, mood")
+        .eq("player_id", playerId)
+        .gte("tracking_date", from);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!playerId,
+  });
+
+  const wellnessByDate = useMemo(() => {
+    const map: Record<string, any> = {};
+    (wellnessEntries as any[]).forEach(w => { map[w.tracking_date] = w; });
+    return map;
+  }, [wellnessEntries]);
+
+  const wellnessDoneDates = useMemo(
+    () => Object.keys(wellnessByDate).map(d => parseISO(d)),
+    [wellnessByDate],
+  );
+
+  const scheduledWellnessDays: number[] = (wellnessSchedule as any)?.days_of_week ?? [0, 1, 2, 3, 4, 5, 6];
+
+  const wellnessTodoDates = useMemo(() => {
+    const today = new Date();
+    const days = eachDayOfInterval({ start: subMonths(today, 1), end: today });
+    return days.filter(d => {
+      const key = format(d, "yyyy-MM-dd");
+      return scheduledWellnessDays.includes(d.getDay()) && !wellnessByDate[key];
+    });
+  }, [scheduledWellnessDays, wellnessByDate]);
+
+  const dayWellnessInfo = useMemo(() => {
+    if (!selectedDate || !selectedDateStr) return null;
+    const entry = wellnessByDate[selectedDateStr];
+    if (entry) return { done: true as const, entry };
+    const isPastOrToday = selectedDate <= new Date();
+    if (isPastOrToday && scheduledWellnessDays.includes(selectedDate.getDay())) {
+      return { done: false as const, entry: null };
+    }
+    return null;
+  }, [selectedDate, selectedDateStr, wellnessByDate, scheduledWellnessDays]);
+
+  const hasDayEvents = daySessions.length > 0 || dayMatches.length > 0 || dayCycles.length > 0 || dayProphylaxis.length > 0 || dayRehab.length > 0 || !!dayWellnessInfo;
 
   return (
     <div className="space-y-4">
@@ -602,6 +668,8 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                   cycle: cycleDates,
                   prophylaxis: prophylaxisDates,
                   rehab: rehabDates,
+                  wellnessDone: wellnessDoneDates,
+                  wellnessTodo: wellnessTodoDates,
                 }}
                 modifiersStyles={{
                   training: { backgroundColor: `${TRAINING_COLOR}25`, borderRadius: "6px", fontWeight: 600, color: TRAINING_COLOR, outline: `2px solid ${TRAINING_COLOR}`, outlineOffset: "-2px" },
@@ -611,7 +679,10 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                   cycle: { backgroundColor: "hsl(var(--brand-500) / 0.12)", borderRadius: "6px", fontWeight: 600, color: "hsl(var(--brand-500))", outline: "1px solid hsl(var(--brand-500) / 0.45)", outlineOffset: "-2px" },
                   prophylaxis: { boxShadow: `inset 0 -3px 0 0 ${PROPHYLAXIS_COLOR}` },
                   rehab: { boxShadow: `inset 3px 0 0 0 ${REHAB_COLOR}` },
+                  wellnessDone: { boxShadow: `inset 0 3px 0 0 ${WELLNESS_DONE_COLOR}` },
+                  wellnessTodo: { boxShadow: `inset 0 3px 0 0 ${WELLNESS_TODO_COLOR}` },
                 }}
+
                 locale={getDateLocale()}
                 weekStartsOn={1}
                 className="rounded-md border pointer-events-auto"
@@ -656,7 +727,16 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                     <span>{t("athleteSpace.calendar.legend.prophylaxis")}</span>
                   </div>
                 )}
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-1 rounded-full" style={{ backgroundColor: WELLNESS_DONE_COLOR }} />
+                  <span>Wellness rempli</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-1 rounded-full" style={{ backgroundColor: WELLNESS_TODO_COLOR }} />
+                  <span>Wellness à remplir</span>
+                </div>
               </div>
+
 
               {selectedDate ? (
                 <div>
@@ -671,7 +751,54 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
 
                   ) : (
                     <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                      {/* Wellness du jour */}
+                      {dayWellnessInfo && (
+                        <div
+                          className="rounded-lg border-l-4 p-3"
+                          style={{
+                            borderLeftColor: dayWellnessInfo.done ? WELLNESS_DONE_COLOR : WELLNESS_TODO_COLOR,
+                            backgroundColor: `${dayWellnessInfo.done ? WELLNESS_DONE_COLOR : WELLNESS_TODO_COLOR}14`,
+                          }}
+                        >
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <div className="flex items-center gap-2">
+                              <HeartPulse
+                                className="h-4 w-4 shrink-0"
+                                style={{ color: dayWellnessInfo.done ? WELLNESS_DONE_COLOR : WELLNESS_TODO_COLOR }}
+                              />
+                              <div>
+                                <p className="font-medium text-sm">
+                                  {dayWellnessInfo.done ? "Wellness rempli" : "Wellness à remplir"}
+                                </p>
+                                {dayWellnessInfo.done && (
+                                  <p className="text-xs text-muted-foreground">
+                                    {[
+                                      dayWellnessInfo.entry?.fatigue_level != null && `Fatigue ${dayWellnessInfo.entry.fatigue_level}/5`,
+                                      dayWellnessInfo.entry?.sleep_quality != null && `Sommeil ${dayWellnessInfo.entry.sleep_quality}/5`,
+                                      dayWellnessInfo.entry?.muscle_soreness != null && `Courbatures ${dayWellnessInfo.entry.muscle_soreness}/5`,
+                                    ].filter(Boolean).join(" · ")}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant={dayWellnessInfo.done ? "outline" : "default"}
+                              onClick={() => {
+                                const next = new URLSearchParams(searchParams);
+                                next.set("tab", "wellness");
+                                if (selectedDateStr) next.set("date", selectedDateStr);
+                                setSearchParams(next);
+                              }}
+                            >
+                              {dayWellnessInfo.done ? "Voir / modifier" : "Remplir"}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Assigned work cycles */}
+
                       {dayCycles.map((cycle: any) => (
                         <div
                           key={cycle.id}
