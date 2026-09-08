@@ -727,7 +727,16 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                     <span>{t("athleteSpace.calendar.legend.prophylaxis")}</span>
                   </div>
                 )}
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-1 rounded-full" style={{ backgroundColor: WELLNESS_DONE_COLOR }} />
+                  <span>Wellness rempli</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-1 rounded-full" style={{ backgroundColor: WELLNESS_TODO_COLOR }} />
+                  <span>Wellness à remplir</span>
+                </div>
               </div>
+
 
               {selectedDate ? (
                 <div>
