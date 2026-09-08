@@ -514,7 +514,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
     }, {} as Record<string, typeof sessionExercises>);
   }, [sessionExercises]);
 
-  const hasDayEvents = daySessions.length > 0 || dayMatches.length > 0 || dayCycles.length > 0 || dayProphylaxis.length > 0 || dayRehab.length > 0;
+  const hasDayEvents = daySessions.length > 0 || dayMatches.length > 0 || dayCycles.length > 0 || dayProphylaxis.length > 0 || dayRehab.length > 0 || !!dayWellnessInfo;
 
   return (
     <div className="space-y-4">
