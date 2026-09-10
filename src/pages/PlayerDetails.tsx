@@ -556,8 +556,8 @@ function PlayerDetailsContent() {
         )}
 
         <Tabs value={initialTab} onValueChange={(v) => setSearchParams((prev) => { const p = new URLSearchParams(prev); p.set("tab", v); return p; }, { replace: true })} className="space-y-6">
-          <ScrollArea className="w-full whitespace-nowrap pb-2">
-            <ColoredNavTabsList className="flex w-max gap-1.5 p-2">
+          <div className="w-full overflow-x-auto whitespace-nowrap pb-2 scrollbar-hide [-webkit-overflow-scrolling:touch] touch-pan-x">
+            <ColoredNavTabsList className="inline-flex w-max gap-1.5 p-2">
               <PlayerDetailTab value="charge" label="Charge" icon={Activity} color="hsl(350 80% 55%)" />
               <PlayerDetailTab value="tests" label="Tests" icon={FlaskConical} color="hsl(280 70% 55%)" />
               <PlayerDetailTab value="matches" label={isTeamSport ? "Matchs" : "Compétitions"} icon={Swords} color="hsl(220 80% 55%)" />
@@ -574,7 +574,7 @@ function PlayerDetailsContent() {
               )}
               <PlayerDetailTab value="documents" label="Documents" icon={FileText} color="hsl(280 70% 55%)" />
             </ColoredNavTabsList>
-          </ScrollArea>
+          </div>
 
           <TabsContent value="charge">
             <div className="space-y-6">
