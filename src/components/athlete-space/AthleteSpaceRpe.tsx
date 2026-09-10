@@ -390,8 +390,37 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
   const isOpenCampaign = (s: { id: string; training_type?: string | null; notes?: string | null }) =>
     isTestCampaignSession(s) && (campaignRemaining[s.id] ?? 1) > 0;
 
+  const { data: submittedRpes = [] } = useQuery({
+    queryKey: ["athlete-space-rpes", playerId, today],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("awcr_tracking")
+        .select("training_session_id")
+        .eq("player_id", playerId)
+        .gte("session_date", format(addDays(new Date(), -120), "yyyy-MM-dd"));
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const completedSessionIds = new Set(submittedRpes.map((r) => r.training_session_id));
+
+
+  // Les séances passées récentes (7 derniers jours) restent saisissables : un athlète
+  // peut renseigner le RPE d'un entraînement du mardi le mardi soir ou le mercredi matin.
+  const CATCHUP_START = format(addDays(new Date(), -7), "yyyy-MM-dd");
+  const CATCHUP_EXCLUDED_TYPES = new Set(["medical", "video", "video_analyse", "reunion", "surf_video"]);
+
   const todaySessions = visibleSessions.filter(s => {
     if (s.session_date === today) return true;
+    // Rattrapage : séance passée récente sans RPE encore renseigné
+    if (
+      s.session_date < today &&
+      s.session_date >= CATCHUP_START &&
+      !CATCHUP_EXCLUDED_TYPES.has(s.training_type) &&
+      !completedSessionIds.has(s.id)
+    )
+      return true;
     // A campaign still open stays on the home screen during the whole window
     if (!isOpenCampaign(s)) return false;
     const win = parseTestWindowFromNotes(s.notes)!;
@@ -466,21 +495,6 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
     }).filter(Boolean);
   };
 
-  // Fetch already submitted RPEs
-  const { data: submittedRpes = [] } = useQuery({
-    queryKey: ["athlete-space-rpes", playerId, today],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("awcr_tracking")
-        .select("training_session_id")
-        .eq("player_id", playerId)
-        .gte("session_date", format(addDays(new Date(), -120), "yyyy-MM-dd"));
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  const completedSessionIds = new Set(submittedRpes.map((r) => r.training_session_id));
 
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
   const [expandedExerciseSessionId, setExpandedExerciseSessionId] = useState<string | null>(null);
@@ -1096,6 +1110,11 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium text-sm">{getSessionTrainingLabel(session)}</p>
+                      {session.session_date !== today && (
+                        <p className="text-[11px] font-medium text-amber-600 mt-0.5">
+                          {format(parseISO(session.session_date), "EEEE dd/MM", { locale: getDateLocale() })}
+                        </p>
+                      )}
                       {renderTestInfo(session)}
                       {renderSessionNotes(session.notes, session.training_type === "test")}
                       {session.session_start_time && (
