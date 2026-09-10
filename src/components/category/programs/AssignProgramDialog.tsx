@@ -34,6 +34,7 @@ interface ProgramSession {
   scheduled_day?: number;
   start_time?: string | null;
   end_time?: string | null;
+  program_exercises?: any[];
 }
 
 interface ProgramWeek {
