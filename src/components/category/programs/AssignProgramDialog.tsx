@@ -103,7 +103,27 @@ export function AssignProgramDialog({
             name,
             scheduled_day,
             start_time,
-            end_time
+            end_time,
+            program_exercises (
+              id,
+              exercise_name,
+              exercise_category,
+              order_index,
+              method,
+              method_config,
+              sets,
+              reps,
+              percentage_1rm,
+              tempo,
+              rest_seconds,
+              group_id,
+              group_order,
+              notes,
+              drop_sets,
+              cluster_sets,
+              library_exercise_id,
+              target_force_newton
+            )
           )
         `)
         .eq("program_id", programId)
