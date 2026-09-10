@@ -178,18 +178,32 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         (ownParticipations || []).map((participation) => participation.training_session_id),
       );
 
-      const { data, error } = await supabase
+      const { data: categorySessions, error } = await supabase
         .from("training_sessions")
         .select("id, session_date, training_type, session_start_time, session_end_time, intensity, notes, created_by_player_id, test_reminder_id, created_at")
         .eq("category_id", categoryId)
         .order("session_date", { ascending: false });
       if (error) throw error;
+
+      const linkedIds = Array.from(assignedSessionIds);
+      const { data: linkedSessions, error: linkedError } = linkedIds.length > 0
+        ? await supabase
+            .from("training_sessions")
+            .select("id, session_date, training_type, session_start_time, session_end_time, intensity, notes, created_by_player_id, test_reminder_id, created_at")
+            .in("id", linkedIds)
+            .order("session_date", { ascending: false })
+        : { data: [], error: null };
+      if (linkedError) throw linkedError;
+
+      const sessionsById = new Map(
+        [...(categorySessions || []), ...(linkedSessions || [])].map((session) => [session.id, session]),
+      );
       // Un athlète ne voit une séance que si (a) il l'a créée lui-même,
       // ou (b) il figure explicitement dans les participants convoqués.
-      return (data || []).filter((s: any) => {
+      return Array.from(sessionsById.values()).filter((s: any) => {
         if (s.created_by_player_id && s.created_by_player_id === playerId) return true;
         return assignedSessionIds.has(s.id);
-      });
+      }).sort((a, b) => b.session_date.localeCompare(a.session_date));
     },
   });
 
