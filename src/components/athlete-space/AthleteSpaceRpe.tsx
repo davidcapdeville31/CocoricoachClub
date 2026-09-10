@@ -165,6 +165,15 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
   const { data: allSessions = [] } = useQuery({
     queryKey: ["athlete-space-sessions", categoryId, playerId, startDate, endDate],
     queryFn: async () => {
+      const { data: participantRows, error: participantError } = await supabase
+        .from("event_participants")
+        .select("training_session_id")
+        .eq("player_id", playerId);
+      if (participantError) throw participantError;
+      const participantSessionIds = new Set(
+        (participantRows || []).map((row) => row.training_session_id),
+      );
+
       const { data: attendance, error: attError } = await supabase
         .from("training_attendance")
         .select("training_session_id")
@@ -178,7 +187,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
       if (assignedSessionIds.length === 0) {
         const { data: sessions, error } = await supabase
           .from("training_sessions")
-          .select("id, session_date, training_type, session_start_time, session_end_time, notes, created_by_player_id, event_participants(player_id)")
+          .select("id, session_date, training_type, session_start_time, session_end_time, notes, created_by_player_id")
           .eq("category_id", categoryId)
           .gte("session_date", startDate)
           .lte("session_date", endDate)
@@ -194,14 +203,10 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
           if (
             s.created_by_player_id &&
             s.created_by_player_id !== playerId &&
-            !(s.event_participants || []).some((p: any) => p.player_id === playerId)
+            !participantSessionIds.has(s.id)
           )
             return false;
-          const parts = s.event_participants || [];
-          if (parts.length > 0) {
-            return parts.some((p: any) => p.player_id === playerId);
-          }
-          return true;
+          return participantSessionIds.has(s.id);
         });
 
         const sessionIds = filteredSessions.map((s) => s.id);
@@ -231,7 +236,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
 
       const { data: allCatSessions } = await supabase
         .from("training_sessions")
-        .select("id, session_date, training_type, session_start_time, session_end_time, notes, created_by_player_id, event_participants(player_id)")
+        .select("id, session_date, training_type, session_start_time, session_end_time, notes, created_by_player_id")
         .eq("category_id", categoryId)
         .gte("session_date", startDate)
         .lte("session_date", endDate);
@@ -256,14 +261,10 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
           if (
             s.created_by_player_id &&
             s.created_by_player_id !== playerId &&
-            !(s.event_participants || []).some((p: any) => p.player_id === playerId)
+            !participantSessionIds.has(s.id)
           )
             return false;
-          const parts = s.event_participants || [];
-          if (parts.length > 0) {
-            return parts.some((p: any) => p.player_id === playerId);
-          }
-          return true;
+          return participantSessionIds.has(s.id);
         });
         const merged = [...(data || []), ...noAttendanceSessions].sort(
           (a, b) =>

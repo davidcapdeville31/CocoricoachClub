@@ -169,9 +169,18 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   const { data: sessions = [] } = useQuery({
     queryKey: ["athlete-calendar-sessions", categoryId, playerId],
     queryFn: async () => {
+      const { data: ownParticipations, error: participationError } = await supabase
+        .from("event_participants")
+        .select("training_session_id")
+        .eq("player_id", playerId);
+      if (participationError) throw participationError;
+      const assignedSessionIds = new Set(
+        (ownParticipations || []).map((participation) => participation.training_session_id),
+      );
+
       const { data, error } = await supabase
         .from("training_sessions")
-        .select("id, session_date, training_type, session_start_time, session_end_time, intensity, notes, created_by_player_id, test_reminder_id, created_at, event_participants(player_id)")
+        .select("id, session_date, training_type, session_start_time, session_end_time, intensity, notes, created_by_player_id, test_reminder_id, created_at")
         .eq("category_id", categoryId)
         .order("session_date", { ascending: false });
       if (error) throw error;
@@ -179,8 +188,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
       // ou (b) il figure explicitement dans les participants convoqués.
       return (data || []).filter((s: any) => {
         if (s.created_by_player_id && s.created_by_player_id === playerId) return true;
-        const parts = (s as any).event_participants || [];
-        return parts.some((p: any) => p.player_id === playerId);
+        return assignedSessionIds.has(s.id);
       });
     },
   });
