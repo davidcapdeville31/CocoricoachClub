@@ -169,19 +169,41 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   const { data: sessions = [] } = useQuery({
     queryKey: ["athlete-calendar-sessions", categoryId, playerId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: ownParticipations, error: participationError } = await supabase
+        .from("event_participants")
+        .select("training_session_id")
+        .eq("player_id", playerId);
+      if (participationError) throw participationError;
+      const assignedSessionIds = new Set(
+        (ownParticipations || []).map((participation) => participation.training_session_id),
+      );
+
+      const { data: categorySessions, error } = await supabase
         .from("training_sessions")
-        .select("id, session_date, training_type, session_start_time, session_end_time, intensity, notes, created_by_player_id, test_reminder_id, created_at, event_participants(player_id)")
+        .select("id, session_date, training_type, session_start_time, session_end_time, intensity, notes, created_by_player_id, test_reminder_id, created_at")
         .eq("category_id", categoryId)
         .order("session_date", { ascending: false });
       if (error) throw error;
+
+      const linkedIds = Array.from(assignedSessionIds);
+      const { data: linkedSessions, error: linkedError } = linkedIds.length > 0
+        ? await supabase
+            .from("training_sessions")
+            .select("id, session_date, training_type, session_start_time, session_end_time, intensity, notes, created_by_player_id, test_reminder_id, created_at")
+            .in("id", linkedIds)
+            .order("session_date", { ascending: false })
+        : { data: [], error: null };
+      if (linkedError) throw linkedError;
+
+      const sessionsById = new Map(
+        [...(categorySessions || []), ...(linkedSessions || [])].map((session) => [session.id, session]),
+      );
       // Un athlète ne voit une séance que si (a) il l'a créée lui-même,
       // ou (b) il figure explicitement dans les participants convoqués.
-      return (data || []).filter((s: any) => {
+      return Array.from(sessionsById.values()).filter((s: any) => {
         if (s.created_by_player_id && s.created_by_player_id === playerId) return true;
-        const parts = (s as any).event_participants || [];
-        return parts.some((p: any) => p.player_id === playerId);
-      });
+        return assignedSessionIds.has(s.id);
+      }).sort((a, b) => b.session_date.localeCompare(a.session_date));
     },
   });
 
@@ -643,6 +665,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                       <SessionAttendanceResponse
                         sessionId={s.id}
                         playerId={playerId}
+                        categoryId={categoryId}
                         sessionDate={s.session_date}
                         sessionStartTime={s.session_start_time}
                         sessionCreatedAt={(s as any).created_at}
@@ -999,6 +1022,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                 <SessionAttendanceResponse
                                   sessionId={session.id}
                                   playerId={playerId}
+                                  categoryId={categoryId}
                                   sessionDate={session.session_date}
                                   sessionStartTime={session.session_start_time}
                                   sessionCreatedAt={(session as any).created_at}

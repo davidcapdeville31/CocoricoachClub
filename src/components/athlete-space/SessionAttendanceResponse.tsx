@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { addDays, startOfDay } from "date-fns";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import { useTranslation } from "react-i18next";
 interface Props {
   sessionId: string;
   playerId: string;
+  categoryId: string;
   sessionDate: string; // yyyy-MM-dd
   sessionStartTime: string | null; // HH:mm(:ss)
   /** Date de création de la séance : si elle est postérieure au début de la séance
@@ -26,6 +28,7 @@ const LOCK_MINUTES = 30;
 export function SessionAttendanceResponse({
   sessionId,
   playerId,
+  categoryId,
   sessionDate,
   sessionStartTime,
   sessionCreatedAt,
@@ -62,7 +65,12 @@ export function SessionAttendanceResponse({
     // Séance créée a posteriori (après son propre début) : la réponse reste ouverte
     const createdAt = sessionCreatedAt ? new Date(sessionCreatedAt) : null;
     const createdAfterStart = !!createdAt && createdAt.getTime() > lockAt.getTime();
-    return { locked: !createdAfterStart && new Date() >= lockAt, sessionStart: start };
+    const catchupEndsAt = addDays(startOfDay(start), 15);
+    const isPastButStillOpen = new Date() < catchupEndsAt;
+    return {
+      locked: !createdAfterStart && new Date() >= lockAt && !isPastButStillOpen,
+      sessionStart: start,
+    };
   }, [sessionDate, sessionStartTime, sessionCreatedAt]);
 
   if (isLoading) return null;
@@ -96,9 +104,26 @@ export function SessionAttendanceResponse({
           });
         if (error) throw error;
       }
+
+      const { error: attendanceError } = await supabase
+        .from("training_attendance")
+        .upsert(
+          {
+            training_session_id: sessionId,
+            player_id: playerId,
+            category_id: categoryId,
+            attendance_date: sessionDate,
+            status: nextStatus,
+          },
+          { onConflict: "training_session_id,player_id" },
+        );
+      if (attendanceError) throw attendanceError;
+
       toast.success(nextStatus === "present" ? t("athleteSpace.calendar.attendance.presentConfirmed") : t("athleteSpace.calendar.attendance.absentRecorded"));
       qc.invalidateQueries({ queryKey: ["ep-attendance", sessionId, playerId] });
       qc.invalidateQueries({ queryKey: ["athlete-attendance-lock"] });
+      qc.invalidateQueries({ queryKey: ["athlete-space-sessions"] });
+      qc.invalidateQueries({ queryKey: ["athlete-calendar-sessions"] });
     } catch (e: any) {
       toast.error(e?.message || t("athleteSpace.calendar.attendance.saveError"));
     } finally {
