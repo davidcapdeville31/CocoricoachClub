@@ -1110,6 +1110,11 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium text-sm">{getSessionTrainingLabel(session)}</p>
+                      {session.session_date !== today && (
+                        <p className="text-[11px] font-medium text-amber-600 mt-0.5">
+                          {format(parseISO(session.session_date), "EEEE dd/MM", { locale: getDateLocale() })}
+                        </p>
+                      )}
                       {renderTestInfo(session)}
                       {renderSessionNotes(session.notes, session.training_type === "test")}
                       {session.session_start_time && (
