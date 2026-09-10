@@ -390,6 +390,22 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
   const isOpenCampaign = (s: { id: string; training_type?: string | null; notes?: string | null }) =>
     isTestCampaignSession(s) && (campaignRemaining[s.id] ?? 1) > 0;
 
+  const { data: submittedRpes = [] } = useQuery({
+    queryKey: ["athlete-space-rpes", playerId, today],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("awcr_tracking")
+        .select("training_session_id")
+        .eq("player_id", playerId)
+        .gte("session_date", format(addDays(new Date(), -120), "yyyy-MM-dd"));
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const completedSessionIds = new Set(submittedRpes.map((r) => r.training_session_id));
+
+
   // Les séances passées récentes (7 derniers jours) restent saisissables : un athlète
   // peut renseigner le RPE d'un entraînement du mardi le mardi soir ou le mercredi matin.
   const CATCHUP_START = format(addDays(new Date(), -7), "yyyy-MM-dd");
