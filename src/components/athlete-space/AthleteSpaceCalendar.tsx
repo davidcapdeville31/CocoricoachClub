@@ -651,6 +651,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                       <SessionAttendanceResponse
                         sessionId={s.id}
                         playerId={playerId}
+                        categoryId={categoryId}
                         sessionDate={s.session_date}
                         sessionStartTime={s.session_start_time}
                         sessionCreatedAt={(s as any).created_at}
