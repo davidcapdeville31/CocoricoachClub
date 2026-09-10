@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 interface Props {
   sessionId: string;
   playerId: string;
+  categoryId: string;
   sessionDate: string; // yyyy-MM-dd
   sessionStartTime: string | null; // HH:mm(:ss)
   /** Date de création de la séance : si elle est postérieure au début de la séance
@@ -27,6 +28,7 @@ const LOCK_MINUTES = 30;
 export function SessionAttendanceResponse({
   sessionId,
   playerId,
+  categoryId,
   sessionDate,
   sessionStartTime,
   sessionCreatedAt,
@@ -109,6 +111,7 @@ export function SessionAttendanceResponse({
           {
             training_session_id: sessionId,
             player_id: playerId,
+            category_id: categoryId,
             attendance_date: sessionDate,
             status: nextStatus,
           },
