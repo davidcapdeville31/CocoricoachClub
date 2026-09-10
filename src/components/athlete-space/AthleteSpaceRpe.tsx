@@ -390,8 +390,21 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
   const isOpenCampaign = (s: { id: string; training_type?: string | null; notes?: string | null }) =>
     isTestCampaignSession(s) && (campaignRemaining[s.id] ?? 1) > 0;
 
+  // Les séances passées récentes (7 derniers jours) restent saisissables : un athlète
+  // peut renseigner le RPE d'un entraînement du mardi le mardi soir ou le mercredi matin.
+  const CATCHUP_START = format(addDays(new Date(), -7), "yyyy-MM-dd");
+  const CATCHUP_EXCLUDED_TYPES = new Set(["medical", "video", "video_analyse", "reunion", "surf_video"]);
+
   const todaySessions = visibleSessions.filter(s => {
     if (s.session_date === today) return true;
+    // Rattrapage : séance passée récente sans RPE encore renseigné
+    if (
+      s.session_date < today &&
+      s.session_date >= CATCHUP_START &&
+      !CATCHUP_EXCLUDED_TYPES.has(s.training_type) &&
+      !completedSessionIds.has(s.id)
+    )
+      return true;
     // A campaign still open stays on the home screen during the whole window
     if (!isOpenCampaign(s)) return false;
     const win = parseTestWindowFromNotes(s.notes)!;
