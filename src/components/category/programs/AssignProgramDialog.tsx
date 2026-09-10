@@ -34,6 +34,7 @@ interface ProgramSession {
   scheduled_day?: number;
   start_time?: string | null;
   end_time?: string | null;
+  program_exercises?: any[];
 }
 
 interface ProgramWeek {
@@ -102,7 +103,27 @@ export function AssignProgramDialog({
             name,
             scheduled_day,
             start_time,
-            end_time
+            end_time,
+            program_exercises (
+              id,
+              exercise_name,
+              exercise_category,
+              order_index,
+              method,
+              method_config,
+              sets,
+              reps,
+              percentage_1rm,
+              tempo,
+              rest_seconds,
+              group_id,
+              group_order,
+              notes,
+              drop_sets,
+              cluster_sets,
+              library_exercise_id,
+              target_force_newton
+            )
           )
         `)
         .eq("program_id", programId)
@@ -258,6 +279,60 @@ export function AssignProgramDialog({
 
             if (attendanceError) {
               throw new Error(`Séance créée, mais assignation athlète impossible : ${attendanceError.message}`);
+            }
+
+            // Link players to the event so the session appears in their space
+            const participantRows = playersToAssign.map((playerId) => ({
+              training_session_id: trainingSession.id,
+              player_id: playerId,
+            }));
+            const { error: participantError } = await supabase
+              .from("event_participants")
+              .insert(participantRows);
+            if (participantError) {
+              console.error("Error creating event participants:", participantError);
+            }
+
+            // Copy the program exercises so athletes can see the session details
+            const programExercises = (session.program_exercises || [])
+              .slice()
+              .sort((a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0));
+
+            if (programExercises.length > 0) {
+              const exerciseRows = playersToAssign.flatMap((playerId) =>
+                programExercises.map((ex: any, index: number) => {
+                  const parsedReps = ex.reps != null ? parseInt(String(ex.reps).match(/\d+/)?.[0] ?? "", 10) : NaN;
+                  return {
+                    training_session_id: trainingSession.id,
+                    player_id: playerId,
+                    category_id: categoryId,
+                    exercise_name: ex.exercise_name,
+                    exercise_category: ex.exercise_category ?? null,
+                    library_exercise_id: ex.library_exercise_id ?? null,
+                    sets: ex.sets ?? 0,
+                    reps: Number.isFinite(parsedReps) ? parsedReps : null,
+                    percentage_1rm: ex.percentage_1rm ?? null,
+                    tempo: ex.tempo ?? null,
+                    rest_seconds: ex.rest_seconds ?? null,
+                    method: ex.method ?? null,
+                    method_config: ex.method_config ?? null,
+                    drop_sets: ex.drop_sets ?? null,
+                    cluster_sets: ex.cluster_sets ?? null,
+                    target_force_newton: ex.target_force_newton ?? null,
+                    group_id: ex.group_id ? String(ex.group_id) : null,
+                    group_order: ex.group_order ?? null,
+                    notes: ex.notes ?? null,
+                    order_index: ex.order_index ?? index,
+                  };
+                })
+              );
+
+              const { error: exercisesError } = await supabase
+                .from("gym_session_exercises")
+                .insert(exerciseRows);
+              if (exercisesError) {
+                console.error("Error copying program exercises:", exercisesError);
+              }
             }
           }
         }
