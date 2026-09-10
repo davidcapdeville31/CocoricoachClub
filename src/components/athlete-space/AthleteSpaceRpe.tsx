@@ -495,21 +495,6 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
     }).filter(Boolean);
   };
 
-  // Fetch already submitted RPEs
-  const { data: submittedRpes = [] } = useQuery({
-    queryKey: ["athlete-space-rpes", playerId, today],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("awcr_tracking")
-        .select("training_session_id")
-        .eq("player_id", playerId)
-        .gte("session_date", format(addDays(new Date(), -120), "yyyy-MM-dd"));
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  const completedSessionIds = new Set(submittedRpes.map((r) => r.training_session_id));
 
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
   const [expandedExerciseSessionId, setExpandedExerciseSessionId] = useState<string | null>(null);
