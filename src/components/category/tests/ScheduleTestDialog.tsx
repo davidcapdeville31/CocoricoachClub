@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
@@ -11,8 +11,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { CalendarPlus } from "lucide-react";
+import { CalendarPlus, Users } from "lucide-react";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
 import { buildTestWindowMeta } from "@/lib/utils/sessionNotes";
