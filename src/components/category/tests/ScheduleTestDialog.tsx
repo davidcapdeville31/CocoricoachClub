@@ -111,6 +111,14 @@ export function ScheduleTestDialog({
         throw new Error("guard:window");
       }
 
+      const targetPlayerIds = allAthletes
+        ? players.map((p) => p.id)
+        : selectedPlayerIds;
+      if (targetPlayerIds.length === 0) {
+        toast.error("Sélectionne au moins un athlète (ou coche « Tous les athlètes »)");
+        throw new Error("guard:players");
+      }
+
       const { data, error } = await supabase.from("training_sessions").insert({
         category_id: categoryId,
         session_date: date,
@@ -120,6 +128,16 @@ export function ScheduleTestDialog({
         notes: `${titleLine}\n<!--TESTS:${testMeta}-->${buildTestWindowMeta(windowStart, windowEnd)}`,
       }).select("id").single();
       if (error) throw error;
+
+      const { error: participantsError } = await supabase
+        .from("event_participants")
+        .insert(
+          targetPlayerIds.map((pid) => ({
+            training_session_id: data.id,
+            player_id: pid,
+          })),
+        );
+      if (participantsError) throw participantsError;
 
       return data;
     },
