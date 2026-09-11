@@ -222,6 +222,46 @@ export function ScheduleTestDialog({
           </div>
 
           <div className="space-y-2 rounded-lg border border-border p-3">
+            <Label className="text-sm flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Athlètes concernés
+            </Label>
+            <label className="flex items-center gap-2 cursor-pointer py-1">
+              <Checkbox
+                checked={allAthletes}
+                onCheckedChange={(c) => setAllAthletes(Boolean(c))}
+              />
+              <span className="text-sm font-medium">Tous les athlètes de la catégorie</span>
+            </label>
+            {!allAthletes && (
+              <div className="max-h-40 overflow-y-auto rounded-xl border border-border bg-surface-sunken p-2 space-y-1">
+                {players.map((p) => (
+                  <label
+                    key={p.id}
+                    className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-muted/60"
+                  >
+                    <Checkbox
+                      checked={selectedPlayerIds.includes(p.id)}
+                      onCheckedChange={() => togglePlayer(p.id)}
+                    />
+                    <span className="text-sm">{p.label}</span>
+                  </label>
+                ))}
+                {players.length === 0 && (
+                  <p className="px-2 py-1 text-xs text-muted-foreground">
+                    Aucun athlète dans cette catégorie
+                  </p>
+                )}
+              </div>
+            )}
+            {!allAthletes && selectedPlayerIds.length > 0 && (
+              <p className="text-[11px] text-muted-foreground">
+                {selectedPlayerIds.length} athlète(s) sélectionné(s)
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2 rounded-lg border border-border p-3">
             <Label className="text-sm">Fenêtre de passage (optionnel)</Label>
             <p className="text-[11px] text-muted-foreground">
               Si tu planifies le même test sur plusieurs séances, définis une période : chaque
