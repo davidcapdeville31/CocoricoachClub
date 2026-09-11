@@ -257,6 +257,15 @@ export function ImprovedCalendarView({
     if (session) setFeedbackSession(session);
   };
 
+  const editTestCampaign = (campaign: { sessionId?: string }) => {
+    const session = sessions.find((s) => s.id === campaign.sessionId);
+    if (session) onEditSession?.(session);
+  };
+
+  const deleteTestCampaign = (campaign: { sessionId?: string }) => {
+    if (campaign.sessionId) setDeleteSessionId(campaign.sessionId);
+  };
+
 
   const getTestCampaignsForDay = (day: Date) => {
     const dayStr = format(day, "yyyy-MM-dd");
