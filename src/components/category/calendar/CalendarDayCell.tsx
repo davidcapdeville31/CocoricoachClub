@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { format, isSameMonth, isSameDay } from "date-fns";
-import { Bell, FlaskConical } from "lucide-react";
+import { Bell, FlaskConical, Pencil, Trash2 } from "lucide-react";
 import { SessionVignette } from "./SessionVignette";
 import { MatchVignette } from "./MatchVignette";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
@@ -68,6 +68,8 @@ interface CalendarDayCellProps {
   onDeleteMatch?: (matchId: string) => void;
   onShowAllEvents?: (day: Date) => void;
   onTestCampaignClick?: (campaign: TestCampaign) => void;
+  onEditTestCampaign?: (campaign: TestCampaign) => void;
+  onDeleteTestCampaign?: (campaign: TestCampaign) => void;
   playerNamesMap?: Record<string, string>;
 }
 
@@ -93,6 +95,8 @@ export function CalendarDayCell({
   onDeleteMatch,
   onShowAllEvents,
   onTestCampaignClick,
+  onEditTestCampaign,
+  onDeleteTestCampaign,
   playerNamesMap,
 }: CalendarDayCellProps) {
   const { t } = useTranslation();
@@ -185,12 +189,36 @@ export function CalendarDayCell({
         <div
           key={`test-campaign-${campaign.id}`}
           role="button"
-          className="flex cursor-pointer items-center gap-1 rounded-lg bg-training-test px-2 py-1.5 text-[11px] font-medium text-primary-foreground transition-opacity hover:opacity-90"
+          className="group flex cursor-pointer items-center gap-1 rounded-lg bg-training-test px-2 py-1.5 text-[11px] font-medium text-primary-foreground transition-opacity hover:opacity-90"
           title={`${campaign.label} · ${campaign.start} → ${campaign.end}`}
           onClick={(e) => { e.stopPropagation(); onTestCampaignClick?.(campaign); }}
         >
           <FlaskConical className="h-3 w-3 shrink-0" />
-          <span className="truncate">{campaign.label}</span>
+          <span className="truncate flex-1">{campaign.label}</span>
+          {!isViewer && (
+            <span className="flex shrink-0 items-center gap-0.5 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+              {onEditTestCampaign && (
+                <button
+                  type="button"
+                  aria-label={t("common.edit")}
+                  className="rounded p-0.5 hover:bg-white/20"
+                  onClick={(e) => { e.stopPropagation(); onEditTestCampaign(campaign); }}
+                >
+                  <Pencil className="h-3 w-3" />
+                </button>
+              )}
+              {onDeleteTestCampaign && (
+                <button
+                  type="button"
+                  aria-label={t("common.delete")}
+                  className="rounded p-0.5 hover:bg-white/20"
+                  onClick={(e) => { e.stopPropagation(); onDeleteTestCampaign(campaign); }}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              )}
+            </span>
+          )}
         </div>
       ))}
 
