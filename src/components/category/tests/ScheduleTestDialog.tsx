@@ -55,10 +55,38 @@ export function ScheduleTestDialog({
   const [endTime, setEndTime] = useState("09:30");
   const [windowStart, setWindowStart] = useState("");
   const [windowEnd, setWindowEnd] = useState("");
+  const [allAthletes, setAllAthletes] = useState(true);
+  const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
 
   const queryClient = useQueryClient();
   const { notify } = useSessionNotifications();
   const guard = useSeasonGuard(categoryId);
+
+  const { data: players = [] } = useQuery({
+    queryKey: ["schedule-test-players", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("players")
+        .select("id, name, first_name")
+        .eq("category_id", categoryId)
+        .order("name");
+      if (error) throw error;
+      return (data || []).map((p: any) => ({
+        id: p.id as string,
+        label: [String(p.name || "").toUpperCase(), p.first_name || ""]
+          .filter(Boolean)
+          .join(" "),
+      }));
+    },
+    enabled: open && !!categoryId,
+  });
+
+  const togglePlayer = (id: string) => {
+    setAllAthletes(false);
+    setSelectedPlayerIds((prev) =>
+      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id],
+    );
+  };
 
   const targets: ScheduleTestTarget[] =
     tests && tests.length > 0
