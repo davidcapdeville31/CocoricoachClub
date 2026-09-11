@@ -64,6 +64,8 @@ interface DailyCalendarViewProps {
   onDeleteMatch?: (matchId: string) => void;
   onLineupMatch?: (matchId: string) => void;
   onTestCampaignClick?: (campaign: TestCampaign) => void;
+  onEditTestCampaign?: (campaign: TestCampaign) => void;
+  onDeleteTestCampaign?: (campaign: TestCampaign) => void;
 }
 
 export function DailyCalendarView({
@@ -81,6 +83,8 @@ export function DailyCalendarView({
   onDeleteMatch,
   onLineupMatch,
   onTestCampaignClick,
+  onEditTestCampaign,
+  onDeleteTestCampaign,
 }: DailyCalendarViewProps) {
   const { t } = useTranslation();
   const isToday = checkIsToday(day);
@@ -228,10 +232,10 @@ export function DailyCalendarView({
                 key={campaign.id}
                 role="button"
                 onClick={() => onTestCampaignClick?.(campaign)}
-                className="flex cursor-pointer items-center gap-3 p-4 transition-colors hover:bg-accent/50"
+                className="group flex cursor-pointer items-center gap-3 p-4 transition-colors hover:bg-accent/50"
               >
                 <div className="w-1.5 self-stretch rounded-full bg-training-test" />
-                <div className="flex items-center gap-2 min-w-0">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
                   <FlaskConical className="h-4 w-4 shrink-0 text-muted-foreground" />
                   <div className="min-w-0">
                     <p className="text-xs font-semibold text-muted-foreground">{t("planning.calendarViews.testCampaign")}</p>
@@ -239,6 +243,30 @@ export function DailyCalendarView({
                     <p className="text-xs text-muted-foreground">{campaign.start} → {campaign.end}</p>
                   </div>
                 </div>
+                {!isViewer && (
+                  <span className="flex shrink-0 items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                    {onEditTestCampaign && (
+                      <button
+                        type="button"
+                        aria-label={t("common.edit")}
+                        className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+                        onClick={(e) => { e.stopPropagation(); onEditTestCampaign(campaign); }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                    )}
+                    {onDeleteTestCampaign && (
+                      <button
+                        type="button"
+                        aria-label={t("common.delete")}
+                        className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                        onClick={(e) => { e.stopPropagation(); onDeleteTestCampaign(campaign); }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
+                  </span>
+                )}
               </div>
             ))}
             {allEvents.map((event, idx) => {

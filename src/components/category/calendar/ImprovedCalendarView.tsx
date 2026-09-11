@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronLeft, ChevronRight, Plus, Download, Printer, Calendar as CalendarIcon, Filter, X, FlaskConical } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Download, Printer, Calendar as CalendarIcon, Filter, X, FlaskConical, Pencil, Trash2 } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, startOfWeek, endOfWeek, isSameDay, isSameMonth, addWeeks, subWeeks, addDays, subDays, parseISO } from "date-fns";
 import {
   ATHLETE_SESSION_COLOR_CLASS,
@@ -255,6 +255,15 @@ export function ImprovedCalendarView({
   const openTestCampaign = (campaign: { sessionId?: string; trainingType?: string }) => {
     const session = sessions.find((s) => s.id === campaign.sessionId);
     if (session) setFeedbackSession(session);
+  };
+
+  const editTestCampaign = (campaign: { sessionId?: string }) => {
+    const session = sessions.find((s) => s.id === campaign.sessionId);
+    if (session) onEditSession?.(session);
+  };
+
+  const deleteTestCampaign = (campaign: { sessionId?: string }) => {
+    if (campaign.sessionId) setDeleteSessionId(campaign.sessionId);
   };
 
 
@@ -728,6 +737,8 @@ export function ImprovedCalendarView({
                       onEditSession={(session) => onEditSession?.(session)}
                       onFeedbackSession={(session) => setFeedbackSession(session)}
                       onTestCampaignClick={(campaign) => openTestCampaign(campaign)}
+                      onEditTestCampaign={isViewer ? undefined : (campaign) => editTestCampaign(campaign)}
+                      onDeleteTestCampaign={isViewer ? undefined : (campaign) => deleteTestCampaign(campaign)}
                       onDeleteSession={(sessionId) => setDeleteSessionId(sessionId)}
                       onNotifySession={(session) => setNotifySession(session)}
                       onDuplicateSession={(session) => setDuplicateSession(session)}
@@ -791,15 +802,35 @@ export function ImprovedCalendarView({
                         <div
                           key={campaign.id}
                           role="button"
-                          className="flex cursor-pointer items-center gap-2 rounded-lg bg-training-test p-2.5 text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
+                          className="group flex cursor-pointer items-center gap-2 rounded-lg bg-training-test p-2.5 text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
                           title={`${campaign.label} · ${campaign.start} → ${campaign.end}`}
                           onClick={(e) => { e.stopPropagation(); openTestCampaign(campaign); }}
                         >
                           <FlaskConical className="h-4 w-4 shrink-0" />
-                          <div className="min-w-0">
+                          <div className="min-w-0 flex-1">
                             <p className="text-xs font-semibold">{t("planning.calendarViews.testCampaign")}</p>
                             <p className="truncate text-sm font-medium">{campaign.label}</p>
                           </div>
+                          {!isViewer && (
+                            <span className="flex shrink-0 items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                              <button
+                                type="button"
+                                aria-label={t("common.edit")}
+                                className="rounded p-1 hover:bg-white/20"
+                                onClick={(e) => { e.stopPropagation(); editTestCampaign(campaign); }}
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                aria-label={t("common.delete")}
+                                className="rounded p-1 hover:bg-white/20"
+                                onClick={(e) => { e.stopPropagation(); deleteTestCampaign(campaign); }}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </span>
+                          )}
                         </div>
                       ))}
 
@@ -929,6 +960,8 @@ export function ImprovedCalendarView({
                   onDeleteMatch={onDeleteMatch}
                   onLineupMatch={onLineupMatch}
                   onTestCampaignClick={(campaign) => openTestCampaign(campaign)}
+                  onEditTestCampaign={isViewer ? undefined : (campaign) => editTestCampaign(campaign)}
+                  onDeleteTestCampaign={isViewer ? undefined : (campaign) => deleteTestCampaign(campaign)}
                 />
               ))
             )}
