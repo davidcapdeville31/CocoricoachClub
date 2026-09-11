@@ -144,6 +144,7 @@ export function ScheduleTestDialog({
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["event_participants"] });
       toast.success(
         targets.length > 1
           ? `${targets.length} tests planifiés au calendrier`
