@@ -257,14 +257,19 @@ export function TestsHistorySection({ categoryId }: { categoryId: string }) {
 
   return (
     <Card className="bg-gradient-card shadow-md">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <History className="h-5 w-5 text-primary" />
-          Historique des tests
-        </CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Suivi annuel des campagnes : période, taux de remplissage et athlètes à jour.
-        </p>
+      <CardHeader className="flex flex-row items-start justify-between gap-3 flex-wrap space-y-0">
+        <div>
+          <CardTitle className="flex items-center gap-2">
+            <History className="h-5 w-5 text-primary" />
+            Historique des tests
+          </CardTitle>
+          <p className="text-sm text-muted-foreground mt-1">
+            Suivi annuel des campagnes : période, taux de remplissage et athlètes à jour.
+          </p>
+        </div>
+        <Button size="sm" variant="outline" className="gap-1.5" onClick={exportCsv}>
+          <FileDown className="h-4 w-4" /> Exporter CSV
+        </Button>
       </CardHeader>
       <CardContent className="space-y-3">
         {isLoading ? (
