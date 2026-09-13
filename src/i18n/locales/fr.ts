@@ -124,6 +124,8 @@ export const fr = {
       testsTooltip: "Bibliothèque de tests, planification ponctuelle ou récurrente, et gestion des rappels",
       exerciseLibrary: "Banque d'exercices", exerciseLibraryShort: "Banque",
       exerciseLibraryTooltip: "Banque d'exercices : exercices système (gérés par Super Admin) et vos exercices personnels",
+      history: "Historique",
+      historyTooltip: "Historique annuel des campagnes de tests et taux de remplissage",
     },
     sante: {
       dashboard: "Dashboard Coach",
