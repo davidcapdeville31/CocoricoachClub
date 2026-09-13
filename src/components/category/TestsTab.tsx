@@ -459,11 +459,6 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
                   colorIndex={filteredNonRehab.length + 1}
                 />
               )}
-              <TestCategoryTrigger
-                value="history"
-                label="Historique"
-                colorIndex={filteredNonRehab.length + 2}
-              />
             </ColoredNavTabsList>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
@@ -495,10 +490,6 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
               />
             </TabsContent>
           )}
-
-          <TabsContent value="history" className="space-y-6">
-            <TestsHistorySection categoryId={categoryId} />
-          </TabsContent>
 
         </Tabs>
 
