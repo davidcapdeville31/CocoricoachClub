@@ -842,6 +842,33 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
             </p>
           )}
 
+          {/* Athlètes en cours de collecte (historique < 21 jours) */}
+          {ewmaPendingHistory.length > 0 && (
+            <div className="mt-4 p-4 bg-muted/40 rounded-lg border border-border/60">
+              <p className="text-sm font-medium mb-2">
+                {t("health.coachDashboard.pendingHistoryTitle", "En cours de collecte")} ({ewmaPendingHistory.length})
+              </p>
+              <p className="text-xs text-muted-foreground mb-3">
+                {t("health.coachDashboard.pendingHistoryHint", "Ces athlètes apparaîtront dans la distribution dès qu'ils auront 21 jours d'historique de charge.")}
+              </p>
+              <div className="space-y-1.5 max-h-[220px] overflow-y-auto">
+                {[...ewmaPendingHistory]
+                  .sort((a, b) => (b.historyDays ?? 0) - (a.historyDays ?? 0))
+                  .map((p, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between gap-2 px-2 py-1.5 bg-background/60 rounded-md text-xs"
+                    >
+                      <span className="font-medium truncate">{p.name}</span>
+                      <Badge variant="outline" className="text-[10px] shrink-0">
+                        {p.historyDays ?? 0}/{MIN_HISTORY_DAYS} j
+                      </Badge>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
         </CardContent>
       </Card>
 
