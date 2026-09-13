@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Loader2, Trophy, MapPin, CalendarDays, Swords } from "lucide-react";
 import { CompetitionRoundsDialog } from "@/components/category/matches/CompetitionRoundsDialog";
+import { toast } from "sonner";
 
 interface AthleteSpaceCompetitionsProps {
   playerId: string;
