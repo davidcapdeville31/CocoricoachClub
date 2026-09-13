@@ -60,6 +60,14 @@ export function ProgrammationTab({ categoryId }: ProgrammationTabProps) {
             <span className="hidden sm:inline">{t("subnav.programmation.exerciseLibrary")}</span>
             <span className="sm:hidden">{t("subnav.programmation.exerciseLibraryShort")}</span>
           </ColoredSubTabsTrigger>
+          <ColoredSubTabsTrigger
+            value="history"
+            colorKey="programmation"
+            icon={<History className="h-4 w-4" />}
+            tooltip={t("subnav.programmation.historyTooltip")}
+          >
+            {t("subnav.programmation.history")}
+          </ColoredSubTabsTrigger>
         </ColoredSubTabsList>
       </div>
 
@@ -73,6 +81,10 @@ export function ProgrammationTab({ categoryId }: ProgrammationTabProps) {
 
       <TabsContent value="exercise-library">
         <ExerciseLibraryRemix />
+      </TabsContent>
+
+      <TabsContent value="history">
+        <TestsHistorySection categoryId={categoryId} />
       </TabsContent>
     </Tabs>
   );
