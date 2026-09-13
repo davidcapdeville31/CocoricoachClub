@@ -158,6 +158,7 @@ export function CompetitionRoundsDialog({
   matchId,
   categoryId,
   sportType,
+  restrictToPlayerId,
 }: CompetitionRoundsDialogProps) {
   const { t } = useTranslation();
   const [playerRoundsData, setPlayerRoundsData] = useState<PlayerRounds[]>([]);
