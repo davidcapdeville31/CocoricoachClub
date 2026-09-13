@@ -516,9 +516,6 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
           <BenchmarkTab categoryId={categoryId} sportType={sportType} />
         </div>
 
-        <div className="mt-8">
-          <TestsHistorySection categoryId={categoryId} />
-        </div>
 
 
 
