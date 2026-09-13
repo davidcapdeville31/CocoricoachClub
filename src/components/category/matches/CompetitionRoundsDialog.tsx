@@ -53,7 +53,10 @@ interface CompetitionRoundsDialogProps {
   matchId: string;
   categoryId: string;
   sportType: string;
+  /** Athlete mode: only show/edit this player's entries (espace athlète). */
+  restrictToPlayerId?: string;
 }
+
 
 interface Round {
   id?: string;
