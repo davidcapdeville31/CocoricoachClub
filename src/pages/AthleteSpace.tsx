@@ -1050,6 +1050,15 @@ export default function AthleteSpace() {
             </TabsContent>
           )}
           {isJudo && (
+            <TabsContent value="competitions">
+              <AthleteSpaceCompetitions
+                playerId={athleteInfo.player_id}
+                categoryId={athleteInfo.category_id}
+                sportType={athleteInfo.sport_type}
+              />
+            </TabsContent>
+          )}
+          {isJudo && (
             <TabsContent value="opponents">
               <AthleteOpponentProfiles
                 playerId={athleteInfo.player_id}
