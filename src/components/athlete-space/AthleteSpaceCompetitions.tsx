@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Loader2, Trophy, MapPin, CalendarDays, Swords } from "lucide-react";
 import { CompetitionRoundsDialog } from "@/components/category/matches/CompetitionRoundsDialog";
+import { toast } from "sonner";
 
 interface AthleteSpaceCompetitionsProps {
   playerId: string;
@@ -90,6 +91,21 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
 
   const renderMatch = (match: AthleteMatch) => {
     const count = roundCounts[match.id] || 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const matchDay = match.match_date ? parseISO(match.match_date) : null;
+    if (matchDay) matchDay.setHours(0, 0, 0, 0);
+    const notYetOpen = !!matchDay && matchDay > today;
+
+    const handleOpen = () => {
+      if (notYetOpen) {
+        toast.info(
+          `Tu pourras saisir tes résultats à partir du ${format(matchDay!, "EEEE d MMMM", { locale: getDateLocale() })}, jour de la compétition.`,
+        );
+        return;
+      }
+      setSelected(match);
+    };
     return (
       <div
         key={match.id}
@@ -101,6 +117,8 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
             <span className="font-semibold">{match.competition || match.opponent || "Compétition"}</span>
             {count > 0 ? (
               <Badge variant="secondary">{count} combat{count > 1 ? "s" : ""}</Badge>
+            ) : notYetOpen ? (
+              <Badge variant="outline">Saisie ouverte le jour J</Badge>
             ) : (
               <Badge variant="outline">À renseigner</Badge>
             )}
@@ -120,7 +138,12 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
             )}
           </div>
         </div>
-        <Button size="sm" className="gap-1.5" onClick={() => setSelected(match)}>
+        <Button
+          size="sm"
+          className="gap-1.5"
+          variant={notYetOpen ? "outline" : "default"}
+          onClick={handleOpen}
+        >
           <Swords className="h-4 w-4" />
           {count > 0 ? "Voir / modifier" : "Saisir mes combats"}
         </Button>
