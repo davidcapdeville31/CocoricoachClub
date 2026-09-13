@@ -221,16 +221,16 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
     [illnessesRaw, allowedIds],
   );
 
-  // Fetch EWMA data (replacing AWCR) - limit to last 60 days for performance
+  // Fetch EWMA data (replacing AWCR) - look back 180 days so the history span is measured correctly
   const { data: ewmaDataRaw } = useQuery({
     queryKey: ["ewma_summary", categoryId],
     queryFn: async () => {
-      const sixtyDaysAgo = format(addDays(new Date(), -60), "yyyy-MM-dd");
+      const lookbackStart = format(addDays(new Date(), -180), "yyyy-MM-dd");
       const { data, error } = await supabase
         .from("awcr_tracking")
         .select("player_id, session_date, awcr, acute_load, chronic_load, players(name, first_name)")
         .eq("category_id", categoryId)
-        .gte("session_date", sixtyDaysAgo)
+        .gte("session_date", lookbackStart)
         .order("session_date", { ascending: false });
       if (error) {
         console.warn("EWMA query error:", error.message);
@@ -242,28 +242,47 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
         string,
         { ewmaRatio: number; acute: number; chronic: number; name: string; date: string; historyDays: number }
       > = {};
-      const daysByPlayer: Record<string, Set<string>> = {};
+      const firstDateByPlayer: Record<string, string> = {};
+      const lastDateByPlayer: Record<string, string> = {};
+      const today = format(new Date(), "yyyy-MM-dd");
       data?.forEach((entry: any) => {
-        (daysByPlayer[entry.player_id] ||= new Set()).add(entry.session_date);
-        if (!latestByPlayer[entry.player_id] && entry.awcr != null) {
+        const d = entry.session_date as string;
+        // Ignore future-dated rows when measuring history
+        if (d <= today) {
+          if (!firstDateByPlayer[entry.player_id] || d < firstDateByPlayer[entry.player_id]) {
+            firstDateByPlayer[entry.player_id] = d;
+          }
+          if (!lastDateByPlayer[entry.player_id] || d > lastDateByPlayer[entry.player_id]) {
+            lastDateByPlayer[entry.player_id] = d;
+          }
+        }
+        if (!latestByPlayer[entry.player_id] && entry.awcr != null && d <= today) {
           const playerName = formatPlayerName(entry.players);
           latestByPlayer[entry.player_id] = {
             ewmaRatio: Number(entry.awcr),
             acute: Number(entry.acute_load) || 0,
             chronic: Number(entry.chronic_load) || 0,
             name: playerName,
-            date: entry.session_date,
+            date: d,
             historyDays: 0,
           };
         }
       });
       Object.keys(latestByPlayer).forEach((pid) => {
-        latestByPlayer[pid].historyDays = daysByPlayer[pid]?.size || 0;
+        // History = calendar span covered by the athlete's load data (not the number of stored rows)
+        const first = firstDateByPlayer[pid];
+        const last = lastDateByPlayer[pid];
+        if (first && last) {
+          const spanDays =
+            Math.round((new Date(last).getTime() - new Date(first).getTime()) / 86400000) + 1;
+          latestByPlayer[pid].historyDays = Math.max(1, spanDays);
+        }
       });
       return latestByPlayer;
     },
     retry: 1,
   });
+
 
   const ewmaData = useMemoCoachDash(() => {
     if (!ewmaDataRaw) return ewmaDataRaw;
