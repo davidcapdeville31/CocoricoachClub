@@ -1,8 +1,9 @@
 import { useTranslation } from "react-i18next";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { FolderOpen, ClipboardCheck, Library } from "lucide-react";
+import { FolderOpen, ClipboardCheck, Library, History } from "lucide-react";
 import { TestsTab } from "@/components/category/TestsTab";
 import { ProgramsTab } from "@/components/category/programs/ProgramsTab";
+import { TestsHistorySection } from "@/components/category/tests/TestsHistorySection";
 import ExerciseLibraryRemix from "@/components/library/ExerciseLibraryRemix";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
