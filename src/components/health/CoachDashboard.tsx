@@ -226,15 +226,25 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
     queryKey: ["ewma_summary", categoryId],
     queryFn: async () => {
       const lookbackStart = format(addDays(new Date(), -180), "yyyy-MM-dd");
-      const { data, error } = await supabase
-        .from("awcr_tracking")
-        .select("player_id, session_date, awcr, acute_load, chronic_load, players(name, first_name)")
-        .eq("category_id", categoryId)
-        .gte("session_date", lookbackStart)
-        .order("session_date", { ascending: false });
-      if (error) {
-        console.warn("EWMA query error:", error.message);
-        return {};
+      // Paginate: default PostgREST cap is 1000 rows, which would truncate the
+      // history span for big categories (data measured over 21+ days required)
+      const PAGE = 1000;
+      const data: any[] = [];
+      for (let from = 0; ; from += PAGE) {
+        const { data: page, error } = await supabase
+          .from("awcr_tracking")
+          .select("player_id, session_date, awcr, acute_load, chronic_load, players(name, first_name)")
+          .eq("category_id", categoryId)
+          .gte("session_date", lookbackStart)
+          .order("session_date", { ascending: false })
+          .range(from, from + PAGE - 1);
+        if (error) {
+          console.warn("EWMA query error:", error.message);
+          break;
+        }
+        if (!page || page.length === 0) break;
+        data.push(...page);
+        if (page.length < PAGE) break;
       }
 
       // Get latest EWMA per player - use the stored awcr field (correct EWMA ratio)
