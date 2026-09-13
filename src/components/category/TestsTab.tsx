@@ -459,6 +459,11 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
                   colorIndex={filteredNonRehab.length + 1}
                 />
               )}
+              <TestCategoryTrigger
+                value="history"
+                label="Historique"
+                colorIndex={filteredNonRehab.length + 2}
+              />
             </ColoredNavTabsList>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
@@ -491,7 +496,12 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
             </TabsContent>
           )}
 
+          <TabsContent value="history" className="space-y-6">
+            <TestsHistorySection categoryId={categoryId} />
+          </TabsContent>
+
         </Tabs>
+
 
         <div className="mt-8">
           <TestBatteriesManager
@@ -506,9 +516,6 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
           <BenchmarkTab categoryId={categoryId} sportType={sportType} />
         </div>
 
-        <div className="mt-8">
-          <TestsHistorySection categoryId={categoryId} />
-        </div>
 
 
 
