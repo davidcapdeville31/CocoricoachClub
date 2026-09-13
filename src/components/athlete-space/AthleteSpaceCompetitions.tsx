@@ -137,7 +137,12 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
             )}
           </div>
         </div>
-        <Button size="sm" className="gap-1.5" onClick={() => setSelected(match)}>
+        <Button
+          size="sm"
+          className="gap-1.5"
+          variant={notYetOpen ? "outline" : "default"}
+          onClick={handleOpen}
+        >
           <Swords className="h-4 w-4" />
           {count > 0 ? "Voir / modifier" : "Saisir mes combats"}
         </Button>
