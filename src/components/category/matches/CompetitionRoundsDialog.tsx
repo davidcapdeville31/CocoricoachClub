@@ -380,12 +380,14 @@ export function CompetitionRoundsDialog({
 
   // Get players in the lineup for this match
   const { data: lineup } = useQuery({
-    queryKey: ["competition_match_lineup", matchId],
+    queryKey: ["competition_match_lineup", matchId, restrictToPlayerId || "all"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("match_lineups")
         .select("id, player_id, boat_type, crew_role, seat_position, discipline, specialty, start_order, players(id, name, first_name, discipline, specialty, gender)")
         .eq("match_id", matchId);
+      if (restrictToPlayerId) query = query.eq("player_id", restrictToPlayerId);
+      const { data, error } = await query;
       if (error) throw error;
       // Sort by athlete name then by start_order so events appear in starting order
       return (data || []).sort((a: any, b: any) => {
