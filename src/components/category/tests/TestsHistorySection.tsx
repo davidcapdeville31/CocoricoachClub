@@ -120,11 +120,16 @@ export function TestsHistorySection({ categoryId }: { categoryId: string }) {
         if (k && !entry.tests.has(k)) entry.tests.set(k, t);
       });
     });
-    // Tri : plus récentes en premier
+    // Tri selon le choix utilisateur (plus récent / plus ancien en premier)
     return Array.from(map.values())
       .filter((c) => c.tests.size > 0)
-      .sort((a, b) => (a.end < b.end ? 1 : a.end > b.end ? -1 : a.start < b.start ? 1 : -1));
-  }, [sessions]);
+      .sort((a, b) => {
+        const cmpEnd = a.end < b.end ? -1 : a.end > b.end ? 1 : 0;
+        const cmpStart = a.start < b.start ? -1 : a.start > b.start ? 1 : 0;
+        const order = cmpEnd !== 0 ? cmpEnd : cmpStart;
+        return sortOrder === "desc" ? -order : order;
+      });
+  }, [sessions, sortOrder]);
 
   const allSessionIds = campaigns.flatMap((c) => c.sessionIds);
   const minStart = campaigns.reduce<string | null>(
