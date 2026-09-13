@@ -402,13 +402,14 @@ export function CompetitionRoundsDialog({
 
   // Get existing rounds
   const { data: existingRounds } = useQuery({
-    queryKey: ["competition_rounds", matchId],
+    queryKey: ["competition_rounds", matchId, restrictToPlayerId || "all"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("competition_rounds")
         .select("*, competition_round_stats(*)")
-        .eq("match_id", matchId)
-        .order("round_number");
+        .eq("match_id", matchId);
+      if (restrictToPlayerId) query = query.eq("player_id", restrictToPlayerId);
+      const { data, error } = await query.order("round_number");
       if (error) throw error;
       return data;
     },
