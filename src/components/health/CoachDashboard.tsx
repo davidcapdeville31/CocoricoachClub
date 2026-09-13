@@ -221,16 +221,16 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
     [illnessesRaw, allowedIds],
   );
 
-  // Fetch EWMA data (replacing AWCR) - limit to last 60 days for performance
+  // Fetch EWMA data (replacing AWCR) - look back 180 days so the history span is measured correctly
   const { data: ewmaDataRaw } = useQuery({
     queryKey: ["ewma_summary", categoryId],
     queryFn: async () => {
-      const sixtyDaysAgo = format(addDays(new Date(), -60), "yyyy-MM-dd");
+      const lookbackStart = format(addDays(new Date(), -180), "yyyy-MM-dd");
       const { data, error } = await supabase
         .from("awcr_tracking")
         .select("player_id, session_date, awcr, acute_load, chronic_load, players(name, first_name)")
         .eq("category_id", categoryId)
-        .gte("session_date", sixtyDaysAgo)
+        .gte("session_date", lookbackStart)
         .order("session_date", { ascending: false });
       if (error) {
         console.warn("EWMA query error:", error.message);
@@ -242,28 +242,47 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
         string,
         { ewmaRatio: number; acute: number; chronic: number; name: string; date: string; historyDays: number }
       > = {};
-      const daysByPlayer: Record<string, Set<string>> = {};
+      const firstDateByPlayer: Record<string, string> = {};
+      const lastDateByPlayer: Record<string, string> = {};
+      const today = format(new Date(), "yyyy-MM-dd");
       data?.forEach((entry: any) => {
-        (daysByPlayer[entry.player_id] ||= new Set()).add(entry.session_date);
-        if (!latestByPlayer[entry.player_id] && entry.awcr != null) {
+        const d = entry.session_date as string;
+        // Ignore future-dated rows when measuring history
+        if (d <= today) {
+          if (!firstDateByPlayer[entry.player_id] || d < firstDateByPlayer[entry.player_id]) {
+            firstDateByPlayer[entry.player_id] = d;
+          }
+          if (!lastDateByPlayer[entry.player_id] || d > lastDateByPlayer[entry.player_id]) {
+            lastDateByPlayer[entry.player_id] = d;
+          }
+        }
+        if (!latestByPlayer[entry.player_id] && entry.awcr != null && d <= today) {
           const playerName = formatPlayerName(entry.players);
           latestByPlayer[entry.player_id] = {
             ewmaRatio: Number(entry.awcr),
             acute: Number(entry.acute_load) || 0,
             chronic: Number(entry.chronic_load) || 0,
             name: playerName,
-            date: entry.session_date,
+            date: d,
             historyDays: 0,
           };
         }
       });
       Object.keys(latestByPlayer).forEach((pid) => {
-        latestByPlayer[pid].historyDays = daysByPlayer[pid]?.size || 0;
+        // History = calendar span covered by the athlete's load data (not the number of stored rows)
+        const first = firstDateByPlayer[pid];
+        const last = lastDateByPlayer[pid];
+        if (first && last) {
+          const spanDays =
+            Math.round((new Date(last).getTime() - new Date(first).getTime()) / 86400000) + 1;
+          latestByPlayer[pid].historyDays = Math.max(1, spanDays);
+        }
       });
       return latestByPlayer;
     },
     retry: 1,
   });
+
 
   const ewmaData = useMemoCoachDash(() => {
     if (!ewmaDataRaw) return ewmaDataRaw;
@@ -358,7 +377,7 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
   // EWMA analysis (replacing AWCR)
   // Only keep reliable ratios: enough chronic load, at least 21 days of history,
   // and a recent data point (< 10 days) so stale values don't pollute the buckets.
-  const MIN_CHRONIC_LOAD = 50;
+  const MIN_CHRONIC_LOAD = 10;
   const MIN_HISTORY_DAYS = 21;
   const MAX_STALE_DAYS = 10;
   const staleLimit = format(addDays(new Date(), -MAX_STALE_DAYS), "yyyy-MM-dd");
@@ -370,9 +389,17 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
       (!p.date || p.date >= staleLimit),
   );
   const excludedEwmaCount = allEwmaEntries.length - ewmaValues.length;
+  // Diagnostic for the empty state: why nothing is displayed yet
+  const ewmaPendingHistory = allEwmaEntries.filter((p) => (p.historyDays ?? 0) < MIN_HISTORY_DAYS);
+  const ewmaMaxHistoryDays = allEwmaEntries.reduce(
+    (max, p) => Math.max(max, p.historyDays ?? 0),
+    0,
+  );
+  const ewmaStaleCount = allEwmaEntries.filter((p) => p.date && p.date < staleLimit).length;
   const highEwma = ewmaValues.filter((p) => p.ewmaRatio > 1.3);
   const lowEwma = ewmaValues.filter((p) => p.ewmaRatio < 0.85);
   const optimalEwma = ewmaValues.filter((p) => p.ewmaRatio >= 0.85 && p.ewmaRatio <= 1.3);
+
 
 
   // Wellness analysis - get latest per player
@@ -691,6 +718,25 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
               <p className="text-sm mt-1">
                 {t("health.coachDashboard.noEwmaDataHint")}
               </p>
+              {allEwmaEntries.length > 0 && (
+                <p className="text-xs mt-2">
+                  {ewmaPendingHistory.length > 0 ? (
+                    <>
+                      {ewmaPendingHistory.length} athlète{ewmaPendingHistory.length > 1 ? "s" : ""} en
+                      cours de collecte · {ewmaMaxHistoryDays} jour{ewmaMaxHistoryDays > 1 ? "s" : ""} d'historique
+                      sur les {MIN_HISTORY_DAYS} requis
+                    </>
+                  ) : ewmaStaleCount > 0 ? (
+                    <>
+                      Données de charge trop anciennes ({ewmaStaleCount} athlète
+                      {ewmaStaleCount > 1 ? "s" : ""} sans donnée depuis plus de {MAX_STALE_DAYS} jours)
+                    </>
+                  ) : (
+                    <>Charge chronique encore trop faible pour un calcul fiable</>
+                  )}
+                </p>
+              )}
+
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
