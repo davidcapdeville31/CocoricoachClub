@@ -175,6 +175,78 @@ export function TestsHistorySection({ categoryId }: { categoryId: string }) {
   );
   const customMap = useCustomTestLabels(allTestTypes);
 
+  // Export CSV global : une ligne par campagne × test × athlète
+  const exportCsv = () => {
+    if (campaigns.length === 0) {
+      toast.error("Aucun historique à exporter");
+      return;
+    }
+    const esc = (v: string) => `"${v.replace(/"/g, '""')}"`;
+    const header = [
+      "Période début", "Période fin", "Statut campagne", "Test",
+      "Athlète", "Statut", "Date résultat", "Valeur", "Unité",
+    ].join(";");
+
+    const rows: string[] = [];
+    campaigns.forEach((campaign) => {
+      const assigned = new Set(
+        participants
+          .filter((p: any) => campaign.sessionIds.includes(p.training_session_id))
+          .map((p: any) => p.player_id),
+      );
+      const targetPlayers = assigned.size > 0 ? players.filter((p) => assigned.has(p.id)) : players;
+      const campStatus =
+        campaign.start <= today && today <= campaign.end
+          ? "En cours"
+          : campaign.end < today
+            ? "Terminée"
+            : "À venir";
+
+      campaign.tests.forEach((testRef, tKey) => {
+        const doneMap = new Map<string, { date: string; value: string; unit: string }>();
+        const waiting = new Set<string>();
+        (genericTests as any[]).forEach((g) => {
+          if (normalizeTestKey(g.test_type) !== tKey) return;
+          if (g.test_date < campaign.start || g.test_date > campaign.end) return;
+          doneMap.set(g.player_id, {
+            date: g.test_date || "",
+            value: g.result_value != null ? String(g.result_value) : "",
+            unit: g.result_unit || "",
+          });
+        });
+        (pendingTests as any[]).forEach((p) => {
+          if (!campaign.sessionIds.includes(p.training_session_id)) return;
+          if (normalizeTestKey(p.test_type) !== tKey) return;
+          if (p.validation_status === "validated") {
+            if (!doneMap.has(p.player_id)) doneMap.set(p.player_id, { date: "", value: "", unit: "" });
+          } else if (p.validation_status === "pending") waiting.add(p.player_id);
+        });
+
+        const testLabel = labelizeTestType(testRef.test_type, customMap);
+        targetPlayers.forEach((p) => {
+          const done = doneMap.get(p.id);
+          const status = done ? "Rempli" : waiting.has(p.id) ? "À valider" : "Pas rempli";
+          rows.push(
+            [
+              campaign.start, campaign.end, campStatus, esc(testLabel), esc(fullName(p)),
+              status, done?.date || "", done?.value || "", done?.unit || "",
+            ].join(";"),
+          );
+        });
+      });
+    });
+
+    const csv = "\uFEFF" + [header, ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `historique_tests_${format(new Date(), "yyyy-MM-dd")}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Historique exporté en CSV");
+  };
+
   const toggle = (key: string) =>
     setExpanded((prev) => {
       const next = new Set(prev);
