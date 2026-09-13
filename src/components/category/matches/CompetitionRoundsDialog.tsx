@@ -53,7 +53,10 @@ interface CompetitionRoundsDialogProps {
   matchId: string;
   categoryId: string;
   sportType: string;
+  /** Athlete mode: only show/edit this player's entries (espace athlète). */
+  restrictToPlayerId?: string;
 }
+
 
 interface Round {
   id?: string;
@@ -155,6 +158,7 @@ export function CompetitionRoundsDialog({
   matchId,
   categoryId,
   sportType,
+  restrictToPlayerId,
 }: CompetitionRoundsDialogProps) {
   const { t } = useTranslation();
   const [playerRoundsData, setPlayerRoundsData] = useState<PlayerRounds[]>([]);
@@ -376,12 +380,14 @@ export function CompetitionRoundsDialog({
 
   // Get players in the lineup for this match
   const { data: lineup } = useQuery({
-    queryKey: ["competition_match_lineup", matchId],
+    queryKey: ["competition_match_lineup", matchId, restrictToPlayerId || "all"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("match_lineups")
         .select("id, player_id, boat_type, crew_role, seat_position, discipline, specialty, start_order, players(id, name, first_name, discipline, specialty, gender)")
         .eq("match_id", matchId);
+      if (restrictToPlayerId) query = query.eq("player_id", restrictToPlayerId);
+      const { data, error } = await query;
       if (error) throw error;
       // Sort by athlete name then by start_order so events appear in starting order
       return (data || []).sort((a: any, b: any) => {
@@ -396,13 +402,14 @@ export function CompetitionRoundsDialog({
 
   // Get existing rounds
   const { data: existingRounds } = useQuery({
-    queryKey: ["competition_rounds", matchId],
+    queryKey: ["competition_rounds", matchId, restrictToPlayerId || "all"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("competition_rounds")
         .select("*, competition_round_stats(*)")
-        .eq("match_id", matchId)
-        .order("round_number");
+        .eq("match_id", matchId);
+      if (restrictToPlayerId) query = query.eq("player_id", restrictToPlayerId);
+      const { data, error } = await query.order("round_number");
       if (error) throw error;
       return data;
     },
