@@ -116,6 +116,8 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
             <span className="font-semibold">{match.competition || match.opponent || "Compétition"}</span>
             {count > 0 ? (
               <Badge variant="secondary">{count} combat{count > 1 ? "s" : ""}</Badge>
+            ) : notYetOpen ? (
+              <Badge variant="outline">Saisie ouverte le jour J</Badge>
             ) : (
               <Badge variant="outline">À renseigner</Badge>
             )}
