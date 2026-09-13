@@ -143,7 +143,7 @@ export function TestsHistorySection({ categoryId }: { categoryId: string }) {
       if (!minStart || !maxEnd) return [];
       const { data, error } = await supabase
         .from("generic_tests")
-        .select("player_id, test_type, test_date")
+        .select("player_id, test_type, test_date, result_value, result_unit")
         .eq("category_id", categoryId)
         .gte("test_date", minStart)
         .lte("test_date", maxEnd);
