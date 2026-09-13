@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Loader2, User, LogOut, Activity, Heart, BarChart3, Target, Video, Shield, ArrowLeft, Search, ChevronRight, MessageSquare, Settings, CalendarDays, CircleDot, Waves, FileText, Trophy, Medal, Users, LayoutDashboard } from "lucide-react";
 import { AnnualPlanningView } from "@/components/planning/AnnualPlanningView";
 import { AthleteOpponentProfiles } from "@/components/athlete-portal/AthleteOpponentProfiles";
+import { AthleteSpaceCompetitions } from "@/components/athlete-space/AthleteSpaceCompetitions";
 import { PlayerCumulativeStats } from "@/components/category/matches/PlayerCumulativeStats";
 import { BowlingCumulativeStats } from "@/components/bowling/BowlingCumulativeStats";
 import { BowlingTrainingStats } from "@/components/bowling/BowlingTrainingStats";
