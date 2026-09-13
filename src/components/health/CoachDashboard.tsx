@@ -718,6 +718,25 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
               <p className="text-sm mt-1">
                 {t("health.coachDashboard.noEwmaDataHint")}
               </p>
+              {allEwmaEntries.length > 0 && (
+                <p className="text-xs mt-2">
+                  {ewmaPendingHistory.length > 0 ? (
+                    <>
+                      {ewmaPendingHistory.length} athlète{ewmaPendingHistory.length > 1 ? "s" : ""} en
+                      cours de collecte · {ewmaMaxHistoryDays} jour{ewmaMaxHistoryDays > 1 ? "s" : ""} d'historique
+                      sur les {MIN_HISTORY_DAYS} requis
+                    </>
+                  ) : ewmaStaleCount > 0 ? (
+                    <>
+                      Données de charge trop anciennes ({ewmaStaleCount} athlète
+                      {ewmaStaleCount > 1 ? "s" : ""} sans donnée depuis plus de {MAX_STALE_DAYS} jours)
+                    </>
+                  ) : (
+                    <>Charge chronique encore trop faible pour un calcul fiable</>
+                  )}
+                </p>
+              )}
+
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
