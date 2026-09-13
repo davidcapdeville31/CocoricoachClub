@@ -90,6 +90,21 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
 
   const renderMatch = (match: AthleteMatch) => {
     const count = roundCounts[match.id] || 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const matchDay = match.match_date ? parseISO(match.match_date) : null;
+    if (matchDay) matchDay.setHours(0, 0, 0, 0);
+    const notYetOpen = !!matchDay && matchDay > today;
+
+    const handleOpen = () => {
+      if (notYetOpen) {
+        toast.info(
+          `Tu pourras saisir tes résultats à partir du ${format(matchDay!, "EEEE d MMMM", { locale: getDateLocale() })}, jour de la compétition.`,
+        );
+        return;
+      }
+      setSelected(match);
+    };
     return (
       <div
         key={match.id}
