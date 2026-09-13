@@ -377,7 +377,7 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
   // EWMA analysis (replacing AWCR)
   // Only keep reliable ratios: enough chronic load, at least 21 days of history,
   // and a recent data point (< 10 days) so stale values don't pollute the buckets.
-  const MIN_CHRONIC_LOAD = 50;
+  const MIN_CHRONIC_LOAD = 10;
   const MIN_HISTORY_DAYS = 21;
   const MAX_STALE_DAYS = 10;
   const staleLimit = format(addDays(new Date(), -MAX_STALE_DAYS), "yyyy-MM-dd");
@@ -389,9 +389,17 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
       (!p.date || p.date >= staleLimit),
   );
   const excludedEwmaCount = allEwmaEntries.length - ewmaValues.length;
+  // Diagnostic for the empty state: why nothing is displayed yet
+  const ewmaPendingHistory = allEwmaEntries.filter((p) => (p.historyDays ?? 0) < MIN_HISTORY_DAYS);
+  const ewmaMaxHistoryDays = allEwmaEntries.reduce(
+    (max, p) => Math.max(max, p.historyDays ?? 0),
+    0,
+  );
+  const ewmaStaleCount = allEwmaEntries.filter((p) => p.date && p.date < staleLimit).length;
   const highEwma = ewmaValues.filter((p) => p.ewmaRatio > 1.3);
   const lowEwma = ewmaValues.filter((p) => p.ewmaRatio < 0.85);
   const optimalEwma = ewmaValues.filter((p) => p.ewmaRatio >= 0.85 && p.ewmaRatio <= 1.3);
+
 
 
   // Wellness analysis - get latest per player
