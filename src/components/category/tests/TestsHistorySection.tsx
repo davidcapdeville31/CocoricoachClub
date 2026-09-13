@@ -4,7 +4,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { History, CheckCircle, Clock, CalendarRange, ChevronDown, ChevronUp, FileDown } from "lucide-react";
+import {
+  History,
+  CheckCircle,
+  Clock,
+  CalendarRange,
+  ChevronDown,
+  ChevronUp,
+  FileDown,
+  ArrowDownWideNarrow,
+  ArrowUpWideNarrow,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
