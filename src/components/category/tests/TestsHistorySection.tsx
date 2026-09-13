@@ -283,9 +283,28 @@ export function TestsHistorySection({ categoryId }: { categoryId: string }) {
             Suivi annuel des campagnes : période, taux de remplissage et athlètes à jour.
           </p>
         </div>
-        <Button size="sm" variant="outline" className="gap-1.5" onClick={exportCsv}>
-          <FileDown className="h-4 w-4" /> Exporter CSV
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-1.5"
+            onClick={() => setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"))}
+            title={sortOrder === "desc" ? "Du plus récent au plus ancien" : "Du plus ancien au plus récent"}
+          >
+            {sortOrder === "desc" ? (
+              <>
+                <ArrowDownWideNarrow className="h-4 w-4" /> Récent → Ancien
+              </>
+            ) : (
+              <>
+                <ArrowUpWideNarrow className="h-4 w-4" /> Ancien → Récent
+              </>
+            )}
+          </Button>
+          <Button size="sm" variant="outline" className="gap-1.5" onClick={exportCsv}>
+            <FileDown className="h-4 w-4" /> Exporter CSV
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-3">
         {isLoading ? (
