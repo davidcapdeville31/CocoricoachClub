@@ -70,6 +70,7 @@ const pctBar = (pct: number) =>
 export function TestsHistorySection({ categoryId }: { categoryId: string }) {
   const today = format(new Date(), "yyyy-MM-dd");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
 
   // Effectif de la catégorie
   const { data: players = [] } = useQuery({
