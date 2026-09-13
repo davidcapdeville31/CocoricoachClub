@@ -124,6 +124,8 @@ export const en = {
       testsTooltip: "Test library, one-off or recurring scheduling, and reminder management",
       exerciseLibrary: "Exercise library", exerciseLibraryShort: "Library",
       exerciseLibraryTooltip: "Exercise bank: system exercises (managed by Super Admin) and your personal exercises",
+      history: "History",
+      historyTooltip: "Annual history of test campaigns and completion rates",
     },
     sante: {
       dashboard: "Coach dashboard",

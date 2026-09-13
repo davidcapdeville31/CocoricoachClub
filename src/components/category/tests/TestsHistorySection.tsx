@@ -4,7 +4,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { History, CheckCircle, Clock, CalendarRange, ChevronDown, ChevronUp, FileDown } from "lucide-react";
+import {
+  History,
+  CheckCircle,
+  Clock,
+  CalendarRange,
+  ChevronDown,
+  ChevronUp,
+  FileDown,
+  ArrowDownWideNarrow,
+  ArrowUpWideNarrow,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -60,6 +70,7 @@ const pctBar = (pct: number) =>
 export function TestsHistorySection({ categoryId }: { categoryId: string }) {
   const today = format(new Date(), "yyyy-MM-dd");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
 
   // Effectif de la catégorie
   const { data: players = [] } = useQuery({
@@ -109,11 +120,16 @@ export function TestsHistorySection({ categoryId }: { categoryId: string }) {
         if (k && !entry.tests.has(k)) entry.tests.set(k, t);
       });
     });
-    // Tri : plus récentes en premier
+    // Tri selon le choix utilisateur (plus récent / plus ancien en premier)
     return Array.from(map.values())
       .filter((c) => c.tests.size > 0)
-      .sort((a, b) => (a.end < b.end ? 1 : a.end > b.end ? -1 : a.start < b.start ? 1 : -1));
-  }, [sessions]);
+      .sort((a, b) => {
+        const cmpEnd = a.end < b.end ? -1 : a.end > b.end ? 1 : 0;
+        const cmpStart = a.start < b.start ? -1 : a.start > b.start ? 1 : 0;
+        const order = cmpEnd !== 0 ? cmpEnd : cmpStart;
+        return sortOrder === "desc" ? -order : order;
+      });
+  }, [sessions, sortOrder]);
 
   const allSessionIds = campaigns.flatMap((c) => c.sessionIds);
   const minStart = campaigns.reduce<string | null>(
@@ -267,9 +283,28 @@ export function TestsHistorySection({ categoryId }: { categoryId: string }) {
             Suivi annuel des campagnes : période, taux de remplissage et athlètes à jour.
           </p>
         </div>
-        <Button size="sm" variant="outline" className="gap-1.5" onClick={exportCsv}>
-          <FileDown className="h-4 w-4" /> Exporter CSV
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-1.5"
+            onClick={() => setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"))}
+            title={sortOrder === "desc" ? "Du plus récent au plus ancien" : "Du plus ancien au plus récent"}
+          >
+            {sortOrder === "desc" ? (
+              <>
+                <ArrowDownWideNarrow className="h-4 w-4" /> Récent → Ancien
+              </>
+            ) : (
+              <>
+                <ArrowUpWideNarrow className="h-4 w-4" /> Ancien → Récent
+              </>
+            )}
+          </Button>
+          <Button size="sm" variant="outline" className="gap-1.5" onClick={exportCsv}>
+            <FileDown className="h-4 w-4" /> Exporter CSV
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-3">
         {isLoading ? (

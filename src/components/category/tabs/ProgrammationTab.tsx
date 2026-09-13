@@ -1,8 +1,9 @@
 import { useTranslation } from "react-i18next";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { FolderOpen, ClipboardCheck, Library } from "lucide-react";
+import { FolderOpen, ClipboardCheck, Library, History } from "lucide-react";
 import { TestsTab } from "@/components/category/TestsTab";
 import { ProgramsTab } from "@/components/category/programs/ProgramsTab";
+import { TestsHistorySection } from "@/components/category/tests/TestsHistorySection";
 import ExerciseLibraryRemix from "@/components/library/ExerciseLibraryRemix";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -59,6 +60,14 @@ export function ProgrammationTab({ categoryId }: ProgrammationTabProps) {
             <span className="hidden sm:inline">{t("subnav.programmation.exerciseLibrary")}</span>
             <span className="sm:hidden">{t("subnav.programmation.exerciseLibraryShort")}</span>
           </ColoredSubTabsTrigger>
+          <ColoredSubTabsTrigger
+            value="history"
+            colorKey="programmation"
+            icon={<History className="h-4 w-4" />}
+            tooltip={t("subnav.programmation.historyTooltip")}
+          >
+            {t("subnav.programmation.history")}
+          </ColoredSubTabsTrigger>
         </ColoredSubTabsList>
       </div>
 
@@ -72,6 +81,10 @@ export function ProgrammationTab({ categoryId }: ProgrammationTabProps) {
 
       <TabsContent value="exercise-library">
         <ExerciseLibraryRemix />
+      </TabsContent>
+
+      <TabsContent value="history">
+        <TestsHistorySection categoryId={categoryId} />
       </TabsContent>
     </Tabs>
   );
