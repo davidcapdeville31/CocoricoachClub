@@ -86,6 +86,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   const [isBowlingTrainingOpen, setIsBowlingTrainingOpen] = useState(false);
   const [isBasketTrainingOpen, setIsBasketTrainingOpen] = useState(false);
   const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [isRecoveryOpen, setIsRecoveryOpen] = useState(false);
   const [fieldSessionDate, setFieldSessionDate] = useState<Date | null>(null);
   const [matchDialogDate, setMatchDialogDate] = useState<Date | null>(null);
   const [isBowlingSimplifiedOpen, setIsBowlingSimplifiedOpen] = useState(false);
