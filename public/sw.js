@@ -3,7 +3,7 @@
  * La preview Lovable et les iframes désenregistrent ce SW depuis main.tsx.
  */
 
-const CACHE_VERSION = "v2";
+const CACHE_VERSION = "v3";
 const STATIC_CACHE = `ccc-static-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `ccc-runtime-${CACHE_VERSION}`;
 const API_CACHE = `ccc-api-${CACHE_VERSION}`;
@@ -44,6 +44,9 @@ const isStaticAsset = (url) =>
 
 const isSupabaseApi = (url) => /\.supabase\.co$/.test(url.hostname) && url.pathname.startsWith("/rest/");
 
+// Fichiers générés par le build avec un hash immuable (ex: /assets/index-a1b2c3.js)
+const isHashedAsset = (url) => /\/assets\/.+-[A-Za-z0-9_]{8,}\.[a-z0-9]+$/i.test(url.pathname);
+
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
@@ -58,24 +61,42 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 1) Static assets → Cache First
+  // 1) Static assets → Cache First uniquement pour les fichiers versionnés (hash dans le nom)
   if (url.origin === self.location.origin && isStaticAsset(url)) {
+    if (isHashedAsset(url)) {
+      event.respondWith(
+        caches.match(req).then((cached) => {
+          if (cached) return cached;
+          return fetch(req).then((res) => {
+            if (res.ok) {
+              const copy = res.clone();
+              caches.open(RUNTIME_CACHE).then((c) => c.put(req, copy)).catch(() => null);
+            }
+            return res;
+          });
+        })
+      );
+      return;
+    }
+    // Assets non versionnés → Network First (évite de figer une ancienne version)
     event.respondWith(
-      caches.match(req).then((cached) => {
-        if (cached) return cached;
-        return fetch(req).then((res) => {
+      fetch(req)
+        .then((res) => {
           if (res.ok) {
             const copy = res.clone();
             caches.open(RUNTIME_CACHE).then((c) => c.put(req, copy)).catch(() => null);
           }
           return res;
-        });
-      })
+        })
+        .catch(() => caches.match(req).then((c) => c || Response.error()))
     );
     return;
   }
 
-  // 2) Supabase REST GET → Network First avec fallback cache
+  // 2) Supabase REST GET → Network First.
+  // IMPORTANT : on ne renvoie JAMAIS une réponse vide fabriquée en cas d'échec réseau
+  // (cela faisait "disparaître" séances / RPE au lieu d'afficher une erreur et de réessayer).
+  // Le cache ne sert de secours que si l'appareil est réellement hors-ligne.
   if (isSupabaseApi(url)) {
     event.respondWith(
       fetch(req)
@@ -86,7 +107,12 @@ self.addEventListener("fetch", (event) => {
           }
           return res;
         })
-        .catch(() => caches.match(req).then((c) => c || new Response(JSON.stringify([]), { headers: { "Content-Type": "application/json" } })))
+        .catch(async (err) => {
+          if (self.navigator && self.navigator.onLine) throw err;
+          const cached = await caches.match(req);
+          if (cached) return cached;
+          throw err;
+        })
     );
     return;
   }
