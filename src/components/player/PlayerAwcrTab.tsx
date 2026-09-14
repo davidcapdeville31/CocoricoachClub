@@ -1,4 +1,5 @@
 import { getDateLocale, getLocaleTag } from "@/lib/i18n/dateLocale";
+import { formatRestAwareDuration, formatRpeDisplay, isRestDayEntry } from "@/lib/restDayDisplay";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -203,8 +204,14 @@ export function PlayerAwcrTab({ playerId, categoryId, readOnly = false }: Player
                         <TableCell>
                           {new Date(result.date).toLocaleDateString(getLocaleTag())}
                         </TableCell>
-                        <TableCell>{sourceData?.rpe}/10</TableCell>
-                        <TableCell>{sourceData?.duration_minutes}</TableCell>
+                        <TableCell>
+                          {isRestDayEntry(sourceData) ? (
+                            <span className="text-muted-foreground italic">Repos</span>
+                          ) : (
+                            formatRpeDisplay(sourceData)
+                          )}
+                        </TableCell>
+                        <TableCell>{formatRestAwareDuration(sourceData)}</TableCell>
                         <TableCell className="font-semibold">{sourceData?.training_load}</TableCell>
                         <TableCell>{result.acute.toFixed(1)}</TableCell>
                         <TableCell>{result.chronic.toFixed(1)}</TableCell>

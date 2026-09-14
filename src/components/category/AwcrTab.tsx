@@ -1,4 +1,5 @@
 import { getLocaleTag } from "@/lib/i18n/dateLocale";
+import { formatRestAwareDuration, formatRpeDisplay, isRestDayEntry } from "@/lib/restDayDisplay";
 import { useState } from "react";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { useQuery } from "@tanstack/react-query";
@@ -238,8 +239,14 @@ export function AwcrTab({ categoryId }: AwcrTabProps) {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>{entry.rpe}/10</TableCell>
-                    <TableCell>{entry.duration_minutes}</TableCell>
+                    <TableCell>
+                      {isRestDayEntry(entry) ? (
+                        <span className="text-muted-foreground italic">Repos</span>
+                      ) : (
+                        formatRpeDisplay(entry)
+                      )}
+                    </TableCell>
+                    <TableCell>{formatRestAwareDuration(entry)}</TableCell>
                     <TableCell className="font-semibold">{entry.training_load}</TableCell>
                     <TableCell className="text-primary font-medium">
                       {entry.gps_player_load ? entry.gps_player_load.toFixed(1) : "-"}
