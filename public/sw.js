@@ -44,6 +44,9 @@ const isStaticAsset = (url) =>
 
 const isSupabaseApi = (url) => /\.supabase\.co$/.test(url.hostname) && url.pathname.startsWith("/rest/");
 
+// Fichiers générés par le build avec un hash immuable (ex: /assets/index-a1b2c3.js)
+const isHashedAsset = (url) => /\/assets\/.+-[A-Za-z0-9_]{8,}\.[a-z0-9]+$/i.test(url.pathname);
+
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
