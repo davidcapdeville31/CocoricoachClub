@@ -3,10 +3,9 @@
  * La preview Lovable et les iframes désenregistrent ce SW depuis main.tsx.
  */
 
-const CACHE_VERSION = "v3";
+const CACHE_VERSION = "v4";
 const STATIC_CACHE = `ccc-static-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `ccc-runtime-${CACHE_VERSION}`;
-const API_CACHE = `ccc-api-${CACHE_VERSION}`;
 
 const PRECACHE_URLS = [
   "/",
@@ -30,7 +29,7 @@ self.addEventListener("activate", (event) => {
       const keys = await caches.keys();
       await Promise.all(
         keys
-          .filter((k) => k.startsWith("ccc-") && ![STATIC_CACHE, RUNTIME_CACHE, API_CACHE].includes(k))
+          .filter((k) => k.startsWith("ccc-") && ![STATIC_CACHE, RUNTIME_CACHE].includes(k))
           .map((k) => caches.delete(k))
       );
       await self.clients.claim();
@@ -51,6 +50,11 @@ self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
   const url = new URL(req.url);
+
+  // Les données utilisateur restent toujours réseau uniquement. Le navigateur
+  // et React Query gèrent déjà les erreurs et les nouvelles tentatives : le SW
+  // ne doit jamais conserver une ancienne liste de séances, RPE ou Wellness.
+  if (isSupabaseApi(url)) return;
 
   // Ne jamais intercepter OAuth / auth / realtime / functions
   if (
@@ -93,31 +97,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 2) Supabase REST GET → Network First.
-  // IMPORTANT : on ne renvoie JAMAIS une réponse vide fabriquée en cas d'échec réseau
-  // (cela faisait "disparaître" séances / RPE au lieu d'afficher une erreur et de réessayer).
-  // Le cache ne sert de secours que si l'appareil est réellement hors-ligne.
-  if (isSupabaseApi(url)) {
-    event.respondWith(
-      fetch(req)
-        .then((res) => {
-          if (res.ok) {
-            const copy = res.clone();
-            caches.open(API_CACHE).then((c) => c.put(req, copy)).catch(() => null);
-          }
-          return res;
-        })
-        .catch(async (err) => {
-          if (self.navigator && self.navigator.onLine) throw err;
-          const cached = await caches.match(req);
-          if (cached) return cached;
-          throw err;
-        })
-    );
-    return;
-  }
-
-  // 3) Navigations HTML → Network First, fallback shell cache
+  // 2) Navigations HTML → Network First, fallback shell cache
   if (req.mode === "navigate") {
     event.respondWith(
       fetch(req).catch(() => caches.match("/").then((c) => c || Response.error()))

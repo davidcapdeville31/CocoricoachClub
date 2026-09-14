@@ -326,11 +326,12 @@ export async function hasOfflineData(): Promise<boolean> {
 export async function clearOfflineData(): Promise<void> {
   const db = await openDataDB();
   const storeNames = Object.values(STORES);
-  
-  for (const storeName of storeNames) {
-    const tx = db.transaction(storeName, "readwrite");
-    tx.objectStore(storeName).clear();
-  }
-  
-  db.close();
+
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(storeNames, "readwrite");
+    storeNames.forEach((storeName) => tx.objectStore(storeName).clear());
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  }).finally(() => db.close());
 }

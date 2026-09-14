@@ -1,9 +1,11 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
+import { useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { initOneSignal, oneSignalLogin, oneSignalLogout, buildUserTags } from "@/lib/onesignal";
 import { resetOnboardingIfNeeded } from "@/components/notifications/NotificationOnboarding";
+import { clearOfflineData } from "@/lib/offlineDataStore";
 
 const OFFLINE_SESSION_KEY = "rugby-offline-session";
 const OFFLINE_USER_KEY = "rugby-offline-user";
@@ -47,6 +49,20 @@ function loadOfflineSession(): { user: User | null; isOfflineSession: boolean } 
   return { user: null, isOfflineSession: false };
 }
 
+async function resetUserDataCaches(queryClient: QueryClient) {
+  queryClient.clear();
+  await clearOfflineData().catch(() => undefined);
+
+  if ("caches" in window) {
+    const keys = await caches.keys().catch(() => []);
+    await Promise.all(
+      keys
+        .filter((key) => key.includes("supabase-api-cache") || key.startsWith("ccc-api-"))
+        .map((key) => caches.delete(key)),
+    );
+  }
+}
+
 // Handle OneSignal user sync (non-blocking, fully silent)
 // Works for ALL roles: joueur, admin, coach, staff, etc.
 async function syncOneSignalUser(user: User) {
@@ -77,6 +93,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [isOfflineSession, setIsOfflineSession] = useState(false);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const previousUserIdRef = useRef<string | null>(loadOfflineSession().user?.id ?? null);
 
   useEffect(() => {
     let initialSessionRestored = false;
@@ -113,6 +131,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             return;
           }
         }
+
+        const nextUserId = session?.user?.id ?? null;
+        const previousUserId = previousUserIdRef.current;
+        if (
+          (nextUserId && previousUserId && nextUserId !== previousUserId) ||
+          (!nextUserId && previousUserId && event === "SIGNED_OUT")
+        ) {
+          void resetUserDataCaches(queryClient);
+        }
+        previousUserIdRef.current = nextUserId;
 
         setSession(session);
         setUser(session?.user ?? null);
@@ -175,7 +203,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       subscription.unsubscribe();
       window.removeEventListener("online", handleOnline);
     };
-  }, []);
+  }, [queryClient]);
 
   const signOut = async () => {
     try {
@@ -185,6 +213,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error("Error signing out:", error);
     }
+    await resetUserDataCaches(queryClient);
+    previousUserIdRef.current = null;
     saveOfflineSession(null, null);
     setUser(null);
     setSession(null);
