@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Activity,
   Plus,
+  Leaf,
   Swords,
   Dumbbell,
   CheckCircle2,
@@ -56,6 +57,7 @@ import { AddMatchCalendarDialog } from "@/components/category/matches/AddMatchCa
 import { AthleteBowlingCompetitionDialog } from "@/components/category/matches/AthleteBowlingCompetitionDialog";
 import { SessionValidationDialog } from "@/components/athlete-space/SessionValidationDialog";
 import { SimplifiedSessionDialog } from "@/components/athlete-space/SimplifiedSessionDialog";
+import { RecoverySessionDialog } from "@/components/athlete-space/RecoverySessionDialog";
 import { SessionDetailDialog } from "@/components/athlete-space/SessionDetailDialog";
 import { SessionAttendanceResponse } from "@/components/athlete-space/SessionAttendanceResponse";
 import { MatchAttendanceResponse } from "@/components/athlete-space/MatchAttendanceResponse";
@@ -86,6 +88,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   const [isBowlingTrainingOpen, setIsBowlingTrainingOpen] = useState(false);
   const [isBasketTrainingOpen, setIsBasketTrainingOpen] = useState(false);
   const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [isRecoveryOpen, setIsRecoveryOpen] = useState(false);
   const [fieldSessionDate, setFieldSessionDate] = useState<Date | null>(null);
   const [matchDialogDate, setMatchDialogDate] = useState<Date | null>(null);
   const [isBowlingSimplifiedOpen, setIsBowlingSimplifiedOpen] = useState(false);
@@ -622,6 +625,15 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
               >
                 <Plus className="h-3.5 w-3.5" />
                 {t("athleteSpace.calendar.addSession")}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5 border-emerald-500/50 text-emerald-700 dark:text-emerald-300"
+                onClick={() => setIsRecoveryOpen(true)}
+              >
+                <Leaf className="h-3.5 w-3.5" />
+                Récupération
               </Button>
             </div>
 
@@ -1340,6 +1352,14 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         categoryId={categoryId}
         athletePlayerId={playerId}
         defaultDate={selectedDate ? format(selectedDate, "yyyy-MM-dd") : undefined}
+      />
+
+      <RecoverySessionDialog
+        open={isRecoveryOpen}
+        onOpenChange={setIsRecoveryOpen}
+        date={selectedDate || new Date()}
+        categoryId={categoryId}
+        playerId={playerId}
       />
 
       <SimplifiedSessionDialog
