@@ -255,25 +255,42 @@ serve(async (req) => {
     // Séance auto-créée par l'athlète → privée à lui seul.
     // On insère le créateur comme unique participant pour que le filtrage
     // côté calendrier athlète (event_participants) la masque aux autres joueurs.
+    // PostgREST exige des clés identiques pour toutes les lignes d'un insert
+    // groupé : on normalise donc chaque ligne (créateur + coéquipiers).
     try {
-      await supabase
+      const participantRows = [
+        {
+          training_session_id: session.id,
+          player_id,
+          attendance_status: "present",
+          responded_at: new Date().toISOString(),
+        },
+        // Les partenaires cochés doivent répondre eux-mêmes (présent/absent)
+        ...partnerIds.map((pid) => ({
+          training_session_id: session.id,
+          player_id: pid,
+          attendance_status: "no_response",
+          responded_at: null as string | null,
+        })),
+      ];
+      const { error: partError } = await supabase
         .from("event_participants")
-        .insert([
-          {
-            training_session_id: session.id,
-            player_id,
-            attendance_status: "present",
-            responded_at: new Date().toISOString(),
-          },
-          // Les partenaires cochés doivent répondre eux-mêmes (présent/absent)
-          ...partnerIds.map((pid) => ({
-            training_session_id: session.id,
-            player_id: pid,
-          })),
-        ]);
+        .upsert(participantRows, { onConflict: "training_session_id,player_id" });
+      if (partError) {
+        console.warn("[athlete-create-session] participant insert warn:", partError.message);
+        // Repli ligne par ligne pour ne jamais perdre un coéquipier
+        for (const row of participantRows) {
+          const { error: rowErr } = await supabase
+            .from("event_participants")
+            .upsert(row, { onConflict: "training_session_id,player_id" });
+          if (rowErr) console.warn("[athlete-create-session] participant row warn:", rowErr.message);
+        }
+      }
     } catch (partErr) {
       console.warn("[athlete-create-session] participant insert warn:", partErr);
     }
+
+
 
     // Le créateur est automatiquement compté présent dans l'assiduité
     try {
