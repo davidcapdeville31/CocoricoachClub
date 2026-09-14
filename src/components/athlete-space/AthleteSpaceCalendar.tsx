@@ -57,6 +57,7 @@ import { AddMatchCalendarDialog } from "@/components/category/matches/AddMatchCa
 import { AthleteBowlingCompetitionDialog } from "@/components/category/matches/AthleteBowlingCompetitionDialog";
 import { SessionValidationDialog } from "@/components/athlete-space/SessionValidationDialog";
 import { SimplifiedSessionDialog } from "@/components/athlete-space/SimplifiedSessionDialog";
+import { RecoverySessionDialog } from "@/components/athlete-space/RecoverySessionDialog";
 import { SessionDetailDialog } from "@/components/athlete-space/SessionDetailDialog";
 import { SessionAttendanceResponse } from "@/components/athlete-space/SessionAttendanceResponse";
 import { MatchAttendanceResponse } from "@/components/athlete-space/MatchAttendanceResponse";
