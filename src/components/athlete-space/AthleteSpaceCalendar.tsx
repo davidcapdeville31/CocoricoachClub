@@ -623,6 +623,15 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                 <Plus className="h-3.5 w-3.5" />
                 {t("athleteSpace.calendar.addSession")}
               </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5 border-emerald-500/50 text-emerald-700 dark:text-emerald-300"
+                onClick={() => setIsRecoveryOpen(true)}
+              >
+                <Leaf className="h-3.5 w-3.5" />
+                Récupération
+              </Button>
             </div>
 
           </div>
