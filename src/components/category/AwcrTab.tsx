@@ -239,8 +239,14 @@ export function AwcrTab({ categoryId }: AwcrTabProps) {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>{entry.rpe}/10</TableCell>
-                    <TableCell>{entry.duration_minutes}</TableCell>
+                    <TableCell>
+                      {isRestDayEntry(entry) ? (
+                        <span className="text-muted-foreground italic">Repos</span>
+                      ) : (
+                        formatRpeDisplay(entry)
+                      )}
+                    </TableCell>
+                    <TableCell>{formatRestAwareDuration(entry)}</TableCell>
                     <TableCell className="font-semibold">{entry.training_load}</TableCell>
                     <TableCell className="text-primary font-medium">
                       {entry.gps_player_load ? entry.gps_player_load.toFixed(1) : "-"}
