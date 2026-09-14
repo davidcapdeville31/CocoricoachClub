@@ -1,4 +1,5 @@
 import { getDateLocale, getLocaleTag } from "@/lib/i18n/dateLocale";
+import { formatRestAwareDuration, formatRpeDisplay, isRestDayEntry } from "@/lib/restDayDisplay";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
