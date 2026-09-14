@@ -360,7 +360,10 @@ export function AdvancedPlayerSelection({
           </div>
 
           {/* Player list */}
-          <ScrollArea className="border rounded-md" style={{ maxHeight }}>
+          <div
+            className="border rounded-md overflow-y-auto overscroll-contain touch-pan-y"
+            style={{ maxHeight, WebkitOverflowScrolling: "touch" }}
+          >
             <div className="p-2 grid grid-cols-2 gap-1">
               {filteredPlayers.map((player) => {
                 const isInjured = injuredPlayerIds.has(player.id);
