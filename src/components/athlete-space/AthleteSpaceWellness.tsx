@@ -324,6 +324,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
       queryClient.invalidateQueries({ queryKey: ["athlete-space-wellness"] });
       queryClient.invalidateQueries({ queryKey: ["athlete-space-wellness-today"] });
       queryClient.invalidateQueries({ queryKey: ["athlete-space-wellness-filled-dates", playerId] });
+      queryClient.invalidateQueries({ queryKey: ["athlete-calendar-wellness", playerId] });
       queryClient.invalidateQueries({ queryKey: ["athlete-space-weight", playerId] });
       queryClient.invalidateQueries({ queryKey: ["weight-history"] });
       if (showHrv) {
