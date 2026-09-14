@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Activity,
   Plus,
+  Leaf,
   Swords,
   Dumbbell,
   CheckCircle2,
