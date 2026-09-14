@@ -1,4 +1,5 @@
 import { getLocaleTag } from "@/lib/i18n/dateLocale";
+import { formatRestAwareDuration, formatRpeDisplay, isRestDayEntry } from "@/lib/restDayDisplay";
 import { useState } from "react";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { useQuery } from "@tanstack/react-query";
