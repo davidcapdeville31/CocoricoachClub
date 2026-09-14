@@ -560,7 +560,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
       const from = format(subMonths(new Date(), 2), "yyyy-MM-dd");
       const { data, error } = await supabase
         .from("wellness_tracking")
-        .select("tracking_date, fatigue_level, sleep_quality, muscle_soreness, stress_level, mood")
+        .select("tracking_date, general_fatigue, sleep_quality, soreness_upper_body, soreness_lower_body, stress_level")
         .eq("player_id", playerId)
         .gte("tracking_date", from);
       if (error) throw error;
@@ -796,9 +796,10 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                 {dayWellnessInfo.done && (
                                   <p className="text-xs text-muted-foreground">
                                     {[
-                                      dayWellnessInfo.entry?.fatigue_level != null && `Fatigue ${dayWellnessInfo.entry.fatigue_level}/5`,
+                                      dayWellnessInfo.entry?.general_fatigue != null && `Fatigue ${dayWellnessInfo.entry.general_fatigue}/5`,
                                       dayWellnessInfo.entry?.sleep_quality != null && `Sommeil ${dayWellnessInfo.entry.sleep_quality}/5`,
-                                      dayWellnessInfo.entry?.muscle_soreness != null && `Courbatures ${dayWellnessInfo.entry.muscle_soreness}/5`,
+                                      (dayWellnessInfo.entry?.soreness_upper_body != null || dayWellnessInfo.entry?.soreness_lower_body != null) &&
+                                        `Courbatures ${Math.max(dayWellnessInfo.entry?.soreness_upper_body ?? 0, dayWellnessInfo.entry?.soreness_lower_body ?? 0)}/5`,
                                     ].filter(Boolean).join(" · ")}
                                   </p>
                                 )}
