@@ -1353,6 +1353,14 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         defaultDate={selectedDate ? format(selectedDate, "yyyy-MM-dd") : undefined}
       />
 
+      <RecoverySessionDialog
+        open={isRecoveryOpen}
+        onOpenChange={setIsRecoveryOpen}
+        date={selectedDate || new Date()}
+        categoryId={categoryId}
+        playerId={playerId}
+      />
+
       <SimplifiedSessionDialog
         open={isSessionSimplifiedOpen || !!sessionToEdit}
         onOpenChange={(open) => {
