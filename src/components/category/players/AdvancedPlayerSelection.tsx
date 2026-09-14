@@ -419,7 +419,7 @@ export function AdvancedPlayerSelection({
                 );
               })}
             </div>
-          </ScrollArea>
+          </div>
 
           {selectedPlayers.length > 0 && (
             <p className="text-xs text-muted-foreground">
