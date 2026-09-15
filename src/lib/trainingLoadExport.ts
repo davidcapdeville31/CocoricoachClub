@@ -39,9 +39,22 @@ const RISK_LABELS: Record<string, string> = {
   warning: "Vigilance",
   danger: "Risque élevé",
   low: "Sous-charge",
+  overload: "Surcharge",
+  highLoad: "Charge élevée",
+  lowLoad: "Charge faible",
+  underLoad: "Sous-charge",
 };
 
-const riskLabel = (r: string | null | undefined) => (r ? RISK_LABELS[r] || r : "—");
+/** Libellé tenant compte de la direction du ratio (sous-charge ≠ surcharge). */
+const riskLabel = (r: string | null | undefined, ratio?: number | null) => {
+  if (!r) return "—";
+  if (r === "optimal") return RISK_LABELS.optimal;
+  if (ratio != null && Number.isFinite(ratio)) {
+    const key = getRiskLabelKey(r as "optimal" | "warning" | "danger", ratio);
+    return RISK_LABELS[key];
+  }
+  return RISK_LABELS[r] || r;
+};
 const num = (v: number | null | undefined, d = 1) =>
   v == null || !Number.isFinite(v) ? "—" : v.toFixed(d);
 

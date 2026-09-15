@@ -227,8 +227,8 @@ export function TeamLoadComparison({
     group: p.positionGroup,
   }));
 
-  const riskLabel = (r?: string) =>
-    r === "danger" ? t("workload.teamLoadComparison.riskLabel.danger") : r === "warning" ? t("workload.teamLoadComparison.riskLabel.warning") : t("workload.teamLoadComparison.riskLabel.optimal");
+  const riskLabel = (r?: string, ratio?: number) =>
+    t(`workload.teamLoadComparison.riskLabel.${getRiskLabelKey(r as any, ratio ?? null)}`);
 
   const handleExportCsv = () => {
     if (filteredPlayers.length === 0) {
