@@ -183,13 +183,116 @@ export type RiskLabelKey = "optimal" | "highLoad" | "overload" | "lowLoad" | "un
 
 export function getRiskLabelKey(
   riskLevel: "optimal" | "warning" | "danger" | null | undefined,
-  ratio: number | null | undefined
-): RiskLabelKey {
+  ratio: number | null | undefined,
+  ratioReliable: boolean = true
+): RiskLabelKey | "limited" {
+  if (ratioReliable === false) return "limited";
   if (riskLevel === "optimal" || ratio == null || !Number.isFinite(ratio)) return "optimal";
   if (ratio > 1.5) return "overload";
   if (ratio > 1.3) return "highLoad";
   if (ratio < 0.8) return "underLoad";
   return "lowLoad";
+}
+
+// ===== Qualité de la fenêtre chronique =====
+export const CHRONIC_WINDOW_DAYS = 28;
+/** Nombre de jours de charge continue nécessaires pour relire le ratio après une coupure */
+export const MIN_CLEAN_WINDOW_DAYS = 21;
+/** Une absence de charge d'au moins 7 jours consécutifs est considérée comme une coupure */
+export const BREAK_MIN_DAYS = 7;
+
+export interface LoadWindowQuality {
+  reliable: boolean;
+  reason: "gap" | "shortHistory" | null;
+  gapDays: number;
+  daysSinceResumption: number | null;
+  coveredDays: number;
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Évalue si le ratio aigu/chronique est lisible.
+ * Après une coupure (≥7 jours sans charge) la fenêtre 28 j est polluée :
+ * le ratio ne dit plus rien tant que 21 jours de charge continue ne sont pas
+ * accumulés depuis la reprise. Générique, toutes disciplines.
+ */
+export function assessLoadWindow(
+  series: { date: string; load: number }[],
+  asOf?: string
+): LoadWindowQuality {
+  if (series.length === 0) {
+    return { reliable: false, reason: "shortHistory", gapDays: 0, daysSinceResumption: null, coveredDays: 0 };
+  }
+  const sorted = [...series].sort((a, b) => a.date.localeCompare(b.date));
+  const endDate = asOf || sorted[sorted.length - 1].date;
+  const endTime = new Date(endDate).getTime();
+  const startTime = endTime - (CHRONIC_WINDOW_DAYS - 1) * DAY_MS;
+  const byDate = new Map(sorted.map((d) => [d.date, d.load]));
+  const firstTime = new Date(sorted[0].date).getTime();
+
+  const coveredDays = Math.min(
+    CHRONIC_WINDOW_DAYS,
+    Math.floor((endTime - firstTime) / DAY_MS) + 1
+  );
+
+  // Parcours de la fenêtre, jour par jour, pour repérer la dernière coupure
+  let streak = 0;
+  let longestGap = 0;
+  let lastGapEndTime: number | null = null;
+  for (let t = Math.max(startTime, firstTime); t <= endTime; t += DAY_MS) {
+    const key = new Date(t).toISOString().slice(0, 10);
+    const load = byDate.get(key) || 0;
+    if (load > 0) {
+      if (streak >= BREAK_MIN_DAYS) {
+        longestGap = Math.max(longestGap, streak);
+        lastGapEndTime = t - DAY_MS;
+      }
+      streak = 0;
+    } else {
+      streak += 1;
+    }
+  }
+  if (streak >= BREAK_MIN_DAYS) {
+    longestGap = Math.max(longestGap, streak);
+    lastGapEndTime = endTime;
+  }
+
+  if (coveredDays < MIN_CLEAN_WINDOW_DAYS) {
+    return {
+      reliable: false,
+      reason: "shortHistory",
+      gapDays: longestGap,
+      daysSinceResumption: null,
+      coveredDays,
+    };
+  }
+
+  if (lastGapEndTime != null) {
+    const daysSinceResumption = Math.floor((endTime - lastGapEndTime) / DAY_MS);
+    if (daysSinceResumption < MIN_CLEAN_WINDOW_DAYS) {
+      return {
+        reliable: false,
+        reason: "gap",
+        gapDays: longestGap,
+        daysSinceResumption,
+        coveredDays,
+      };
+    }
+  }
+
+  return { reliable: true, reason: null, gapDays: longestGap, daysSinceResumption: null, coveredDays };
+}
+
+/** Variante pour les séries déjà calculées (EWMAResult / données DB). */
+export function assessLoadWindowFromSeries(
+  series: { date: string; rawValue?: number | null }[],
+  asOf?: string
+): LoadWindowQuality {
+  return assessLoadWindow(
+    series.map((s) => ({ date: s.date, load: Number(s.rawValue) || 0 })),
+    asOf
+  );
 }
 
 /**
