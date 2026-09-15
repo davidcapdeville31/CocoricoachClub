@@ -52,6 +52,13 @@ export interface LoadSummary {
   weeklyChange: number;
   riskLevel: "optimal" | "warning" | "danger";
   trend: "increasing" | "stable" | "decreasing";
+  /** false quand la fenêtre chronique contient une coupure : le ratio n'est pas lisible */
+  ratioReliable: boolean;
+  limitedReason: "gap" | "shortHistory" | null;
+  /** jours écoulés depuis la reprise (fin de la coupure) */
+  daysSinceResumption: number | null;
+  /** longueur de la plus longue coupure dans la fenêtre chronique */
+  gapDays: number;
 }
 
 // EWMA decay constants
