@@ -9,7 +9,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Calendar, Users, TrendingUp, BarChart3, Heart, Activity, Satellite, Lightbulb, Info } from "lucide-react";
+import { Calendar, Users, TrendingUp, BarChart3, Heart, Activity, Satellite, Lightbulb, Info, Download, FileText, FileSpreadsheet } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
+import { exportTrainingLoadCsv, exportTrainingLoadPdf } from "@/lib/trainingLoadExport";
 import { InfoHint } from "./InfoHint";
 import { HrvEntryDialog } from "@/components/category/hrv/HrvEntryDialog";
 import { TrainingLoadChart } from "./TrainingLoadChart";
@@ -140,6 +150,50 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
     { value: 56, label: t("workload.tab.period.weeks8") },
     { value: 90, label: t("workload.tab.period.season") },
   ];
+
+  const selectedPlayer = players.find((p) => p.id === selectedPlayerId);
+  const selectedPlayerName = selectedPlayer
+    ? [selectedPlayer.first_name, selectedPlayer.name].filter(Boolean).join(" ")
+    : undefined;
+
+  const handleExport = async (format: "csv" | "pdf", individual: boolean) => {
+    if (individual && !selectedPlayerId) return;
+
+    const ctx = {
+      categoryId,
+      model: loadModel.toUpperCase(),
+      metricLabel: METRICS_CONFIG[selectedMetric]?.label || selectedMetric,
+      periodLabel: periodOptions.find((o) => o.value === periodDays)?.label || `${periodDays} j`,
+      playerName: individual ? selectedPlayerName : undefined,
+      teamRows: players.map((p) => ({
+        name: [p.first_name, p.name].filter(Boolean).join(" "),
+        position: p.position,
+        currentLoad: p.summary?.currentLoad ?? null,
+        acute: p.summary?.ewmaAcute ?? null,
+        chronic: p.summary?.ewmaChronic ?? null,
+        ratio: p.summary?.ewmaRatio ?? null,
+        weeklyChange: p.summary?.weeklyChange ?? null,
+        riskLevel: p.summary?.riskLevel ?? null,
+      })),
+      dailyRows: chartData.map((d) => ({
+        date: d.date,
+        rawValue: d.rawValue ?? null,
+        acute: d.acute ?? null,
+        chronic: d.chronic ?? null,
+        ratio: d.ratio ?? null,
+        riskLevel: d.riskLevel ?? null,
+      })),
+    };
+
+    try {
+      if (format === "csv") exportTrainingLoadCsv(ctx);
+      else await exportTrainingLoadPdf(ctx);
+      toast.success("Export généré");
+    } catch (e) {
+      console.error(e);
+      toast.error("Export impossible, réessayez");
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -310,6 +364,45 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
               ))}
             </SelectContent>
           </Select>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Download className="h-4 w-4" />
+                <span className="hidden sm:inline">Exporter</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64">
+              <DropdownMenuLabel>Effectif complet</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => handleExport("csv", false)}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" /> CSV — effectif
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("pdf", false)}>
+                <FileText className="h-4 w-4 mr-2" /> PDF — effectif
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>
+                {selectedPlayerName ? `Détail — ${selectedPlayerName}` : "Détail par athlète"}
+              </DropdownMenuLabel>
+              <DropdownMenuItem
+                disabled={!selectedPlayerId}
+                onClick={() => handleExport("csv", true)}
+              >
+                <FileSpreadsheet className="h-4 w-4 mr-2" /> CSV — détail quotidien
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={!selectedPlayerId}
+                onClick={() => handleExport("pdf", true)}
+              >
+                <FileText className="h-4 w-4 mr-2" /> PDF — détail quotidien
+              </DropdownMenuItem>
+              {!selectedPlayerId && (
+                <p className="px-2 py-1.5 text-[11px] text-muted-foreground">
+                  Sélectionnez une athlète ci-dessus pour exporter son détail.
+                </p>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {!isViewer && (
             <Button 
