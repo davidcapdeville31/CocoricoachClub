@@ -151,6 +151,50 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
     { value: 90, label: t("workload.tab.period.season") },
   ];
 
+  const selectedPlayer = players.find((p) => p.id === selectedPlayerId);
+  const selectedPlayerName = selectedPlayer
+    ? [selectedPlayer.first_name, selectedPlayer.name].filter(Boolean).join(" ")
+    : undefined;
+
+  const handleExport = async (format: "csv" | "pdf", individual: boolean) => {
+    if (individual && !selectedPlayerId) return;
+
+    const ctx = {
+      categoryId,
+      model: loadModel.toUpperCase(),
+      metricLabel: METRICS_CONFIG[selectedMetric]?.label || selectedMetric,
+      periodLabel: periodOptions.find((o) => o.value === periodDays)?.label || `${periodDays} j`,
+      playerName: individual ? selectedPlayerName : undefined,
+      teamRows: players.map((p) => ({
+        name: [p.first_name, p.name].filter(Boolean).join(" "),
+        position: p.position,
+        currentLoad: p.summary?.currentLoad ?? null,
+        acute: p.summary?.ewmaAcute ?? null,
+        chronic: p.summary?.ewmaChronic ?? null,
+        ratio: p.summary?.ewmaRatio ?? null,
+        weeklyChange: p.summary?.weeklyChange ?? null,
+        riskLevel: p.summary?.riskLevel ?? null,
+      })),
+      dailyRows: chartData.map((d) => ({
+        date: d.date,
+        rawValue: d.rawValue ?? null,
+        acute: d.acute ?? null,
+        chronic: d.chronic ?? null,
+        ratio: d.ratio ?? null,
+        riskLevel: d.riskLevel ?? null,
+      })),
+    };
+
+    try {
+      if (format === "csv") exportTrainingLoadCsv(ctx);
+      else await exportTrainingLoadPdf(ctx);
+      toast.success("Export généré");
+    } catch (e) {
+      console.error(e);
+      toast.error("Export impossible, réessayez");
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Pedagogical banner */}
