@@ -343,6 +343,8 @@ export function calculateLoadSummary(
   if (weeklyChange > 10) trend = "increasing";
   else if (weeklyChange < -10) trend = "decreasing";
 
+  const quality = assessLoadWindowFromSeries(ewmaResults);
+
   return {
     currentLoad,
     ewmaAcute: latest.acute,
@@ -351,6 +353,10 @@ export function calculateLoadSummary(
     weeklyChange: Math.round(weeklyChange * 10) / 10,
     riskLevel: latest.riskLevel,
     trend,
+    ratioReliable: quality.reliable,
+    limitedReason: quality.reason,
+    daysSinceResumption: quality.daysSinceResumption,
+    gapDays: quality.gapDays,
   };
 }
 
