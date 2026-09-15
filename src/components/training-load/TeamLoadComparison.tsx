@@ -221,6 +221,7 @@ export function TeamLoadComparison({
     fullName: p.name,
     ratio: p.summary?.ewmaRatio || 0,
     riskLevel: p.summary?.riskLevel || "optimal",
+    limited: p.summary?.ratioReliable === false,
     id: p.id,
     position: p.position,
     discipline: p.discipline,
@@ -527,7 +528,13 @@ export function TeamLoadComparison({
                         </Badge>
                       )}
                       <p className="text-sm mt-1">
-                        {t("workload.chart.tooltip.ratio")} <span className={cn("font-semibold", getRiskColor(data.riskLevel))}>{data.ratio.toFixed(2)}</span>
+                        {t("workload.chart.tooltip.ratio")}{" "}
+                        <span className={cn("font-semibold", data.limited ? "text-muted-foreground" : getRiskColor(data.riskLevel))}>
+                          {data.ratio.toFixed(2)}
+                        </span>
+                      </p>
+                      <p className="text-xs mt-0.5 text-muted-foreground">
+                        {riskLabel(data.riskLevel, data.ratio, !data.limited)}
                       </p>
                     </div>
                   );
@@ -559,6 +566,7 @@ export function TeamLoadComparison({
                   <Cell
                     key={`cell-${index}`}
                     fill={
+                      entry.limited ? "hsl(var(--muted-foreground))" :
                       entry.riskLevel === "optimal" ? "hsl(160, 60%, 42%)" :
                       entry.riskLevel === "warning" ? "hsl(32, 89%, 55%)" :
                       "hsl(0, 84%, 60%)"
