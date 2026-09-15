@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, Minus, Activity, AlertTriangle, Target, Zap } from "lucide-react";
-import { LoadSummary, getRiskColor } from "@/lib/trainingLoadCalculations";
+import { LoadSummary, getRiskColor, getRiskLabelKey } from "@/lib/trainingLoadCalculations";
 import { InfoHint } from "./InfoHint";
 import { Trans, useTranslation } from "react-i18next";
 
