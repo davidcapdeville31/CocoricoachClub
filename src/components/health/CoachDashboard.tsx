@@ -109,6 +109,7 @@ const ClickableStatCard = ({
 );
 
 import { useSeasonFilteredPlayerIds, makePlayerIdFilter } from "@/hooks/use-season-filtered-players";
+import { assessLoadWindow } from "@/lib/trainingLoadCalculations";
 import { useMemo as useMemoCoachDash } from "react";
 
 export function CoachDashboard({ categoryId }: CoachDashboardProps) {
@@ -419,13 +420,17 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
   const MAX_STALE_DAYS = 10;
   const staleLimit = format(addDays(new Date(), -MAX_STALE_DAYS), "yyyy-MM-dd");
   const allEwmaEntries = Object.values(ewmaData || {}) as any[];
-  const ewmaValues = allEwmaEntries.filter(
+  const ewmaEligible = allEwmaEntries.filter(
     (p) =>
       p.chronic >= MIN_CHRONIC_LOAD &&
       (p.historyDays ?? 0) >= MIN_HISTORY_DAYS &&
       (!p.date || p.date >= staleLimit),
   );
-  const excludedEwmaCount = allEwmaEntries.length - ewmaValues.length;
+  // Après une coupure (≥ 7 j sans charge) la fenêtre chronique 28 j est polluée :
+  // le ratio n'est pas lisible tant que 21 j de charge continue ne sont pas accumulés.
+  const ewmaLimited = ewmaEligible.filter((p) => p.ratioReliable === false);
+  const ewmaValues = ewmaEligible.filter((p) => p.ratioReliable !== false);
+  const excludedEwmaCount = allEwmaEntries.length - ewmaEligible.length;
   // Diagnostic for the empty state: why nothing is displayed yet
   const ewmaPendingHistory = allEwmaEntries.filter((p) => (p.historyDays ?? 0) < MIN_HISTORY_DAYS);
   const ewmaMaxHistoryDays = allEwmaEntries.reduce(
@@ -768,6 +773,11 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
                       Données de charge trop anciennes ({ewmaStaleCount} athlète
                       {ewmaStaleCount > 1 ? "s" : ""} sans donnée depuis plus de {MAX_STALE_DAYS} jours)
                     </>
+                  ) : ewmaLimited.length > 0 ? (
+                    <>
+                      {ewmaLimited.length} athlète{ewmaLimited.length > 1 ? "s" : ""} en reprise après une
+                      coupure : le ratio n'est pas encore lisible
+                    </>
                   ) : (
                     <>Charge chronique encore trop faible pour un calcul fiable</>
                   )}
@@ -867,6 +877,35 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
                 <> · {excludedEwmaCount} exclu{excludedEwmaCount > 1 ? "s" : ""} (moins de 21 jours d'historique, charge chronique insuffisante ou données de plus de 10 jours)</>
               )}
             </p>
+          )}
+
+          {/* Reprise après coupure : ratio non lisible */}
+          {ewmaLimited.length > 0 && (
+            <div className="mt-4 p-4 bg-muted/40 rounded-lg border border-border/60">
+              <p className="text-sm font-medium mb-2">
+                Reprise — lecture limitée ({ewmaLimited.length})
+              </p>
+              <p className="text-xs text-muted-foreground mb-3">
+                La fenêtre de 28 jours de ces athlètes contient une coupure : le ratio ne peut rien
+                indiquer tant que 21 jours de charge continue ne sont pas accumulés. Se fier à la
+                variation hebdomadaire sur cette période.
+              </p>
+              <div className="space-y-1.5 max-h-[220px] overflow-y-auto overscroll-contain touch-pan-y">
+                {[...ewmaLimited]
+                  .sort((a, b) => (b.daysSinceResumption ?? 0) - (a.daysSinceResumption ?? 0))
+                  .map((p, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between gap-2 px-2 py-1.5 bg-background/60 rounded-md text-xs"
+                    >
+                      <span className="font-medium truncate">{p.name}</span>
+                      <Badge variant="outline" className="text-[10px] shrink-0">
+                        reprise {p.daysSinceResumption ?? 0}/{MIN_HISTORY_DAYS} j
+                      </Badge>
+                    </div>
+                  ))}
+              </div>
+            </div>
           )}
 
           {/* Athlètes en cours de collecte (historique < 21 jours) */}
