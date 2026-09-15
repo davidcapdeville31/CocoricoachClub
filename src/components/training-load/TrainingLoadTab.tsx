@@ -311,6 +311,45 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
             </SelectContent>
           </Select>
 
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Download className="h-4 w-4" />
+                <span className="hidden sm:inline">Exporter</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64">
+              <DropdownMenuLabel>Effectif complet</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => handleExport("csv", false)}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" /> CSV — effectif
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("pdf", false)}>
+                <FileText className="h-4 w-4 mr-2" /> PDF — effectif
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>
+                {selectedPlayerName ? `Détail — ${selectedPlayerName}` : "Détail par athlète"}
+              </DropdownMenuLabel>
+              <DropdownMenuItem
+                disabled={!selectedPlayerId}
+                onClick={() => handleExport("csv", true)}
+              >
+                <FileSpreadsheet className="h-4 w-4 mr-2" /> CSV — détail quotidien
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={!selectedPlayerId}
+                onClick={() => handleExport("pdf", true)}
+              >
+                <FileText className="h-4 w-4 mr-2" /> PDF — détail quotidien
+              </DropdownMenuItem>
+              {!selectedPlayerId && (
+                <p className="px-2 py-1.5 text-[11px] text-muted-foreground">
+                  Sélectionnez une athlète ci-dessus pour exporter son détail.
+                </p>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           {!isViewer && (
             <Button 
               onClick={() => setIsHrvDialogOpen(true)} 
