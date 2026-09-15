@@ -145,7 +145,7 @@ export function TrainingLoadKPIs({ summary, isLoading, loadModel = "ewma" }: Tra
           )}
         </CardHeader>
         <CardContent>
-          <div className={`text-2xl font-bold ${riskColor}`}>
+          <div className={`text-2xl font-bold ${summary.ratioReliable === false ? "text-muted-foreground" : riskColor}`}>
             {summary.ewmaRatio.toFixed(2)}
           </div>
           <Badge 
