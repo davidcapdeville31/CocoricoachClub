@@ -12,6 +12,7 @@ export interface LoadExportPlayerRow {
   ratio: number | null;
   weeklyChange: number | null;
   riskLevel: string | null;
+  ratioReliable?: boolean;
 }
 
 export interface LoadExportDailyRow {
@@ -21,6 +22,7 @@ export interface LoadExportDailyRow {
   chronic: number | null;
   ratio: number | null;
   riskLevel: string | null;
+  ratioReliable?: boolean;
 }
 
 export interface LoadExportContext {
@@ -44,10 +46,16 @@ const RISK_LABELS: Record<string, string> = {
   highLoad: "Charge élevée",
   lowLoad: "Charge faible",
   underLoad: "Sous-charge",
+  limited: "Reprise — lecture limitée",
 };
 
 /** Libellé tenant compte de la direction du ratio (sous-charge ≠ surcharge). */
-const riskLabel = (r: string | null | undefined, ratio?: number | null) => {
+const riskLabel = (
+  r: string | null | undefined,
+  ratio?: number | null,
+  reliable: boolean = true
+) => {
+  if (reliable === false) return RISK_LABELS.limited;
   if (!r) return "—";
   if (r === "optimal") return RISK_LABELS.optimal;
   if (ratio != null && Number.isFinite(ratio)) {
@@ -102,7 +110,7 @@ export function exportTrainingLoadCsv(ctx: LoadExportContext) {
           num(r.acute),
           num(r.chronic),
           num(r.ratio, 2),
-          riskLabel(r.riskLevel, r.ratio),
+          riskLabel(r.riskLevel, r.ratio, r.ratioReliable !== false),
         ])
       )
     );
@@ -127,7 +135,7 @@ export function exportTrainingLoadCsv(ctx: LoadExportContext) {
           num(p.chronic),
           num(p.ratio, 2),
           num(p.weeklyChange),
-          riskLabel(p.riskLevel, p.ratio),
+          riskLabel(p.riskLevel, p.ratio, p.ratioReliable !== false),
         ])
       )
     );
@@ -188,7 +196,7 @@ export async function exportTrainingLoadPdf(ctx: LoadExportContext) {
     { label: "Chronique 28j", w: 32, value: (r) => num(r.chronic) },
     { label: "Ratio", w: 22, value: (r) => num(r.ratio, 2) },
     { label: "Var. hebdo", w: 26, value: (r) => `${num(r.weeklyChange)}%` },
-    { label: "Zone", w: 32, value: (r) => riskLabel(r.riskLevel, r.ratio) },
+    { label: "Zone", w: 32, value: (r) => riskLabel(r.riskLevel, r.ratio, r.ratioReliable !== false) },
   ];
 
   const dailyCols: Col[] = [
@@ -197,7 +205,7 @@ export async function exportTrainingLoadPdf(ctx: LoadExportContext) {
     { label: "Aiguë 7j", w: 38, value: (r) => num(r.acute) },
     { label: "Chronique 28j", w: 40, value: (r) => num(r.chronic) },
     { label: "Ratio", w: 28, value: (r) => num(r.ratio, 2) },
-    { label: "Zone", w: 40, value: (r) => riskLabel(r.riskLevel, r.ratio) },
+    { label: "Zone", w: 40, value: (r) => riskLabel(r.riskLevel, r.ratio, r.ratioReliable !== false) },
   ];
 
   const cols = ctx.playerName ? dailyCols : teamCols;
