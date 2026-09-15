@@ -446,6 +446,10 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
               riskLevel: teamAverage.ewmaRatio >= 0.85 && teamAverage.ewmaRatio <= 1.3 ? "optimal" :
                         teamAverage.ewmaRatio >= 0.8 && teamAverage.ewmaRatio <= 1.5 ? "warning" : "danger",
               trend: teamAverage.trend ?? "stable",
+              ratioReliable: teamWindowQuality.reliable,
+              limitedReason: teamWindowQuality.reason,
+              daysSinceResumption: teamWindowQuality.daysSinceResumption,
+              gapDays: teamWindowQuality.gapDays,
             } : null)}
             isLoading={isLoading || teamLoading}
             loadModel={loadModel}
