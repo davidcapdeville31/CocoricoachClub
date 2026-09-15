@@ -9,7 +9,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Calendar, Users, TrendingUp, BarChart3, Heart, Activity, Satellite, Lightbulb, Info } from "lucide-react";
+import { Calendar, Users, TrendingUp, BarChart3, Heart, Activity, Satellite, Lightbulb, Info, Download, FileText, FileSpreadsheet } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
+import { exportTrainingLoadCsv, exportTrainingLoadPdf } from "@/lib/trainingLoadExport";
 import { InfoHint } from "./InfoHint";
 import { HrvEntryDialog } from "@/components/category/hrv/HrvEntryDialog";
 import { TrainingLoadChart } from "./TrainingLoadChart";
