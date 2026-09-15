@@ -145,19 +145,27 @@ export function TrainingLoadKPIs({ summary, isLoading, loadModel = "ewma" }: Tra
           )}
         </CardHeader>
         <CardContent>
-          <div className={`text-2xl font-bold ${riskColor}`}>
+          <div className={`text-2xl font-bold ${summary.ratioReliable === false ? "text-muted-foreground" : riskColor}`}>
             {summary.ewmaRatio.toFixed(2)}
           </div>
           <Badge 
             variant="secondary"
             className={`text-xs mt-1 ${
+              summary.ratioReliable === false ? "bg-muted text-muted-foreground" :
               summary.riskLevel === "optimal" ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" :
               summary.riskLevel === "warning" ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400" :
               "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
             }`}
           >
-            {t(`workload.kpis.ratio.${getRiskLabelKey(summary.riskLevel, summary.ewmaRatio)}`)}
+            {t(`workload.kpis.ratio.${getRiskLabelKey(summary.riskLevel, summary.ewmaRatio, summary.ratioReliable !== false)}`)}
           </Badge>
+          {summary.ratioReliable === false && (
+            <p className="text-[10px] text-muted-foreground mt-2 leading-relaxed">
+              {summary.limitedReason === "gap"
+                ? `Coupure de ${summary.gapDays} j dans la fenêtre 28 j · reprise il y a ${summary.daysSinceResumption ?? 0} j. Le ratio redevient lisible après 21 j de charge continue — se fier à la variation hebdomadaire.`
+                : "Moins de 21 jours d'historique : le ratio n'est pas encore interprétable — se fier à la variation hebdomadaire."}
+            </p>
+          )}
           <p className="text-[10px] text-muted-foreground/70 mt-2 leading-relaxed border-t border-border/30 pt-1.5">
             {t("workload.kpis.ratio.footer")}
           </p>

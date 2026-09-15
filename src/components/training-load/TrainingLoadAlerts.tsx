@@ -47,8 +47,9 @@ export function TrainingLoadAlerts({
     );
   }
 
-  const criticalPlayers = playersAtRisk.filter(p => p.summary?.riskLevel === "danger");
-  const warningPlayers = playersAtRisk.filter(p => p.summary?.riskLevel === "warning");
+  const readablePlayers = playersAtRisk.filter(p => p.summary?.ratioReliable !== false);
+  const criticalPlayers = readablePlayers.filter(p => p.summary?.riskLevel === "danger");
+  const warningPlayers = readablePlayers.filter(p => p.summary?.riskLevel === "warning");
 
   if (playersAtRisk.length === 0) {
     return (

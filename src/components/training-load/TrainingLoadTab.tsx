@@ -31,7 +31,7 @@ import { TrainingLoadCalendar } from "./TrainingLoadCalendar";
 import { TrainingDistribution } from "./TrainingDistribution";
 import { HrvAnalysisPanel } from "./HrvAnalysisPanel";
 import { useTrainingLoad, useTeamTrainingLoad } from "@/hooks/use-training-load";
-import { MetricType, METRICS_CONFIG } from "@/lib/trainingLoadCalculations";
+import { MetricType, METRICS_CONFIG, assessLoadWindowFromSeries } from "@/lib/trainingLoadCalculations";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -101,6 +101,9 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
     metric: selectedMetric,
     periodDays,
   });
+
+  // Qualité de la fenêtre chronique (coupure de saison → ratio non lisible)
+  const teamWindowQuality = assessLoadWindowFromSeries(chartData);
 
   // Team data
   const { 
@@ -174,6 +177,7 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
         ratio: p.summary?.ewmaRatio ?? null,
         weeklyChange: p.summary?.weeklyChange ?? null,
         riskLevel: p.summary?.riskLevel ?? null,
+        ratioReliable: p.summary?.ratioReliable !== false,
       })),
       dailyRows: chartData.map((d) => ({
         date: d.date,
@@ -182,6 +186,7 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
         chronic: d.chronic ?? null,
         ratio: d.ratio ?? null,
         riskLevel: d.riskLevel ?? null,
+        ratioReliable: teamWindowQuality.reliable,
       })),
     };
 
@@ -446,6 +451,10 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
               riskLevel: teamAverage.ewmaRatio >= 0.85 && teamAverage.ewmaRatio <= 1.3 ? "optimal" :
                         teamAverage.ewmaRatio >= 0.8 && teamAverage.ewmaRatio <= 1.5 ? "warning" : "danger",
               trend: teamAverage.trend ?? "stable",
+              ratioReliable: teamWindowQuality.reliable,
+              limitedReason: teamWindowQuality.reason,
+              daysSinceResumption: teamWindowQuality.daysSinceResumption,
+              gapDays: teamWindowQuality.gapDays,
             } : null)}
             isLoading={isLoading || teamLoading}
             loadModel={loadModel}
