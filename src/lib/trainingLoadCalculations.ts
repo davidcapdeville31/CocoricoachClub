@@ -585,6 +585,18 @@ export function generateLoadRecommendation(summary: LoadSummary): {
 } {
   const { ewmaRatio, trend, riskLevel } = summary;
 
+  if (summary.ratioReliable === false) {
+    return {
+      recommendation:
+        summary.limitedReason === "gap"
+          ? "Reprise après coupure — ratio non lisible"
+          : "Historique insuffisant — ratio non lisible",
+      action:
+        "La fenêtre de 28 jours contient une interruption : se fier à la variation hebdomadaire et progresser par paliers (+10 % max par semaine).",
+      intensity: "maintain",
+    };
+  }
+
   if (riskLevel === "danger") {
     if (ewmaRatio > 1.5) {
       return {
