@@ -253,7 +253,7 @@ export function TeamLoadComparison({
       num(p.summary?.ewmaRatio),
       num(p.summary?.ewmaAcute, 1),
       num(p.summary?.ewmaChronic, 1),
-      riskLabel(p.summary?.riskLevel, p.summary?.ewmaRatio),
+      riskLabel(p.summary?.riskLevel, p.summary?.ewmaRatio, p.summary?.ratioReliable !== false),
     ]);
     if (teamAverage) {
       rows.push([
