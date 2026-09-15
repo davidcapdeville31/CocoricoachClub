@@ -361,6 +361,7 @@ export function useTrainingLoad({
       let trend: "increasing" | "stable" | "decreasing" = "stable";
       if (weeklyChange > 10) trend = "increasing";
       else if (weeklyChange < -10) trend = "decreasing";
+      const quality = assessLoadWindowFromSeries(chartData);
       return {
         currentLoad: latest.rawValue,
         ewmaAcute: latest.acute,
@@ -369,6 +370,10 @@ export function useTrainingLoad({
         weeklyChange: Math.round(weeklyChange * 10) / 10,
         riskLevel: latest.riskLevel,
         trend,
+        ratioReliable: quality.reliable,
+        limitedReason: quality.reason,
+        daysSinceResumption: quality.daysSinceResumption,
+        gapDays: quality.gapDays,
       };
     }
     return calculateLoadSummary(dailyData, metricConfig.dataKey);
