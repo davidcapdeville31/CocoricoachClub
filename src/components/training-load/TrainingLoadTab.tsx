@@ -31,7 +31,7 @@ import { TrainingLoadCalendar } from "./TrainingLoadCalendar";
 import { TrainingDistribution } from "./TrainingDistribution";
 import { HrvAnalysisPanel } from "./HrvAnalysisPanel";
 import { useTrainingLoad, useTeamTrainingLoad } from "@/hooks/use-training-load";
-import { MetricType, METRICS_CONFIG } from "@/lib/trainingLoadCalculations";
+import { MetricType, METRICS_CONFIG, assessLoadWindowFromSeries } from "@/lib/trainingLoadCalculations";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
