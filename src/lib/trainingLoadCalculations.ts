@@ -167,6 +167,25 @@ export function getRiskLevel(ratio: number): "optimal" | "warning" | "danger" {
 }
 
 /**
+ * Clé de libellé de risque tenant compte de la DIRECTION du ratio.
+ * Un ratio bas (sous-charge / décharge, charge chronique élevée) et un ratio
+ * haut (surcharge) sont deux situations opposées : elles ne doivent jamais
+ * porter le même libellé "risque élevé".
+ */
+export type RiskLabelKey = "optimal" | "highLoad" | "overload" | "lowLoad" | "underLoad";
+
+export function getRiskLabelKey(
+  riskLevel: "optimal" | "warning" | "danger" | null | undefined,
+  ratio: number | null | undefined
+): RiskLabelKey {
+  if (riskLevel === "optimal" || ratio == null || !Number.isFinite(ratio)) return "optimal";
+  if (ratio > 1.5) return "overload";
+  if (ratio > 1.3) return "highLoad";
+  if (ratio < 0.8) return "underLoad";
+  return "lowLoad";
+}
+
+/**
  * Get color based on risk level
  */
 export function getRiskColor(riskLevel: "optimal" | "warning" | "danger"): string {

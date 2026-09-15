@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, Minus, Activity, AlertTriangle, Target, Zap } from "lucide-react";
-import { LoadSummary, getRiskColor } from "@/lib/trainingLoadCalculations";
+import { LoadSummary, getRiskColor, getRiskLabelKey } from "@/lib/trainingLoadCalculations";
 import { InfoHint } from "./InfoHint";
 import { Trans, useTranslation } from "react-i18next";
 
@@ -156,8 +156,7 @@ export function TrainingLoadKPIs({ summary, isLoading, loadModel = "ewma" }: Tra
               "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
             }`}
           >
-            {summary.riskLevel === "optimal" ? t("workload.kpis.ratio.optimal") : 
-             summary.riskLevel === "warning" ? t("workload.kpis.ratio.warning") : t("workload.kpis.ratio.danger")}
+            {t(`workload.kpis.ratio.${getRiskLabelKey(summary.riskLevel, summary.ewmaRatio)}`)}
           </Badge>
           <p className="text-[10px] text-muted-foreground/70 mt-2 leading-relaxed border-t border-border/30 pt-1.5">
             {t("workload.kpis.ratio.footer")}

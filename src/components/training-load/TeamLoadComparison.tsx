@@ -18,7 +18,7 @@ import { Users, TrendingUp, Filter, UserCheck, Shield, Zap, Download } from "luc
 import { Button } from "@/components/ui/button";
 import { generateCsv, downloadCsv } from "@/lib/csv";
 import { toast } from "sonner";
-import { LoadSummary, getRiskColor } from "@/lib/trainingLoadCalculations";
+import { LoadSummary, getRiskColor, getRiskLabelKey } from "@/lib/trainingLoadCalculations";
 import { getRugbyPositionGroup, getPositionGroupLabel, isRugbySport, RugbyPositionGroup } from "@/lib/constants/sportPositions";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
 import { getDisciplineLabel } from "@/lib/constants/athleticProfiles";
@@ -227,8 +227,8 @@ export function TeamLoadComparison({
     group: p.positionGroup,
   }));
 
-  const riskLabel = (r?: string) =>
-    r === "danger" ? t("workload.teamLoadComparison.riskLabel.danger") : r === "warning" ? t("workload.teamLoadComparison.riskLabel.warning") : t("workload.teamLoadComparison.riskLabel.optimal");
+  const riskLabel = (r?: string, ratio?: number) =>
+    t(`workload.teamLoadComparison.riskLabel.${getRiskLabelKey(r as any, ratio ?? null)}`);
 
   const handleExportCsv = () => {
     if (filteredPlayers.length === 0) {
@@ -253,7 +253,7 @@ export function TeamLoadComparison({
       num(p.summary?.ewmaRatio),
       num(p.summary?.ewmaAcute, 1),
       num(p.summary?.ewmaChronic, 1),
-      riskLabel(p.summary?.riskLevel),
+      riskLabel(p.summary?.riskLevel, p.summary?.ewmaRatio),
     ]);
     if (teamAverage) {
       rows.push([
