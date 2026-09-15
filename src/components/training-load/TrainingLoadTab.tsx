@@ -102,6 +102,9 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
     periodDays,
   });
 
+  // Qualité de la fenêtre chronique (coupure de saison → ratio non lisible)
+  const teamWindowQuality = assessLoadWindowFromSeries(chartData);
+
   // Team data
   const { 
     players, 
