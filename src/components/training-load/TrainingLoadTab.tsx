@@ -177,6 +177,7 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
         ratio: p.summary?.ewmaRatio ?? null,
         weeklyChange: p.summary?.weeklyChange ?? null,
         riskLevel: p.summary?.riskLevel ?? null,
+        ratioReliable: p.summary?.ratioReliable !== false,
       })),
       dailyRows: chartData.map((d) => ({
         date: d.date,
@@ -185,6 +186,7 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
         chronic: d.chronic ?? null,
         ratio: d.ratio ?? null,
         riskLevel: d.riskLevel ?? null,
+        ratioReliable: teamWindowQuality.reliable,
       })),
     };
 

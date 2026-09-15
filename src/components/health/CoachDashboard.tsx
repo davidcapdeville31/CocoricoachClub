@@ -233,7 +233,7 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
       for (let from = 0; ; from += PAGE) {
         const { data: page, error } = await supabase
           .from("awcr_tracking")
-          .select("player_id, session_date, awcr, acute_load, chronic_load, players(name, first_name)")
+          .select("player_id, session_date, awcr, acute_load, chronic_load, training_load, rpe, duration_minutes, players(name, first_name)")
           .eq("category_id", categoryId)
           .gte("session_date", lookbackStart)
           .order("session_date", { ascending: false })
@@ -250,13 +250,32 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
       // Get latest EWMA per player - use the stored awcr field (correct EWMA ratio)
       const latestByPlayer: Record<
         string,
-        { ewmaRatio: number; acute: number; chronic: number; name: string; date: string; historyDays: number }
+        {
+          ewmaRatio: number;
+          acute: number;
+          chronic: number;
+          name: string;
+          date: string;
+          historyDays: number;
+          ratioReliable: boolean;
+          gapDays: number;
+          daysSinceResumption: number | null;
+        }
       > = {};
       const firstDateByPlayer: Record<string, string> = {};
       const lastDateByPlayer: Record<string, string> = {};
       const today = format(new Date(), "yyyy-MM-dd");
+      const loadsByPlayer: Record<string, { date: string; load: number }[]> = {};
       data?.forEach((entry: any) => {
         const d = entry.session_date as string;
+        if (d <= today) {
+          (loadsByPlayer[entry.player_id] ||= []).push({
+            date: d,
+            load:
+              Number(entry.training_load) ||
+              (Number(entry.rpe) || 0) * (Number(entry.duration_minutes) || 0),
+          });
+        }
         // Ignore future-dated rows when measuring history
         if (d <= today) {
           if (!firstDateByPlayer[entry.player_id] || d < firstDateByPlayer[entry.player_id]) {
@@ -275,6 +294,9 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
             name: playerName,
             date: d,
             historyDays: 0,
+            ratioReliable: true,
+            gapDays: 0,
+            daysSinceResumption: null,
           };
         }
       });
@@ -287,6 +309,11 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
             Math.round((new Date(last).getTime() - new Date(first).getTime()) / 86400000) + 1;
           latestByPlayer[pid].historyDays = Math.max(1, spanDays);
         }
+        // Coupure dans la fenêtre 28 j → ratio non lisible
+        const quality = assessLoadWindow(loadsByPlayer[pid] || [], last || today);
+        latestByPlayer[pid].ratioReliable = quality.reliable;
+        latestByPlayer[pid].gapDays = quality.gapDays;
+        latestByPlayer[pid].daysSinceResumption = quality.daysSinceResumption;
       });
       return latestByPlayer;
     },
