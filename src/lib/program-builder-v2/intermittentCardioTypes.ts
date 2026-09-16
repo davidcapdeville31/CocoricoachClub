@@ -153,6 +153,16 @@ export const SUPPORT_CONFIG: Record<IntermittentCardioSupport, {
   },
 };
 
+// Rough speed estimates (m/s) used to convert a distance into a duration
+export const SUPPORT_SPEED_ESTIMATE: Record<IntermittentCardioSupport, number> = {
+  running: 4,
+  cycling: 8,
+  swimming: 1.5,
+  rowing: 4.5,
+  skierg: 3.5,
+  assault_bike: 9,
+};
+
 // Default configuration for new intermittent cardio
 export const getDefaultIntermittentConfig = (support: IntermittentCardioSupport = 'running'): IntermittentCardioConfig => {
   const firstIntensity = INTENSITY_OPTIONS_BY_SUPPORT[support][0];
@@ -211,12 +221,12 @@ export const calculateIntermittentVolume = (config: IntermittentCardioConfig): {
   // If distance mode, estimate time (rough estimate based on support)
   if (config.effortMode === 'distance') {
     // Rough speed estimates: running ~4m/s, cycling ~8m/s, swimming ~1.5m/s
-    const speedEstimate = config.support === 'running' ? 4 : config.support === 'cycling' ? 8 : 1.5;
+    const speedEstimate = SUPPORT_SPEED_ESTIMATE[config.support] ?? 4;
     workDurationPerRep = (config.effortDistanceMeters || 0) / speedEstimate;
   }
   
   if (config.recoveryMode === 'distance') {
-    const recoverySpeedEstimate = config.support === 'running' ? 2 : config.support === 'cycling' ? 4 : 1;
+    const recoverySpeedEstimate = (SUPPORT_SPEED_ESTIMATE[config.support] ?? 4) / 2;
     restDurationPerRep = (config.recoveryDistanceMeters || 0) / recoverySpeedEstimate;
   }
   
