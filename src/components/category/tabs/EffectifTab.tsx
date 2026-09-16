@@ -15,6 +15,7 @@ interface EffectifTabProps {
 
 export function EffectifTab({ categoryId }: EffectifTabProps) {
   const [fisImportOpen, setFisImportOpen] = useState(false);
+  const [groupsOpen, setGroupsOpen] = useState(false);
 
   const { data: category } = useQuery({
     queryKey: ["category-sport-effectif", categoryId],
