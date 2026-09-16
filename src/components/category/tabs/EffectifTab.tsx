@@ -38,6 +38,15 @@ export function EffectifTab({ categoryId }: EffectifTabProps) {
     <div className="space-y-4">
       <div className="flex justify-end flex-wrap gap-2">
         <SeasonRosterFilterToggle />
+        <Button variant="outline" size="sm" onClick={() => setGroupsOpen(true)}>
+          <Users className="h-4 w-4 mr-2" />
+          Groupes
+        </Button>
+        <PlayerGroupsManagerDialog
+          open={groupsOpen}
+          onOpenChange={setGroupsOpen}
+          categoryId={categoryId}
+        />
         {isSkiSport && (
           <>
             <Button variant="outline" size="sm" onClick={() => setFisImportOpen(true)}>
