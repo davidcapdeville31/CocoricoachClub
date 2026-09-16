@@ -127,21 +127,55 @@ export const SUPPORT_CONFIG: Record<IntermittentCardioSupport, {
     defaultEffortDistance: 100,
     defaultRecoveryDistance: 50,
   },
+  rowing: {
+    label: 'Rameur',
+    icon: 'Rows3',
+    distanceUnit: 'mètres',
+    distanceUnitShort: 'm',
+    defaultEffortDistance: 250,
+    defaultRecoveryDistance: 100,
+  },
+  skierg: {
+    label: 'SkiErg',
+    icon: 'Snowflake',
+    distanceUnit: 'mètres',
+    distanceUnitShort: 'm',
+    defaultEffortDistance: 250,
+    defaultRecoveryDistance: 100,
+  },
+  assault_bike: {
+    label: 'Assault Bike',
+    icon: 'Fan',
+    distanceUnit: 'mètres',
+    distanceUnitShort: 'm',
+    defaultEffortDistance: 500,
+    defaultRecoveryDistance: 200,
+  },
 };
 
 // Default configuration for new intermittent cardio
-export const getDefaultIntermittentConfig = (support: IntermittentCardioSupport = 'running'): IntermittentCardioConfig => ({
-  support,
-  repetitions: 6,
-  series: 1,
-  effortMode: 'duration',
-  effortDurationSeconds: 30,
-  recoveryMode: 'duration',
-  recoveryDurationSeconds: 30,
-  interSeriesRecoverySeconds: 180,
-  intensityType: 'percentage',
-  intensityValue: support === 'running' ? 100 : support === 'cycling' ? 90 : undefined,
-});
+export const getDefaultIntermittentConfig = (support: IntermittentCardioSupport = 'running'): IntermittentCardioConfig => {
+  const firstIntensity = INTENSITY_OPTIONS_BY_SUPPORT[support][0];
+  const defaultIntensityValue =
+    support === 'running' ? 100
+    : support === 'cycling' ? 90
+    : support === 'rowing' ? 250
+    : support === 'skierg' ? 200
+    : support === 'assault_bike' ? 300
+    : undefined;
+  return {
+    support,
+    repetitions: 6,
+    series: 1,
+    effortMode: 'duration',
+    effortDurationSeconds: 30,
+    recoveryMode: 'duration',
+    recoveryDurationSeconds: 30,
+    interSeriesRecoverySeconds: 180,
+    intensityType: firstIntensity?.type ?? 'rpe',
+    intensityValue: defaultIntensityValue,
+  };
+};
 
 // Format pace (seconds) to mm:ss string
 export const formatPace = (seconds: number): string => {
