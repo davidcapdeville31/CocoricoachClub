@@ -667,6 +667,19 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
     return Array.from(s).sort();
   }, [playerSeries]);
 
+  // Colonnes = rang de passation (1ʳᵉ mesure, 2ᵉ mesure…) et non plus une colonne par date
+  const maxPasses = useMemo(() => {
+    let max = 0;
+    for (const arr of playerSeries.values()) max = Math.max(max, arr.length);
+    return max;
+  }, [playerSeries]);
+  const passIndexes = useMemo(
+    () => Array.from({ length: maxPasses }, (_, i) => i),
+    [maxPasses],
+  );
+  const ordinalLabel = (i: number) => (i === 0 ? "1ʳᵉ mesure" : `${i + 1}ᵉ mesure`);
+
+
   // Résout le groupe de poste canonique d'un joueur
   const resolveGroup = (player: any): { id: string; label: string } => {
     const pos: string | undefined = player?.position;
