@@ -34,15 +34,16 @@ export function PlayerGroupChips({ categoryId, value, onChange, availableIds, cl
   if (visibleGroups.length === 0) return null;
 
   /**
-   * Un clic sélectionne EXACTEMENT les athlètes du groupe (les autres sont
-   * décochés). Un second clic sur le même groupe vide la sélection.
+   * Un clic AJOUTE les athlètes du groupe à la sélection (les groupes se
+   * cumulent). Si tous les membres du groupe sont déjà cochés, le clic les
+   * retire. La sélection individuelle hors groupes est toujours conservée.
    */
-  const toggleGroup = (memberIds: string[], exclusive: boolean) => {
-    if (exclusive) {
-      onChange(value.filter((id) => (allowed ? !allowed.has(id) : false)));
+  const toggleGroup = (memberIds: string[], allSelected: boolean) => {
+    if (allSelected) {
+      const toRemove = new Set(memberIds);
+      onChange(value.filter((id) => !toRemove.has(id)));
     } else {
-      const outsideList = allowed ? value.filter((id) => !allowed.has(id)) : [];
-      onChange(Array.from(new Set([...outsideList, ...memberIds])));
+      onChange(Array.from(new Set([...value, ...memberIds])));
     }
   };
 
