@@ -52,7 +52,10 @@ export function PlayerGroupChips({ categoryId, value, onChange, availableIds, cl
         <Users className="h-3.5 w-3.5" /> Groupes
       </span>
       {visibleGroups.map((g) => {
-        const active = g.memberIds.every((id) => value.includes(id));
+        const selectedInList = allowed ? value.filter((id) => allowed.has(id)) : value;
+        const active =
+          g.memberIds.every((id) => selectedInList.includes(id)) &&
+          selectedInList.length === g.memberIds.length;
         return (
           <Badge
             key={g.id}
