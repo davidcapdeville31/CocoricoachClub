@@ -313,8 +313,9 @@ const SortableExerciseItem = ({
             min={1}
             max={10}
             step={0.5}
-            value={exercise.targetRpe || ""}
-            onChange={(e) => onUpdate(exercise.id, 'targetRpe', e.target.value ? parseFloat(e.target.value) : 0)}
+            value={exercise.targetRpe ?? ""}
+            onFocus={(e) => e.currentTarget.select()}
+            onChange={(e) => onUpdate(exercise.id, 'targetRpe', e.target.value === "" ? undefined : parseFloat(e.target.value))}
             placeholder="Ex: 8"
             className="h-8 bg-background text-center"
           />
@@ -325,8 +326,9 @@ const SortableExerciseItem = ({
             type="number"
             min={0}
             max={5}
-            value={exercise.targetRir || ""}
-            onChange={(e) => onUpdate(exercise.id, 'targetRir', e.target.value ? parseInt(e.target.value) : 0)}
+            value={exercise.targetRir ?? ""}
+            onFocus={(e) => e.currentTarget.select()}
+            onChange={(e) => onUpdate(exercise.id, 'targetRir', e.target.value === "" ? undefined : parseInt(e.target.value))}
             placeholder="Ex: 2"
             className="h-8 bg-background text-center"
           />
