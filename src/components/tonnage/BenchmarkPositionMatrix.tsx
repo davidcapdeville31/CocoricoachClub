@@ -1278,7 +1278,8 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                             if (!point) {
                               return (
                                 <TableCell
-                                  key={d}
+                                  key={i}
+
                                   className="text-center text-muted-foreground"
                                 >
                                   —
