@@ -15528,6 +15528,10 @@ export type Database = {
       restore_category: { Args: { _category_id: string }; Returns: Json }
       restore_club: { Args: { _club_id: string }; Returns: Json }
       restore_from_snapshot: { Args: { _snapshot_id: string }; Returns: Json }
+      save_program_v2: {
+        Args: { p_payload: Json; p_program_id: string }
+        Returns: string
+      }
       seed_default_program_themes: {
         Args: { p_club_id: string }
         Returns: undefined

@@ -70,32 +70,77 @@ export function useSaveProgramV2() {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Non authentifié.");
 
-      let program: { id: string };
+      // Garde-fou : ne jamais écraser un programme existant avec un contenu vide
+      const totalExercises = draft.weeks.reduce(
+        (acc, w) =>
+          acc +
+          w.days.reduce(
+            (a, d) =>
+              a +
+              ((d.blocks as V2BlockWithExercises[]) ?? []).reduce(
+                (x, b) => x + (b.exercises?.length ?? 0),
+                0,
+              ),
+            0,
+          ),
+        0,
+      );
+      if (programId && totalExercises === 0) {
+        throw new Error(
+          "Aucun exercice à enregistrer — sauvegarde annulée pour ne pas effacer le programme existant.",
+        );
+      }
 
-      if (programId) {
-        // UPDATE existing program
-        const { data: updated, error: uErr } = await supabase
-          .from("training_programs")
-          .update({
-            name: draft.name,
-            description: draft.description || null,
-            level: draft.difficultyLevel,
-            theme_id: draft.themeId ?? null,
-          })
-          .eq("id", programId)
-          .select("id")
-          .single();
-        if (uErr) throw uErr;
-        program = updated;
+      // Construction du payload complet (semaines → séances → exercices)
+      const weeksPayload = draft.weeks.map((w) => ({
+        week_number: w.weekNumber,
+        name: w.name,
+        block_order: w.weekNumber - 1,
+        sessions: w.days.map((d, idx) => {
+          const blocks = (d.blocks as V2BlockWithExercises[]) ?? [];
+          let order = 0;
+          const exercises: any[] = [];
+          blocks.forEach((block) => {
+            const blockHeader = `<!-- v2-block:${block.type}:${block.name} -->`;
+            (block.exercises ?? []).forEach((ex) => {
+              const baseNotes = ex.notes ?? "";
+              const isTestRef =
+                typeof ex.exerciseId === "string" && ex.exerciseId.startsWith("test:");
+              const testTag = isTestRef ? `<!-- v2-test:${ex.exerciseId!.slice(5)} -->` : "";
+              const setsTag = encodeVariableSetsTag(ex.variableSets as any);
+              const xvarsTag = encodeExtraVariablesTag(ex as any);
+              const notes = `${blockHeader}${testTag}${setsTag}${xvarsTag}\n${baseNotes}`.trim();
 
-        // Wipe existing weeks (cascade deletes sessions + exercises)
-        const { error: dErr } = await supabase
-          .from("program_weeks")
-          .delete()
-          .eq("program_id", programId);
-        if (dErr) throw dErr;
-      } else {
-        // INSERT new program
+              exercises.push({
+                library_exercise_id: isTestRef ? null : (ex.exerciseId ?? null),
+                exercise_name: ex.exerciseName,
+                order_index: order++,
+                method: ex.method ?? "normal",
+                sets: ex.sets ?? 3,
+                reps: ex.reps ?? "10",
+                percentage_1rm: ex.percentage ?? null,
+                tempo: ex.tempo ?? null,
+                rest_seconds: ex.restSeconds ?? 90,
+                notes,
+                cluster_sets: ex.config && ex.method === "cluster" ? ex.config : null,
+                drop_sets: ex.config && ex.method === "drop_set" ? ex.config : null,
+              });
+            });
+          });
+          return {
+            session_number: idx + 1,
+            name: d.name,
+            scheduled_day: dayOfWeekIndex(d.dayOfWeek),
+            start_time: (d as any).startTime || null,
+            end_time: (d as any).endTime || null,
+            exercises,
+          };
+        }),
+      }));
+
+      let targetProgramId = programId;
+
+      if (!targetProgramId) {
         const { data: inserted, error: pErr } = await supabase
           .from("training_programs")
           .insert({
@@ -111,134 +156,37 @@ export function useSaveProgramV2() {
           .select("id")
           .single();
         if (pErr) throw pErr;
-        program = inserted;
+        targetProgramId = inserted.id;
       }
 
-      // 2) program_weeks (one per draft week)
-      const weekRows = draft.weeks.map((w) => ({
-        program_id: program.id,
-        week_number: w.weekNumber,
-        name: w.name,
-        block_order: w.weekNumber - 1,
-      }));
-      const { data: weeks, error: wErr } = await supabase
-        .from("program_weeks")
-        .insert(weekRows)
-        .select("id, week_number");
-      if (wErr) throw wErr;
-
-      const weekIdByNumber = new Map(weeks.map((w) => [w.week_number, w.id]));
-
-      // 3) program_sessions (one per draft day)
-      const sessionRowsToInsert: Array<{
-        week_id: string;
-        session_number: number;
-        name: string;
-        scheduled_day: number | null;
-        start_time: string | null;
-        end_time: string | null;
-        _draftDayId: string;
-        _blocks: V2BlockWithExercises[];
-      }> = [];
-
-      draft.weeks.forEach((w) => {
-        const weekId = weekIdByNumber.get(w.weekNumber);
-        if (!weekId) return;
-        w.days.forEach((d, idx) => {
-          sessionRowsToInsert.push({
-            week_id: weekId,
-            session_number: idx + 1,
-            name: d.name,
-            scheduled_day: dayOfWeekIndex(d.dayOfWeek),
-            start_time: (d as any).startTime || null,
-            end_time: (d as any).endTime || null,
-            _draftDayId: d.id,
-            _blocks: (d.blocks as V2BlockWithExercises[]) ?? [],
-          });
-        });
+      // Écriture atomique : l'ancien contenu n'est effacé que si le nouveau
+      // s'insère intégralement (tout ou rien, côté base).
+      const { error: rpcErr } = await (supabase as any).rpc("save_program_v2", {
+        p_program_id: targetProgramId,
+        p_payload: {
+          name: draft.name,
+          description: draft.description || "",
+          level: draft.difficultyLevel,
+          theme_id: draft.themeId ?? "",
+          weeks: weeksPayload,
+        },
       });
+      if (rpcErr) throw rpcErr;
 
-      const { data: sessions, error: sErr } = await supabase
-        .from("program_sessions")
-        .insert(
-          sessionRowsToInsert.map(({ _draftDayId, _blocks, ...row }) => row),
-        )
-        .select("id, week_id, session_number, name");
-      if (sErr) throw sErr;
-
-      // 4) program_exercises (flatten blocks → exercises with block context in notes)
-      type ExerciseInsert = {
-        session_id: string;
-        library_exercise_id: string | null;
-        exercise_name: string;
-        order_index: number;
-        method: string;
-        sets: number;
-        reps: string;
-        percentage_1rm: number | null;
-        tempo: string | null;
-        rest_seconds: number;
-        notes: string;
-        cluster_sets?: any;
-        drop_sets?: any;
-      };
-      const exerciseRows: ExerciseInsert[] = [];
-      sessionRowsToInsert.forEach((sRow, sIdx) => {
-        const session = sessions[sIdx];
-        if (!session) return;
-        let order = 0;
-        sRow._blocks.forEach((block) => {
-          const blockHeader = `<!-- v2-block:${block.type}:${block.name} -->`;
-          (block.exercises ?? []).forEach((ex) => {
-            const baseNotes = ex.notes ?? "";
-            const isTestRef = typeof ex.exerciseId === "string" && ex.exerciseId.startsWith("test:");
-            const testTag = isTestRef ? `<!-- v2-test:${ex.exerciseId.slice(5)} -->` : "";
-            const setsTag = encodeVariableSetsTag(ex.variableSets as any);
-            const xvarsTag = encodeExtraVariablesTag(ex as any);
-            const notes = `${blockHeader}${testTag}${setsTag}${xvarsTag}\n${baseNotes}`.trim();
-
-            const row: ExerciseInsert = {
-              session_id: session.id,
-              library_exercise_id: isTestRef ? null : (ex.exerciseId ?? null),
-              exercise_name: ex.exerciseName,
-              order_index: order++,
-              method: ex.method ?? "normal",
-              sets: ex.sets ?? 3,
-              reps: ex.reps ?? "10",
-              percentage_1rm: ex.percentage ?? null,
-              tempo: ex.tempo ?? null,
-              rest_seconds: ex.restSeconds ?? 90,
-              notes,
-            };
-
-            if (ex.config) {
-              if (ex.method === "cluster") row.cluster_sets = ex.config;
-              if (ex.method === "drop_set") row.drop_sets = ex.config;
-            }
-            exerciseRows.push(row);
-          });
-        });
-      });
-
-      if (exerciseRows.length > 0) {
-        const { error: exErr } = await supabase
-          .from("program_exercises")
-          .insert(exerciseRows);
-        if (exErr) throw exErr;
-      }
-
-      return { programId: program.id };
+      return { programId: targetProgramId! };
     },
     onSuccess: ({ programId }) => {
       toast.success("Programme enregistré ✅");
       qc.invalidateQueries({ queryKey: ["training-programs"] });
       qc.invalidateQueries({ queryKey: ["program", programId] });
+      qc.invalidateQueries({ queryKey: ["program-v2-edit", programId] });
     },
     onError: (err: any) => {
       toast.error(err?.message ?? "Échec de l'enregistrement du programme");
     },
   });
 }
+
 
 function dayOfWeekIndex(id: string): number | null {
   const map: Record<string, number> = {
