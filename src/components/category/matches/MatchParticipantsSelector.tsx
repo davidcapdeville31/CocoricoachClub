@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { CheckCircle2, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
+import { PlayerGroupChips } from "@/components/category/players/PlayerGroupChips";
 import {
   getJudoAgeCategories,
   isEligibleForJudoAgeCategory,
@@ -111,6 +112,13 @@ export function MatchParticipantsSelector({
           .
         </p>
       )}
+
+      <PlayerGroupChips
+        categoryId={categoryId}
+        value={value}
+        onChange={onChange}
+        availableIds={list.map((p: any) => p.id)}
+      />
 
       <div className="max-h-[220px] overflow-y-auto rounded-lg border border-border/70 bg-muted/20 p-2 dark:bg-muted/10">
         {list.length === 0 ? (

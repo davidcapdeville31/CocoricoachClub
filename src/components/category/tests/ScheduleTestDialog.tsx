@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { PlayerGroupChips } from "@/components/category/players/PlayerGroupChips";
 import { toast } from "sonner";
 import { CalendarPlus, Users } from "lucide-react";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";

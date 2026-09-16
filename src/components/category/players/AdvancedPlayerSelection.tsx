@@ -28,6 +28,7 @@ import { AthleteIdentityBadges } from "@/components/player/AthleteIdentityBadges
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
+import { PlayerGroupChips } from "@/components/category/players/PlayerGroupChips";
 
 interface Player {
   id: string;
@@ -320,6 +321,17 @@ export function AdvancedPlayerSelection({
               })}
             </div>
           )}
+
+          <PlayerGroupChips
+            categoryId={categoryId}
+            value={selectedPlayers}
+            onChange={(ids) => {
+              onSelectionChange(ids);
+              onSelectionModeChange("specific");
+            }}
+            availableIds={players.map((p) => p.id)}
+            className="p-2 border rounded-lg bg-muted/30"
+          />
 
           {/* Search and filter row */}
           <div className="flex gap-2">
