@@ -1,62 +1,43 @@
-## Contexte
+# Groupes d'athlètes personnalisables
 
-Sur M14, le benchmark "Squat - 1RM" a été créé avec `test_type = squat_1rm` (preset) et un ratio 1x/1.5x/2x/2.5x PDC. Mais le résultat saisi a été enregistré sous `test_type = custom:fcf7...b1368` (test personnalisé « Squat 3RM »). Les deux ne se rencontrent jamais → aucun affichage.
+Créer des groupes d'athlètes dans « Effectif » et pouvoir les utiliser comme raccourci de sélection partout où l'on convoque des athlètes (événements, tests, musculation, compétitions, programmes).
 
-De plus, l'écran de gestion/comparaison des barèmes (`BenchmarkManager` + `BenchmarkComparison`) existe dans le code mais **n'est monté nulle part** dans l'app. Il est inaccessible aujourd'hui.
+## Ce que tu pourras faire
 
-## Ce que je vais faire
+Dans Effectif :
+- Un bouton « Groupes » ouvre la gestion : créer un groupe (nom, couleur), y ajouter/retirer des athlètes, renommer, supprimer.
+- Un athlète peut appartenir à plusieurs groupes (ex. « Gardiennes », « Groupe force », « Section sportive »).
+- Les groupes sont propres à la catégorie et visibles par tout le staff de la catégorie.
 
-### 1. Matching benchmark ↔ test (les deux options)
+Partout où l'on choisit des athlètes :
+- Une ligne de pastilles de groupes au-dessus de la liste. Cliquer sur une pastille coche tous les athlètes du groupe (recliquer les décoche).
+- Le bouton « Tous les athlètes » reste disponible.
+- La sélection individuelle reste possible et se combine librement avec les groupes.
 
-**a) Sélecteur direct des tests personnalisés** dans l'éditeur de benchmark (`BenchmarkManager`)  
-Sous chaque catégorie de test, ajouter en fin de liste les tests personnalisés de la catégorie (source : table `custom_tests`), affichés comme `⭐ Nom (personnalisé)` avec la valeur `custom:<uuid>`. Auto-remplit l'unité.
+## Où ce sélecteur est mis à jour
 
-**b) Fallback par nom** dans `BenchmarkComparison`  
-Si `benchmark.test_type` ne matche aucun résultat, tenter un match par nom :  
-– Si le benchmark cible un preset (`squat_1rm`) → chercher un `custom_tests.name` équivalent (normalisation : minuscules, retrait des espaces/tirets, ex : « squat 3rm » ≈ « squat_3rm »).  
-– Si le benchmark cible `custom:<uuid>` → match direct.
+- Convocation aux compétitions / événements
+- Planification de tests
+- Séances (terrain, musculation, séance simplifiée)
+- Assignation de programmes
+- Cycles de la vue annuelle
 
-**c) Fix bug ratio PDC**  
-Aujourd'hui `use_body_weight_ratio = true` sans `body_weight_multiplier` n'applique **rien** (ratios stockés dans les seuils sont ignorés). Corriger : quand les seuils sont déjà des ratios (< 10), les multiplier par le poids de l'athlète.
-
-### 2. Rendre l'écran barèmes accessible
-
-Ajouter `BenchmarkTab` dans l'onglet Tests de la catégorie (module transversal, dispo pour toutes disciplines) — sous-onglet « Barèmes ». On y trouve le `BenchmarkManager` (créer/éditer) + `BenchmarkComparison` (vue globale effectif × barèmes).
-
-### 3. Vue globale d'effectif
-
-`BenchmarkComparison` est déjà quasi-complète (tableau joueurs × barèmes avec badge coloré du niveau). Je :
-- l'améliore avec le matching custom (point 1),
-- ajoute filtre par poste pour ne montrer que les benchmarks pertinents,
-- affiche le poids de corps pris pour le calcul quand un ratio PDC est utilisé.
-
-### 4. Vue athlète (espace athlète)
-
-Dans l'espace athlète → Performance → Tests, ajouter un panneau « Ton niveau » qui, pour chaque test réalisé, affiche :
-- la valeur perso, l'évolution (déjà présent),
-- **le badge du niveau atteint** vis-à-vis du meilleur barème matchant son poste (via `useSuggestedBenchmarks` + logique de niveau de `BenchmarkComparison`),
-- le prochain palier à atteindre.
-
-### 5. Barèmes par poste
-
-Déjà supporté (`filter_type=position`, `filter_value=pilier|…`). Aucun changement structurel. Je m'assure que l'éditeur permet bien de dupliquer un barème pour créer une variante par poste (bouton « Dupliquer pour un autre poste » dans `BenchmarkManager`).
+Générique : disponible pour toutes les disciplines.
 
 ## Détails techniques
 
-Fichiers touchés :
-- `src/components/category/benchmarks/BenchmarkManager.tsx` — ajout options custom_tests dans le Select "Test", bouton dupliquer.
-- `src/components/category/benchmarks/BenchmarkComparison.tsx` — matching custom, fallback par nom, fix ratio PDC, filtre poste.
-- `src/hooks/useSuggestedBenchmarks.ts` — même logique de matching custom pour `getBestBenchmarkFor`.
-- Nouveau `src/lib/benchmarks/matchTestType.ts` — helper partagé (normalisation, résolution custom↔preset).
-- Nouveau `src/lib/benchmarks/computeLevel.ts` — logique de niveau extraite (utilisée par comparison + espace athlète).
-- Montage de `BenchmarkTab` dans l'onglet Tests de la catégorie (sous-onglet « Barèmes »).
-- Espace athlète Tests : nouvelle carte « Ton niveau vs barème » utilisant `useSuggestedBenchmarks` + `computeLevel`.
+Base de données (Lovable Cloud) :
+- `player_groups` : id, category_id, name, color, created_by, created_at, unique (category_id, lower(name)).
+- `player_group_members` : id, group_id (FK cascade), player_id (FK cascade), unique (group_id, player_id).
+- GRANT select/insert/update/delete à `authenticated`, ALL à `service_role`.
+- RLS : lecture pour tout utilisateur pouvant accéder à la catégorie (`can_access_category`) ; écriture réservée au staff pouvant modifier la catégorie (même fonction, exclusion des athlètes via `is_category_athlete`).
 
-Aucune migration DB nécessaire (la structure `benchmarks` couvre déjà tous les besoins).
+Front :
+- `src/hooks/usePlayerGroups.ts` : lecture des groupes + membres (queryKey `["player-groups", categoryId]`), mutations create/rename/delete/setMembers avec invalidation.
+- `src/components/category/players/PlayerGroupsManagerDialog.tsx` : gestion complète (liste des groupes, édition des membres via la liste d'effectif avec recherche).
+- Bouton « Groupes » ajouté dans `EffectifTab.tsx` à côté du filtre saison.
+- `src/components/category/players/PlayerGroupChips.tsx` : barre de pastilles réutilisable (props `categoryId`, `value`, `onChange`, `availableIds`) — coche/décoche l'union des membres du groupe présents dans la liste affichée ; état actif si tous les membres sont sélectionnés.
+- Intégration des pastilles dans `AdvancedPlayerSelection.tsx`, `MatchParticipantsSelector.tsx`, `ScheduleTestDialog.tsx` et le sélecteur de participants des cycles, sans changer leurs API existantes (`value` / `onChange`).
+- Zones verrouillées (création de séance athlète, RPE, Wellness) non touchées : seule la sélection staff est enrichie.
 
-## Résultat attendu
-
-- Le Squat 3RM saisi (50 kg) apparaîtra bien dans la vue globale avec son badge (par ex. « Excellent » car 50/poids ≥ ratio élite).
-- Vue effectif accessible depuis Catégorie → Tests → Barèmes, filtrable par poste.
-- Athlète voit son niveau perso et son prochain palier.
-- Chaque poste peut avoir son propre barème avec ratios différents.
+Vérification : `bunx tsgo --noEmit` puis contrôle visuel du sélecteur de convocation.
