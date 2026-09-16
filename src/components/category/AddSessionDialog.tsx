@@ -1004,6 +1004,13 @@ export function AddSessionDialog({
                           )}
                         </div>
 
+                        <PlayerGroupChips
+                          categoryId={categoryId}
+                          value={selectedPlayers}
+                          onChange={setSelectedPlayers}
+                          availableIds={(players || []).map((p: any) => p.id)}
+                        />
+
                         {selectedPlayers.length > 0 && (
                           <Badge variant="secondary" className="w-fit">
                             {selectedPlayers.length} joueur(s) sélectionné(s)
