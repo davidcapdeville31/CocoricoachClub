@@ -80,7 +80,7 @@ export function usePlayerGroupMutations(categoryId: string) {
 
   const updateGroup = useMutation({
     mutationFn: async ({ id, name, color }: { id: string; name?: string; color?: string }) => {
-      const payload: Record<string, unknown> = {};
+      const payload: { name?: string; color?: string } = {};
       if (name !== undefined) {
         const trimmed = name.trim();
         if (!trimmed) throw new Error("Nom du groupe requis");
