@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  X, Bike, Waves, PersonStanding, Timer, MapPin, Repeat, Hash, Heart, Gauge, Zap, Activity, Clock, Edit2,
+  X, Bike, Waves, Rows3, Snowflake, Fan, PersonStanding, Timer, MapPin, Repeat, Hash, Heart, Gauge, Zap, Activity, Clock, Edit2,
 } from "lucide-react";
 import {
   IntermittentCardioConfig,
@@ -24,6 +24,9 @@ const SUPPORT_ICONS: Record<string, React.ReactNode> = {
   running: <PersonStanding className="h-4 w-4" />,
   cycling: <Bike className="h-4 w-4" />,
   swimming: <Waves className="h-4 w-4" />,
+  rowing: <Rows3 className="h-4 w-4" />,
+  skierg: <Snowflake className="h-4 w-4" />,
+  assault_bike: <Fan className="h-4 w-4" />,
 };
 
 export const IntermittentCardioCard = ({

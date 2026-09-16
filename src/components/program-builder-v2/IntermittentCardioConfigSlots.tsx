@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { 
   X, 
-  Bike, 
+  Bike, Rows3, Snowflake, Fan, 
   Waves, 
   PersonStanding,
   Timer,
@@ -64,6 +64,9 @@ const SUPPORT_ICONS: Record<IntermittentCardioSupport, React.ReactNode> = {
   running: <PersonStanding className="h-5 w-5" />,
   cycling: <Bike className="h-5 w-5" />,
   swimming: <Waves className="h-5 w-5" />,
+  rowing: <Rows3 className="h-5 w-5" />,
+  skierg: <Snowflake className="h-5 w-5" />,
+  assault_bike: <Fan className="h-5 w-5" />,
 };
 
 export const IntermittentCardioConfigSlots = ({
