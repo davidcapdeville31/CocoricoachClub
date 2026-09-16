@@ -466,7 +466,12 @@ export function CreateTrainingProgramV2({
   }, [draft, categoryId, programId, saveProgram, onClose, validate]);
 
   const handleSaveAndAssign = useCallback(() => {
+    if (isEditMode && !hydrated) {
+      toast.error("Chargement du programme en cours — réessaie dans un instant.");
+      return;
+    }
     if (!validate()) return;
+
     setPendingAction("assign");
     saveProgram.mutate(
       { draft, categoryId, programId },
