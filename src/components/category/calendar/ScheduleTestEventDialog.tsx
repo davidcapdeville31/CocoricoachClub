@@ -850,6 +850,12 @@ export function ScheduleTestEventDialog({
                 </Label>
               </div>
             </div>
+            <PlayerGroupChips
+              categoryId={categoryId}
+              value={selectedPlayers}
+              onChange={setSelectedPlayers}
+              availableIds={(players || []).map((p: any) => p.id)}
+            />
             <ScrollArea className="h-[160px] rounded-2xl border bg-muted/20 p-2">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                 {(players || []).map((p) => {

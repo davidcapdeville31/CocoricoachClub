@@ -33,6 +33,7 @@ import { toast } from "sonner";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
 import { useTranslation } from "react-i18next";
 import { AthletePartnersSelector } from "@/components/athlete-space/AthletePartnersSelector";
+import { PlayerGroupChips } from "@/components/category/players/PlayerGroupChips";
 
 export interface EditingMentalSession {
   id: string;
@@ -882,7 +883,14 @@ export function CreateEventDialog({
                     </span>
                   </div>
                 </div>
-                
+
+                <PlayerGroupChips
+                  categoryId={categoryId}
+                  value={selectedPlayers}
+                  onChange={setSelectedPlayers}
+                  availableIds={(players || []).map((p: any) => p.id)}
+                />
+
                 <div className="max-h-[200px] overflow-y-auto rounded-lg border border-border/70 bg-muted/20 p-2 dark:bg-muted/10">
                   <div className="grid grid-cols-2 gap-2">
                     {players?.map((player) => {

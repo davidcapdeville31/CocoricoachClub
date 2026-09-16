@@ -253,6 +253,12 @@ export function AddVideoAnalysisDialog({
                   <Users className="h-4 w-4" />
                   {terminology.playersLabel} concerné(e)s (optionnel)
                 </Label>
+                <PlayerGroupChips
+                  categoryId={categoryId}
+                  value={selectedPlayers}
+                  onChange={setSelectedPlayers}
+                  availableIds={(players || []).map((p: any) => p.id)}
+                />
                 <div className="h-32 border rounded-md p-2 overflow-y-auto">
                   <div className="space-y-2">
                     {players?.map((player) => (

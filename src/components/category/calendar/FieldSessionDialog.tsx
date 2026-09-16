@@ -34,6 +34,7 @@ import {
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
 import { AthletePartnersSelector } from "@/components/athlete-space/AthletePartnersSelector";
+import { PlayerGroupChips } from "@/components/category/players/PlayerGroupChips";
 
 const BASKET_PRECISION_THEMES = new Set(["basketball_lf", "basketball_paint", "basketball_3pts"]);
 
