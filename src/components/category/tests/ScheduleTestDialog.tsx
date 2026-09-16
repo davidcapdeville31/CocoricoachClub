@@ -235,6 +235,14 @@ export function ScheduleTestDialog({
               <span className="text-sm font-medium">Tous les athlètes de la catégorie</span>
             </label>
             {!allAthletes && (
+              <PlayerGroupChips
+                categoryId={categoryId}
+                value={selectedPlayerIds}
+                onChange={setSelectedPlayerIds}
+                availableIds={players.map((p) => p.id)}
+              />
+            )}
+            {!allAthletes && (
               <div className="max-h-40 overflow-y-auto rounded-xl border border-border bg-surface-sunken p-2 space-y-1">
                 {players.map((p) => (
                   <label
