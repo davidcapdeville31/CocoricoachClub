@@ -28,6 +28,7 @@ import { V2ExerciseBankSidebar, type PickedExerciseRich } from "./V2ExerciseBank
 import type { V2BlockExercise, V2BlockWithExercises } from "./hooks/useSaveProgramV2";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
 import { AthletePartnersSelector } from "@/components/athlete-space/AthletePartnersSelector";
+import { PlayerGroupChips } from "@/components/category/players/PlayerGroupChips";
 
 interface SessionEditorV2Props {
   open: boolean;
