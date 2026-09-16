@@ -881,8 +881,17 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
                   type="number"
                   min={1}
                   max={10}
-                  value={plannedRpe}
-                  onChange={(e) => setPlannedRpe(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
+                  value={plannedRpeDraft ?? String(plannedRpe)}
+                  onFocus={(e) => e.currentTarget.select()}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    setPlannedRpeDraft(raw);
+                    const parsed = parseInt(raw, 10);
+                    if (!Number.isNaN(parsed)) {
+                      setPlannedRpe(Math.max(1, Math.min(10, parsed)));
+                    }
+                  }}
+                  onBlur={() => setPlannedRpeDraft(null)}
                   className="h-9 w-24"
                   title="RPE prévu — non visible par l'athlète, alimente RPE prévu/réel"
                 />
