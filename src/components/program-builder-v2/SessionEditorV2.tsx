@@ -938,6 +938,13 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
                   </button>
                 </div>
               </div>
+              <PlayerGroupChips
+                categoryId={categoryId}
+                value={selectedPlayers}
+                onChange={setSelectedPlayers}
+                availableIds={visiblePlayers.map((p) => p.id)}
+                className="mb-2"
+              />
               <ScrollArea className="h-32 pr-2">
                 <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
                   {visiblePlayers.map((p) => {
