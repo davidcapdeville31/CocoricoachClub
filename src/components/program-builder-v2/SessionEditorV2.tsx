@@ -28,6 +28,7 @@ import { V2ExerciseBankSidebar, type PickedExerciseRich } from "./V2ExerciseBank
 import type { V2BlockExercise, V2BlockWithExercises } from "./hooks/useSaveProgramV2";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
 import { AthletePartnersSelector } from "@/components/athlete-space/AthletePartnersSelector";
+import { PlayerGroupChips } from "@/components/category/players/PlayerGroupChips";
 
 interface SessionEditorV2Props {
   open: boolean;
@@ -938,6 +939,13 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
                   </button>
                 </div>
               </div>
+              <PlayerGroupChips
+                categoryId={categoryId}
+                value={selectedPlayers}
+                onChange={setSelectedPlayers}
+                availableIds={visiblePlayers.map((p) => p.id)}
+                className="mb-2"
+              />
               <ScrollArea className="h-32 pr-2">
                 <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
                   {visiblePlayers.map((p) => {
