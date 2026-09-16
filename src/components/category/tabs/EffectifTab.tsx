@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { PlayersTab } from "@/components/category/PlayersTab";
 import { Button } from "@/components/ui/button";
-import { FileSpreadsheet } from "lucide-react";
+import { FileSpreadsheet, Users } from "lucide-react";
+import { PlayerGroupsManagerDialog } from "@/components/category/players/PlayerGroupsManagerDialog";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getMainSportFromType } from "@/lib/constants/sportTypes";
@@ -14,6 +15,7 @@ interface EffectifTabProps {
 
 export function EffectifTab({ categoryId }: EffectifTabProps) {
   const [fisImportOpen, setFisImportOpen] = useState(false);
+  const [groupsOpen, setGroupsOpen] = useState(false);
 
   const { data: category } = useQuery({
     queryKey: ["category-sport-effectif", categoryId],
@@ -36,6 +38,15 @@ export function EffectifTab({ categoryId }: EffectifTabProps) {
     <div className="space-y-4">
       <div className="flex justify-end flex-wrap gap-2">
         <SeasonRosterFilterToggle />
+        <Button variant="outline" size="sm" onClick={() => setGroupsOpen(true)}>
+          <Users className="h-4 w-4 mr-2" />
+          Groupes
+        </Button>
+        <PlayerGroupsManagerDialog
+          open={groupsOpen}
+          onOpenChange={setGroupsOpen}
+          categoryId={categoryId}
+        />
         {isSkiSport && (
           <>
             <Button variant="outline" size="sm" onClick={() => setFisImportOpen(true)}>

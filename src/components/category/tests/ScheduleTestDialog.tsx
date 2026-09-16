@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { PlayerGroupChips } from "@/components/category/players/PlayerGroupChips";
 import { toast } from "sonner";
 import { CalendarPlus, Users } from "lucide-react";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
@@ -234,6 +235,14 @@ export function ScheduleTestDialog({
               />
               <span className="text-sm font-medium">Tous les athlètes de la catégorie</span>
             </label>
+            {!allAthletes && (
+              <PlayerGroupChips
+                categoryId={categoryId}
+                value={selectedPlayerIds}
+                onChange={setSelectedPlayerIds}
+                availableIds={players.map((p) => p.id)}
+              />
+            )}
             {!allAthletes && (
               <div className="max-h-40 overflow-y-auto rounded-xl border border-border bg-surface-sunken p-2 space-y-1">
                 {players.map((p) => (
