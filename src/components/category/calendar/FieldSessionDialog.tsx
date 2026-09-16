@@ -963,6 +963,12 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                   <span className="text-xs">Tous</span>
                 </div>
               </div>
+              <PlayerGroupChips
+                categoryId={categoryId}
+                value={selectedPlayers}
+                onChange={setSelectedPlayers}
+                availableIds={(players || []).map((p) => p.id)}
+              />
               <div className="max-h-[200px] overflow-y-auto rounded-lg border border-border/70 bg-muted/20 p-2 grid grid-cols-2 gap-1">
                 {players?.map((p) => {
                   const sel = selectedPlayers.includes(p.id);
