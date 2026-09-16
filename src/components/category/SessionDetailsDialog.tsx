@@ -327,7 +327,9 @@ export function SessionDetailsDialog({
 
   const eventParticipants = useMemo(() => {
     const rows = rawEventParticipants || [];
-    if (!rows.length && !rosterPlayers?.length) return rows;
+    // Convocation explicite : on n'affiche QUE les athlètes sélectionnés.
+    if (rows.length > 0) return rows;
+    if (!rosterPlayers?.length) return rows;
     if (isAthletePrivateSession) return rows;
     const responded = new Set(rows.map((r: any) => r.player_id));
     const missing = (rosterPlayers || [])
