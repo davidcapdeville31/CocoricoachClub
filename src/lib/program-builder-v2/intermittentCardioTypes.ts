@@ -75,6 +75,23 @@ export const INTENSITY_OPTIONS_BY_SUPPORT: Record<IntermittentCardioSupport, Int
     { type: 'hr', label: 'FC', unit: 'bpm', placeholder: '150', min: 60, max: 220, step: 1 },
     { type: 'rpe', label: 'RPE', unit: '/10', placeholder: '7', min: 1, max: 10, step: 0.5 },
   ],
+  rowing: [
+    { type: 'power', label: 'Puissance', unit: 'watts', placeholder: '250', min: 0, max: 2000, step: 5 },
+    { type: 'pace', label: 'Allure', unit: '/500m', placeholder: '1:50', min: 0 },
+    { type: 'hr', label: 'FC', unit: 'bpm', placeholder: '160', min: 60, max: 220, step: 1 },
+    { type: 'rpe', label: 'RPE', unit: '/10', placeholder: '8', min: 1, max: 10, step: 0.5 },
+  ],
+  skierg: [
+    { type: 'power', label: 'Puissance', unit: 'watts', placeholder: '200', min: 0, max: 2000, step: 5 },
+    { type: 'pace', label: 'Allure', unit: '/500m', placeholder: '2:00', min: 0 },
+    { type: 'hr', label: 'FC', unit: 'bpm', placeholder: '160', min: 60, max: 220, step: 1 },
+    { type: 'rpe', label: 'RPE', unit: '/10', placeholder: '8', min: 1, max: 10, step: 0.5 },
+  ],
+  assault_bike: [
+    { type: 'power', label: 'Puissance', unit: 'watts', placeholder: '300', min: 0, max: 2000, step: 5 },
+    { type: 'hr', label: 'FC', unit: 'bpm', placeholder: '165', min: 60, max: 220, step: 1 },
+    { type: 'rpe', label: 'RPE', unit: '/10', placeholder: '8', min: 1, max: 10, step: 0.5 },
+  ],
 };
 
 // Support labels and icons
