@@ -2523,7 +2523,8 @@ export function SessionFormDialog({
                 step="0.01"
                 className="h-8 text-xs"
                 placeholder="1.0"
-                value={exercise.target_rpe || ""}
+                value={exercise.target_rpe ?? ""}
+                onFocus={(e) => e.currentTarget.select()}
                 onChange={(e) => updateExercise(index, "target_rpe", e.target.value ? parseFloat(e.target.value) : null)}
               />
             </div>
@@ -2655,7 +2656,8 @@ export function SessionFormDialog({
                       step="0.01"
                       className="h-7 text-xs w-20"
                       placeholder="1.0"
-                      value={exercise.target_rpe || ""}
+                      value={exercise.target_rpe ?? ""}
+                onFocus={(e) => e.currentTarget.select()}
                       onChange={(e) => updateExercise(index, "target_rpe", e.target.value ? parseFloat(e.target.value) : null)}
                     />
                   </div>
