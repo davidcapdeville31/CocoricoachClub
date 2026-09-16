@@ -238,6 +238,7 @@ const VariableInput = ({ config, value, onChange, onRemove, compact = false, loc
                 type="text"
                 value={displayValue ?? ""}
                 onChange={(e) => handleChange(e.target.value)}
+                onFocus={(e) => e.currentTarget.select()}
                 onPointerDown={(e) => e.stopPropagation()}
                 className="h-7 text-xs px-1.5 w-12"
                 placeholder={config.placeholder}
@@ -274,6 +275,7 @@ const VariableInput = ({ config, value, onChange, onRemove, compact = false, loc
           step={config.step}
           value={displayValue ?? ""}
           onChange={(e) => handleChange(e.target.value)}
+          onFocus={(e) => e.currentTarget.select()}
           onPointerDown={(e) => e.stopPropagation()}
           className={cn("h-7 text-xs px-1.5", config.key === 'tempo' ? "w-[72px]" : "w-16")}
           placeholder={config.placeholder}

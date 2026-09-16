@@ -377,7 +377,8 @@ function ExerciseSlotCard({
                         step="0.01"
                         className="h-8 text-xs"
                         placeholder="1.0"
-                        value={exercise.target_rpe || ""}
+                        value={exercise.target_rpe ?? ""}
+                onFocus={(e) => e.currentTarget.select()}
                         onChange={(e) => onUpdateExercise(exerciseIndex, "target_rpe", parseFloat(e.target.value) || null)}
                       />
                     </div>
@@ -768,7 +769,8 @@ function PyramidBlock({
                 min="1"
                 max="10"
                 className="h-8 w-16 text-sm"
-                value={exercise.target_rpe || ""}
+                value={exercise.target_rpe ?? ""}
+                onFocus={(e) => e.currentTarget.select()}
                 onChange={(e) => onUpdateExercise(exerciseIndex, "target_rpe", parseInt(e.target.value) || null)}
               />
             </div>
@@ -1608,7 +1610,8 @@ function IsometricOvercomingBlock({
               <div>
                 <Label className="text-xs text-muted-foreground">{t("planning.calendarDialogs.sessionForm.methodBlocks.targetRpe")}</Label>
                 <Input type="number" min="1" max="10" className="h-8 text-xs" placeholder="10"
-                  value={exercise.target_rpe || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "target_rpe", parseInt(e.target.value) || null)} />
+                  value={exercise.target_rpe ?? ""}
+                onFocus={(e) => e.currentTarget.select()} onChange={(e) => onUpdateExercise(exerciseIndex, "target_rpe", parseInt(e.target.value) || null)} />
               </div>
             </div>
 
@@ -1713,7 +1716,8 @@ function IsometricYieldingBlock({
                 <div>
                   <Label className="text-xs text-muted-foreground">{t("planning.calendarDialogs.sessionForm.methodBlocks.targetRpe")}</Label>
                   <Input type="number" min="1" max="10" className="h-8 text-xs" placeholder="7-9"
-                    value={exercise.target_rpe || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "target_rpe", parseInt(e.target.value) || null)} />
+                    value={exercise.target_rpe ?? ""}
+                onFocus={(e) => e.currentTarget.select()} onChange={(e) => onUpdateExercise(exerciseIndex, "target_rpe", parseInt(e.target.value) || null)} />
                 </div>
               </div>
               <div className="mt-2">
@@ -1807,7 +1811,8 @@ function IsoMaxBlock({
                 <div>
                   <Label className="text-xs text-muted-foreground">{t("planning.calendarDialogs.sessionForm.methodBlocks.targetRpe")}</Label>
                   <Input type="number" min="1" max="10" className="h-8 text-xs" placeholder="9-10"
-                    value={exercise.target_rpe || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "target_rpe", parseInt(e.target.value) || null)} />
+                    value={exercise.target_rpe ?? ""}
+                onFocus={(e) => e.currentTarget.select()} onChange={(e) => onUpdateExercise(exerciseIndex, "target_rpe", parseInt(e.target.value) || null)} />
                 </div>
               </div>
               <div className="mt-2">
@@ -2084,7 +2089,8 @@ function StatoDynamiqueBlock({
                 <div>
                   <Label className="text-xs text-muted-foreground">{t("planning.calendarDialogs.sessionForm.methodBlocks.targetRpe")}</Label>
                   <Input type="number" min="1" max="10" className="h-8 text-xs" placeholder="8"
-                    value={exercise.target_rpe || ""}
+                    value={exercise.target_rpe ?? ""}
+                onFocus={(e) => e.currentTarget.select()}
                     onChange={(e) => onUpdateExercise(exerciseIndex, "target_rpe", parseInt(e.target.value) || null)} />
                 </div>
               </div>
@@ -2286,7 +2292,8 @@ function DropSetBlock({
                 min="1"
                 max="10"
                 className="h-8 w-16 text-sm"
-                value={exercise.target_rpe || ""}
+                value={exercise.target_rpe ?? ""}
+                onFocus={(e) => e.currentTarget.select()}
                 onChange={(e) => onUpdateExercise(exerciseIndex, "target_rpe", parseInt(e.target.value) || null)}
               />
             </div>
