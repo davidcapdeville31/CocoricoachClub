@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { PlayersTab } from "@/components/category/PlayersTab";
 import { Button } from "@/components/ui/button";
-import { FileSpreadsheet } from "lucide-react";
+import { FileSpreadsheet, Users } from "lucide-react";
+import { PlayerGroupsManagerDialog } from "@/components/category/players/PlayerGroupsManagerDialog";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getMainSportFromType } from "@/lib/constants/sportTypes";
