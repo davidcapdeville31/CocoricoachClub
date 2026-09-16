@@ -1239,10 +1239,11 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                               )}
                             </div>
                           </TableCell>
-                          {allDates.map((d) => {
-                            const point = series.find((s) => s.date === d);
-                            const sIdx = series.findIndex((s) => s.date === d);
-                            const prevPoint = sIdx > 0 ? series[sIdx - 1] : null;
+                          {passIndexes.map((i) => {
+                            const d = series[i]?.date;
+                            const point = series[i];
+                            const prevPoint = i > 0 ? series[i - 1] : null;
+
                             const stepUseKg =
                               isRatio && point?.rawKg != null && prevPoint?.rawKg != null;
                             const stepDelta =
