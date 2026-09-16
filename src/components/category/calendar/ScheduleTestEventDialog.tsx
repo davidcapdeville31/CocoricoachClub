@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { PlayerGroupChips } from "@/components/category/players/PlayerGroupChips";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -850,6 +851,12 @@ export function ScheduleTestEventDialog({
                 </Label>
               </div>
             </div>
+            <PlayerGroupChips
+              categoryId={categoryId}
+              value={selectedPlayers}
+              onChange={setSelectedPlayers}
+              availableIds={(players || []).map((p: any) => p.id)}
+            />
             <ScrollArea className="h-[160px] rounded-2xl border bg-muted/20 p-2">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                 {(players || []).map((p) => {

@@ -37,6 +37,7 @@ import { SessionGpsImport, type GpsPlayerData } from "@/components/category/gps/
 import { SessionBlocksManager, type SessionBlock } from "@/components/category/sessions/SessionBlocksManager";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
+import { PlayerGroupChips } from "@/components/category/players/PlayerGroupChips";
 
 interface AddSessionDialogProps {
   open: boolean;
@@ -1003,6 +1004,13 @@ export function AddSessionDialog({
                             </Button>
                           )}
                         </div>
+
+                        <PlayerGroupChips
+                          categoryId={categoryId}
+                          value={selectedPlayers}
+                          onChange={setSelectedPlayers}
+                          availableIds={(players || []).map((p: any) => p.id)}
+                        />
 
                         {selectedPlayers.length > 0 && (
                           <Badge variant="secondary" className="w-fit">
