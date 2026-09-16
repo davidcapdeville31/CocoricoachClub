@@ -4,7 +4,13 @@
  */
 
 // Support types for intermittent cardio
-export type IntermittentCardioSupport = 'running' | 'cycling' | 'swimming';
+export type IntermittentCardioSupport =
+  | 'running'
+  | 'cycling'
+  | 'swimming'
+  | 'rowing'
+  | 'skierg'
+  | 'assault_bike';
 
 // Effort/Recovery mode: by time or by distance
 export type EffortMode = 'duration' | 'distance';
@@ -69,6 +75,23 @@ export const INTENSITY_OPTIONS_BY_SUPPORT: Record<IntermittentCardioSupport, Int
     { type: 'hr', label: 'FC', unit: 'bpm', placeholder: '150', min: 60, max: 220, step: 1 },
     { type: 'rpe', label: 'RPE', unit: '/10', placeholder: '7', min: 1, max: 10, step: 0.5 },
   ],
+  rowing: [
+    { type: 'power', label: 'Puissance', unit: 'watts', placeholder: '250', min: 0, max: 2000, step: 5 },
+    { type: 'pace', label: 'Allure', unit: '/500m', placeholder: '1:50', min: 0 },
+    { type: 'hr', label: 'FC', unit: 'bpm', placeholder: '160', min: 60, max: 220, step: 1 },
+    { type: 'rpe', label: 'RPE', unit: '/10', placeholder: '8', min: 1, max: 10, step: 0.5 },
+  ],
+  skierg: [
+    { type: 'power', label: 'Puissance', unit: 'watts', placeholder: '200', min: 0, max: 2000, step: 5 },
+    { type: 'pace', label: 'Allure', unit: '/500m', placeholder: '2:00', min: 0 },
+    { type: 'hr', label: 'FC', unit: 'bpm', placeholder: '160', min: 60, max: 220, step: 1 },
+    { type: 'rpe', label: 'RPE', unit: '/10', placeholder: '8', min: 1, max: 10, step: 0.5 },
+  ],
+  assault_bike: [
+    { type: 'power', label: 'Puissance', unit: 'watts', placeholder: '300', min: 0, max: 2000, step: 5 },
+    { type: 'hr', label: 'FC', unit: 'bpm', placeholder: '165', min: 60, max: 220, step: 1 },
+    { type: 'rpe', label: 'RPE', unit: '/10', placeholder: '8', min: 1, max: 10, step: 0.5 },
+  ],
 };
 
 // Support labels and icons
@@ -104,21 +127,65 @@ export const SUPPORT_CONFIG: Record<IntermittentCardioSupport, {
     defaultEffortDistance: 100,
     defaultRecoveryDistance: 50,
   },
+  rowing: {
+    label: 'Rameur',
+    icon: 'Rows3',
+    distanceUnit: 'mètres',
+    distanceUnitShort: 'm',
+    defaultEffortDistance: 250,
+    defaultRecoveryDistance: 100,
+  },
+  skierg: {
+    label: 'SkiErg',
+    icon: 'Snowflake',
+    distanceUnit: 'mètres',
+    distanceUnitShort: 'm',
+    defaultEffortDistance: 250,
+    defaultRecoveryDistance: 100,
+  },
+  assault_bike: {
+    label: 'Assault Bike',
+    icon: 'Fan',
+    distanceUnit: 'mètres',
+    distanceUnitShort: 'm',
+    defaultEffortDistance: 500,
+    defaultRecoveryDistance: 200,
+  },
+};
+
+// Rough speed estimates (m/s) used to convert a distance into a duration
+export const SUPPORT_SPEED_ESTIMATE: Record<IntermittentCardioSupport, number> = {
+  running: 4,
+  cycling: 8,
+  swimming: 1.5,
+  rowing: 4.5,
+  skierg: 3.5,
+  assault_bike: 9,
 };
 
 // Default configuration for new intermittent cardio
-export const getDefaultIntermittentConfig = (support: IntermittentCardioSupport = 'running'): IntermittentCardioConfig => ({
-  support,
-  repetitions: 6,
-  series: 1,
-  effortMode: 'duration',
-  effortDurationSeconds: 30,
-  recoveryMode: 'duration',
-  recoveryDurationSeconds: 30,
-  interSeriesRecoverySeconds: 180,
-  intensityType: 'percentage',
-  intensityValue: support === 'running' ? 100 : support === 'cycling' ? 90 : undefined,
-});
+export const getDefaultIntermittentConfig = (support: IntermittentCardioSupport = 'running'): IntermittentCardioConfig => {
+  const firstIntensity = INTENSITY_OPTIONS_BY_SUPPORT[support][0];
+  const defaultIntensityValue =
+    support === 'running' ? 100
+    : support === 'cycling' ? 90
+    : support === 'rowing' ? 250
+    : support === 'skierg' ? 200
+    : support === 'assault_bike' ? 300
+    : undefined;
+  return {
+    support,
+    repetitions: 6,
+    series: 1,
+    effortMode: 'duration',
+    effortDurationSeconds: 30,
+    recoveryMode: 'duration',
+    recoveryDurationSeconds: 30,
+    interSeriesRecoverySeconds: 180,
+    intensityType: firstIntensity?.type ?? 'rpe',
+    intensityValue: defaultIntensityValue,
+  };
+};
 
 // Format pace (seconds) to mm:ss string
 export const formatPace = (seconds: number): string => {
@@ -154,12 +221,12 @@ export const calculateIntermittentVolume = (config: IntermittentCardioConfig): {
   // If distance mode, estimate time (rough estimate based on support)
   if (config.effortMode === 'distance') {
     // Rough speed estimates: running ~4m/s, cycling ~8m/s, swimming ~1.5m/s
-    const speedEstimate = config.support === 'running' ? 4 : config.support === 'cycling' ? 8 : 1.5;
+    const speedEstimate = SUPPORT_SPEED_ESTIMATE[config.support] ?? 4;
     workDurationPerRep = (config.effortDistanceMeters || 0) / speedEstimate;
   }
   
   if (config.recoveryMode === 'distance') {
-    const recoverySpeedEstimate = config.support === 'running' ? 2 : config.support === 'cycling' ? 4 : 1;
+    const recoverySpeedEstimate = (SUPPORT_SPEED_ESTIMATE[config.support] ?? 4) / 2;
     restDurationPerRep = (config.recoveryDistanceMeters || 0) / recoverySpeedEstimate;
   }
   
