@@ -446,7 +446,12 @@ export function CreateTrainingProgramV2({
   }, [draft]);
 
   const handleSave = useCallback(() => {
+    if (isEditMode && !hydrated) {
+      toast.error("Chargement du programme en cours — réessaie dans un instant.");
+      return;
+    }
     if (!validate()) return;
+
     setPendingAction("save");
     saveProgram.mutate(
       { draft, categoryId, programId },
