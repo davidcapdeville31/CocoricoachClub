@@ -33,11 +33,16 @@ export function PlayerGroupChips({ categoryId, value, onChange, availableIds, cl
 
   if (visibleGroups.length === 0) return null;
 
-  const toggleGroup = (memberIds: string[], active: boolean) => {
-    if (active) {
-      onChange(value.filter((id) => !memberIds.includes(id)));
+  /**
+   * Un clic sélectionne EXACTEMENT les athlètes du groupe (les autres sont
+   * décochés). Un second clic sur le même groupe vide la sélection.
+   */
+  const toggleGroup = (memberIds: string[], exclusive: boolean) => {
+    if (exclusive) {
+      onChange(value.filter((id) => (allowed ? !allowed.has(id) : false)));
     } else {
-      onChange(Array.from(new Set([...value, ...memberIds])));
+      const outsideList = allowed ? value.filter((id) => !allowed.has(id)) : [];
+      onChange(Array.from(new Set([...outsideList, ...memberIds])));
     }
   };
 
