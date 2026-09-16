@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { CustomTrainingTypeSelect } from "@/components/category/sessions/CustomTrainingTypeSelect";
 import { Checkbox } from "@/components/ui/checkbox";
+import { PlayerGroupChips } from "@/components/category/players/PlayerGroupChips";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

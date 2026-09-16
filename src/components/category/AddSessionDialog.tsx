@@ -37,6 +37,7 @@ import { SessionGpsImport, type GpsPlayerData } from "@/components/category/gps/
 import { SessionBlocksManager, type SessionBlock } from "@/components/category/sessions/SessionBlocksManager";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
+import { PlayerGroupChips } from "@/components/category/players/PlayerGroupChips";
 
 interface AddSessionDialogProps {
   open: boolean;
