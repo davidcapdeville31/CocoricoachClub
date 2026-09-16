@@ -4,7 +4,13 @@
  */
 
 // Support types for intermittent cardio
-export type IntermittentCardioSupport = 'running' | 'cycling' | 'swimming';
+export type IntermittentCardioSupport =
+  | 'running'
+  | 'cycling'
+  | 'swimming'
+  | 'rowing'
+  | 'skierg'
+  | 'assault_bike';
 
 // Effort/Recovery mode: by time or by distance
 export type EffortMode = 'duration' | 'distance';
