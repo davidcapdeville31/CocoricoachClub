@@ -1304,11 +1304,17 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                               : undefined;
                             return (
                               <TableCell
-                                key={d}
+                                key={i}
                                 className="text-center"
                                 style={{ backgroundColor: bgColor }}
                               >
                                 <div className="flex flex-col items-center gap-0.5">
+                                  {d && (
+                                    <span className="text-[10px] text-muted-foreground">
+                                      {fmtDate(d)}
+                                    </span>
+                                  )}
+
                                   {isRatio ? (
                                     <>
                                       <span className="font-mono font-bold text-sm">
