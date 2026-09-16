@@ -88,6 +88,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
   const [targetIntensity, setTargetIntensity] = useState<string>("moderee");
   const [volume, setVolume] = useState<string>("moyen");
   const [plannedRpe, setPlannedRpe] = useState<number>(6);
+  const [plannedRpeDraft, setPlannedRpeDraft] = useState<string | null>(null);
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [partnerIds, setPartnerIds] = useState<string[]>([]);
   const [blocks, setBlocks] = useState<V2BlockWithExercises[]>([]);
