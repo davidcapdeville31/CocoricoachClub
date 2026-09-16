@@ -667,6 +667,19 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
     return Array.from(s).sort();
   }, [playerSeries]);
 
+  // Colonnes = rang de passation (1ʳᵉ mesure, 2ᵉ mesure…) et non plus une colonne par date
+  const maxPasses = useMemo(() => {
+    let max = 0;
+    for (const arr of playerSeries.values()) max = Math.max(max, arr.length);
+    return max;
+  }, [playerSeries]);
+  const passIndexes = useMemo(
+    () => Array.from({ length: maxPasses }, (_, i) => i),
+    [maxPasses],
+  );
+  const ordinalLabel = (i: number) => (i === 0 ? "1ʳᵉ mesure" : `${i + 1}ᵉ mesure`);
+
+
   // Résout le groupe de poste canonique d'un joueur
   const resolveGroup = (player: any): { id: string; label: string } => {
     const pos: string | undefined = player?.position;
@@ -1148,14 +1161,15 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                   <TableRow>
                     <TableHead className="min-w-[90px] sm:min-w-[110px] bg-slate-700 text-white whitespace-nowrap text-xs sm:text-sm">Poste</TableHead>
                     <TableHead className="min-w-[130px] sm:min-w-[180px] bg-slate-700 text-white whitespace-nowrap text-xs sm:text-sm">Joueur</TableHead>
-                    {allDates.map((d) => (
+                    {passIndexes.map((i) => (
                       <TableHead
-                        key={d}
+                        key={i}
                         className="text-center min-w-[90px] sm:min-w-[110px] bg-slate-700 text-white whitespace-nowrap text-xs sm:text-sm"
                       >
-                        {fmtDate(d)}
+                        {ordinalLabel(i)}
                       </TableHead>
                     ))}
+
                     <TableHead className="text-center min-w-[90px] sm:min-w-[110px] bg-slate-700 text-white whitespace-nowrap text-xs sm:text-sm">
                       Évolution
                     </TableHead>
@@ -1238,10 +1252,11 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                               )}
                             </div>
                           </TableCell>
-                          {allDates.map((d) => {
-                            const point = series.find((s) => s.date === d);
-                            const sIdx = series.findIndex((s) => s.date === d);
-                            const prevPoint = sIdx > 0 ? series[sIdx - 1] : null;
+                          {passIndexes.map((i) => {
+                            const d = series[i]?.date;
+                            const point = series[i];
+                            const prevPoint = i > 0 ? series[i - 1] : null;
+
                             const stepUseKg =
                               isRatio && point?.rawKg != null && prevPoint?.rawKg != null;
                             const stepDelta =
@@ -1276,7 +1291,8 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                             if (!point) {
                               return (
                                 <TableCell
-                                  key={d}
+                                  key={i}
+
                                   className="text-center text-muted-foreground"
                                 >
                                   —
@@ -1301,11 +1317,17 @@ export function BenchmarkPositionMatrix({ categoryId, filterPlayerId, hideSelect
                               : undefined;
                             return (
                               <TableCell
-                                key={d}
+                                key={i}
                                 className="text-center"
                                 style={{ backgroundColor: bgColor }}
                               >
                                 <div className="flex flex-col items-center gap-0.5">
+                                  {d && (
+                                    <span className="text-[10px] text-muted-foreground">
+                                      {fmtDate(d)}
+                                    </span>
+                                  )}
+
                                   {isRatio ? (
                                     <>
                                       <span className="font-mono font-bold text-sm">
