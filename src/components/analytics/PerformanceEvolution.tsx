@@ -95,10 +95,13 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
       }));
     },
   });
-  const players = useMemo(
-    () => (allowedIds ? (playersRaw || []).filter((p) => allowedIds.has(p.id)) : playersRaw),
-    [playersRaw, allowedIds]
-  );
+  const groupIds = useGroupPlayerIds(categoryId, groupFilter);
+  const players = useMemo(() => {
+    let list = playersRaw || [];
+    if (allowedIds) list = list.filter((p) => allowedIds.has(p.id));
+    if (groupIds) list = list.filter((p) => groupIds.has(p.id));
+    return list;
+  }, [playersRaw, allowedIds, groupIds]);
 
   const { data: speedTestsRaw, isLoading: loadingSpeed } = useQuery({
     queryKey: ["speed-tests-evolution", categoryId, scopeKey],
