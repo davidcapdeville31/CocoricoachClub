@@ -73,16 +73,18 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
   const { isDateInActiveSeason, activeSeasonEnd } = useSeasonRosterFilter();
   const { map: customTestsMap } = useCustomTestsMap();
   const scopeKey = isFiltering ? `season:${activeSeasonEnd ?? "x"}` : "all";
+  const groupIds = useGroupPlayerIds(categoryId, groupFilter);
   const filterRows = useCallback(
     (rows: any[] | undefined | null): any[] => {
       if (!rows) return [];
       return rows.filter(
         (r: any) =>
           (!allowedIds || (r.player_id && allowedIds.has(r.player_id))) &&
+          (!groupIds || (r.player_id && groupIds.has(r.player_id))) &&
           isDateInActiveSeason(r.test_date ?? undefined)
       );
     },
-    [allowedIds, isDateInActiveSeason]
+    [allowedIds, groupIds, isDateInActiveSeason]
   );
 
   // Fetch players
