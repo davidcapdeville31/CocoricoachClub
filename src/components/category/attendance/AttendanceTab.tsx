@@ -85,6 +85,8 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
   const [selectedSession, setSelectedSession] = useState<AttendanceSession | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detailDay, setDetailDay] = useState<string | null>(null);
+  const [groupFilter, setGroupFilter] = useState<string>(ALL_GROUPS);
+  const groupPlayerIds = useGroupPlayerIds(categoryId, groupFilter);
   
   // Date range filter
   const [startDate, setStartDate] = useState(() => {
