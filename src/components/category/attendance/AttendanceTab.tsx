@@ -914,6 +914,13 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                   <CardDescription>
                     Du {format(parseISO(startDate), "dd/MM/yyyy")} au {format(parseISO(endDate), "dd/MM/yyyy")}
                   </CardDescription>
+                  <div className="pt-2">
+                    <PlayerGroupFilter
+                      categoryId={categoryId}
+                      value={groupFilter}
+                      onChange={setGroupFilter}
+                    />
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {!playerStats || playerStats.length === 0 ? (
