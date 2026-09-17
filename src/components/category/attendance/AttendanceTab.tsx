@@ -26,6 +26,11 @@ import { useTranslation } from "react-i18next";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  ALL_GROUPS,
+  PlayerGroupFilter,
+  useGroupPlayerIds,
+} from "@/components/category/players/PlayerGroupFilter";
 
 interface AttendanceTabProps {
   categoryId: string;
