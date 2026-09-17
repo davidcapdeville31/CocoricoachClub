@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Users } from "lucide-react";
+import { PlayerGroupChips } from "@/components/category/players/PlayerGroupChips";
 import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
