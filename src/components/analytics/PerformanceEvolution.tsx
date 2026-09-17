@@ -611,6 +611,16 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
           </Button>
         </div>
 
+        {/* Group filter */}
+        <PlayerGroupFilter
+          categoryId={categoryId}
+          value={groupFilter}
+          onChange={(g) => {
+            setGroupFilter(g);
+            setSelectedPlayerIds([]);
+          }}
+        />
+
         {/* Test selector */}
         <Select value={selectedTest} onValueChange={setSelectedTest}>
           <SelectTrigger className="w-[220px]">
