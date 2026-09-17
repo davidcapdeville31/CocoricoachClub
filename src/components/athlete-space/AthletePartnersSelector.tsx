@@ -81,6 +81,12 @@ export function AthletePartnersSelector({ categoryId, selfPlayerId, value, onCha
           </Badge>
         )}
       </div>
+      <PlayerGroupChips
+        categoryId={categoryId}
+        value={value}
+        onChange={onChange}
+        availableIds={players.map((p) => p.id)}
+      />
       <Input
         value={search}
         onChange={(e) => setSearch(e.target.value)}
