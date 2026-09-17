@@ -2545,6 +2545,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
 
   return (
     <div className="space-y-6">
+      <AthleteComplianceTab categoryId={categoryId} />
       <div>
         <h2 className="text-2xl font-bold">{t("adminReports.title")}</h2>
         <p className="text-muted-foreground">{t("adminReports.subtitle")}</p>
