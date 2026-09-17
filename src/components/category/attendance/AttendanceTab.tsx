@@ -26,6 +26,11 @@ import { useTranslation } from "react-i18next";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  ALL_GROUPS,
+  PlayerGroupFilter,
+  useGroupPlayerIds,
+} from "@/components/category/players/PlayerGroupFilter";
 
 interface AttendanceTabProps {
   categoryId: string;
@@ -85,6 +90,8 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
   const [selectedSession, setSelectedSession] = useState<AttendanceSession | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detailDay, setDetailDay] = useState<string | null>(null);
+  const [groupFilter, setGroupFilter] = useState<string>(ALL_GROUPS);
+  const groupPlayerIds = useGroupPlayerIds(categoryId, groupFilter);
   
   // Date range filter
   const [startDate, setStartDate] = useState(() => {
@@ -203,7 +210,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
   });
 
   // Calculate stats per player with date filtering
-  const playerStats = players?.map((player) => {
+  const playerStats = players?.filter((p) => !groupPlayerIds || groupPlayerIds.has(p.id)).map((player) => {
     const playerAttendance = filteredAttendance?.filter((a) => a.player_id === player.id) || [];
     const present = playerAttendance.filter((a) => a.status === "present").length;
     const late = playerAttendance.filter((a) => a.status === "late").length;
@@ -907,6 +914,13 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                   <CardDescription>
                     Du {format(parseISO(startDate), "dd/MM/yyyy")} au {format(parseISO(endDate), "dd/MM/yyyy")}
                   </CardDescription>
+                  <div className="pt-2">
+                    <PlayerGroupFilter
+                      categoryId={categoryId}
+                      value={groupFilter}
+                      onChange={setGroupFilter}
+                    />
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {!playerStats || playerStats.length === 0 ? (

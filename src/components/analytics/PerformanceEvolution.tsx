@@ -19,6 +19,11 @@ import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 import { useCustomTestsMap } from "@/hooks/useCustomTestsMap";
 import { latestWeightsByPlayer } from "@/lib/weight/weightHistory";
 import { useWeightHistory } from "@/lib/hooks/useWeightData";
+import {
+  ALL_GROUPS,
+  PlayerGroupFilter,
+  useGroupPlayerIds,
+} from "@/components/category/players/PlayerGroupFilter";
 
 interface PerformanceEvolutionProps {
   categoryId: string;
@@ -63,20 +68,23 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
   const [selectedTest, setSelectedTest] = useState<string>("");
   const [viewMode, setViewMode] = useState<ViewMode>("team");
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
+  const [groupFilter, setGroupFilter] = useState<string>(ALL_GROUPS);
   const { allowedIds, isFiltering } = useSeasonFilteredPlayerIds(categoryId);
   const { isDateInActiveSeason, activeSeasonEnd } = useSeasonRosterFilter();
   const { map: customTestsMap } = useCustomTestsMap();
   const scopeKey = isFiltering ? `season:${activeSeasonEnd ?? "x"}` : "all";
+  const groupIds = useGroupPlayerIds(categoryId, groupFilter);
   const filterRows = useCallback(
     (rows: any[] | undefined | null): any[] => {
       if (!rows) return [];
       return rows.filter(
         (r: any) =>
           (!allowedIds || (r.player_id && allowedIds.has(r.player_id))) &&
+          (!groupIds || (r.player_id && groupIds.has(r.player_id))) &&
           isDateInActiveSeason(r.test_date ?? undefined)
       );
     },
-    [allowedIds, isDateInActiveSeason]
+    [allowedIds, groupIds, isDateInActiveSeason]
   );
 
   // Fetch players
@@ -95,10 +103,12 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
       }));
     },
   });
-  const players = useMemo(
-    () => (allowedIds ? (playersRaw || []).filter((p) => allowedIds.has(p.id)) : playersRaw),
-    [playersRaw, allowedIds]
-  );
+  const players = useMemo(() => {
+    let list = playersRaw || [];
+    if (allowedIds) list = list.filter((p) => allowedIds.has(p.id));
+    if (groupIds) list = list.filter((p) => groupIds.has(p.id));
+    return list;
+  }, [playersRaw, allowedIds, groupIds]);
 
   const { data: speedTestsRaw, isLoading: loadingSpeed } = useQuery({
     queryKey: ["speed-tests-evolution", categoryId, scopeKey],
@@ -600,6 +610,16 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
             <User className="h-4 w-4" /> Individuel
           </Button>
         </div>
+
+        {/* Group filter */}
+        <PlayerGroupFilter
+          categoryId={categoryId}
+          value={groupFilter}
+          onChange={(g) => {
+            setGroupFilter(g);
+            setSelectedPlayerIds([]);
+          }}
+        />
 
         {/* Test selector */}
         <Select value={selectedTest} onValueChange={setSelectedTest}>

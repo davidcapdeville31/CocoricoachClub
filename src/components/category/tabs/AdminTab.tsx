@@ -1,7 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { ClipboardCheck, Users, UserSearch, FolderOpen, BarChart3, Trophy } from "lucide-react";
+import { ClipboardCheck, Users, UserSearch, FolderOpen, BarChart3, Trophy, Activity } from "lucide-react";
 import { AttendanceTab } from "@/components/category/attendance/AttendanceTab";
+import { AthleteComplianceTab } from "@/components/category/attendance/AthleteComplianceTab";
 import { MatchAttendanceTab } from "@/components/category/attendance/MatchAttendanceTab";
 import { CategoryCollaborationTab } from "@/components/category/CategoryCollaborationTab";
 
@@ -45,6 +46,15 @@ export function AdminTab({ categoryId }: AdminTabProps) {
             <span className="hidden sm:inline">{t("subnav.admin.matchAttendance")}</span>
             <span className="sm:hidden">{t("subnav.admin.matchAttendanceShort")}</span>
           </ColoredSubTabsTrigger>
+          <ColoredSubTabsTrigger
+            value="compliance"
+            colorKey="admin"
+            icon={<Activity className="h-4 w-4" />}
+            tooltip="Suivi de l'assiduité des athlètes dans l'application (wellness, RPE, tests, poids)"
+          >
+            <span className="hidden sm:inline">Assiduité</span>
+            <span className="sm:hidden">Assidu.</span>
+          </ColoredSubTabsTrigger>
           <ColoredSubTabsTrigger 
 
             value="recruitment" 
@@ -87,6 +97,10 @@ export function AdminTab({ categoryId }: AdminTabProps) {
 
       <TabsContent value="attendance">
         <AttendanceTab categoryId={categoryId} />
+      </TabsContent>
+
+      <TabsContent value="compliance">
+        <AthleteComplianceTab categoryId={categoryId} />
       </TabsContent>
 
       <TabsContent value="match_attendance">
