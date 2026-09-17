@@ -20,6 +20,7 @@ import { getStatsForSport, supportsCompetitionRounds, getBaseSport, type StatFie
 import { TEST_CATEGORIES, getTestLabel } from "@/lib/constants/testCategories";
 import { groupStatsByTheme } from "@/lib/statSubGroups";
 import { pdfGroupColor } from "@/lib/pdfStatGroupPalette";
+import { AthleteComplianceTab } from "@/components/category/attendance/AthleteComplianceTab";
 
 interface ReportsTabProps {
   categoryId: string;
@@ -2545,6 +2546,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
 
   return (
     <div className="space-y-6">
+      <AthleteComplianceTab categoryId={categoryId} />
       <div>
         <h2 className="text-2xl font-bold">{t("adminReports.title")}</h2>
         <p className="text-muted-foreground">{t("adminReports.subtitle")}</p>
