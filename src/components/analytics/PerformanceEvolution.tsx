@@ -19,6 +19,11 @@ import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 import { useCustomTestsMap } from "@/hooks/useCustomTestsMap";
 import { latestWeightsByPlayer } from "@/lib/weight/weightHistory";
 import { useWeightHistory } from "@/lib/hooks/useWeightData";
+import {
+  ALL_GROUPS,
+  PlayerGroupFilter,
+  useGroupPlayerIds,
+} from "@/components/category/players/PlayerGroupFilter";
 
 interface PerformanceEvolutionProps {
   categoryId: string;
