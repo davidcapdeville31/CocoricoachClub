@@ -20,6 +20,7 @@ import { getStatsForSport, supportsCompetitionRounds, getBaseSport, type StatFie
 import { TEST_CATEGORIES, getTestLabel } from "@/lib/constants/testCategories";
 import { groupStatsByTheme } from "@/lib/statSubGroups";
 import { pdfGroupColor } from "@/lib/pdfStatGroupPalette";
+import { AthleteComplianceTab } from "@/components/category/attendance/AthleteComplianceTab";
 
 interface ReportsTabProps {
   categoryId: string;
