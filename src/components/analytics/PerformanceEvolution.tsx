@@ -103,7 +103,6 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
       }));
     },
   });
-  const groupIds = useGroupPlayerIds(categoryId, groupFilter);
   const players = useMemo(() => {
     let list = playersRaw || [];
     if (allowedIds) list = list.filter((p) => allowedIds.has(p.id));
