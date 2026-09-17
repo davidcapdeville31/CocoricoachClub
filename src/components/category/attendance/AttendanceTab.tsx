@@ -210,7 +210,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
   });
 
   // Calculate stats per player with date filtering
-  const playerStats = players?.map((player) => {
+  const playerStats = players?.filter((p) => !groupPlayerIds || groupPlayerIds.has(p.id)).map((player) => {
     const playerAttendance = filteredAttendance?.filter((a) => a.player_id === player.id) || [];
     const present = playerAttendance.filter((a) => a.status === "present").length;
     const late = playerAttendance.filter((a) => a.status === "late").length;
