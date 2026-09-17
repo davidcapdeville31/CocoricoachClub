@@ -46,6 +46,15 @@ export function AdminTab({ categoryId }: AdminTabProps) {
             <span className="hidden sm:inline">{t("subnav.admin.matchAttendance")}</span>
             <span className="sm:hidden">{t("subnav.admin.matchAttendanceShort")}</span>
           </ColoredSubTabsTrigger>
+          <ColoredSubTabsTrigger
+            value="compliance"
+            colorKey="admin"
+            icon={<Activity className="h-4 w-4" />}
+            tooltip="Suivi de l'assiduité des athlètes dans l'application (wellness, RPE, tests, poids)"
+          >
+            <span className="hidden sm:inline">Assiduité</span>
+            <span className="sm:hidden">Assidu.</span>
+          </ColoredSubTabsTrigger>
           <ColoredSubTabsTrigger 
 
             value="recruitment" 
