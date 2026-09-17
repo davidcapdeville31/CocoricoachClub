@@ -63,6 +63,7 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
   const [selectedTest, setSelectedTest] = useState<string>("");
   const [viewMode, setViewMode] = useState<ViewMode>("team");
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
+  const [groupFilter, setGroupFilter] = useState<string>(ALL_GROUPS);
   const { allowedIds, isFiltering } = useSeasonFilteredPlayerIds(categoryId);
   const { isDateInActiveSeason, activeSeasonEnd } = useSeasonRosterFilter();
   const { map: customTestsMap } = useCustomTestsMap();
