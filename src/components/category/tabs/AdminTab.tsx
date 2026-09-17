@@ -1,7 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { ClipboardCheck, Users, UserSearch, FolderOpen, BarChart3, Trophy } from "lucide-react";
+import { ClipboardCheck, Users, UserSearch, FolderOpen, BarChart3, Trophy, Activity } from "lucide-react";
 import { AttendanceTab } from "@/components/category/attendance/AttendanceTab";
+import { AthleteComplianceTab } from "@/components/category/attendance/AthleteComplianceTab";
 import { MatchAttendanceTab } from "@/components/category/attendance/MatchAttendanceTab";
 import { CategoryCollaborationTab } from "@/components/category/CategoryCollaborationTab";
 
