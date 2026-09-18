@@ -14,7 +14,14 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { FlaskConical, CheckCircle, Clock, CalendarRange } from "lucide-react";
+import { FlaskConical, CheckCircle, Clock, CalendarRange, Plus } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
@@ -183,6 +190,8 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
     testRef: TestRef;
     testLabel: string;
     campaign: { start: string; end: string };
+    /** Athlètes sélectionnables (renseigné quand on ouvre depuis le test) */
+    selectablePlayers?: PlayerLite[];
   } | null>(null);
   const [entryValue, setEntryValue] = useState("");
   const [entryUnit, setEntryUnit] = useState("");
@@ -195,6 +204,33 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
     campaign: { start: string; end: string },
   ) => {
     setEntryTarget({ player, testRef, testLabel, campaign });
+    setEntryValue("");
+    setEntryUnit(
+      (testRef.test_type?.startsWith("custom:") ? customMap[testRef.test_type]?.unit : "") || "",
+    );
+    setEntryDate(campaign.end > date ? date : campaign.end);
+  };
+
+  /** Ouvre la saisie depuis la ligne du test : choix de l'athlète dans la fenêtre */
+  const openEntryForTest = (
+    testRef: TestRef,
+    testLabel: string,
+    campaign: { start: string; end: string },
+    targetPlayers: PlayerLite[],
+    missingList: PlayerLite[],
+  ) => {
+    const preferred = missingList.length > 0 ? missingList : targetPlayers;
+    if (preferred.length === 0) {
+      toast.error("Aucun athlète assigné à cette campagne");
+      return;
+    }
+    setEntryTarget({
+      player: preferred[0],
+      testRef,
+      testLabel,
+      campaign,
+      selectablePlayers: preferred,
+    });
     setEntryValue("");
     setEntryUnit(
       (testRef.test_type?.startsWith("custom:") ? customMap[testRef.test_type]?.unit : "") || "",
@@ -292,14 +328,33 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
                         <FlaskConical className="h-4 w-4 text-cyan-600 shrink-0" />
                         {labelizeTestType(testRef.test_type, customMap)}
                       </span>
-                      <span
-                        className={cn(
-                          "text-lg font-bold shrink-0",
-                          percent >= 80 ? "text-green-600" : percent >= 50 ? "text-yellow-600" : "text-red-600",
-                        )}
-                      >
-                        {percent}%
-                      </span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-[11px] gap-1"
+                          onClick={() =>
+                            openEntryForTest(
+                              testRef,
+                              labelizeTestType(testRef.test_type, customMap),
+                              { start: campaign.start, end: campaign.end },
+                              targetPlayers,
+                              missingList,
+                            )
+                          }
+                        >
+                          <Plus className="h-3 w-3" />
+                          Résultat
+                        </Button>
+                        <span
+                          className={cn(
+                            "text-lg font-bold",
+                            percent >= 80 ? "text-green-600" : percent >= 50 ? "text-yellow-600" : "text-red-600",
+                          )}
+                        >
+                          {percent}%
+                        </span>
+                      </div>
                     </div>
                     <Progress
                       value={percent}
@@ -398,9 +453,32 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
           </DialogHeader>
           {entryTarget && (
             <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                {fullName(entryTarget.player)} · {entryTarget.testLabel}
-              </p>
+              <p className="text-sm text-muted-foreground">{entryTarget.testLabel}</p>
+              {entryTarget.selectablePlayers && entryTarget.selectablePlayers.length > 0 ? (
+                <div className="space-y-2">
+                  <Label>Athlète *</Label>
+                  <Select
+                    value={entryTarget.player.id}
+                    onValueChange={(id) => {
+                      const p = entryTarget.selectablePlayers?.find((pl) => pl.id === id);
+                      if (p) setEntryTarget({ ...entryTarget, player: p });
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choisir un athlète" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {entryTarget.selectablePlayers.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {fullName(p)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <p className="text-sm font-medium">{fullName(entryTarget.player)}</p>
+              )}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="decision-entry-value">Résultat *</Label>
