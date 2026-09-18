@@ -382,7 +382,6 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
                           </p>
                         )}
                       </div>
-                      </div>
                     </div>
                   </div>
                 );
