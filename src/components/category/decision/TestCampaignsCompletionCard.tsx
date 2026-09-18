@@ -211,6 +211,33 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
     setEntryDate(campaign.end > date ? date : campaign.end);
   };
 
+  /** Ouvre la saisie depuis la ligne du test : choix de l'athlète dans la fenêtre */
+  const openEntryForTest = (
+    testRef: TestRef,
+    testLabel: string,
+    campaign: { start: string; end: string },
+    targetPlayers: PlayerLite[],
+    missingList: PlayerLite[],
+  ) => {
+    const preferred = missingList.length > 0 ? missingList : targetPlayers;
+    if (preferred.length === 0) {
+      toast.error("Aucun athlète assigné à cette campagne");
+      return;
+    }
+    setEntryTarget({
+      player: preferred[0],
+      testRef,
+      testLabel,
+      campaign,
+      selectablePlayers: preferred,
+    });
+    setEntryValue("");
+    setEntryUnit(
+      (testRef.test_type?.startsWith("custom:") ? customMap[testRef.test_type]?.unit : "") || "",
+    );
+    setEntryDate(campaign.end > date ? date : campaign.end);
+  };
+
   const saveEntry = useMutation({
     mutationFn: async () => {
       if (!entryTarget) throw new Error("Aucun test sélectionné");
