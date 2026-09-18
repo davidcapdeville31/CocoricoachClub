@@ -216,7 +216,7 @@ export function TestsHistorySection({ categoryId }: { categoryId: string }) {
   const defaultUnitFor = (testRef: TestRef): string => {
     if (testRef.test_type?.startsWith("custom:")) {
       const info = customMap[testRef.test_type];
-      if (info?.unit) return info.unit;
+      if (info?.unit) return displayUnit(info.unit);
       if (normalizeTestKey(info?.name) === "weight") return "kg";
       return "";
     }
