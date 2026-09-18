@@ -109,7 +109,9 @@ serve(async (req) => {
       if (!sessions || sessions.length === 0) continue;
 
       for (const session of sessions) {
-        const defaultRpe = session.planned_intensity || 5;
+        // Intensité prévue par le staff : planned_intensity si renseignée,
+        // sinon l'intensité de la séance (colonne historique), sinon 5.
+        const defaultRpe = session.planned_intensity || session.intensity || 5;
 
         let durationMinutes = 60;
         if (session.session_start_time && session.session_end_time) {
