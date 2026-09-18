@@ -212,6 +212,46 @@ export function TestsHistorySection({ categoryId }: { categoryId: string }) {
   );
   const customMap = useCustomTestLabels(allTestTypes);
 
+  const openEntry = (
+    player: PlayerLite,
+    testRef: TestRef,
+    testLabel: string,
+    campaign: { start: string; end: string },
+  ) => {
+    setEntryTarget({ player, testRef, testLabel, campaign });
+    setEntryValue("");
+    setEntryUnit(
+      (testRef.test_type?.startsWith("custom:") ? customMap[testRef.test_type]?.unit : "") || "",
+    );
+    setEntryDate(campaign.end > today ? today : campaign.end);
+  };
+
+  const saveEntry = useMutation({
+    mutationFn: async () => {
+      if (!entryTarget) throw new Error("Aucun test sélectionné");
+      const value = parseFloat(entryValue.replace(",", "."));
+      if (Number.isNaN(value)) throw new Error("Saisis une valeur numérique");
+      const { error } = await supabase.from("generic_tests").insert({
+        player_id: entryTarget.player.id,
+        category_id: categoryId,
+        test_date: entryDate,
+        test_category: entryTarget.testRef.test_category || "custom",
+        test_type: entryTarget.testRef.test_type,
+        result_value: value,
+        result_unit: entryUnit || null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tests-history-results", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["generic_tests"] });
+      toast.success("Résultat ajouté");
+      setEntryTarget(null);
+    },
+    onError: (e: any) => toast.error(e?.message || "Erreur lors de l'ajout du résultat"),
+  });
+
+
   // Export CSV global : une ligne par campagne × test × athlète
   const exportCsv = () => {
     if (campaigns.length === 0) {
