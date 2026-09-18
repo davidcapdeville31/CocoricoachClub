@@ -176,6 +176,57 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
   );
   const customMap = useCustomTestLabels(allTestTypes);
 
+  // Saisie d'un résultat pour un athlète (comme dans l'historique des tests)
+  const queryClient = useQueryClient();
+  const [entryTarget, setEntryTarget] = useState<{
+    player: PlayerLite;
+    testRef: TestRef;
+    testLabel: string;
+    campaign: { start: string; end: string };
+  } | null>(null);
+  const [entryValue, setEntryValue] = useState("");
+  const [entryUnit, setEntryUnit] = useState("");
+  const [entryDate, setEntryDate] = useState("");
+
+  const openEntry = (
+    player: PlayerLite,
+    testRef: TestRef,
+    testLabel: string,
+    campaign: { start: string; end: string },
+  ) => {
+    setEntryTarget({ player, testRef, testLabel, campaign });
+    setEntryValue("");
+    setEntryUnit(
+      (testRef.test_type?.startsWith("custom:") ? customMap[testRef.test_type]?.unit : "") || "",
+    );
+    setEntryDate(campaign.end > date ? date : campaign.end);
+  };
+
+  const saveEntry = useMutation({
+    mutationFn: async () => {
+      if (!entryTarget) throw new Error("Aucun test sélectionné");
+      const value = parseFloat(entryValue.replace(",", "."));
+      if (Number.isNaN(value)) throw new Error("Saisis une valeur numérique");
+      const { error } = await supabase.from("generic_tests").insert({
+        player_id: entryTarget.player.id,
+        category_id: categoryId,
+        test_date: entryDate,
+        test_category: entryTarget.testRef.test_category || "custom",
+        test_type: entryTarget.testRef.test_type,
+        result_value: value,
+        result_unit: entryUnit || null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["decision-test-campaigns-"] });
+      queryClient.invalidateQueries({ queryKey: ["generic_tests"] });
+      toast.success("Résultat ajouté");
+      setEntryTarget(null);
+    },
+    onError: (e: any) => toast.error(e?.message || "Erreur lors de l'ajout du résultat"),
+  });
+
   if (campaigns.length === 0) return null;
 
   return (
