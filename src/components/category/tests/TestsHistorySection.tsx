@@ -80,6 +80,18 @@ export function TestsHistorySection({ categoryId }: { categoryId: string }) {
   const today = format(new Date(), "yyyy-MM-dd");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
+  const queryClient = useQueryClient();
+  // Saisie tardive d'un résultat pour un athlète qui n'a pas rempli le test
+  const [entryTarget, setEntryTarget] = useState<{
+    player: PlayerLite;
+    testRef: TestRef;
+    testLabel: string;
+    campaign: { start: string; end: string };
+  } | null>(null);
+  const [entryValue, setEntryValue] = useState("");
+  const [entryUnit, setEntryUnit] = useState("");
+  const [entryDate, setEntryDate] = useState("");
+
 
   // Effectif de la catégorie
   const { data: players = [] } = useQuery({
