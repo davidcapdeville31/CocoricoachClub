@@ -190,6 +190,8 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
     testRef: TestRef;
     testLabel: string;
     campaign: { start: string; end: string };
+    /** Athlètes sélectionnables (renseigné quand on ouvre depuis le test) */
+    selectablePlayers?: PlayerLite[];
   } | null>(null);
   const [entryValue, setEntryValue] = useState("");
   const [entryUnit, setEntryUnit] = useState("");
