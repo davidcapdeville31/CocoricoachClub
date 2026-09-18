@@ -10,6 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { displayUnit } from "@/lib/constants/testUnits";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -216,7 +217,7 @@ export function TestsHistorySection({ categoryId }: { categoryId: string }) {
   const defaultUnitFor = (testRef: TestRef): string => {
     if (testRef.test_type?.startsWith("custom:")) {
       const info = customMap[testRef.test_type];
-      if (info?.unit) return info.unit;
+      if (info?.unit) return displayUnit(info.unit);
       if (normalizeTestKey(info?.name) === "weight") return "kg";
       return "";
     }

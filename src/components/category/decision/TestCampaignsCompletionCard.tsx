@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { displayUnit } from "@/lib/constants/testUnits";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -201,7 +202,7 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
   const defaultUnitFor = (testRef: TestRef): string => {
     if (testRef.test_type?.startsWith("custom:")) {
       const info = customMap[testRef.test_type];
-      if (info?.unit) return info.unit;
+      if (info?.unit) return displayUnit(info.unit);
       if (normalizeTestKey(info?.name) === "weight") return "kg";
       return "";
     }
