@@ -98,7 +98,7 @@ serve(async (req) => {
       // Get sessions of the previous day in this category
       const { data: sessions, error: sessionsError } = await supabase
         .from("training_sessions")
-        .select("id, category_id, planned_intensity, session_start_time, session_end_time, session_date, created_by_player_id")
+        .select("id, category_id, planned_intensity, intensity, session_start_time, session_end_time, session_date, created_by_player_id")
         .eq("category_id", category.id)
         .eq("session_date", today);
 
