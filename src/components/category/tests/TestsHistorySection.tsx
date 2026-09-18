@@ -518,9 +518,20 @@ export function TestsHistorySection({ categoryId }: { categoryId: string }) {
                                 {missingList.map((p) => (
                                   <Badge
                                     key={p.id}
-                                    className="text-[10px] bg-red-500/15 text-red-700 dark:text-red-300 border border-red-500/40 hover:bg-red-500/20"
+                                    role="button"
+                                    tabIndex={0}
+                                    title="Ajouter le résultat de cet athlète"
+                                    onClick={() =>
+                                      openEntry(
+                                        p,
+                                        testRef,
+                                        labelizeTestType(testRef.test_type, customMap),
+                                        campaign,
+                                      )
+                                    }
+                                    className="text-[10px] cursor-pointer bg-red-500/15 text-red-700 dark:text-red-300 border border-red-500/40 hover:bg-red-500/25"
                                   >
-                                    {fullName(p)}
+                                    {fullName(p)} +
                                   </Badge>
                                 ))}
                                 {missingList.length === 0 && pendingList.length === 0 && (
