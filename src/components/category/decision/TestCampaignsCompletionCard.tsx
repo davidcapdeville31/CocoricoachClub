@@ -242,9 +242,7 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
       selectablePlayers: preferred,
     });
     setEntryValue("");
-    setEntryUnit(
-      (testRef.test_type?.startsWith("custom:") ? customMap[testRef.test_type]?.unit : "") || "",
-    );
+    setEntryUnit(defaultUnitFor(testRef));
     setEntryDate(campaign.end > date ? date : campaign.end);
   };
 
