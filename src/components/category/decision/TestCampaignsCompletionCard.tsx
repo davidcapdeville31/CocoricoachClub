@@ -365,7 +365,8 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
                             {missingList.map((p) => (
                               <Badge
                                 key={p.id}
-                                className="text-[10px] bg-red-500/15 text-red-700 dark:text-red-300 border border-red-500/40 hover:bg-red-500/20"
+                                onClick={() => openEntry(p, testRef, labelizeTestType(testRef.test_type, customMap), { start: campaign.start, end: campaign.end })}
+                                className="text-[10px] bg-red-500/15 text-red-700 dark:text-red-300 border border-red-500/40 hover:bg-red-500/20 cursor-pointer"
                               >
                                 {fullName(p)}
                               </Badge>
@@ -375,6 +376,12 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
                             )}
                           </div>
                         </div>
+                        {missingList.length > 0 && (
+                          <p className="text-[10px] text-muted-foreground italic px-0.5 pt-1">
+                            Clique sur un athlète pour saisir son résultat
+                          </p>
+                        )}
+                      </div>
                       </div>
                     </div>
                   </div>
