@@ -328,14 +328,33 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
                         <FlaskConical className="h-4 w-4 text-cyan-600 shrink-0" />
                         {labelizeTestType(testRef.test_type, customMap)}
                       </span>
-                      <span
-                        className={cn(
-                          "text-lg font-bold shrink-0",
-                          percent >= 80 ? "text-green-600" : percent >= 50 ? "text-yellow-600" : "text-red-600",
-                        )}
-                      >
-                        {percent}%
-                      </span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-[11px] gap-1"
+                          onClick={() =>
+                            openEntryForTest(
+                              testRef,
+                              labelizeTestType(testRef.test_type, customMap),
+                              { start: campaign.start, end: campaign.end },
+                              targetPlayers,
+                              missingList,
+                            )
+                          }
+                        >
+                          <Plus className="h-3 w-3" />
+                          Résultat
+                        </Button>
+                        <span
+                          className={cn(
+                            "text-lg font-bold",
+                            percent >= 80 ? "text-green-600" : percent >= 50 ? "text-yellow-600" : "text-red-600",
+                          )}
+                        >
+                          {percent}%
+                        </span>
+                      </div>
                     </div>
                     <Progress
                       value={percent}
