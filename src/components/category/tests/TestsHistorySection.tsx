@@ -1,5 +1,14 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -71,6 +80,18 @@ export function TestsHistorySection({ categoryId }: { categoryId: string }) {
   const today = format(new Date(), "yyyy-MM-dd");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
+  const queryClient = useQueryClient();
+  // Saisie tardive d'un résultat pour un athlète qui n'a pas rempli le test
+  const [entryTarget, setEntryTarget] = useState<{
+    player: PlayerLite;
+    testRef: TestRef;
+    testLabel: string;
+    campaign: { start: string; end: string };
+  } | null>(null);
+  const [entryValue, setEntryValue] = useState("");
+  const [entryUnit, setEntryUnit] = useState("");
+  const [entryDate, setEntryDate] = useState("");
+
 
   // Effectif de la catégorie
   const { data: players = [] } = useQuery({
@@ -190,6 +211,46 @@ export function TestsHistorySection({ categoryId }: { categoryId: string }) {
     [campaigns],
   );
   const customMap = useCustomTestLabels(allTestTypes);
+
+  const openEntry = (
+    player: PlayerLite,
+    testRef: TestRef,
+    testLabel: string,
+    campaign: { start: string; end: string },
+  ) => {
+    setEntryTarget({ player, testRef, testLabel, campaign });
+    setEntryValue("");
+    setEntryUnit(
+      (testRef.test_type?.startsWith("custom:") ? customMap[testRef.test_type]?.unit : "") || "",
+    );
+    setEntryDate(campaign.end > today ? today : campaign.end);
+  };
+
+  const saveEntry = useMutation({
+    mutationFn: async () => {
+      if (!entryTarget) throw new Error("Aucun test sélectionné");
+      const value = parseFloat(entryValue.replace(",", "."));
+      if (Number.isNaN(value)) throw new Error("Saisis une valeur numérique");
+      const { error } = await supabase.from("generic_tests").insert({
+        player_id: entryTarget.player.id,
+        category_id: categoryId,
+        test_date: entryDate,
+        test_category: entryTarget.testRef.test_category || "custom",
+        test_type: entryTarget.testRef.test_type,
+        result_value: value,
+        result_unit: entryUnit || null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tests-history-results", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["generic_tests"] });
+      toast.success("Résultat ajouté");
+      setEntryTarget(null);
+    },
+    onError: (e: any) => toast.error(e?.message || "Erreur lors de l'ajout du résultat"),
+  });
+
 
   // Export CSV global : une ligne par campagne × test × athlète
   const exportCsv = () => {
@@ -457,9 +518,20 @@ export function TestsHistorySection({ categoryId }: { categoryId: string }) {
                                 {missingList.map((p) => (
                                   <Badge
                                     key={p.id}
-                                    className="text-[10px] bg-red-500/15 text-red-700 dark:text-red-300 border border-red-500/40 hover:bg-red-500/20"
+                                    role="button"
+                                    tabIndex={0}
+                                    title="Ajouter le résultat de cet athlète"
+                                    onClick={() =>
+                                      openEntry(
+                                        p,
+                                        testRef,
+                                        labelizeTestType(testRef.test_type, customMap),
+                                        campaign,
+                                      )
+                                    }
+                                    className="text-[10px] cursor-pointer bg-red-500/15 text-red-700 dark:text-red-300 border border-red-500/40 hover:bg-red-500/25"
                                   >
-                                    {fullName(p)}
+                                    {fullName(p)} +
                                   </Badge>
                                 ))}
                                 {missingList.length === 0 && pendingList.length === 0 && (
@@ -478,6 +550,65 @@ export function TestsHistorySection({ categoryId }: { categoryId: string }) {
           })
         )}
       </CardContent>
+
+      <Dialog open={!!entryTarget} onOpenChange={(o) => !o && setEntryTarget(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Ajouter un résultat</DialogTitle>
+          </DialogHeader>
+          {entryTarget && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                {fullName(entryTarget.player)} · {entryTarget.testLabel}
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="entry-value">Résultat *</Label>
+                  <Input
+                    id="entry-value"
+                    inputMode="decimal"
+                    value={entryValue}
+                    onChange={(e) => setEntryValue(e.target.value)}
+                    onFocus={(e) => e.currentTarget.select()}
+                    placeholder="Ex: 12.5"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="entry-unit">Unité</Label>
+                  <Input
+                    id="entry-unit"
+                    value={entryUnit}
+                    onChange={(e) => setEntryUnit(e.target.value)}
+                    placeholder="Ex: s, kg, cm"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="entry-date">Date du test</Label>
+                <Input
+                  id="entry-date"
+                  type="date"
+                  value={entryDate}
+                  min={entryTarget.campaign.start}
+                  max={entryTarget.campaign.end}
+                  onChange={(e) => setEntryDate(e.target.value)}
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  La date doit rester dans la période de la campagne.
+                </p>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEntryTarget(null)}>
+              Annuler
+            </Button>
+            <Button onClick={() => saveEntry.mutate()} disabled={saveEntry.isPending}>
+              {saveEntry.isPending ? "Enregistrement…" : "Enregistrer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
