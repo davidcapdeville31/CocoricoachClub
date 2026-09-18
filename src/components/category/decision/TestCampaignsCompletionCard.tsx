@@ -453,9 +453,32 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
           </DialogHeader>
           {entryTarget && (
             <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                {fullName(entryTarget.player)} · {entryTarget.testLabel}
-              </p>
+              <p className="text-sm text-muted-foreground">{entryTarget.testLabel}</p>
+              {entryTarget.selectablePlayers && entryTarget.selectablePlayers.length > 0 ? (
+                <div className="space-y-2">
+                  <Label>Athlète *</Label>
+                  <Select
+                    value={entryTarget.player.id}
+                    onValueChange={(id) => {
+                      const p = entryTarget.selectablePlayers?.find((pl) => pl.id === id);
+                      if (p) setEntryTarget({ ...entryTarget, player: p });
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choisir un athlète" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {entryTarget.selectablePlayers.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {fullName(p)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <p className="text-sm font-medium">{fullName(entryTarget.player)}</p>
+              )}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="decision-entry-value">Résultat *</Label>
