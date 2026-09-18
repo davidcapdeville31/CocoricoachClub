@@ -212,6 +212,18 @@ export function TestsHistorySection({ categoryId }: { categoryId: string }) {
   );
   const customMap = useCustomTestLabels(allTestTypes);
 
+  /** Unité par défaut : test custom → son unité ; test de poids/pesée → "kg". */
+  const defaultUnitFor = (testRef: TestRef): string => {
+    if (testRef.test_type?.startsWith("custom:")) {
+      const info = customMap[testRef.test_type];
+      if (info?.unit) return info.unit;
+      if (normalizeTestKey(info?.name) === "weight") return "kg";
+      return "";
+    }
+    if (normalizeTestKey(testRef.test_type) === "weight") return "kg";
+    return "";
+  };
+
   const openEntry = (
     player: PlayerLite,
     testRef: TestRef,
@@ -220,9 +232,7 @@ export function TestsHistorySection({ categoryId }: { categoryId: string }) {
   ) => {
     setEntryTarget({ player, testRef, testLabel, campaign });
     setEntryValue("");
-    setEntryUnit(
-      (testRef.test_type?.startsWith("custom:") ? customMap[testRef.test_type]?.unit : "") || "",
-    );
+    setEntryUnit(defaultUnitFor(testRef));
     setEntryDate(campaign.end > today ? today : campaign.end);
   };
 
