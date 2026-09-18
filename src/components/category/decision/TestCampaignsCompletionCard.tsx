@@ -1,10 +1,21 @@
-import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { FlaskConical, CheckCircle, Clock, CalendarRange } from "lucide-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
 import { parseTestWindowFromNotes } from "@/lib/utils/sessionNotes";
@@ -165,6 +176,57 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
   );
   const customMap = useCustomTestLabels(allTestTypes);
 
+  // Saisie d'un résultat pour un athlète (comme dans l'historique des tests)
+  const queryClient = useQueryClient();
+  const [entryTarget, setEntryTarget] = useState<{
+    player: PlayerLite;
+    testRef: TestRef;
+    testLabel: string;
+    campaign: { start: string; end: string };
+  } | null>(null);
+  const [entryValue, setEntryValue] = useState("");
+  const [entryUnit, setEntryUnit] = useState("");
+  const [entryDate, setEntryDate] = useState("");
+
+  const openEntry = (
+    player: PlayerLite,
+    testRef: TestRef,
+    testLabel: string,
+    campaign: { start: string; end: string },
+  ) => {
+    setEntryTarget({ player, testRef, testLabel, campaign });
+    setEntryValue("");
+    setEntryUnit(
+      (testRef.test_type?.startsWith("custom:") ? customMap[testRef.test_type]?.unit : "") || "",
+    );
+    setEntryDate(campaign.end > date ? date : campaign.end);
+  };
+
+  const saveEntry = useMutation({
+    mutationFn: async () => {
+      if (!entryTarget) throw new Error("Aucun test sélectionné");
+      const value = parseFloat(entryValue.replace(",", "."));
+      if (Number.isNaN(value)) throw new Error("Saisis une valeur numérique");
+      const { error } = await supabase.from("generic_tests").insert({
+        player_id: entryTarget.player.id,
+        category_id: categoryId,
+        test_date: entryDate,
+        test_category: entryTarget.testRef.test_category || "custom",
+        test_type: entryTarget.testRef.test_type,
+        result_value: value,
+        result_unit: entryUnit || null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["decision-test-campaigns-"] });
+      queryClient.invalidateQueries({ queryKey: ["generic_tests"] });
+      toast.success("Résultat ajouté");
+      setEntryTarget(null);
+    },
+    onError: (e: any) => toast.error(e?.message || "Erreur lors de l'ajout du résultat"),
+  });
+
   if (campaigns.length === 0) return null;
 
   return (
@@ -303,7 +365,8 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
                             {missingList.map((p) => (
                               <Badge
                                 key={p.id}
-                                className="text-[10px] bg-red-500/15 text-red-700 dark:text-red-300 border border-red-500/40 hover:bg-red-500/20"
+                                onClick={() => openEntry(p, testRef, labelizeTestType(testRef.test_type, customMap), { start: campaign.start, end: campaign.end })}
+                                className="text-[10px] bg-red-500/15 text-red-700 dark:text-red-300 border border-red-500/40 hover:bg-red-500/20 cursor-pointer"
                               >
                                 {fullName(p)}
                               </Badge>
@@ -313,6 +376,11 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
                             )}
                           </div>
                         </div>
+                        {missingList.length > 0 && (
+                          <p className="text-[10px] text-muted-foreground italic px-0.5 pt-1">
+                            Clique sur un athlète pour saisir son résultat
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -322,6 +390,65 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
           );
         })}
       </CardContent>
+
+      <Dialog open={!!entryTarget} onOpenChange={(o) => !o && setEntryTarget(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Ajouter un résultat</DialogTitle>
+          </DialogHeader>
+          {entryTarget && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                {fullName(entryTarget.player)} · {entryTarget.testLabel}
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="decision-entry-value">Résultat *</Label>
+                  <Input
+                    id="decision-entry-value"
+                    inputMode="decimal"
+                    value={entryValue}
+                    onChange={(e) => setEntryValue(e.target.value)}
+                    onFocus={(e) => e.currentTarget.select()}
+                    placeholder="Ex: 12.5"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="decision-entry-unit">Unité</Label>
+                  <Input
+                    id="decision-entry-unit"
+                    value={entryUnit}
+                    onChange={(e) => setEntryUnit(e.target.value)}
+                    placeholder="Ex: s, kg, cm"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="decision-entry-date">Date du test</Label>
+                <Input
+                  id="decision-entry-date"
+                  type="date"
+                  value={entryDate}
+                  min={entryTarget.campaign.start}
+                  max={entryTarget.campaign.end}
+                  onChange={(e) => setEntryDate(e.target.value)}
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  La date doit rester dans la période de la campagne.
+                </p>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEntryTarget(null)}>
+              Annuler
+            </Button>
+            <Button onClick={() => saveEntry.mutate()} disabled={saveEntry.isPending}>
+              {saveEntry.isPending ? "Enregistrement…" : "Enregistrer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
