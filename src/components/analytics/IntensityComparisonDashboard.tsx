@@ -142,7 +142,8 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
 
       let query = supabase
         .from("awcr_tracking")
-        .select("player_id, session_date, rpe, training_session_id, training_load, duration_minutes")
+        .select("player_id, session_date, rpe, training_session_id, training_load, duration_minutes, auto_filled")
+        .or("auto_filled.is.null,auto_filled.eq.false")
         .eq("category_id", categoryId)
         .gte("session_date", activeSeasonOnly && activeSeasonStart && activeSeasonStart > fromDate ? activeSeasonStart : fromDate);
 

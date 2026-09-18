@@ -98,7 +98,7 @@ serve(async (req) => {
       // Get sessions of the previous day in this category
       const { data: sessions, error: sessionsError } = await supabase
         .from("training_sessions")
-        .select("id, category_id, planned_intensity, session_start_time, session_end_time, session_date, created_by_player_id")
+        .select("id, category_id, planned_intensity, intensity, session_start_time, session_end_time, session_date, created_by_player_id")
         .eq("category_id", category.id)
         .eq("session_date", today);
 
@@ -109,7 +109,9 @@ serve(async (req) => {
       if (!sessions || sessions.length === 0) continue;
 
       for (const session of sessions) {
-        const defaultRpe = session.planned_intensity || 5;
+        // Intensité prévue par le staff : planned_intensity si renseignée,
+        // sinon l'intensité de la séance (colonne historique), sinon 5.
+        const defaultRpe = session.planned_intensity || session.intensity || 5;
 
         let durationMinutes = 60;
         if (session.session_start_time && session.session_end_time) {
