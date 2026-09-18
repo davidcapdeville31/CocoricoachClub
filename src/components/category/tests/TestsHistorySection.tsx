@@ -550,6 +550,65 @@ export function TestsHistorySection({ categoryId }: { categoryId: string }) {
           })
         )}
       </CardContent>
+
+      <Dialog open={!!entryTarget} onOpenChange={(o) => !o && setEntryTarget(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Ajouter un résultat</DialogTitle>
+          </DialogHeader>
+          {entryTarget && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                {fullName(entryTarget.player)} · {entryTarget.testLabel}
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="entry-value">Résultat *</Label>
+                  <Input
+                    id="entry-value"
+                    inputMode="decimal"
+                    value={entryValue}
+                    onChange={(e) => setEntryValue(e.target.value)}
+                    onFocus={(e) => e.currentTarget.select()}
+                    placeholder="Ex: 12.5"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="entry-unit">Unité</Label>
+                  <Input
+                    id="entry-unit"
+                    value={entryUnit}
+                    onChange={(e) => setEntryUnit(e.target.value)}
+                    placeholder="Ex: s, kg, cm"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="entry-date">Date du test</Label>
+                <Input
+                  id="entry-date"
+                  type="date"
+                  value={entryDate}
+                  min={entryTarget.campaign.start}
+                  max={entryTarget.campaign.end}
+                  onChange={(e) => setEntryDate(e.target.value)}
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  La date doit rester dans la période de la campagne.
+                </p>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEntryTarget(null)}>
+              Annuler
+            </Button>
+            <Button onClick={() => saveEntry.mutate()} disabled={saveEntry.isPending}>
+              {saveEntry.isPending ? "Enregistrement…" : "Enregistrer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
