@@ -14,7 +14,14 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { FlaskConical, CheckCircle, Clock, CalendarRange } from "lucide-react";
+import { FlaskConical, CheckCircle, Clock, CalendarRange, Plus } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
