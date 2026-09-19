@@ -116,7 +116,7 @@ export function AthleteComplianceTab({ categoryId }: Props) {
           .from("generic_tests")
           .select("player_id, test_date, test_type, test_category, result_value, result_unit, created_at")
           .eq("category_id", categoryId),
-        supabase.from("custom_tests").select("id, name, unit, test_category").eq("category_id", categoryId),
+        supabase.from("custom_tests").select("id, name, unit, test_category"),
       ]);
       if (bc.error) throw bc.error;
       if (pm.error) throw pm.error;
