@@ -722,6 +722,49 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
     },
   });
 
+  const invalidateResultQueries = () => {
+    queryClient.invalidateQueries({ queryKey: ["generic_tests", categoryId] });
+    queryClient.invalidateQueries({ queryKey: ["generic_tests_discovery", categoryId] });
+    queryClient.invalidateQueries({ queryKey: ["generic-tests-evolution", categoryId] });
+    [
+      "generic-tests-matrix",
+      "custom-tests-matrix",
+      "weight-tests-matrix",
+      "speed-tests-matrix",
+      "strength-tests-matrix",
+      "body-comp-matrix",
+      "player-measurements-matrix",
+      "benchmarks-matrix",
+      "players-matrix",
+      "tests-history-results",
+    ].forEach((key) => queryClient.invalidateQueries({ queryKey: [key, categoryId] }));
+  };
+
+  const updateResult = useMutation({
+    mutationFn: async () => {
+      if (!editResult) return;
+      const val = parseFloat(String(editResultValue).replace(",", "."));
+      if (!Number.isFinite(val)) throw new Error("Valeur invalide");
+      if (!editResultDate) throw new Error("Date invalide");
+      const { error } = await supabase
+        .from("generic_tests")
+        .update({
+          result_value: val,
+          result_unit: editResultUnit || null,
+          test_date: editResultDate,
+          notes: editResultNotes || null,
+        })
+        .eq("id", editResult.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Résultat modifié");
+      setEditResult(null);
+      invalidateResultQueries();
+    },
+    onError: (e: any) => toast.error(e?.message || "Erreur"),
+  });
+
   const selectedCategory = filteredTestCategories.find(c => c.value === filterCategory);
 
   const customTestNameById = useMemo(() => {
