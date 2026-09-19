@@ -664,6 +664,16 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
       // ===== TESTS SECTION =====
       if (selectedSections.includes("tests")) {
         const { grouped } = buildTestGroups(data);
+        // Contexte barèmes : postes de l'athlète + dernier poids de corps
+        const playerPositions = new Set<string>();
+        if ((player as any)?.position) playerPositions.add((player as any).position);
+        (data.attributes || []).forEach((a: any) => {
+          if (a.dimension === "position" && a.value) playerPositions.add(a.value);
+        });
+        const latestWeightKg: number | null =
+          (data.bodyComps || []).find((b: any) => b.weight_kg != null)?.weight_kg ??
+          (data.measurements || []).find((m: any) => m.weight_kg != null)?.weight_kg ??
+          null;
         const orderedCategories = Object.keys(grouped).sort((a, b) => getCategoryLabel(a).localeCompare(getCategoryLabel(b)));
 
         if (orderedCategories.length > 0) {
