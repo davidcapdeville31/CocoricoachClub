@@ -1010,7 +1010,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                             .map((p) => (
                               <div key={p.id} className="space-y-1">
                                 <div className="flex items-center justify-between text-xs">
-                                  <span className="font-medium">{p.name}</span>
+                                  <span className="font-medium">{p.displayName}</span>
                                   <span className="text-muted-foreground">
                                     {p.present} présent · {p.late} retard · {p.excused} excusé · {p.absent} absent ·{" "}
                                     <span className={getRateColor(p.rate)}>{p.total > 0 ? `${p.rate}%` : "—"}</span>
@@ -1057,7 +1057,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                                 <Checkbox
                                   checked={compareIds.includes(player.id)}
                                   onCheckedChange={() => toggleCompare(player.id)}
-                                  aria-label={`Comparer ${player.name}`}
+                                  aria-label={`Comparer ${player.displayName}`}
                                 />
                               </TableCell>
                               <TableCell
@@ -1065,7 +1065,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                                 onClick={() => toggleCompare(player.id)}
                               >
                                 <div>
-                                  <p className="font-medium">{player.name}</p>
+                                  <p className="font-medium">{player.displayName}</p>
                                   {player.position && (
                                     <p className="text-xs text-muted-foreground">{player.position}</p>
                                   )}
