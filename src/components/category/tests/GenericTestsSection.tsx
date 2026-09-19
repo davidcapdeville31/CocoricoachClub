@@ -717,6 +717,28 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
 
   const selectedCategory = filteredTestCategories.find(c => c.value === filterCategory);
 
+  const customTestNameById = useMemo(() => {
+    const names = new Map<string, string>();
+    (customTestsList || []).forEach((test: any) => {
+      if (test.id && test.name) names.set(String(test.id).toLowerCase(), test.name);
+    });
+    return names;
+  }, [customTestsList]);
+
+  const resolveTestLabel = (testType: string, testCategory?: string | null) => {
+    const customMatch = testType?.match(/^custom:(.+)$/i);
+    if (customMatch) {
+      return customTestNameById.get(customMatch[1].toLowerCase()) || "Test personnalisé";
+    }
+
+    return (
+      filteredTestCategories
+        .find((category) => category.value === testCategory)
+        ?.tests.find((test) => test.value.toLowerCase() === testType.toLowerCase())
+        ?.label || formatTestTypeLabel(testType)
+    );
+  };
+
   const handleCategoryFilterChange = (value: string) => {
     setFilterCategory(value);
     setFilterTestType("all");
@@ -1030,7 +1052,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
                             <span className="text-xs text-muted-foreground block">
                               {filteredTestCategories.find(c => c.value === test.test_category)?.label || formatCategoryLabel(test.test_category)}
                             </span>
-                            {filteredTestCategories.find(c => c.value === test.test_category)?.tests.find(t => t.value === test.test_type)?.label || formatTestTypeLabel(test.test_type)}
+                            {resolveTestLabel(test.test_type, test.test_category)}
                           </TableCell>
                           <TableCell className="font-semibold text-primary">
                             {test.result_value} {test.result_unit}
