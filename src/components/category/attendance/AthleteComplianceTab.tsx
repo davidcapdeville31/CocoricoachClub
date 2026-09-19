@@ -14,6 +14,7 @@ import {
   PlayerGroupFilter,
   useGroupPlayerIds,
 } from "@/components/category/players/PlayerGroupFilter";
+import { collectWeightHistory } from "@/lib/weight/weightHistory";
 
 interface Props {
   categoryId: string;
