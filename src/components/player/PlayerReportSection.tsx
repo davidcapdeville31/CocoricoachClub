@@ -705,8 +705,8 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
               testsByType[t.test_type].push(t);
             });
 
-            const testHeaders = ["Test", "1er résultat", "Date", "Dernier résultat", "Date", "Progression"];
-            const testColWidths = [38, 28, 22, 28, 22, 32];
+            const testHeaders = ["Test", "1er résultat", "Date", "Dernier résultat", "Date", "Progression", "Niveau"];
+            const testColWidths = [34, 25, 20, 25, 20, 22, 24];
             yPos = drawTableHeaderPdf(pdf, testHeaders, testColWidths, yPos, margin);
 
             Object.entries(testsByType).forEach(([testType, results], index) => {
@@ -721,21 +721,18 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
                 ? (last.result_value >= first.result_value ? colors.success : colors.danger)
                 : null;
 
-              // Show full test label without category prefix (e.g. "Clean - 1RM" not just "1RM")
-              const fullLabel = getTestLabel(testType);
-              let label = testType;
-              if (fullLabel !== testType) {
-                // Remove top-level category prefix but keep the test detail
-                // fullLabel format: "Category - Test Label" or "Group > Category - Test Label"
-                const parts = fullLabel.split(' - ');
-                if (parts.length >= 3) {
-                  // e.g. "Haltérophilie - Clean - 1RM" → "Clean - 1RM"
-                  label = parts.slice(1).join(' - ');
-                } else if (parts.length === 2) {
-                  // e.g. "Musculation - Squat - 1RM" → "Squat - 1RM"
-                  label = parts[1];
-                } else {
-                  label = fullLabel;
+              // Nom réel du test (résout les tests personnalisés `custom:<uuid>`)
+              const label = resolveTestLabelPdf(testType, data.customTests);
+
+              // Niveau selon le barème du poste de l'athlète
+              const bm = findBenchmarkForTest(testType, data.benchmarks, data.customTests, playerPositions);
+              let levelLabel = "-";
+              let levelColor: [number, number, number] | null = null;
+              if (bm) {
+                const lvl = computeBenchmarkLevel(last.result_value, bm as any, latestWeightKg);
+                if (lvl.label && lvl.label !== "N/A") {
+                  levelLabel = lvl.label;
+                  levelColor = hexToRgbTuple(lvl.color);
                 }
               }
 
@@ -746,8 +743,10 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
                 results.length > 1 ? `${last.result_value}${last.result_unit ? ` ${last.result_unit}` : ''}` : '-',
                 results.length > 1 ? format(new Date(last.test_date), "dd/MM/yy") : '-',
                 progression,
-              ], testColWidths, yPos, index % 2 === 1, margin, [null, null, null, null, null, progColor]);
+                levelLabel,
+              ], testColWidths, yPos, index % 2 === 1, margin, [null, null, null, levelColor, null, progColor, levelColor]);
             });
+
             yPos += 8; // More space between test categories for visual separation
           }
 
