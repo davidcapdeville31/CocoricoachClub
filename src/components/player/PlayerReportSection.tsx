@@ -765,9 +765,7 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
                 const first = results[0];
                 const last = results[results.length - 1];
                 const prog = ((last.result_value - first.result_value) / first.result_value) * 100;
-                const fullLabel = getTestLabel(testType);
-                const parts = fullLabel.split(' - ');
-                const shortLabel = parts.length >= 2 ? parts[parts.length - 1] : testType;
+                const shortLabel = resolveTestLabelPdf(testType, data.customTests);
                 chartData.push({
                   label: shortLabel.substring(0, 10),
                   value: Math.round(prog * 10) / 10,
