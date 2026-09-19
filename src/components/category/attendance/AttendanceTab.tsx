@@ -91,6 +91,11 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detailDay, setDetailDay] = useState<string | null>(null);
   const [groupFilter, setGroupFilter] = useState<string>(ALL_GROUPS);
+  const [compareIds, setCompareIds] = useState<string[]>([]);
+  const toggleCompare = (playerId: string) =>
+    setCompareIds((prev) =>
+      prev.includes(playerId) ? prev.filter((id) => id !== playerId) : [...prev, playerId],
+    );
   const groupPlayerIds = useGroupPlayerIds(categoryId, groupFilter);
   
   // Date range filter
