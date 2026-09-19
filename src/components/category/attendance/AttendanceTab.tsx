@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
@@ -91,6 +92,11 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detailDay, setDetailDay] = useState<string | null>(null);
   const [groupFilter, setGroupFilter] = useState<string>(ALL_GROUPS);
+  const [compareIds, setCompareIds] = useState<string[]>([]);
+  const toggleCompare = (playerId: string) =>
+    setCompareIds((prev) =>
+      prev.includes(playerId) ? prev.filter((id) => id !== playerId) : [...prev, playerId],
+    );
   const groupPlayerIds = useGroupPlayerIds(categoryId, groupFilter);
   
   // Date range filter
@@ -914,15 +920,78 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                   <CardDescription>
                     Du {format(parseISO(startDate), "dd/MM/yyyy")} au {format(parseISO(endDate), "dd/MM/yyyy")}
                   </CardDescription>
-                  <div className="pt-2">
+                  <div className="pt-2 space-y-3">
                     <PlayerGroupFilter
                       categoryId={categoryId}
                       value={groupFilter}
                       onChange={setGroupFilter}
                     />
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Input
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="w-40"
+                      />
+                      <span className="text-muted-foreground text-sm">{t("admin.attendance.to")}</span>
+                      <Input
+                        type="date"
+                        value={endDate}
+                        min={startDate || undefined}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        className="w-40"
+                      />
+                      <Button variant="outline" size="sm" onClick={() => setDatePreset("week")}>
+                        {t("admin.attendance.preset7d")}
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => setDatePreset("month")}>
+                        {t("admin.attendance.presetMonth")}
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => setDatePreset("3months")}>
+                        {t("admin.attendance.preset3m")}
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => setDatePreset("season")}>
+                        {t("admin.attendance.presetSeason")}
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
+                  {(() => {
+                    const compared = (playerStats || []).filter((p) => compareIds.includes(p.id));
+                    if (compared.length === 0) return null;
+                    const maxRate = Math.max(...compared.map((p) => p.rate), 1);
+                    return (
+                      <div className="rounded-2xl border bg-muted/40 p-4 space-y-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <h4 className="font-medium text-sm flex items-center gap-2">
+                            <TrendingUp className="h-4 w-4" />
+                            Comparaison ({compared.length}) — du {format(parseISO(startDate), "dd/MM/yyyy")} au {format(parseISO(endDate), "dd/MM/yyyy")}
+                          </h4>
+                          <Button variant="ghost" size="sm" onClick={() => setCompareIds([])}>
+                            Effacer
+                          </Button>
+                        </div>
+                        <div className="space-y-2">
+                          {compared
+                            .slice()
+                            .sort((a, b) => b.rate - a.rate)
+                            .map((p) => (
+                              <div key={p.id} className="space-y-1">
+                                <div className="flex items-center justify-between text-xs">
+                                  <span className="font-medium">{p.name}</span>
+                                  <span className="text-muted-foreground">
+                                    {p.present} présent · {p.late} retard · {p.excused} excusé · {p.absent} absent ·{" "}
+                                    <span className={getRateColor(p.rate)}>{p.total > 0 ? `${p.rate}%` : "—"}</span>
+                                  </span>
+                                </div>
+                                <Progress value={(p.rate / maxRate) * 100} className="h-2" />
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
                   {!playerStats || playerStats.length === 0 ? (
                     <p className="text-center text-muted-foreground py-8">
                       Aucun joueur dans cette catégorie
@@ -932,6 +1001,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                       <Table>
                         <TableHeader>
                           <TableRow>
+                            <TableHead className="w-10"></TableHead>
                             <TableHead>Joueur</TableHead>
                             <TableHead className="text-center">Présent</TableHead>
                             <TableHead className="text-center">
@@ -948,8 +1018,21 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                         </TableHeader>
                         <TableBody>
                           {playerStats.map((player) => (
-                            <TableRow key={player.id}>
-                              <TableCell>
+                            <TableRow
+                              key={player.id}
+                              className={compareIds.includes(player.id) ? "bg-primary/5" : undefined}
+                            >
+                              <TableCell className="text-center">
+                                <Checkbox
+                                  checked={compareIds.includes(player.id)}
+                                  onCheckedChange={() => toggleCompare(player.id)}
+                                  aria-label={`Comparer ${player.name}`}
+                                />
+                              </TableCell>
+                              <TableCell
+                                className="cursor-pointer"
+                                onClick={() => toggleCompare(player.id)}
+                              >
                                 <div>
                                   <p className="font-medium">{player.name}</p>
                                   {player.position && (
