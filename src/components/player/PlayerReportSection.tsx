@@ -1505,9 +1505,7 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
 
             Object.entries(testsByType).forEach(([testType, results]) => {
               results.sort((a, b) => new Date(a.test_date).getTime() - new Date(b.test_date).getTime());
-              const fullLabel = getTestLabel(testType);
-              const parts = fullLabel.split(' - ');
-              const label = parts.length >= 3 ? parts.slice(1).join(' - ') : parts.length === 2 ? parts[1] : fullLabel;
+              const label = resolveTestLabelPdf(testType, data.customTests);
 
               // Show ALL results for this test, not just first/last
               results.forEach((t, tIdx) => {
