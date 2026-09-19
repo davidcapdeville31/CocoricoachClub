@@ -103,19 +103,38 @@ export function AthleteComplianceTab({ categoryId }: Props) {
   const { data: weights = [] } = useQuery({
     queryKey: ["compliance-weights", categoryId],
     queryFn: async () => {
-      const [bc, pm] = await Promise.all([
+      const [bc, pm, gt, ct] = await Promise.all([
         supabase
           .from("body_composition")
-          .select("player_id, measurement_date, weight_kg")
+          .select("player_id, measurement_date, weight_kg, created_at")
           .eq("category_id", categoryId),
         supabase
           .from("player_measurements")
-          .select("player_id, measurement_date, weight_kg")
+          .select("player_id, measurement_date, weight_kg, created_at")
           .eq("category_id", categoryId),
+        supabase
+          .from("generic_tests")
+          .select("player_id, test_date, test_type, test_category, result_value, result_unit, created_at")
+          .eq("category_id", categoryId),
+        supabase.from("custom_tests").select("id, name, unit, test_category").eq("category_id", categoryId),
       ]);
       if (bc.error) throw bc.error;
       if (pm.error) throw pm.error;
-      return [...(bc.data || []), ...(pm.data || [])].filter((r: any) => r.weight_kg);
+      if (gt.error) throw gt.error;
+
+      const entries = collectWeightHistory({
+        bodyComps: bc.data || [],
+        playerMeasurements: pm.data || [],
+        genericTests: (gt.data || []) as any,
+        customTests: (ct.data || []) as any,
+      });
+
+      // Format homogène avec l'ancien usage (measurement_date / weight_kg)
+      return entries.map((e) => ({
+        player_id: e.player_id,
+        measurement_date: e.date,
+        weight_kg: e.weight,
+      }));
     },
   });
 
