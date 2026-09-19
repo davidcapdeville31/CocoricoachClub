@@ -1112,13 +1112,24 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
                           </TableCell>
                           {!isViewer && (
                             <TableCell className="text-right">
-                              <Button variant="ghost" size="icon" onClick={() => {
-                                if (confirm("Êtes-vous sûr de vouloir supprimer ce test ?")) {
-                                  deleteTest.mutate(test.id);
-                                }
-                              }}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
+                              <div className="flex items-center justify-end gap-1">
+                                <Button variant="ghost" size="icon" title="Modifier le résultat" onClick={() => {
+                                  setEditResult(test);
+                                  setEditResultValue(test.result_value != null ? String(test.result_value) : "");
+                                  setEditResultUnit(test.result_unit || "");
+                                  setEditResultDate(test.test_date || "");
+                                  setEditResultNotes(test.notes || "");
+                                }}>
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="icon" title="Supprimer" onClick={() => {
+                                  if (confirm("Êtes-vous sûr de vouloir supprimer ce test ?")) {
+                                    deleteTest.mutate(test.id);
+                                  }
+                                }}>
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </div>
                             </TableCell>
                           )}
                         </TableRow>
