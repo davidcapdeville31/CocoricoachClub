@@ -132,7 +132,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
-        .select("id, name, position")
+        .select("id, name, first_name, position")
         .eq("category_id", categoryId)
         .order("name");
       if (error) throw error;
@@ -215,20 +215,51 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
     });
   });
 
+  // Merge athlete self-responses (event_participants) with staff attendance records.
+  // Staff records take precedence; an event_participants row is only counted when no
+  // staff record exists for the same player + session/date. Future sessions and
+  // "no_response" never count.
+  const todayForStats = format(new Date(), "yyyy-MM-dd");
+  const sessionDateById = new Map((sessions || []).map((s) => [s.id, s.session_date]));
+  const attendanceKeys = new Set(
+    (filteredAttendance || []).map(
+      (a) => `${a.player_id}|${a.training_session_id || a.attendance_date}`,
+    ),
+  );
+  const epStatsByPlayer = new Map<string, { present: number; absent: number }>();
+  (eventParticipants || []).forEach((p) => {
+    const st = p.attendance_status;
+    if (st !== "present" && st !== "absent") return;
+    const date = sessionDateById.get(p.training_session_id);
+    if (!date || date > todayForStats) return;
+    if (
+      attendanceKeys.has(`${p.player_id}|${p.training_session_id}`) ||
+      attendanceKeys.has(`${p.player_id}|${date}`)
+    ) {
+      return;
+    }
+    const entry = epStatsByPlayer.get(p.player_id) || { present: 0, absent: 0 };
+    if (st === "present") entry.present += 1;
+    else entry.absent += 1;
+    epStatsByPlayer.set(p.player_id, entry);
+  });
+
   // Calculate stats per player with date filtering
   const playerStats = players?.filter((p) => !groupPlayerIds || groupPlayerIds.has(p.id)).map((player) => {
     const playerAttendance = filteredAttendance?.filter((a) => a.player_id === player.id) || [];
-    const present = playerAttendance.filter((a) => a.status === "present").length;
+    const ep = epStatsByPlayer.get(player.id) || { present: 0, absent: 0 };
+    const present = playerAttendance.filter((a) => a.status === "present").length + ep.present;
     const late = playerAttendance.filter((a) => a.status === "late").length;
     const lateJustified = playerAttendance.filter((a) => a.status === "late" && a.late_justified).length;
     const lateUnjustified = late - lateJustified;
-    const absent = playerAttendance.filter((a) => a.status === "absent").length;
+    const absent = playerAttendance.filter((a) => a.status === "absent").length + ep.absent;
     const excused = playerAttendance.filter((a) => a.status === "excused").length;
-    const total = playerAttendance.length;
+    const total = playerAttendance.length + ep.present + ep.absent;
     const rate = total > 0 ? Math.round(((present + late) / total) * 100) : 0;
 
     return {
       ...player,
+      displayName: [player.name, (player as { first_name?: string | null }).first_name].filter(Boolean).join(" "),
       present,
       late,
       lateJustified,
@@ -979,7 +1010,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                             .map((p) => (
                               <div key={p.id} className="space-y-1">
                                 <div className="flex items-center justify-between text-xs">
-                                  <span className="font-medium">{p.name}</span>
+                                  <span className="font-medium">{p.displayName}</span>
                                   <span className="text-muted-foreground">
                                     {p.present} présent · {p.late} retard · {p.excused} excusé · {p.absent} absent ·{" "}
                                     <span className={getRateColor(p.rate)}>{p.total > 0 ? `${p.rate}%` : "—"}</span>
@@ -1026,7 +1057,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                                 <Checkbox
                                   checked={compareIds.includes(player.id)}
                                   onCheckedChange={() => toggleCompare(player.id)}
-                                  aria-label={`Comparer ${player.name}`}
+                                  aria-label={`Comparer ${player.displayName}`}
                                 />
                               </TableCell>
                               <TableCell
@@ -1034,7 +1065,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                                 onClick={() => toggleCompare(player.id)}
                               >
                                 <div>
-                                  <p className="font-medium">{player.name}</p>
+                                  <p className="font-medium">{player.displayName}</p>
                                   {player.position && (
                                     <p className="text-xs text-muted-foreground">{player.position}</p>
                                   )}
