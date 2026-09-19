@@ -1153,6 +1153,63 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
         allowCustomTest={!defaultCategory || defaultCategory === "all"}
       />
 
+      <Dialog open={!!editResult} onOpenChange={(o) => !o && setEditResult(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Modifier le résultat</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="text-xs text-muted-foreground">
+              {editResult ? `${editResult.players?.name || ""} — ${resolveTestLabel(editResult.test_type, editResult.test_category)}` : ""}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-result-value">Résultat</Label>
+                <Input
+                  id="edit-result-value"
+                  inputMode="decimal"
+                  value={editResultValue}
+                  onChange={(e) => setEditResultValue(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-result-unit">Unité</Label>
+                <Input
+                  id="edit-result-unit"
+                  value={editResultUnit}
+                  onChange={(e) => setEditResultUnit(e.target.value)}
+                  placeholder="kg, s, m…"
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-result-date">Date du test</Label>
+              <Input
+                id="edit-result-date"
+                type="date"
+                value={editResultDate}
+                onChange={(e) => setEditResultDate(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-result-notes">Notes</Label>
+              <Input
+                id="edit-result-notes"
+                value={editResultNotes}
+                onChange={(e) => setEditResultNotes(e.target.value)}
+                placeholder="Optionnel"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditResult(null)}>Annuler</Button>
+            <Button onClick={() => updateResult.mutate()} disabled={updateResult.isPending}>
+              Enregistrer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {(() => {
         let target = scheduleTarget;
         if (!target && filterTestType !== "all" && selectedCategory) {
