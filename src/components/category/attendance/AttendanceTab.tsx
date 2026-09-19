@@ -1017,8 +1017,21 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                         </TableHeader>
                         <TableBody>
                           {playerStats.map((player) => (
-                            <TableRow key={player.id}>
-                              <TableCell>
+                            <TableRow
+                              key={player.id}
+                              className={compareIds.includes(player.id) ? "bg-primary/5" : undefined}
+                            >
+                              <TableCell className="text-center">
+                                <Checkbox
+                                  checked={compareIds.includes(player.id)}
+                                  onCheckedChange={() => toggleCompare(player.id)}
+                                  aria-label={`Comparer ${player.name}`}
+                                />
+                              </TableCell>
+                              <TableCell
+                                className="cursor-pointer"
+                                onClick={() => toggleCompare(player.id)}
+                              >
                                 <div>
                                   <p className="font-medium">{player.name}</p>
                                   {player.position && (
