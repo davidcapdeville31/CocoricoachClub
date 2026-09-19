@@ -409,7 +409,7 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
     const [customTestsRes, benchmarksRes, attributesRes] = await Promise.all([
       supabase.from("custom_tests").select("id, name, test_category, unit"),
       supabase.from("benchmarks").select("*").eq("category_id", categoryId),
-      supabase.from("player_attributes").select("dimension, value, is_primary").eq("player_id", playerId),
+      supabase.from("athlete_attributes").select("dimension, value, is_primary").eq("player_id", playerId),
     ]);
 
     return {
