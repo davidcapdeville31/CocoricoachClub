@@ -404,6 +404,14 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
       })(),
     ]);
 
+    // Référentiels : noms des tests personnalisés + barèmes de la catégorie
+    // + attributs (poste) de l'athlète, pour libeller et colorer les tests.
+    const [customTestsRes, benchmarksRes, attributesRes] = await Promise.all([
+      supabase.from("custom_tests").select("id, name, test_category, unit"),
+      supabase.from("benchmarks").select("*").eq("category_id", categoryId),
+      supabase.from("player_attributes").select("dimension, value, is_primary").eq("player_id", playerId),
+    ]);
+
     return {
       measurements: measurementsRes.data || [],
       bodyComps: bodyCompRes.data || [],
@@ -420,8 +428,66 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
       tennisDrillTraining: (tennisDrillRes as any)?.data || [],
       precisionTraining: (precisionRes as any)?.data || [],
       trainingRounds: (trainingRoundsRes as any)?.data || [],
+      customTests: (customTestsRes as any)?.data || [],
+      benchmarks: ((benchmarksRes as any)?.data || []).map((b: any) => ({ ...b, levels: Array.isArray(b.levels) ? b.levels : [] })),
+      attributes: (attributesRes as any)?.data || [],
     };
   };
+
+  /** Libellé lisible d'un test (résout `custom:<uuid>` vers le vrai nom). */
+  const resolveTestLabelPdf = (testType: string, customTests: any[]): string => {
+    const m = /^custom:(.+)$/i.exec(testType || "");
+    if (m) {
+      const found = customTests.find((ct: any) => String(ct.id).toLowerCase() === m[1].toLowerCase());
+      return found?.name || "Test personnalisé";
+    }
+    const fullLabel = getTestLabel(testType);
+    if (fullLabel === testType) return testType;
+    const parts = fullLabel.split(" - ");
+    if (parts.length >= 3) return parts.slice(1).join(" - ");
+    if (parts.length === 2) return parts[1];
+    return fullLabel;
+  };
+
+  /** Barème applicable à ce test pour l'athlète (priorité au poste). */
+  const findBenchmarkForTest = (
+    testType: string,
+    benchmarks: any[],
+    customTests: any[],
+    positions: Set<string>,
+  ) => {
+    if (!benchmarks.length) return null;
+    const accepted = new Set<string>();
+    accepted.add(normalizeTestKey(testType));
+    const m = /^custom:(.+)$/i.exec(testType || "");
+    if (m) {
+      const ct = customTests.find((c: any) => String(c.id).toLowerCase() === m[1].toLowerCase());
+      if (ct?.name) accepted.add(normalizeTestKey(ct.name));
+    }
+    const candidates = benchmarks.filter((bm: any) => {
+      const keys = new Set<string>([normalizeTestKey(bm.test_type)]);
+      const bmCustom = /^custom:(.+)$/i.exec(bm.test_type || "");
+      if (bmCustom) {
+        const ct = customTests.find((c: any) => String(c.id).toLowerCase() === bmCustom[1].toLowerCase());
+        if (ct?.name) keys.add(normalizeTestKey(ct.name));
+      }
+      return [...keys].some((k) => k && accepted.has(k));
+    });
+    if (!candidates.length) return null;
+    const positional = candidates.find(
+      (bm: any) => bm.filter_type === "position" && bm.filter_value && positions.has(bm.filter_value),
+    );
+    const generic = candidates.find((bm: any) => bm.filter_type === "all" || !bm.filter_value);
+    return positional || generic || candidates[0];
+  };
+
+  const hexToRgbTuple = (hex: string): [number, number, number] | null => {
+    const m = /^#?([0-9a-f]{6})$/i.exec((hex || "").trim());
+    if (!m) return null;
+    const n = parseInt(m[1], 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  };
+
 
   const buildTestGroups = (data: Awaited<ReturnType<typeof fetchAllData>>) => {
     const allTests: Array<{ test_type: string; test_category: string; result_value: number; result_unit: string | null; test_date: string }> = [];
