@@ -219,7 +219,7 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
     setEntryTarget({ player, testRef, testLabel, campaign });
     setEntryValue("");
     setEntryUnit(defaultUnitFor(testRef));
-    setEntryDate(campaign.end > date ? date : campaign.end);
+    setEntryDate(date < campaign.start ? campaign.start : date > campaign.end ? campaign.end : date);
   };
 
   /** Ouvre la saisie depuis la ligne du test : choix de l'athlète dans la fenêtre */
@@ -244,7 +244,7 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
     });
     setEntryValue("");
     setEntryUnit(defaultUnitFor(testRef));
-    setEntryDate(campaign.end > date ? date : campaign.end);
+    setEntryDate(date < campaign.start ? campaign.start : date > campaign.end ? campaign.end : date);
   };
 
   const saveEntry = useMutation({
@@ -252,6 +252,9 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
       if (!entryTarget) throw new Error("Aucun test sélectionné");
       const value = parseFloat(entryValue.replace(",", "."));
       if (Number.isNaN(value)) throw new Error("Saisis une valeur numérique");
+      if (entryDate < entryTarget.campaign.start || entryDate > entryTarget.campaign.end) {
+        throw new Error("La date doit rester dans la période de la campagne");
+      }
       const { error } = await supabase.from("generic_tests").insert({
         player_id: entryTarget.player.id,
         category_id: categoryId,
@@ -263,9 +266,12 @@ export function TestCampaignsCompletionCard({ categoryId, date, players }: Props
       });
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["decision-test-campaigns-"] });
-      queryClient.invalidateQueries({ queryKey: ["generic_tests"] });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["decision-test-campaigns-results"] }),
+        queryClient.invalidateQueries({ queryKey: ["tests-history-results"] }),
+        queryClient.invalidateQueries({ queryKey: ["generic_tests"] }),
+      ]);
       toast.success("Résultat ajouté");
       setEntryTarget(null);
     },
