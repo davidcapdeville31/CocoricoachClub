@@ -16,6 +16,8 @@ import { generateCsv, downloadCsv } from "@/lib/csv";
 import ExcelJS from "exceljs";
 import { preparePdfWithSettings, drawPdfHeader as drawPdfHeaderCustom, type PdfCustomSettings } from "@/lib/pdfExport";
 import { TEST_CATEGORIES, getTestLabel } from "@/lib/constants/testCategories";
+import { normalizeTestKey } from "@/lib/benchmarks/matchTestType";
+import { computeBenchmarkLevel } from "@/lib/benchmarks/computeLevel";
 import { getStatsForSport, getStatCategories } from "@/lib/constants/sportStats";
 
 interface PlayerReportSectionProps {
@@ -404,6 +406,14 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
       })(),
     ]);
 
+    // Référentiels : noms des tests personnalisés + barèmes de la catégorie
+    // + attributs (poste) de l'athlète, pour libeller et colorer les tests.
+    const [customTestsRes, benchmarksRes, attributesRes] = await Promise.all([
+      supabase.from("custom_tests").select("id, name, test_category, unit"),
+      supabase.from("benchmarks").select("*").eq("category_id", categoryId),
+      supabase.from("athlete_attributes").select("dimension, value, is_primary").eq("player_id", playerId),
+    ]);
+
     return {
       measurements: measurementsRes.data || [],
       bodyComps: bodyCompRes.data || [],
@@ -420,8 +430,66 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
       tennisDrillTraining: (tennisDrillRes as any)?.data || [],
       precisionTraining: (precisionRes as any)?.data || [],
       trainingRounds: (trainingRoundsRes as any)?.data || [],
+      customTests: (customTestsRes as any)?.data || [],
+      benchmarks: ((benchmarksRes as any)?.data || []).map((b: any) => ({ ...b, levels: Array.isArray(b.levels) ? b.levels : [] })),
+      attributes: (attributesRes as any)?.data || [],
     };
   };
+
+  /** Libellé lisible d'un test (résout `custom:<uuid>` vers le vrai nom). */
+  const resolveTestLabelPdf = (testType: string, customTests: any[]): string => {
+    const m = /^custom:(.+)$/i.exec(testType || "");
+    if (m) {
+      const found = customTests.find((ct: any) => String(ct.id).toLowerCase() === m[1].toLowerCase());
+      return found?.name || "Test personnalisé";
+    }
+    const fullLabel = getTestLabel(testType);
+    if (fullLabel === testType) return testType;
+    const parts = fullLabel.split(" - ");
+    if (parts.length >= 3) return parts.slice(1).join(" - ");
+    if (parts.length === 2) return parts[1];
+    return fullLabel;
+  };
+
+  /** Barème applicable à ce test pour l'athlète (priorité au poste). */
+  const findBenchmarkForTest = (
+    testType: string,
+    benchmarks: any[],
+    customTests: any[],
+    positions: Set<string>,
+  ) => {
+    if (!benchmarks.length) return null;
+    const accepted = new Set<string>();
+    accepted.add(normalizeTestKey(testType));
+    const m = /^custom:(.+)$/i.exec(testType || "");
+    if (m) {
+      const ct = customTests.find((c: any) => String(c.id).toLowerCase() === m[1].toLowerCase());
+      if (ct?.name) accepted.add(normalizeTestKey(ct.name));
+    }
+    const candidates = benchmarks.filter((bm: any) => {
+      const keys = new Set<string>([normalizeTestKey(bm.test_type)]);
+      const bmCustom = /^custom:(.+)$/i.exec(bm.test_type || "");
+      if (bmCustom) {
+        const ct = customTests.find((c: any) => String(c.id).toLowerCase() === bmCustom[1].toLowerCase());
+        if (ct?.name) keys.add(normalizeTestKey(ct.name));
+      }
+      return [...keys].some((k) => k && accepted.has(k));
+    });
+    if (!candidates.length) return null;
+    const positional = candidates.find(
+      (bm: any) => bm.filter_type === "position" && bm.filter_value && positions.has(bm.filter_value),
+    );
+    const generic = candidates.find((bm: any) => bm.filter_type === "all" || !bm.filter_value);
+    return positional || generic || candidates[0];
+  };
+
+  const hexToRgbTuple = (hex: string): [number, number, number] | null => {
+    const m = /^#?([0-9a-f]{6})$/i.exec((hex || "").trim());
+    if (!m) return null;
+    const n = parseInt(m[1], 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  };
+
 
   const buildTestGroups = (data: Awaited<ReturnType<typeof fetchAllData>>) => {
     const allTests: Array<{ test_type: string; test_category: string; result_value: number; result_unit: string | null; test_date: string }> = [];
@@ -596,6 +664,16 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
       // ===== TESTS SECTION =====
       if (selectedSections.includes("tests")) {
         const { grouped } = buildTestGroups(data);
+        // Contexte barèmes : postes de l'athlète + dernier poids de corps
+        const playerPositions = new Set<string>();
+        if ((player as any)?.position) playerPositions.add((player as any).position);
+        (data.attributes || []).forEach((a: any) => {
+          if (a.dimension === "position" && a.value) playerPositions.add(a.value);
+        });
+        const latestWeightKg: number | null =
+          (data.bodyComps || []).find((b: any) => b.weight_kg != null)?.weight_kg ??
+          (data.measurements || []).find((m: any) => m.weight_kg != null)?.weight_kg ??
+          null;
         const orderedCategories = Object.keys(grouped).sort((a, b) => getCategoryLabel(a).localeCompare(getCategoryLabel(b)));
 
         if (orderedCategories.length > 0) {
@@ -627,8 +705,8 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
               testsByType[t.test_type].push(t);
             });
 
-            const testHeaders = ["Test", "1er résultat", "Date", "Dernier résultat", "Date", "Progression"];
-            const testColWidths = [38, 28, 22, 28, 22, 32];
+            const testHeaders = ["Test", "1er résultat", "Date", "Dernier résultat", "Date", "Progression", "Niveau"];
+            const testColWidths = [34, 25, 20, 25, 20, 22, 24];
             yPos = drawTableHeaderPdf(pdf, testHeaders, testColWidths, yPos, margin);
 
             Object.entries(testsByType).forEach(([testType, results], index) => {
@@ -643,21 +721,18 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
                 ? (last.result_value >= first.result_value ? colors.success : colors.danger)
                 : null;
 
-              // Show full test label without category prefix (e.g. "Clean - 1RM" not just "1RM")
-              const fullLabel = getTestLabel(testType);
-              let label = testType;
-              if (fullLabel !== testType) {
-                // Remove top-level category prefix but keep the test detail
-                // fullLabel format: "Category - Test Label" or "Group > Category - Test Label"
-                const parts = fullLabel.split(' - ');
-                if (parts.length >= 3) {
-                  // e.g. "Haltérophilie - Clean - 1RM" → "Clean - 1RM"
-                  label = parts.slice(1).join(' - ');
-                } else if (parts.length === 2) {
-                  // e.g. "Musculation - Squat - 1RM" → "Squat - 1RM"
-                  label = parts[1];
-                } else {
-                  label = fullLabel;
+              // Nom réel du test (résout les tests personnalisés `custom:<uuid>`)
+              const label = resolveTestLabelPdf(testType, data.customTests);
+
+              // Niveau selon le barème du poste de l'athlète
+              const bm = findBenchmarkForTest(testType, data.benchmarks, data.customTests, playerPositions);
+              let levelLabel = "-";
+              let levelColor: [number, number, number] | null = null;
+              if (bm) {
+                const lvl = computeBenchmarkLevel(last.result_value, bm as any, latestWeightKg);
+                if (lvl.label && lvl.label !== "N/A") {
+                  levelLabel = lvl.label;
+                  levelColor = hexToRgbTuple(lvl.color);
                 }
               }
 
@@ -668,8 +743,10 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
                 results.length > 1 ? `${last.result_value}${last.result_unit ? ` ${last.result_unit}` : ''}` : '-',
                 results.length > 1 ? format(new Date(last.test_date), "dd/MM/yy") : '-',
                 progression,
-              ], testColWidths, yPos, index % 2 === 1, margin, [null, null, null, null, null, progColor]);
+                levelLabel,
+              ], testColWidths, yPos, index % 2 === 1, margin, [null, null, null, levelColor, null, progColor, levelColor]);
             });
+
             yPos += 8; // More space between test categories for visual separation
           }
 
@@ -688,9 +765,7 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
                 const first = results[0];
                 const last = results[results.length - 1];
                 const prog = ((last.result_value - first.result_value) / first.result_value) * 100;
-                const fullLabel = getTestLabel(testType);
-                const parts = fullLabel.split(' - ');
-                const shortLabel = parts.length >= 2 ? parts[parts.length - 1] : testType;
+                const shortLabel = resolveTestLabelPdf(testType, data.customTests);
                 chartData.push({
                   label: shortLabel.substring(0, 10),
                   value: Math.round(prog * 10) / 10,
@@ -1430,9 +1505,7 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
 
             Object.entries(testsByType).forEach(([testType, results]) => {
               results.sort((a, b) => new Date(a.test_date).getTime() - new Date(b.test_date).getTime());
-              const fullLabel = getTestLabel(testType);
-              const parts = fullLabel.split(' - ');
-              const label = parts.length >= 3 ? parts.slice(1).join(' - ') : parts.length === 2 ? parts[1] : fullLabel;
+              const label = resolveTestLabelPdf(testType, data.customTests);
 
               // Show ALL results for this test, not just first/last
               results.forEach((t, tIdx) => {
