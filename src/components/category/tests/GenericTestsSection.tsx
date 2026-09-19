@@ -21,7 +21,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Plus, Trash2, Filter, ClipboardList, CalendarPlus, FolderPlus, Pencil, Star, Copy, CopyPlus, ChevronDown, ChevronRight, Gauge } from "lucide-react";
 import {
@@ -401,6 +403,11 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
   const [editingTest, setEditingTest] = useState<EditableTest | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [focusScoringOnOpen, setFocusScoringOnOpen] = useState(false);
+  const [editResult, setEditResult] = useState<any | null>(null);
+  const [editResultValue, setEditResultValue] = useState("");
+  const [editResultUnit, setEditResultUnit] = useState("");
+  const [editResultDate, setEditResultDate] = useState("");
+  const [editResultNotes, setEditResultNotes] = useState("");
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const isRehabMode = defaultCategory === "rehab";
   const isSingleCategoryMode = !!defaultCategory && defaultCategory !== "rehab" && defaultCategory !== "all";
