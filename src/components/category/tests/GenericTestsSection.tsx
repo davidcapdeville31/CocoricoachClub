@@ -21,7 +21,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Plus, Trash2, Filter, ClipboardList, CalendarPlus, FolderPlus, Pencil, Star, Copy, CopyPlus, ChevronDown, ChevronRight, Gauge } from "lucide-react";
 import {
@@ -401,6 +403,11 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
   const [editingTest, setEditingTest] = useState<EditableTest | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [focusScoringOnOpen, setFocusScoringOnOpen] = useState(false);
+  const [editResult, setEditResult] = useState<any | null>(null);
+  const [editResultValue, setEditResultValue] = useState("");
+  const [editResultUnit, setEditResultUnit] = useState("");
+  const [editResultDate, setEditResultDate] = useState("");
+  const [editResultNotes, setEditResultNotes] = useState("");
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const isRehabMode = defaultCategory === "rehab";
   const isSingleCategoryMode = !!defaultCategory && defaultCategory !== "rehab" && defaultCategory !== "all";
@@ -713,6 +720,49 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
     onError: () => {
       toast.error("Erreur lors de la suppression du test");
     },
+  });
+
+  const invalidateResultQueries = () => {
+    queryClient.invalidateQueries({ queryKey: ["generic_tests", categoryId] });
+    queryClient.invalidateQueries({ queryKey: ["generic_tests_discovery", categoryId] });
+    queryClient.invalidateQueries({ queryKey: ["generic-tests-evolution", categoryId] });
+    [
+      "generic-tests-matrix",
+      "custom-tests-matrix",
+      "weight-tests-matrix",
+      "speed-tests-matrix",
+      "strength-tests-matrix",
+      "body-comp-matrix",
+      "player-measurements-matrix",
+      "benchmarks-matrix",
+      "players-matrix",
+      "tests-history-results",
+    ].forEach((key) => queryClient.invalidateQueries({ queryKey: [key, categoryId] }));
+  };
+
+  const updateResult = useMutation({
+    mutationFn: async () => {
+      if (!editResult) return;
+      const val = parseFloat(String(editResultValue).replace(",", "."));
+      if (!Number.isFinite(val)) throw new Error("Valeur invalide");
+      if (!editResultDate) throw new Error("Date invalide");
+      const { error } = await supabase
+        .from("generic_tests")
+        .update({
+          result_value: val,
+          result_unit: editResultUnit || null,
+          test_date: editResultDate,
+          notes: editResultNotes || null,
+        })
+        .eq("id", editResult.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Résultat modifié");
+      setEditResult(null);
+      invalidateResultQueries();
+    },
+    onError: (e: any) => toast.error(e?.message || "Erreur"),
   });
 
   const selectedCategory = filteredTestCategories.find(c => c.value === filterCategory);
@@ -1062,13 +1112,24 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
                           </TableCell>
                           {!isViewer && (
                             <TableCell className="text-right">
-                              <Button variant="ghost" size="icon" onClick={() => {
-                                if (confirm("Êtes-vous sûr de vouloir supprimer ce test ?")) {
-                                  deleteTest.mutate(test.id);
-                                }
-                              }}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
+                              <div className="flex items-center justify-end gap-1">
+                                <Button variant="ghost" size="icon" title="Modifier le résultat" onClick={() => {
+                                  setEditResult(test);
+                                  setEditResultValue(test.result_value != null ? String(test.result_value) : "");
+                                  setEditResultUnit(test.result_unit || "");
+                                  setEditResultDate(test.test_date || "");
+                                  setEditResultNotes(test.notes || "");
+                                }}>
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="icon" title="Supprimer" onClick={() => {
+                                  if (confirm("Êtes-vous sûr de vouloir supprimer ce test ?")) {
+                                    deleteTest.mutate(test.id);
+                                  }
+                                }}>
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </div>
                             </TableCell>
                           )}
                         </TableRow>
@@ -1091,6 +1152,63 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
         defaultFilterTestType={filterTestType !== "all" ? filterTestType : undefined}
         allowCustomTest={!defaultCategory || defaultCategory === "all"}
       />
+
+      <Dialog open={!!editResult} onOpenChange={(o) => !o && setEditResult(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Modifier le résultat</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="text-xs text-muted-foreground">
+              {editResult ? `${editResult.players?.name || ""} — ${resolveTestLabel(editResult.test_type, editResult.test_category)}` : ""}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-result-value">Résultat</Label>
+                <Input
+                  id="edit-result-value"
+                  inputMode="decimal"
+                  value={editResultValue}
+                  onChange={(e) => setEditResultValue(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-result-unit">Unité</Label>
+                <Input
+                  id="edit-result-unit"
+                  value={editResultUnit}
+                  onChange={(e) => setEditResultUnit(e.target.value)}
+                  placeholder="kg, s, m…"
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-result-date">Date du test</Label>
+              <Input
+                id="edit-result-date"
+                type="date"
+                value={editResultDate}
+                onChange={(e) => setEditResultDate(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-result-notes">Notes</Label>
+              <Input
+                id="edit-result-notes"
+                value={editResultNotes}
+                onChange={(e) => setEditResultNotes(e.target.value)}
+                placeholder="Optionnel"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditResult(null)}>Annuler</Button>
+            <Button onClick={() => updateResult.mutate()} disabled={updateResult.isPending}>
+              Enregistrer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {(() => {
         let target = scheduleTarget;
