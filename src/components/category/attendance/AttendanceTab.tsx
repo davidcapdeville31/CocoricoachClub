@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { ClipboardCheck, Calendar, Users, TrendingUp, ChevronRight, Filter, Clock, AlertCircle, CheckCircle, Check, X, HelpCircle, FileText, FileSpreadsheet } from "lucide-react";
+import { ClipboardCheck, Calendar, Users, TrendingUp, ChevronRight, Filter, Clock, AlertCircle, CheckCircle, Check, X, HelpCircle, FileText, FileSpreadsheet, Search } from "lucide-react";
 import {
   exportAttendanceDayPdf,
   exportAttendanceDayExcel,
@@ -96,6 +96,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detailDay, setDetailDay] = useState<string | null>(null);
   const [groupFilter, setGroupFilter] = useState<string>(ALL_GROUPS);
+  const [playerSearch, setPlayerSearch] = useState("");
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const toggleCompare = (playerId: string) =>
     setCompareIds((prev) =>
@@ -338,6 +339,18 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
       sharedDates,
     };
   }).sort((a, b) => b.rate - a.rate);
+
+  // Recherche par nom / prénom (insensible à la casse et aux accents, plusieurs mots autorisés).
+  const stripAccents = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const searchQuery = stripAccents(playerSearch.trim().toLocaleLowerCase());
+  const filteredPlayerStats = !playerStats
+    ? playerStats
+    : searchQuery
+      ? playerStats.filter((p) => {
+          const haystack = stripAccents(p.displayName.toLocaleLowerCase());
+          return searchQuery.split(/\s+/).every((word) => haystack.includes(word));
+        })
+      : playerStats;
 
   type ComparedPlayer = NonNullable<typeof playerStats>[number];
 
@@ -1090,6 +1103,25 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                     Du {format(parseISO(startDate), "dd/MM/yyyy")} au {format(parseISO(endDate), "dd/MM/yyyy")}
                   </CardDescription>
                   <div className="pt-2 space-y-3">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                      <Input
+                        value={playerSearch}
+                        onChange={(e) => setPlayerSearch(e.target.value)}
+                        placeholder="Rechercher un joueur (nom ou prénom)…"
+                        className="pl-9 pr-9"
+                      />
+                      {playerSearch && (
+                        <button
+                          type="button"
+                          onClick={() => setPlayerSearch("")}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground hover:text-foreground"
+                          aria-label="Effacer la recherche"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
                     <PlayerGroupFilter
                       categoryId={categoryId}
                       value={groupFilter}
