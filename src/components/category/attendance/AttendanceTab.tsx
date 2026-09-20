@@ -337,6 +337,76 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
     };
   }).sort((a, b) => b.rate - a.rate);
 
+  type ComparedPlayer = NonNullable<typeof playerStats>[number];
+
+  const fmtDay = (iso: string) => format(parseISO(iso), "dd/MM/yyyy");
+
+  const renderDateChips = (dates: string[], sharedDates: string[]) => {
+    if (dates.length === 0) {
+      return <p className="mt-1 text-[10px] text-muted-foreground">Aucune présence sur la période</p>;
+    }
+    const shared = new Set(sharedDates);
+    return (
+      <div className="mt-1.5 flex flex-wrap gap-1">
+        {dates.map((d) => (
+          <span
+            key={d}
+            className={
+              shared.has(d)
+                ? "rounded-md border border-violet-500/40 bg-violet-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-violet-600"
+                : "rounded-md border bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground"
+            }
+            title={shared.has(d) ? "Musculation et terrain le même jour" : undefined}
+          >
+            {fmtDay(d)}
+          </span>
+        ))}
+      </div>
+    );
+  };
+
+  const runComparisonExport = async (kind: "pdf" | "excel", compared: ComparedPlayer[]) => {
+    try {
+      const ctx = {
+        categoryId,
+        periodLabel: `${format(parseISO(startDate), "dd/MM/yyyy")} — ${format(parseISO(endDate), "dd/MM/yyyy")}`,
+        players: compared
+          .slice()
+          .sort((a, b) => b.rate - a.rate)
+          .map((p) => ({
+            name: p.displayName,
+            present: p.present,
+            late: p.late,
+            excused: p.excused,
+            absent: p.absent,
+            total: p.total,
+            rate: p.rate,
+            muscu: {
+              att: p.muscu.att,
+              tot: p.muscu.tot,
+              rate: p.muscuRate,
+              dates: p.muscuDates.map(fmtDay),
+            },
+            terrain: {
+              att: p.terrain.att,
+              tot: p.terrain.tot,
+              rate: p.terrainRate,
+              dates: p.terrainDates.map(fmtDay),
+            },
+            sharedDates: p.sharedDates.map(fmtDay),
+          })),
+      };
+      if (kind === "pdf") await exportAttendanceComparisonPdf(ctx);
+      else await exportAttendanceComparisonExcel(ctx);
+      toast.success("Export généré");
+    } catch (e) {
+      console.error(e);
+      toast.error("Export impossible");
+    }
+  };
+
+
+
   // Get detailed attendance counts for a session
   const getSessionAttendanceSummary = (sessionId: string, sessionDate: string) => {
     const sessionAtt = attendance?.filter(
