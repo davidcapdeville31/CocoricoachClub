@@ -54,6 +54,8 @@ type EventParticipantRow = ParticipantWithAttendance & {
   training_session_id: string;
 };
 
+type KindCount = { att: number; tot: number };
+
 const EVENT_PARTICIPANTS_PAGE_SIZE = 1000;
 const EVENT_PARTICIPANTS_SELECT =
   "id, training_session_id, player_id, attendance_status, absence_comment, responded_at, players:player_id(id, name, first_name, avatar_url)";
@@ -270,6 +272,29 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
     const total = playerAttendance.length + ep.present + ep.absent;
     const rate = total > 0 ? Math.round(((present + late) / total) * 100) : 0;
 
+    // Ventilation par type d'événement : musculation vs terrain (tous les autres types).
+    // "att" = présent ou retard ; "tot" = toutes lignes comptées (hors excusés volontairement inclus).
+    const kindStats: { muscu: KindCount; terrain: KindCount } = {
+      muscu: { att: 0, tot: 0 },
+      terrain: { att: 0, tot: 0 },
+    };
+    playerAttendance.forEach((a) => {
+      const type = (a as { training_sessions?: { training_type?: string | null } | null }).training_sessions
+        ?.training_type;
+      const bucket = kindOfType(type) === "muscu" ? kindStats.muscu : kindStats.terrain;
+      bucket.tot += 1;
+      if (a.status === "present" || a.status === "late") bucket.att += 1;
+    });
+    const epKind = epKindByPlayer.get(player.id);
+    if (epKind) {
+      kindStats.muscu.att += epKind.muscu.att;
+      kindStats.muscu.tot += epKind.muscu.tot;
+      kindStats.terrain.att += epKind.terrain.att;
+      kindStats.terrain.tot += epKind.terrain.tot;
+    }
+    const muscuRate = kindStats.muscu.tot > 0 ? Math.round((kindStats.muscu.att / kindStats.muscu.tot) * 100) : null;
+    const terrainRate = kindStats.terrain.tot > 0 ? Math.round((kindStats.terrain.att / kindStats.terrain.tot) * 100) : null;
+
     return {
       ...player,
       displayName: [player.name, (player as { first_name?: string | null }).first_name].filter(Boolean).join(" "),
@@ -281,6 +306,10 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
       excused,
       total,
       rate,
+      muscu: kindStats.muscu,
+      terrain: kindStats.terrain,
+      muscuRate,
+      terrainRate,
     };
   }).sort((a, b) => b.rate - a.rate);
 
