@@ -54,6 +54,8 @@ type EventParticipantRow = ParticipantWithAttendance & {
   training_session_id: string;
 };
 
+type KindCount = { att: number; tot: number };
+
 const EVENT_PARTICIPANTS_PAGE_SIZE = 1000;
 const EVENT_PARTICIPANTS_SELECT =
   "id, training_session_id, player_id, attendance_status, absence_comment, responded_at, players:player_id(id, name, first_name, avatar_url)";
@@ -221,12 +223,16 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
   // "no_response" never count.
   const todayForStats = format(new Date(), "yyyy-MM-dd");
   const sessionDateById = new Map((sessions || []).map((s) => [s.id, s.session_date]));
+  const sessionTypeById = new Map((sessions || []).map((s) => [s.id, s.training_type]));
+  const kindOfType = (type?: string | null): "muscu" | "terrain" =>
+    type === "musculation" ? "muscu" : "terrain";
   const attendanceKeys = new Set(
     (filteredAttendance || []).map(
       (a) => `${a.player_id}|${a.training_session_id || a.attendance_date}`,
     ),
   );
   const epStatsByPlayer = new Map<string, { present: number; absent: number }>();
+  const epKindByPlayer = new Map<string, { muscu: KindCount; terrain: KindCount }>();
   (eventParticipants || []).forEach((p) => {
     const st = p.attendance_status;
     if (st !== "present" && st !== "absent") return;
@@ -242,6 +248,15 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
     if (st === "present") entry.present += 1;
     else entry.absent += 1;
     epStatsByPlayer.set(p.player_id, entry);
+
+    const kindEntry =
+      epKindByPlayer.get(p.player_id) || { muscu: { att: 0, tot: 0 }, terrain: { att: 0, tot: 0 } };
+    const bucket = kindOfType(sessionTypeById.get(p.training_session_id)) === "muscu"
+      ? kindEntry.muscu
+      : kindEntry.terrain;
+    bucket.tot += 1;
+    if (st === "present") bucket.att += 1;
+    epKindByPlayer.set(p.player_id, kindEntry);
   });
 
   // Calculate stats per player with date filtering
@@ -257,6 +272,29 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
     const total = playerAttendance.length + ep.present + ep.absent;
     const rate = total > 0 ? Math.round(((present + late) / total) * 100) : 0;
 
+    // Ventilation par type d'événement : musculation vs terrain (tous les autres types).
+    // "att" = présent ou retard ; "tot" = toutes lignes comptées (hors excusés volontairement inclus).
+    const kindStats: { muscu: KindCount; terrain: KindCount } = {
+      muscu: { att: 0, tot: 0 },
+      terrain: { att: 0, tot: 0 },
+    };
+    playerAttendance.forEach((a) => {
+      const type = (a as { training_sessions?: { training_type?: string | null } | null }).training_sessions
+        ?.training_type;
+      const bucket = kindOfType(type) === "muscu" ? kindStats.muscu : kindStats.terrain;
+      bucket.tot += 1;
+      if (a.status === "present" || a.status === "late") bucket.att += 1;
+    });
+    const epKind = epKindByPlayer.get(player.id);
+    if (epKind) {
+      kindStats.muscu.att += epKind.muscu.att;
+      kindStats.muscu.tot += epKind.muscu.tot;
+      kindStats.terrain.att += epKind.terrain.att;
+      kindStats.terrain.tot += epKind.terrain.tot;
+    }
+    const muscuRate = kindStats.muscu.tot > 0 ? Math.round((kindStats.muscu.att / kindStats.muscu.tot) * 100) : null;
+    const terrainRate = kindStats.terrain.tot > 0 ? Math.round((kindStats.terrain.att / kindStats.terrain.tot) * 100) : null;
+
     return {
       ...player,
       displayName: [player.name, (player as { first_name?: string | null }).first_name].filter(Boolean).join(" "),
@@ -268,6 +306,10 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
       excused,
       total,
       rate,
+      muscu: kindStats.muscu,
+      terrain: kindStats.terrain,
+      muscuRate,
+      terrainRate,
     };
   }).sort((a, b) => b.rate - a.rate);
 
@@ -1003,12 +1045,12 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                             Effacer
                           </Button>
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           {compared
                             .slice()
                             .sort((a, b) => b.rate - a.rate)
                             .map((p) => (
-                              <div key={p.id} className="space-y-1">
+                              <div key={p.id} className="space-y-1.5">
                                 <div className="flex items-center justify-between text-xs">
                                   <span className="font-medium">{p.displayName}</span>
                                   <span className="text-muted-foreground">
@@ -1017,6 +1059,34 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                                   </span>
                                 </div>
                                 <Progress value={(p.rate / maxRate) * 100} className="h-2" />
+                                <div className="grid grid-cols-2 gap-2 pt-0.5">
+                                  <div className="rounded-lg border bg-background/60 px-2 py-1.5">
+                                    <div className="flex items-center justify-between text-[11px]">
+                                      <span className="text-muted-foreground">Musculation</span>
+                                      {p.muscuRate !== null ? (
+                                        <span className={getRateColor(p.muscuRate)}>
+                                          {p.muscu.att}/{p.muscu.tot} · {p.muscuRate}%
+                                        </span>
+                                      ) : (
+                                        <span className="text-muted-foreground">—</span>
+                                      )}
+                                    </div>
+                                    <Progress value={p.muscuRate ?? 0} className="h-1.5 mt-1" />
+                                  </div>
+                                  <div className="rounded-lg border bg-background/60 px-2 py-1.5">
+                                    <div className="flex items-center justify-between text-[11px]">
+                                      <span className="text-muted-foreground">Terrain</span>
+                                      {p.terrainRate !== null ? (
+                                        <span className={getRateColor(p.terrainRate)}>
+                                          {p.terrain.att}/{p.terrain.tot} · {p.terrainRate}%
+                                        </span>
+                                      ) : (
+                                        <span className="text-muted-foreground">—</span>
+                                      )}
+                                    </div>
+                                    <Progress value={p.terrainRate ?? 0} className="h-1.5 mt-1" />
+                                  </div>
+                                </div>
                               </div>
                             ))}
                         </div>
@@ -1043,6 +1113,8 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                             </TableHead>
                             <TableHead className="text-center">Excusé</TableHead>
                             <TableHead className="text-center">Absent</TableHead>
+                            <TableHead className="text-center">Musculation</TableHead>
+                            <TableHead className="text-center">Terrain</TableHead>
                             <TableHead className="text-center">Taux</TableHead>
                             <TableHead className="text-center">Détail</TableHead>
                           </TableRow>
@@ -1169,6 +1241,30 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                                   </Popover>
                                 ) : (
                                   <span className="text-muted-foreground">0</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {player.muscuRate !== null ? (
+                                  <div className="flex flex-col items-center gap-1">
+                                    {getRateBadge(player.muscuRate)}
+                                    <span className="text-[10px] text-muted-foreground">
+                                      {player.muscu.att}/{player.muscu.tot}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span className="text-muted-foreground">—</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {player.terrainRate !== null ? (
+                                  <div className="flex flex-col items-center gap-1">
+                                    {getRateBadge(player.terrainRate)}
+                                    <span className="text-[10px] text-muted-foreground">
+                                      {player.terrain.att}/{player.terrain.tot}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span className="text-muted-foreground">—</span>
                                 )}
                               </TableCell>
                               <TableCell className="text-center">
