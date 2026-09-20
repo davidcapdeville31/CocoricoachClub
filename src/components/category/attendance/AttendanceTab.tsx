@@ -221,12 +221,16 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
   // "no_response" never count.
   const todayForStats = format(new Date(), "yyyy-MM-dd");
   const sessionDateById = new Map((sessions || []).map((s) => [s.id, s.session_date]));
+  const sessionTypeById = new Map((sessions || []).map((s) => [s.id, s.training_type]));
+  const kindOfType = (type?: string | null): "muscu" | "terrain" =>
+    type === "musculation" ? "muscu" : "terrain";
   const attendanceKeys = new Set(
     (filteredAttendance || []).map(
       (a) => `${a.player_id}|${a.training_session_id || a.attendance_date}`,
     ),
   );
   const epStatsByPlayer = new Map<string, { present: number; absent: number }>();
+  const epKindByPlayer = new Map<string, { muscu: KindCount; terrain: KindCount }>();
   (eventParticipants || []).forEach((p) => {
     const st = p.attendance_status;
     if (st !== "present" && st !== "absent") return;
@@ -242,6 +246,15 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
     if (st === "present") entry.present += 1;
     else entry.absent += 1;
     epStatsByPlayer.set(p.player_id, entry);
+
+    const kindEntry =
+      epKindByPlayer.get(p.player_id) || { muscu: { att: 0, tot: 0 }, terrain: { att: 0, tot: 0 } };
+    const bucket = kindOfType(sessionTypeById.get(p.training_session_id)) === "muscu"
+      ? kindEntry.muscu
+      : kindEntry.terrain;
+    bucket.tot += 1;
+    if (st === "present") bucket.att += 1;
+    epKindByPlayer.set(p.player_id, kindEntry);
   });
 
   // Calculate stats per player with date filtering
