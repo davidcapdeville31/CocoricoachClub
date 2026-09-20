@@ -233,6 +233,16 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
   );
   const epStatsByPlayer = new Map<string, { present: number; absent: number }>();
   const epKindByPlayer = new Map<string, { muscu: KindCount; terrain: KindCount }>();
+  // Dates de présence effective, ventilées muscu / terrain (sert à repérer les journées doublées)
+  const attendedDatesByPlayer = new Map<string, { muscu: Set<string>; terrain: Set<string> }>();
+  const getDatesEntry = (playerId: string) => {
+    let entry = attendedDatesByPlayer.get(playerId);
+    if (!entry) {
+      entry = { muscu: new Set<string>(), terrain: new Set<string>() };
+      attendedDatesByPlayer.set(playerId, entry);
+    }
+    return entry;
+  };
   (eventParticipants || []).forEach((p) => {
     const st = p.attendance_status;
     if (st !== "present" && st !== "absent") return;
@@ -251,11 +261,13 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
 
     const kindEntry =
       epKindByPlayer.get(p.player_id) || { muscu: { att: 0, tot: 0 }, terrain: { att: 0, tot: 0 } };
-    const bucket = kindOfType(sessionTypeById.get(p.training_session_id)) === "muscu"
-      ? kindEntry.muscu
-      : kindEntry.terrain;
+    const kind = kindOfType(sessionTypeById.get(p.training_session_id));
+    const bucket = kind === "muscu" ? kindEntry.muscu : kindEntry.terrain;
     bucket.tot += 1;
-    if (st === "present") bucket.att += 1;
+    if (st === "present") {
+      bucket.att += 1;
+      getDatesEntry(p.player_id)[kind].add(date);
+    }
     epKindByPlayer.set(p.player_id, kindEntry);
   });
 
