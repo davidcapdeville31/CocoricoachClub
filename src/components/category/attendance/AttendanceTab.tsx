@@ -1249,6 +1249,10 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                     <p className="text-center text-muted-foreground py-8">
                       Aucun joueur dans cette catégorie
                     </p>
+                  ) : !filteredPlayerStats || filteredPlayerStats.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-8">
+                      Aucun joueur ne correspond à cette recherche
+                    </p>
                   ) : (
                     <div className="overflow-x-auto">
                       <Table>
@@ -1272,7 +1276,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {playerStats.map((player) => (
+                          {filteredPlayerStats.map((player) => (
                             <TableRow
                               key={player.id}
                               className={compareIds.includes(player.id) ? "bg-primary/5" : undefined}
