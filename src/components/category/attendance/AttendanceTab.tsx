@@ -293,9 +293,13 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
     playerAttendance.forEach((a) => {
       const type = (a as { training_sessions?: { training_type?: string | null } | null }).training_sessions
         ?.training_type;
-      const bucket = kindOfType(type) === "muscu" ? kindStats.muscu : kindStats.terrain;
+      const kind = kindOfType(type);
+      const bucket = kind === "muscu" ? kindStats.muscu : kindStats.terrain;
       bucket.tot += 1;
-      if (a.status === "present" || a.status === "late") bucket.att += 1;
+      if (a.status === "present" || a.status === "late") {
+        bucket.att += 1;
+        getDatesEntry(player.id)[kind].add(a.attendance_date);
+      }
     });
     const epKind = epKindByPlayer.get(player.id);
     if (epKind) {
@@ -306,6 +310,11 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
     }
     const muscuRate = kindStats.muscu.tot > 0 ? Math.round((kindStats.muscu.att / kindStats.muscu.tot) * 100) : null;
     const terrainRate = kindStats.terrain.tot > 0 ? Math.round((kindStats.terrain.att / kindStats.terrain.tot) * 100) : null;
+
+    const dates = attendedDatesByPlayer.get(player.id);
+    const muscuDates = Array.from(dates?.muscu || []).sort();
+    const terrainDates = Array.from(dates?.terrain || []).sort();
+    const sharedDates = muscuDates.filter((d) => dates?.terrain.has(d));
 
     return {
       ...player,
@@ -322,6 +331,9 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
       terrain: kindStats.terrain,
       muscuRate,
       terrainRate,
+      muscuDates,
+      terrainDates,
+      sharedDates,
     };
   }).sort((a, b) => b.rate - a.rate);
 
