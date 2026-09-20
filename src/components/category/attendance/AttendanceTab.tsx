@@ -1060,15 +1060,37 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                     const maxRate = Math.max(...compared.map((p) => p.rate), 1);
                     return (
                       <div className="rounded-2xl border bg-muted/40 p-4 space-y-3">
-                        <div className="flex items-center justify-between gap-2">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
                           <h4 className="font-medium text-sm flex items-center gap-2">
                             <TrendingUp className="h-4 w-4" />
                             Comparaison ({compared.length}) — du {format(parseISO(startDate), "dd/MM/yyyy")} au {format(parseISO(endDate), "dd/MM/yyyy")}
                           </h4>
-                          <Button variant="ghost" size="sm" onClick={() => setCompareIds([])}>
-                            Effacer
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => runComparisonExport("pdf", compared)}
+                            >
+                              <FileText className="h-4 w-4 mr-1" />
+                              PDF
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => runComparisonExport("excel", compared)}
+                            >
+                              <FileSpreadsheet className="h-4 w-4 mr-1" />
+                              Excel
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => setCompareIds([])}>
+                              Effacer
+                            </Button>
+                          </div>
                         </div>
+                        <p className="text-[11px] text-muted-foreground">
+                          Les dates en <span className="text-violet-600 font-semibold">violet</span> indiquent une
+                          journée avec musculation <strong>et</strong> terrain.
+                        </p>
                         <div className="space-y-3">
                           {compared
                             .slice()
@@ -1083,7 +1105,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                                   </span>
                                 </div>
                                 <Progress value={(p.rate / maxRate) * 100} className="h-2" />
-                                <div className="grid grid-cols-2 gap-2 pt-0.5">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-0.5">
                                   <div className="rounded-lg border bg-background/60 px-2 py-1.5">
                                     <div className="flex items-center justify-between text-[11px]">
                                       <span className="text-muted-foreground">Musculation</span>
@@ -1096,6 +1118,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                                       )}
                                     </div>
                                     <Progress value={p.muscuRate ?? 0} className="h-1.5 mt-1" />
+                                    {renderDateChips(p.muscuDates, p.sharedDates)}
                                   </div>
                                   <div className="rounded-lg border bg-background/60 px-2 py-1.5">
                                     <div className="flex items-center justify-between text-[11px]">
@@ -1109,6 +1132,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                                       )}
                                     </div>
                                     <Progress value={p.terrainRate ?? 0} className="h-1.5 mt-1" />
+                                    {renderDateChips(p.terrainDates, p.sharedDates)}
                                   </div>
                                 </div>
                               </div>
