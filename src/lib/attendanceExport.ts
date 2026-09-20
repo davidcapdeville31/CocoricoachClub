@@ -407,3 +407,250 @@ export async function exportAttendanceDayExcel(ctx: AttendanceDayExportContext) 
     `presence_${ctx.dayLabel.replace(/\//g, "-")}_${format(new Date(), "yyyyMMdd")}.xlsx`,
   );
 }
+
+/* ------------------------------------------------------------------ */
+/* Comparison export — selected athletes, gym vs field breakdown        */
+/* ------------------------------------------------------------------ */
+
+export interface AttendanceKindStat {
+  att: number;
+  tot: number;
+  rate: number | null;
+  dates: string[]; // dd/MM/yyyy, attended days
+}
+
+export interface AttendanceComparisonPlayer {
+  name: string;
+  present: number;
+  late: number;
+  excused: number;
+  absent: number;
+  total: number;
+  rate: number;
+  muscu: AttendanceKindStat;
+  terrain: AttendanceKindStat;
+  sharedDates: string[]; // days with both gym and field attendance
+}
+
+export interface AttendanceComparisonContext {
+  categoryId: string;
+  periodLabel: string;
+  players: AttendanceComparisonPlayer[];
+}
+
+const CMP_LABELS = {
+  title: "Comparaison des présences",
+  period: "Période",
+  athlete: "Athlète",
+  rate: "Taux global",
+  present: "Présent",
+  late: "Retard",
+  excused: "Excusé",
+  absent: "Absent",
+  muscu: "Musculation",
+  terrain: "Terrain",
+  shared: "Jours combinés (muscu + terrain)",
+};
+
+const SHARED_RGB: [number, number, number] = [124, 58, 237];
+const SHARED_ARGB = "FF7C3AED";
+
+export async function exportAttendanceComparisonPdf(ctx: AttendanceComparisonContext) {
+  const { settings, clubName, categoryName, seasonName } = await preparePdfWithSettings(ctx.categoryId);
+  const headerRgb = hexToRgb(settings?.header_color || "#224378");
+
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const margin = 12;
+  const contentW = pageW - margin * 2;
+
+  doc.setFillColor(...headerRgb);
+  doc.rect(0, 0, pageW, 26, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.text(CMP_LABELS.title, margin, 12);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.text(
+    [settings?.club_name_override || clubName, categoryName, seasonName].filter(Boolean).join("  •  "),
+    margin,
+    19,
+  );
+
+  let y = 34;
+  doc.setTextColor(60, 60, 60);
+  doc.setFontSize(10);
+  doc.text(`${CMP_LABELS.period} : ${ctx.periodLabel}`, margin, y);
+  y += 4;
+  doc.setFontSize(8);
+  doc.setTextColor(...SHARED_RGB);
+  doc.text(`Les dates en violet correspondent à une même journée avec musculation ET terrain.`, margin, y);
+  y += 8;
+
+  const ensureSpace = (needed: number) => {
+    if (y + needed > pageH - 16) {
+      doc.addPage();
+      y = 20;
+    }
+  };
+
+  const drawDates = (label: string, dates: string[], shared: Set<string>) => {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(90, 90, 90);
+    doc.text(`${label} :`, margin + 4, y);
+    doc.setFont("helvetica", "normal");
+    let x = margin + 4 + doc.getTextWidth(`${label} :`) + 2;
+    if (dates.length === 0) {
+      doc.setTextColor(150, 150, 150);
+      doc.text("—", x, y);
+      y += 5;
+      return;
+    }
+    dates.forEach((d, i) => {
+      const txt = i < dates.length - 1 ? `${d},` : d;
+      const w = doc.getTextWidth(txt) + 2;
+      if (x + w > pageW - margin) {
+        y += 4.5;
+        ensureSpace(6);
+        x = margin + 8;
+      }
+      if (shared.has(d)) {
+        doc.setTextColor(...SHARED_RGB);
+        doc.setFont("helvetica", "bold");
+      } else {
+        doc.setTextColor(70, 70, 70);
+        doc.setFont("helvetica", "normal");
+      }
+      doc.text(txt, x, y);
+      x += w;
+    });
+    doc.setFont("helvetica", "normal");
+    y += 6;
+  };
+
+  ctx.players.forEach((p) => {
+    ensureSpace(34);
+    const shared = new Set(p.sharedDates);
+
+    doc.setFillColor(244, 246, 251);
+    doc.rect(margin, y - 5, contentW, 9, "F");
+    doc.setTextColor(30, 30, 30);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text(p.name, margin + 2, y + 1);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text(
+      `${CMP_LABELS.rate} : ${p.total > 0 ? `${p.rate}%` : "—"}  (${p.present} ${CMP_LABELS.present.toLowerCase()} · ${p.late} ${CMP_LABELS.late.toLowerCase()} · ${p.excused} ${CMP_LABELS.excused.toLowerCase()} · ${p.absent} ${CMP_LABELS.absent.toLowerCase()})`,
+      margin + 2 + doc.getTextWidth(p.name) + 6,
+      y + 1,
+    );
+    y += 11;
+
+    doc.setFontSize(8.5);
+    doc.setTextColor(60, 60, 60);
+    doc.text(
+      `${CMP_LABELS.muscu} : ${p.muscu.att}/${p.muscu.tot}${p.muscu.rate !== null ? ` (${p.muscu.rate}%)` : ""}    ${CMP_LABELS.terrain} : ${p.terrain.att}/${p.terrain.tot}${p.terrain.rate !== null ? ` (${p.terrain.rate}%)` : ""}    ${CMP_LABELS.shared} : ${p.sharedDates.length}`,
+      margin + 4,
+      y,
+    );
+    y += 6;
+
+    drawDates(CMP_LABELS.muscu, p.muscu.dates, shared);
+    drawDates(CMP_LABELS.terrain, p.terrain.dates, shared);
+    y += 2;
+  });
+
+  if (settings?.footer_text) {
+    doc.setFontSize(7);
+    doc.setTextColor(150, 150, 150);
+    doc.text(settings.footer_text, pageW / 2, pageH - 8, { align: "center" });
+  }
+
+  doc.save(`comparaison_presences_${format(new Date(), "yyyyMMdd")}.pdf`);
+}
+
+export async function exportAttendanceComparisonExcel(ctx: AttendanceComparisonContext) {
+  const branding = await getExcelBranding(ctx.categoryId);
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet("Comparaison");
+
+  sheet.columns = [
+    { width: 30 },
+    { width: 12 },
+    { width: 10 },
+    { width: 10 },
+    { width: 10 },
+    { width: 10 },
+    { width: 18 },
+    { width: 18 },
+    { width: 14 },
+  ];
+
+  const startRow = addBrandedHeader(sheet, CMP_LABELS.title, branding, [
+    [CMP_LABELS.period, ctx.periodLabel],
+    ["Légende", "Les dates en violet = musculation et terrain le même jour"],
+  ]);
+
+  const headerRow = sheet.getRow(startRow);
+  headerRow.values = [
+    CMP_LABELS.athlete,
+    CMP_LABELS.rate,
+    CMP_LABELS.present,
+    CMP_LABELS.late,
+    CMP_LABELS.excused,
+    CMP_LABELS.absent,
+    CMP_LABELS.muscu,
+    CMP_LABELS.terrain,
+    "Jours combinés",
+  ];
+  styleDataHeaderRow(sheet, startRow, 9, branding.headerColor);
+
+  let r = startRow + 1;
+  ctx.players.forEach((p) => {
+    const row = sheet.getRow(r);
+    row.values = [
+      p.name,
+      p.total > 0 ? `${p.rate}%` : "—",
+      p.present,
+      p.late,
+      p.excused,
+      p.absent,
+      `${p.muscu.att}/${p.muscu.tot}${p.muscu.rate !== null ? ` (${p.muscu.rate}%)` : ""}`,
+      `${p.terrain.att}/${p.terrain.tot}${p.terrain.rate !== null ? ` (${p.terrain.rate}%)` : ""}`,
+      p.sharedDates.length,
+    ];
+    row.getCell(1).font = { bold: true };
+    r++;
+
+    const shared = new Set(p.sharedDates);
+    ([[CMP_LABELS.muscu, p.muscu.dates], [CMP_LABELS.terrain, p.terrain.dates]] as [string, string[]][]).forEach(
+      ([label, dates]) => {
+        const dr = sheet.getRow(r);
+        dr.getCell(1).value = `   ${label} — dates`;
+        dr.getCell(1).font = { italic: true, size: 9, color: { argb: "FF64748B" } };
+        if (dates.length === 0) {
+          dr.getCell(2).value = "—";
+        } else {
+          dr.getCell(2).value = {
+            richText: dates.map((d, i) => ({
+              text: i < dates.length - 1 ? `${d}, ` : d,
+              font: shared.has(d)
+                ? { bold: true, color: { argb: SHARED_ARGB }, size: 10 }
+                : { color: { argb: "FF334155" }, size: 10 },
+            })),
+          };
+        }
+        sheet.mergeCells(r, 2, r, 9);
+        dr.getCell(2).alignment = { wrapText: true, vertical: "middle" };
+        r++;
+      },
+    );
+  });
+
+  addFooter(sheet, r, 9, branding.footerText);
+  await downloadWorkbook(workbook, `comparaison_presences_${format(new Date(), "yyyyMMdd")}.xlsx`);
+}

@@ -15,6 +15,8 @@ import { ClipboardCheck, Calendar, Users, TrendingUp, ChevronRight, Filter, Cloc
 import {
   exportAttendanceDayPdf,
   exportAttendanceDayExcel,
+  exportAttendanceComparisonPdf,
+  exportAttendanceComparisonExcel,
   type AttendanceExportRow,
   type AttendanceDayRow,
 } from "@/lib/attendanceExport";
@@ -233,6 +235,16 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
   );
   const epStatsByPlayer = new Map<string, { present: number; absent: number }>();
   const epKindByPlayer = new Map<string, { muscu: KindCount; terrain: KindCount }>();
+  // Dates de présence effective, ventilées muscu / terrain (sert à repérer les journées doublées)
+  const attendedDatesByPlayer = new Map<string, { muscu: Set<string>; terrain: Set<string> }>();
+  const getDatesEntry = (playerId: string) => {
+    let entry = attendedDatesByPlayer.get(playerId);
+    if (!entry) {
+      entry = { muscu: new Set<string>(), terrain: new Set<string>() };
+      attendedDatesByPlayer.set(playerId, entry);
+    }
+    return entry;
+  };
   (eventParticipants || []).forEach((p) => {
     const st = p.attendance_status;
     if (st !== "present" && st !== "absent") return;
@@ -251,11 +263,13 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
 
     const kindEntry =
       epKindByPlayer.get(p.player_id) || { muscu: { att: 0, tot: 0 }, terrain: { att: 0, tot: 0 } };
-    const bucket = kindOfType(sessionTypeById.get(p.training_session_id)) === "muscu"
-      ? kindEntry.muscu
-      : kindEntry.terrain;
+    const kind = kindOfType(sessionTypeById.get(p.training_session_id));
+    const bucket = kind === "muscu" ? kindEntry.muscu : kindEntry.terrain;
     bucket.tot += 1;
-    if (st === "present") bucket.att += 1;
+    if (st === "present") {
+      bucket.att += 1;
+      getDatesEntry(p.player_id)[kind].add(date);
+    }
     epKindByPlayer.set(p.player_id, kindEntry);
   });
 
@@ -281,9 +295,13 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
     playerAttendance.forEach((a) => {
       const type = (a as { training_sessions?: { training_type?: string | null } | null }).training_sessions
         ?.training_type;
-      const bucket = kindOfType(type) === "muscu" ? kindStats.muscu : kindStats.terrain;
+      const kind = kindOfType(type);
+      const bucket = kind === "muscu" ? kindStats.muscu : kindStats.terrain;
       bucket.tot += 1;
-      if (a.status === "present" || a.status === "late") bucket.att += 1;
+      if (a.status === "present" || a.status === "late") {
+        bucket.att += 1;
+        getDatesEntry(player.id)[kind].add(a.attendance_date);
+      }
     });
     const epKind = epKindByPlayer.get(player.id);
     if (epKind) {
@@ -294,6 +312,11 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
     }
     const muscuRate = kindStats.muscu.tot > 0 ? Math.round((kindStats.muscu.att / kindStats.muscu.tot) * 100) : null;
     const terrainRate = kindStats.terrain.tot > 0 ? Math.round((kindStats.terrain.att / kindStats.terrain.tot) * 100) : null;
+
+    const dates = attendedDatesByPlayer.get(player.id);
+    const muscuDates = Array.from(dates?.muscu || []).sort();
+    const terrainDates = Array.from(dates?.terrain || []).sort();
+    const sharedDates = muscuDates.filter((d) => dates?.terrain.has(d));
 
     return {
       ...player,
@@ -310,8 +333,81 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
       terrain: kindStats.terrain,
       muscuRate,
       terrainRate,
+      muscuDates,
+      terrainDates,
+      sharedDates,
     };
   }).sort((a, b) => b.rate - a.rate);
+
+  type ComparedPlayer = NonNullable<typeof playerStats>[number];
+
+  const fmtDay = (iso: string) => format(parseISO(iso), "dd/MM/yyyy");
+
+  const renderDateChips = (dates: string[], sharedDates: string[]) => {
+    if (dates.length === 0) {
+      return <p className="mt-1 text-[10px] text-muted-foreground">Aucune présence sur la période</p>;
+    }
+    const shared = new Set(sharedDates);
+    return (
+      <div className="mt-1.5 flex flex-wrap gap-1">
+        {dates.map((d) => (
+          <span
+            key={d}
+            className={
+              shared.has(d)
+                ? "rounded-md border border-violet-500/40 bg-violet-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-violet-600"
+                : "rounded-md border bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground"
+            }
+            title={shared.has(d) ? "Musculation et terrain le même jour" : undefined}
+          >
+            {fmtDay(d)}
+          </span>
+        ))}
+      </div>
+    );
+  };
+
+  const runComparisonExport = async (kind: "pdf" | "excel", compared: ComparedPlayer[]) => {
+    try {
+      const ctx = {
+        categoryId,
+        periodLabel: `${format(parseISO(startDate), "dd/MM/yyyy")} — ${format(parseISO(endDate), "dd/MM/yyyy")}`,
+        players: compared
+          .slice()
+          .sort((a, b) => b.rate - a.rate)
+          .map((p) => ({
+            name: p.displayName,
+            present: p.present,
+            late: p.late,
+            excused: p.excused,
+            absent: p.absent,
+            total: p.total,
+            rate: p.rate,
+            muscu: {
+              att: p.muscu.att,
+              tot: p.muscu.tot,
+              rate: p.muscuRate,
+              dates: p.muscuDates.map(fmtDay),
+            },
+            terrain: {
+              att: p.terrain.att,
+              tot: p.terrain.tot,
+              rate: p.terrainRate,
+              dates: p.terrainDates.map(fmtDay),
+            },
+            sharedDates: p.sharedDates.map(fmtDay),
+          })),
+      };
+      if (kind === "pdf") await exportAttendanceComparisonPdf(ctx);
+      else await exportAttendanceComparisonExcel(ctx);
+      toast.success("Export généré");
+    } catch (e) {
+      console.error(e);
+      toast.error("Export impossible");
+    }
+  };
+
+
 
   // Get detailed attendance counts for a session
   const getSessionAttendanceSummary = (sessionId: string, sessionDate: string) => {
@@ -1036,15 +1132,37 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                     const maxRate = Math.max(...compared.map((p) => p.rate), 1);
                     return (
                       <div className="rounded-2xl border bg-muted/40 p-4 space-y-3">
-                        <div className="flex items-center justify-between gap-2">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
                           <h4 className="font-medium text-sm flex items-center gap-2">
                             <TrendingUp className="h-4 w-4" />
                             Comparaison ({compared.length}) — du {format(parseISO(startDate), "dd/MM/yyyy")} au {format(parseISO(endDate), "dd/MM/yyyy")}
                           </h4>
-                          <Button variant="ghost" size="sm" onClick={() => setCompareIds([])}>
-                            Effacer
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => runComparisonExport("pdf", compared)}
+                            >
+                              <FileText className="h-4 w-4 mr-1" />
+                              PDF
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => runComparisonExport("excel", compared)}
+                            >
+                              <FileSpreadsheet className="h-4 w-4 mr-1" />
+                              Excel
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => setCompareIds([])}>
+                              Effacer
+                            </Button>
+                          </div>
                         </div>
+                        <p className="text-[11px] text-muted-foreground">
+                          Les dates en <span className="text-violet-600 font-semibold">violet</span> indiquent une
+                          journée avec musculation <strong>et</strong> terrain.
+                        </p>
                         <div className="space-y-3">
                           {compared
                             .slice()
@@ -1059,7 +1177,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                                   </span>
                                 </div>
                                 <Progress value={(p.rate / maxRate) * 100} className="h-2" />
-                                <div className="grid grid-cols-2 gap-2 pt-0.5">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-0.5">
                                   <div className="rounded-lg border bg-background/60 px-2 py-1.5">
                                     <div className="flex items-center justify-between text-[11px]">
                                       <span className="text-muted-foreground">Musculation</span>
@@ -1072,6 +1190,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                                       )}
                                     </div>
                                     <Progress value={p.muscuRate ?? 0} className="h-1.5 mt-1" />
+                                    {renderDateChips(p.muscuDates, p.sharedDates)}
                                   </div>
                                   <div className="rounded-lg border bg-background/60 px-2 py-1.5">
                                     <div className="flex items-center justify-between text-[11px]">
@@ -1085,6 +1204,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                                       )}
                                     </div>
                                     <Progress value={p.terrainRate ?? 0} className="h-1.5 mt-1" />
+                                    {renderDateChips(p.terrainDates, p.sharedDates)}
                                   </div>
                                 </div>
                               </div>
