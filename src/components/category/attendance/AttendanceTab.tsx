@@ -15,6 +15,8 @@ import { ClipboardCheck, Calendar, Users, TrendingUp, ChevronRight, Filter, Cloc
 import {
   exportAttendanceDayPdf,
   exportAttendanceDayExcel,
+  exportAttendanceComparisonPdf,
+  exportAttendanceComparisonExcel,
   type AttendanceExportRow,
   type AttendanceDayRow,
 } from "@/lib/attendanceExport";
