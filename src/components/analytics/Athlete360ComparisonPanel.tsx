@@ -47,6 +47,17 @@ interface Props {
 
 type Mode = "players" | "groups";
 
+type Domain = "tests" | "app" | "presence" | "load" | "health" | "weight";
+
+const DOMAINS: { key: Domain; label: string; icon: React.ReactNode }[] = [
+  { key: "tests", label: "Performance (tests)", icon: <BarChart3 className="h-3.5 w-3.5" /> },
+  { key: "app", label: "Assiduité dans l'app", icon: <Activity className="h-3.5 w-3.5" /> },
+  { key: "presence", label: "Présences", icon: <ClipboardCheck className="h-3.5 w-3.5" /> },
+  { key: "load", label: "Charge d'entraînement", icon: <Zap className="h-3.5 w-3.5" /> },
+  { key: "health", label: "Santé / blessures", icon: <HeartPulse className="h-3.5 w-3.5" /> },
+  { key: "weight", label: "Poids", icon: <Scale className="h-3.5 w-3.5" /> },
+];
+
 const norm = (s: string) =>
   (s || "")
     .normalize("NFD")
