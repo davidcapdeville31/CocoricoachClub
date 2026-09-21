@@ -8,7 +8,23 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { usePlayerGroups, PLAYER_GROUP_COLORS } from "@/hooks/usePlayerGroups";
 import { labelizeTestType } from "@/hooks/useCustomTestLabels";
-import { Users, UserCheck, Search, X, BarChart3, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import {
+  Users,
+  UserCheck,
+  Search,
+  X,
+  BarChart3,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  FileText,
+  FileSpreadsheet,
+} from "lucide-react";
+import { toast } from "sonner";
+import {
+  exportTestsComparisonPdf,
+  exportTestsComparisonCsv,
+} from "@/lib/testsComparisonExport";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
@@ -329,6 +345,37 @@ export function TestsComparisonPanel({ categoryId }: Props) {
 
   const hasSelection = mode === "players" ? selectedPlayers.length > 0 : selectedGroups.length > 0;
 
+  const runExport = async (kind: "pdf" | "csv") => {
+    if (charts.length === 0) {
+      toast.error("Aucune donnée à exporter pour cette sélection.");
+      return;
+    }
+    const ctx = {
+      categoryId,
+      mode,
+      charts: charts.map((c) => ({
+        label: c.label,
+        unit: c.unit,
+        rows: c.rows.map((r) => ({
+          name: r.name,
+          value: r.value,
+          delta: r.delta,
+          date: r.date,
+          count: r.count,
+        })),
+      })),
+    };
+    try {
+      if (kind === "pdf") await exportTestsComparisonPdf(ctx);
+      else exportTestsComparisonCsv(ctx);
+      toast.success(kind === "pdf" ? "Export PDF généré" : "Export CSV généré");
+    } catch (e) {
+      console.error("[TestsComparisonPanel] export", e);
+      toast.error("Export impossible");
+    }
+  };
+
+
   return (
     <Card className="rounded-2xl">
       <CardHeader className="pb-3">
@@ -342,7 +389,28 @@ export function TestsComparisonPanel({ categoryId }: Props) {
               Compare les athlètes entre eux ou les groupes entre eux, test par test.
             </p>
           </div>
-          <div className="inline-flex rounded-xl bg-muted/50 p-0.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-7 gap-1.5 rounded-lg text-xs"
+              onClick={() => runExport("pdf")}
+            >
+              <FileText className="h-3.5 w-3.5" />
+              PDF
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-7 gap-1.5 rounded-lg text-xs"
+              onClick={() => runExport("csv")}
+            >
+              <FileSpreadsheet className="h-3.5 w-3.5" />
+              CSV
+            </Button>
+            <div className="inline-flex rounded-xl bg-muted/50 p-0.5">
             <Button
               type="button"
               size="sm"
@@ -364,6 +432,7 @@ export function TestsComparisonPanel({ categoryId }: Props) {
               <Users className="h-3.5 w-3.5" />
               Groupes
             </Button>
+            </div>
           </div>
         </div>
       </CardHeader>
