@@ -651,15 +651,15 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
                   <thead className="bg-muted/40 text-[11px] text-muted-foreground">
                     <tr>
                       <th className="p-2 text-left">{mode === "players" ? "Athlète" : "Groupe"}</th>
-                      <th className="p-2 text-center">Assiduité app</th>
-                      <th className="p-2 text-center">Entraînements</th>
-                      <th className="p-2 text-center">Musculation</th>
-                      <th className="p-2 text-center">Terrain</th>
-                      <th className="p-2 text-center">Compétitions</th>
-                      <th className="p-2 text-center">Charge / sem.</th>
-                      <th className="p-2 text-center">Ratio charge</th>
-                      <th className="p-2 text-center">Blessures</th>
-                      <th className="p-2 text-center">Poids</th>
+                      {has("app") && <th className="p-2 text-center">Assiduité app</th>}
+                      {has("presence") && <th className="p-2 text-center">Entraînements</th>}
+                      {has("presence") && <th className="p-2 text-center">Musculation</th>}
+                      {has("presence") && <th className="p-2 text-center">Terrain</th>}
+                      {has("presence") && <th className="p-2 text-center">Compétitions</th>}
+                      {has("load") && <th className="p-2 text-center">Charge / sem.</th>}
+                      {has("load") && <th className="p-2 text-center">Ratio charge</th>}
+                      {has("health") && <th className="p-2 text-center">Blessures</th>}
+                      {has("weight") && <th className="p-2 text-center">Poids</th>}
                     </tr>
                   </thead>
                   <tbody>
