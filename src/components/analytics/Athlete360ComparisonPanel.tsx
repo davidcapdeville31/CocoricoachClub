@@ -923,10 +923,11 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
                   ))}
                 </div>
               </div>
+              )}
             </div>
 
             {/* Courbe de poids */}
-            {weightChart.data.length > 0 && (
+            {has("weight") && weightChart.data.length > 0 && (
               <div className="rounded-xl border p-3">
                 <SectionTitle icon={<Scale className="h-4 w-4" />} title="Courbe de poids" hint="sur la période" />
                 <ResponsiveContainer width="100%" height={260}>
