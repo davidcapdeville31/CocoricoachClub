@@ -418,6 +418,31 @@ export function TestsComparisonPanel({ categoryId }: Props) {
       </CardHeader>
 
       <CardContent className="space-y-4">
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border bg-muted/20 p-2">
+          <span className="mr-auto text-[11px] text-muted-foreground">
+            Exporter la comparaison affichée
+          </span>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="h-8 gap-1.5 rounded-lg text-xs"
+            onClick={() => runExport("pdf")}
+          >
+            <FileText className="h-3.5 w-3.5" />
+            PDF
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="h-8 gap-1.5 rounded-lg text-xs"
+            onClick={() => runExport("csv")}
+          >
+            <FileSpreadsheet className="h-3.5 w-3.5" />
+            CSV
+          </Button>
+        </div>
         <div className="grid gap-4 lg:grid-cols-2">
           {/* Sélection athlètes / groupes */}
           <div className="rounded-xl border bg-muted/20 p-3">
