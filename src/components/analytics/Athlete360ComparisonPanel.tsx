@@ -762,6 +762,7 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
             </div>
 
             {/* Tests physiques */}
+            {has("tests") && (
             <div className="rounded-xl border p-3">
               <SectionTitle
                 icon={<BarChart3 className="h-4 w-4" />}
