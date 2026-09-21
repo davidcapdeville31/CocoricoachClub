@@ -899,7 +899,9 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
                   ))}
                 </div>
               </div>
+              )}
 
+              {has("health") && (
               <div className="rounded-xl border p-3">
                 <SectionTitle icon={<HeartPulse className="h-4 w-4" />} title="Blessures" />
                 <div className="space-y-2">
