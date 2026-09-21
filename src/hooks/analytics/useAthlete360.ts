@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { collectWeightHistory } from "@/lib/weight/weightHistory";
+import { collectWeightHistory, isWeightQuestionKeyLabel } from "@/lib/weight/weightHistory";
 import { computeAcwrDetailed, type LoadRow } from "@/lib/acwr";
 import { labelizeTestType } from "@/hooks/useCustomTestLabels";
 
@@ -111,6 +111,7 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
         measurements,
         genericAll,
         customTests,
+        wellnessQuestionsRes,
       ] = await Promise.all([
         supabase
           .from("wellness_tracking")
@@ -174,7 +175,28 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
           .select("player_id, test_date, test_type, test_category, result_value, result_unit, created_at")
           .eq("category_id", categoryId),
         supabase.from("custom_tests").select("id, name, unit, test_category"),
+        supabase
+          .from("wellness_question_configs")
+          .select("questions")
+          .eq("category_id", categoryId)
+          .maybeSingle(),
       ]);
+
+      // Poids saisi via une question personnalisée « Poids » du Wellness (onglet Santé)
+      const wqData = wellnessQuestionsRes.data as any;
+      const configuredQuestions = Array.isArray(wqData?.questions) ? wqData.questions : [];
+      const weightQuestionKeys: string[] = configuredQuestions
+        .filter((q: any) => q?.is_custom && isWeightQuestionKeyLabel(q?.label))
+        .map((q: any) => q.key)
+        .filter(Boolean);
+      let wellnessWeights: any[] = [];
+      if (weightQuestionKeys.length > 0) {
+        const { data: ww } = await supabase
+          .from("wellness_tracking")
+          .select("player_id, tracking_date, custom_answers, created_at")
+          .eq("category_id", categoryId);
+        wellnessWeights = ww || [];
+      }
 
       const sessionRows = sessions.data || [];
       const sessionIds = sessionRows.map((s: any) => s.id);
@@ -221,6 +243,8 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
           playerMeasurements: measurements.data || [],
           genericTests: (genericAll.data || []) as any,
           customTests: (customTests.data || []) as any,
+          wellness: wellnessWeights,
+          weightQuestionKeys,
         }),
         customTests: customTests.data || [],
       };
