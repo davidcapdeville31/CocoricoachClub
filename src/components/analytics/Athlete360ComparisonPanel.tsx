@@ -823,9 +823,11 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
                 </table>
               </div>
             </div>
+            )}
 
             {/* Détail par bloc */}
             <div className="grid gap-4 lg:grid-cols-2">
+              {has("app") && (
               <div className="rounded-xl border p-3">
                 <SectionTitle icon={<Activity className="h-4 w-4" />} title="Assiduité dans l'app" />
                 <div className="space-y-2">
