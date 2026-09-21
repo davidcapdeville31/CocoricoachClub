@@ -133,68 +133,115 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
         customTests,
         wellnessQuestionsRes,
       ] = await Promise.all([
-        supabase
-          .from("wellness_tracking")
-          .select("player_id, tracking_date, auto_filled")
-          .eq("category_id", categoryId)
-          .gte("tracking_date", startDate)
-          .lte("tracking_date", endDate),
-        supabase
-          .from("awcr_tracking")
-          .select("player_id, session_date, auto_filled, rpe, duration_minutes, training_load, training_session_id")
-          .eq("category_id", categoryId)
-          .gte("session_date", loadStart)
-          .lte("session_date", endDate),
-        supabase
-          .from("training_sessions")
-          .select("id, session_date, training_type, notes, created_by_player_id")
-          .eq("category_id", categoryId)
-          .gte("session_date", startDate)
-          .lte("session_date", endDate),
-        supabase
-          .from("training_attendance")
-          .select("player_id, attendance_date, status, training_session_id, training_sessions(training_type)")
-          .eq("category_id", categoryId)
-          .gte("attendance_date", startDate)
-          .lte("attendance_date", endDate),
-        supabase
-          .from("matches")
-          .select("id, match_date")
-          .eq("category_id", categoryId)
-          .gte("match_date", startDate)
-          .lte("match_date", endDate),
-        supabase
-          .from("injuries")
-          .select("player_id, injury_date, actual_return_date, estimated_return_date, status, severity, injury_type")
-          .eq("category_id", categoryId),
-        supabase
-          .from("generic_tests")
-          .select("player_id, test_type, result_value, result_unit, test_date")
-          .eq("category_id", categoryId)
-          .order("test_date", { ascending: true }),
-        supabase
-          .from("strength_tests")
-          .select("player_id, test_name, weight_kg, test_date")
-          .eq("category_id", categoryId)
-          .order("test_date", { ascending: true }),
-        supabase
-          .from("speed_tests")
-          .select("player_id, test_type, vma_kmh, speed_kmh, time_40m_seconds, test_date")
-          .eq("category_id", categoryId)
-          .order("test_date", { ascending: true }),
-        supabase
-          .from("body_composition")
-          .select("player_id, measurement_date, weight_kg, created_at")
-          .eq("category_id", categoryId),
-        supabase
-          .from("player_measurements")
-          .select("player_id, measurement_date, weight_kg, created_at")
-          .eq("category_id", categoryId),
-        supabase
-          .from("generic_tests")
-          .select("player_id, test_date, test_type, test_category, result_value, result_unit, created_at")
-          .eq("category_id", categoryId),
-        supabase.from("custom_tests").select("id, name, unit, test_category"),
+        fetchAllRows((f, t) =>
+          supabase
+            .from("wellness_tracking")
+            .select("player_id, tracking_date, auto_filled")
+            .eq("category_id", categoryId)
+            .gte("tracking_date", startDate)
+            .lte("tracking_date", endDate)
+            .order("tracking_date", { ascending: true })
+            .range(f, t),
+        ),
+        fetchAllRows((f, t) =>
+          supabase
+            .from("awcr_tracking")
+            .select("player_id, session_date, auto_filled, rpe, duration_minutes, training_load, training_session_id")
+            .eq("category_id", categoryId)
+            .gte("session_date", loadStart)
+            .lte("session_date", endDate)
+            .order("session_date", { ascending: true })
+            .range(f, t),
+        ),
+        fetchAllRows((f, t) =>
+          supabase
+            .from("training_sessions")
+            .select("id, session_date, training_type, notes, created_by_player_id")
+            .eq("category_id", categoryId)
+            .gte("session_date", startDate)
+            .lte("session_date", endDate)
+            .order("session_date", { ascending: true })
+            .range(f, t),
+        ),
+        fetchAllRows((f, t) =>
+          supabase
+            .from("training_attendance")
+            .select("player_id, attendance_date, status, training_session_id, training_sessions(training_type)")
+            .eq("category_id", categoryId)
+            .gte("attendance_date", startDate)
+            .lte("attendance_date", endDate)
+            .order("attendance_date", { ascending: true })
+            .range(f, t),
+        ),
+        fetchAllRows((f, t) =>
+          supabase
+            .from("matches")
+            .select("id, match_date")
+            .eq("category_id", categoryId)
+            .gte("match_date", startDate)
+            .lte("match_date", endDate)
+            .order("match_date", { ascending: true })
+            .range(f, t),
+        ),
+        fetchAllRows((f, t) =>
+          supabase
+            .from("injuries")
+            .select("player_id, injury_date, actual_return_date, estimated_return_date, status, severity, injury_type")
+            .eq("category_id", categoryId)
+            .order("injury_date", { ascending: true })
+            .range(f, t),
+        ),
+        fetchAllRows((f, t) =>
+          supabase
+            .from("generic_tests")
+            .select("player_id, test_type, result_value, result_unit, test_date")
+            .eq("category_id", categoryId)
+            .order("test_date", { ascending: true })
+            .range(f, t),
+        ),
+        fetchAllRows((f, t) =>
+          supabase
+            .from("strength_tests")
+            .select("player_id, test_name, weight_kg, test_date")
+            .eq("category_id", categoryId)
+            .order("test_date", { ascending: true })
+            .range(f, t),
+        ),
+        fetchAllRows((f, t) =>
+          supabase
+            .from("speed_tests")
+            .select("player_id, test_type, vma_kmh, speed_kmh, time_40m_seconds, test_date")
+            .eq("category_id", categoryId)
+            .order("test_date", { ascending: true })
+            .range(f, t),
+        ),
+        fetchAllRows((f, t) =>
+          supabase
+            .from("body_composition")
+            .select("player_id, measurement_date, weight_kg, created_at")
+            .eq("category_id", categoryId)
+            .order("measurement_date", { ascending: true })
+            .range(f, t),
+        ),
+        fetchAllRows((f, t) =>
+          supabase
+            .from("player_measurements")
+            .select("player_id, measurement_date, weight_kg, created_at")
+            .eq("category_id", categoryId)
+            .order("measurement_date", { ascending: true })
+            .range(f, t),
+        ),
+        fetchAllRows((f, t) =>
+          supabase
+            .from("generic_tests")
+            .select("player_id, test_date, test_type, test_category, result_value, result_unit, created_at")
+            .eq("category_id", categoryId)
+            .order("test_date", { ascending: true })
+            .range(f, t),
+        ),
+        fetchAllRows((f, t) =>
+          supabase.from("custom_tests").select("id, name, unit, test_category").range(f, t),
+        ),
         supabase
           .from("wellness_question_configs")
           .select("questions")
