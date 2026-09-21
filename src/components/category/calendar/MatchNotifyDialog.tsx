@@ -71,7 +71,9 @@ export function MatchNotifyDialog({
           .from("convocations")
           .select("id")
           .eq("match_id", match.id)
-          .single();
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
         
         if (convocations) {
           const { data: recipients } = await supabase
@@ -89,7 +91,7 @@ export function MatchNotifyDialog({
         // Fallback: get all players from category
         const { data: allPlayers, error: playersError } = await supabase
           .from("players")
-          .select("id, name, email, phone")
+          .select("id, name, email, phone, user_id")
           .eq("category_id", categoryId);
         
         if (playersError) throw playersError;
