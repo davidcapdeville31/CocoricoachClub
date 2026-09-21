@@ -380,6 +380,37 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
       </CardHeader>
 
       <CardContent className="space-y-4">
+        {/* Choix des données à comparer */}
+        <div className="rounded-xl border bg-muted/20 p-2">
+          <div className="mb-1.5 flex flex-wrap items-center gap-2">
+            <Label className="text-[11px] font-semibold">Données à comparer</Label>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-6 px-2 text-[11px]"
+              onClick={() => setDomains(DOMAINS.map((d) => d.key))}
+            >
+              Tout
+            </Button>
+            <Button size="sm" variant="ghost" className="h-6 px-2 text-[11px]" onClick={() => setDomains([])}>
+              Aucune
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {DOMAINS.map((d) => (
+              <Badge
+                key={d.key}
+                variant={has(d.key) ? "default" : "outline"}
+                className="cursor-pointer gap-1 px-2 py-1 text-[11px]"
+                onClick={() => setDomains((prev) => toggle(prev, d.key) as Domain[])}
+              >
+                {d.icon}
+                {d.label}
+              </Badge>
+            ))}
+          </div>
+        </div>
+
         {/* Barre période + export */}
         <div className="flex flex-wrap items-end gap-3 rounded-xl border bg-muted/20 p-2">
           <div className="space-y-1">
