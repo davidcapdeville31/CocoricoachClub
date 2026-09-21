@@ -258,11 +258,14 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
         .filter(Boolean);
       let wellnessWeights: any[] = [];
       if (weightQuestionKeys.length > 0) {
-        const { data: ww } = await supabase
-          .from("wellness_tracking")
-          .select("player_id, tracking_date, custom_answers, created_at")
-          .eq("category_id", categoryId);
-        wellnessWeights = ww || [];
+        wellnessWeights = await fetchAllRows((f, t) =>
+          supabase
+            .from("wellness_tracking")
+            .select("player_id, tracking_date, custom_answers, created_at")
+            .eq("category_id", categoryId)
+            .order("tracking_date", { ascending: true })
+            .range(f, t),
+        );
       }
 
       const sessionRows = sessions;
