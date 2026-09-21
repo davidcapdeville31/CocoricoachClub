@@ -2,7 +2,8 @@ import { useTranslation } from "react-i18next";
 import * as React from "react";
 import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { Dumbbell, Zap, Lock, BarChart3 } from "lucide-react";
+import { Dumbbell, Zap, Lock, BarChart3, Layers } from "lucide-react";
+import { Athlete360ComparisonPanel } from "@/components/analytics/Athlete360ComparisonPanel";
 import { PhysicalPreparationTab } from "@/components/category/PhysicalPreparationTab";
 import { TrainingLoadTab } from "@/components/training-load/TrainingLoadTab";
 import { EvolutionTestsMuscuTab } from "@/components/tonnage/EvolutionTestsMuscuTab";
@@ -96,6 +97,15 @@ export function PerformanceTab({ categoryId, sportType }: PerformanceTabProps) {
               </span>
             )}
           </ColoredSubTabsTrigger>
+          <ColoredSubTabsTrigger
+            value="comparison-360"
+            colorKey="performance"
+            icon={<Layers className="h-4 w-4" />}
+            tooltip="Compare tests, assiduité, présences, charge, blessures et poids des athlètes choisis"
+          >
+            <span className="hidden sm:inline">Comparaison 360°</span>
+            <span className="sm:hidden">360°</span>
+          </ColoredSubTabsTrigger>
         </ColoredSubTabsList>
       </div>
 
@@ -109,6 +119,10 @@ export function PerformanceTab({ categoryId, sportType }: PerformanceTabProps) {
 
       <TabsContent value="evolution-tests">
         <EvolutionTestsMuscuTab categoryId={categoryId} />
+      </TabsContent>
+
+      <TabsContent value="comparison-360">
+        <Athlete360ComparisonPanel categoryId={categoryId} />
       </TabsContent>
 
     </Tabs>
