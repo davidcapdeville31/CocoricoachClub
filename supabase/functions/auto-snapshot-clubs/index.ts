@@ -95,9 +95,25 @@ serve(async (req) => {
       }
     }
 
+    const failures = results.filter((r) => !r.success);
+    if (failures.length > 0) {
+      console.error(
+        `[auto-snapshot] ${failures.length}/${results.length} snapshots failed:`,
+        JSON.stringify(failures),
+      );
+    }
+
     return new Response(
-      JSON.stringify({ success: true, count: eligible.length, results }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      JSON.stringify({
+        success: failures.length === 0,
+        count: eligible.length,
+        failed: failures.length,
+        results,
+      }),
+      {
+        status: failures.length > 0 ? 500 : 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   } catch (e: any) {
     console.error("[auto-snapshot] error:", e);

@@ -7,6 +7,27 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+/**
+ * Normalize a raw phone number to strict E.164 (+ followed by 8-15 digits).
+ * Returns null when the number cannot be trusted — better to skip the SMS
+ * subscription than to have OneSignal reject the whole user creation.
+ */
+function toE164(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const trimmed = String(raw).trim();
+  const hadPlus = trimmed.startsWith("+") || trimmed.startsWith("00");
+  // Keep digits only (drops spaces, dots, dashes, parentheses, slashes…)
+  let digits = trimmed.replace(/\D/g, "");
+  if (!digits) return null;
+  if (trimmed.startsWith("00")) digits = digits.replace(/^00/, "");
+  if (!hadPlus && digits.startsWith("0")) {
+    // National French format -> +33
+    digits = "33" + digits.replace(/^0+/, "");
+  }
+  if (digits.length < 8 || digits.length > 15) return null;
+  return "+" + digits;
+}
+
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -150,14 +171,12 @@ serve(async (req: Request) => {
       if (userEmail) {
         subscriptions.push({ type: "Email", token: userEmail });
       }
-      if (userPhone) {
-        let formattedPhone = userPhone.replace(/\s/g, "");
-        if (!formattedPhone.startsWith("+")) {
-          formattedPhone = formattedPhone.startsWith("0")
-            ? "+33" + formattedPhone.substring(1)
-            : "+" + formattedPhone;
-        }
-        subscriptions.push({ type: "SMS", token: formattedPhone });
+      const e164 = toE164(userPhone);
+      if (userPhone && !e164) {
+        console.warn(`[sync-onesignal-tags] Skipping invalid phone for user ${user_id}`);
+      }
+      if (e164) {
+        subscriptions.push({ type: "SMS", token: e164 });
       }
 
       const createBody: any = {
@@ -166,16 +185,35 @@ serve(async (req: Request) => {
       };
       if (subscriptions.length > 0) createBody.subscriptions = subscriptions;
 
-      const createResponse = await fetch(
-        `https://api.onesignal.com/apps/${ONESIGNAL_APP_ID}/users`,
-        {
-          method: "POST",
-          headers: baseHeaders,
-          body: JSON.stringify(createBody),
-        }
-      );
-      const createResult = await createResponse.text();
-      console.log(`[sync-onesignal-tags] POST create response (${createResponse.status}):`, createResult);
+      const createUser = async (body: any) => {
+        const res = await fetch(
+          `https://api.onesignal.com/apps/${ONESIGNAL_APP_ID}/users`,
+          { method: "POST", headers: baseHeaders, body: JSON.stringify(body) }
+        );
+        const text = await res.text();
+        console.log(`[sync-onesignal-tags] POST create response (${res.status}):`, text);
+        return { ok: res.ok, status: res.status, text };
+      };
+
+      let created = await createUser(createBody);
+
+      // A rejected subscription must never cost the user their tags:
+      // retry with identity + tags only.
+      if (!created.ok && subscriptions.length > 0) {
+        console.warn("[sync-onesignal-tags] Create failed with subscriptions — retrying without them");
+        created = await createUser({
+          properties: { tags },
+          identity: { external_id: user_id },
+        });
+      }
+
+      if (!created.ok) {
+        console.error(`[sync-onesignal-tags] Create failed for ${user_id}:`, created.text);
+        return new Response(
+          JSON.stringify({ success: false, action: "created", status: created.status, error: created.text }),
+          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
 
       return new Response(
         JSON.stringify({ success: true, tags, action: "created" }),
@@ -186,15 +224,11 @@ serve(async (req: Request) => {
     // ── 4. Sync email + phone subscriptions for existing users ──────────────
     const syncSubscriptions: any[] = [];
     if (userEmail) syncSubscriptions.push({ type: "Email", token: userEmail });
-    if (userPhone) {
-      let formattedPhone = userPhone.replace(/\s/g, "");
-      if (!formattedPhone.startsWith("+")) {
-        formattedPhone = formattedPhone.startsWith("0")
-          ? "+33" + formattedPhone.substring(1)
-          : "+" + formattedPhone;
-      }
-      syncSubscriptions.push({ type: "SMS", token: formattedPhone });
+    const syncE164 = toE164(userPhone);
+    if (userPhone && !syncE164) {
+      console.warn(`[sync-onesignal-tags] Skipping invalid phone for user ${user_id}`);
     }
+    if (syncE164) syncSubscriptions.push({ type: "SMS", token: syncE164 });
 
     if (syncSubscriptions.length > 0) {
       try {
