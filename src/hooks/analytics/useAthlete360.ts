@@ -361,9 +361,35 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
         unit: t.time_40m_seconds != null && t.vma_kmh == null && t.speed_kmh == null ? "s" : "km/h",
       });
     });
+    // Fusionne les tests portant le même intitulé (ex. test système + clone du club)
+    const labelOf = (key: string) =>
+      key.startsWith("strength:") ? key.slice("strength:".length) : labelizeTestType(key, customMap);
+    const canonical = new Map<string, string>();
+    const byLabel = new Map<string, string>();
+    Object.values(out).forEach((list) =>
+      list.forEach((r) => {
+        if (canonical.has(r.testKey)) return;
+        const norm = labelOf(r.testKey)
+          .trim()
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "");
+        const existing = byLabel.get(norm);
+        if (existing) canonical.set(r.testKey, existing);
+        else {
+          byLabel.set(norm, r.testKey);
+          canonical.set(r.testKey, r.testKey);
+        }
+      }),
+    );
+    Object.values(out).forEach((list) =>
+      list.forEach((r) => {
+        r.testKey = canonical.get(r.testKey) || r.testKey;
+      }),
+    );
     Object.values(out).forEach((list) => list.sort((a, b) => a.date.localeCompare(b.date)));
     return out;
-  }, [bundle?.generic, bundle?.strength, bundle?.speed]);
+  }, [bundle?.generic, bundle?.strength, bundle?.speed, customMap]);
 
   const testOptions = useMemo<Athlete360TestOption[]>(() => {
     const map = new Map<string, Athlete360TestOption>();
