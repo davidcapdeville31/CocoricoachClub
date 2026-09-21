@@ -181,7 +181,21 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
           .maybeSingle(),
       ]);
 
-      const wellnessConfig = (arguments0 => arguments0)(null) as any;
+      // Poids saisi via une question personnalisée « Poids » du Wellness (onglet Santé)
+      const wqData = wellnessQuestionsRes.data as any;
+      const configuredQuestions = Array.isArray(wqData?.questions) ? wqData.questions : [];
+      const weightQuestionKeys: string[] = configuredQuestions
+        .filter((q: any) => q?.is_custom && isWeightQuestionKeyLabel(q?.label))
+        .map((q: any) => q.key)
+        .filter(Boolean);
+      let wellnessWeights: any[] = [];
+      if (weightQuestionKeys.length > 0) {
+        const { data: ww } = await supabase
+          .from("wellness_tracking")
+          .select("player_id, tracking_date, custom_answers, created_at")
+          .eq("category_id", categoryId);
+        wellnessWeights = ww || [];
+      }
 
       const sessionRows = sessions.data || [];
       const sessionIds = sessionRows.map((s: any) => s.id);
