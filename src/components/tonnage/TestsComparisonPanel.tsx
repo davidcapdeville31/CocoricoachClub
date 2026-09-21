@@ -390,26 +390,6 @@ export function TestsComparisonPanel({ categoryId }: Props) {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              className="h-7 gap-1.5 rounded-lg text-xs"
-              onClick={() => runExport("pdf")}
-            >
-              <FileText className="h-3.5 w-3.5" />
-              PDF
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              className="h-7 gap-1.5 rounded-lg text-xs"
-              onClick={() => runExport("csv")}
-            >
-              <FileSpreadsheet className="h-3.5 w-3.5" />
-              CSV
-            </Button>
             <div className="inline-flex rounded-xl bg-muted/50 p-0.5">
             <Button
               type="button"
