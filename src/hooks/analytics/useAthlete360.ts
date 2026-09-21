@@ -73,6 +73,26 @@ export interface Athlete360TestOption {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+/**
+ * Lecture paginée : PostgREST plafonne chaque réponse à 1000 lignes.
+ * Sans pagination, les charges récentes étaient tronquées et le ratio
+ * aigu/chronique tombait à 0,00.
+ */
+const PAGE_SIZE = 1000;
+async function fetchAllRows<T = any>(
+  build: (from: number, to: number) => PromiseLike<{ data: any; error: any }>,
+): Promise<T[]> {
+  const out: T[] = [];
+  for (let from = 0; ; from += PAGE_SIZE) {
+    const { data, error } = await build(from, from + PAGE_SIZE - 1);
+    if (error) throw error;
+    const chunk = (data || []) as T[];
+    out.push(...chunk);
+    if (chunk.length < PAGE_SIZE) break;
+  }
+  return out;
+}
+
 export function useAthlete360(categoryId: string, startDate: string, endDate: string) {
   const { data: players = [] } = useQuery({
     queryKey: ["a360-players", categoryId],
