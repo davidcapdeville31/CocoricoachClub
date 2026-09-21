@@ -8,7 +8,23 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { usePlayerGroups, PLAYER_GROUP_COLORS } from "@/hooks/usePlayerGroups";
 import { labelizeTestType } from "@/hooks/useCustomTestLabels";
-import { Users, UserCheck, Search, X, BarChart3, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import {
+  Users,
+  UserCheck,
+  Search,
+  X,
+  BarChart3,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  FileText,
+  FileSpreadsheet,
+} from "lucide-react";
+import { toast } from "sonner";
+import {
+  exportTestsComparisonPdf,
+  exportTestsComparisonCsv,
+} from "@/lib/testsComparisonExport";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
