@@ -190,6 +190,7 @@ export const athleteSpaceFr = {
     title: "Mon calendrier",
     addSession: "Ajouter une séance",
     upcomingConfirm: "Prochaines séances — confirme ta présence",
+    upcomingConfirmMatch: "Prochaines compétitions — confirme ta présence",
     legend: {
       training: "Entraînement",
       test: "Test",
@@ -1066,6 +1067,7 @@ export const athleteSpaceEn = {
     title: "My calendar",
     addSession: "Add a session",
     upcomingConfirm: "Upcoming sessions — confirm your attendance",
+    upcomingConfirmMatch: "Upcoming competitions — confirm your attendance",
     legend: {
       training: "Training",
       test: "Test",
