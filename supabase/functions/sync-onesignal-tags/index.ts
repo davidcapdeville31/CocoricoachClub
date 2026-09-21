@@ -171,14 +171,12 @@ serve(async (req: Request) => {
       if (userEmail) {
         subscriptions.push({ type: "Email", token: userEmail });
       }
-      if (userPhone) {
-        let formattedPhone = userPhone.replace(/\s/g, "");
-        if (!formattedPhone.startsWith("+")) {
-          formattedPhone = formattedPhone.startsWith("0")
-            ? "+33" + formattedPhone.substring(1)
-            : "+" + formattedPhone;
-        }
-        subscriptions.push({ type: "SMS", token: formattedPhone });
+      const e164 = toE164(userPhone);
+      if (userPhone && !e164) {
+        console.warn(`[sync-onesignal-tags] Skipping invalid phone for user ${user_id}`);
+      }
+      if (e164) {
+        subscriptions.push({ type: "SMS", token: e164 });
       }
 
       const createBody: any = {
