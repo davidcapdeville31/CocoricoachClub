@@ -185,16 +185,35 @@ serve(async (req: Request) => {
       };
       if (subscriptions.length > 0) createBody.subscriptions = subscriptions;
 
-      const createResponse = await fetch(
-        `https://api.onesignal.com/apps/${ONESIGNAL_APP_ID}/users`,
-        {
-          method: "POST",
-          headers: baseHeaders,
-          body: JSON.stringify(createBody),
-        }
-      );
-      const createResult = await createResponse.text();
-      console.log(`[sync-onesignal-tags] POST create response (${createResponse.status}):`, createResult);
+      const createUser = async (body: any) => {
+        const res = await fetch(
+          `https://api.onesignal.com/apps/${ONESIGNAL_APP_ID}/users`,
+          { method: "POST", headers: baseHeaders, body: JSON.stringify(body) }
+        );
+        const text = await res.text();
+        console.log(`[sync-onesignal-tags] POST create response (${res.status}):`, text);
+        return { ok: res.ok, status: res.status, text };
+      };
+
+      let created = await createUser(createBody);
+
+      // A rejected subscription must never cost the user their tags:
+      // retry with identity + tags only.
+      if (!created.ok && subscriptions.length > 0) {
+        console.warn("[sync-onesignal-tags] Create failed with subscriptions — retrying without them");
+        created = await createUser({
+          properties: { tags },
+          identity: { external_id: user_id },
+        });
+      }
+
+      if (!created.ok) {
+        console.error(`[sync-onesignal-tags] Create failed for ${user_id}:`, created.text);
+        return new Response(
+          JSON.stringify({ success: false, action: "created", status: created.status, error: created.text }),
+          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
 
       return new Response(
         JSON.stringify({ success: true, tags, action: "created" }),
