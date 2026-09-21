@@ -149,18 +149,26 @@ export function MatchNotifyDialog({
         location: match.location || undefined,
       };
 
-      // Send push via targeted notification (by category)
+      // Send push via targeted notification — restreint aux convoqués quand la liste existe
       if (sendPush) {
+        const convokedUserIds = matchPlayers?.fromMatch
+          ? Array.from(new Set(athletes.map((a: any) => a.user_id).filter(Boolean) as string[]))
+          : [];
+        const pushBody: any = {
+          title: subject,
+          message: finalMessage,
+          channels: ["push"],
+          event_type: "match",
+          event_details: eventDetails,
+        };
+        if (convokedUserIds.length > 0) {
+          pushBody.target_user_ids = convokedUserIds;
+        } else {
+          pushBody.category_ids = [categoryId];
+          pushBody.roles = ["player"];
+        }
         const { data: pushData, error: pushError } = await supabase.functions.invoke("send-targeted-notification", {
-          body: {
-            title: subject,
-            message: finalMessage,
-            category_ids: [categoryId],
-            roles: ["player"],
-            channels: ["push"],
-            event_type: "match",
-            event_details: eventDetails,
-          },
+          body: pushBody,
         });
         if (!pushError && pushData) results.pushSent = pushData.pushSent || 0;
       }
