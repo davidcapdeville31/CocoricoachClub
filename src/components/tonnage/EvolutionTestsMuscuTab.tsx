@@ -6,6 +6,7 @@ import { PendingWeightLogsValidation } from "./PendingWeightLogsValidation";
 import { PendingTestResultsValidation } from "@/components/category/tests/PendingTestResultsValidation";
 
 import { BenchmarkPositionMatrix } from "./BenchmarkPositionMatrix";
+import { TestsComparisonPanel } from "./TestsComparisonPanel";
 import { Weight, TrendingUp } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -70,6 +71,7 @@ export function EvolutionTestsMuscuTab({ categoryId }: EvolutionTestsMuscuTabPro
 
           <TabsContent value="evolution" className="space-y-4">
             <PendingTestResultsValidation categoryId={categoryId} />
+            <TestsComparisonPanel categoryId={categoryId} />
             <BenchmarkPositionMatrix categoryId={categoryId} />
           </TabsContent>
         </Tabs>
