@@ -930,6 +930,9 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
             {has("weight") && weightChart.data.length > 0 && (
               <div className="rounded-xl border p-3">
                 <SectionTitle icon={<Scale className="h-4 w-4" />} title="Courbe de poids" hint="sur la période" />
+                <p className="mb-2 text-[11px] text-muted-foreground">
+                  Sources : pesées Performance (composition corporelle, mesures, tests) et Wellness (question « Poids », onglet Santé).
+                </p>
                 <ResponsiveContainer width="100%" height={260}>
                   <LineChart data={weightChart.data}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
