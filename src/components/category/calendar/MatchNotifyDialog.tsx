@@ -66,12 +66,26 @@ export function MatchNotifyDialog({
       if (lineup && lineup.length > 0) {
         playerIds = lineup.map(l => l.player_id);
       } else {
+        // Try match_participants (convoqués enregistrés sur la compétition)
+        const { data: participants } = await supabase
+          .from("match_participants")
+          .select("player_id")
+          .eq("match_id", match.id);
+
+        if (participants && participants.length > 0) {
+          playerIds = participants.map((p) => p.player_id);
+        }
+      }
+
+      if (playerIds.length === 0) {
         // Try to get from convocation_recipients
         const { data: convocations } = await supabase
           .from("convocations")
           .select("id")
           .eq("match_id", match.id)
-          .single();
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
         
         if (convocations) {
           const { data: recipients } = await supabase
@@ -89,7 +103,7 @@ export function MatchNotifyDialog({
         // Fallback: get all players from category
         const { data: allPlayers, error: playersError } = await supabase
           .from("players")
-          .select("id, name, email, phone")
+          .select("id, name, email, phone, user_id")
           .eq("category_id", categoryId);
         
         if (playersError) throw playersError;
@@ -99,7 +113,7 @@ export function MatchNotifyDialog({
       // Get player details
       const { data: players, error: playersError } = await supabase
         .from("players")
-        .select("id, name, email, phone")
+        .select("id, name, email, phone, user_id")
         .in("id", playerIds);
       
       if (playersError) throw playersError;
@@ -135,18 +149,26 @@ export function MatchNotifyDialog({
         location: match.location || undefined,
       };
 
-      // Send push via targeted notification (by category)
+      // Send push via targeted notification — restreint aux convoqués quand la liste existe
       if (sendPush) {
+        const convokedUserIds = matchPlayers?.fromMatch
+          ? Array.from(new Set(athletes.map((a: any) => a.user_id).filter(Boolean) as string[]))
+          : [];
+        const pushBody: any = {
+          title: subject,
+          message: finalMessage,
+          channels: ["push"],
+          event_type: "match",
+          event_details: eventDetails,
+        };
+        if (convokedUserIds.length > 0) {
+          pushBody.target_user_ids = convokedUserIds;
+        } else {
+          pushBody.category_ids = [categoryId];
+          pushBody.roles = ["player"];
+        }
         const { data: pushData, error: pushError } = await supabase.functions.invoke("send-targeted-notification", {
-          body: {
-            title: subject,
-            message: finalMessage,
-            category_ids: [categoryId],
-            roles: ["player"],
-            channels: ["push"],
-            event_type: "match",
-            event_details: eventDetails,
-          },
+          body: pushBody,
         });
         if (!pushError && pushData) results.pushSent = pushData.pushSent || 0;
       }
