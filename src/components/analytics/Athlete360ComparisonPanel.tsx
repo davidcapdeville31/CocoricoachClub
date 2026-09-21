@@ -677,7 +677,11 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
                             )}
                           </span>
                         </td>
-                        <td className={`p-2 text-center ${rateClass(s.row.appRate)}`}>{pctText(s.row.appRate)}</td>
+                        {has("app") && (
+                          <td className={`p-2 text-center ${rateClass(s.row.appRate)}`}>{pctText(s.row.appRate)}</td>
+                        )}
+                        {has("presence") && (
+                          <>
                         <td className={`p-2 text-center ${rateClass(s.row.trainingRate)}`}>
                           {pctText(s.row.trainingRate)}
                           <div className="text-[10px] font-normal text-muted-foreground">
@@ -702,6 +706,10 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
                             {s.row.matchPresent}/{s.row.matchCalled}
                           </div>
                         </td>
+                          </>
+                        )}
+                        {has("load") && (
+                          <>
                         <td className="p-2 text-center">
                           {s.row.weeklyLoad != null ? Math.round(s.row.weeklyLoad) : "—"}
                           <div className="text-[10px] text-muted-foreground">{s.row.loadSessions} séances</div>
@@ -721,12 +729,17 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
                             </span>
                           )}
                         </td>
+                          </>
+                        )}
+                        {has("health") && (
                         <td className="p-2 text-center">
                           <span className={s.row.injuryCount > 0 ? "font-semibold text-amber-600" : ""}>
                             {s.row.injuryCount}
                           </span>
                           <div className="text-[10px] text-muted-foreground">{s.row.injuryDays} j indispo.</div>
                         </td>
+                        )}
+                        {has("weight") && (
                         <td className="p-2 text-center">
                           {s.row.weightLast != null ? `${s.row.weightLast} kg` : "—"}
                           {s.row.weightDelta != null && (
@@ -740,6 +753,7 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
                             </div>
                           )}
                         </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
