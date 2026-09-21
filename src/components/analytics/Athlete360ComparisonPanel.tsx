@@ -867,7 +867,9 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
                   ))}
                 </div>
               </div>
+              )}
 
+              {has("load") && (
               <div className="rounded-xl border p-3">
                 <SectionTitle icon={<Zap className="h-4 w-4" />} title="Charge d'entraînement" />
                 <div className="space-y-2">
