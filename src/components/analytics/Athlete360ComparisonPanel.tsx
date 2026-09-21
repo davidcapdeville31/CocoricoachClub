@@ -93,6 +93,8 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
   const [restrictGroup, setRestrictGroup] = useState<string | null>(null);
   const [selectedTests, setSelectedTests] = useState<string[] | null>(null);
   const [testSearch, setTestSearch] = useState("");
+  const [domains, setDomains] = useState<Domain[]>(DOMAINS.map((d) => d.key));
+  const has = (d: Domain) => domains.includes(d);
 
   const [startDate, setStartDate] = useState(() => format(subMonths(new Date(), 3), "yyyy-MM-dd"));
   const [endDate, setEndDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
