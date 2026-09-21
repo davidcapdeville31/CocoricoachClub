@@ -7,6 +7,27 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+/**
+ * Normalize a raw phone number to strict E.164 (+ followed by 8-15 digits).
+ * Returns null when the number cannot be trusted — better to skip the SMS
+ * subscription than to have OneSignal reject the whole user creation.
+ */
+function toE164(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const trimmed = String(raw).trim();
+  const hadPlus = trimmed.startsWith("+") || trimmed.startsWith("00");
+  // Keep digits only (drops spaces, dots, dashes, parentheses, slashes…)
+  let digits = trimmed.replace(/\D/g, "");
+  if (!digits) return null;
+  if (trimmed.startsWith("00")) digits = digits.replace(/^00/, "");
+  if (!hadPlus && digits.startsWith("0")) {
+    // National French format -> +33
+    digits = "33" + digits.replace(/^0+/, "");
+  }
+  if (digits.length < 8 || digits.length > 15) return null;
+  return "+" + digits;
+}
+
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
