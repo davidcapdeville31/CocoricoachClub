@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { collectWeightHistory } from "@/lib/weight/weightHistory";
+import { collectWeightHistory, isWeightQuestionKeyLabel } from "@/lib/weight/weightHistory";
 import { computeAcwrDetailed, type LoadRow } from "@/lib/acwr";
 import { labelizeTestType } from "@/hooks/useCustomTestLabels";
 
@@ -174,7 +174,14 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
           .select("player_id, test_date, test_type, test_category, result_value, result_unit, created_at")
           .eq("category_id", categoryId),
         supabase.from("custom_tests").select("id, name, unit, test_category"),
+        supabase
+          .from("wellness_question_configs")
+          .select("questions")
+          .eq("category_id", categoryId)
+          .maybeSingle(),
       ]);
+
+      const wellnessConfig = (arguments0 => arguments0)(null) as any;
 
       const sessionRows = sessions.data || [];
       const sessionIds = sessionRows.map((s: any) => s.id);
