@@ -714,6 +714,79 @@ export function TestsComparisonPanel({ categoryId }: Props) {
             ))}
           </div>
         )}
+
+        {playerDetails.length > 0 && (
+          <div className="space-y-3">
+            <h4 className="text-sm font-semibold">Détail des résultats par athlète</h4>
+            {playerDetails.map((p) => (
+              <div key={p.playerId} className="rounded-xl border bg-card p-3">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <span className="text-sm font-semibold">{p.name}</span>
+                  <Badge variant="outline" className="text-[10px]">
+                    {p.tests.length} test(s)
+                  </Badge>
+                </div>
+                {p.tests.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">Aucun résultat sur les tests sélectionnés.</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[420px] text-xs">
+                      <thead>
+                        <tr className="text-left text-[11px] text-muted-foreground">
+                          <th className="py-1 pr-2 font-medium">Test</th>
+                          <th className="py-1 pr-2 font-medium">Dernier résultat</th>
+                          <th className="py-1 pr-2 font-medium">Date</th>
+                          <th className="py-1 pr-2 font-medium">Évolution</th>
+                          <th className="py-1 font-medium">Historique</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {p.tests.map((t) => (
+                          <tr key={t.key} className="border-t border-border/60">
+                            <td className="py-1.5 pr-2">{t.label}</td>
+                            <td className="py-1.5 pr-2 font-semibold">
+                              {t.last.value}
+                              {t.unit ? ` ${t.unit}` : ""}
+                            </td>
+                            <td className="py-1.5 pr-2 text-muted-foreground">
+                              {format(parseISO(t.last.date), "dd/MM/yy", { locale: fr })}
+                            </td>
+                            <td className="py-1.5 pr-2">
+                              {t.delta == null ? (
+                                <span className="text-muted-foreground">—</span>
+                              ) : (
+                                <span
+                                  className={
+                                    t.delta > 0
+                                      ? "text-emerald-600"
+                                      : t.delta < 0
+                                        ? "text-red-500"
+                                        : "text-muted-foreground"
+                                  }
+                                >
+                                  {t.delta > 0 ? `+${t.delta}` : t.delta}
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-1.5 text-[11px] text-muted-foreground">
+                              {t.history
+                                .slice(-6)
+                                .map(
+                                  (h) =>
+                                    `${format(parseISO(h.date), "dd/MM/yy", { locale: fr })}: ${h.value}`,
+                                )
+                                .join("  ·  ")}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
