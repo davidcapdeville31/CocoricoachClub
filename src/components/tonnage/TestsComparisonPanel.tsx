@@ -432,6 +432,7 @@ export function TestsComparisonPanel({ categoryId }: Props) {
               <Users className="h-3.5 w-3.5" />
               Groupes
             </Button>
+            </div>
           </div>
         </div>
       </CardHeader>
