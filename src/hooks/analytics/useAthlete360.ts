@@ -111,6 +111,7 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
         measurements,
         genericAll,
         customTests,
+        wellnessQuestionsRes,
       ] = await Promise.all([
         supabase
           .from("wellness_tracking")
@@ -242,6 +243,8 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
           playerMeasurements: measurements.data || [],
           genericTests: (genericAll.data || []) as any,
           customTests: (customTests.data || []) as any,
+          wellness: wellnessWeights,
+          weightQuestionKeys,
         }),
         customTests: customTests.data || [],
       };
