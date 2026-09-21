@@ -121,6 +121,10 @@ export function PerformanceTab({ categoryId, sportType }: PerformanceTabProps) {
         <EvolutionTestsMuscuTab categoryId={categoryId} />
       </TabsContent>
 
+      <TabsContent value="comparison-360">
+        <Athlete360ComparisonPanel categoryId={categoryId} />
+      </TabsContent>
+
     </Tabs>
   );
 }
