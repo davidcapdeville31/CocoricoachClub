@@ -627,6 +627,7 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
                 {visibleTests.length === 0 && (
                   <p className="px-2 py-3 text-xs text-muted-foreground">Aucun test enregistré.</p>
                 )}
+              </div>
             </div>
           </div>
           )}
