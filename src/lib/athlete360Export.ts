@@ -304,7 +304,8 @@ export async function exportAthlete360Pdf(ctx: Athlete360ExportContext) {
         doc.setTextColor(107, 114, 128);
         doc.text(dateText, startX, y + 11);
         if (deltaText) {
-          doc.setTextColor(...(result.delta != null && result.delta > 0 ? [5, 150, 105] : [220, 70, 70]) as [number, number, number]);
+          if (result.delta != null && result.delta > 0) doc.setTextColor(5, 150, 105);
+          else doc.setTextColor(220, 70, 70);
           doc.text(deltaText, startX + dateWidth, y + 11);
         }
       });
