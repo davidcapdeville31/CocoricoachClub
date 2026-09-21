@@ -844,7 +844,9 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
                   ))}
                 </div>
               </div>
+              )}
 
+              {has("presence") && (
               <div className="rounded-xl border p-3">
                 <SectionTitle icon={<ClipboardCheck className="h-4 w-4" />} title="Présences" />
                 <div className="space-y-2">
