@@ -474,7 +474,7 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
         </div>
 
         {/* Sélection */}
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className={`grid gap-4 ${has("tests") ? "lg:grid-cols-2" : ""}`}>
           <div className="rounded-xl border bg-muted/20 p-3">
             {mode === "players" ? (
               <>
