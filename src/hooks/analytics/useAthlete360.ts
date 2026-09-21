@@ -265,7 +265,7 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
         wellnessWeights = ww || [];
       }
 
-      const sessionRows = sessions.data || [];
+      const sessionRows = sessions;
       const sessionIds = sessionRows.map((s: any) => s.id);
       let eventParticipants: any[] = [];
       if (sessionIds.length > 0) {
@@ -282,38 +282,43 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
         }
       }
 
-      const matchIds = (matches.data || []).map((m: any) => m.id);
+      const matchIds = (matches as any[]).map((m: any) => m.id);
       let matchParticipants: any[] = [];
       if (matchIds.length > 0) {
-        const { data, error } = await supabase
-          .from("match_participants")
-          .select("match_id, player_id, attendance_status")
-          .in("match_id", matchIds);
-        if (error) throw error;
-        matchParticipants = data || [];
+        const page = 1000;
+        for (let from = 0; ; from += page) {
+          const { data, error } = await supabase
+            .from("match_participants")
+            .select("match_id, player_id, attendance_status")
+            .in("match_id", matchIds)
+            .range(from, from + page - 1);
+          if (error) throw error;
+          matchParticipants.push(...(data || []));
+          if ((data || []).length < page) break;
+        }
       }
 
       return {
-        wellness: wellness.data || [],
-        loads: loads.data || [],
+        wellness,
+        loads,
         sessions: sessionRows,
-        attendance: attendance.data || [],
-        matches: matches.data || [],
-        injuries: injuries.data || [],
-        generic: generic.data || [],
-        strength: strength.data || [],
-        speed: speed.data || [],
+        attendance,
+        matches,
+        injuries,
+        generic,
+        strength,
+        speed,
         eventParticipants,
         matchParticipants,
         weightEntries: collectWeightHistory({
-          bodyComps: bodyComps.data || [],
-          playerMeasurements: measurements.data || [],
-          genericTests: (genericAll.data || []) as any,
-          customTests: (customTests.data || []) as any,
+          bodyComps: bodyComps as any,
+          playerMeasurements: measurements as any,
+          genericTests: genericAll as any,
+          customTests: customTests as any,
           wellness: wellnessWeights,
           weightQuestionKeys,
         }),
-        customTests: customTests.data || [],
+        customTests,
       };
     },
   });
