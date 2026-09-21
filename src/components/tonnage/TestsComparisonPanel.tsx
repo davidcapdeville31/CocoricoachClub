@@ -345,6 +345,42 @@ export function TestsComparisonPanel({ categoryId }: Props) {
 
   const hasSelection = mode === "players" ? selectedPlayers.length > 0 : selectedGroups.length > 0;
 
+  // Détail athlète par athlète : tous les résultats des tests sélectionnés
+  const playerDetails = useMemo(() => {
+    if (mode !== "players" || selectedPlayers.length === 0) return [];
+    const labelOf = new Map(testOptions.map((t) => [t.key, t]));
+    return selectedPlayers.map((pid) => {
+      const rows = results
+        .filter((r) => r.playerId === pid && effectiveTests.includes(r.testKey))
+        .slice()
+        .sort((a, b) => a.date.localeCompare(b.date));
+      const byTest = new Map<string, Result[]>();
+      rows.forEach((r) => {
+        if (!byTest.has(r.testKey)) byTest.set(r.testKey, []);
+        byTest.get(r.testKey)!.push(r);
+      });
+      return {
+        playerId: pid,
+        name: fullName(playersById.get(pid) || {}),
+        tests: Array.from(byTest.entries())
+          .map(([key, list]) => {
+            const opt = labelOf.get(key);
+            const first = list[0];
+            const last = list[list.length - 1];
+            return {
+              key,
+              label: opt?.label || key,
+              unit: opt?.unit ?? last.unit ?? null,
+              last,
+              delta: first.date === last.date ? null : Number((last.value - first.value).toFixed(2)),
+              history: list,
+            };
+          })
+          .sort((a, b) => a.label.localeCompare(b.label)),
+      };
+    });
+  }, [mode, selectedPlayers, results, effectiveTests, testOptions, playersById]);
+
   const runExport = async (kind: "pdf" | "csv") => {
     if (charts.length === 0) {
       toast.error("Aucune donnée à exporter pour cette sélection.");
