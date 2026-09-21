@@ -47,6 +47,17 @@ interface Props {
 
 type Mode = "players" | "groups";
 
+type Domain = "tests" | "app" | "presence" | "load" | "health" | "weight";
+
+const DOMAINS: { key: Domain; label: string; icon: React.ReactNode }[] = [
+  { key: "tests", label: "Performance (tests)", icon: <BarChart3 className="h-3.5 w-3.5" /> },
+  { key: "app", label: "Assiduité dans l'app", icon: <Activity className="h-3.5 w-3.5" /> },
+  { key: "presence", label: "Présences", icon: <ClipboardCheck className="h-3.5 w-3.5" /> },
+  { key: "load", label: "Charge d'entraînement", icon: <Zap className="h-3.5 w-3.5" /> },
+  { key: "health", label: "Santé / blessures", icon: <HeartPulse className="h-3.5 w-3.5" /> },
+  { key: "weight", label: "Poids", icon: <Scale className="h-3.5 w-3.5" /> },
+];
+
 const norm = (s: string) =>
   (s || "")
     .normalize("NFD")
@@ -82,6 +93,8 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
   const [restrictGroup, setRestrictGroup] = useState<string | null>(null);
   const [selectedTests, setSelectedTests] = useState<string[] | null>(null);
   const [testSearch, setTestSearch] = useState("");
+  const [domains, setDomains] = useState<Domain[]>(DOMAINS.map((d) => d.key));
+  const has = (d: Domain) => domains.includes(d);
 
   const [startDate, setStartDate] = useState(() => format(subMonths(new Date(), 3), "yyyy-MM-dd"));
   const [endDate, setEndDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
@@ -367,6 +380,37 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
       </CardHeader>
 
       <CardContent className="space-y-4">
+        {/* Choix des données à comparer */}
+        <div className="rounded-xl border bg-muted/20 p-2">
+          <div className="mb-1.5 flex flex-wrap items-center gap-2">
+            <Label className="text-[11px] font-semibold">Données à comparer</Label>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-6 px-2 text-[11px]"
+              onClick={() => setDomains(DOMAINS.map((d) => d.key))}
+            >
+              Tout
+            </Button>
+            <Button size="sm" variant="ghost" className="h-6 px-2 text-[11px]" onClick={() => setDomains([])}>
+              Aucune
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {DOMAINS.map((d) => (
+              <Badge
+                key={d.key}
+                variant={has(d.key) ? "default" : "outline"}
+                className="cursor-pointer gap-1 px-2 py-1 text-[11px]"
+                onClick={() => setDomains((prev) => toggle(prev, d.key) as Domain[])}
+              >
+                {d.icon}
+                {d.label}
+              </Badge>
+            ))}
+          </div>
+        </div>
+
         {/* Barre période + export */}
         <div className="flex flex-wrap items-end gap-3 rounded-xl border bg-muted/20 p-2">
           <div className="space-y-1">
@@ -430,7 +474,7 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
         </div>
 
         {/* Sélection */}
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className={`grid gap-4 ${has("tests") ? "lg:grid-cols-2" : ""}`}>
           <div className="rounded-xl border bg-muted/20 p-3">
             {mode === "players" ? (
               <>
@@ -544,6 +588,7 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
           </div>
 
           {/* Sélection des tests */}
+          {has("tests") && (
           <div className="rounded-xl border bg-muted/20 p-3">
             <div className="mb-2 flex flex-wrap items-center gap-2">
               <div className="relative min-w-[160px] flex-1">
@@ -585,7 +630,9 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
               </div>
             </div>
           </div>
+          )}
         </div>
+
 
         {isLoading && <p className="py-6 text-center text-xs text-muted-foreground">Chargement des données…</p>}
 
@@ -604,15 +651,15 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
                   <thead className="bg-muted/40 text-[11px] text-muted-foreground">
                     <tr>
                       <th className="p-2 text-left">{mode === "players" ? "Athlète" : "Groupe"}</th>
-                      <th className="p-2 text-center">Assiduité app</th>
-                      <th className="p-2 text-center">Entraînements</th>
-                      <th className="p-2 text-center">Musculation</th>
-                      <th className="p-2 text-center">Terrain</th>
-                      <th className="p-2 text-center">Compétitions</th>
-                      <th className="p-2 text-center">Charge / sem.</th>
-                      <th className="p-2 text-center">Ratio charge</th>
-                      <th className="p-2 text-center">Blessures</th>
-                      <th className="p-2 text-center">Poids</th>
+                      {has("app") && <th className="p-2 text-center">Assiduité app</th>}
+                      {has("presence") && <th className="p-2 text-center">Entraînements</th>}
+                      {has("presence") && <th className="p-2 text-center">Musculation</th>}
+                      {has("presence") && <th className="p-2 text-center">Terrain</th>}
+                      {has("presence") && <th className="p-2 text-center">Compétitions</th>}
+                      {has("load") && <th className="p-2 text-center">Charge / sem.</th>}
+                      {has("load") && <th className="p-2 text-center">Ratio charge</th>}
+                      {has("health") && <th className="p-2 text-center">Blessures</th>}
+                      {has("weight") && <th className="p-2 text-center">Poids</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -630,7 +677,11 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
                             )}
                           </span>
                         </td>
-                        <td className={`p-2 text-center ${rateClass(s.row.appRate)}`}>{pctText(s.row.appRate)}</td>
+                        {has("app") && (
+                          <td className={`p-2 text-center ${rateClass(s.row.appRate)}`}>{pctText(s.row.appRate)}</td>
+                        )}
+                        {has("presence") && (
+                          <>
                         <td className={`p-2 text-center ${rateClass(s.row.trainingRate)}`}>
                           {pctText(s.row.trainingRate)}
                           <div className="text-[10px] font-normal text-muted-foreground">
@@ -655,6 +706,10 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
                             {s.row.matchPresent}/{s.row.matchCalled}
                           </div>
                         </td>
+                          </>
+                        )}
+                        {has("load") && (
+                          <>
                         <td className="p-2 text-center">
                           {s.row.weeklyLoad != null ? Math.round(s.row.weeklyLoad) : "—"}
                           <div className="text-[10px] text-muted-foreground">{s.row.loadSessions} séances</div>
@@ -674,12 +729,17 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
                             </span>
                           )}
                         </td>
+                          </>
+                        )}
+                        {has("health") && (
                         <td className="p-2 text-center">
                           <span className={s.row.injuryCount > 0 ? "font-semibold text-amber-600" : ""}>
                             {s.row.injuryCount}
                           </span>
                           <div className="text-[10px] text-muted-foreground">{s.row.injuryDays} j indispo.</div>
                         </td>
+                        )}
+                        {has("weight") && (
                         <td className="p-2 text-center">
                           {s.row.weightLast != null ? `${s.row.weightLast} kg` : "—"}
                           {s.row.weightDelta != null && (
@@ -693,6 +753,7 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
                             </div>
                           )}
                         </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
@@ -701,6 +762,7 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
             </div>
 
             {/* Tests physiques */}
+            {has("tests") && (
             <div className="rounded-xl border p-3">
               <SectionTitle
                 icon={<BarChart3 className="h-4 w-4" />}
@@ -761,9 +823,11 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
                 </table>
               </div>
             </div>
+            )}
 
             {/* Détail par bloc */}
             <div className="grid gap-4 lg:grid-cols-2">
+              {has("app") && (
               <div className="rounded-xl border p-3">
                 <SectionTitle icon={<Activity className="h-4 w-4" />} title="Assiduité dans l'app" />
                 <div className="space-y-2">
@@ -780,7 +844,9 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
                   ))}
                 </div>
               </div>
+              )}
 
+              {has("presence") && (
               <div className="rounded-xl border p-3">
                 <SectionTitle icon={<ClipboardCheck className="h-4 w-4" />} title="Présences" />
                 <div className="space-y-2">
@@ -801,7 +867,9 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
                   ))}
                 </div>
               </div>
+              )}
 
+              {has("load") && (
               <div className="rounded-xl border p-3">
                 <SectionTitle icon={<Zap className="h-4 w-4" />} title="Charge d'entraînement" />
                 <div className="space-y-2">
@@ -831,7 +899,9 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
                   ))}
                 </div>
               </div>
+              )}
 
+              {has("health") && (
               <div className="rounded-xl border p-3">
                 <SectionTitle icon={<HeartPulse className="h-4 w-4" />} title="Blessures" />
                 <div className="space-y-2">
@@ -853,10 +923,11 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
                   ))}
                 </div>
               </div>
+              )}
             </div>
 
             {/* Courbe de poids */}
-            {weightChart.data.length > 0 && (
+            {has("weight") && weightChart.data.length > 0 && (
               <div className="rounded-xl border p-3">
                 <SectionTitle icon={<Scale className="h-4 w-4" />} title="Courbe de poids" hint="sur la période" />
                 <ResponsiveContainer width="100%" height={260}>
