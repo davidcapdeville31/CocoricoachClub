@@ -66,6 +66,18 @@ export function MatchNotifyDialog({
       if (lineup && lineup.length > 0) {
         playerIds = lineup.map(l => l.player_id);
       } else {
+        // Try match_participants (convoqués enregistrés sur la compétition)
+        const { data: participants } = await supabase
+          .from("match_participants")
+          .select("player_id")
+          .eq("match_id", match.id);
+
+        if (participants && participants.length > 0) {
+          playerIds = participants.map((p) => p.player_id);
+        }
+      }
+
+      if (playerIds.length === 0) {
         // Try to get from convocation_recipients
         const { data: convocations } = await supabase
           .from("convocations")
