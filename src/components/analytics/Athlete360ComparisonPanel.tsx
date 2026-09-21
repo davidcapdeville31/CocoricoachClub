@@ -588,6 +588,7 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
           </div>
 
           {/* Sélection des tests */}
+          {has("tests") && (
           <div className="rounded-xl border bg-muted/20 p-3">
             <div className="mb-2 flex flex-wrap items-center gap-2">
               <div className="relative min-w-[160px] flex-1">
