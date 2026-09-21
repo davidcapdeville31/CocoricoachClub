@@ -101,7 +101,7 @@ export function MatchNotifyDialog({
       // Get player details
       const { data: players, error: playersError } = await supabase
         .from("players")
-        .select("id, name, email, phone")
+        .select("id, name, email, phone, user_id")
         .in("id", playerIds);
       
       if (playersError) throw playersError;
