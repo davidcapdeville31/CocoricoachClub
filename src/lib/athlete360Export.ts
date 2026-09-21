@@ -191,35 +191,131 @@ export async function exportAthlete360Pdf(ctx: Athlete360ExportContext) {
     y += 6;
   });
 
-  // Tests par sujet
-  ctx.subjects.forEach((s) => {
-    if (s.tests.length === 0) return;
-    ensureSpace(20);
-    y += 6;
-    doc.setFillColor(244, 246, 251);
-    doc.rect(margin, y - 5, contentW, 8, "F");
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9.5);
-    doc.setTextColor(30, 30, 30);
-    doc.text(`Tests — ${s.name}`, margin + 2, y);
-    y += 8;
+  // Tests physiques en matrice : tests en lignes, athlètes/groupes en colonnes.
+  const testLabels = Array.from(
+    new Map(
+      ctx.subjects.flatMap((subject) =>
+        subject.tests.map((test) => [test.label, { label: test.label, unit: test.unit }]),
+      ),
+    ).values(),
+  );
+  const subjectChunks: Athlete360ExportSubject[][] = [];
+  for (let i = 0; i < ctx.subjects.length; i += 7) {
+    subjectChunks.push(ctx.subjects.slice(i, i + 7));
+  }
 
+  const drawTestsSectionHeader = (chunk: Athlete360ExportSubject[]) => {
+    const tableX = margin;
+    const tableW = contentW;
+    const labelW = 70;
+    const subjectW = (tableW - labelW) / Math.max(chunk.length, 1);
+
+    doc.setDrawColor(222, 225, 231);
+    doc.setLineWidth(0.35);
+    doc.roundedRect(tableX, y, tableW, 18, 3, 3, "S");
+
+    // Petit pictogramme graphique, comme dans l'interface.
+    doc.setDrawColor(35, 55, 79);
+    doc.setLineWidth(0.65);
+    doc.line(tableX + 4, y + 10, tableX + 4, y + 4);
+    doc.line(tableX + 4, y + 10, tableX + 10, y + 10);
+    doc.line(tableX + 6, y + 9, tableX + 6, y + 6);
+    doc.line(tableX + 8, y + 9, tableX + 8, y + 3.5);
+    doc.line(tableX + 10, y + 9, tableX + 10, y + 7);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(31, 41, 55);
+    doc.text("Tests physiques", tableX + 14, y + 7.5);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8.5);
-    s.tests.forEach((t) => {
-      ensureSpace(7);
-      doc.setTextColor(40, 40, 40);
-      doc.text(t.label, margin + 2, y);
-      doc.text(
-        t.value != null ? `${t.value}${t.unit ? ` ${t.unit}` : ""}` : "—",
-        margin + 2 + contentW * 0.4,
-        y,
-      );
-      doc.setTextColor(110, 110, 110);
-      doc.text(fmtDate(t.date), margin + 2 + contentW * 0.6, y);
-      doc.text(fmtDelta(t.delta), margin + 2 + contentW * 0.75, y);
-      y += 5.5;
+    doc.setTextColor(107, 114, 128);
+    doc.text("dernier résultat et évolution depuis le premier", tableX + 48, y + 7.5);
+
+    y += 13;
+    doc.setFillColor(249, 250, 251);
+    doc.rect(tableX + 0.4, y, tableW - 0.8, 10, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(107, 114, 128);
+    doc.text("Test", tableX + 3, y + 6.2);
+    chunk.forEach((subject, index) => {
+      const centerX = tableX + labelW + subjectW * index + subjectW / 2;
+      const name = subject.count ? `${subject.name} (${subject.count})` : subject.name;
+      const fittedName = doc.splitTextToSize(name, subjectW - 3).slice(0, 2);
+      doc.text(fittedName, centerX, y + (fittedName.length > 1 ? 4.3 : 6.2), { align: "center" });
     });
+    y += 10;
+    doc.setDrawColor(222, 225, 231);
+    doc.line(tableX, y, tableX + tableW, y);
+
+    return { tableX, tableW, labelW, subjectW };
+  };
+
+  subjectChunks.forEach((chunk, chunkIndex) => {
+    if (testLabels.length === 0) return;
+    if (chunkIndex > 0 || y + 31 > pageH - 12) {
+      doc.addPage();
+      y = 14;
+    } else {
+      y += 8;
+    }
+
+    let layout = drawTestsSectionHeader(chunk);
+    testLabels.forEach((testMeta) => {
+      const rowH = 15;
+      if (y + rowH > pageH - 12) {
+        doc.addPage();
+        y = 14;
+        layout = drawTestsSectionHeader(chunk);
+      }
+
+      const { tableX, tableW, labelW, subjectW } = layout;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8.7);
+      doc.setTextColor(31, 41, 55);
+      const label = testMeta.unit ? `${testMeta.label}  (${testMeta.unit})` : testMeta.label;
+      const fittedLabel = doc.splitTextToSize(label, labelW - 6).slice(0, 2);
+      doc.text(fittedLabel, tableX + 3, y + (fittedLabel.length > 1 ? 5.3 : 8));
+
+      chunk.forEach((subject, index) => {
+        const result = subject.tests.find((test) => test.label === testMeta.label);
+        const centerX = tableX + labelW + subjectW * index + subjectW / 2;
+        if (result?.value == null) {
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(9);
+          doc.setTextColor(107, 114, 128);
+          doc.text("—", centerX, y + 8, { align: "center" });
+          return;
+        }
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(9.5);
+        doc.setTextColor(31, 41, 55);
+        doc.text(String(result.value), centerX, y + 5.8, { align: "center" });
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(7.4);
+        const dateText = fmtDate(result.date);
+        const deltaText = result.delta == null || result.delta === 0 ? "" : ` ${fmtDelta(result.delta)}`;
+        const dateWidth = doc.getTextWidth(dateText);
+        const deltaWidth = doc.getTextWidth(deltaText);
+        const startX = centerX - (dateWidth + deltaWidth) / 2;
+        doc.setTextColor(107, 114, 128);
+        doc.text(dateText, startX, y + 11);
+        if (deltaText) {
+          if (result.delta != null && result.delta > 0) doc.setTextColor(5, 150, 105);
+          else doc.setTextColor(220, 70, 70);
+          doc.text(deltaText, startX + dateWidth, y + 11);
+        }
+      });
+
+      y += rowH;
+      doc.setDrawColor(222, 225, 231);
+      doc.setLineWidth(0.25);
+      doc.line(tableX, y, tableX + tableW, y);
+    });
+    y += 3;
   });
 
   if (settings?.footer_text) {
