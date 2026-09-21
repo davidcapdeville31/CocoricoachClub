@@ -61,7 +61,7 @@ import { RecoverySessionDialog } from "@/components/athlete-space/RecoverySessio
 import { SessionDetailDialog } from "@/components/athlete-space/SessionDetailDialog";
 import { SessionAttendanceResponse } from "@/components/athlete-space/SessionAttendanceResponse";
 import { MatchAttendanceResponse } from "@/components/athlete-space/MatchAttendanceResponse";
-import { Eye } from "lucide-react";
+import { Eye, Trophy } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 
