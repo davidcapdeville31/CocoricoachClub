@@ -97,6 +97,15 @@ export function PerformanceTab({ categoryId, sportType }: PerformanceTabProps) {
               </span>
             )}
           </ColoredSubTabsTrigger>
+          <ColoredSubTabsTrigger
+            value="comparison-360"
+            colorKey="performance"
+            icon={<Layers className="h-4 w-4" />}
+            tooltip="Compare tests, assiduité, présences, charge, blessures et poids des athlètes choisis"
+          >
+            <span className="hidden sm:inline">Comparaison 360°</span>
+            <span className="sm:hidden">360°</span>
+          </ColoredSubTabsTrigger>
         </ColoredSubTabsList>
       </div>
 
