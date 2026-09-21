@@ -688,6 +688,56 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
               </div>
             );
           })()}
+          {(() => {
+            const todayStr = format(new Date(), "yyyy-MM-dd");
+            const upcomingMatches = (matches as any[])
+              .filter((m) => m.created_by_player_id !== playerId && m.match_date >= todayStr)
+              .sort((a, b) => a.match_date.localeCompare(b.match_date))
+              .slice(0, 3);
+            if (upcomingMatches.length === 0) return null;
+            return (
+              <div
+                className="mb-4 rounded-lg border p-3"
+                style={{ borderColor: `${MATCH_COLOR}55`, backgroundColor: `${MATCH_COLOR}0d` }}
+              >
+                <p
+                  className="text-xs font-semibold uppercase tracking-wide mb-2 flex items-center gap-1.5"
+                  style={{ color: MATCH_COLOR }}
+                >
+                  <Trophy className="h-3.5 w-3.5" />
+                  {t("athleteSpace.calendar.upcomingConfirmMatch")}
+                </p>
+                <div className="space-y-2">
+                  {upcomingMatches.map((m: any) => (
+                    <div
+                      key={m.id}
+                      className="rounded-md border bg-background p-2"
+                      style={{ borderColor: `${MATCH_COLOR}44` }}
+                    >
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <button
+                          type="button"
+                          className="text-left text-sm font-medium hover:underline"
+                          onClick={() => setSelectedDate(parseISO(m.match_date))}
+                        >
+                          {format(parseISO(m.match_date), "EEE d MMM", { locale: getDateLocale() })}
+                          {m.match_time && ` · ${m.match_time.slice(0, 5)}`}
+                          {" · "}
+                          {m.competition || (m.opponent ? `vs ${m.opponent}` : t("athleteSpace.calendar.competitionFallback"))}
+                        </button>
+                      </div>
+                      <MatchAttendanceResponse
+                        matchId={m.id}
+                        playerId={playerId}
+                        matchDate={m.match_date}
+                        matchTime={m.match_time}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
           <div className="grid md:grid-cols-2 gap-6">
             {/* Calendar */}
             <div className="flex justify-center">
