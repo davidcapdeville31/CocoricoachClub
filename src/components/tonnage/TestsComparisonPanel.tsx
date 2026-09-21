@@ -345,6 +345,42 @@ export function TestsComparisonPanel({ categoryId }: Props) {
 
   const hasSelection = mode === "players" ? selectedPlayers.length > 0 : selectedGroups.length > 0;
 
+  // Détail athlète par athlète : tous les résultats des tests sélectionnés
+  const playerDetails = useMemo(() => {
+    if (mode !== "players" || selectedPlayers.length === 0) return [];
+    const labelOf = new Map(testOptions.map((t) => [t.key, t]));
+    return selectedPlayers.map((pid) => {
+      const rows = results
+        .filter((r) => r.playerId === pid && effectiveTests.includes(r.testKey))
+        .slice()
+        .sort((a, b) => a.date.localeCompare(b.date));
+      const byTest = new Map<string, Result[]>();
+      rows.forEach((r) => {
+        if (!byTest.has(r.testKey)) byTest.set(r.testKey, []);
+        byTest.get(r.testKey)!.push(r);
+      });
+      return {
+        playerId: pid,
+        name: fullName(playersById.get(pid) || {}),
+        tests: Array.from(byTest.entries())
+          .map(([key, list]) => {
+            const opt = labelOf.get(key);
+            const first = list[0];
+            const last = list[list.length - 1];
+            return {
+              key,
+              label: opt?.label || key,
+              unit: opt?.unit ?? last.unit ?? null,
+              last,
+              delta: first.date === last.date ? null : Number((last.value - first.value).toFixed(2)),
+              history: list,
+            };
+          })
+          .sort((a, b) => a.label.localeCompare(b.label)),
+      };
+    });
+  }, [mode, selectedPlayers, results, effectiveTests, testOptions, playersById]);
+
   const runExport = async (kind: "pdf" | "csv") => {
     if (charts.length === 0) {
       toast.error("Aucune donnée à exporter pour cette sélection.");
@@ -390,26 +426,6 @@ export function TestsComparisonPanel({ categoryId }: Props) {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              className="h-7 gap-1.5 rounded-lg text-xs"
-              onClick={() => runExport("pdf")}
-            >
-              <FileText className="h-3.5 w-3.5" />
-              PDF
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              className="h-7 gap-1.5 rounded-lg text-xs"
-              onClick={() => runExport("csv")}
-            >
-              <FileSpreadsheet className="h-3.5 w-3.5" />
-              CSV
-            </Button>
             <div className="inline-flex rounded-xl bg-muted/50 p-0.5">
             <Button
               type="button"
@@ -438,6 +454,31 @@ export function TestsComparisonPanel({ categoryId }: Props) {
       </CardHeader>
 
       <CardContent className="space-y-4">
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border bg-muted/20 p-2">
+          <span className="mr-auto text-[11px] text-muted-foreground">
+            Exporter la comparaison affichée
+          </span>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="h-8 gap-1.5 rounded-lg text-xs"
+            onClick={() => runExport("pdf")}
+          >
+            <FileText className="h-3.5 w-3.5" />
+            PDF
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="h-8 gap-1.5 rounded-lg text-xs"
+            onClick={() => runExport("csv")}
+          >
+            <FileSpreadsheet className="h-3.5 w-3.5" />
+            CSV
+          </Button>
+        </div>
         <div className="grid gap-4 lg:grid-cols-2">
           {/* Sélection athlètes / groupes */}
           <div className="rounded-xl border bg-muted/20 p-3">
@@ -669,6 +710,79 @@ export function TestsComparisonPanel({ categoryId }: Props) {
                     </Badge>
                   ))}
                 </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {playerDetails.length > 0 && (
+          <div className="space-y-3">
+            <h4 className="text-sm font-semibold">Détail des résultats par athlète</h4>
+            {playerDetails.map((p) => (
+              <div key={p.playerId} className="rounded-xl border bg-card p-3">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <span className="text-sm font-semibold">{p.name}</span>
+                  <Badge variant="outline" className="text-[10px]">
+                    {p.tests.length} test(s)
+                  </Badge>
+                </div>
+                {p.tests.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">Aucun résultat sur les tests sélectionnés.</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[420px] text-xs">
+                      <thead>
+                        <tr className="text-left text-[11px] text-muted-foreground">
+                          <th className="py-1 pr-2 font-medium">Test</th>
+                          <th className="py-1 pr-2 font-medium">Dernier résultat</th>
+                          <th className="py-1 pr-2 font-medium">Date</th>
+                          <th className="py-1 pr-2 font-medium">Évolution</th>
+                          <th className="py-1 font-medium">Historique</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {p.tests.map((t) => (
+                          <tr key={t.key} className="border-t border-border/60">
+                            <td className="py-1.5 pr-2">{t.label}</td>
+                            <td className="py-1.5 pr-2 font-semibold">
+                              {t.last.value}
+                              {t.unit ? ` ${t.unit}` : ""}
+                            </td>
+                            <td className="py-1.5 pr-2 text-muted-foreground">
+                              {format(parseISO(t.last.date), "dd/MM/yy", { locale: fr })}
+                            </td>
+                            <td className="py-1.5 pr-2">
+                              {t.delta == null ? (
+                                <span className="text-muted-foreground">—</span>
+                              ) : (
+                                <span
+                                  className={
+                                    t.delta > 0
+                                      ? "text-emerald-600"
+                                      : t.delta < 0
+                                        ? "text-red-500"
+                                        : "text-muted-foreground"
+                                  }
+                                >
+                                  {t.delta > 0 ? `+${t.delta}` : t.delta}
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-1.5 text-[11px] text-muted-foreground">
+                              {t.history
+                                .slice(-6)
+                                .map(
+                                  (h) =>
+                                    `${format(parseISO(h.date), "dd/MM/yy", { locale: fr })}: ${h.value}`,
+                                )
+                                .join("  ·  ")}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             ))}
           </div>
