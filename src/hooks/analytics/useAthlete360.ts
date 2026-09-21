@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { collectWeightHistory, isWeightQuestionKeyLabel } from "@/lib/weight/weightHistory";
 import { computeAcwrDetailed, type LoadRow } from "@/lib/acwr";
+import { assessLoadWindow } from "@/lib/trainingLoadCalculations";
 import { labelizeTestType } from "@/hooks/useCustomTestLabels";
 
 /**
@@ -505,6 +506,15 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
           })
           .reduce((s, r) => s + loadOf(r), 0) / 28;
       const acwrDetail = computeAcwrDetailed(loadRows, "rolling", endRef);
+      const dailyLoadByDate = new Map<string, number>();
+      loadRows.forEach((r) => {
+        const date = String(r.session_date).slice(0, 10);
+        dailyLoadByDate.set(date, (dailyLoadByDate.get(date) || 0) + loadOf(r));
+      });
+      const loadWindow = assessLoadWindow(
+        Array.from(dailyLoadByDate, ([date, load]) => ({ date, load })),
+        endDate,
+      );
 
       // --- Blessures (épisodes chevauchant la période) ---
       const injuries = (bundle.injuries as any[]).filter((i) => {
@@ -554,7 +564,10 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
         acuteLoad: acute > 0 ? Math.round(acute) : null,
         chronicLoad: chronic > 0 ? Math.round(chronic) : null,
         acwr: acwrDetail.acwr,
-        acwrInsufficient: acwrDetail.insufficientHistory,
+        // Une coupure de 7 jours ou plus rend le ratio illisible jusqu'à
+        // 21 jours continus après la reprise. Ne jamais présenter 0,00
+        // comme un ratio exploitable dans cette situation.
+        acwrInsufficient: acwrDetail.insufficientHistory || !loadWindow.reliable,
         loadSessions: inPeriod.length,
         injuryCount: injuries.length,
         injuryDays,
