@@ -84,6 +84,14 @@ export const TEST_CATEGORIES: TestCategory[] = [
       { value: "overhead_press_1rm", label: "Développé militaire - 1RM", unit: "kg" },
       { value: "overhead_press_3rm", label: "Développé militaire - 3RM", unit: "kg" },
       { value: "overhead_press_5rm", label: "Développé militaire - 5RM", unit: "kg" },
+      // Tirage vertical
+      { value: "vertical_pull_1rm", label: "Tirage vertical - 1RM", unit: "kg" },
+      { value: "vertical_pull_3rm", label: "Tirage vertical - 3RM", unit: "kg" },
+      { value: "vertical_pull_5rm", label: "Tirage vertical - 5RM", unit: "kg" },
+      // Tirage horizontal
+      { value: "horizontal_pull_1rm", label: "Tirage horizontal - 1RM", unit: "kg" },
+      { value: "horizontal_pull_3rm", label: "Tirage horizontal - 3RM", unit: "kg" },
+      { value: "horizontal_pull_5rm", label: "Tirage horizontal - 5RM", unit: "kg" },
     ],
   },
   {
