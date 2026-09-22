@@ -116,43 +116,43 @@ export function TestsComparisonPanel({ categoryId }: Props) {
   const { data: generic = [] } = useQuery({
     queryKey: ["tests-compare-generic", categoryId],
     enabled: !!categoryId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("generic_tests")
-        .select("player_id, test_type, result_value, result_unit, test_date")
-        .eq("category_id", categoryId)
-        .order("test_date", { ascending: true });
-      if (error) throw error;
-      return data || [];
-    },
+    queryFn: async () =>
+      fetchAllRows<any>((from, to) =>
+        supabase
+          .from("generic_tests")
+          .select("player_id, test_type, result_value, result_unit, test_date")
+          .eq("category_id", categoryId)
+          .order("test_date", { ascending: true })
+          .range(from, to),
+      ),
   });
 
   const { data: strength = [] } = useQuery({
     queryKey: ["tests-compare-strength", categoryId],
     enabled: !!categoryId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("strength_tests")
-        .select("player_id, test_name, weight_kg, test_date")
-        .eq("category_id", categoryId)
-        .order("test_date", { ascending: true });
-      if (error) throw error;
-      return data || [];
-    },
+    queryFn: async () =>
+      fetchAllRows<any>((from, to) =>
+        supabase
+          .from("strength_tests")
+          .select("player_id, test_name, weight_kg, test_date")
+          .eq("category_id", categoryId)
+          .order("test_date", { ascending: true })
+          .range(from, to),
+      ),
   });
 
   const { data: speed = [] } = useQuery({
     queryKey: ["tests-compare-speed", categoryId],
     enabled: !!categoryId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("speed_tests")
-        .select("player_id, test_type, vma_kmh, speed_kmh, time_40m_seconds, test_date")
-        .eq("category_id", categoryId)
-        .order("test_date", { ascending: true });
-      if (error) throw error;
-      return data || [];
-    },
+    queryFn: async () =>
+      fetchAllRows<any>((from, to) =>
+        supabase
+          .from("speed_tests")
+          .select("player_id, test_type, vma_kmh, speed_kmh, time_40m_seconds, test_date")
+          .eq("category_id", categoryId)
+          .order("test_date", { ascending: true })
+          .range(from, to),
+      ),
   });
 
   const customIds = useMemo(() => {
