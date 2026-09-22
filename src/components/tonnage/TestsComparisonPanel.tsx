@@ -59,6 +59,26 @@ const norm = (s: string) =>
     .toLowerCase()
     .trim();
 
+/**
+ * Lecture paginée : PostgREST plafonne chaque réponse à 1000 lignes.
+ * Sans pagination, les résultats de tests les plus récents étaient tronqués.
+ */
+const PAGE_SIZE = 1000;
+async function fetchAllRows<T>(
+  build: (from: number, to: number) => any,
+): Promise<T[]> {
+  const rows: T[] = [];
+  for (let page = 0; ; page += 1) {
+    const from = page * PAGE_SIZE;
+    const { data, error } = await build(from, from + PAGE_SIZE - 1);
+    if (error) throw error;
+    const chunk = (data || []) as T[];
+    rows.push(...chunk);
+    if (chunk.length < PAGE_SIZE) break;
+  }
+  return rows;
+}
+
 const fullName = (p: any) =>
   [p.name ? String(p.name).toUpperCase() : "", p.first_name || ""].filter(Boolean).join(" ").trim() ||
   p.name ||
