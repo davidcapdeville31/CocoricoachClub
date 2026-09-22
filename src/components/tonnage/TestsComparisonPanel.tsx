@@ -59,6 +59,26 @@ const norm = (s: string) =>
     .toLowerCase()
     .trim();
 
+/**
+ * Lecture paginée : PostgREST plafonne chaque réponse à 1000 lignes.
+ * Sans pagination, les résultats de tests les plus récents étaient tronqués.
+ */
+const PAGE_SIZE = 1000;
+async function fetchAllRows<T>(
+  build: (from: number, to: number) => any,
+): Promise<T[]> {
+  const rows: T[] = [];
+  for (let page = 0; ; page += 1) {
+    const from = page * PAGE_SIZE;
+    const { data, error } = await build(from, from + PAGE_SIZE - 1);
+    if (error) throw error;
+    const chunk = (data || []) as T[];
+    rows.push(...chunk);
+    if (chunk.length < PAGE_SIZE) break;
+  }
+  return rows;
+}
+
 const fullName = (p: any) =>
   [p.name ? String(p.name).toUpperCase() : "", p.first_name || ""].filter(Boolean).join(" ").trim() ||
   p.name ||
@@ -96,43 +116,43 @@ export function TestsComparisonPanel({ categoryId }: Props) {
   const { data: generic = [] } = useQuery({
     queryKey: ["tests-compare-generic", categoryId],
     enabled: !!categoryId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("generic_tests")
-        .select("player_id, test_type, result_value, result_unit, test_date")
-        .eq("category_id", categoryId)
-        .order("test_date", { ascending: true });
-      if (error) throw error;
-      return data || [];
-    },
+    queryFn: async () =>
+      fetchAllRows<any>((from, to) =>
+        supabase
+          .from("generic_tests")
+          .select("player_id, test_type, result_value, result_unit, test_date")
+          .eq("category_id", categoryId)
+          .order("test_date", { ascending: true })
+          .range(from, to),
+      ),
   });
 
   const { data: strength = [] } = useQuery({
     queryKey: ["tests-compare-strength", categoryId],
     enabled: !!categoryId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("strength_tests")
-        .select("player_id, test_name, weight_kg, test_date")
-        .eq("category_id", categoryId)
-        .order("test_date", { ascending: true });
-      if (error) throw error;
-      return data || [];
-    },
+    queryFn: async () =>
+      fetchAllRows<any>((from, to) =>
+        supabase
+          .from("strength_tests")
+          .select("player_id, test_name, weight_kg, test_date")
+          .eq("category_id", categoryId)
+          .order("test_date", { ascending: true })
+          .range(from, to),
+      ),
   });
 
   const { data: speed = [] } = useQuery({
     queryKey: ["tests-compare-speed", categoryId],
     enabled: !!categoryId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("speed_tests")
-        .select("player_id, test_type, vma_kmh, speed_kmh, time_40m_seconds, test_date")
-        .eq("category_id", categoryId)
-        .order("test_date", { ascending: true });
-      if (error) throw error;
-      return data || [];
-    },
+    queryFn: async () =>
+      fetchAllRows<any>((from, to) =>
+        supabase
+          .from("speed_tests")
+          .select("player_id, test_type, vma_kmh, speed_kmh, time_40m_seconds, test_date")
+          .eq("category_id", categoryId)
+          .order("test_date", { ascending: true })
+          .range(from, to),
+      ),
   });
 
   const customIds = useMemo(() => {
@@ -201,8 +221,23 @@ export function TestsComparisonPanel({ categoryId }: Props) {
         unit: t.time_40m_seconds != null && t.vma_kmh == null && t.speed_kmh == null ? "s" : "km/h",
       });
     });
-    return out;
-  }, [generic, strength, speed]);
+    // Fusionne les tests portant le même intitulé (ex. test système + clone du club)
+    const labelOf = (key: string) =>
+      norm(
+        key.startsWith("strength:")
+          ? key.slice("strength:".length)
+          : labelizeTestType(key, customMap),
+      );
+    const canonical = new Map<string, string>();
+    for (const r of out) {
+      const label = labelOf(r.testKey);
+      if (!canonical.has(label)) canonical.set(label, r.testKey);
+    }
+    return out.map((r) => ({
+      ...r,
+      testKey: canonical.get(labelOf(r.testKey)) ?? r.testKey,
+    }));
+  }, [generic, strength, speed, customMap]);
 
   const testOptions = useMemo(() => {
     const map = new Map<string, { key: string; label: string; unit: string | null; count: number }>();
