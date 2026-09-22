@@ -221,8 +221,23 @@ export function TestsComparisonPanel({ categoryId }: Props) {
         unit: t.time_40m_seconds != null && t.vma_kmh == null && t.speed_kmh == null ? "s" : "km/h",
       });
     });
-    return out;
-  }, [generic, strength, speed]);
+    // Fusionne les tests portant le même intitulé (ex. test système + clone du club)
+    const labelOf = (key: string) =>
+      norm(
+        key.startsWith("strength:")
+          ? key.slice("strength:".length)
+          : labelizeTestType(key, customMap),
+      );
+    const canonical = new Map<string, string>();
+    for (const r of out) {
+      const label = labelOf(r.testKey);
+      if (!canonical.has(label)) canonical.set(label, r.testKey);
+    }
+    return out.map((r) => ({
+      ...r,
+      testKey: canonical.get(labelOf(r.testKey)) ?? r.testKey,
+    }));
+  }, [generic, strength, speed, customMap]);
 
   const testOptions = useMemo(() => {
     const map = new Map<string, { key: string; label: string; unit: string | null; count: number }>();
