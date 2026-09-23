@@ -15,6 +15,8 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
 import { getCompetitionColor } from "@/lib/constants/competitionColors";
 import { printElement } from "@/lib/pdfExport";
 import { useTranslation } from "react-i18next";
+import { parseTestsFromNotes } from "@/lib/utils/sessionNotes";
+import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
 
 interface Session {
   id: string;
@@ -58,6 +60,17 @@ export function WeeklySessionsView({
   onViewMatch,
   playerNamesMap,
 }: WeeklySessionsViewProps) {
+  // Séances de test : afficher le nom réel du test (ex. "Pesée") plutôt que "Test"
+  const allTestTypes = useMemo(
+    () => sessions.flatMap((s) => parseTestsFromNotes(s.notes).map((tt) => tt.test_type)),
+    [sessions],
+  );
+  const testCustomLabels = useCustomTestLabels(allTestTypes);
+  const testNameOf = (s: Session) => {
+    const tests = parseTestsFromNotes(s.notes);
+    if (tests.length === 0) return "";
+    return tests.map((tt) => labelizeTestType(tt.test_type, testCustomLabels)).join(" · ");
+  };
   const { t } = useTranslation();
   const DAYS_OF_WEEK_RAW = t("planning.calendarViews.daysFull", { returnObjects: true });
   const DAYS_OF_WEEK = Array.isArray(DAYS_OF_WEEK_RAW) ? (DAYS_OF_WEEK_RAW as string[]) : ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
@@ -202,7 +215,8 @@ export function WeeklySessionsView({
                         (() => {
                           const session = event.data;
                           const bgColor = TRAINING_TYPE_COLORS[session.training_type] || "bg-primary";
-                          const label = getTrainingTypeLabel(session.training_type);
+                          const label =
+                            testNameOf(session) || getTrainingTypeLabel(session.training_type);
                           return (
                             <div
                               key={session.id}
