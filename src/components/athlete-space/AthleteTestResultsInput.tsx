@@ -94,6 +94,11 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
         .eq("player_id", playerId)
         .gte("test_date", testWindow.start)
         .lte("test_date", windowEnd);
+    } else if (sessionDate) {
+      // Hors campagne : un test ne peut être saisi qu'une seule fois pour la date
+      // de la séance, quelle que soit la séance utilisée pour la saisie.
+      pendingQuery.eq("player_id", playerId).eq("test_date", sessionDate);
+      savedQuery.eq("player_id", playerId).eq("test_date", sessionDate);
     } else {
       pendingQuery.eq("training_session_id", sessionId).eq("player_id", playerId);
       savedQuery.eq("player_id", playerId).ilike("notes", `%Session ID: ${sessionId}%`);
@@ -134,8 +139,9 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
     const key = `${test.test_category}::${test.test_type}`;
     const raw = value[key];
 
-    if (testWindow) {
-      // Safety net: one submission per test inside the testing window
+    {
+      // Safety net: one submission per test (inside the testing window, or for
+      // the session date when no window is configured)
       const { pendingData, savedData } = await fetchState();
       const already =
         pendingData.some(
@@ -366,24 +372,27 @@ export function buildPendingTestRecords(
  */
 export async function filterTestRecordsAgainstWindow<
   T extends { test_category: string; test_type: string },
->(records: T[], notes: string | null, playerId: string): Promise<T[]> {
+>(records: T[], notes: string | null, playerId: string, sessionDate?: string): Promise<T[]> {
   const win = parseTestWindowFromNotes(notes);
-  if (!win || records.length === 0) return records;
+  if (records.length === 0) return records;
   const todayStr = new Date().toISOString().slice(0, 10);
-  const winEnd = win.end >= todayStr ? win.end : todayStr;
+  // Hors campagne : on empêche une seconde saisie du même test pour la date de séance.
+  const rangeStart = win ? win.start : sessionDate;
+  if (!rangeStart) return records;
+  const winEnd = win ? (win.end >= todayStr ? win.end : todayStr) : sessionDate!;
 
   const [{ data: pendingData }, { data: savedData }] = await Promise.all([
     supabase
       .from("pending_test_results")
       .select("test_category, test_type, validation_status")
       .eq("player_id", playerId)
-      .gte("test_date", win.start)
+      .gte("test_date", rangeStart)
       .lte("test_date", winEnd),
     supabase
       .from("generic_tests")
       .select("test_category, test_type")
       .eq("player_id", playerId)
-      .gte("test_date", win.start)
+      .gte("test_date", rangeStart)
       .lte("test_date", winEnd),
   ]);
 
