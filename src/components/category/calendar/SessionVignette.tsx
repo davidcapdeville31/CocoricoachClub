@@ -232,7 +232,7 @@ export function SessionVignette({
           )}
           <span className="truncate opacity-90">
             {isAthleteCreated && playerName ? `${playerName} · ` : ""}
-            {hasBlocks ? blocksLabel : label}
+            {hasBlocks && !testLabel ? blocksLabel : label}
           </span>
         </div>
 
