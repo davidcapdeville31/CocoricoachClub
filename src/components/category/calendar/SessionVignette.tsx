@@ -118,10 +118,17 @@ export function SessionVignette({
   // title as the first visible line of the notes — display it instead of
   // the generic type label.
   const customTitle = getSessionTitleFromNotes(session.notes);
+  // Séances de test : afficher le nom réel du test (ex. "Pesée") plutôt que "Test"
+  const sessionTests =
+    session.training_type === "test" ? parseTestsFromNotes(session.notes) : [];
+  const testCustomLabels = useCustomTestLabels(sessionTests.map((tt) => tt.test_type));
+  const testLabel = sessionTests.length
+    ? sessionTests.map((tt) => labelizeTestType(tt.test_type, testCustomLabels)).join(" · ")
+    : "";
   const label =
     session.training_type === "mental" && customTitle
       ? customTitle
-      : getTrainingTypeLabel(session.training_type);
+      : testLabel || getTrainingTypeLabel(session.training_type);
   const startTime = formatTime(session.session_start_time);
   const hasBlocks = blocks && blocks.length > 0;
   const blocksLabel = hasBlocks
