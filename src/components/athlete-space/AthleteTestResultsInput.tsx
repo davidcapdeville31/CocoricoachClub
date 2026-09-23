@@ -386,13 +386,13 @@ export async function filterTestRecordsAgainstWindow<
       .from("pending_test_results")
       .select("test_category, test_type, validation_status")
       .eq("player_id", playerId)
-      .gte("test_date", win.start)
+      .gte("test_date", rangeStart)
       .lte("test_date", winEnd),
     supabase
       .from("generic_tests")
       .select("test_category, test_type")
       .eq("player_id", playerId)
-      .gte("test_date", win.start)
+      .gte("test_date", rangeStart)
       .lte("test_date", winEnd),
   ]);
 
