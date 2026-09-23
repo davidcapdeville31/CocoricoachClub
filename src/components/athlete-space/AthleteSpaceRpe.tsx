@@ -839,6 +839,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         buildPendingTestRecords(testResultsInput, selectedSessionData?.notes || null),
         selectedSessionData?.notes || null,
         playerId,
+        (selectedSessionData as any)?.session_date || undefined,
       );
       if (testRecords.length > 0 && selectedSession) {
         const stamped = testRecords.map((r) => ({
