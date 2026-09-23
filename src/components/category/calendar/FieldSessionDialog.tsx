@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Clock, MapPin, Users, Layers, ShieldCheck } from "lucide-react";
+import { Plus, Trash2, Clock, MapPin, Users, Layers, ShieldCheck, ArrowUp, ArrowDown } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -426,6 +426,16 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
 
   const removeBlock = (id: string) => setBlocks((b) => b.filter((bl) => bl.id !== id));
 
+  const moveBlock = (index: number, direction: "up" | "down") => {
+    const nextIndex = direction === "up" ? index - 1 : index + 1;
+    setBlocks((currentBlocks) => {
+      if (nextIndex < 0 || nextIndex >= currentBlocks.length) return currentBlocks;
+      const reordered = [...currentBlocks];
+      [reordered[index], reordered[nextIndex]] = [reordered[nextIndex], reordered[index]];
+      return reordered;
+    });
+  };
+
   const togglePlayer = (id: string) => {
     setSelectedPlayers((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]));
     setSelectAll(false);
@@ -730,9 +740,43 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                           </Badge>
                         )}
                       </div>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeBlock(b.id)}>
-                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                      </Button>
+                      <div className="flex items-center gap-0.5">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => moveBlock(idx, "up")}
+                          disabled={idx === 0}
+                          aria-label={`Monter le bloc ${idx + 1}`}
+                          title="Monter"
+                        >
+                          <ArrowUp className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => moveBlock(idx, "down")}
+                          disabled={idx === blocks.length - 1}
+                          aria-label={`Descendre le bloc ${idx + 1}`}
+                          title="Descendre"
+                        >
+                          <ArrowDown className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => removeBlock(b.id)}
+                          aria-label={`Supprimer le bloc ${idx + 1}`}
+                          title="Supprimer"
+                        >
+                          <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                        </Button>
+                      </div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-[1fr_110px_120px] gap-2">
                       <Select
