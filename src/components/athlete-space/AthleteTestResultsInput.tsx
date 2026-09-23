@@ -372,11 +372,14 @@ export function buildPendingTestRecords(
  */
 export async function filterTestRecordsAgainstWindow<
   T extends { test_category: string; test_type: string },
->(records: T[], notes: string | null, playerId: string): Promise<T[]> {
+>(records: T[], notes: string | null, playerId: string, sessionDate?: string): Promise<T[]> {
   const win = parseTestWindowFromNotes(notes);
-  if (!win || records.length === 0) return records;
+  if (records.length === 0) return records;
   const todayStr = new Date().toISOString().slice(0, 10);
-  const winEnd = win.end >= todayStr ? win.end : todayStr;
+  // Hors campagne : on empêche une seconde saisie du même test pour la date de séance.
+  const rangeStart = win ? win.start : sessionDate;
+  if (!rangeStart) return records;
+  const winEnd = win ? (win.end >= todayStr ? win.end : todayStr) : sessionDate!;
 
   const [{ data: pendingData }, { data: savedData }] = await Promise.all([
     supabase
