@@ -94,6 +94,11 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
         .eq("player_id", playerId)
         .gte("test_date", testWindow.start)
         .lte("test_date", windowEnd);
+    } else if (sessionDate) {
+      // Hors campagne : un test ne peut être saisi qu'une seule fois pour la date
+      // de la séance, quelle que soit la séance utilisée pour la saisie.
+      pendingQuery.eq("player_id", playerId).eq("test_date", sessionDate);
+      savedQuery.eq("player_id", playerId).eq("test_date", sessionDate);
     } else {
       pendingQuery.eq("training_session_id", sessionId).eq("player_id", playerId);
       savedQuery.eq("player_id", playerId).ilike("notes", `%Session ID: ${sessionId}%`);
