@@ -139,8 +139,9 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
     const key = `${test.test_category}::${test.test_type}`;
     const raw = value[key];
 
-    if (testWindow) {
-      // Safety net: one submission per test inside the testing window
+    {
+      // Safety net: one submission per test (inside the testing window, or for
+      // the session date when no window is configured)
       const { pendingData, savedData } = await fetchState();
       const already =
         pendingData.some(
