@@ -8,7 +8,8 @@ import {
   getTrainingTypeColor,
   getTrainingTypeLabel,
 } from "@/lib/constants/trainingTypes";
-import { getSessionTitleFromNotes } from "@/lib/utils/sessionNotes";
+import { getSessionTitleFromNotes, parseTestsFromNotes } from "@/lib/utils/sessionNotes";
+import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
 import { useMarkAthleteSessionRead } from "@/lib/hooks/useMarkAthleteSessionRead";
 import { useIsMobile } from "@/hooks/use-mobile";
 
