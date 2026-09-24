@@ -29,6 +29,23 @@ import { getTrainingTypesForSport } from "@/lib/constants/trainingTypes";
 import { useTranslation } from "react-i18next";
 import { AthletePartnersSelector } from "@/components/athlete-space/AthletePartnersSelector";
 
+const STRENGTH_THEMES = [
+  { value: "musculation", label: "Musculation" },
+  { value: "halterophilie", label: "Haltérophilie" },
+  { value: "force", label: "Force" },
+  { value: "puissance", label: "Puissance" },
+  { value: "explosivite", label: "Explosivité" },
+  { value: "plyometrie", label: "Plyométrie" },
+  { value: "cardio", label: "Cardio" },
+  { value: "fractionne", label: "Fractionné" },
+  { value: "endurance", label: "Endurance" },
+  { value: "crossfit", label: "CrossFit" },
+  { value: "vitesse", label: "Vitesse" },
+  { value: "circuit", label: "Circuit training" },
+] as const;
+
+const THEME_META_REGEX = /<!--THEME:([a-z_]+)-->\n?/;
+
 interface EditableSession {
   id: string;
   session_date: string;
@@ -86,6 +103,7 @@ export function SimplifiedSessionDialog({
     lockedTrainingType || trainingTypes[0]?.value || "musculation",
   );
   const [notes, setNotes] = useState("");
+  const [theme, setTheme] = useState<string>("musculation");
   const [durationMin, setDurationMin] = useState<number>(60);
   const [rpe, setRpe] = useState<number>(6);
   const [partnerIds, setPartnerIds] = useState<string[]>([]);
@@ -111,9 +129,12 @@ export function SimplifiedSessionDialog({
     if (session) {
       setSessionDate(session.session_date);
       setTrainingType(session.training_type);
+      const themeMatch = (session.notes || "").match(THEME_META_REGEX);
+      setTheme(themeMatch?.[1] || "musculation");
       const cleanNotes = (session.notes || "")
         .replace(/^\[Séance athlète\]\s*/, "")
-        .replace(/^<!--SIMPLIFIED_SESSION-->\n?/, "");
+        .replace(/^<!--SIMPLIFIED_SESSION-->\n?/, "")
+        .replace(THEME_META_REGEX, "");
       setNotes(cleanNotes.split("\n").slice(0, -1).join("\n"));
       const start = session.session_start_time?.slice(0, 5) || "09:00";
       setSessionStartTime(start);
@@ -138,6 +159,7 @@ export function SimplifiedSessionDialog({
       setRpe(6);
       setPartnerIds([]);
       setSelectedPlayers([]);
+      setTheme("musculation");
       setTrainingType(lockedTrainingType || trainingTypes[0]?.value || "musculation");
     }
   }, [open, lockedTrainingType, trainingTypes, session, athletePlayerId, date]);
@@ -158,11 +180,17 @@ export function SimplifiedSessionDialog({
 
       const start = sessionStartTime || "09:00";
       const end = computeEndTime(start, durationMin);
+      const themeLabel = STRENGTH_THEMES.find((th) => th.value === theme)?.label;
+      const themeMeta = lockedTrainingType === "musculation" && theme && theme !== "musculation"
+        ? `<!--THEME:${theme}-->`
+        : "";
       const notesPayload = [
         "<!--SIMPLIFIED_SESSION-->",
+        themeMeta,
+        themeLabel && theme !== "musculation" ? `Thématique : ${themeLabel}` : "",
         notes.trim() || t("athleteSpace.components.simplifiedSessionDialog.defaultDescription", { type: currentTypeLabel }),
         t("athleteSpace.components.simplifiedSessionDialog.durationRpe", { duration: durationMin, rpe }),
-      ].join("\n");
+      ].filter(Boolean).join("\n");
 
       if (isStaffMode) {
         const { data: created, error } = await supabase
@@ -262,6 +290,20 @@ export function SimplifiedSessionDialog({
                 <SelectTrigger><SelectValue placeholder={t("athleteSpace.components.simplifiedSessionDialog.chooseType")} /></SelectTrigger>
                 <SelectContent>
                   {trainingTypes.map((type) => <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {lockedTrainingType === "musculation" && (
+            <div className="space-y-1.5">
+              <Label>Thématique</Label>
+              <Select value={theme} onValueChange={setTheme}>
+                <SelectTrigger><SelectValue placeholder="Choisir une thématique" /></SelectTrigger>
+                <SelectContent>
+                  {STRENGTH_THEMES.map((th) => (
+                    <SelectItem key={th.value} value={th.value}>{th.label}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
