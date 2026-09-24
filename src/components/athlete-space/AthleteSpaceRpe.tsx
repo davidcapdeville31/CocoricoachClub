@@ -1672,7 +1672,8 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                   </div>
                 )}
               </div>
-            ))}
+              );
+            })}
           </CardContent>
             </Card>
           )}
