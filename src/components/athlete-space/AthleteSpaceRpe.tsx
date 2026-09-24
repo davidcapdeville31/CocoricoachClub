@@ -1126,19 +1126,38 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-            {pendingSessions.map(session => (
+            {pendingSessions.map(session => {
+              const isTest = session.training_type === "test";
+              return (
               <div key={session.id}>
                 <div
                   onClick={() => handleSelectSession(session.id)}
-                  className={`w-full text-left p-3 rounded-lg border transition-colors cursor-pointer ${
-                    selectedSession === session.id
-                      ? "border-accent bg-accent/5"
-                      : "border-border hover:border-accent/50"
-                  }`}
+                  className={cn(
+                    "w-full text-left p-3 rounded-lg border transition-colors cursor-pointer",
+                    isTest
+                      ? selectedSession === session.id
+                        ? "border-cyan-500 bg-cyan-500/10"
+                        : "border-cyan-500/50 bg-cyan-500/5 hover:border-cyan-500"
+                      : selectedSession === session.id
+                        ? "border-accent bg-accent/5"
+                        : "border-border hover:border-accent/50"
+                  )}
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-sm">{getSessionTrainingLabel(session)}</p>
+                      <p className="font-medium text-sm flex items-center gap-1.5 flex-wrap">
+                        {isTest ? (
+                          <FlaskConical className="h-4 w-4 text-cyan-600 dark:text-cyan-400 shrink-0" />
+                        ) : (
+                          <Activity className="h-4 w-4 text-accent shrink-0" />
+                        )}
+                        <span>{getSessionTrainingLabel(session)}</span>
+                        {isTest && (
+                          <Badge className="text-[10px] uppercase tracking-wide border border-cyan-500/40 bg-cyan-500/15 text-cyan-700 dark:text-cyan-300">
+                            {t("athleteSpace.rpe.testsBadge")}
+                          </Badge>
+                        )}
+                      </p>
                       {session.session_date !== today && (
                         <p className="text-[11px] font-medium text-amber-600 mt-0.5">
                           {format(parseISO(session.session_date), "EEEE dd/MM", { locale: getDateLocale() })}
