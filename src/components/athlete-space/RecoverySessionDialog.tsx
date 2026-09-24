@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Leaf } from "lucide-react";
 import { format } from "date-fns";
@@ -143,6 +144,27 @@ export function RecoverySessionDialog({ open, onOpenChange, date, categoryId, pl
                   {d} min
                 </Button>
               ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="recovery-custom-duration" className="text-xs text-muted-foreground whitespace-nowrap">
+                Autre durée :
+              </Label>
+              <Input
+                id="recovery-custom-duration"
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={600}
+                value={DURATIONS.includes(duration) ? "" : duration}
+                placeholder="ex : 56"
+                className="w-24 h-8 rounded-xl"
+                onChange={(e) => {
+                  const v = parseInt(e.target.value, 10);
+                  if (!isNaN(v) && v >= 1 && v <= 600) setDuration(v);
+                  else if (e.target.value === "") setDuration(30);
+                }}
+              />
+              <span className="text-xs text-muted-foreground">min</span>
             </div>
           </div>
 
