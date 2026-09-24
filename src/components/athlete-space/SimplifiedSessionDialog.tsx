@@ -190,7 +190,7 @@ export function SimplifiedSessionDialog({
         themeLabel && theme !== "musculation" ? `Thématique : ${themeLabel}` : "",
         notes.trim() || t("athleteSpace.components.simplifiedSessionDialog.defaultDescription", { type: currentTypeLabel }),
         t("athleteSpace.components.simplifiedSessionDialog.durationRpe", { duration: durationMin, rpe }),
-      ].join("\n");
+      ].filter(Boolean).join("\n");
 
       if (isStaffMode) {
         const { data: created, error } = await supabase
@@ -290,6 +290,20 @@ export function SimplifiedSessionDialog({
                 <SelectTrigger><SelectValue placeholder={t("athleteSpace.components.simplifiedSessionDialog.chooseType")} /></SelectTrigger>
                 <SelectContent>
                   {trainingTypes.map((type) => <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {lockedTrainingType === "musculation" && (
+            <div className="space-y-1.5">
+              <Label>Thématique</Label>
+              <Select value={theme} onValueChange={setTheme}>
+                <SelectTrigger><SelectValue placeholder="Choisir une thématique" /></SelectTrigger>
+                <SelectContent>
+                  {STRENGTH_THEMES.map((th) => (
+                    <SelectItem key={th.value} value={th.value}>{th.label}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
