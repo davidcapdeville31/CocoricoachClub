@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Activity, CheckCircle2, Clock, Calendar, Lock, Target, Heart, Dumbbell, ChevronDown, ChevronUp } from "lucide-react";
+import { Activity, CheckCircle2, Clock, Calendar, Lock, Target, Heart, Dumbbell, ChevronDown, ChevronUp, FlaskConical } from "lucide-react";
 import { toast } from "sonner";
 import { format, parseISO, addDays } from "date-fns";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
@@ -993,8 +993,20 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
       );
     }
     return (
-      <div className="text-xs text-muted-foreground mt-0.5">
-        {testNames.map((name, idx) => <div key={idx}>📋 {name}</div>)}
+      <div className="mt-0.5 space-y-1">
+        {testNames.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {testNames.map((name, idx) => (
+              <span
+                key={idx}
+                className="inline-flex items-center gap-1 rounded-md border border-cyan-500/40 bg-cyan-500/10 px-1.5 py-0.5 text-[11px] font-semibold text-cyan-700 dark:text-cyan-300"
+              >
+                <FlaskConical className="h-3 w-3 shrink-0" />
+                {name}
+              </span>
+            ))}
+          </div>
+        )}
         {renderCampaignNotice(session)}
         {results.map((r, idx) => {
           const unit = r.result_unit || "";
