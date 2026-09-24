@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Activity, CheckCircle2, Clock, Calendar, Lock, Target, Heart, Dumbbell, ChevronDown, ChevronUp } from "lucide-react";
+import { Activity, CheckCircle2, Clock, Calendar, Lock, Target, Heart, Dumbbell, ChevronDown, ChevronUp, FlaskConical } from "lucide-react";
 import { toast } from "sonner";
 import { format, parseISO, addDays } from "date-fns";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
@@ -993,8 +993,20 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
       );
     }
     return (
-      <div className="text-xs text-muted-foreground mt-0.5">
-        {testNames.map((name, idx) => <div key={idx}>📋 {name}</div>)}
+      <div className="mt-0.5 space-y-1">
+        {testNames.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {testNames.map((name, idx) => (
+              <span
+                key={idx}
+                className="inline-flex items-center gap-1 rounded-md border border-cyan-500/40 bg-cyan-500/10 px-1.5 py-0.5 text-[11px] font-semibold text-cyan-700 dark:text-cyan-300"
+              >
+                <FlaskConical className="h-3 w-3 shrink-0" />
+                {name}
+              </span>
+            ))}
+          </div>
+        )}
         {renderCampaignNotice(session)}
         {results.map((r, idx) => {
           const unit = r.result_unit || "";
@@ -1114,19 +1126,38 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-            {pendingSessions.map(session => (
+            {pendingSessions.map(session => {
+              const isTest = session.training_type === "test";
+              return (
               <div key={session.id}>
                 <div
                   onClick={() => handleSelectSession(session.id)}
-                  className={`w-full text-left p-3 rounded-lg border transition-colors cursor-pointer ${
-                    selectedSession === session.id
-                      ? "border-accent bg-accent/5"
-                      : "border-border hover:border-accent/50"
-                  }`}
+                  className={cn(
+                    "w-full text-left p-3 rounded-lg border transition-colors cursor-pointer",
+                    isTest
+                      ? selectedSession === session.id
+                        ? "border-cyan-500 bg-cyan-500/10"
+                        : "border-cyan-500/50 bg-cyan-500/5 hover:border-cyan-500"
+                      : selectedSession === session.id
+                        ? "border-accent bg-accent/5"
+                        : "border-border hover:border-accent/50"
+                  )}
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-sm">{getSessionTrainingLabel(session)}</p>
+                      <p className="font-medium text-sm flex items-center gap-1.5 flex-wrap">
+                        {isTest ? (
+                          <FlaskConical className="h-4 w-4 text-cyan-600 dark:text-cyan-400 shrink-0" />
+                        ) : (
+                          <Activity className="h-4 w-4 text-accent shrink-0" />
+                        )}
+                        <span>{getSessionTrainingLabel(session)}</span>
+                        {isTest && (
+                          <Badge className="text-[10px] uppercase tracking-wide border border-cyan-500/40 bg-cyan-500/15 text-cyan-700 dark:text-cyan-300">
+                            {t("athleteSpace.rpe.testsBadge")}
+                          </Badge>
+                        )}
+                      </p>
                       {session.session_date !== today && (
                         <p className="text-[11px] font-medium text-amber-600 mt-0.5">
                           {format(parseISO(session.session_date), "EEEE dd/MM", { locale: getDateLocale() })}
@@ -1194,6 +1225,24 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                       />
                     ) : (
                     <>
+                    {/* Tests à saisir : bloc tests en premier, mis en avant (bordure cyan) */}
+                    {selectedSession && selectedSessionData?.training_type === "test" && (
+                      <div className="rounded-lg border-2 border-cyan-500/40 bg-cyan-500/5 p-3">
+                        <AthleteTestResultsInput
+                          sessionId={selectedSession}
+                          notes={selectedSessionData?.notes || null}
+                          playerId={playerId}
+                          value={testResultsInput}
+                          onChange={setTestResultsInput}
+                          categoryId={categoryId}
+                          sessionDate={
+                            selectedSessionData && isOpenCampaign(selectedSessionData)
+                              ? today
+                              : selectedSessionData?.session_date
+                          }
+                        />
+                      </div>
+                    )}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <Label className="text-sm">{t("athleteSpace.rpe.feelingRpe")}</Label>
@@ -1477,23 +1526,6 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                       />
                     )}
 
-                    {/* Test results logged by athlete (pending staff validation) */}
-                    {selectedSession && selectedSessionData?.training_type === "test" && (
-                      <AthleteTestResultsInput
-                        sessionId={selectedSession}
-                        notes={selectedSessionData?.notes || null}
-                        playerId={playerId}
-                        value={testResultsInput}
-                        onChange={setTestResultsInput}
-                        categoryId={categoryId}
-                        sessionDate={
-                          selectedSessionData && isOpenCampaign(selectedSessionData)
-                            ? today
-                            : selectedSessionData?.session_date
-                        }
-                      />
-                    )}
-
                     {/* Optional HRV section */}
                     <div className="space-y-3">
                       <div className="flex items-center gap-2">
@@ -1641,7 +1673,8 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                   </div>
                 )}
               </div>
-            ))}
+              );
+            })}
           </CardContent>
             </Card>
           )}

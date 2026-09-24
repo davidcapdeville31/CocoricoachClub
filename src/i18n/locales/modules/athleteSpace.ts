@@ -109,6 +109,8 @@ export const athleteSpaceFr = {
     agendaToday: "À ton agenda aujourd'hui (informatif)",
     agendaDesc: "Ces évènements n'ont pas de RPE à saisir.",
     sessionsToFill: "Séances du jour à remplir",
+    testsBadge: "Tests",
+
     toFill: "À remplir",
     completed: "Terminé",
     partial: "{{percent}}%",
@@ -986,6 +988,8 @@ export const athleteSpaceEn = {
     agendaToday: "On your agenda today (informational)",
     agendaDesc: "These events have no RPE to enter.",
     sessionsToFill: "Today's sessions to fill",
+    testsBadge: "Tests",
+
     toFill: "To fill",
     completed: "Completed",
     partial: "{{percent}}%",
