@@ -1225,6 +1225,24 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                       />
                     ) : (
                     <>
+                    {/* Tests à saisir : bloc tests en premier, mis en avant (bordure cyan) */}
+                    {selectedSession && selectedSessionData?.training_type === "test" && (
+                      <div className="rounded-lg border-2 border-cyan-500/40 bg-cyan-500/5 p-3">
+                        <AthleteTestResultsInput
+                          sessionId={selectedSession}
+                          notes={selectedSessionData?.notes || null}
+                          playerId={playerId}
+                          value={testResultsInput}
+                          onChange={setTestResultsInput}
+                          categoryId={categoryId}
+                          sessionDate={
+                            selectedSessionData && isOpenCampaign(selectedSessionData)
+                              ? today
+                              : selectedSessionData?.session_date
+                          }
+                        />
+                      </div>
+                    )}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <Label className="text-sm">{t("athleteSpace.rpe.feelingRpe")}</Label>
