@@ -29,6 +29,23 @@ import { getTrainingTypesForSport } from "@/lib/constants/trainingTypes";
 import { useTranslation } from "react-i18next";
 import { AthletePartnersSelector } from "@/components/athlete-space/AthletePartnersSelector";
 
+const STRENGTH_THEMES = [
+  { value: "musculation", label: "Musculation" },
+  { value: "halterophilie", label: "Haltérophilie" },
+  { value: "force", label: "Force" },
+  { value: "puissance", label: "Puissance" },
+  { value: "explosivite", label: "Explosivité" },
+  { value: "plyometrie", label: "Plyométrie" },
+  { value: "cardio", label: "Cardio" },
+  { value: "fractionne", label: "Fractionné" },
+  { value: "endurance", label: "Endurance" },
+  { value: "crossfit", label: "CrossFit" },
+  { value: "vitesse", label: "Vitesse" },
+  { value: "circuit", label: "Circuit training" },
+] as const;
+
+const THEME_META_REGEX = /<!--THEME:([a-z_]+)-->\n?/;
+
 interface EditableSession {
   id: string;
   session_date: string;
@@ -86,6 +103,7 @@ export function SimplifiedSessionDialog({
     lockedTrainingType || trainingTypes[0]?.value || "musculation",
   );
   const [notes, setNotes] = useState("");
+  const [theme, setTheme] = useState<string>("musculation");
   const [durationMin, setDurationMin] = useState<number>(60);
   const [rpe, setRpe] = useState<number>(6);
   const [partnerIds, setPartnerIds] = useState<string[]>([]);
