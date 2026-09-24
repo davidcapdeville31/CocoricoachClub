@@ -129,9 +129,12 @@ export function SimplifiedSessionDialog({
     if (session) {
       setSessionDate(session.session_date);
       setTrainingType(session.training_type);
+      const themeMatch = (session.notes || "").match(THEME_META_REGEX);
+      setTheme(themeMatch?.[1] || "musculation");
       const cleanNotes = (session.notes || "")
         .replace(/^\[Séance athlète\]\s*/, "")
-        .replace(/^<!--SIMPLIFIED_SESSION-->\n?/, "");
+        .replace(/^<!--SIMPLIFIED_SESSION-->\n?/, "")
+        .replace(THEME_META_REGEX, "");
       setNotes(cleanNotes.split("\n").slice(0, -1).join("\n"));
       const start = session.session_start_time?.slice(0, 5) || "09:00";
       setSessionStartTime(start);
@@ -156,6 +159,7 @@ export function SimplifiedSessionDialog({
       setRpe(6);
       setPartnerIds([]);
       setSelectedPlayers([]);
+      setTheme("musculation");
       setTrainingType(lockedTrainingType || trainingTypes[0]?.value || "musculation");
     }
   }, [open, lockedTrainingType, trainingTypes, session, athletePlayerId, date]);
@@ -176,8 +180,14 @@ export function SimplifiedSessionDialog({
 
       const start = sessionStartTime || "09:00";
       const end = computeEndTime(start, durationMin);
+      const themeLabel = STRENGTH_THEMES.find((th) => th.value === theme)?.label;
+      const themeMeta = lockedTrainingType === "musculation" && theme && theme !== "musculation"
+        ? `<!--THEME:${theme}-->`
+        : "";
       const notesPayload = [
         "<!--SIMPLIFIED_SESSION-->",
+        themeMeta,
+        themeLabel && theme !== "musculation" ? `Thématique : ${themeLabel}` : "",
         notes.trim() || t("athleteSpace.components.simplifiedSessionDialog.defaultDescription", { type: currentTypeLabel }),
         t("athleteSpace.components.simplifiedSessionDialog.durationRpe", { duration: durationMin, rpe }),
       ].join("\n");
