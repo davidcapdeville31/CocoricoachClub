@@ -1526,23 +1526,6 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                       />
                     )}
 
-                    {/* Test results logged by athlete (pending staff validation) */}
-                    {selectedSession && selectedSessionData?.training_type === "test" && (
-                      <AthleteTestResultsInput
-                        sessionId={selectedSession}
-                        notes={selectedSessionData?.notes || null}
-                        playerId={playerId}
-                        value={testResultsInput}
-                        onChange={setTestResultsInput}
-                        categoryId={categoryId}
-                        sessionDate={
-                          selectedSessionData && isOpenCampaign(selectedSessionData)
-                            ? today
-                            : selectedSessionData?.session_date
-                        }
-                      />
-                    )}
-
                     {/* Optional HRV section */}
                     <div className="space-y-3">
                       <div className="flex items-center gap-2">
