@@ -5,6 +5,9 @@
 export function getDisplayNotes(notes: string | null | undefined): string {
   if (!notes) return "";
   return notes
+    // Balises de séance simplifiée : jamais visibles pour l'utilisateur.
+    .replace(/\n?<!--\s*SIMPLIFIED_SESSION\s*-->\n?/gi, "")
+    .replace(/\n?<!--\s*THEME:[\w-]+\s*-->\n?/gi, "")
     .replace(/<!--v2-meta:.*?-->/g, "")
     .replace(/<!--\s*v2-block:[^>]+-->/g, "")
     .replace(/<!--\s*v2-test:[^>]+-->/g, "")
