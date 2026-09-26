@@ -106,8 +106,17 @@ serve(async (req) => {
           .select("id")
           .eq("category_id", session.category_id);
 
+        // Ne jamais relancer les athlètes qui se sont déclarés absents
+        const { data: absentParts } = await supabase
+          .from("event_participants")
+          .select("player_id")
+          .eq("training_session_id", session.id)
+          .eq("attendance_status", "absent");
+        const absentIds = new Set((absentParts || []).map((p: any) => p.player_id));
+
         if (allPlayers) {
-          playerIds = allPlayers.map((p) => p.id);
+          playerIds = allPlayers.map((p) => p.id).filter((id: string) => !absentIds.has(id));
+
         }
       }
 

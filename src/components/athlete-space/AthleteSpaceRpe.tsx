@@ -421,6 +421,32 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
 
   const completedSessionIds = new Set(submittedRpes.map((r) => r.training_session_id));
 
+  // Absences déclarées par l'athlète : une séance où il s'est déclaré absent ne demande
+  // pas de RPE tant qu'il n'est pas revenu sur « présent » (alors la saisie reste ouverte,
+  // y compris en rattrapage après la séance).
+  const { data: myAttendanceStatuses = [] } = useQuery({
+    queryKey: ["athlete-space-attendance-status", playerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("event_participants")
+        .select("training_session_id, attendance_status")
+        .eq("player_id", playerId);
+      if (error) throw error;
+      return (data || []) as { training_session_id: string; attendance_status: string | null }[];
+    },
+    enabled: !!playerId,
+  });
+  const declaredAbsentSessionIds = useMemo(
+    () =>
+      new Set(
+        myAttendanceStatuses
+          .filter((r) => r.attendance_status === "absent")
+          .map((r) => r.training_session_id),
+      ),
+    [myAttendanceStatuses],
+  );
+
+
 
   // Les séances passées récentes (7 derniers jours) restent saisissables : un athlète
   // peut renseigner le RPE d'un entraînement du mardi le mardi soir ou le mercredi matin.
@@ -933,13 +959,19 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
 
   // An open test campaign stays in the "to do" list until every test of the period is filled,
   // even if the RPE has already been submitted.
+  // Séances où l'athlète s'est déclaré absent : pas de RPE demandé (il reviendra sur
+  // « présent » s'il a finalement participé, et pourra alors saisir son RPE).
+  const absentTodaySessions = todaySessions.filter(
+    s => declaredAbsentSessionIds.has(s.id) && !completedSessionIds.has(s.id) && !isNonRpe(s),
+  );
   const pendingSessions = todaySessions.filter(
-    s => (!completedSessionIds.has(s.id) || isOpenCampaign(s)) && !isNonRpe(s),
+    s => (!completedSessionIds.has(s.id) || isOpenCampaign(s)) && !isNonRpe(s) && !declaredAbsentSessionIds.has(s.id),
   );
   const doneSessions = todaySessions.filter(
     s => completedSessionIds.has(s.id) && !isOpenCampaign(s) && !isNonRpe(s),
   );
   const infoTodaySessions = todaySessions.filter(s => isNonRpe(s));
+
 
   // Group upcoming sessions by date
   const upcomingByDate = upcomingSessions.reduce<Record<string, typeof upcomingSessions>>((acc, s) => {
@@ -1678,8 +1710,70 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
           </CardContent>
             </Card>
           )}
+
+          {absentTodaySessions.length > 0 && (
+            <Card className="bg-gradient-card shadow-md border-border/60">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  {t("athleteSpace.rpe.absentSessionsTitle")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {absentTodaySessions.map(session => (
+                  <div key={session.id}>
+                    <div
+                      onClick={() => handleSelectSession(session.id)}
+                      className="w-full text-left p-3 rounded-lg border border-border bg-muted/20 transition-colors cursor-pointer hover:border-border"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-sm flex items-center gap-1.5 flex-wrap">
+                            <Activity className="h-4 w-4 text-muted-foreground shrink-0" />
+                            <span>{getSessionTrainingLabel(session)}</span>
+                          </p>
+                          {renderSessionNotes(session.notes, session.training_type === "test")}
+                          {session.session_start_time && (
+                            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                              <Clock className="h-3 w-3" />
+                              {session.session_start_time?.slice(0, 5)}
+                              {session.session_end_time && ` - ${session.session_end_time.slice(0, 5)}`}
+                            </p>
+                          )}
+                        </div>
+                        <Badge variant="outline" className="text-xs whitespace-nowrap text-muted-foreground">
+                          {t("athleteSpace.rpe.absentBadge")}
+                        </Badge>
+                      </div>
+                    </div>
+                    {selectedSession === session.id && (
+                      <div className="mt-3 p-4 rounded-lg bg-muted/30">
+                        {isOpenCampaign(session) ? (
+                          <div className="space-y-3">
+                            <AthleteAbsentLockNotice />
+                            <AthleteTestResultsInput
+                              sessionId={session.id}
+                              notes={session.notes || null}
+                              playerId={playerId}
+                              value={testResultsInput}
+                              onChange={setTestResultsInput}
+                              categoryId={categoryId}
+                              sessionDate={today}
+                            />
+                          </div>
+                        ) : (
+                          <AthleteAbsentLockNotice />
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
+
 
       {pendingSessions.length === 0 && (
 

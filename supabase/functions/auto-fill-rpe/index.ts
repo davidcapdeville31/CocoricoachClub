@@ -148,10 +148,18 @@ serve(async (req) => {
             .from("players")
             .select("id")
             .eq("category_id", session.category_id);
+          // Les athlètes qui se sont déclarés absents ne reçoivent jamais de RPE auto-rempli
+          const { data: absentParts } = await supabase
+            .from("event_participants")
+            .select("player_id")
+            .eq("training_session_id", session.id)
+            .eq("attendance_status", "absent");
+          const absentIds = new Set((absentParts || []).map((p: any) => p.player_id));
           if (allPlayers) {
-            participantIds = allPlayers.map((p) => p.id);
+            participantIds = allPlayers.map((p) => p.id).filter((id: string) => !absentIds.has(id));
           }
         }
+
 
         if (participantIds.length === 0) continue;
 
