@@ -968,7 +968,10 @@ export const exportSessionToPdf = async (
   }
   
   // --- NOTES SECTION (cleaned) ---
-  const cleanNotes = session.notes?.replace(/<!--TESTS:.*?-->/g, "").trim();
+  const cleanNotes = session.notes
+    ?.replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
   if (cleanNotes) {
     yPos = checkPageBreak(pdf, yPos, 22);
     

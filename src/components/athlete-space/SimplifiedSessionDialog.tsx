@@ -134,8 +134,11 @@ export function SimplifiedSessionDialog({
       const cleanNotes = (session.notes || "")
         .replace(/^\[Séance athlète\]\s*/, "")
         .replace(/^<!--SIMPLIFIED_SESSION-->\n?/, "")
-        .replace(THEME_META_REGEX, "");
-      setNotes(cleanNotes.split("\n").slice(0, -1).join("\n"));
+        .replace(THEME_META_REGEX, "")
+        // Retire les lignes "Thématique : X" déjà injectées lors d'un enregistrement
+        // précédent pour éviter leur accumulation à chaque modification.
+        .replace(/^Thématique\s*:.*$/gim, "");
+      setNotes(cleanNotes.split("\n").slice(0, -1).join("\n").replace(/\n{3,}/g, "\n\n").trim());
       const start = session.session_start_time?.slice(0, 5) || "09:00";
       setSessionStartTime(start);
       const end = session.session_end_time;
