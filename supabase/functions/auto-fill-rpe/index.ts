@@ -145,13 +145,18 @@ serve(async (req) => {
             .from("players")
             .select("id")
             .eq("category_id", session.category_id);
-          // Les athlètes qui se sont déclarés absents ne reçoivent jamais de RPE auto-rempli
+          // Les athlètes déclarés absents (par eux-mêmes ou par le staff lors de
+          // l'appel) ne reçoivent jamais de RPE auto-rempli. Tous les autres —
+          // y compris ceux pour qui le staff n'a pas fait l'appel — sont concernés.
           const { data: absentParts } = await supabase
             .from("event_participants")
             .select("player_id")
             .eq("training_session_id", session.id)
             .eq("attendance_status", "absent");
           const absentIds = new Set((absentParts || []).map((p: any) => p.player_id));
+          for (const a of attendance || []) {
+            if (a.status === "absent") absentIds.add(a.player_id);
+          }
           if (allPlayers) {
             participantIds = allPlayers.map((p) => p.id).filter((id: string) => !absentIds.has(id));
           }
