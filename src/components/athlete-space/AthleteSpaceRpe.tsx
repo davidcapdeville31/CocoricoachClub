@@ -421,6 +421,32 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
 
   const completedSessionIds = new Set(submittedRpes.map((r) => r.training_session_id));
 
+  // Absences déclarées par l'athlète : une séance où il s'est déclaré absent ne demande
+  // pas de RPE tant qu'il n'est pas revenu sur « présent » (alors la saisie reste ouverte,
+  // y compris en rattrapage après la séance).
+  const { data: myAttendanceStatuses = [] } = useQuery({
+    queryKey: ["athlete-space-attendance-status", playerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("event_participants")
+        .select("training_session_id, attendance_status")
+        .eq("player_id", playerId);
+      if (error) throw error;
+      return (data || []) as { training_session_id: string; attendance_status: string | null }[];
+    },
+    enabled: !!playerId,
+  });
+  const declaredAbsentSessionIds = useMemo(
+    () =>
+      new Set(
+        myAttendanceStatuses
+          .filter((r) => r.attendance_status === "absent")
+          .map((r) => r.training_session_id),
+      ),
+    [myAttendanceStatuses],
+  );
+
+
 
   // Les séances passées récentes (7 derniers jours) restent saisissables : un athlète
   // peut renseigner le RPE d'un entraînement du mardi le mardi soir ou le mercredi matin.
@@ -933,13 +959,19 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
 
   // An open test campaign stays in the "to do" list until every test of the period is filled,
   // even if the RPE has already been submitted.
+  // Séances où l'athlète s'est déclaré absent : pas de RPE demandé (il reviendra sur
+  // « présent » s'il a finalement participé, et pourra alors saisir son RPE).
+  const absentTodaySessions = todaySessions.filter(
+    s => declaredAbsentSessionIds.has(s.id) && !completedSessionIds.has(s.id) && !isNonRpe(s),
+  );
   const pendingSessions = todaySessions.filter(
-    s => (!completedSessionIds.has(s.id) || isOpenCampaign(s)) && !isNonRpe(s),
+    s => (!completedSessionIds.has(s.id) || isOpenCampaign(s)) && !isNonRpe(s) && !declaredAbsentSessionIds.has(s.id),
   );
   const doneSessions = todaySessions.filter(
     s => completedSessionIds.has(s.id) && !isOpenCampaign(s) && !isNonRpe(s),
   );
   const infoTodaySessions = todaySessions.filter(s => isNonRpe(s));
+
 
   // Group upcoming sessions by date
   const upcomingByDate = upcomingSessions.reduce<Record<string, typeof upcomingSessions>>((acc, s) => {
