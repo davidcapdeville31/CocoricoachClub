@@ -122,15 +122,12 @@ serve(async (req) => {
 
         const { data: attendance } = await supabase
           .from("training_attendance")
-          .select("player_id")
-          .eq("training_session_id", session.id)
-          .in("status", ["present", "late"]);
+          .select("player_id, status")
+          .eq("training_session_id", session.id);
 
         let participantIds: string[] = [];
 
-        if (attendance && attendance.length > 0) {
-          participantIds = attendance.map((a) => a.player_id);
-        } else if (session.created_by_player_id) {
+        if (session.created_by_player_id) {
           // Séance créée par un athlète (privée) : seuls le créateur et les
           // partenaires explicitement associés sont concernés — jamais tout l'effectif.
           const { data: parts } = await supabase
