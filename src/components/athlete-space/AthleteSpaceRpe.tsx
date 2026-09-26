@@ -1710,8 +1710,70 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
           </CardContent>
             </Card>
           )}
+
+          {absentTodaySessions.length > 0 && (
+            <Card className="bg-gradient-card shadow-md border-border/60">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  {t("athleteSpace.rpe.absentSessionsTitle")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {absentTodaySessions.map(session => (
+                  <div key={session.id}>
+                    <div
+                      onClick={() => handleSelectSession(session.id)}
+                      className="w-full text-left p-3 rounded-lg border border-border bg-muted/20 transition-colors cursor-pointer hover:border-border"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-sm flex items-center gap-1.5 flex-wrap">
+                            <Activity className="h-4 w-4 text-muted-foreground shrink-0" />
+                            <span>{getSessionTrainingLabel(session)}</span>
+                          </p>
+                          {renderSessionNotes(session.notes, session.training_type === "test")}
+                          {session.session_start_time && (
+                            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                              <Clock className="h-3 w-3" />
+                              {session.session_start_time?.slice(0, 5)}
+                              {session.session_end_time && ` - ${session.session_end_time.slice(0, 5)}`}
+                            </p>
+                          )}
+                        </div>
+                        <Badge variant="outline" className="text-xs whitespace-nowrap text-muted-foreground">
+                          {t("athleteSpace.rpe.absentBadge")}
+                        </Badge>
+                      </div>
+                    </div>
+                    {selectedSession === session.id && (
+                      <div className="mt-3 p-4 rounded-lg bg-muted/30">
+                        {isOpenCampaign(session) ? (
+                          <div className="space-y-3">
+                            <AthleteAbsentLockNotice />
+                            <AthleteTestResultsInput
+                              sessionId={session.id}
+                              notes={session.notes || null}
+                              playerId={playerId}
+                              value={testResultsInput}
+                              onChange={setTestResultsInput}
+                              categoryId={categoryId}
+                              sessionDate={today}
+                            />
+                          </div>
+                        ) : (
+                          <AthleteAbsentLockNotice />
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
+
 
       {pendingSessions.length === 0 && (
 
