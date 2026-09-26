@@ -110,6 +110,9 @@ export const athleteSpaceFr = {
     agendaDesc: "Ces évènements n'ont pas de RPE à saisir.",
     sessionsToFill: "Séances du jour à remplir",
     testsBadge: "Tests",
+    absentSessionsTitle: "Absences déclarées — RPE non demandé",
+    absentBadge: "Absent",
+
 
     toFill: "À remplir",
     completed: "Terminé",
@@ -989,6 +992,9 @@ export const athleteSpaceEn = {
     agendaDesc: "These events have no RPE to enter.",
     sessionsToFill: "Today's sessions to fill",
     testsBadge: "Tests",
+    absentSessionsTitle: "Declared absences — no RPE required",
+    absentBadge: "Absent",
+
 
     toFill: "To fill",
     completed: "Completed",
