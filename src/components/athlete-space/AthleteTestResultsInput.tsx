@@ -95,10 +95,12 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
         .gte("test_date", testWindow.start)
         .lte("test_date", windowEnd);
     } else if (sessionDate) {
-      // Hors campagne : un test ne peut être saisi qu'une seule fois pour la date
-      // de la séance, quelle que soit la séance utilisée pour la saisie.
-      pendingQuery.eq("player_id", playerId).eq("test_date", sessionDate);
-      savedQuery.eq("player_id", playerId).eq("test_date", sessionDate);
+      // Hors campagne : un test ne peut être saisi qu'une seule fois entre la date
+      // de la séance et aujourd'hui (la saisie est datée du jour réel de saisie).
+      const today = new Date().toISOString().slice(0, 10);
+      const rangeEnd = today >= sessionDate ? today : sessionDate;
+      pendingQuery.eq("player_id", playerId).gte("test_date", sessionDate).lte("test_date", rangeEnd);
+      savedQuery.eq("player_id", playerId).gte("test_date", sessionDate).lte("test_date", rangeEnd);
     } else {
       pendingQuery.eq("training_session_id", sessionId).eq("player_id", playerId);
       savedQuery.eq("player_id", playerId).ilike("notes", `%Session ID: ${sessionId}%`);
@@ -180,7 +182,9 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
       player_id: playerId,
       category_id: categoryId,
       training_session_id: sessionId,
-      test_date: sessionDate || new Date().toISOString().slice(0, 10),
+      // Date réelle de la saisie (ex. test passé le 15 dans une période 10→20 sept
+      // est daté du 15, pas du début de la campagne).
+      test_date: new Date().toISOString().slice(0, 10),
       test_category: test.test_category,
       test_type: test.test_type,
       result_value: v,
