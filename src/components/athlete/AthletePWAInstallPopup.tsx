@@ -18,7 +18,7 @@ interface AthletePWAInstallPopupProps {
 export function AthletePWAInstallPopup({ playerId }: AthletePWAInstallPopupProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const [showPopup, setShowPopup] = useState(true); // TEMP-TEST
+  const [showPopup, setShowPopup] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
 
