@@ -1047,6 +1047,7 @@ function CombatPanel({
             { v: 1, label: "Ippon" },
             { v: 2, label: "Waza-ari" },
             { v: 3, label: "Waza-ari awasete ippon" },
+            { v: 8, label: "Yuko" },
             { v: 4, label: "Hansoku-make" },
             { v: 5, label: "Décision" },
             { v: 6, label: "Abandon" },
