@@ -113,8 +113,16 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
     return { upcoming: up, past: pa };
   }, [matches]);
 
+  const isJudo = (sportType || "").toLowerCase().includes("judo");
+
   const renderMatch = (match: AthleteMatch) => {
     const count = roundCounts[match.id] || 0;
+    const bestRank = bestRanks[match.id];
+    const rankLabel =
+      bestRank === 1 ? "🥇 1er" :
+      bestRank === 2 ? "🥈 2e" :
+      bestRank === 3 ? "🥉 3e" :
+      bestRank ? `${bestRank}e` : null;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const matchDay = match.match_date ? parseISO(match.match_date) : null;
