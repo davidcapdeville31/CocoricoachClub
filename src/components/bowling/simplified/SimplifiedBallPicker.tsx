@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { CircleDot } from "lucide-react";
+import { getCatalogBallName } from "@/lib/constants/bowlingBallBrands";
 
 interface Props {
   playerId?: string;
@@ -52,7 +53,7 @@ export function SimplifiedBallPicker({
         id: item.id as string,
         displayName:
           item.ball_catalog_id && catalogMap.has(item.ball_catalog_id)
-            ? `${(catalogMap.get(item.ball_catalog_id) as any).brand} ${(catalogMap.get(item.ball_catalog_id) as any).model}`
+            ? getCatalogBallName(catalogMap.get(item.ball_catalog_id) as any)
             : `${item.custom_ball_brand || ""} ${item.custom_ball_name || "Custom"}`.trim(),
         weight: item.weight_lbs as number | null,
       }));
@@ -109,7 +110,7 @@ export function useBallName(playerId: string | undefined, categoryId: string, ba
           .select("brand, model")
           .eq("id", row.ball_catalog_id)
           .maybeSingle();
-        if (cat) return `${(cat as any).brand} ${(cat as any).model}`;
+        if (cat) return getCatalogBallName(cat as any);
       }
       return `${row.custom_ball_brand || ""} ${row.custom_ball_name || "Custom"}`.trim();
     },

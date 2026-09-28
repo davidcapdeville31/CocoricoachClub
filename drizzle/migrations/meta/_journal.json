@@ -15,6 +15,13 @@
       "when": 1790319941381,
       "tag": "0001_notifications_club_staff_insert",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790574041854,
+      "tag": "0002_bowling_ball_catalog_spare_flag",
+      "breakpoints": true
     }
   ]
 }

@@ -23,6 +23,7 @@ import {
 } from "@/lib/bowling/aggregatedSpecificStats";
 import { TECHNICAL_EXERCISE_TYPES } from "@/lib/constants/bowlingTechnicalParameters";
 import { TACTICAL_EXERCISE_TYPES } from "@/lib/constants/bowlingTacticalZones";
+import { getCatalogBallName } from "@/lib/constants/bowlingBallBrands";
 import { TECHNICAL_THEMES } from "@/components/bowling/simplified/types";
 
 // Labels pour les exercise_type spécifiques au mode simplifié tactique
@@ -139,7 +140,7 @@ export function BowlingSpecificStatsTabs({ playerId, categoryId }: Props) {
     const m = new Map<string, string>();
     arsenal.forEach((b: any) => {
       const label = b.catalog
-        ? `${b.catalog.brand} ${b.catalog.model}`
+        ? getCatalogBallName(b.catalog)
         : b.custom_ball_brand
           ? `${b.custom_ball_brand} ${b.custom_ball_name || ""}`.trim()
           : b.custom_ball_name || "Boule";

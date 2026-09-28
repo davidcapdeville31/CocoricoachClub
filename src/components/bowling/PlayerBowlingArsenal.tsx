@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Trash2, CircleDot, Edit2 } from "lucide-react";
 import { toast } from "sonner";
-import { getCoverTypeLabel, getCoreTypeLabel, BALL_WEIGHTS, COVER_TYPES } from "@/lib/constants/bowlingBallBrands";
+import { getCoverTypeLabel, getCoreTypeLabel, getCatalogBallName, BALL_WEIGHTS, COVER_TYPES } from "@/lib/constants/bowlingBallBrands";
 import { format } from "date-fns";
 import { BowlingBallCatalogBrowser } from "./BowlingBallCatalogBrowser";
 
@@ -214,7 +214,7 @@ export function PlayerBowlingArsenal({ playerId, categoryId, isViewer }: PlayerB
 
   const getBallDisplayName = (item: any) => {
     if (item.catalogBall) {
-      return `${item.catalogBall.brand} ${item.catalogBall.model}`;
+      return getCatalogBallName(item.catalogBall);
     }
     return `${item.custom_ball_brand || ""} ${item.custom_ball_name || "Custom"}`.trim();
   };
@@ -235,14 +235,15 @@ export function PlayerBowlingArsenal({ playerId, categoryId, isViewer }: PlayerB
               <div className="flex items-center gap-3">
                 <div className="h-12 w-12 rounded-full overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center border">
                   {(selectedCatalogBall.resolved_image_url || selectedCatalogBall.image_url) ? (
-                    <img src={selectedCatalogBall.resolved_image_url || selectedCatalogBall.image_url} alt={`${selectedCatalogBall.brand} ${selectedCatalogBall.model}`} className="h-full w-full object-cover" />
+                    <img src={selectedCatalogBall.resolved_image_url || selectedCatalogBall.image_url} alt={getCatalogBallName(selectedCatalogBall)} className="h-full w-full object-cover" />
                   ) : (
                     <CircleDot className="h-6 w-6 text-muted-foreground" />
                   )}
                 </div>
                 <div className="flex-1">
-                  <p className="font-semibold">{selectedCatalogBall.brand} {selectedCatalogBall.model}</p>
+                  <p className="font-semibold">{getCatalogBallName(selectedCatalogBall)}</p>
                   <div className="flex gap-1.5 mt-1">
+                    {selectedCatalogBall.is_spare && <Badge className="text-xs">Spare</Badge>}
                     <Badge variant="secondary" className="text-xs">{getCoverTypeLabel(selectedCatalogBall.cover_type)}</Badge>
                     <Badge variant="secondary" className="text-xs">{getCoreTypeLabel(selectedCatalogBall.core_type)}</Badge>
                   </div>

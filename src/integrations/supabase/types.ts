@@ -1421,6 +1421,7 @@ export type Database = {
           id: string
           image_url: string | null
           intermediate_diff: number | null
+          is_spare: boolean
           is_system: boolean
           model: string
           rg: number | null
@@ -1438,6 +1439,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           intermediate_diff?: number | null
+          is_spare?: boolean
           is_system?: boolean
           model: string
           rg?: number | null
@@ -1455,6 +1457,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           intermediate_diff?: number | null
+          is_spare?: boolean
           is_system?: boolean
           model?: string
           rg?: number | null

@@ -17,6 +17,7 @@ import { BowlingGameHistory } from "./BowlingGameHistory";
 import { getStatColor } from "@/lib/bowling/statColors";
 import { exportBowlingPdf, exportBowlingTeamPdf } from "@/lib/bowling/bowlingPdfExport";
 import { resolveBallCatalogImages } from "@/lib/bowling/bowlingBallImageResolver";
+import { getCatalogBallName } from "@/lib/constants/bowlingBallBrands";
 import type { FrameData } from "@/components/athlete-portal/BowlingScoreSheet";
 import { BowlingOilPatternStats } from "./BowlingOilPatternStats";
 import { IdentityComparisonPanel } from "@/components/analytics/IdentityComparisonPanel";
@@ -427,7 +428,7 @@ export function BowlingCumulativeStats({ categoryId, playerId: fixedPlayerId }: 
                       const imageMap = await resolveBallCatalogImages(catalogBalls);
                       const arsenalBalls = ((arsenalResult.data as any[]) || []).map((item: any) => {
                         const cat = item.ball_catalog_id ? catalogMap.get(item.ball_catalog_id) : null;
-                        const name = cat ? `${cat.brand} ${cat.model}` : `${item.custom_ball_brand || ""} ${item.custom_ball_name || "Custom"}`.trim();
+                        const name = cat ? getCatalogBallName(cat) : `${item.custom_ball_brand || ""} ${item.custom_ball_name || "Custom"}`.trim();
                         return {
                           name,
                           drillingLayout: item.drilling_layout || item.balance_type || null,
@@ -510,7 +511,7 @@ export function BowlingCumulativeStats({ categoryId, playerId: fixedPlayerId }: 
                           medals: allMedals.filter((m) => m.player_id === p.id).map(({ player_id, ...medal }) => medal),
                           arsenalBalls: playerArsenal.map((item: any) => {
                             const cat = item.ball_catalog_id ? catalogMap.get(item.ball_catalog_id) : null;
-                            const name = cat ? `${cat.brand} ${cat.model}` : `${item.custom_ball_brand || ""} ${item.custom_ball_name || "Custom"}`.trim();
+                            const name = cat ? getCatalogBallName(cat) : `${item.custom_ball_brand || ""} ${item.custom_ball_name || "Custom"}`.trim();
                             return {
                               name,
                               drillingLayout: item.drilling_layout || item.balance_type || null,

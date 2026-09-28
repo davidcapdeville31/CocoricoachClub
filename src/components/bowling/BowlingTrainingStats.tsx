@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import ExcelJS from "exceljs";
 import jsPDF from "jspdf";
-import { SPARE_EXERCISE_TYPES } from "@/lib/constants/bowlingBallBrands";
+import { SPARE_EXERCISE_TYPES, getCatalogBallName } from "@/lib/constants/bowlingBallBrands";
 import { BowlingFrameAnalysis } from "./BowlingFrameAnalysis";
 import { getExcelBranding, addBrandedHeader, styleDataHeaderRow, addZebraRows, addFooter, downloadWorkbook } from "@/lib/excelExport";
 import { preparePdfWithSettings } from "@/lib/pdfExport";
@@ -509,7 +509,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
   const getBallName = (ballId: string) => {
     const ball = allArsenals?.find((b: any) => b.id === ballId);
     if (!ball) return "Boule inconnue";
-    if (ball.catalog) return `${ball.catalog.brand} ${ball.catalog.model}`;
+    if (ball.catalog) return getCatalogBallName(ball.catalog);
     if (ball.custom_ball_brand) return `${ball.custom_ball_brand} ${ball.custom_ball_name || ""}`.trim();
     return "Boule";
   };
@@ -1046,7 +1046,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
                 <SelectItem key={ball.id} value={ball.id}>
                   <span className="flex items-center gap-1.5">
                     <Circle className="h-2 w-2 fill-primary text-primary" />
-                    {ball.catalog ? `${ball.catalog.brand} ${ball.catalog.model}` : ball.custom_ball_brand ? `${ball.custom_ball_brand} ${ball.custom_ball_name || ""}`.trim() : "Boule"}
+                    {ball.catalog ? getCatalogBallName(ball.catalog) : ball.custom_ball_brand ? `${ball.custom_ball_brand} ${ball.custom_ball_name || ""}`.trim() : "Boule"}
                   </span>
                 </SelectItem>
               ))}

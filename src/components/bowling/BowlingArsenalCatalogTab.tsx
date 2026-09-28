@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, Upload, Image as ImageIcon, Loader2, X, Plus, Users, CircleDot, Check, Edit2, Trash2 } from "lucide-react";
-import { getCoverTypeLabel, getCoreTypeLabel, BOWLING_BALL_BRANDS, COVER_TYPES, CORE_TYPES, BALL_WEIGHTS } from "@/lib/constants/bowlingBallBrands";
+import { getCoverTypeLabel, getCoreTypeLabel, getCatalogBallName, BOWLING_BALL_BRANDS, COVER_TYPES, CORE_TYPES, BALL_WEIGHTS } from "@/lib/constants/bowlingBallBrands";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { resolveBallCatalogImages } from "@/lib/bowling/bowlingBallImageResolver";
@@ -560,7 +560,7 @@ export function BowlingArsenalCatalogTab({ categoryId }: BowlingArsenalCatalogTa
             <div className="space-y-2">
               {playerArsenal.map((item: any) => {
                 const displayName = item.catalogBall
-                  ? `${item.catalogBall.brand} ${item.catalogBall.model}`
+                  ? getCatalogBallName(item.catalogBall)
                   : `${item.custom_ball_brand || ""} ${item.custom_ball_name || "Custom"}`.trim();
                 const imgUrl = item.catalogBall?.image_url;
 
@@ -639,7 +639,7 @@ export function BowlingArsenalCatalogTab({ categoryId }: BowlingArsenalCatalogTa
                   <>
                     <img
                       src={`${ball.resolved_image_url}?t=${encodeURIComponent(ball.image_version || ball.id)}`}
-                      alt={`${ball.brand} ${ball.model}`}
+                      alt={getCatalogBallName(ball)}
                       className="w-full h-full object-contain p-2"
                       onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                     />
@@ -687,11 +687,18 @@ export function BowlingArsenalCatalogTab({ categoryId }: BowlingArsenalCatalogTa
 
               <CardContent className="p-3 space-y-2">
                 <div>
-                  <p className="font-bold text-sm">{ball.brand}</p>
-                  <p className="text-sm text-muted-foreground">{ball.model}</p>
+                  {ball.brand ? (
+                    <>
+                      <p className="font-bold text-sm">{ball.brand}</p>
+                      <p className="text-sm text-muted-foreground">{ball.model}</p>
+                    </>
+                  ) : (
+                    <p className="font-bold text-sm">{ball.model}</p>
+                  )}
                 </div>
 
                 <div className="flex flex-wrap gap-1">
+                  {ball.is_spare && <Badge className="text-xs">Spare</Badge>}
                   <Badge variant="secondary" className="text-xs">{getCoverTypeLabel(ball.cover_type)}</Badge>
                   <Badge variant="outline" className="text-xs">{getCoreTypeLabel(ball.core_type)}</Badge>
                 </div>
@@ -882,8 +889,9 @@ export function BowlingArsenalCatalogTab({ categoryId }: BowlingArsenalCatalogTa
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{ball.brand} {ball.model}</p>
+                      <p className="text-sm font-medium truncate">{getCatalogBallName(ball)}</p>
                       <div className="flex gap-1">
+                        {ball.is_spare && <Badge className="text-[10px] h-4">Spare</Badge>}
                         <Badge variant="secondary" className="text-[10px] h-4">{getCoverTypeLabel(ball.cover_type)}</Badge>
                         <Badge variant="outline" className="text-[10px] h-4">{getCoreTypeLabel(ball.core_type)}</Badge>
                       </div>
@@ -927,7 +935,7 @@ export function BowlingArsenalCatalogTab({ categoryId }: BowlingArsenalCatalogTa
                   </div>
                   <p className="font-semibold">
                     {editingArsenalItem.catalogBall
-                      ? `${editingArsenalItem.catalogBall.brand} ${editingArsenalItem.catalogBall.model}`
+                      ? getCatalogBallName(editingArsenalItem.catalogBall)
                       : `${editingArsenalItem.custom_ball_brand || ""} ${editingArsenalItem.custom_ball_name || "Custom"}`.trim()}
                   </p>
                 </div>
