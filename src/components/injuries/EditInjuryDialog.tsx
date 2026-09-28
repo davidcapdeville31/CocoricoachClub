@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { INJURY_STATUS, INJURY_STATUS_LABELS } from "@/lib/constants/injury";
+import { RUGBY_INJURY_TYPES } from "@/lib/constants/rugbyInjuries";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
 import { useTranslation } from "react-i18next";
 
@@ -40,15 +41,21 @@ export function EditInjuryDialog({ open, onOpenChange, injury }: EditInjuryDialo
   const qc = useQueryClient();
   const guard = useSeasonGuard(injury?.category_id);
   const [injuryType, setInjuryType] = useState("");
+  const [customInjuryType, setCustomInjuryType] = useState("");
   const [injuryDate, setInjuryDate] = useState("");
   const [severity, setSeverity] = useState("");
   const [status, setStatus] = useState("");
   const [estimatedReturnDate, setEstimatedReturnDate] = useState("");
   const [description, setDescription] = useState("");
 
+  const isInList = RUGBY_INJURY_TYPES.some(i => i.name === injuryType);
+  const selectValue = injuryType && isInList ? injuryType : injuryType ? "other" : "";
+
   useEffect(() => {
     if (injury) {
-      setInjuryType(injury.injury_type || "");
+      const existing = injury.injury_type || "";
+      setInjuryType(existing);
+      setCustomInjuryType(existing && !RUGBY_INJURY_TYPES.some(i => i.name === existing) ? existing : "");
       setInjuryDate(injury.injury_date || "");
       setSeverity(injury.severity || "");
       setStatus(injury.status || INJURY_STATUS.ACTIVE);
@@ -61,10 +68,11 @@ export function EditInjuryDialog({ open, onOpenChange, injury }: EditInjuryDialo
     mutationFn: async () => {
       if (!guard.assertPlayer(injury?.player_id)) throw new Error("guard:player");
       if (!guard.assertDate(injuryDate)) throw new Error("guard:date");
+      const finalInjuryType = injuryType === "other" || !isInList ? customInjuryType : injuryType;
       const { error } = await supabase
         .from("injuries")
         .update({
-          injury_type: injuryType,
+          injury_type: finalInjuryType,
           injury_date: injuryDate,
           severity: severity as any,
           status: status as any,
@@ -94,7 +102,39 @@ export function EditInjuryDialog({ open, onOpenChange, injury }: EditInjuryDialo
         <div className="space-y-3">
           <div>
             <Label>{t("health.editInjuryDialog.injuryType")}</Label>
-            <Input value={injuryType} onChange={(e) => setInjuryType(e.target.value)} className="mt-1" />
+            <Select
+              value={selectValue}
+              onValueChange={(value) => {
+                if (value === "other") {
+                  setInjuryType("other");
+                  setCustomInjuryType("");
+                } else {
+                  setInjuryType(value);
+                }
+              }}
+            >
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder={t("health.addInjuryDialog.selectInjuryTypePlaceholder")} />
+              </SelectTrigger>
+              <SelectContent className="max-h-[300px]">
+                {RUGBY_INJURY_TYPES.map((inj) => (
+                  <SelectItem key={inj.name} value={inj.name}>
+                    <div className="flex items-center gap-2">
+                      <span>{inj.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+                <SelectItem value="other">{t("health.addInjuryDialog.otherCustom")}</SelectItem>
+              </SelectContent>
+            </Select>
+            {selectValue === "other" && (
+              <Input
+                value={customInjuryType}
+                onChange={(e) => setCustomInjuryType(e.target.value)}
+                placeholder={t("health.addInjuryDialog.customTypePlaceholder")}
+                className="mt-2"
+              />
+            )}
           </div>
           <div>
             <Label>{t("health.editInjuryDialog.date")}</Label>
@@ -134,7 +174,8 @@ export function EditInjuryDialog({ open, onOpenChange, injury }: EditInjuryDialo
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>{t("health.editInjuryDialog.cancel")}</Button>
           <Button onClick={() => {
-            if (!injuryType.trim()) { toast.error(t("health.editInjuryDialog.toastTypeRequired")); return; }
+            const finalType = injuryType === "other" || !isInList ? customInjuryType : injuryType;
+            if (!finalType.trim()) { toast.error(t("health.editInjuryDialog.toastTypeRequired")); return; }
             if (!injuryDate) { toast.error(t("health.editInjuryDialog.toastDateRequired")); return; }
             update.mutate();
           }} disabled={update.isPending}>
