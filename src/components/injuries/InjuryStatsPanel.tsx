@@ -172,8 +172,10 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
   const stats = useMemo(() => {
     const list = (injuries || []).filter((i: any) => {
       const d = new Date(i.injury_date);
-      if (from && d < from) return false;
       if (d > to) return false;
+      // Chevauchement : compte aussi les indisponibilités commencées avant et encore en cours
+      const end = i.actual_return_date ? new Date(i.actual_return_date) : null;
+      if (from && d < from && end && end < from) return false;
       return true;
     });
 
@@ -213,8 +215,10 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
     // Illnesses on same period
     const illList = (illnesses || []).filter((i: any) => {
       const d = new Date(i.illness_date);
-      if (from && d < from) return false;
       if (d > to) return false;
+      // Chevauchement : compte aussi les indisponibilités commencées avant et encore en cours
+      const end = i.actual_return_date ? new Date(i.actual_return_date) : null;
+      if (from && d < from && end && end < from) return false;
       return true;
     });
     const illTotal = illList.length;
@@ -269,8 +273,9 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
     () =>
       (injuries || []).filter((i: any) => {
         const d = new Date(i.injury_date);
-        if (from && d < from) return false;
         if (d > to) return false;
+        const end = i.actual_return_date ? new Date(i.actual_return_date) : null;
+        if (from && d < from && end && end < from) return false;
         return true;
       }),
     [injuries, from, to]
@@ -279,8 +284,9 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
     () =>
       (illnesses || []).filter((i: any) => {
         const d = new Date(i.illness_date);
-        if (from && d < from) return false;
         if (d > to) return false;
+        const end = i.actual_return_date ? new Date(i.actual_return_date) : null;
+        if (from && d < from && end && end < from) return false;
         return true;
       }),
     [illnesses, from, to]
