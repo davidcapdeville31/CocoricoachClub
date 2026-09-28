@@ -93,6 +93,8 @@ export function AddInjuryDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["injuries"] });
+      queryClient.invalidateQueries({ queryKey: ["injury-stats"] });
+      queryClient.invalidateQueries();
       toast.success(t("health.addInjuryDialog.toastSuccess"));
       resetForm();
       onOpenChange(false);
