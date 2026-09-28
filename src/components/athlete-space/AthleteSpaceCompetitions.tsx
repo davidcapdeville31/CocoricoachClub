@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
 import { getDateLocale } from "@/lib/i18n/dateLocale";
@@ -56,7 +56,23 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
       return (data || []) as AthleteMatch[];
     },
     enabled: !!playerId,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
   });
+
+  // Synchronisation instantanée : dès que le staff ajoute l'athlète à une
+  // composition ou une convocation, la compétition apparaît ici.
+  useEffect(() => {
+    if (!playerId) return;
+    const channel = supabase
+      .channel(`athlete-competitions-${playerId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "match_participants", filter: `player_id=eq.${playerId}` }, () => refetch())
+      .on("postgres_changes", { event: "*", schema: "public", table: "match_lineups", filter: `player_id=eq.${playerId}` }, () => refetch())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [playerId, refetch]);
+
 
   const { data: roundCounts = {} } = useQuery({
     queryKey: ["athlete-space-competition-rounds-count", playerId],
