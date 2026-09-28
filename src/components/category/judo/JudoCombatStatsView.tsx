@@ -789,6 +789,10 @@ function CombatPanel({
         ? 3
         : result.cause === "hansoku_direct" || result.cause === "hansoku_indirect"
         ? 4
+        : result.cause === "yuko_score"
+        ? 8
+        : (result.cause === "decision" || result.cause === "golden_score") && result.decidedByYuko
+        ? 8
         : result.cause === "decision" || result.cause === "golden_score"
         ? 5
         : result.cause === "submission"
