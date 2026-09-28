@@ -668,7 +668,7 @@ function PlayerDetailsContent() {
           </TabsContent>
 
           <TabsContent value="injuries">
-            <PlayerInjuriesTab playerId={playerId!} categoryId={effectiveCategoryId} playerName={fullName} readOnly={true} />
+            <PlayerInjuriesTab playerId={playerId!} categoryId={effectiveCategoryId} playerName={fullName} />
           </TabsContent>
 
           {(isBowling || isSurf || isSki || isPadel) && (
