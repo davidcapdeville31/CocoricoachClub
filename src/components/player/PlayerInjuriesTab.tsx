@@ -91,6 +91,7 @@ export function PlayerInjuriesTab({ playerId, categoryId, playerName = "Joueur",
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["injuries", playerId] });
+      queryClient.refetchQueries({ queryKey: ["injury-stats", categoryId], type: "active" });
       toast.success("Statut mis à jour");
     },
     onError: (error: any) => {

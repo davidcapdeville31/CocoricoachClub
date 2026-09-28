@@ -77,7 +77,7 @@ export function AddInjuryDialog({
       if (!guard.assertPlayer(selectedPlayerId)) throw new Error("guard:player");
       if (!guard.assertDate(injuryDate)) throw new Error("guard:date");
       const finalInjuryType = injuryType === "other" ? customInjuryType : injuryType;
-      const { error } = await supabase.from("injuries").insert([
+      const { data, error } = await supabase.from("injuries").insert([
         {
           player_id: selectedPlayerId,
           category_id: categoryId,
@@ -88,13 +88,22 @@ export function AddInjuryDialog({
           description: description || null,
           protocol_notes: protocolNotes || null,
         },
-      ]);
+      ]).select("id, player_id, injury_type, injury_date, actual_return_date, status, players(name)").single();
       if (error) throw error;
+      return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["injuries"] });
-      queryClient.invalidateQueries({ queryKey: ["injury-stats"] });
-      queryClient.invalidateQueries();
+    onSuccess: async (createdInjury) => {
+      queryClient.setQueryData<any[]>(["injury-stats", categoryId], (current) => {
+        if (!current) return [createdInjury];
+        if (current.some((injury) => injury.id === createdInjury.id)) return current;
+        return [...current, createdInjury];
+      });
+
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ["injury-stats", categoryId], type: "active" }),
+        queryClient.refetchQueries({ queryKey: ["injuries", categoryId], type: "active" }),
+        queryClient.refetchQueries({ queryKey: ["injuries", selectedPlayerId], type: "active" }),
+      ]);
       toast.success(t("health.addInjuryDialog.toastSuccess"));
       resetForm();
       onOpenChange(false);

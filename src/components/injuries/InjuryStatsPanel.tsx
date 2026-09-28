@@ -105,14 +105,16 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
   const qc = useQueryClient();
   useEffect(() => {
     if (!categoryId) return;
-    const refresh = () => {
-      qc.invalidateQueries({ queryKey: ["injury-stats", categoryId] });
-      qc.invalidateQueries({ queryKey: ["illness-stats", categoryId] });
+    const refreshInjuries = () => {
+      void qc.refetchQueries({ queryKey: ["injury-stats", categoryId], type: "active" });
+    };
+    const refreshIllnesses = () => {
+      void qc.refetchQueries({ queryKey: ["illness-stats", categoryId], type: "active" });
     };
     const channel = supabase
       .channel(`injury-stats-${categoryId}-${Math.random().toString(36).slice(2, 8)}`)
-      .on("postgres_changes" as any, { event: "*", schema: "public", table: "injuries", filter: `category_id=eq.${categoryId}` }, refresh)
-      .on("postgres_changes" as any, { event: "*", schema: "public", table: "illnesses", filter: `category_id=eq.${categoryId}` }, refresh)
+      .on("postgres_changes" as any, { event: "*", schema: "public", table: "injuries", filter: `category_id=eq.${categoryId}` }, refreshInjuries)
+      .on("postgres_changes" as any, { event: "*", schema: "public", table: "illnesses", filter: `category_id=eq.${categoryId}` }, refreshIllnesses)
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [categoryId, qc]);

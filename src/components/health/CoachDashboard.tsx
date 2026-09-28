@@ -128,6 +128,7 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["active_injuries", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["injuries", categoryId] });
+      queryClient.refetchQueries({ queryKey: ["injury-stats", categoryId], type: "active" });
       toast.success(t("health.coachDashboard.toastInjuryDeleted"));
     },
     onError: (e: any) => toast.error(e?.message || t("health.coachDashboard.toastError")),
