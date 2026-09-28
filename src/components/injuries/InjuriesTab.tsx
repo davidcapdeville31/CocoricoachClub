@@ -95,6 +95,7 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["injuries", categoryId] });
+      queryClient.refetchQueries({ queryKey: ["injury-stats", categoryId], type: "active" });
       queryClient.invalidateQueries({ queryKey: ["recovering-injuries-no-protocol", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["active-rehab-protocols", categoryId] });
       toast.success(t("health.injuriesTab.toastStatusUpdated"));
@@ -113,6 +114,7 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["injuries", categoryId] });
+      queryClient.refetchQueries({ queryKey: ["injury-stats", categoryId], type: "active" });
       queryClient.invalidateQueries({ queryKey: ["recovering-injuries-no-protocol", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["active-rehab-protocols", categoryId] });
       toast.success(t("health.injuriesTab.toastDeleted"));

@@ -60,6 +60,7 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["athlete-space-injuries-detail", playerId] });
+      qc.refetchQueries({ queryKey: ["injury-stats", categoryId], type: "active" });
       toast.success(t("athleteSpace.health.injuryDeleted"));
     },
     onError: (e: any) => toast.error(e?.message || t("athleteSpace.health.genericError")),
