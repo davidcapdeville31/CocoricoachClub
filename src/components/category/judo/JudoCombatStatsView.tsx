@@ -181,6 +181,7 @@ type EndCause =
   | "ippon_throw"
   | "wazari_awasete"
   | "wazari_score" // décision sur waza-ari en GS / shido décisif inverse
+  | "yuko_score" // victoire au yuko (aucune différence de waza-ari)
   | "hansoku_indirect"
   | "hansoku_direct"
   | "submission"
@@ -200,6 +201,8 @@ interface ComputedResult {
   shidoMe: number;
   shidoOpp: number;
   scoreLabel: string; // "I:0 W:1 / S:1" style
+  /** true quand la victoire est décidée par le yuko (aucune différence de waza-ari) */
+  decidedByYuko: boolean;
 }
 
 const num = (v: unknown) => Number(v) || 0;
@@ -275,12 +278,20 @@ function computeResult(stats: Record<string, number> | undefined, manualResult: 
     (manualResult === "win" || manualResult === "loss" || manualResult === "draw")
   ) {
     const winner = manualResult === "win" ? "me" : manualResult === "loss" ? "opp" : "draw";
-    const cause: EndCause = num(s[K.goldenScore]) > 0 ? "golden_score" : "decision";
+    // Yuko décisif : aucune différence de waza-ari mais un écart de yuko
+    const yukoDecides = wMeEff === wOppEff && yukoMe !== yukoOpp;
+    const cause: EndCause = num(s[K.goldenScore]) > 0 ? "golden_score" : yukoDecides ? "yuko_score" : "decision";
     return {
       winner,
       cause,
       causeLabel:
-        cause === "golden_score" ? "Décision Golden Score" : "Décision (waza-ari / shido)",
+        cause === "golden_score"
+          ? yukoDecides
+            ? "Golden Score (yuko)"
+            : "Décision Golden Score"
+          : cause === "yuko_score"
+          ? "Décision (yuko)"
+          : "Décision (waza-ari / shido)",
       ipponMe: iMeEff,
       ipponOpp: iOppEff,
       wazariMe: wMeEff,
@@ -288,6 +299,7 @@ function computeResult(stats: Record<string, number> | undefined, manualResult: 
       shidoMe,
       shidoOpp,
       scoreLabel,
+      decidedByYuko: yukoDecides,
     };
   }
 
@@ -302,6 +314,7 @@ function computeResult(stats: Record<string, number> | undefined, manualResult: 
     shidoMe,
     shidoOpp,
     scoreLabel,
+    decidedByYuko: false,
   };
 
   function mk(winner: "me" | "opp", cause: EndCause, causeLabel: string): ComputedResult {
@@ -316,6 +329,7 @@ function computeResult(stats: Record<string, number> | undefined, manualResult: 
       shidoMe,
       shidoOpp,
       scoreLabel,
+      decidedByYuko: false,
     };
   }
 }
@@ -775,6 +789,10 @@ function CombatPanel({
         ? 3
         : result.cause === "hansoku_direct" || result.cause === "hansoku_indirect"
         ? 4
+        : result.cause === "yuko_score"
+        ? 8
+        : (result.cause === "decision" || result.cause === "golden_score") && result.decidedByYuko
+        ? 8
         : result.cause === "decision" || result.cause === "golden_score"
         ? 5
         : result.cause === "submission"
@@ -1029,6 +1047,7 @@ function CombatPanel({
             { v: 1, label: "Ippon" },
             { v: 2, label: "Waza-ari" },
             { v: 3, label: "Waza-ari awasete ippon" },
+            { v: 8, label: "Yuko" },
             { v: 4, label: "Hansoku-make" },
             { v: 5, label: "Décision" },
             { v: 6, label: "Abandon" },
@@ -1297,9 +1316,9 @@ function CombatPanel({
           <div className="rounded-lg border-2 border-dashed border-amber-500/40 bg-amber-500/5 p-2 flex flex-col items-center justify-center">
             <p className="text-[10px] uppercase font-bold text-muted-foreground">Scores concédés</p>
             <p className="text-2xl font-black text-amber-600 dark:text-amber-400 tabular-nums">
-              {num(round.stats?.[K.wazariOpp]) + num(round.stats?.[K.ipponOpp])}
+              {num(round.stats?.[K.wazariOpp]) + num(round.stats?.[K.ipponOpp]) + num(round.stats?.[K.yukoOpp])}
             </p>
-            <p className="text-[9px] text-muted-foreground">auto (Waza-ari + Ippon adverse)</p>
+            <p className="text-[9px] text-muted-foreground">auto (Waza-ari + Yuko + Ippon adverse)</p>
           </div>
         </div>
         {num(round.stats?.[K.defAttacksReceived]) > 0 && (
