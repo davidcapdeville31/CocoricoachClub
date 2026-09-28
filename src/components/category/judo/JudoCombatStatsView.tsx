@@ -329,6 +329,7 @@ function computeResult(stats: Record<string, number> | undefined, manualResult: 
       shidoMe,
       shidoOpp,
       scoreLabel,
+      decidedByYuko: false,
     };
   }
 }
