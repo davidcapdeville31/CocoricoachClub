@@ -774,7 +774,7 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                 ))}
               </colgroup>
               <thead>
-                {compact && trackPockets && (
+                {compact && (
                   <tr>
                     <th className="border border-foreground/20 bg-muted px-1 py-0.5 text-[8px] font-medium text-muted-foreground">P/S</th>
                     {frames.map((frame, frameIndex) => {
@@ -801,7 +801,7 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                                 }
                                 return (
                                   <div key={ti} className="flex items-center gap-0.5">
-                                    {pocketAllowed && (
+                                    {pocketAllowed && trackPockets && (
                                       <button
                                         type="button"
                                         disabled={isSaved}
@@ -998,12 +998,12 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                         {frame.throws.map((throwData, throwIndex) => {
                           if (!throwData.value) return null;
                           const pocketAllowed = isPocketAllowed(frameIndex, throwIndex, frame);
-                          if (!pocketAllowed) return null;
                           const showSplit =
                             throwData.value !== "X" && throwData.value !== "/";
                           // In read-only (saved) mode, only render active badges to avoid overflow in narrow cells.
-                          const showPocketBadge = trackPockets && (!isSaved || throwData.isPocket);
+                          const showPocketBadge = trackPockets && pocketAllowed && (!isSaved || throwData.isPocket);
                           const showSplitBadge = showSplit && (!isSaved || throwData.isSplit);
+                          if (!showPocketBadge && !showSplitBadge && !pocketAllowed) return null;
                           return (
                             <div key={throwIndex} className="flex flex-wrap items-center gap-1 min-w-0">
                               <span className="text-[10px] font-mono text-muted-foreground shrink-0">
