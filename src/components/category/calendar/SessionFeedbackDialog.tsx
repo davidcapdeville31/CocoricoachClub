@@ -608,20 +608,28 @@ export function SessionFeedbackDialog({
   );
   const attendedPlayerIds = presentPlayerIds;
   const playersWithRpe = new Set(existingRpe?.map((r) => r.player_id) || []);
-  
-  // Filter to only show players who attended (present/late), or all if no attendance recorded
-  const playersToShow = useMemo(() => {
-    if (!players) return [];
-    if (!attendance || attendance.length === 0) return players;
-    return players.filter((p) => presentPlayerIds.has(p.id));
-  }, [players, attendance, presentPlayerIds]);
 
-  // For tests: restrict to athletes explicitly invited to this test session.
-  // Falls back to playersToShow if no participants were recorded (legacy sessions).
+  // Athletes explicitly invited to this session (test sessions record them in event_participants)
   const invitedPlayerIds = useMemo(
     () => new Set((invitedParticipants || []).map((p) => p.player_id)),
     [invitedParticipants],
   );
+  const isTestSession = session?.training_type === "test" || parsedTestConfig.length > 0;
+
+  // Filter to only show players who attended (present/late), or all if no attendance recorded.
+  // For test sessions with invited participants, restrict to the invited athletes only.
+  const playersToShow = useMemo(() => {
+    if (!players) return [];
+    let base = players;
+    if (isTestSession && invitedPlayerIds.size > 0) {
+      base = base.filter((p) => invitedPlayerIds.has(p.id));
+    }
+    if (!attendance || attendance.length === 0) return base;
+    return base.filter((p) => presentPlayerIds.has(p.id));
+  }, [players, attendance, presentPlayerIds, isTestSession, invitedPlayerIds]);
+
+  // For tests: restrict to athletes explicitly invited to this test session.
+  // Falls back to playersToShow if no participants were recorded (legacy sessions).
   const playersForTests = useMemo(() => {
     if (!players) return [];
     if (invitedPlayerIds.size === 0) return playersToShow;
