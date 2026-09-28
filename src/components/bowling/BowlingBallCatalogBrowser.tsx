@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, CircleDot } from "lucide-react";
-import { getCoverTypeLabel, getCoreTypeLabel, BOWLING_BALL_BRANDS } from "@/lib/constants/bowlingBallBrands";
+import { getCoverTypeLabel, getCoreTypeLabel, getCatalogBallName, BOWLING_BALL_BRANDS } from "@/lib/constants/bowlingBallBrands";
 import { resolveBallCatalogImages } from "@/lib/bowling/bowlingBallImageResolver";
 
 interface BowlingBallCatalogBrowserProps {
@@ -104,8 +104,9 @@ export function BowlingBallCatalogBrowser({ onSelect }: BowlingBallCatalogBrowse
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="font-semibold text-sm">{ball.brand} {ball.model}</p>
+                      <p className="font-semibold text-sm">{getCatalogBallName(ball)}</p>
                       <div className="flex gap-1.5 mt-1">
+                        {ball.is_spare && <Badge className="text-xs">Spare</Badge>}
                         <Badge variant="secondary" className="text-xs">{getCoverTypeLabel(ball.cover_type)}</Badge>
                         <Badge variant="outline" className="text-xs">{getCoreTypeLabel(ball.core_type)}</Badge>
                       </div>

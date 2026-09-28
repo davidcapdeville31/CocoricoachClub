@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { CircleDot } from "lucide-react";
+import { getCatalogBallName } from "@/lib/constants/bowlingBallBrands";
 
 interface BowlingBallSelectorProps {
   playerId: string;
@@ -56,7 +57,7 @@ export function BowlingBallSelector({
       return (data as any[]).map((item: any) => ({
         ...item,
         displayName: item.ball_catalog_id && catalogMap.has(item.ball_catalog_id)
-          ? `${catalogMap.get(item.ball_catalog_id).brand} ${catalogMap.get(item.ball_catalog_id).model}`
+          ? getCatalogBallName(catalogMap.get(item.ball_catalog_id))
           : `${item.custom_ball_brand || ""} ${item.custom_ball_name || "Custom"}`.trim(),
         weight: item.weight_lbs,
       }));

@@ -41,3 +41,8 @@ export function getCoverTypeLabel(value: string): string {
 export function getCoreTypeLabel(value: string): string {
   return CORE_TYPES.find(c => c.value === value)?.label || value;
 }
+
+/** Nom d'affichage d'une boule du catalogue (gère les boules sans marque, ex. Boule de Spare). */
+export function getCatalogBallName(ball: { brand?: string | null; model?: string | null }): string {
+  return [ball?.brand, ball?.model].filter(Boolean).join(" ").trim() || "Boule";
+}
