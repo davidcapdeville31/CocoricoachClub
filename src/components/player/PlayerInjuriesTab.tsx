@@ -12,8 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, AlertCircle, Dumbbell, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, AlertCircle, Dumbbell, ChevronDown, ChevronUp, Pencil } from "lucide-react";
 import { AddInjuryDialog } from "@/components/injuries/AddInjuryDialog";
+import { EditInjuryDialog } from "@/components/injuries/EditInjuryDialog";
 import { AssignProtocolDialog } from "@/components/injuries/AssignProtocolDialog";
 import { PlayerRehabTracker } from "@/components/injuries/PlayerRehabTracker";
 import { toast } from "sonner";
@@ -38,6 +39,7 @@ export function PlayerInjuriesTab({ playerId, categoryId, playerName = "Joueur",
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [protocolDialogOpen, setProtocolDialogOpen] = useState(false);
   const [selectedInjury, setSelectedInjury] = useState<any>(null);
+  const [editingInjury, setEditingInjury] = useState<any>(null);
   const [expandedInjuries, setExpandedInjuries] = useState<string[]>([]);
   const queryClient = useQueryClient();
 
@@ -179,9 +181,16 @@ export function PlayerInjuriesTab({ playerId, categoryId, playerName = "Joueur",
       {activeInjuries.map((activeInjury: any) => (
         <Card key={activeInjury.id} className="bg-destructive/10 border-destructive/50">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-destructive">
-              <AlertCircle className="h-5 w-5" />
-              Blessure en Cours
+            <CardTitle className="flex items-center justify-between gap-2 text-destructive">
+              <span className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5" />
+                Blessure en Cours
+              </span>
+              {!isViewer && (
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditingInjury(activeInjury)}>
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -273,6 +282,16 @@ export function PlayerInjuriesTab({ playerId, categoryId, playerName = "Joueur",
                         Phase {getRehabProtocol(injury.id)?.current_phase}
                       </Badge>
                     )}
+                    {!isViewer && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={(e) => { e.stopPropagation(); setEditingInjury(injury); }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    )}
                     {expandedInjuries.includes(injury.id) ? (
                       <ChevronUp className="h-5 w-5 text-muted-foreground" />
                     ) : (
@@ -354,6 +373,11 @@ export function PlayerInjuriesTab({ playerId, categoryId, playerName = "Joueur",
                           Protocole
                         </Badge>
                       )}
+                      {!isViewer && (
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditingInjury(injury)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                   {!isViewer && (
@@ -422,6 +446,14 @@ export function PlayerInjuriesTab({ playerId, categoryId, playerName = "Joueur",
         categoryId={categoryId}
         playerId={playerId}
       />
+
+      {editingInjury && (
+        <EditInjuryDialog
+          open={!!editingInjury}
+          onOpenChange={(o) => !o && setEditingInjury(null)}
+          injury={editingInjury}
+        />
+      )}
 
       {selectedInjury && (
         <AssignProtocolDialog
