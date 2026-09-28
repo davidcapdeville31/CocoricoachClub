@@ -614,7 +614,7 @@ export function SessionFeedbackDialog({
     () => new Set((invitedParticipants || []).map((p) => p.player_id)),
     [invitedParticipants],
   );
-  const isTestSession = session?.training_type === "test" || parsedTestConfig.length > 0;
+  const isTestSession = sessionType === "test" || parsedTestConfig.length > 0;
 
   // Filter to only show players who attended (present/late), or all if no attendance recorded.
   // For test sessions with invited participants, restrict to the invited athletes only.
