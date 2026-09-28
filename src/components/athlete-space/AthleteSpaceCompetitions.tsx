@@ -74,22 +74,30 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
   }, [playerId, refetch]);
 
 
-  const { data: roundCounts = {} } = useQuery({
+  const { data: roundInfo = { counts: {}, bestRanks: {} } } = useQuery({
     queryKey: ["athlete-space-competition-rounds-count", playerId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("competition_rounds")
-        .select("match_id")
+        .select("match_id, ranking")
         .eq("player_id", playerId);
       if (error) throw error;
       const counts: Record<string, number> = {};
+      const bestRanks: Record<string, number> = {};
       (data || []).forEach((r: any) => {
         counts[r.match_id] = (counts[r.match_id] || 0) + 1;
+        if (typeof r.ranking === "number" && r.ranking > 0) {
+          bestRanks[r.match_id] = bestRanks[r.match_id]
+            ? Math.min(bestRanks[r.match_id], r.ranking)
+            : r.ranking;
+        }
       });
-      return counts;
+      return { counts, bestRanks };
     },
     enabled: !!playerId,
   });
+  const roundCounts = roundInfo.counts;
+  const bestRanks = roundInfo.bestRanks;
 
   const { upcoming, past } = useMemo(() => {
     const today = new Date();
@@ -105,8 +113,16 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
     return { upcoming: up, past: pa };
   }, [matches]);
 
+  const isJudo = (sportType || "").toLowerCase().includes("judo");
+
   const renderMatch = (match: AthleteMatch) => {
     const count = roundCounts[match.id] || 0;
+    const bestRank = bestRanks[match.id];
+    const rankLabel =
+      bestRank === 1 ? "🥇 1er" :
+      bestRank === 2 ? "🥈 2e" :
+      bestRank === 3 ? "🥉 3e" :
+      bestRank ? `${bestRank}e` : null;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const matchDay = match.match_date ? parseISO(match.match_date) : null;
@@ -137,6 +153,11 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
               <Badge variant="outline">Saisie ouverte le jour J</Badge>
             ) : (
               <Badge variant="outline">À renseigner</Badge>
+            )}
+            {isJudo && count > 0 && (
+              <Badge variant={bestRank && bestRank <= 3 ? "default" : "outline"}>
+                {rankLabel || "NC"}
+              </Badge>
             )}
           </div>
           <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
