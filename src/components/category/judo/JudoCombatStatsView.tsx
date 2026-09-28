@@ -278,12 +278,20 @@ function computeResult(stats: Record<string, number> | undefined, manualResult: 
     (manualResult === "win" || manualResult === "loss" || manualResult === "draw")
   ) {
     const winner = manualResult === "win" ? "me" : manualResult === "loss" ? "opp" : "draw";
-    const cause: EndCause = num(s[K.goldenScore]) > 0 ? "golden_score" : "decision";
+    // Yuko décisif : aucune différence de waza-ari mais un écart de yuko
+    const yukoDecides = wMeEff === wOppEff && yukoMe !== yukoOpp;
+    const cause: EndCause = num(s[K.goldenScore]) > 0 ? "golden_score" : yukoDecides ? "yuko_score" : "decision";
     return {
       winner,
       cause,
       causeLabel:
-        cause === "golden_score" ? "Décision Golden Score" : "Décision (waza-ari / shido)",
+        cause === "golden_score"
+          ? yukoDecides
+            ? "Golden Score (yuko)"
+            : "Décision Golden Score"
+          : cause === "yuko_score"
+          ? "Décision (yuko)"
+          : "Décision (waza-ari / shido)",
       ipponMe: iMeEff,
       ipponOpp: iOppEff,
       wazariMe: wMeEff,
@@ -291,6 +299,7 @@ function computeResult(stats: Record<string, number> | undefined, manualResult: 
       shidoMe,
       shidoOpp,
       scoreLabel,
+      decidedByYuko: yukoDecides,
     };
   }
 
