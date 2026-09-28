@@ -387,8 +387,21 @@ export function CompetitionRoundsDialog({
         .select("id, player_id, boat_type, crew_role, seat_position, discipline, specialty, start_order, players(id, name, first_name, discipline, specialty, gender)")
         .eq("match_id", matchId);
       if (restrictToPlayerId) query = query.eq("player_id", restrictToPlayerId);
-      const { data, error } = await query;
+      const { data: rawData, error } = await query;
       if (error) throw error;
+      let data: any[] = rawData || [];
+      // Espace athlète : si l'athlète n'est pas (encore) dans la composition,
+      // on crée une entrée virtuelle pour qu'il puisse saisir ses combats.
+      if (restrictToPlayerId && data.length === 0) {
+        const { data: p } = await supabase
+          .from("players")
+          .select("id, name, first_name, discipline, specialty, gender")
+          .eq("id", restrictToPlayerId)
+          .maybeSingle();
+        if (p) {
+          data = [{ id: `virtual-${p.id}`, player_id: p.id, boat_type: null, crew_role: null, seat_position: null, discipline: null, specialty: null, start_order: null, players: p }];
+        }
+      }
       // Sort by athlete name then by start_order so events appear in starting order
       return (data || []).sort((a: any, b: any) => {
         const nameA = [a.players?.first_name, a.players?.name].filter(Boolean).join(" ");
