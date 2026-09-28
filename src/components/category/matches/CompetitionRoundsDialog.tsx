@@ -1778,6 +1778,13 @@ export function CompetitionRoundsDialog({
               </div>
             )}
           </div>
+        ) : restrictToPlayerId ? (
+          // Espace athlète : l'athlète est déjà sélectionné, pas de sélecteur
+          selectedPlayer ? (
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <Badge variant="secondary" className="text-sm px-3 py-1">{selectedPlayer.playerName}</Badge>
+            </div>
+          ) : null
         ) : (
           <div className="space-y-2 flex-shrink-0">
             <Label className="text-sm font-medium">
