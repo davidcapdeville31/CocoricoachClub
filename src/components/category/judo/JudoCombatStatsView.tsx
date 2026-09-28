@@ -181,6 +181,7 @@ type EndCause =
   | "ippon_throw"
   | "wazari_awasete"
   | "wazari_score" // décision sur waza-ari en GS / shido décisif inverse
+  | "yuko_score" // victoire au yuko (aucune différence de waza-ari)
   | "hansoku_indirect"
   | "hansoku_direct"
   | "submission"
