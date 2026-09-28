@@ -1,7 +1,7 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useTranslation } from "react-i18next";
-import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useSeasonFilteredPlayerIds, makePlayerIdFilter } from "@/hooks/use-season-filtered-players";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -102,8 +102,25 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
   const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
   const keepPlayer = makePlayerIdFilter(allowedIds);
 
+  const qc = useQueryClient();
+  useEffect(() => {
+    if (!categoryId) return;
+    const refresh = () => {
+      qc.invalidateQueries({ queryKey: ["injury-stats", categoryId] });
+      qc.invalidateQueries({ queryKey: ["illness-stats", categoryId] });
+    };
+    const channel = supabase
+      .channel(`injury-stats-${categoryId}-${Math.random().toString(36).slice(2, 8)}`)
+      .on("postgres_changes" as any, { event: "*", schema: "public", table: "injuries", filter: `category_id=eq.${categoryId}` }, refresh)
+      .on("postgres_changes" as any, { event: "*", schema: "public", table: "illnesses", filter: `category_id=eq.${categoryId}` }, refresh)
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [categoryId, qc]);
+
   const { data: injuriesRaw } = useQuery({
     queryKey: ["injury-stats", categoryId],
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("injuries")
@@ -120,6 +137,8 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
 
   const { data: illnessesRaw } = useQuery({
     queryKey: ["illness-stats", categoryId],
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("illnesses")
