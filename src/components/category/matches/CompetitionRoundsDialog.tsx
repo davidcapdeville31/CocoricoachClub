@@ -603,7 +603,11 @@ export function CompetitionRoundsDialog({
       setIsDataInitialized(true);
       
       if (!selectedPlayerId && playersData.length > 0) {
-        setSelectedPlayerId(playersData[0].entryKey);
+        // Espace athlète : présélectionner directement l'athlète connecté
+        const ownEntry = restrictToPlayerId
+          ? playersData.find((p) => p.playerId === restrictToPlayerId)
+          : undefined;
+        setSelectedPlayerId((ownEntry || playersData[0]).entryKey);
       }
     }
   }, [lineup, existingRounds, isDataInitialized, selectedPlayerId, isBowling, matchData]);
@@ -1774,6 +1778,13 @@ export function CompetitionRoundsDialog({
               </div>
             )}
           </div>
+        ) : restrictToPlayerId ? (
+          // Espace athlète : l'athlète est déjà sélectionné, pas de sélecteur
+          selectedPlayer ? (
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <Badge variant="secondary" className="text-sm px-3 py-1">{selectedPlayer.playerName}</Badge>
+            </div>
+          ) : null
         ) : (
           <div className="space-y-2 flex-shrink-0">
             <Label className="text-sm font-medium">
