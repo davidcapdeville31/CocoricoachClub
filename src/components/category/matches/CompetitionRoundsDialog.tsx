@@ -603,7 +603,11 @@ export function CompetitionRoundsDialog({
       setIsDataInitialized(true);
       
       if (!selectedPlayerId && playersData.length > 0) {
-        setSelectedPlayerId(playersData[0].entryKey);
+        // Espace athlète : présélectionner directement l'athlète connecté
+        const ownEntry = restrictToPlayerId
+          ? playersData.find((p) => p.playerId === restrictToPlayerId)
+          : undefined;
+        setSelectedPlayerId((ownEntry || playersData[0]).entryKey);
       }
     }
   }, [lineup, existingRounds, isDataInitialized, selectedPlayerId, isBowling, matchData]);
