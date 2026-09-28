@@ -154,6 +154,11 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
             ) : (
               <Badge variant="outline">À renseigner</Badge>
             )}
+            {isJudo && count > 0 && (
+              <Badge variant={bestRank && bestRank <= 3 ? "default" : "outline"}>
+                {rankLabel || "NC"}
+              </Badge>
+            )}
           </div>
           <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
