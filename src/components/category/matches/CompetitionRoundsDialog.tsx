@@ -3169,6 +3169,30 @@ export function CompetitionRoundsDialog({
 
             {!isBowling && (
               <TabsContent value="history" className="flex-1 min-h-0 mt-0 overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col px-1 py-2">
+                {isJudo && (() => {
+                  const target = restrictToPlayerId
+                    ? playerRoundsData.find((p) => p.playerId === restrictToPlayerId)
+                    : playerRoundsData.find((p) => p.entryKey === selectedPlayerId) || playerRoundsData[0];
+                  const ranks = (target?.rounds || [])
+                    .map((r) => r.ranking)
+                    .filter((n): n is number => typeof n === "number" && n > 0);
+                  const best = ranks.length > 0 ? Math.min(...ranks) : null;
+                  const label =
+                    best === 1 ? "🥇 1er" :
+                    best === 2 ? "🥈 2e" :
+                    best === 3 ? "🥉 3e" :
+                    best ? `${best}e` : "NC";
+                  return (
+                    <div className="mb-3 flex items-center justify-between gap-2 rounded-xl border bg-muted/30 px-4 py-3">
+                      <span className="text-sm font-medium">
+                        Résultat de la compétition{target ? ` — ${target.playerName}` : ""}
+                      </span>
+                      <Badge variant={best !== null && best <= 3 ? "default" : "secondary"} className="text-sm">
+                        {label}
+                      </Badge>
+                    </div>
+                  );
+                })()}
                 <CompetitionHistoryPanel
                   categoryId={categoryId}
                   currentMatchId={matchId}

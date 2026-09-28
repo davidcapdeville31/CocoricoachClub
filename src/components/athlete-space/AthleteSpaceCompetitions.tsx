@@ -74,22 +74,30 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
   }, [playerId, refetch]);
 
 
-  const { data: roundCounts = {} } = useQuery({
+  const { data: roundInfo = { counts: {}, bestRanks: {} } } = useQuery({
     queryKey: ["athlete-space-competition-rounds-count", playerId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("competition_rounds")
-        .select("match_id")
+        .select("match_id, ranking")
         .eq("player_id", playerId);
       if (error) throw error;
       const counts: Record<string, number> = {};
+      const bestRanks: Record<string, number> = {};
       (data || []).forEach((r: any) => {
         counts[r.match_id] = (counts[r.match_id] || 0) + 1;
+        if (typeof r.ranking === "number" && r.ranking > 0) {
+          bestRanks[r.match_id] = bestRanks[r.match_id]
+            ? Math.min(bestRanks[r.match_id], r.ranking)
+            : r.ranking;
+        }
       });
-      return counts;
+      return { counts, bestRanks };
     },
     enabled: !!playerId,
   });
+  const roundCounts = roundInfo.counts;
+  const bestRanks = roundInfo.bestRanks;
 
   const { upcoming, past } = useMemo(() => {
     const today = new Date();
