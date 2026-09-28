@@ -12,8 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, AlertCircle, Dumbbell, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, AlertCircle, Dumbbell, ChevronDown, ChevronUp, Pencil } from "lucide-react";
 import { AddInjuryDialog } from "@/components/injuries/AddInjuryDialog";
+import { EditInjuryDialog } from "@/components/injuries/EditInjuryDialog";
 import { AssignProtocolDialog } from "@/components/injuries/AssignProtocolDialog";
 import { PlayerRehabTracker } from "@/components/injuries/PlayerRehabTracker";
 import { toast } from "sonner";
@@ -38,6 +39,7 @@ export function PlayerInjuriesTab({ playerId, categoryId, playerName = "Joueur",
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [protocolDialogOpen, setProtocolDialogOpen] = useState(false);
   const [selectedInjury, setSelectedInjury] = useState<any>(null);
+  const [editingInjury, setEditingInjury] = useState<any>(null);
   const [expandedInjuries, setExpandedInjuries] = useState<string[]>([]);
   const queryClient = useQueryClient();
 
