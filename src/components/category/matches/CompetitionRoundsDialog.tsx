@@ -390,16 +390,26 @@ export function CompetitionRoundsDialog({
       const { data: rawData, error } = await query;
       if (error) throw error;
       let data: any[] = rawData || [];
-      // Espace athlète : si l'athlète n'est pas (encore) dans la composition,
-      // on crée une entrée virtuelle pour qu'il puisse saisir ses combats.
+      // Espace athlète : si l'athlète n'est pas dans la composition mais est
+      // convoqué (match_participants), on crée une entrée virtuelle pour qu'il
+      // puisse saisir ses combats. Sinon, aucune entrée : seuls les convoqués
+      // peuvent saisir.
       if (restrictToPlayerId && data.length === 0) {
-        const { data: p } = await supabase
-          .from("players")
-          .select("id, name, first_name, discipline, specialty, gender")
-          .eq("id", restrictToPlayerId)
+        const { data: convocation } = await supabase
+          .from("match_participants")
+          .select("id")
+          .eq("match_id", matchId)
+          .eq("player_id", restrictToPlayerId)
           .maybeSingle();
-        if (p) {
-          data = [{ id: `virtual-${p.id}`, player_id: p.id, boat_type: null, crew_role: null, seat_position: null, discipline: null, specialty: null, start_order: null, players: p }];
+        if (convocation) {
+          const { data: p } = await supabase
+            .from("players")
+            .select("id, name, first_name, discipline, specialty, gender")
+            .eq("id", restrictToPlayerId)
+            .maybeSingle();
+          if (p) {
+            data = [{ id: `virtual-${p.id}`, player_id: p.id, boat_type: null, crew_role: null, seat_position: null, discipline: null, specialty: null, start_order: null, players: p }];
+          }
         }
       }
       // Sort by athlete name then by start_order so events appear in starting order
