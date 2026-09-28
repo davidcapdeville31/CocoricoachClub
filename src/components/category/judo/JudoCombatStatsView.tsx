@@ -200,6 +200,8 @@ interface ComputedResult {
   shidoMe: number;
   shidoOpp: number;
   scoreLabel: string; // "I:0 W:1 / S:1" style
+  /** true quand la victoire est décidée par le yuko (aucune différence de waza-ari) */
+  decidedByYuko: boolean;
 }
 
 const num = (v: unknown) => Number(v) || 0;
