@@ -174,7 +174,8 @@ export function EditInjuryDialog({ open, onOpenChange, injury }: EditInjuryDialo
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>{t("health.editInjuryDialog.cancel")}</Button>
           <Button onClick={() => {
-            if (!injuryType.trim()) { toast.error(t("health.editInjuryDialog.toastTypeRequired")); return; }
+            const finalType = injuryType === "other" || !isInList ? customInjuryType : injuryType;
+            if (!finalType.trim()) { toast.error(t("health.editInjuryDialog.toastTypeRequired")); return; }
             if (!injuryDate) { toast.error(t("health.editInjuryDialog.toastDateRequired")); return; }
             update.mutate();
           }} disabled={update.isPending}>
