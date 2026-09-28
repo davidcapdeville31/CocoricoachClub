@@ -1316,9 +1316,9 @@ function CombatPanel({
           <div className="rounded-lg border-2 border-dashed border-amber-500/40 bg-amber-500/5 p-2 flex flex-col items-center justify-center">
             <p className="text-[10px] uppercase font-bold text-muted-foreground">Scores concédés</p>
             <p className="text-2xl font-black text-amber-600 dark:text-amber-400 tabular-nums">
-              {num(round.stats?.[K.wazariOpp]) + num(round.stats?.[K.ipponOpp])}
+              {num(round.stats?.[K.wazariOpp]) + num(round.stats?.[K.ipponOpp]) + num(round.stats?.[K.yukoOpp])}
             </p>
-            <p className="text-[9px] text-muted-foreground">auto (Waza-ari + Ippon adverse)</p>
+            <p className="text-[9px] text-muted-foreground">auto (Waza-ari + Yuko + Ippon adverse)</p>
           </div>
         </div>
         {num(round.stats?.[K.defAttacksReceived]) > 0 && (
