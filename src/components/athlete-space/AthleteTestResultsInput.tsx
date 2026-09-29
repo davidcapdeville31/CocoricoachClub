@@ -380,10 +380,13 @@ export async function filterTestRecordsAgainstWindow<
   const win = parseTestWindowFromNotes(notes);
   if (records.length === 0) return records;
   const todayStr = new Date().toISOString().slice(0, 10);
-  // Hors campagne : on empêche une seconde saisie du même test pour la date de séance.
+  // Hors campagne : on empêche une seconde saisie du même test entre la date de
+  // séance et aujourd'hui (la saisie est datée du jour réel de saisie).
   const rangeStart = win ? win.start : sessionDate;
   if (!rangeStart) return records;
-  const winEnd = win ? (win.end >= todayStr ? win.end : todayStr) : sessionDate!;
+  const winEnd = win
+    ? (win.end >= todayStr ? win.end : todayStr)
+    : (sessionDate! >= todayStr ? sessionDate! : todayStr);
 
   const [{ data: pendingData }, { data: savedData }] = await Promise.all([
     supabase

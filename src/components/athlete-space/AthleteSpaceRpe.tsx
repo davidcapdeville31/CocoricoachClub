@@ -872,7 +872,9 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
           player_id: playerId,
           category_id: categoryId,
           training_session_id: selectedSession,
-          test_date: selectedSessionData?.session_date || new Date().toISOString().slice(0, 10),
+          // Date réelle de la saisie (ex. test passé le 15 dans une période
+          // 10→20 sept est daté du 15, pas du début de la campagne).
+          test_date: new Date().toISOString().slice(0, 10),
           test_category: r.test_category,
           test_type: r.test_type,
           result_value: r.result_value,
