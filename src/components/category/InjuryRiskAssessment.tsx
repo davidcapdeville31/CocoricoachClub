@@ -66,14 +66,25 @@ export function InjuryRiskAssessment({ categoryId }: InjuryRiskAssessmentProps) 
   const { data: awcrData } = useQuery({
     queryKey: ["acwr_loads_28d", categoryId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("awcr_tracking")
-        .select("player_id, rpe, duration_minutes, training_load, session_date")
-        .eq("category_id", categoryId)
-        .gte("session_date", subDays(today, 28).toISOString().split("T")[0])
-        .order("session_date", { ascending: false });
-      if (error) throw error;
-      return data;
+      // Pagination : la limite serveur de 1000 lignes tronquait l'historique
+      // (grosses catégories) → fenêtre chronique incomplète → ACWR N/A.
+      const since = subDays(today, 28).toISOString().split("T")[0];
+      const pageSize = 1000;
+      const all: any[] = [];
+      for (let from = 0; ; from += pageSize) {
+        const { data, error } = await supabase
+          .from("awcr_tracking")
+          .select("player_id, rpe, duration_minutes, training_load, session_date")
+          .eq("category_id", categoryId)
+          .gte("session_date", since)
+          .order("session_date", { ascending: false })
+          .order("id", { ascending: true })
+          .range(from, from + pageSize - 1);
+        if (error) throw error;
+        all.push(...(data || []));
+        if (!data || data.length < pageSize) break;
+      }
+      return all;
     },
   });
 
