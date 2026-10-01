@@ -52,7 +52,7 @@ const EXERCISE_CATEGORIES = [
 ];
 
 // Sous-catégories de Musculation
-const MUSCU_SUBCATEGORIES = [
+const MUSCU_EQUIPMENT_SUBS = [
   "Renforcement général",
   "Machines",
   "Kettlebell",
@@ -60,6 +60,19 @@ const MUSCU_SUBCATEGORIES = [
   "Poids de corps",
   "Barres",
 ];
+const MUSCU_MUSCLE_SUBS = [
+  "Tirages",
+  "Poussées",
+  "Dos",
+  "Pecs",
+  "Épaules",
+  "Bras",
+  "Avant-bras",
+  "Jambes",
+  "Fessiers",
+  "Abdos",
+];
+const MUSCU_SUBCATEGORIES = [...MUSCU_EQUIPMENT_SUBS, ...MUSCU_MUSCLE_SUBS];
 
 const exerciseCategories = (e: { categories?: string[] | null; station_name: string }) =>
   e.categories && e.categories.length ? e.categories : [e.station_name];
@@ -1160,20 +1173,25 @@ const ExerciseLibrary = () => {
         </TabsList>
 
         {selectedStation === "Musculation" && (
-          <div className="flex flex-wrap gap-2 mt-3">
-            {["all", ...MUSCU_SUBCATEGORIES].map(sub => (
-              <Button
-                key={sub}
-                type="button"
-                size="sm"
-                variant={selectedSub === sub ? "default" : "outline"}
-                onClick={() => setSelectedSub(sub)}
-              >
-                {sub === "all" ? "Toute la musculation" : sub}
-                <span className="ml-1.5 text-xs opacity-70">
-                  {exercises.filter(e => exerciseCategories(e).includes("Musculation") && (sub === "all" || (e.subcategories || []).includes(sub))).length}
-                </span>
-              </Button>
+          <div className="space-y-2 mt-3">
+            {[["all", ...MUSCU_EQUIPMENT_SUBS], MUSCU_MUSCLE_SUBS].map((row, ri) => (
+              <div key={ri} className="flex flex-wrap gap-2 items-center">
+                <span className="text-xs text-muted-foreground w-20">{ri === 0 ? "Matériel" : "Muscles"}</span>
+                {row.map(sub => (
+                  <Button
+                    key={sub}
+                    type="button"
+                    size="sm"
+                    variant={selectedSub === sub ? "default" : "outline"}
+                    onClick={() => setSelectedSub(sub)}
+                  >
+                    {sub === "all" ? "Toute la musculation" : sub}
+                    <span className="ml-1.5 text-xs opacity-70">
+                      {exercises.filter(e => exerciseCategories(e).includes("Musculation") && (sub === "all" || (e.subcategories || []).includes(sub))).length}
+                    </span>
+                  </Button>
+                ))}
+              </div>
             ))}
           </div>
         )}
