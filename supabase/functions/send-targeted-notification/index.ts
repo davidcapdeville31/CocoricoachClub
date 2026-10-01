@@ -267,7 +267,15 @@ serve(async (req: Request) => {
             });
             const json = await res.json();
             console.log("[send-targeted-notification] OneSignal response (tag-filter):", json);
-            if (res.ok) {
+            const tagNotSubscribed = json.errors?.some?.((e: string) =>
+              typeof e === "string" && e.toLowerCase().includes("not subscribed")
+            );
+            if (res.ok && (tagNotSubscribed || !json.id)) {
+              const errMsg = "Push: aucun appareil abonné aux notifications pour ces destinataires.";
+              console.warn("[send-targeted-notification] ⚠️ Push not delivered (tag-filter):", JSON.stringify(json));
+              results.errors.push(errMsg);
+              results.pushSent = 0;
+            } else if (res.ok) {
               results.pushSent = json.recipients ?? 0;
               console.log(`[send-targeted-notification] ✅ Push sent to ${results.pushSent} device(s). ID: ${json.id}`);
             } else {
