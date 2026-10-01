@@ -86,6 +86,8 @@ export function EditInjuryDialog({ open, onOpenChange, injury }: EditInjuryDialo
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["injuries"] });
+      qc.invalidateQueries({ queryKey: ["active_injuries"] });
+      qc.invalidateQueries({ queryKey: ["athlete-space-injuries-detail"] });
       qc.refetchQueries({ queryKey: ["injury-stats", injury.category_id], type: "active" });
       toast.success(t("health.editInjuryDialog.toastSuccess"));
       onOpenChange(false);
