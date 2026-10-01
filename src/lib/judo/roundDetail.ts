@@ -32,26 +32,13 @@ const STAT_META: Record<string, StatMeta> = {
   ijf_shido_opp: { label: "Shido adverses", format: "int", polarity: "for" },
   ijf_hansoku_direct_me: { label: "Hansoku-make subis", format: "int", polarity: "against" },
   ijf_hansoku_direct_opp: { label: "Hansoku-make provoqués", format: "int", polarity: "for" },
-  // Ne-waza
-  ijf_osaekomi_me_sec: { label: "Osaekomi (pour)", format: "duration", polarity: "for" },
-  ijf_osaekomi_opp_sec: { label: "Osaekomi (contre)", format: "duration", polarity: "against" },
-  immobilizationAttempts: { label: "Immobilisations tentées", format: "int", polarity: "neutral" },
-  ijf_immo_success: { label: "Immobilisations réussies", format: "int", polarity: "for" },
-  chokeAttempts: { label: "Étranglements tentés", format: "int", polarity: "neutral" },
-  ijf_choke_success: { label: "Étranglements réussis", format: "int", polarity: "for" },
-  armLockAttempts: { label: "Clés tentées", format: "int", polarity: "neutral" },
-  ijf_armlock_success: { label: "Clés réussies", format: "int", polarity: "for" },
-  ijf_submission_me: { label: "Abandons provoqués", format: "int", polarity: "for" },
-  ijf_submission_opp: { label: "Abandons subis", format: "int", polarity: "against" },
-  groundTimeSeconds: { label: "Temps au sol", format: "duration", polarity: "neutral" },
-  // Défense
-  ijf_def_attacks_received: { label: "Attaques reçues", format: "int", polarity: "against" },
-  ijf_def_attacks_neutralized: { label: "Attaques neutralisées", format: "int", polarity: "for" },
-  ijf_def_scores_conceded: { label: "Scores concédés", format: "int", polarity: "against" },
-  // Tactique
+  // Bilan simplifié
+  ijf_immo_score_me: { label: "Immobilisation pour", format: "int", polarity: "for" },
+  ijf_immo_score_opp: { label: "Immobilisation contre", format: "int", polarity: "against" },
+  ijf_transition_s2g: { label: "Liaisons debout-sol", format: "int", polarity: "for" },
+  ijf_standing_attempts: { label: "Techniques debout tentées", format: "int", polarity: "neutral" },
+  ijf_standing_success: { label: "Techniques debout réussies", format: "int", polarity: "for" },
   goldenScore: { label: "Golden Score", format: "int", polarity: "neutral" },
-  combatDuration: { label: "Durée du combat", format: "duration", polarity: "neutral" },
-  ijf_dominance_standing: { label: "Dominance debout", format: "percent", polarity: "for" },
 };
 
 // Keys that are internal/auto-computed and already reflected by the result badge
@@ -68,6 +55,30 @@ const HIDDEN_KEYS = new Set<string>([
   "hansokuMake",
   "result",
   "winner",
+  "combatDuration",
+  "goldenScoreDuration",
+  "ijf_osaekomi_me_sec",
+  "ijf_osaekomi_opp_sec",
+  "immobilizationAttempts",
+  "ijf_immo_success",
+  "ijf_immo_max_sec",
+  "chokeAttempts",
+  "ijf_choke_success",
+  "armLockAttempts",
+  "ijf_armlock_success",
+  "ijf_submission_me",
+  "ijf_submission_opp",
+  "groundTimeSeconds",
+  "ijf_ne_phases",
+  "ijf_regain_ground",
+  "ijf_def_attacks_received",
+  "ijf_def_attacks_neutralized",
+  "ijf_def_scores_conceded",
+  "ijf_activity_profile",
+  "ijf_dominance_standing",
+  "ijf_combat_profile",
+  "ijf_opp_style_mask",
+  "ijf_gs_decision",
 ]);
 
 export function formatStatValue(value: number, format: StatFormat): string {

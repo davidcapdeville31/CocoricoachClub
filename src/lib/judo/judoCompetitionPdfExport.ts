@@ -41,7 +41,7 @@ const GROUP_COLORS: Record<string, { bar: [RGB, RGB]; head: RGB; title: RGB; row
     title: [91, 33, 182],
     row: [250, 245, 255],
   },
-  "Défense": {
+  "Techniques debout": {
     bar: [[16, 185, 129], [45, 212, 191]],   // emerald → teal
     head: [220, 252, 231],
     title: [6, 95, 70],

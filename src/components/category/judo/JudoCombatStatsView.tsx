@@ -1,18 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
@@ -31,45 +22,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { X } from "lucide-react";
-import {
-  Plus,
-  Trash2,
-  Trophy,
-  Timer,
-  Swords,
-  Play,
-  Pause,
-  RotateCcw,
-  AlertTriangle,
-  Hand,
-  Flag,
-  Zap,
-  ShieldAlert,
-} from "lucide-react";
+import { X, Plus, Trash2, Trophy, Swords, Hand, Zap, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  JUDO_TECHNIQUES,
-  JUDO_TECHNIQUE_FAMILIES,
-  techStatKey,
-} from "@/lib/constants/judoTechniques";
 import { VideoCompanionDock, VideoCompanionTrigger } from "@/components/shared/VideoCompanionPanel";
-
-// ============================================================================
-// JUDO COMBAT — IJF RULE-AWARE SCORING UI
-// ----------------------------------------------------------------------------
-// Tap-based post-combat capture with implicit IJF rule engine:
-//   - 2 Waza-ari → Ippon (waza-ari awasete ippon) → fin immédiate
-//   - 3 Shido    → Hansoku-make → fin immédiate
-//   - Osaekomi   : 10s = Waza-ari, 20s = Ippon
-//   - Soumission : fin immédiate
-//   - Yuko / Koka : SUPPRIMÉS (non disponibles)
-//   - Golden Score : prolongation illimitée, fin sur 1er score / shido décisif
-// ----------------------------------------------------------------------------
-// Persistance : on conserve `stats: Record<string, number>` + `result` + `notes`
-// pour ne pas casser le schéma. Toutes les valeurs sont stockées comme clés
-// numériques ou flags (0/1). Le résultat est recalculé en live.
-// ============================================================================
 
 interface JudoRound {
   round_number: number;
@@ -111,291 +66,47 @@ interface Props {
   addRound: (entryKey: string) => void;
   removeRound: (entryKey: string, roundNumber: number) => void;
   updateRound: (entryKey: string, roundNumber: number, updates: Partial<JudoRound>) => void;
-  updateRoundStat: (
-    entryKey: string,
-    roundNumber: number,
-    statKey: string,
-    value: number,
-  ) => void;
+  updateRoundStat: (entryKey: string, roundNumber: number, statKey: string, value: number) => void;
 }
 
-// ----- Stat keys -----------------------------------------------------------
 const K = {
-  // Scores
   wazariMe: "ijf_wazari_me",
   wazariOpp: "ijf_wazari_opp",
   yukoMe: "ijf_yuko_me",
   yukoOpp: "ijf_yuko_opp",
   ipponMe: "ijf_ippon_me",
   ipponOpp: "ijf_ippon_opp",
-  // Pénalités
   shidoMe: "ijf_shido_me",
   shidoOpp: "ijf_shido_opp",
   hansokuDirectMe: "ijf_hansoku_direct_me",
   hansokuDirectOpp: "ijf_hansoku_direct_opp",
-  // Ne-waza
-  submissionMe: "ijf_submission_me",
-  submissionOpp: "ijf_submission_opp",
-  osaekomiMeSec: "ijf_osaekomi_me_sec",
-  osaekomiOppSec: "ijf_osaekomi_opp_sec",
-  // Temps
-  combatDuration: "combatDuration",
-  goldenScore: "goldenScore",
-  goldenScoreDuration: "goldenScoreDuration",
-  // Tactique
-  dominanceStanding: "ijf_dominance_standing", // 0..100 (%)
-  // Fin de combat (manuel coach) — enum: 1 ippon · 2 wazari · 3 wazari_awasete · 4 hansoku · 5 decision · 6 abandon · 7 forfait
   endMethod: "ijf_end_method",
-  // Golden Score — décision en GS : 1 technique · 2 penalty · 3 shido_accumulation
   gsDecision: "ijf_gs_decision",
-  // Défense
-  defAttacksReceived: "ijf_def_attacks_received",
-  defAttacksNeutralized: "ijf_def_attacks_neutralized",
-  defScoresConceded: "ijf_def_scores_conceded",
-  // Profil d'activité : 1 très actif · 2 actif · 3 neutre · 4 passif
-  activityProfile: "ijf_activity_profile",
-  // Profil combat : 1 dominant · 2 équilibré · 3 dominé · 4 contrôle sans score · 5 explosif · 6 défensif
+  goldenScore: "goldenScore",
   combatProfile: "ijf_combat_profile",
-  // Style adversaire (bitmask) : 1 attaquant · 2 contreur · 4 physique · 8 technique · 16 kumikata · 32 passif
-  opponentStyleMask: "ijf_opp_style_mask",
-  // Ne-waza extended
-  groundTimeSec: "groundTimeSeconds",
-  groundPhases: "ijf_ne_phases",
-  immoAttempts: "immobilizationAttempts",
-  immoSuccess: "ijf_immo_success",
-  immoMaxSec: "ijf_immo_max_sec",
-  chokeAttempts: "chokeAttempts",
-  chokeSuccess: "ijf_choke_success",
-  armlockAttempts: "armLockAttempts",
-  armlockSuccess: "ijf_armlock_success",
+  opponentStyle: "ijf_opp_style_mask",
+  immoScoreMe: "ijf_immo_score_me",
+  immoScoreOpp: "ijf_immo_score_opp",
   transitionStandToGround: "ijf_transition_s2g",
-  regainGround: "ijf_regain_ground",
-  // Compat historique
-  victoryModeIppon: "victoryModeIppon",
-  victoryModeWazaari: "victoryModeWazaari",
-  victoryModeHansoku: "victoryModeHansoku",
-  hansokuMake: "hansokuMake",
+  standingAttempts: "ijf_standing_attempts",
+  standingSuccess: "ijf_standing_success",
 } as const;
 
-type EndCause =
-  | "ippon_throw"
-  | "wazari_awasete"
-  | "wazari_score" // décision sur waza-ari en GS / shido décisif inverse
-  | "yuko_score" // victoire au yuko (aucune différence de waza-ari)
-  | "hansoku_indirect"
-  | "hansoku_direct"
-  | "submission"
-  | "osaekomi_ippon"
-  | "decision"
-  | "golden_score"
-  | "pending";
+const num = (value: unknown) => Number(value) || 0;
 
-interface ComputedResult {
-  winner: "me" | "opp" | "draw" | "pending";
-  cause: EndCause;
-  causeLabel: string;
-  ipponMe: number;
-  ipponOpp: number;
-  wazariMe: number;
-  wazariOpp: number;
-  shidoMe: number;
-  shidoOpp: number;
-  scoreLabel: string; // "I:0 W:1 / S:1" style
-  /** true quand la victoire est décidée par le yuko (aucune différence de waza-ari) */
-  decidedByYuko: boolean;
+function scoreLabel(round: JudoRound) {
+  const stats = round.stats || {};
+  const immoMe = num(stats[K.immoScoreMe]);
+  const immoOpp = num(stats[K.immoScoreOpp]);
+  const ipponMe = num(stats[K.ipponMe]) + (immoMe === 3 ? 1 : 0);
+  const ipponOpp = num(stats[K.ipponOpp]) + (immoOpp === 3 ? 1 : 0);
+  const wazariMe = num(stats[K.wazariMe]) + (immoMe === 2 ? 1 : 0);
+  const wazariOpp = num(stats[K.wazariOpp]) + (immoOpp === 2 ? 1 : 0);
+  const yukoMe = num(stats[K.yukoMe]) + (immoMe === 1 ? 1 : 0);
+  const yukoOpp = num(stats[K.yukoOpp]) + (immoOpp === 1 ? 1 : 0);
+  return `Ippon ${ipponMe}–${ipponOpp} · Waza-ari ${wazariMe}–${wazariOpp} · Yuko ${yukoMe}–${yukoOpp} · Shido ${num(stats[K.shidoMe])}–${num(stats[K.shidoOpp])}`;
 }
 
-const num = (v: unknown) => Number(v) || 0;
-
-function computeResult(stats: Record<string, number> | undefined, manualResult: string): ComputedResult {
-  const s = stats || {};
-  const wazariMe = num(s[K.wazariMe]);
-  const wazariOpp = num(s[K.wazariOpp]);
-  const ipponMe = num(s[K.ipponMe]);
-  const ipponOpp = num(s[K.ipponOpp]);
-  const yukoMe = num(s[K.yukoMe]);
-  const yukoOpp = num(s[K.yukoOpp]);
-  const shidoMe = num(s[K.shidoMe]);
-  const shidoOpp = num(s[K.shidoOpp]);
-  const subMe = num(s[K.submissionMe]) > 0;
-  const subOpp = num(s[K.submissionOpp]) > 0;
-  const hansokuDirectMe = num(s[K.hansokuDirectMe]) > 0;
-  const hansokuDirectOpp = num(s[K.hansokuDirectOpp]) > 0;
-  const osaeMe = num(s[K.osaekomiMeSec]);
-  const osaeOpp = num(s[K.osaekomiOppSec]);
-
-  // Calcul des "effectifs" (osaekomi qui dégénèrent en score)
-  // 10s → waza-ari, 20s → ippon. On ajoute aux compteurs visibles.
-  const wMeEff = wazariMe + (osaeMe >= 10 && osaeMe < 20 ? 1 : 0);
-  const wOppEff = wazariOpp + (osaeOpp >= 10 && osaeOpp < 20 ? 1 : 0);
-  const iMeEff = ipponMe + (osaeMe >= 20 ? 1 : 0);
-  const iOppEff = ipponOpp + (osaeOpp >= 20 ? 1 : 0);
-
-  // Waza-ari awasete ippon
-  const wazariIpponMe = wMeEff >= 2;
-  const wazariIpponOpp = wOppEff >= 2;
-
-  const scoreLabel = `Ippon ${iMeEff}–${iOppEff} · Waza-ari ${wMeEff}–${wOppEff}${
-    yukoMe || yukoOpp ? ` · Yuko ${yukoMe}–${yukoOpp}` : ""
-  } · Shido ${shidoMe}–${shidoOpp}`;
-
-  // Priorités IJF de fin de combat (premier vrai)
-  // 1) Soumission immédiate
-  if (subMe) return mk("opp", "submission", "Soumission (abandon athlète)");
-  if (subOpp) return mk("me", "submission", "Soumission adverse");
-  // 2) Hansoku-make direct
-  if (hansokuDirectMe) return mk("opp", "hansoku_direct", "Hansoku-make direct (athlète)");
-  if (hansokuDirectOpp) return mk("me", "hansoku_direct", "Hansoku-make direct (adversaire)");
-  // 3) 3 Shido = Hansoku-make indirect
-  if (shidoMe >= 3) return mk("opp", "hansoku_indirect", "Hansoku-make (3 shido athlète)");
-  if (shidoOpp >= 3) return mk("me", "hansoku_indirect", "Hansoku-make (3 shido adversaire)");
-  // 4) Ippon direct (projection / osaekomi 20s)
-  if (iMeEff > 0) {
-    return mk(
-      "me",
-      osaeMe >= 20 ? "osaekomi_ippon" : "ippon_throw",
-      osaeMe >= 20 ? "Ippon — Osaekomi 20s" : "Ippon",
-    );
-  }
-  if (iOppEff > 0) {
-    return mk(
-      "opp",
-      osaeOpp >= 20 ? "osaekomi_ippon" : "ippon_throw",
-      osaeOpp >= 20 ? "Ippon adverse — Osaekomi 20s" : "Ippon adverse",
-    );
-  }
-  // 5) Waza-ari awasete ippon
-  if (wazariIpponMe) return mk("me", "wazari_awasete", "Waza-ari awasete ippon");
-  if (wazariIpponOpp) return mk("opp", "wazari_awasete", "Waza-ari awasete ippon (adverse)");
-
-  // Pas de fin nette → état "en cours" / décision possible
-  // On ne respecte manualResult QUE s'il y a au moins un score / pénalité saisi
-  const hasAnyActivity =
-    wMeEff > 0 || wOppEff > 0 || iMeEff > 0 || iOppEff > 0 || shidoMe > 0 || shidoOpp > 0 ||
-    yukoMe > 0 || yukoOpp > 0;
-  if (
-    hasAnyActivity &&
-    (manualResult === "win" || manualResult === "loss" || manualResult === "draw")
-  ) {
-    const winner = manualResult === "win" ? "me" : manualResult === "loss" ? "opp" : "draw";
-    // Yuko décisif : aucune différence de waza-ari mais un écart de yuko
-    const yukoDecides = wMeEff === wOppEff && yukoMe !== yukoOpp;
-    const cause: EndCause = num(s[K.goldenScore]) > 0 ? "golden_score" : yukoDecides ? "yuko_score" : "decision";
-    return {
-      winner,
-      cause,
-      causeLabel:
-        cause === "golden_score"
-          ? yukoDecides
-            ? "Golden Score (yuko)"
-            : "Décision Golden Score"
-          : cause === "yuko_score"
-          ? "Décision (yuko)"
-          : "Décision (waza-ari / shido)",
-      ipponMe: iMeEff,
-      ipponOpp: iOppEff,
-      wazariMe: wMeEff,
-      wazariOpp: wOppEff,
-      shidoMe,
-      shidoOpp,
-      scoreLabel,
-      decidedByYuko: yukoDecides,
-    };
-  }
-
-  return {
-    winner: "pending",
-    cause: "pending",
-    causeLabel: "Combat en cours / résultat à confirmer",
-    ipponMe: iMeEff,
-    ipponOpp: iOppEff,
-    wazariMe: wMeEff,
-    wazariOpp: wOppEff,
-    shidoMe,
-    shidoOpp,
-    scoreLabel,
-    decidedByYuko: false,
-  };
-
-  function mk(winner: "me" | "opp", cause: EndCause, causeLabel: string): ComputedResult {
-    return {
-      winner,
-      cause,
-      causeLabel,
-      ipponMe: iMeEff,
-      ipponOpp: iOppEff,
-      wazariMe: wMeEff,
-      wazariOpp: wOppEff,
-      shidoMe,
-      shidoOpp,
-      scoreLabel,
-      decidedByYuko: false,
-    };
-  }
-}
-
-const fmtMMSS = (sec: number) => {
-  if (!sec || sec < 0) return "0:00";
-  const m = Math.floor(sec / 60);
-  const s = Math.round(sec % 60);
-  return `${m}:${s.toString().padStart(2, "0")}`;
-};
-
-// ---------- Timeline persistence (hidden JSON comment in `notes`) ----------
-export interface JudoTimelineEvent {
-  id: string;
-  label: string;
-  side?: "me" | "opp" | null;
-  from: number; // seconds from combat start
-  to?: number;  // optional end (for ranged events like osaekomi)
-  kind?: string;
-}
-const TIMELINE_RE = /<!--judo-timeline:([\s\S]*?)-->/;
-function extractTimeline(notes: string): JudoTimelineEvent[] {
-  const m = (notes || "").match(TIMELINE_RE);
-  if (!m) return [];
-  try {
-    const arr = JSON.parse(m[1]);
-    return Array.isArray(arr) ? arr : [];
-  } catch {
-    return [];
-  }
-}
-function writeTimeline(notes: string, events: JudoTimelineEvent[]): string {
-  const clean = (notes || "").replace(TIMELINE_RE, "").trimEnd();
-  const tag = `<!--judo-timeline:${JSON.stringify(events)}-->`;
-  return clean ? `${clean}\n${tag}` : tag;
-}
-function userVisibleNotes(notes: string): string {
-  return (notes || "").replace(TIMELINE_RE, "").trim();
-}
-
-// Map d'une clé stat (sur incrément) vers libellé timeline
-const ACTION_LABELS: Record<string, { label: string; side: "me" | "opp"; kind: string }> = {
-  ijf_wazari_me: { label: "Waza-ari", side: "me", kind: "wazari" },
-  ijf_wazari_opp: { label: "Waza-ari", side: "opp", kind: "wazari" },
-  ijf_yuko_me: { label: "Yuko", side: "me", kind: "yuko" },
-  ijf_yuko_opp: { label: "Yuko", side: "opp", kind: "yuko" },
-  ijf_ippon_me: { label: "Ippon", side: "me", kind: "ippon" },
-  ijf_ippon_opp: { label: "Ippon", side: "opp", kind: "ippon" },
-  ijf_shido_me: { label: "Shido", side: "me", kind: "shido" },
-  ijf_shido_opp: { label: "Shido", side: "opp", kind: "shido" },
-  ijf_hansoku_direct_me: { label: "Hansoku-make direct", side: "me", kind: "hansoku" },
-  ijf_hansoku_direct_opp: { label: "Hansoku-make direct", side: "opp", kind: "hansoku" },
-  ijf_submission_me: { label: "Soumission (abandon)", side: "me", kind: "submission" },
-  ijf_submission_opp: { label: "Soumission adverse", side: "opp", kind: "submission" },
-};
-
-const parseMMSS = (txt: string): number => {
-  const m = txt.match(/^\s*(\d+)\s*:\s*(\d{1,2})\s*$/);
-  if (m) return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
-  const n = parseInt(txt, 10);
-  return Number.isFinite(n) ? n : 0;
-};
-
-// ============================================================================
-// MAIN VIEW
-// ============================================================================
 export function JudoCombatStatsView({
   selectedPlayer,
   phases,
@@ -406,82 +117,45 @@ export function JudoCombatStatsView({
   updateRoundStat,
 }: Props) {
   const [combatToDelete, setCombatToDelete] = useState<number | null>(null);
-  const [activeRoundNumber, setActiveRoundNumber] = useState<number | null>(
-    selectedPlayer.rounds[0]?.round_number ?? null,
-  );
+  const [activeRoundNumber, setActiveRoundNumber] = useState<number | null>(selectedPlayer.rounds[0]?.round_number ?? null);
 
-  // Si on ajoute / supprime, on s'aligne sur un combat existant
   useEffect(() => {
     if (selectedPlayer.rounds.length === 0) {
       setActiveRoundNumber(null);
       return;
     }
-    if (!selectedPlayer.rounds.find((r) => r.round_number === activeRoundNumber)) {
+    if (!selectedPlayer.rounds.some((round) => round.round_number === activeRoundNumber)) {
       setActiveRoundNumber(selectedPlayer.rounds[selectedPlayer.rounds.length - 1].round_number);
     }
   }, [selectedPlayer.rounds, activeRoundNumber]);
 
-  const activeRound = selectedPlayer.rounds.find((r) => r.round_number === activeRoundNumber);
-
-  // ------- Cumul tournoi --------
+  const activeRound = selectedPlayer.rounds.find((round) => round.round_number === activeRoundNumber);
   const totals = useMemo(() => {
-    let wins = 0,
-      losses = 0,
-      draws = 0,
-      totalSec = 0,
-      gsCount = 0,
-      ippon = 0,
-      wazari = 0,
-      shido = 0,
-      hansoku = 0;
-    for (const r of selectedPlayer.rounds) {
-      const c = computeResult(r.stats, r.result);
-      if (c.winner === "me") wins++;
-      else if (c.winner === "opp") losses++;
-      else if (c.winner === "draw") draws++;
-      totalSec += num(r.stats?.[K.combatDuration]);
-      if (num(r.stats?.[K.goldenScore]) > 0) gsCount++;
-      ippon += c.ipponMe;
-      wazari += c.wazariMe;
-      shido += c.shidoMe;
-      if (c.cause === "hansoku_direct" || c.cause === "hansoku_indirect") {
-        if (c.winner === "opp") hansoku++;
-      }
-    }
-    return { wins, losses, draws, totalSec, gsCount, ippon, wazari, shido, hansoku };
+    const wins = selectedPlayer.rounds.filter((round) => round.result === "win").length;
+    const losses = selectedPlayer.rounds.filter((round) => round.result === "loss").length;
+    return { wins, losses, pending: selectedPlayer.rounds.length - wins - losses };
   }, [selectedPlayer.rounds]);
 
-  // ------- Opponents select --------
   const sortedOpps = useMemo(() => {
     const all = opponentProfiles || [];
-    const matches = (o: OpponentProfile) =>
-      (!selectedPlayer.playerGender || !o.gender || o.gender === selectedPlayer.playerGender) &&
-      (!selectedPlayer.playerWeightCategory ||
-        !o.weight_category ||
-        o.weight_category === selectedPlayer.playerWeightCategory);
-    return {
-      matched: all.filter(matches),
-      others: all.filter((o) => !matches(o)),
-    };
+    const matches = (opponent: OpponentProfile) =>
+      (!selectedPlayer.playerGender || !opponent.gender || opponent.gender === selectedPlayer.playerGender) &&
+      (!selectedPlayer.playerWeightCategory || !opponent.weight_category || opponent.weight_category === selectedPlayer.playerWeightCategory);
+    return { matched: all.filter(matches), others: all.filter((opponent) => !matches(opponent)) };
   }, [opponentProfiles, selectedPlayer.playerGender, selectedPlayer.playerWeightCategory]);
 
-  const fmtOpp = (o: OpponentProfile) =>
-    `${o.last_name}${o.first_name ? " " + o.first_name : ""}` +
-    (o.weight_category ? ` (${o.weight_category.replace(/^judo_/, "")})` : "") +
-    (o.handedness === "left" ? " G" : o.handedness === "right" ? " D" : "");
+  const fmtOpp = (opponent: OpponentProfile) =>
+    `${opponent.last_name}${opponent.first_name ? ` ${opponent.first_name}` : ""}` +
+    (opponent.weight_category ? ` (${opponent.weight_category.replace(/^judo_/, "")})` : "") +
+    (opponent.handedness === "left" ? " G" : opponent.handedness === "right" ? " D" : "");
 
-  // ----- Empty state -----
   if (selectedPlayer.rounds.length === 0 || !activeRound) {
     return (
-      <div className="text-center py-10 text-muted-foreground space-y-4">
-        <Swords className="h-12 w-12 mx-auto opacity-40" />
+      <div className="space-y-4 py-10 text-center text-muted-foreground">
+        <Swords className="mx-auto h-12 w-12 opacity-40" />
         <p>Aucun combat enregistré pour {selectedPlayer.playerName}</p>
-        <Button
-          size="sm"
-          onClick={() => addRound(selectedPlayer.entryKey)}
-          className="gap-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-        >
-          <Plus className="h-4 w-4" /> Démarrer un combat
+        <Button size="sm" onClick={() => addRound(selectedPlayer.entryKey)} className="gap-2">
+          <Plus className="h-4 w-4" /> Ajouter un combat
         </Button>
       </div>
     );
@@ -489,73 +163,50 @@ export function JudoCombatStatsView({
 
   return (
     <div className="space-y-4">
-      {/* CUMUL TOURNOI */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <StatPill label="Combats" value={selectedPlayer.rounds.length} />
-        <StatPill
-          label="Bilan"
-          value={`${totals.wins}V / ${totals.losses}D${totals.draws ? ` / ${totals.draws}E` : ""}`}
-          accent="success"
-        />
-        <StatPill
-          label="Temps cumulé"
-          value={fmtMMSS(totals.totalSec)}
-          accent="info"
-          icon={<Timer className="h-3.5 w-3.5" />}
-        />
-        <StatPill
-          label="Golden Score"
-          value={`${totals.gsCount} combat${totals.gsCount > 1 ? "s" : ""}`}
-          accent={totals.gsCount > 0 ? "warning" : "muted"}
-        />
+        <StatPill label="Victoires" value={totals.wins} accent="success" />
+        <StatPill label="Défaites" value={totals.losses} accent="danger" />
+        <StatPill label="À compléter" value={totals.pending} />
       </div>
 
-      {/* ROUND SELECTOR */}
       <div className="flex flex-wrap items-center gap-1.5">
-        {selectedPlayer.rounds.map((r) => {
-          const c = computeResult(r.stats, r.result);
-          const active = r.round_number === activeRoundNumber;
+        {selectedPlayer.rounds.map((round) => {
+          const active = round.round_number === activeRoundNumber;
           return (
-            <div key={r.round_number} className="relative inline-flex group">
+            <div key={round.round_number} className="group relative inline-flex">
               <Button
                 variant={active ? "default" : "outline"}
                 size="sm"
-                onClick={() => setActiveRoundNumber(r.round_number)}
+                onClick={() => setActiveRoundNumber(round.round_number)}
                 className={cn(
-                  "h-8 gap-1.5 text-xs pr-7",
-                  !active && c.winner === "me" && "border-emerald-500/60 text-emerald-700 dark:text-emerald-400",
-                  !active && c.winner === "opp" && "border-red-500/60 text-red-700 dark:text-red-400",
+                  "h-8 gap-1.5 pr-7 text-xs",
+                  !active && round.result === "win" && "border-emerald-500/60 text-emerald-700 dark:text-emerald-400",
+                  !active && round.result === "loss" && "border-destructive/60 text-destructive",
                 )}
               >
-                <span className="font-bold">C{r.round_number}</span>
-                {r.opponent_name && (
-                  <span className="hidden sm:inline opacity-80 truncate max-w-[120px]">
-                    {r.opponent_name}
-                  </span>
-                )}
-                {c.winner === "me" && <Trophy className="h-3 w-3" />}
+                <span className="font-bold">C{round.round_number}</span>
+                {round.opponent_name && <span className="hidden max-w-[120px] truncate opacity-80 sm:inline">{round.opponent_name}</span>}
+                {round.result === "win" && <Trophy className="h-3 w-3" />}
               </Button>
-              <button
+              <Button
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setCombatToDelete(r.round_number);
+                size="icon"
+                variant="ghost"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setCombatToDelete(round.round_number);
                 }}
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-5 w-5 rounded-full flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                aria-label={`Supprimer combat ${r.round_number}`}
+                className="absolute right-0.5 top-1/2 h-6 w-6 -translate-y-1/2 text-muted-foreground hover:text-destructive"
+                aria-label={`Supprimer combat ${round.round_number}`}
                 title="Supprimer ce combat"
               >
                 <X className="h-3 w-3" />
-              </button>
+              </Button>
             </div>
           );
         })}
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => addRound(selectedPlayer.entryKey)}
-          className="h-8 gap-1 text-xs"
-        >
+        <Button size="sm" variant="ghost" onClick={() => addRound(selectedPlayer.entryKey)} className="h-8 gap-1 text-xs">
           <Plus className="h-3.5 w-3.5" /> Combat
         </Button>
       </div>
@@ -573,10 +224,8 @@ export function JudoCombatStatsView({
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => {
-                if (combatToDelete !== null) {
-                  removeRound(selectedPlayer.entryKey, combatToDelete);
-                  setCombatToDelete(null);
-                }
+                if (combatToDelete !== null) removeRound(selectedPlayer.entryKey, combatToDelete);
+                setCombatToDelete(null);
               }}
             >
               Supprimer
@@ -585,860 +234,271 @@ export function JudoCombatStatsView({
         </AlertDialogContent>
       </AlertDialog>
 
-
-      {/* ACTIVE COMBAT PANEL */}
-      <CombatPanel
+      <CombatReviewPanel
         key={activeRound.round_number}
         round={activeRound}
         phases={phases}
         sortedOpps={sortedOpps}
         fmtOpp={fmtOpp}
         opponentProfiles={opponentProfiles}
-        onUpdate={(u) => updateRound(selectedPlayer.entryKey, activeRound.round_number, u)}
-        onUpdateStat={(k, v) =>
-          updateRoundStat(selectedPlayer.entryKey, activeRound.round_number, k, v)
-        }
+        onUpdate={(updates) => updateRound(selectedPlayer.entryKey, activeRound.round_number, updates)}
+        onUpdateStat={(key, value) => updateRoundStat(selectedPlayer.entryKey, activeRound.round_number, key, value)}
         onRemove={() => removeRound(selectedPlayer.entryKey, activeRound.round_number)}
       />
     </div>
   );
 }
 
-// ============================================================================
-// COMBAT PANEL (per round)
-// ============================================================================
-function CombatPanel({
+function CombatReviewPanel({
   round,
   phases,
   sortedOpps,
   fmtOpp,
   opponentProfiles,
   onUpdate,
-  onUpdateStat: rawUpdateStat,
+  onUpdateStat,
   onRemove,
 }: {
   round: JudoRound;
   phases: { value: string; label: string }[];
   sortedOpps: { matched: OpponentProfile[]; others: OpponentProfile[] };
-  fmtOpp: (o: OpponentProfile) => string;
+  fmtOpp: (opponent: OpponentProfile) => string;
   opponentProfiles: OpponentProfile[] | undefined;
-  onUpdate: (u: Partial<JudoRound>) => void;
-  onUpdateStat: (k: string, v: number) => void;
+  onUpdate: (updates: Partial<JudoRound>) => void;
+  onUpdateStat: (key: string, value: number) => void;
   onRemove: () => void;
 }) {
-  // ----- Chrono combat (local UI) — pilote aussi Durée totale & Golden Score -----
-  const [chronoSec, setChronoSec] = useState(0);
-  const [chronoRunning, setChronoRunning] = useState(false);
   const [videoOpen, setVideoOpen] = useState(false);
-
-  // Refs pour accéder à l'état courant dans l'interval sans recréer l'interval
-  const roundStatsRef = useRef(round.stats);
-  useEffect(() => { roundStatsRef.current = round.stats; }, [round.stats]);
-  const eventsRef = useRef<JudoTimelineEvent[]>([]);
-  const notesRef = useRef<string>(round.notes || "");
-  useEffect(() => { notesRef.current = round.notes || ""; }, [round.notes]);
-
-  // ----- Timeline (persistée dans notes via balise cachée) -----
-  const events = useMemo(() => extractTimeline(round.notes || ""), [round.notes]);
-  useEffect(() => { eventsRef.current = events; }, [events]);
-
-  const writeEvents = (next: JudoTimelineEvent[]) => {
-    const visible = userVisibleNotes(notesRef.current || "");
-    eventsRef.current = next;
-    onUpdate({ notes: writeTimeline(visible, next) });
-  };
-  const addEvent = (
-    label: string,
-    opts: { side?: "me" | "opp" | null; from?: number; to?: number; kind?: string } = {},
-  ) => {
-    const ev: JudoTimelineEvent = {
-      id:
-        typeof crypto !== "undefined" && "randomUUID" in crypto
-          ? crypto.randomUUID()
-          : `${Date.now()}-${Math.random()}`,
-      label,
-      side: opts.side ?? null,
-      from: opts.from ?? chronoSec,
-      to: opts.to,
-      kind: opts.kind,
-    };
-    writeEvents([...eventsRef.current, ev]);
-  };
-  const removeEvent = (id: string) =>
-    writeEvents(eventsRef.current.filter((e) => e.id !== id));
-
-  // Chrono tick : avance chronoSec + Durée totale + Golden Score (auto à 4:00)
-  useEffect(() => {
-    if (!chronoRunning) return;
-    const id = setInterval(() => {
-      setChronoSec((s) => {
-        const next = s + 1;
-        const stats = roundStatsRef.current || {};
-        // Durée totale = chrono
-        rawUpdateStat(K.combatDuration, next);
-        // Passage automatique en Golden Score à 4:00
-        const isGS = num(stats[K.goldenScore]) > 0;
-        if (next === 240 && !isGS) {
-          rawUpdateStat(K.goldenScore, 1);
-          const visible = userVisibleNotes(notesRef.current || "");
-          const ev: JudoTimelineEvent = {
-            id:
-              typeof crypto !== "undefined" && "randomUUID" in crypto
-                ? crypto.randomUUID()
-                : `${Date.now()}-${Math.random()}`,
-            label: "Passage en Golden Score",
-            side: null,
-            from: next,
-            kind: "golden_score_start",
-          };
-          const nextEvents = [...eventsRef.current, ev];
-          eventsRef.current = nextEvents;
-          onUpdate({ notes: writeTimeline(visible, nextEvents) });
-        }
-        // Durée du Golden Score = temps écoulé au-delà de 4:00
-        if (next > 240 || isGS) {
-          rawUpdateStat(K.goldenScoreDuration, num(stats[K.goldenScoreDuration]) + 1);
-        }
-        return next;
-      });
-    }, 1000);
-    return () => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chronoRunning]);
-
-  // Wrapper de onUpdateStat : log auto dans la timeline pour les actions reconnues
-  const onUpdateStat = (k: string, v: number) => {
-    const old = num(round.stats?.[k]);
-    if (v > old) {
-      if (ACTION_LABELS[k]) {
-        const meta = ACTION_LABELS[k];
-        addEvent(meta.label, { side: meta.side, kind: meta.kind });
-      } else if (k === K.defAttacksReceived) {
-        addEvent("Attaque subie", { side: "opp", kind: "def_received" });
-      } else if (k === K.defAttacksNeutralized) {
-        addEvent("Attaque neutralisée", { side: "me", kind: "def_neutralized" });
-      } else {
-        const m = k.match(/^tech__(.+)__(att|suc)$/);
-        if (m) {
-          const techKey = m[1];
-          const kind = m[2];
-          const tech = JUDO_TECHNIQUES.find((t) => t.key === techKey);
-          const label = tech?.label ?? techKey;
-          if (kind === "att") {
-            addEvent(`Attaque: ${label}`, { side: "me", kind: "attack" });
-          } else {
-            addEvent(`Attaque réussie: ${label}`, { side: "me", kind: "attack_success" });
-          }
-        }
-      }
-    }
-    rawUpdateStat(k, v);
-  };
-
-  // Refs pour mémoriser le début d'osaekomi (ne-waza)
-  const osaeMeStartRef = useRef<number | null>(null);
-  const osaeOppStartRef = useRef<number | null>(null);
-
-  const result = useMemo(() => computeResult(round.stats, round.result), [round.stats, round.result]);
-
-  // Autosave du résultat calculé dans `result` (et compat victoryMode*)
-  useEffect(() => {
-    const targetResult =
-      result.winner === "me"
-        ? "win"
-        : result.winner === "opp"
-        ? "loss"
-        : result.winner === "draw"
-        ? "draw"
-        : "";
-    if (targetResult !== (round.result || "")) {
-      onUpdate({ result: targetResult });
-    }
-    // Compat anciens flags
-    const flags: Array<[string, number]> = [
-      [
-        K.victoryModeIppon,
-        result.winner === "me" &&
-        (result.cause === "ippon_throw" || result.cause === "osaekomi_ippon")
-          ? 1
-          : 0,
-      ],
-      [K.victoryModeWazaari, result.winner === "me" && result.cause === "wazari_awasete" ? 1 : 0],
-      [
-        K.victoryModeHansoku,
-        result.winner === "me" &&
-        (result.cause === "hansoku_direct" || result.cause === "hansoku_indirect")
-          ? 1
-          : 0,
-      ],
-      [
-        K.hansokuMake,
-        result.cause === "hansoku_direct" || result.cause === "hansoku_indirect" ? 1 : 0,
-      ],
-    ];
-    for (const [k, v] of flags) {
-      if (num(round.stats?.[k]) !== v) onUpdateStat(k, v);
-    }
-    // Auto-déduire la méthode de fin depuis la cause calculée
-    const autoEnd =
-      result.cause === "ippon_throw" || result.cause === "osaekomi_ippon"
-        ? 1
-        : result.cause === "wazari_score"
-        ? 2
-        : result.cause === "wazari_awasete"
-        ? 3
-        : result.cause === "hansoku_direct" || result.cause === "hansoku_indirect"
-        ? 4
-        : result.cause === "yuko_score"
-        ? 8
-        : (result.cause === "decision" || result.cause === "golden_score") && result.decidedByYuko
-        ? 8
-        : result.cause === "decision" || result.cause === "golden_score"
-        ? 5
-        : result.cause === "submission"
-        ? 6
-        : 0;
-    if (autoEnd > 0 && num(round.stats?.[K.endMethod]) !== autoEnd) {
-      onUpdateStat(K.endMethod, autoEnd);
-    } else if (autoEnd === 0 && result.winner === "pending" && num(round.stats?.[K.endMethod]) > 0) {
-      // Reset si plus aucune cause détectée
-      onUpdateStat(K.endMethod, 0);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [result.winner, result.cause]);
-
-  // Exclusivité IJF : un combat ne peut avoir qu'un seul vainqueur.
-  // Quand un côté marque une action gagnante, on annule les conditions
-  // qui faisaient perdre ce même côté (ippon adverse, hansoku-make sur soi,
-  // soumission de soi, 3e shido, 2e waza-ari adverse, osaekomi 20s adverse).
-  const clearLosingFor = (winSide: "me" | "opp") => {
-    const s = round.stats || {};
-    if (winSide === "me") {
-      if (num(s[K.ipponOpp]) > 0) onUpdateStat(K.ipponOpp, 0);
-      if (num(s[K.hansokuDirectMe]) > 0) onUpdateStat(K.hansokuDirectMe, 0);
-      if (num(s[K.submissionMe]) > 0) onUpdateStat(K.submissionMe, 0);
-      if (num(s[K.shidoMe]) >= 3) onUpdateStat(K.shidoMe, 2);
-      if (num(s[K.wazariOpp]) >= 2) onUpdateStat(K.wazariOpp, 1);
-      if (num(s[K.osaekomiOppSec]) >= 20) onUpdateStat(K.osaekomiOppSec, 0);
-    } else {
-      if (num(s[K.ipponMe]) > 0) onUpdateStat(K.ipponMe, 0);
-      if (num(s[K.hansokuDirectOpp]) > 0) onUpdateStat(K.hansokuDirectOpp, 0);
-      if (num(s[K.submissionOpp]) > 0) onUpdateStat(K.submissionOpp, 0);
-      if (num(s[K.shidoOpp]) >= 3) onUpdateStat(K.shidoOpp, 2);
-      if (num(s[K.wazariMe]) >= 2) onUpdateStat(K.wazariMe, 1);
-      if (num(s[K.osaekomiMeSec]) >= 20) onUpdateStat(K.osaekomiMeSec, 0);
-    }
-  };
+  const standingAttempts = num(round.stats?.[K.standingAttempts]);
+  const standingSuccess = num(round.stats?.[K.standingSuccess]);
+  const standingRate = standingAttempts > 0 ? Math.round((standingSuccess / standingAttempts) * 100) : 0;
 
   return (
-    <div className="flex gap-4 items-start">
-      <div className="flex-1 min-w-0 space-y-4">
-      {/* ============== CHRONO + TIMELINE ============== */}
-      <Card className="p-3 space-y-3 border-l-4 border-l-primary shadow-sm">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-3">
-            <Timer className="h-5 w-5 text-primary" />
-            <div className="text-3xl font-bold font-mono tabular-nums">{fmtMMSS(chronoSec)}</div>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              size="sm"
-              variant={chronoRunning ? "default" : "outline"}
-              className={cn("h-9 gap-1", chronoRunning && "bg-emerald-600 hover:bg-emerald-700 text-white")}
-              onClick={() => setChronoRunning((r) => !r)}
-            >
-              {chronoRunning ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-              {chronoRunning ? "Pause" : "Démarrer"}
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              className="h-9 gap-1"
-              onClick={() => {
-                setChronoRunning(false);
-                setChronoSec(0);
-                rawUpdateStat(K.combatDuration, 0);
-                rawUpdateStat(K.goldenScoreDuration, 0);
-              }}
-            >
-              <RotateCcw className="h-4 w-4" /> Reset
-            </Button>
-            <VideoCompanionTrigger open={videoOpen} onToggle={() => setVideoOpen((v) => !v)} />
-          </div>
-        </div>
-        {events.length > 0 && (
-          <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
-            <p className="text-[10px] uppercase font-bold text-muted-foreground">Timeline ({events.length})</p>
-            {events.map((ev) => {
-              const sideColor =
-                ev.side === "me"
-                  ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
-                  : ev.side === "opp"
-                  ? "bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300 border-red-500/30"
-                  : "bg-muted text-foreground border-border";
-              const timeLabel =
-                ev.to != null ? `${fmtMMSS(ev.from)} → ${fmtMMSS(ev.to)}` : fmtMMSS(ev.from);
-              const sideLabel = ev.side === "me" ? "Athlète" : ev.side === "opp" ? "Adversaire" : "";
-              return (
-                <div
-                  key={ev.id}
-                  className={cn("flex items-center justify-between gap-2 rounded-md border px-2 py-1 text-xs", sideColor)}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="font-mono tabular-nums text-[11px] opacity-80 shrink-0">{timeLabel}</span>
-                    <span className="font-semibold truncate">{ev.label}</span>
-                    {sideLabel && <span className="text-[10px] opacity-70 shrink-0">· {sideLabel}</span>}
-                  </div>
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    className="h-6 w-6 shrink-0"
-                    onClick={() => removeEvent(ev.id)}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </Card>
-
-      {/* ============== HEADER COMBAT ============== */}
-      <Card className="p-3 space-y-3 border-l-4 border-l-destructive shadow-sm">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-          <div className="space-y-1">
-            <Label className="text-[10px] uppercase text-muted-foreground">Phase</Label>
-            <Select value={round.phase} onValueChange={(v) => onUpdate({ phase: v })}>
-              <SelectTrigger className="h-9 text-xs">
-                <SelectValue placeholder="Phase" />
-              </SelectTrigger>
-              <SelectContent className="z-[200]">
-                {phases.map((p) => (
-                  <SelectItem key={p.value} value={p.value}>
-                    {p.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+    <div className="flex items-start gap-4">
+      <div className="min-w-0 flex-1 space-y-4">
+        <Card className="space-y-3 border-l-4 border-l-primary p-3 shadow-sm">
+          <div className="flex items-center justify-between gap-2">
+            <SectionHeader icon={<Trophy className="h-4 w-4 text-primary" />} title="Bilan du combat" />
+            <VideoCompanionTrigger open={videoOpen} onToggle={() => setVideoOpen((open) => !open)} />
           </div>
 
-          <div className="space-y-1 md:col-span-2">
-            <Label className="text-[10px] uppercase text-muted-foreground">Adversaire</Label>
-            <div className="flex gap-1">
-              <Select
-                value={round.opponent_profile_id || "__manual__"}
-                onValueChange={(v) => {
-                  if (v === "__manual__") {
-                    onUpdate({ opponent_profile_id: null });
-                  } else {
-                    const op = (opponentProfiles || []).find((o) => o.id === v);
-                    if (op) {
-                      onUpdate({
-                        opponent_profile_id: op.id,
-                        opponent_name: `${op.last_name}${op.first_name ? " " + op.first_name : ""}`,
-                      });
-                      // Auto-remplir l'analyse tactique depuis la fiche adversaire
-                      if (op.combat_profile != null) {
-                        onUpdateStat(K.combatProfile, Number(op.combat_profile));
-                      }
-                      if (op.style_mask != null) {
-                        onUpdateStat(K.opponentStyleMask, Number(op.style_mask));
-                      }
-                      if (op.ground_standing_pref != null) {
-                        onUpdateStat(K.dominanceStanding, Number(op.ground_standing_pref));
-                      }
-                    }
-                  }
-                }}
-              >
-                <SelectTrigger className="h-9 text-xs flex-1">
-                  <SelectValue placeholder="Adversaire" />
-                </SelectTrigger>
-                <SelectContent className="z-[200] max-h-[300px]">
-                  <SelectItem value="__manual__">— Saisie libre —</SelectItem>
-                  {sortedOpps.matched.length > 0 && (
-                    <>
-                      <div className="px-2 py-1 text-[10px] font-bold uppercase text-muted-foreground">
-                        Catégorie de l'athlète
-                      </div>
-                      {sortedOpps.matched.map((o) => (
-                        <SelectItem key={o.id} value={o.id}>
-                          {fmtOpp(o)}
-                        </SelectItem>
-                      ))}
-                    </>
-                  )}
-                  {sortedOpps.others.length > 0 && (
-                    <>
-                      <div className="px-2 py-1 text-[10px] font-bold uppercase text-muted-foreground">
-                        Autres
-                      </div>
-                      {sortedOpps.others.map((o) => (
-                        <SelectItem key={o.id} value={o.id}>
-                          {fmtOpp(o)}
-                        </SelectItem>
-                      ))}
-                    </>
-                  )}
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            <div className="space-y-1">
+              <Label className="text-[10px] uppercase text-muted-foreground">Phase</Label>
+              <Select value={round.phase} onValueChange={(value) => onUpdate({ phase: value })}>
+                <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Phase" /></SelectTrigger>
+                <SelectContent className="z-[200]">
+                  {phases.map((phase) => <SelectItem key={phase.value} value={phase.value}>{phase.label}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Input
-                value={round.opponent_name}
-                onChange={(e) =>
-                  onUpdate({ opponent_name: e.target.value, opponent_profile_id: null })
-                }
-                placeholder="Nom"
-                className="h-9 w-[140px] text-xs"
-              />
+            </div>
+
+            <div className="space-y-1 md:col-span-2">
+              <Label className="text-[10px] uppercase text-muted-foreground">Adversaire</Label>
+              <div className="flex gap-1">
+                <Select
+                  value={round.opponent_profile_id || "__manual__"}
+                  onValueChange={(value) => {
+                    if (value === "__manual__") {
+                      onUpdate({ opponent_profile_id: null });
+                      return;
+                    }
+                    const opponent = (opponentProfiles || []).find((item) => item.id === value);
+                    if (!opponent) return;
+                    onUpdate({
+                      opponent_profile_id: opponent.id,
+                      opponent_name: `${opponent.last_name}${opponent.first_name ? ` ${opponent.first_name}` : ""}`,
+                    });
+                    if (opponent.combat_profile != null) onUpdateStat(K.combatProfile, Number(opponent.combat_profile));
+                    if (opponent.style_mask != null) onUpdateStat(K.opponentStyle, Number(opponent.style_mask));
+                  }}
+                >
+                  <SelectTrigger className="h-9 flex-1 text-xs"><SelectValue placeholder="Adversaire" /></SelectTrigger>
+                  <SelectContent className="z-[200] max-h-[300px]">
+                    <SelectItem value="__manual__">— Saisie libre —</SelectItem>
+                    {sortedOpps.matched.length > 0 && <div className="px-2 py-1 text-[10px] font-bold uppercase text-muted-foreground">Catégorie de l'athlète</div>}
+                    {sortedOpps.matched.map((opponent) => <SelectItem key={opponent.id} value={opponent.id}>{fmtOpp(opponent)}</SelectItem>)}
+                    {sortedOpps.others.length > 0 && <div className="px-2 py-1 text-[10px] font-bold uppercase text-muted-foreground">Autres</div>}
+                    {sortedOpps.others.map((opponent) => <SelectItem key={opponent.id} value={opponent.id}>{fmtOpp(opponent)}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Input
+                  value={round.opponent_name}
+                  onChange={(event) => onUpdate({ opponent_name: event.target.value, opponent_profile_id: null })}
+                  placeholder="Nom"
+                  className="h-9 w-[140px] text-xs"
+                />
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* RESULT BANNER */}
-        <ResultBanner result={result} />
+          <ResultChoice value={round.result} onChange={(result) => onUpdate({ result })} />
+          <p className="text-center text-xs text-muted-foreground">{scoreLabel(round)}</p>
 
-        {/* DURÉES */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          <DurationInput
-            label="Durée totale"
-            value={num(round.stats?.[K.combatDuration])}
-            onChange={(v) => onUpdateStat(K.combatDuration, v)}
+          <EnumPills
+            label="Méthode de fin"
+            value={num(round.stats?.[K.endMethod])}
+            options={[
+              { v: 1, label: "Ippon" },
+              { v: 2, label: "Waza-ari" },
+              { v: 3, label: "Waza-ari awasete ippon" },
+              { v: 8, label: "Yuko" },
+              { v: 4, label: "Hansoku-make" },
+              { v: 5, label: "Décision" },
+              { v: 6, label: "Abandon" },
+              { v: 7, label: "Forfait" },
+            ]}
+            onChange={(value) => onUpdateStat(K.endMethod, value)}
           />
-          <DurationInput
-            label="Durée Golden Score"
-            value={num(round.stats?.[K.goldenScoreDuration])}
-            onChange={(v) => {
-              onUpdateStat(K.goldenScoreDuration, v);
-              if (v > 0 && num(round.stats?.[K.goldenScore]) === 0) onUpdateStat(K.goldenScore, 1);
-              if (v === 0 && num(round.stats?.[K.goldenScore]) > 0) onUpdateStat(K.goldenScore, 0);
-            }}
-            disabled={num(round.stats?.[K.goldenScore]) === 0}
-          />
-          <div className="col-span-2 sm:col-span-2 flex items-end">
+          <div className="flex flex-wrap gap-2">
             <Button
               type="button"
               variant={num(round.stats?.[K.goldenScore]) > 0 ? "default" : "outline"}
               size="sm"
-              className={cn(
-                "h-9 w-full gap-2 text-xs",
-                num(round.stats?.[K.goldenScore]) > 0 &&
-                  "bg-amber-500 hover:bg-amber-500/90 text-white",
-              )}
-              onClick={() =>
-                onUpdateStat(K.goldenScore, num(round.stats?.[K.goldenScore]) > 0 ? 0 : 1)
-              }
+              onClick={() => onUpdateStat(K.goldenScore, num(round.stats?.[K.goldenScore]) > 0 ? 0 : 1)}
             >
-              <Flag className="h-4 w-4" />
-              Golden Score {num(round.stats?.[K.goldenScore]) > 0 ? "ON" : "OFF"}
+              Golden Score
             </Button>
-          </div>
-        </div>
-
-        {/* MÉTHODE DE FIN (auto-déduite, modifiable manuellement) */}
-        <EnumPills
-          label="Méthode de fin (auto)"
-          value={num(round.stats?.[K.endMethod])}
-          color={result.winner === "me" ? "emerald" : result.winner === "opp" ? "red" : "blue"}
-          options={[
-            { v: 1, label: "Ippon" },
-            { v: 2, label: "Waza-ari" },
-            { v: 3, label: "Waza-ari awasete ippon" },
-            { v: 8, label: "Yuko" },
-            { v: 4, label: "Hansoku-make" },
-            { v: 5, label: "Décision" },
-            { v: 6, label: "Abandon" },
-            { v: 7, label: "Forfait" },
-          ]}
-          onChange={(v) => onUpdateStat(K.endMethod, v)}
-        />
-
-        {/* DÉCISION GOLDEN SCORE — visible si GS=ON */}
-        {num(round.stats?.[K.goldenScore]) > 0 && (
-          <EnumPills
-            label="Type de décision en GS"
-            value={num(round.stats?.[K.gsDecision])}
-            color="amber"
-            options={[
-              { v: 1, label: "Technique" },
-              { v: 2, label: "Pénalité décisive" },
-              { v: 3, label: "Accumulation shido" },
-            ]}
-            onChange={(v) => onUpdateStat(K.gsDecision, v)}
-          />
-        )}
-      </Card>
-
-      {/* ============== SOUS-ONGLETS pour éviter le scroll ============== */}
-      <Tabs defaultValue="scores" className="space-y-3">
-        <TabsList className="grid w-full grid-cols-5 h-auto">
-          <TabsTrigger value="scores" className="text-[11px] py-1.5">Scores</TabsTrigger>
-          <TabsTrigger value="newaza" className="text-[11px] py-1.5">Ne-waza</TabsTrigger>
-          <TabsTrigger value="defense" className="text-[11px] py-1.5">Défense</TabsTrigger>
-          <TabsTrigger value="tactique" className="text-[11px] py-1.5">Tactique</TabsTrigger>
-          <TabsTrigger value="notes" className="text-[11px] py-1.5">Détails & Notes</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="scores" className="space-y-3 mt-0">
-      {/* ============== SCORES (OFFENSIVE) ============== */}
-      <Card className="p-3 space-y-3">
-        <SectionHeader icon={<Zap className="h-4 w-4 text-emerald-500" />} title="Scores IJF" hint="2 Waza-ari = Ippon automatique" />
-        <div className="grid grid-cols-2 gap-3">
-          <ScoreColumn
-            label="Athlète"
-            color="emerald"
-            ippon={num(round.stats?.[K.ipponMe])}
-            wazari={num(round.stats?.[K.wazariMe])}
-            yuko={num(round.stats?.[K.yukoMe])}
-            onYuko={(v) => onUpdateStat(K.yukoMe, Math.max(0, Math.min(9, v)))}
-            onIppon={(v) => {
-              const nv = Math.max(0, Math.min(1, v));
-              if (nv > 0) clearLosingFor("me");
-              onUpdateStat(K.ipponMe, nv);
-            }}
-            onWazari={(v) => {
-              const nv = Math.max(0, Math.min(2, v));
-              if (nv >= 2) clearLosingFor("me");
-              onUpdateStat(K.wazariMe, nv);
-            }}
-          />
-          <ScoreColumn
-            label="Adversaire"
-            color="red"
-            ippon={num(round.stats?.[K.ipponOpp])}
-            wazari={num(round.stats?.[K.wazariOpp])}
-            yuko={num(round.stats?.[K.yukoOpp])}
-            onYuko={(v) => onUpdateStat(K.yukoOpp, Math.max(0, Math.min(9, v)))}
-            onIppon={(v) => {
-              const nv = Math.max(0, Math.min(1, v));
-              if (nv > 0) clearLosingFor("opp");
-              onUpdateStat(K.ipponOpp, nv);
-            }}
-            onWazari={(v) => {
-              const nv = Math.max(0, Math.min(2, v));
-              if (nv >= 2) clearLosingFor("opp");
-              onUpdateStat(K.wazariOpp, nv);
-            }}
-          />
-        </div>
-      </Card>
-
-      {/* ============== PÉNALITÉS ============== */}
-      <Card className="p-3 space-y-3">
-        <SectionHeader
-          icon={<ShieldAlert className="h-4 w-4 text-amber-500" />}
-          title="Pénalités (Shido)"
-          hint="3 Shido = Hansoku-make"
-        />
-        <div className="grid grid-cols-2 gap-3">
-          <ShidoColumn
-            label="Athlète"
-            color="amber"
-            shido={num(round.stats?.[K.shidoMe])}
-            hansokuDirect={num(round.stats?.[K.hansokuDirectMe]) > 0}
-            onShido={(v) => {
-              const nv = Math.max(0, Math.min(3, v));
-              if (nv >= 3) clearLosingFor("opp"); // 3 shido athlète → adv. gagne
-              onUpdateStat(K.shidoMe, nv);
-            }}
-            onHansokuDirect={(v) => {
-              if (v) clearLosingFor("opp");
-              onUpdateStat(K.hansokuDirectMe, v ? 1 : 0);
-            }}
-          />
-          <ShidoColumn
-            label="Adversaire"
-            color="amber"
-            shido={num(round.stats?.[K.shidoOpp])}
-            hansokuDirect={num(round.stats?.[K.hansokuDirectOpp]) > 0}
-            onShido={(v) => {
-              const nv = Math.max(0, Math.min(3, v));
-              if (nv >= 3) clearLosingFor("me"); // 3 shido adv. → athlète gagne
-              onUpdateStat(K.shidoOpp, nv);
-            }}
-            onHansokuDirect={(v) => {
-              if (v) clearLosingFor("me");
-              onUpdateStat(K.hansokuDirectOpp, v ? 1 : 0);
-            }}
-          />
-        </div>
-      </Card>
-        </TabsContent>
-
-        <TabsContent value="newaza" className="space-y-3 mt-0">
-      {/* ============== NE-WAZA ============== */}
-      <Card className="p-3 space-y-3">
-        <SectionHeader
-          icon={<Hand className="h-4 w-4 text-blue-500" />}
-          title="Ne-waza (sol)"
-          hint="Osaekomi : 10s = Waza-ari · 20s = Ippon — Soumission = fin immédiate"
-        />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <OsaekomiTimer
-            label="Osaekomi Athlète"
-            color="emerald"
-            seconds={num(round.stats?.[K.osaekomiMeSec])}
-            onChange={(v) => {
-              if (v >= 20) clearLosingFor("me"); // ippon par osaekomi athlète
-              onUpdateStat(K.osaekomiMeSec, v);
-            }}
-            onStart={() => { osaeMeStartRef.current = chronoSec; }}
-            onStop={() => {
-              if (osaeMeStartRef.current != null) {
-                addEvent("Ne-waza (athlète)", {
-                  side: "me",
-                  kind: "newaza",
-                  from: osaeMeStartRef.current,
-                  to: chronoSec,
-                });
-                osaeMeStartRef.current = null;
-              }
-            }}
-          />
-          <OsaekomiTimer
-            label="Osaekomi Adversaire"
-            color="red"
-            seconds={num(round.stats?.[K.osaekomiOppSec])}
-            onChange={(v) => {
-              if (v >= 20) clearLosingFor("opp");
-              onUpdateStat(K.osaekomiOppSec, v);
-            }}
-            onStart={() => { osaeOppStartRef.current = chronoSec; }}
-            onStop={() => {
-              if (osaeOppStartRef.current != null) {
-                addEvent("Ne-waza (adversaire)", {
-                  side: "opp",
-                  kind: "newaza",
-                  from: osaeOppStartRef.current,
-                  to: chronoSec,
-                });
-                osaeOppStartRef.current = null;
-              }
-            }}
-          />
-        </div>
-        <Separator />
-        <div className="grid grid-cols-2 gap-3">
-          <Button
-            type="button"
-            variant={num(round.stats?.[K.submissionMe]) > 0 ? "default" : "outline"}
-            className={cn(
-              "h-12 gap-2 text-xs",
-              num(round.stats?.[K.submissionMe]) > 0 && "bg-red-600 hover:bg-red-700 text-white",
+            {num(round.stats?.[K.goldenScore]) > 0 && (
+              <EnumPills
+                label="Décision en Golden Score"
+                value={num(round.stats?.[K.gsDecision])}
+                options={[
+                  { v: 1, label: "Technique" },
+                  { v: 2, label: "Pénalité décisive" },
+                  { v: 3, label: "Accumulation shido" },
+                ]}
+                onChange={(value) => onUpdateStat(K.gsDecision, value)}
+              />
             )}
-            onClick={() => {
-              const nv = num(round.stats?.[K.submissionMe]) > 0 ? 0 : 1;
-              if (nv > 0) clearLosingFor("opp"); // athlète abandonne → adv. gagne
-              onUpdateStat(K.submissionMe, nv);
-            }}
-          >
-            <AlertTriangle className="h-4 w-4" />
-            Soumission athlète (abandon)
-          </Button>
-          <Button
-            type="button"
-            variant={num(round.stats?.[K.submissionOpp]) > 0 ? "default" : "outline"}
-            className={cn(
-              "h-12 gap-2 text-xs",
-              num(round.stats?.[K.submissionOpp]) > 0 &&
-                "bg-emerald-600 hover:bg-emerald-700 text-white",
-            )}
-            onClick={() => {
-              const nv = num(round.stats?.[K.submissionOpp]) > 0 ? 0 : 1;
-              if (nv > 0) clearLosingFor("me");
-              onUpdateStat(K.submissionOpp, nv);
-            }}
-          >
-            <Trophy className="h-4 w-4" />
-            Soumission adverse
-          </Button>
-        </div>
-      </Card>
-
-      {/* ============== NE-WAZA DÉTAILLÉ (volumes, transitions) ============== */}
-      <Card className="p-3 space-y-3">
-        <SectionHeader
-          icon={<Hand className="h-4 w-4 text-amber-500" />}
-          title="Ne-waza détaillé"
-          hint="Volumes, transitions, soumissions"
-        />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-          <CounterStat label="Phases au sol" value={num(round.stats?.[K.groundPhases])} onChange={(v) => onUpdateStat(K.groundPhases, v)} />
-          <CounterStat label="Temps sol (s)" value={num(round.stats?.[K.groundTimeSec])} step={5} onChange={(v) => onUpdateStat(K.groundTimeSec, v)} />
-          <CounterStat label="Transitions debout→sol" value={num(round.stats?.[K.transitionStandToGround])} onChange={(v) => onUpdateStat(K.transitionStandToGround, v)} />
-          <CounterStat label="Reprises au sol" value={num(round.stats?.[K.regainGround])} onChange={(v) => onUpdateStat(K.regainGround, v)} />
-        </div>
-        <Separator />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <AttemptSuccessRow
-            label="Immobilisations"
-            attempts={num(round.stats?.[K.immoAttempts])}
-            success={num(round.stats?.[K.immoSuccess])}
-            extraLabel="Max (s)"
-            extraValue={num(round.stats?.[K.immoMaxSec])}
-            onAttempts={(v) => onUpdateStat(K.immoAttempts, v)}
-            onSuccess={(v) => onUpdateStat(K.immoSuccess, v)}
-            onExtra={(v) => onUpdateStat(K.immoMaxSec, v)}
-            extraStep={5}
-          />
-          <AttemptSuccessRow
-            label="Étranglements"
-            attempts={num(round.stats?.[K.chokeAttempts])}
-            success={num(round.stats?.[K.chokeSuccess])}
-            onAttempts={(v) => onUpdateStat(K.chokeAttempts, v)}
-            onSuccess={(v) => onUpdateStat(K.chokeSuccess, v)}
-          />
-          <AttemptSuccessRow
-            label="Clés articulaires"
-            attempts={num(round.stats?.[K.armlockAttempts])}
-            success={num(round.stats?.[K.armlockSuccess])}
-            onAttempts={(v) => onUpdateStat(K.armlockAttempts, v)}
-            onSuccess={(v) => onUpdateStat(K.armlockSuccess, v)}
-          />
-        </div>
-      </Card>
-        </TabsContent>
-
-        <TabsContent value="defense" className="space-y-3 mt-0">
-      {/* ============== DÉFENSE ============== */}
-      <Card className="p-3 space-y-3">
-        <SectionHeader
-          icon={<ShieldAlert className="h-4 w-4 text-red-500" />}
-          title="Défense"
-          hint="Volume défensif et résistance"
-        />
-        <div className="grid grid-cols-3 gap-2">
-          <CounterStat label="Attaques subies" value={num(round.stats?.[K.defAttacksReceived])} onChange={(v) => onUpdateStat(K.defAttacksReceived, v)} color="red" />
-          <CounterStat label="Attaques neutralisées" value={num(round.stats?.[K.defAttacksNeutralized])} onChange={(v) => onUpdateStat(K.defAttacksNeutralized, v)} color="emerald" />
-          <div className="rounded-lg border-2 border-dashed border-amber-500/40 bg-amber-500/5 p-2 flex flex-col items-center justify-center">
-            <p className="text-[10px] uppercase font-bold text-muted-foreground">Scores concédés</p>
-            <p className="text-2xl font-black text-amber-600 dark:text-amber-400 tabular-nums">
-              {num(round.stats?.[K.wazariOpp]) + num(round.stats?.[K.ipponOpp]) + num(round.stats?.[K.yukoOpp])}
-            </p>
-            <p className="text-[9px] text-muted-foreground">auto (Waza-ari + Yuko + Ippon adverse)</p>
           </div>
-        </div>
-        {num(round.stats?.[K.defAttacksReceived]) > 0 && (
-          <div className="rounded-lg bg-muted/40 p-2 text-center text-xs">
-            <span className="font-bold">
-              {Math.round(
-                (num(round.stats?.[K.defAttacksNeutralized]) /
-                  Math.max(1, num(round.stats?.[K.defAttacksReceived]))) *
-                  100,
-              )}
-              %
-            </span>{" "}
-            d'attaques neutralisées
-          </div>
-        )}
-        <EnumPills
-          label="Profil d'activité défensive"
-          value={num(round.stats?.[K.activityProfile])}
-          options={[
-            { v: 1, label: "Très actif" },
-            { v: 2, label: "Actif" },
-            { v: 3, label: "Neutre" },
-            { v: 4, label: "Passif" },
-          ]}
-          onChange={(v) => onUpdateStat(K.activityProfile, v)}
-        />
-      </Card>
-        </TabsContent>
+        </Card>
 
-        <TabsContent value="tactique" className="space-y-3 mt-0">
-      {/* ============== COACH INTELLIGENCE ============== */}
-      <Card className="p-3 space-y-3">
-        <SectionHeader
-          icon={<Swords className="h-4 w-4 text-violet-500" />}
-          title="Analyse tactique"
-          hint="Lecture coach rapide"
-        />
-        <EnumPills
-          label="Profil de combat"
-          value={num(round.stats?.[K.combatProfile])}
-          color="violet"
-          options={[
-            { v: 1, label: "Dominant" },
-            { v: 2, label: "Équilibré" },
-            { v: 3, label: "Dominé" },
-            { v: 4, label: "Contrôle sans score" },
-            { v: 5, label: "Explosif" },
-            { v: 6, label: "Défensif" },
-          ]}
-          onChange={(v) => onUpdateStat(K.combatProfile, v)}
-        />
-        <TagPills
-          label="Style adversaire (multi-sélection)"
-          mask={num(round.stats?.[K.opponentStyleMask])}
-          options={[
-            { bit: 1, label: "Attaquant" },
-            { bit: 2, label: "Contreur" },
-            { bit: 4, label: "Physique" },
-            { bit: 8, label: "Technique" },
-            { bit: 16, label: "Kumikata dominant" },
-            { bit: 32, label: "Passif" },
-          ]}
-          onChange={(m) => onUpdateStat(K.opponentStyleMask, m)}
-        />
-        <Separator />
-        <DominanceSlider
-          value={num(round.stats?.[K.dominanceStanding])}
-          onChange={(v) => onUpdateStat(K.dominanceStanding, v)}
-        />
-      </Card>
-        </TabsContent>
+        <Tabs defaultValue="score" className="space-y-3">
+          <TabsList className="grid h-auto w-full grid-cols-4">
+            <TabsTrigger value="score" className="py-1.5 text-[11px]">Score</TabsTrigger>
+            <TabsTrigger value="newaza" className="py-1.5 text-[11px]">Ne-waza</TabsTrigger>
+            <TabsTrigger value="tactique" className="py-1.5 text-[11px]">Tactique</TabsTrigger>
+            <TabsTrigger value="details" className="py-1.5 text-[11px]">Détails</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="notes" className="space-y-3 mt-0">
-      {/* ============== TECHNIQUES OFFENSIVE (DÉTAIL) ============== */}
-      <Card className="p-3 space-y-3">
-        <SectionHeader
-          icon={<Zap className="h-4 w-4 text-blue-500" />}
-          title="Détail techniques offensives"
-          hint="Saisie optionnelle pour analyse fine"
-        />
-        <OffensiveSynthesis round={round} />
-        <AttackBlock round={round} onUpdateStat={onUpdateStat} />
-      </Card>
+          <TabsContent value="score" className="mt-0">
+            <Card className="space-y-3 p-3">
+              <SectionHeader icon={<Zap className="h-4 w-4 text-primary" />} title="Score" />
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <ScoreColumn
+                  label="Athlète"
+                  ippon={num(round.stats?.[K.ipponMe])}
+                  wazari={num(round.stats?.[K.wazariMe])}
+                  yuko={num(round.stats?.[K.yukoMe])}
+                  shido={num(round.stats?.[K.shidoMe])}
+                  hansoku={num(round.stats?.[K.hansokuDirectMe]) > 0}
+                  onIppon={(value) => onUpdateStat(K.ipponMe, Math.max(0, Math.min(1, value)))}
+                  onWazari={(value) => onUpdateStat(K.wazariMe, Math.max(0, Math.min(2, value)))}
+                  onYuko={(value) => onUpdateStat(K.yukoMe, Math.max(0, Math.min(9, value)))}
+                  onShido={(value) => onUpdateStat(K.shidoMe, Math.max(0, Math.min(3, value)))}
+                  onHansoku={(value) => onUpdateStat(K.hansokuDirectMe, value ? 1 : 0)}
+                />
+                <ScoreColumn
+                  label="Adversaire"
+                  opponent
+                  ippon={num(round.stats?.[K.ipponOpp])}
+                  wazari={num(round.stats?.[K.wazariOpp])}
+                  yuko={num(round.stats?.[K.yukoOpp])}
+                  shido={num(round.stats?.[K.shidoOpp])}
+                  hansoku={num(round.stats?.[K.hansokuDirectOpp]) > 0}
+                  onIppon={(value) => onUpdateStat(K.ipponOpp, Math.max(0, Math.min(1, value)))}
+                  onWazari={(value) => onUpdateStat(K.wazariOpp, Math.max(0, Math.min(2, value)))}
+                  onYuko={(value) => onUpdateStat(K.yukoOpp, Math.max(0, Math.min(9, value)))}
+                  onShido={(value) => onUpdateStat(K.shidoOpp, Math.max(0, Math.min(3, value)))}
+                  onHansoku={(value) => onUpdateStat(K.hansokuDirectOpp, value ? 1 : 0)}
+                />
+              </div>
+            </Card>
+          </TabsContent>
 
-      {/* ============== NOTES + ACTIONS ============== */}
-      <Card className="p-3 space-y-2">
-        <Label className="text-[10px] uppercase text-muted-foreground">Notes libres</Label>
-        <Input
-          value={userVisibleNotes(round.notes || "")}
-          onChange={(e) => onUpdate({ notes: writeTimeline(e.target.value, events) })}
-          placeholder="Observations, plan tactique, points à travailler…"
-          className="h-9 text-xs"
-        />
-        <div className="flex justify-end">
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={onRemove}
-            className="text-destructive hover:text-destructive gap-1"
-          >
-            <Trash2 className="h-3.5 w-3.5" /> Supprimer ce combat
-          </Button>
-        </div>
-      </Card>
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="newaza" className="mt-0 space-y-3">
+            <Card className="space-y-4 p-3">
+              <SectionHeader icon={<Hand className="h-4 w-4 text-primary" />} title="Immobilisation" />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <ImmobilizationChoice label="Athlète" value={num(round.stats?.[K.immoScoreMe])} onChange={(value) => onUpdateStat(K.immoScoreMe, value)} />
+                <ImmobilizationChoice label="Adversaire" value={num(round.stats?.[K.immoScoreOpp])} onChange={(value) => onUpdateStat(K.immoScoreOpp, value)} />
+              </div>
+            </Card>
+            <Card className="p-3">
+              <CounterStat
+                label="Liaisons debout-sol effectuées"
+                value={num(round.stats?.[K.transitionStandToGround])}
+                onChange={(value) => onUpdateStat(K.transitionStandToGround, value)}
+              />
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="tactique" className="mt-0">
+            <Card className="space-y-4 p-3">
+              <SectionHeader icon={<Swords className="h-4 w-4 text-primary" />} title="Analyse tactique" />
+              <EnumPills
+                label="Profil du combat"
+                value={num(round.stats?.[K.combatProfile])}
+                options={[
+                  { v: 1, label: "Dominant" },
+                  { v: 2, label: "Équilibré" },
+                  { v: 3, label: "Dominé" },
+                ]}
+                onChange={(value) => onUpdateStat(K.combatProfile, value)}
+              />
+              <EnumPills
+                label="Style de l'adversaire"
+                value={num(round.stats?.[K.opponentStyle])}
+                options={[
+                  { v: 1, label: "Actif" },
+                  { v: 32, label: "Passif" },
+                  { v: 2, label: "Contreur" },
+                ]}
+                onChange={(value) => onUpdateStat(K.opponentStyle, value)}
+              />
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="details" className="mt-0 space-y-3">
+            <Card className="space-y-3 p-3">
+              <SectionHeader icon={<Zap className="h-4 w-4 text-primary" />} title="Techniques debout" />
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                <CounterStat label="Techniques tentées" value={standingAttempts} onChange={(value) => {
+                  onUpdateStat(K.standingAttempts, value);
+                  if (standingSuccess > value) onUpdateStat(K.standingSuccess, value);
+                }} />
+                <CounterStat label="Techniques réussies" value={standingSuccess} onChange={(value) => onUpdateStat(K.standingSuccess, Math.min(value, standingAttempts))} />
+                <StatPill label="Réussite" value={standingAttempts > 0 ? `${standingRate}%` : "—"} accent={standingRate >= 50 ? "success" : "muted"} />
+              </div>
+            </Card>
+            <Card className="space-y-2 p-3">
+              <Label className="text-[10px] uppercase text-muted-foreground">Notes libres</Label>
+              <Input
+                value={round.notes || ""}
+                onChange={(event) => onUpdate({ notes: event.target.value })}
+                placeholder="Observations, plan tactique, points à travailler…"
+                className="h-9 text-xs"
+              />
+              <div className="flex justify-end">
+                <Button size="sm" variant="ghost" onClick={onRemove} className="gap-1 text-destructive hover:text-destructive">
+                  <Trash2 className="h-3.5 w-3.5" /> Supprimer ce combat
+                </Button>
+              </div>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
 
       {videoOpen && (
-        <aside className="hidden lg:flex shrink-0 w-[380px] xl:w-[440px] sticky top-4 self-start h-[calc(100vh-7rem)]">
+        <aside className="sticky top-4 hidden h-[calc(100vh-7rem)] w-[380px] shrink-0 self-start lg:flex xl:w-[440px]">
           <VideoCompanionDock
             open={videoOpen}
             onClose={() => setVideoOpen(false)}
             storageKey={`judo-round-${round.round_number}-${round.opponent_name || "anon"}`}
-            chronoRunning={chronoRunning}
-            onStartChrono={() => setChronoRunning(true)}
-            onPauseChrono={() => setChronoRunning(false)}
             title="Vidéo du combat"
             initialUrl={round.video_url ?? null}
-            onUrlChange={(u) => onUpdate({ video_url: u })}
+            onUrlChange={(url) => onUpdate({ video_url: url })}
           />
         </aside>
       )}
@@ -1446,424 +506,94 @@ function CombatPanel({
   );
 }
 
-// ============================================================================
-// SUB COMPONENTS
-// ============================================================================
-function StatPill({
-  label,
-  value,
-  accent = "muted",
-  icon,
-}: {
-  label: string;
-  value: string | number;
-  accent?: "muted" | "success" | "info" | "warning";
-  icon?: React.ReactNode;
-}) {
-  const cls =
-    accent === "success"
-      ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900"
-      : accent === "info"
-      ? "bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-900"
-      : accent === "warning"
-      ? "bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-900"
-      : "bg-muted/40";
+function ResultChoice({ value, onChange }: { value: string; onChange: (value: string) => void }) {
   return (
-    <div className={cn("rounded-lg border p-2 text-center", cls)}>
-      <p className="text-lg font-bold flex items-center justify-center gap-1">
-        {icon}
-        {value}
-      </p>
-      <p className="text-[10px] uppercase opacity-80">{label}</p>
-    </div>
-  );
-}
-
-function SectionHeader({
-  icon,
-  title,
-  hint,
-}: {
-  icon?: React.ReactNode;
-  title: string;
-  hint?: string;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-2">
-      <div className="flex items-center gap-2">
-        {icon}
-        <h4 className="text-sm font-bold uppercase tracking-wide">{title}</h4>
-      </div>
-      {hint && <p className="text-[10px] text-muted-foreground hidden sm:block">{hint}</p>}
-    </div>
-  );
-}
-
-function ResultBanner({ result }: { result: ComputedResult }) {
-  const isPending = result.winner === "pending";
-  const winnerColor =
-    result.winner === "me"
-      ? "bg-emerald-500 text-white"
-      : result.winner === "opp"
-      ? "bg-red-500 text-white"
-      : result.winner === "draw"
-      ? "bg-amber-500 text-white"
-      : "bg-muted text-foreground";
-  const winnerLabel =
-    result.winner === "me"
-      ? "VICTOIRE"
-      : result.winner === "opp"
-      ? "DÉFAITE"
-      : result.winner === "draw"
-      ? "ÉGALITÉ"
-      : "EN COURS";
-  return (
-    <div
-      className={cn(
-        "rounded-lg p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2",
-        winnerColor,
-        isPending && "border-2 border-dashed border-border",
-      )}
-    >
-      <div className="flex items-center gap-3">
-        <Badge
-          variant="secondary"
-          className={cn(
-            "h-7 px-3 text-[11px] font-extrabold tracking-wider",
-            !isPending && "bg-white/95 text-foreground",
-          )}
+    <div className="space-y-1.5">
+      <Label className="text-[10px] uppercase text-muted-foreground">Résultat</Label>
+      <div className="grid grid-cols-2 gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => onChange("win")}
+          className={cn("h-10", value === "win" && "border-emerald-500 bg-emerald-500 text-primary-foreground hover:bg-emerald-600")}
         >
-          {winnerLabel}
-        </Badge>
-        <div className="leading-tight">
-          <p className="text-xs font-semibold">{result.causeLabel}</p>
-          <p className="text-[11px] opacity-90">{result.scoreLabel}</p>
-        </div>
+          <Trophy className="mr-2 h-4 w-4" /> Victoire
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => onChange("loss")}
+          className={cn("h-10", value === "loss" && "border-destructive bg-destructive text-destructive-foreground hover:bg-destructive/90")}
+        >
+          <X className="mr-2 h-4 w-4" /> Défaite
+        </Button>
       </div>
-    </div>
-  );
-}
-
-function DurationInput({
-  label,
-  value,
-  onChange,
-  disabled,
-}: {
-  label: string;
-  value: number;
-  onChange: (v: number) => void;
-  disabled?: boolean;
-}) {
-  const [text, setText] = useState(fmtMMSS(value));
-  useEffect(() => setText(fmtMMSS(value)), [value]);
-  return (
-    <div className="space-y-1">
-      <Label className="text-[10px] uppercase text-muted-foreground">{label}</Label>
-      <Input
-        value={text}
-        disabled={disabled}
-        onChange={(e) => setText(e.target.value)}
-        onBlur={() => onChange(parseMMSS(text))}
-        placeholder="0:00"
-        className="h-9 text-center text-xs font-mono"
-      />
     </div>
   );
 }
 
 function ScoreColumn({
   label,
-  color,
+  opponent = false,
   ippon,
   wazari,
   yuko,
+  shido,
+  hansoku,
   onIppon,
   onWazari,
   onYuko,
+  onShido,
+  onHansoku,
 }: {
   label: string;
-  color: "emerald" | "red";
+  opponent?: boolean;
   ippon: number;
   wazari: number;
   yuko: number;
-  onIppon: (v: number) => void;
-  onWazari: (v: number) => void;
-  onYuko: (v: number) => void;
-}) {
-  const palette =
-    color === "emerald"
-      ? {
-          ring: "ring-emerald-500",
-          btn: "bg-emerald-500 hover:bg-emerald-600 text-white",
-          soft: "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300",
-        }
-      : {
-          ring: "ring-red-500",
-          btn: "bg-red-500 hover:bg-red-600 text-white",
-          soft: "bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300",
-        };
-  return (
-    <div className={cn("rounded-lg border p-2 space-y-2", palette.soft)}>
-      <p className="text-[11px] font-bold uppercase tracking-wide text-center">{label}</p>
-      <CounterRow label="Ippon" value={ippon} max={1} onChange={onIppon} btnClass={palette.btn} />
-      <CounterRow
-        label="Waza-ari"
-        value={wazari}
-        max={2}
-        onChange={onWazari}
-        btnClass={palette.btn}
-        helper={wazari >= 2 ? "→ Ippon !" : undefined}
-      />
-      <CounterRow
-        label="Yuko"
-        value={yuko}
-        max={9}
-        onChange={onYuko}
-        btnClass={palette.btn}
-        helper="Départage uniquement"
-      />
-    </div>
-  );
-}
-
-function ShidoColumn({
-  label,
-  color,
-  shido,
-  hansokuDirect,
-  onShido,
-  onHansokuDirect,
-}: {
-  label: string;
-  color: "amber";
   shido: number;
-  hansokuDirect: boolean;
-  onShido: (v: number) => void;
-  onHansokuDirect: (v: boolean) => void;
+  hansoku: boolean;
+  onIppon: (value: number) => void;
+  onWazari: (value: number) => void;
+  onYuko: (value: number) => void;
+  onShido: (value: number) => void;
+  onHansoku: (value: boolean) => void;
 }) {
   return (
-    <div className="rounded-lg border p-2 space-y-2 bg-amber-50/60 dark:bg-amber-950/20">
-      <p className="text-[11px] font-bold uppercase tracking-wide text-center">{label}</p>
-      <CounterRow
-        label="Shido"
-        value={shido}
-        max={3}
-        onChange={onShido}
-        btnClass="bg-amber-500 hover:bg-amber-600 text-white"
-        helper={
-          shido >= 3
-            ? "→ Hansoku-make !"
-            : shido === 2
-            ? "Pression forte"
-            : shido === 1
-            ? "Avertissement"
-            : undefined
-        }
-      />
-      <Button
-        type="button"
-        size="sm"
-        variant={hansokuDirect ? "default" : "outline"}
-        onClick={() => onHansokuDirect(!hansokuDirect)}
-        className={cn(
-          "w-full h-9 gap-1.5 text-xs",
-          hansokuDirect && "bg-red-600 hover:bg-red-700 text-white",
-        )}
-      >
-        <AlertTriangle className="h-3.5 w-3.5" />
-        Hansoku-make direct
+    <div className={cn("space-y-2 rounded-lg border p-3", opponent ? "bg-destructive/5" : "bg-primary/5")}>
+      <p className="text-center text-[11px] font-bold uppercase">{label}</p>
+      <CounterRow label="Ippon" value={ippon} max={1} onChange={onIppon} />
+      <CounterRow label="Waza-ari" value={wazari} max={2} onChange={onWazari} />
+      <CounterRow label="Yuko" value={yuko} max={9} onChange={onYuko} />
+      <CounterRow label="Shido" value={shido} max={3} onChange={onShido} />
+      <Button type="button" size="sm" variant={hansoku ? "destructive" : "outline"} onClick={() => onHansoku(!hansoku)} className="w-full text-xs">
+        <AlertTriangle className="mr-1.5 h-3.5 w-3.5" /> Hansoku-make direct
       </Button>
     </div>
   );
 }
 
-function CounterRow({
-  label,
-  value,
-  max,
-  onChange,
-  btnClass,
-  helper,
-}: {
-  label: string;
-  value: number;
-  max: number;
-  onChange: (v: number) => void;
-  btnClass: string;
-  helper?: string;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-2">
-      <div className="flex-1">
-        <p className="text-xs font-semibold">{label}</p>
-        {helper && <p className="text-[10px] opacity-80">{helper}</p>}
-      </div>
-      <div className="flex items-center gap-1">
-        <Button
-          type="button"
-          size="icon"
-          variant="outline"
-          className="h-8 w-8"
-          onClick={() => onChange(value - 1)}
-          disabled={value <= 0}
-        >
-          −
-        </Button>
-        <div className="w-8 text-center font-bold tabular-nums">{value}</div>
-        <Button
-          type="button"
-          size="icon"
-          className={cn("h-8 w-8", btnClass)}
-          onClick={() => onChange(value + 1)}
-          disabled={value >= max}
-        >
-          +
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function OsaekomiTimer({
-  label,
-  color,
-  seconds,
-  onChange,
-  onStart,
-  onStop,
-}: {
-  label: string;
-  color: "emerald" | "red";
-  seconds: number;
-  onChange: (v: number) => void;
-  onStart?: () => void;
-  onStop?: () => void;
-}) {
-  const [running, setRunning] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  useEffect(() => {
-    if (running) {
-      intervalRef.current = setInterval(() => {
-        onChange(seconds + 1);
-      }, 1000);
-    } else if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [running, seconds]);
-
-  const reached = seconds >= 20 ? "ippon" : seconds >= 10 ? "wazari" : "none";
-  const palette =
-    color === "emerald"
-      ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300"
-      : "bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300";
-
-  // Progress jusqu'à 20s
-  const pct = Math.min(100, (seconds / 20) * 100);
-
-  return (
-    <div className={cn("rounded-lg border p-2 space-y-2", palette)}>
-      <p className="text-[11px] font-bold uppercase tracking-wide">{label}</p>
-      <div className="flex items-center justify-between gap-2">
-        <div className="text-2xl font-bold font-mono tabular-nums">
-          {seconds}s
-        </div>
-        <div className="flex gap-1">
-          <Button
-            type="button"
-            size="sm"
-            variant={running ? "default" : "outline"}
-            className={cn("h-9 gap-1", running && "bg-emerald-600 text-white")}
-            onClick={() => {
-              setRunning((r) => {
-                const next = !r;
-                if (next) onStart?.(); else onStop?.();
-                return next;
-              });
-            }}
-          >
-            {running ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
-            {running ? "Stop" : "Start"}
-          </Button>
-          <Button
-            type="button"
-            size="icon"
-            variant="ghost"
-            className="h-9 w-9"
-            onClick={() => {
-              setRunning(false);
-              onChange(0);
-            }}
-          >
-            <RotateCcw className="h-3.5 w-3.5" />
-          </Button>
-        </div>
-      </div>
-      <div className="h-2 rounded-full bg-white/60 dark:bg-black/40 overflow-hidden relative">
-        <div
-          className={cn(
-            "h-full transition-all",
-            reached === "ippon" ? "bg-red-500" : reached === "wazari" ? "bg-amber-500" : "bg-foreground/30",
-          )}
-          style={{ width: `${pct}%` }}
-        />
-        <div className="absolute inset-y-0 left-[50%] w-px bg-foreground/30" />
-      </div>
-      <p className="text-[10px] font-semibold">
-        {reached === "ippon"
-          ? "✓ Ippon (≥ 20s)"
-          : reached === "wazari"
-          ? "✓ Waza-ari (≥ 10s) — continuer pour Ippon"
-          : `Encore ${10 - seconds}s pour Waza-ari`}
-      </p>
-    </div>
-  );
-}
-
-function DominanceSlider({ value, onChange }: { value: number; onChange: (v: number) => void }) {
-  // 0 = 100% sol, 100 = 100% debout, 50 = équilibré
-  const v = Math.max(0, Math.min(100, value || 50));
+function ImmobilizationChoice({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) {
+  const options = [
+    { value: 0, label: "Aucun score" },
+    { value: 1, label: "Yuko" },
+    { value: 2, label: "Waza-ari" },
+    { value: 3, label: "Ippon" },
+  ];
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between text-[11px] font-semibold">
-        <span>🤼 Ne-waza (sol)</span>
-        <span className="text-muted-foreground">
-          {v}% debout / {100 - v}% sol
-        </span>
-        <span>🥋 Tachi-waza (debout)</span>
-      </div>
-      <input
-        type="range"
-        min={0}
-        max={100}
-        step={5}
-        value={v}
-        onChange={(e) => onChange(parseInt(e.target.value, 10))}
-        className="w-full accent-violet-500"
-      />
-      <div className="flex flex-wrap gap-1">
-        {[
-          { label: "100% sol", v: 0 },
-          { label: "Sol dominant", v: 25 },
-          { label: "Équilibré", v: 50 },
-          { label: "Debout dominant", v: 75 },
-          { label: "100% debout", v: 100 },
-        ].map((opt) => (
+      <Label className="text-[10px] uppercase text-muted-foreground">{label}</Label>
+      <div className="grid grid-cols-2 gap-1.5">
+        {options.map((option) => (
           <Button
-            key={opt.v}
+            key={option.value}
             type="button"
             size="sm"
-            variant={v === opt.v ? "default" : "outline"}
-            className="h-7 text-[10px]"
-            onClick={() => onChange(opt.v)}
+            variant={value === option.value ? "default" : "outline"}
+            onClick={() => onChange(option.value)}
+            className="h-9 text-xs"
           >
-            {opt.label}
+            {option.label}
           </Button>
         ))}
       </div>
@@ -1871,325 +601,67 @@ function DominanceSlider({ value, onChange }: { value: number; onChange: (v: num
   );
 }
 
-// ----- Techniques offensive (table existante allégée) ----------------------
-function AttackBlock({
-  round,
-  onUpdateStat,
-}: {
-  round: JudoRound;
-  onUpdateStat: (key: string, value: number) => void;
-}) {
-  const [familyFilter, setFamilyFilter] = useState<string>("all");
-  const STANDING_FAMILIES = ["te", "koshi", "ashi", "sutemi"];
-  const GROUND_FAMILIES = ["ne_osae", "ne_shime", "ne_kansetsu"];
-  const visibleTechniques =
-    familyFilter === "all"
-      ? JUDO_TECHNIQUES
-      : JUDO_TECHNIQUES.filter((t) => t.family === familyFilter);
-  const standingTechs = visibleTechniques.filter((t) => STANDING_FAMILIES.includes(t.family));
-  const groundTechs = visibleTechniques.filter((t) => GROUND_FAMILIES.includes(t.family));
-
-  const renderTechRow = (t: typeof JUDO_TECHNIQUES[number]) => {
-    const att = num(round.stats?.[techStatKey(t.key, "att")]);
-    const suc = num(round.stats?.[techStatKey(t.key, "suc")]);
-    const pts = num(round.stats?.[techStatKey(t.key, "pts")]);
-    const pct = att > 0 ? Math.round((suc / att) * 100) : null;
-    return (
-      <TableRow key={t.key}>
-        <TableCell className="text-xs">
-          <div className="font-medium">{t.label}</div>
-          <div className="text-[10px] text-muted-foreground">
-            {JUDO_TECHNIQUE_FAMILIES.find((f) => f.key === t.family)?.label}
-          </div>
-        </TableCell>
-        {(["att", "suc", "pts"] as const).map((k) => {
-          const value = k === "att" ? att : k === "suc" ? suc : pts;
-          return (
-            <TableCell key={k} className="p-1">
-              <Input
-                type="number"
-                min={0}
-                max={k === "suc" ? att || undefined : undefined}
-                value={value || ""}
-                onChange={(e) =>
-                  onUpdateStat(techStatKey(t.key, k), parseFloat(e.target.value) || 0)
-                }
-                className="h-8 text-xs text-center"
-                onWheel={(e) => e.currentTarget.blur()}
-              />
-            </TableCell>
-          );
-        })}
-        <TableCell className="text-center text-xs">
-          {pct !== null ? (
-            <Badge variant={pct >= 50 ? "default" : pct >= 25 ? "secondary" : "outline"}>
-              {pct}%
-            </Badge>
-          ) : (
-            <span className="text-muted-foreground">—</span>
-          )}
-        </TableCell>
-      </TableRow>
-    );
-  };
-
-  const renderTechTable = (techs: typeof JUDO_TECHNIQUES, title: string, headerBg: string) => {
-    if (techs.length === 0) return null;
-    return (
-      <Card className="overflow-x-auto">
-        <div className={cn("px-3 py-2 text-xs font-bold uppercase tracking-wide", headerBg)}>
-          {title}
-        </div>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="min-w-[180px] whitespace-nowrap">Technique</TableHead>
-              <TableHead className="text-center w-20">Tent.</TableHead>
-              <TableHead className="text-center w-20">Réuss.</TableHead>
-              <TableHead className="text-center w-20">Pts</TableHead>
-              <TableHead className="text-center w-20">%</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>{techs.map(renderTechRow)}</TableBody>
-        </Table>
-      </Card>
-    );
-  };
-
+function StatPill({ label, value, accent = "muted" }: { label: string; value: string | number; accent?: "muted" | "success" | "danger" }) {
   return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <Label className="text-xs">Famille :</Label>
-        <Select value={familyFilter} onValueChange={setFamilyFilter}>
-          <SelectTrigger className="h-8 w-[220px] text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent className="z-[200]">
-            <SelectItem value="all">Toutes les techniques</SelectItem>
-            {JUDO_TECHNIQUE_FAMILIES.map((f) => (
-              <SelectItem key={f.key} value={f.key}>
-                {f.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      {renderTechTable(
-        standingTechs,
-        "Tachi-waza — Attaques debout",
-        "bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-200",
-      )}
-      {renderTechTable(
-        groundTechs,
-        "Ne-waza — Attaques au sol",
-        "bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-200",
-      )}
+    <div className={cn(
+      "rounded-lg border p-2 text-center",
+      accent === "success" ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" :
+      accent === "danger" ? "border-destructive/30 bg-destructive/10 text-destructive" : "bg-muted/40",
+    )}>
+      <p className="text-lg font-bold">{value}</p>
+      <p className="text-[10px] uppercase opacity-80">{label}</p>
     </div>
   );
 }
 
-// ============================================================================
-// Helpers UI ajoutés (v2)
-// ============================================================================
-function EnumPills({
-  label,
-  value,
-  options,
-  onChange,
-  color = "blue",
-}: {
-  label: string;
-  value: number;
-  options: { v: number; label: string }[];
-  onChange: (v: number) => void;
-  color?: "blue" | "amber" | "violet" | "emerald" | "red";
-}) {
-  const activeCls =
-    color === "amber"
-      ? "bg-amber-500 hover:bg-amber-600 text-white border-amber-500"
-      : color === "violet"
-      ? "bg-violet-500 hover:bg-violet-600 text-white border-violet-500"
-      : color === "emerald"
-      ? "bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-500"
-      : color === "red"
-      ? "bg-red-500 hover:bg-red-600 text-white border-red-500"
-      : "bg-blue-500 hover:bg-blue-600 text-white border-blue-500";
+function SectionHeader({ icon, title }: { icon?: React.ReactNode; title: string }) {
+  return <div className="flex items-center gap-2">{icon}<h4 className="text-sm font-bold uppercase">{title}</h4></div>;
+}
+
+function EnumPills({ label, value, options, onChange }: { label: string; value: number; options: { v: number; label: string }[]; onChange: (value: number) => void }) {
   return (
     <div className="space-y-1.5">
       <Label className="text-[10px] uppercase text-muted-foreground">{label}</Label>
       <div className="flex flex-wrap gap-1.5">
-        {options.map((o) => {
-          const active = value === o.v;
-          return (
-            <Button
-              key={o.v}
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => onChange(active ? 0 : o.v)}
-              className={cn("h-8 text-xs", active && activeCls)}
-            >
-              {o.label}
-            </Button>
-          );
-        })}
+        {options.map((option) => (
+          <Button
+            key={option.v}
+            type="button"
+            size="sm"
+            variant={value === option.v ? "default" : "outline"}
+            onClick={() => onChange(value === option.v ? 0 : option.v)}
+            className="h-8 text-xs"
+          >
+            {option.label}
+          </Button>
+        ))}
       </div>
     </div>
   );
 }
 
-function TagPills({
-  label,
-  mask,
-  options,
-  onChange,
-}: {
-  label: string;
-  mask: number;
-  options: { bit: number; label: string }[];
-  onChange: (mask: number) => void;
-}) {
+function CounterRow({ label, value, max, onChange }: { label: string; value: number; max: number; onChange: (value: number) => void }) {
   return (
-    <div className="space-y-1.5">
-      <Label className="text-[10px] uppercase text-muted-foreground">{label}</Label>
-      <div className="flex flex-wrap gap-1.5">
-        {options.map((o) => {
-          const active = (mask & o.bit) === o.bit;
-          return (
-            <Button
-              key={o.bit}
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => onChange(active ? mask & ~o.bit : mask | o.bit)}
-              className={cn(
-                "h-8 text-xs",
-                active && "bg-violet-500 hover:bg-violet-600 text-white border-violet-500",
-              )}
-            >
-              {o.label}
-            </Button>
-          );
-        })}
+    <div className="flex items-center justify-between gap-2">
+      <p className="text-xs font-semibold">{label}</p>
+      <div className="flex items-center gap-1">
+        <Button type="button" size="icon" variant="outline" className="h-8 w-8" onClick={() => onChange(Math.max(0, value - 1))}>−</Button>
+        <div className="w-8 text-center font-bold tabular-nums">{value}</div>
+        <Button type="button" size="icon" variant="outline" className="h-8 w-8" onClick={() => onChange(Math.min(max, value + 1))}>+</Button>
       </div>
     </div>
   );
 }
 
-function CounterStat({
-  label,
-  value,
-  onChange,
-  step = 1,
-  color = "muted",
-}: {
-  label: string;
-  value: number;
-  onChange: (v: number) => void;
-  step?: number;
-  color?: "muted" | "red" | "emerald" | "amber";
-}) {
-  const tint =
-    color === "red"
-      ? "bg-red-50 dark:bg-red-950/30"
-      : color === "emerald"
-      ? "bg-emerald-50 dark:bg-emerald-950/30"
-      : color === "amber"
-      ? "bg-amber-50 dark:bg-amber-950/30"
-      : "bg-muted/40";
+function CounterStat({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) {
   return (
-    <div className={cn("rounded-lg border p-2 space-y-1 text-center", tint)}>
-      <p className="text-[10px] uppercase text-muted-foreground leading-tight">{label}</p>
-      <div className="flex items-center justify-center gap-1">
-        <Button
-          type="button"
-          size="icon"
-          variant="outline"
-          className="h-7 w-7"
-          onClick={() => onChange(Math.max(0, value - step))}
-          disabled={value <= 0}
-        >
-          −
-        </Button>
-        <div className="w-10 text-base font-bold tabular-nums">{value}</div>
-        <Button
-          type="button"
-          size="icon"
-          variant="outline"
-          className="h-7 w-7"
-          onClick={() => onChange(value + step)}
-        >
-          +
-        </Button>
+    <div className="space-y-1 rounded-lg border bg-muted/40 p-3 text-center">
+      <p className="text-[10px] uppercase text-muted-foreground">{label}</p>
+      <div className="flex items-center justify-center gap-2">
+        <Button type="button" size="icon" variant="outline" className="h-8 w-8" onClick={() => onChange(Math.max(0, value - 1))}>−</Button>
+        <div className="w-12 text-lg font-bold tabular-nums">{value}</div>
+        <Button type="button" size="icon" variant="outline" className="h-8 w-8" onClick={() => onChange(value + 1)}>+</Button>
       </div>
-    </div>
-  );
-}
-
-function AttemptSuccessRow({
-  label,
-  attempts,
-  success,
-  onAttempts,
-  onSuccess,
-  extraLabel,
-  extraValue,
-  onExtra,
-  extraStep = 1,
-}: {
-  label: string;
-  attempts: number;
-  success: number;
-  onAttempts: (v: number) => void;
-  onSuccess: (v: number) => void;
-  extraLabel?: string;
-  extraValue?: number;
-  onExtra?: (v: number) => void;
-  extraStep?: number;
-}) {
-  const pct = attempts > 0 ? Math.round((success / attempts) * 100) : null;
-  return (
-    <div className="rounded-lg border p-2 space-y-2">
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-bold uppercase">{label}</p>
-        {pct !== null && (
-          <Badge variant={pct >= 50 ? "default" : pct >= 25 ? "secondary" : "outline"} className="text-[10px]">
-            {pct}%
-          </Badge>
-        )}
-      </div>
-      <div className={cn("grid gap-1.5", extraLabel ? "grid-cols-3" : "grid-cols-2")}>
-        <CounterStat label="Tentatives" value={attempts} onChange={onAttempts} />
-        <CounterStat label="Réussies" value={success} onChange={(v) => onSuccess(Math.min(v, attempts || v))} color="emerald" />
-        {extraLabel && onExtra && (
-          <CounterStat label={extraLabel} value={extraValue || 0} onChange={onExtra} step={extraStep} />
-        )}
-      </div>
-    </div>
-  );
-}
-
-function OffensiveSynthesis({ round }: { round: JudoRound }) {
-  const synth = useMemo(() => {
-    let att = 0, suc = 0, pts = 0;
-    for (const t of JUDO_TECHNIQUES) {
-      att += num(round.stats?.[techStatKey(t.key, "att")]);
-      suc += num(round.stats?.[techStatKey(t.key, "suc")]);
-      pts += num(round.stats?.[techStatKey(t.key, "pts")]);
-    }
-    const pct = att > 0 ? Math.round((suc / att) * 100) : null;
-    return { att, suc, pts, pct };
-  }, [round.stats]);
-  return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-      <StatPill label="Total attaques" value={synth.att} />
-      <StatPill label="Attaques efficaces" value={synth.suc} accent="success" />
-      <StatPill label="Points générés" value={synth.pts} accent="info" />
-      <StatPill
-        label="% efficacité"
-        value={synth.pct !== null ? `${synth.pct}%` : "—"}
-        accent={synth.pct !== null && synth.pct >= 50 ? "success" : synth.pct !== null && synth.pct >= 25 ? "warning" : "muted"}
-      />
     </div>
   );
 }

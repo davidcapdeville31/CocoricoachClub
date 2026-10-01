@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { BarChart3, GitCompare, ChevronDown, Check, Trophy, Layers, Award, Gavel, Shield, Swords, Brain, Flame, FileDown, Loader2 } from "lucide-react";
+import { BarChart3, GitCompare, ChevronDown, Check, Trophy, Layers, Award, Gavel, Swords, Brain, Flame, FileDown, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { exportJudoCompetitionPdf, type JudoPdfMode } from "@/lib/judo/judoCompetitionPdfExport";
 import { extractFilledRoundStats, formatStatValue, resultLabel } from "@/lib/judo/roundDetail";
@@ -75,8 +75,8 @@ const GROUP_THEMES: Record<string, GroupTheme> = {
     ring: "ring-1 ring-violet-500/10 dark:ring-violet-400/15",
     tableHead: "bg-violet-500/[0.06] dark:bg-violet-400/[0.08]",
   },
-  "Défense": {
-    icon: Shield,
+  "Techniques debout": {
+    icon: Flame,
     bar: "bg-gradient-to-r from-emerald-500 via-teal-400 to-green-400",
     chip: "bg-emerald-500/10 dark:bg-emerald-400/15",
     chipIcon: "text-emerald-600 dark:text-emerald-300",

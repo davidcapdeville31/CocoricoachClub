@@ -346,60 +346,24 @@ export const BASKETBALL_3X3_STATS: StatField[] = [
   { key: "deflections", label: "Déviations", shortLabel: "Dév.", category: "defense", type: "number" },
   { key: "chargesTaken", label: "Fautes off. provoquées", shortLabel: "Charges", category: "defense", type: "number" },
 ];
-// Organized by subcategories as requested:
-// - Résultat & score
-// - Attaque
-// - Défense
-// - Pénalités
-// - Ne-waza
-// - Physique & rythme
+// Bilan post-combat simplifié. Les anciennes clés restent lisibles dans les
+// enregistrements historiques mais ne sont plus proposées à la saisie.
 export const JUDO_STATS: StatField[] = [
-  // === RÉSULTAT & SCORE ===
   { key: "combatResult", label: "Victoire (1) / Défaite (0)", shortLabel: "Résultat", category: "scoring", type: "number", max: 1 },
-  { key: "victoryModeIppon", label: "Mode victoire: Ippon", shortLabel: "Ippon", category: "scoring", type: "number", max: 1 },
-  { key: "victoryModeWazaari", label: "Mode victoire: Waza-ari", shortLabel: "Waza-ari", category: "scoring", type: "number", max: 1 },
-  { key: "victoryModeDecision", label: "Mode victoire: Décision", shortLabel: "Décision", category: "scoring", type: "number", max: 1 },
-  { key: "victoryModeHansoku", label: "Mode victoire: Hansoku-make", shortLabel: "Hansoku", category: "scoring", type: "number", max: 1 },
-  { key: "victoryModeYuko", label: "Mode victoire: Yuko", shortLabel: "Yuko", category: "scoring", type: "number", max: 1 },
-  { key: "finalScore", label: "Score final", shortLabel: "Score", category: "scoring", type: "number" },
-  { key: "combatDuration", label: "Temps du combat (sec)", shortLabel: "Durée", category: "scoring", type: "number" },
-  
-  // === ATTAQUE ===
-  { key: "attackAttempts", label: "Attaques tentées", shortLabel: "Att. tentées", category: "attack", type: "number" },
-  { key: "attackEffective", label: "Attaques efficaces", shortLabel: "Att. eff.", category: "attack", type: "number" },
-  { key: "attackEffectivePercent", label: "% attaques efficaces", shortLabel: "% Eff.", category: "attack", type: "percentage", max: 100, computedFrom: { successKey: "attackEffective", totalKey: "attackAttempts" } },
-  { key: "techniqueNageWaza", label: "Nage-waza (debout)", shortLabel: "Nage-waza", category: "attack", type: "number" },
-  { key: "techniqueNeWaza", label: "Ne-waza (sol)", shortLabel: "Ne-waza", category: "attack", type: "number" },
-  { key: "dominantSideRight", label: "Côté dominant: Droite", shortLabel: "Droite", category: "attack", type: "number", max: 1 },
-  { key: "dominantSideLeft", label: "Côté dominant: Gauche", shortLabel: "Gauche", category: "attack", type: "number", max: 1 },
-  { key: "entryTypeDirect", label: "Entrée directe", shortLabel: "Direct", category: "attack", type: "number" },
-  { key: "entryTypeCombo", label: "Combinaison", shortLabel: "Combo", category: "attack", type: "number" },
-  { key: "entryTypeCounter", label: "Contre-attaque", shortLabel: "Contre", category: "attack", type: "number" },
-  
-  // === DÉFENSE ===
-  { key: "attacksReceived", label: "Attaques subies", shortLabel: "Att. subies", category: "defense", type: "number" },
-  { key: "scoresConceded", label: "Scores concédés", shortLabel: "Sc. concédés", category: "defense", type: "number" },
-  { key: "attacksNeutralized", label: "Attaques neutralisées", shortLabel: "Neutralisées", category: "defense", type: "number" },
-  { key: "defensiveQuality", label: "% qualité défensive", shortLabel: "% Déf.", category: "defense", type: "percentage", max: 100, computedFrom: { successKey: "attacksNeutralized", totalKey: "attacksReceived" } },
-  
-  // === PÉNALITÉS ===
-  { key: "shidoReceived", label: "Shido reçus", shortLabel: "Shido reçus", category: "general", type: "number", max: 3 },
-  { key: "shidoProvoked", label: "Shido provoqués (adversaire)", shortLabel: "Shido provoqués", category: "general", type: "number", max: 3 },
-  { key: "hansokuMake", label: "Hansoku-make (oui=1/non=0)", shortLabel: "Hansoku", category: "general", type: "number", max: 1 },
-  
-  // === NE-WAZA (SOL) ===
-  { key: "groundTimeSeconds", label: "Temps au sol (sec)", shortLabel: "Temps sol", category: "attack", type: "number" },
-  { key: "immobilizationAttempts", label: "Tentatives immobilisation", shortLabel: "Tent. immo.", category: "attack", type: "number" },
-  { key: "armLockAttempts", label: "Tentatives clé de bras", shortLabel: "Tent. clé", category: "attack", type: "number" },
-  { key: "chokeAttempts", label: "Tentatives étranglement", shortLabel: "Tent. étrang.", category: "attack", type: "number" },
-  { key: "neWazaSuccess", label: "Réussites ne-waza", shortLabel: "Réussites sol", category: "attack", type: "number" },
-  { key: "neWazaEfficiency", label: "% efficacité ne-waza", shortLabel: "% Ne-waza", category: "attack", type: "percentage", max: 100, computedFrom: { successKey: "neWazaSuccess", totalKey: "immobilizationAttempts" } },
-  
-  // === PHYSIQUE & RYTHME ===
-  { key: "effectiveEngagementTime", label: "Temps engagement effectif (sec)", shortLabel: "Eng. eff.", category: "general", type: "number" },
-  { key: "passivityPhases", label: "Phases de passivité", shortLabel: "Passivité", category: "general", type: "number" },
-  { key: "goldenScore", label: "Golden Score (oui=1/non=0)", shortLabel: "G. Score", category: "general", type: "number", max: 1 },
-  { key: "goldenScoreDuration", label: "Durée Golden Score (sec)", shortLabel: "Durée GS", category: "general", type: "number" },
+  { key: "ijf_ippon_me", label: "Ippon pour", shortLabel: "Ippon +", category: "scoring", type: "number", max: 1 },
+  { key: "ijf_ippon_opp", label: "Ippon contre", shortLabel: "Ippon -", category: "scoring", type: "number", max: 1 },
+  { key: "ijf_wazari_me", label: "Waza-ari pour", shortLabel: "Waza +", category: "scoring", type: "number", max: 2 },
+  { key: "ijf_wazari_opp", label: "Waza-ari contre", shortLabel: "Waza -", category: "scoring", type: "number", max: 2 },
+  { key: "ijf_yuko_me", label: "Yuko pour", shortLabel: "Yuko +", category: "scoring", type: "number" },
+  { key: "ijf_yuko_opp", label: "Yuko contre", shortLabel: "Yuko -", category: "scoring", type: "number" },
+  { key: "ijf_shido_me", label: "Shido reçus", shortLabel: "Shido +", category: "scoring", type: "number", max: 3 },
+  { key: "ijf_shido_opp", label: "Shido adverses", shortLabel: "Shido adv.", category: "scoring", type: "number", max: 3 },
+  { key: "ijf_immo_score_me", label: "Score immobilisation", shortLabel: "Immo +", category: "attack", type: "number", max: 3 },
+  { key: "ijf_immo_score_opp", label: "Score immobilisation adverse", shortLabel: "Immo -", category: "attack", type: "number", max: 3 },
+  { key: "ijf_transition_s2g", label: "Liaisons debout-sol", shortLabel: "Liaisons", category: "attack", type: "number" },
+  { key: "ijf_standing_attempts", label: "Techniques debout tentées", shortLabel: "Tentées", category: "attack", type: "number" },
+  { key: "ijf_standing_success", label: "Techniques debout réussies", shortLabel: "Réussies", category: "attack", type: "number" },
+  { key: "goldenScore", label: "Golden Score", shortLabel: "G. Score", category: "general", type: "number", max: 1 },
 ];
 
 // Judo aggregated stats (for competition summary after finalization)
