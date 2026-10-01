@@ -1,155 +1,411 @@
-// Common rugby injuries with default rehabilitation protocols
+// Common injuries with default rehabilitation protocols (all disciplines)
+// Each type is grouped by anatomical "zone" in the injury type dropdowns.
+
+// Ordered anatomical zones shown as group headers in the type dropdowns
+export const INJURY_ZONES = [
+  "Ischio-jambiers",
+  "Quadriceps",
+  "Mollet",
+  "Cuisse — autres muscles",
+  "Adducteurs & bassin",
+  "Genou",
+  "Cheville & pied",
+  "Tibia & jambe",
+  "Épaule & clavicule",
+  "Cou & cervicales",
+  "Tête",
+  "Dos & lombaires",
+  "Côtes & thorax",
+  "Main & poignet",
+] as const;
+
 export const RUGBY_INJURY_TYPES = [
-  // Musculaires
-  { 
-    name: "Élongation ischio-jambiers", 
+  // ============ Ischio-jambiers ============
+  {
+    name: "Élongation ischio-jambiers",
+    zone: "Ischio-jambiers",
     category: "musculaire",
-    durationMin: 14, 
+    durationMin: 14,
     durationMax: 42,
     description: "Lésion des muscles à l'arrière de la cuisse, fréquente lors des sprints"
   },
-  { 
-    name: "Élongation quadriceps", 
+  {
+    name: "Claquage ischio-jambiers",
+    zone: "Ischio-jambiers",
     category: "musculaire",
-    durationMin: 14, 
+    durationMin: 21,
+    durationMax: 56,
+    description: "Déchirure des ischio-jambiers, souvent après une élongation mal soignée"
+  },
+  {
+    name: "Point aux ischio-jambiers",
+    zone: "Ischio-jambiers",
+    category: "non diagnostiqué",
+    durationMin: 3,
+    durationMax: 14,
+    description: "Douleur non diagnostiquée à l'arrière de la cuisse — à préciser après examen"
+  },
+  {
+    name: "Contracture ischio-jambiers",
+    zone: "Ischio-jambiers",
+    category: "musculaire",
+    durationMin: 3,
+    durationMax: 10,
+    description: "Contracture sans lésion visible, douleur diffuse à l'arrière de la cuisse"
+  },
+
+  // ============ Quadriceps ============
+  {
+    name: "Élongation quadriceps",
+    zone: "Quadriceps",
+    category: "musculaire",
+    durationMin: 14,
     durationMax: 35,
     description: "Lésion du muscle à l'avant de la cuisse"
   },
-  { 
-    name: "Déchirure mollet", 
+  {
+    name: "Claquage quadriceps",
+    zone: "Quadriceps",
     category: "musculaire",
-    durationMin: 21, 
+    durationMin: 21,
+    durationMax: 56,
+    description: "Déchirure du quadriceps, douleur vive à l'avant de la cuisse"
+  },
+  {
+    name: "Point au quadriceps",
+    zone: "Quadriceps",
+    category: "non diagnostiqué",
+    durationMin: 3,
+    durationMax: 14,
+    description: "Douleur non diagnostiquée à l'avant de la cuisse — à préciser après examen"
+  },
+  {
+    name: "Contracture quadriceps",
+    zone: "Quadriceps",
+    category: "musculaire",
+    durationMin: 3,
+    durationMax: 10,
+    description: "Contracture sans lésion visible à l'avant de la cuisse"
+  },
+
+  // ============ Mollet ============
+  {
+    name: "Déchirure mollet",
+    zone: "Mollet",
+    category: "musculaire",
+    durationMin: 21,
     durationMax: 56,
     description: "Lésion des muscles du mollet (gastrocnémien/soléaire)"
   },
-  { 
-    name: "Claquage adducteurs", 
+  {
+    name: "Élongation mollet",
+    zone: "Mollet",
     category: "musculaire",
-    durationMin: 14, 
-    durationMax: 42,
-    description: "Lésion des muscles de l'intérieur de la cuisse"
+    durationMin: 10,
+    durationMax: 21,
+    description: "Étirement excessif des fibres du mollet"
   },
-  { 
-    name: "Contusion musculaire", 
+  {
+    name: "Point au mollet",
+    zone: "Mollet",
+    category: "non diagnostiqué",
+    durationMin: 3,
+    durationMax: 14,
+    description: "Douleur non diagnostiquée au mollet — à préciser après examen"
+  },
+  {
+    name: "Contracture mollet",
+    zone: "Mollet",
     category: "musculaire",
-    durationMin: 7, 
+    durationMin: 3,
+    durationMax: 10,
+    description: "Contracture sans lésion visible au mollet"
+  },
+  {
+    name: "Crampes à répétition",
+    zone: "Mollet",
+    category: "musculaire",
+    durationMin: 1,
+    durationMax: 7,
+    description: "Crampes récurrentes, souvent liées à la déshydratation ou la fatigue"
+  },
+
+  // ============ Cuisse — autres muscles ============
+  {
+    name: "Contusion musculaire",
+    zone: "Cuisse — autres muscles",
+    category: "musculaire",
+    durationMin: 7,
     durationMax: 21,
     description: "Ecchymose profonde suite à un choc direct"
   },
 
-  // Articulaires
-  { 
-    name: "Entorse cheville", 
-    category: "articulaire",
-    durationMin: 7, 
+  // ============ Adducteurs & bassin ============
+  {
+    name: "Claquage adducteurs",
+    zone: "Adducteurs & bassin",
+    category: "musculaire",
+    durationMin: 14,
     durationMax: 42,
-    description: "Lésion des ligaments de la cheville (latérale externe le plus souvent)"
+    description: "Lésion des muscles de l'intérieur de la cuisse"
   },
-  { 
-    name: "Entorse genou (LLI)", 
+  {
+    name: "Élongation adducteurs",
+    zone: "Adducteurs & bassin",
+    category: "musculaire",
+    durationMin: 10,
+    durationMax: 21,
+    description: "Étirement excessif des adducteurs, douleur à l'intérieur de la cuisse"
+  },
+  {
+    name: "Point aux adducteurs",
+    zone: "Adducteurs & bassin",
+    category: "non diagnostiqué",
+    durationMin: 3,
+    durationMax: 14,
+    description: "Douleur non diagnostiquée à l'intérieur de la cuisse — à préciser après examen"
+  },
+  {
+    name: "Pubalgie",
+    zone: "Adducteurs & bassin",
+    category: "musculaire",
+    durationMin: 42,
+    durationMax: 120,
+    description: "Douleur au niveau du pubis et des adducteurs"
+  },
+
+  // ============ Genou ============
+  {
+    name: "Entorse genou (LLI)",
+    zone: "Genou",
     category: "ligamentaire",
-    durationMin: 21, 
+    durationMin: 21,
     durationMax: 56,
     description: "Lésion du ligament latéral interne du genou"
   },
-  { 
-    name: "Rupture LCA", 
+  {
+    name: "Rupture LCA",
+    zone: "Genou",
     category: "ligamentaire",
-    durationMin: 180, 
+    durationMin: 180,
     durationMax: 270,
     description: "Rupture du ligament croisé antérieur - nécessite chirurgie"
   },
-  { 
-    name: "Lésion méniscale", 
+  {
+    name: "Lésion méniscale",
+    zone: "Genou",
     category: "articulaire",
-    durationMin: 42, 
+    durationMin: 42,
     durationMax: 90,
     description: "Lésion du ménisque du genou"
   },
+  {
+    name: "Tendinite rotule (tendinopathie)",
+    zone: "Genou",
+    category: "tendineuse",
+    durationMin: 21,
+    durationMax: 56,
+    description: "Inflammation du tendon sous la rotule, douleur à l'effort"
+  },
+  {
+    name: "Douleur au genou",
+    zone: "Genou",
+    category: "non diagnostiqué",
+    durationMin: 3,
+    durationMax: 14,
+    description: "Douleur non diagnostiquée au genou — à préciser après examen"
+  },
 
-  // Épaule
-  { 
-    name: "Luxation épaule", 
+  // ============ Cheville & pied ============
+  {
+    name: "Entorse cheville",
+    zone: "Cheville & pied",
     category: "articulaire",
-    durationMin: 42, 
+    durationMin: 7,
+    durationMax: 42,
+    description: "Lésion des ligaments de la cheville (latérale externe le plus souvent)"
+  },
+  {
+    name: "Entorse cheville (LLE)",
+    zone: "Cheville & pied",
+    category: "ligamentaire",
+    durationMin: 21,
+    durationMax: 56,
+    description: "Entorse du ligament latéral externe, souvent après un faux appui"
+  },
+  {
+    name: "Tendinite achiléenne",
+    zone: "Cheville & pied",
+    category: "tendineuse",
+    durationMin: 21,
+    durationMax: 56,
+    description: "Inflammation du tendon d'Achille, douleur à la marche et à l'effort"
+  },
+  {
+    name: "Fasciite plantaire",
+    zone: "Cheville & pied",
+    category: "tendineuse",
+    durationMin: 21,
+    durationMax: 56,
+    description: "Inflammation de l'aponévrose plantaire, douleur sous le pied"
+  },
+  {
+    name: "Douleur à la cheville",
+    zone: "Cheville & pied",
+    category: "non diagnostiqué",
+    durationMin: 3,
+    durationMax: 14,
+    description: "Douleur non diagnostiquée à la cheville — à préciser après examen"
+  },
+
+  // ============ Tibia & jambe ============
+  {
+    name: "Fracture de fatigue (tibia)",
+    zone: "Tibia & jambe",
+    category: "osseux",
+    durationMin: 42,
+    durationMax: 84,
+    description: "Microfracture due au stress répétitif"
+  },
+  {
+    name: "Périostite tibiale",
+    zone: "Tibia & jambe",
+    category: "osseux",
+    durationMin: 21,
+    durationMax: 56,
+    description: "Inflammation de l'enveloppe du tibia, douleur à la course"
+  },
+
+  // ============ Épaule & clavicule ============
+  {
+    name: "Luxation épaule",
+    zone: "Épaule & clavicule",
+    category: "articulaire",
+    durationMin: 42,
     durationMax: 84,
     description: "Déboîtement de l'articulation de l'épaule"
   },
-  { 
-    name: "Lésion coiffe des rotateurs", 
+  {
+    name: "Lésion coiffe des rotateurs",
+    zone: "Épaule & clavicule",
     category: "musculaire",
-    durationMin: 28, 
+    durationMin: 28,
     durationMax: 84,
     description: "Lésion des muscles stabilisateurs de l'épaule"
   },
-  { 
-    name: "Entorse acromio-claviculaire", 
+  {
+    name: "Entorse acromio-claviculaire",
+    zone: "Épaule & clavicule",
     category: "ligamentaire",
-    durationMin: 14, 
+    durationMin: 14,
     durationMax: 56,
     description: "Lésion de l'articulation entre clavicule et omoplate"
   },
-
-  // Tête et cou
-  { 
-    name: "Commotion cérébrale", 
-    category: "neurologique",
-    durationMin: 14, 
-    durationMax: 42,
-    description: "Traumatisme crânien - protocole HIA obligatoire"
+  {
+    name: "Fracture clavicule",
+    zone: "Épaule & clavicule",
+    category: "osseux",
+    durationMin: 42,
+    durationMax: 84,
+    description: "Fracture de la clavicule suite à un choc"
   },
-  { 
-    name: "Cervicalgie traumatique", 
+  {
+    name: "Douleur à l'épaule",
+    zone: "Épaule & clavicule",
+    category: "non diagnostiqué",
+    durationMin: 3,
+    durationMax: 14,
+    description: "Douleur non diagnostiquée à l'épaule — à préciser après examen"
+  },
+
+  // ============ Cou & cervicales ============
+  {
+    name: "Cervicalgie traumatique",
+    zone: "Cou & cervicales",
     category: "rachidien",
-    durationMin: 7, 
+    durationMin: 7,
     durationMax: 28,
     description: "Douleur cervicale suite à un traumatisme"
   },
 
-  // Osseux
-  { 
-    name: "Fracture clavicule", 
-    category: "osseux",
-    durationMin: 42, 
-    durationMax: 84,
-    description: "Fracture de la clavicule suite à un choc"
-  },
-  { 
-    name: "Fracture côte", 
-    category: "osseux",
-    durationMin: 28, 
-    durationMax: 56,
-    description: "Fracture d'une ou plusieurs côtes"
-  },
-  { 
-    name: "Fracture doigt/main", 
-    category: "osseux",
-    durationMin: 21, 
+  // ============ Tête ============
+  {
+    name: "Commotion cérébrale",
+    zone: "Tête",
+    category: "neurologique",
+    durationMin: 14,
     durationMax: 42,
-    description: "Fracture au niveau de la main ou des doigts"
-  },
-  { 
-    name: "Fracture de fatigue (tibia)", 
-    category: "osseux",
-    durationMin: 42, 
-    durationMax: 84,
-    description: "Microfracture due au stress répétitif"
+    description: "Traumatisme crânien - protocole HIA obligatoire"
   },
 
-  // Autres
-  { 
-    name: "Lombalgie", 
+  // ============ Dos & lombaires ============
+  {
+    name: "Lombalgie",
+    zone: "Dos & lombaires",
     category: "rachidien",
-    durationMin: 7, 
+    durationMin: 7,
     durationMax: 28,
     description: "Douleur lombaire d'origine mécanique"
   },
-  { 
-    name: "Pubalgie", 
-    category: "musculaire",
-    durationMin: 42, 
-    durationMax: 120,
-    description: "Douleur au niveau du pubis et des adducteurs"
+  {
+    name: "Lumbago aigu",
+    zone: "Dos & lombaires",
+    category: "rachidien",
+    durationMin: 3,
+    durationMax: 14,
+    description: "Blocage lombaire brutal,Contracture des muscles lombaires"
+  },
+  {
+    name: "Douleur au dos",
+    zone: "Dos & lombaires",
+    category: "non diagnostiqué",
+    durationMin: 3,
+    durationMax: 14,
+    description: "Douleur non diagnostiquée au dos — à préciser après examen"
+  },
+
+  // ============ Côtes & thorax ============
+  {
+    name: "Fracture côte",
+    zone: "Côtes & thorax",
+    category: "osseux",
+    durationMin: 28,
+    durationMax: 56,
+    description: "Fracture d'une ou plusieurs côtes"
+  },
+  {
+    name: "Contusion thoracique",
+    zone: "Côtes & thorax",
+    category: "osseux",
+    durationMin: 7,
+    durationMax: 21,
+    description: "Choc direct sur les côtes sans fracture"
+  },
+
+  // ============ Main & poignet ============
+  {
+    name: "Fracture doigt/main",
+    zone: "Main & poignet",
+    category: "osseux",
+    durationMin: 21,
+    durationMax: 42,
+    description: "Fracture au niveau de la main ou des doigts"
+  },
+  {
+    name: "Entorse doigt",
+    zone: "Main & poignet",
+    category: "ligamentaire",
+    durationMin: 10,
+    durationMax: 28,
+    description: "Lésion ligamentaire d'un doigt (doigt en maillet, etc.)"
+  },
+  {
+    name: "Douleur au poignet/main",
+    zone: "Main & poignet",
+    category: "non diagnostiqué",
+    durationMin: 3,
+    durationMax: 14,
+    description: "Douleur non diagnostiquée au poignet ou à la main — à préciser après examen"
   },
 ] as const;
 
@@ -160,6 +416,8 @@ export const INJURY_CATEGORIES = [
   { value: "osseux", label: "Osseux" },
   { value: "rachidien", label: "Rachidien" },
   { value: "neurologique", label: "Neurologique" },
+  { value: "tendineuse", label: "Tendineuse" },
+  { value: "non diagnostiqué", label: "Non diagnostiqué" },
 ] as const;
 
 // Default rehabilitation phases for common injuries
