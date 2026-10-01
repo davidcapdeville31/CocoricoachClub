@@ -51,6 +51,19 @@ const EXERCISE_CATEGORIES = [
   "Tests & Évaluations",
 ];
 
+// Sous-catégories de Musculation
+const MUSCU_SUBCATEGORIES = [
+  "Renforcement général",
+  "Machines",
+  "Kettlebell",
+  "Haltères",
+  "Poids de corps",
+  "Barres",
+];
+
+const exerciseCategories = (e: { categories?: string[] | null; station_name: string }) =>
+  e.categories && e.categories.length ? e.categories : [e.station_name];
+
 // Muscles list (sorted alphabetically)
 const MUSCLES = [
   "Abdominaux",
@@ -119,7 +132,12 @@ const ExerciseLibrary = () => {
     createCustomExercise,
     updateCustomExercise,
     deleteCustomExercise,
+    updateExerciseCategories,
+    isSuperAdmin,
   } = useMergedExercises();
+  const [selectedSub, setSelectedSub] = useState<string>("all");
+  const [editCategories, setEditCategories] = useState<string[]>([]);
+  const [editSubcategories, setEditSubcategories] = useState<string[]>([]);
 
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [selectedStation, setSelectedStation] = useState<string>("all");
@@ -419,6 +437,8 @@ const ExerciseLibrary = () => {
       execution_criteria: (exercise.execution_criteria as ExecutionCriteria) || {},
       safety_prevention: (exercise.safety_prevention as SafetyPrevention) || {}
     });
+    setEditCategories(exerciseCategories(exercise).filter(Boolean));
+    setEditSubcategories(exercise.subcategories || []);
     setEditDialogOpen(true);
   };
 
@@ -449,11 +469,22 @@ const ExerciseLibrary = () => {
         imageUrl = publicUrl;
       }
 
+      const canEditCategories = editingExercise.is_custom || isSuperAdmin;
+      if (canEditCategories && editCategories.length > 0) {
+        const prevCats = exerciseCategories(editingExercise).join("|");
+        const prevSubs = (editingExercise.subcategories || []).join("|");
+        if (prevCats !== editCategories.join("|") || prevSubs !== editSubcategories.join("|")) {
+          await updateExerciseCategories(editingExercise.id, editCategories, editCategories.includes("Musculation") ? editSubcategories : []);
+        }
+      } else if (canEditCategories) {
+        toast.error("Sélectionne au moins une catégorie");
+      }
+
       if (editingExercise.is_custom) {
         // Update custom exercise directly
         await updateCustomExercise(editingExercise.id, {
           exercise_name: editFormData.exercise_name,
-          station_name: editFormData.station_name,
+          station_name: editCategories[0] || editFormData.station_name,
           description: editFormData.description,
           general_description: editDescriptionData.general_description,
           positioning_criteria: editDescriptionData.positioning_criteria,
@@ -506,7 +537,7 @@ const ExerciseLibrary = () => {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       const nameMatch = exercise.exercise_name.toLowerCase().includes(query);
-      const categoryMatch = exercise.station_name.toLowerCase().includes(query);
+      const categoryMatch = exerciseCategories(exercise).some(c => c.toLowerCase().includes(query));
       if (!nameMatch && !categoryMatch) {
         return false;
       }
@@ -515,9 +546,12 @@ const ExerciseLibrary = () => {
     // Category filter (HYROX = groupe de 8 stations)
     if (selectedStation !== "all") {
       if (selectedStation === "HYROX") {
-        if (!HYROX_STATIONS.includes(exercise.station_name)) return false;
-      } else if (exercise.station_name !== selectedStation) {
+        if (!exerciseCategories(exercise).some(c => HYROX_STATIONS.includes(c))) return false;
+      } else if (!exerciseCategories(exercise).includes(selectedStation)) {
         return false;
+      }
+      if (selectedStation === "Musculation" && selectedSub !== "all") {
+        if (!(exercise.subcategories || []).includes(selectedSub)) return false;
       }
     }
     
@@ -1125,6 +1159,25 @@ const ExerciseLibrary = () => {
           ))}
         </TabsList>
 
+        {selectedStation === "Musculation" && (
+          <div className="flex flex-wrap gap-2 mt-3">
+            {["all", ...MUSCU_SUBCATEGORIES].map(sub => (
+              <Button
+                key={sub}
+                type="button"
+                size="sm"
+                variant={selectedSub === sub ? "default" : "outline"}
+                onClick={() => setSelectedSub(sub)}
+              >
+                {sub === "all" ? "Toute la musculation" : sub}
+                <span className="ml-1.5 text-xs opacity-70">
+                  {exercises.filter(e => exerciseCategories(e).includes("Musculation") && (sub === "all" || (e.subcategories || []).includes(sub))).length}
+                </span>
+              </Button>
+            ))}
+          </div>
+        )}
+
         <TabsContent value={selectedStation} className="mt-4">
           {filteredExercises.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
@@ -1164,9 +1217,16 @@ const ExerciseLibrary = () => {
                             isOverridden={exercise.is_overridden} 
                             isCustom={exercise.is_custom} 
                           />
-                          <Badge variant="outline" className="text-xs font-normal">
-                            {exercise.station_name}
-                          </Badge>
+                          {exerciseCategories(exercise).map(cat => (
+                            <Badge key={cat} variant="outline" className="text-xs font-normal">
+                              {cat}
+                            </Badge>
+                          ))}
+                          {selectedStation === "Musculation" && (exercise.subcategories || []).map(sub => (
+                            <Badge key={sub} variant="secondary" className="text-xs font-normal">
+                              {sub}
+                            </Badge>
+                          ))}
                         </div>
                       </div>
                       
@@ -1374,25 +1434,42 @@ const ExerciseLibrary = () => {
             )}
           </DialogHeader>
           <form onSubmit={handleEditSubmit} className="space-y-4">
+            {(editingExercise?.is_custom || isSuperAdmin) && (
+              <div className="space-y-3 rounded-2xl border border-border/50 p-3">
+                <div className="space-y-2">
+                  <Label>Catégories (un exercice peut être dans plusieurs)</Label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {EXERCISE_CATEGORIES.filter(c => c !== "HYROX").concat(HYROX_STATIONS).map(cat => {
+                      const on = editCategories.includes(cat);
+                      return (
+                        <Button key={cat} type="button" size="sm" variant={on ? "default" : "outline"} className="h-7 text-xs"
+                          onClick={() => setEditCategories(prev => on ? prev.filter(c => c !== cat) : [...prev, cat])}>
+                          {cat}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </div>
+                {editCategories.includes("Musculation") && (
+                  <div className="space-y-2">
+                    <Label>Sous-catégories Musculation</Label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {MUSCU_SUBCATEGORIES.map(sub => {
+                        const on = editSubcategories.includes(sub);
+                        return (
+                          <Button key={sub} type="button" size="sm" variant={on ? "default" : "outline"} className="h-7 text-xs"
+                            onClick={() => setEditSubcategories(prev => on ? prev.filter(c => c !== sub) : [...prev, sub])}>
+                            {sub}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
             {editingExercise?.is_custom && (
               <>
-                <div className="space-y-2">
-                  <Label>Catégorie</Label>
-                  <Select 
-                    value={editFormData.station_name} 
-                    onValueChange={(v) => setEditFormData({ ...editFormData, station_name: v })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {EXERCISE_CATEGORIES.map(station => (
-                        <SelectItem key={station} value={station}>{station}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 <div className="space-y-2">
                   <Label>Nom de l'exercice</Label>
                   <Input
