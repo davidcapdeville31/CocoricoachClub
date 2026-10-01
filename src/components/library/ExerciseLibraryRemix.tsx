@@ -173,6 +173,8 @@ const ExerciseLibrary = () => {
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
   
+  const [newCategories, setNewCategories] = useState<string[]>([]);
+  const [newSubcategories, setNewSubcategories] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     station_name: "",
     exercise_name: "",
@@ -376,10 +378,14 @@ const ExerciseLibrary = () => {
         video_url: videoUrl,
         image_url: imageUrl,
         muscles: formData.muscles,
-        equipment: formData.equipment
-      });
+        equipment: formData.equipment,
+        categories: newCategories,
+        subcategories: newCategories.includes("Musculation") ? newSubcategories : [],
+      } as any);
 
       setDialogOpen(false);
+      setNewCategories([]);
+      setNewSubcategories([]);
       setFormData({
         station_name: "",
         exercise_name: "",
@@ -766,21 +772,39 @@ const ExerciseLibrary = () => {
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Catégorie</Label>
-                  <Select 
-                    value={formData.station_name} 
-                    onValueChange={(v) => setFormData({ ...formData, station_name: v })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner une catégorie" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {EXERCISE_CATEGORIES.map(station => (
-                        <SelectItem key={station} value={station}>{station}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label>Catégories (plusieurs possibles)</Label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {EXERCISE_CATEGORIES.map(cat => {
+                      const on = newCategories.includes(cat);
+                      return (
+                        <Button key={cat} type="button" size="sm" variant={on ? "default" : "outline"} className="h-7 text-xs"
+                          onClick={() => {
+                            const next = on ? newCategories.filter(c => c !== cat) : [...newCategories, cat];
+                            setNewCategories(next);
+                            setFormData({ ...formData, station_name: next[0] || "" });
+                          }}>
+                          {cat}
+                        </Button>
+                      );
+                    })}
+                  </div>
                 </div>
+                {newCategories.includes("Musculation") && (
+                  <div className="space-y-2">
+                    <Label>Sous-catégories Musculation</Label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {MUSCU_SUBCATEGORIES.map(sub => {
+                        const on = newSubcategories.includes(sub);
+                        return (
+                          <Button key={sub} type="button" size="sm" variant={on ? "default" : "outline"} className="h-7 text-xs"
+                            onClick={() => setNewSubcategories(prev => on ? prev.filter(c => c !== sub) : [...prev, sub])}>
+                            {sub}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label>Nom de l'exercice</Label>
