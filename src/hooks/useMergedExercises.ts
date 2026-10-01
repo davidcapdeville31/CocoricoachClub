@@ -28,6 +28,8 @@ export interface MergedExercise {
   override_id: string | null;
   created_at: string;
   updated_at: string;
+  categories?: string[] | null;
+  subcategories?: string[] | null;
 }
 
 export interface ExerciseOverride {
@@ -208,6 +210,8 @@ export function useMergedExercises() {
         difficulty_level: exercise.difficulty_level,
         muscles: exercise.muscles,
         equipment: exercise.equipment,
+        categories: exercise.categories && exercise.categories.length ? exercise.categories : (exercise.station_name ? [exercise.station_name] : []),
+        subcategories: exercise.subcategories || [],
         coach_id: userId,
         is_default: false,
       };
@@ -299,7 +303,24 @@ export function useMergedExercises() {
     }
   };
 
+  // Update categories / sub-categories (custom exercise, or official exercise for super admin)
+  const updateExerciseCategories = async (exerciseId: string, categories: string[], subcategories: string[]) => {
+    try {
+      const { error } = await supabase
+        .from('exercise_library')
+        .update({ categories, subcategories, station_name: categories[0] } as any)
+        .eq('id', exerciseId);
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error updating categories:', error);
+      toast.error('Erreur lors de la mise à jour des catégories');
+      return false;
+    }
+  };
+
   return {
+    updateExerciseCategories,
     exercises,
     loading,
     userId,

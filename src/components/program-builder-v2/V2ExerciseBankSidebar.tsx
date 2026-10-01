@@ -125,8 +125,9 @@ export function V2ExerciseBankSidebar({ onClickInsert, onInserted, mode = "exerc
       const { data, error } = await supabase
         .from("exercise_library")
         .select(
-          "id, exercise_name, station_name, image_url, video_url, general_description, positioning_criteria, execution_criteria, safety_prevention, muscles, equipment",
+          "id, exercise_name, station_name, image_url, video_url, general_description, positioning_criteria, execution_criteria, safety_prevention, muscles, equipment, categories",
         )
+        .is("canonical_id", null)
         .order("exercise_name", { ascending: true })
         .limit(2000);
       if (error) throw error;
@@ -137,7 +138,7 @@ export function V2ExerciseBankSidebar({ onClickInsert, onInserted, mode = "exerc
   // Categories sorted with favorites first (Remix logic)
   const sortedCategories = useMemo(() => {
     const uniqueCats = Array.from(
-      new Set(exercises.map((e) => e.station_name).filter(Boolean)),
+      new Set(exercises.flatMap((e: any) => (e.categories?.length ? e.categories : [e.station_name])).filter(Boolean)),
     );
     const favCats = uniqueCats
       .filter((c) => favoriteCategories.has(c))
