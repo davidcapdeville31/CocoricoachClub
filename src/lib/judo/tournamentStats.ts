@@ -23,6 +23,16 @@ export interface JudoTournamentSummary {
   shidoAgainst: number;
   hansokuDirectFor: number;
   hansokuDirectAgainst: number;
+  immobilizationYukoFor: number;
+  immobilizationYukoAgainst: number;
+  immobilizationWazariFor: number;
+  immobilizationWazariAgainst: number;
+  immobilizationIpponFor: number;
+  immobilizationIpponAgainst: number;
+  standingGroundTransitions: number;
+  standingAttempts: number;
+  standingSuccess: number;
+  standingSuccessRate: number;
   // Ne-waza
   osaekomiSecFor: number;
   osaekomiSecAgainst: number;
@@ -67,6 +77,10 @@ export function emptyJudoSummary(): JudoTournamentSummary {
     combats: 0, wins: 0, losses: 0, draws: 0, winRate: 0,
     ipponFor: 0, ipponAgainst: 0, wazariFor: 0, wazariAgainst: 0, yukoFor: 0, yukoAgainst: 0,
     shidoFor: 0, shidoAgainst: 0, hansokuDirectFor: 0, hansokuDirectAgainst: 0,
+    immobilizationYukoFor: 0, immobilizationYukoAgainst: 0,
+    immobilizationWazariFor: 0, immobilizationWazariAgainst: 0,
+    immobilizationIpponFor: 0, immobilizationIpponAgainst: 0,
+    standingGroundTransitions: 0, standingAttempts: 0, standingSuccess: 0, standingSuccessRate: 0,
     osaekomiSecFor: 0, osaekomiSecAgainst: 0,
     immoAttempts: 0, immoSuccess: 0, chokeAttempts: 0, chokeSuccess: 0,
     armlockAttempts: 0, armlockSuccess: 0, submissionsFor: 0, submissionsAgainst: 0,
@@ -87,20 +101,31 @@ export function summarizeTournamentRounds(rounds: JudoRoundStatsRow[]): JudoTour
     else if (isLoss(r.result)) out.losses += 1;
     else out.draws += 1;
 
-    // Osaekomi -> derive score effectif (10s waza, 20s ippon)
+    // Keep legacy osaekomi scores readable while aggregating the new post-combat choice.
     const osaeMe = num(s["ijf_osaekomi_me_sec"]);
     const osaeOpp = num(s["ijf_osaekomi_opp_sec"]);
+    const immoMe = num(s["ijf_immo_score_me"]);
+    const immoOpp = num(s["ijf_immo_score_opp"]);
 
-    out.ipponFor += num(s["ijf_ippon_me"]) + (osaeMe >= 20 ? 1 : 0);
-    out.ipponAgainst += num(s["ijf_ippon_opp"]) + (osaeOpp >= 20 ? 1 : 0);
-    out.yukoFor += num(s["ijf_yuko_me"]);
-    out.yukoAgainst += num(s["ijf_yuko_opp"]);
-    out.wazariFor += num(s["ijf_wazari_me"]) + (osaeMe >= 10 && osaeMe < 20 ? 1 : 0);
-    out.wazariAgainst += num(s["ijf_wazari_opp"]) + (osaeOpp >= 10 && osaeOpp < 20 ? 1 : 0);
+    out.ipponFor += num(s["ijf_ippon_me"]) + (immoMe === 3 || osaeMe >= 20 ? 1 : 0);
+    out.ipponAgainst += num(s["ijf_ippon_opp"]) + (immoOpp === 3 || osaeOpp >= 20 ? 1 : 0);
+    out.yukoFor += num(s["ijf_yuko_me"]) + (immoMe === 1 ? 1 : 0);
+    out.yukoAgainst += num(s["ijf_yuko_opp"]) + (immoOpp === 1 ? 1 : 0);
+    out.wazariFor += num(s["ijf_wazari_me"]) + (immoMe === 2 || (osaeMe >= 10 && osaeMe < 20) ? 1 : 0);
+    out.wazariAgainst += num(s["ijf_wazari_opp"]) + (immoOpp === 2 || (osaeOpp >= 10 && osaeOpp < 20) ? 1 : 0);
     out.shidoFor += num(s["ijf_shido_me"]);
     out.shidoAgainst += num(s["ijf_shido_opp"]);
     out.hansokuDirectFor += num(s["ijf_hansoku_direct_me"]) > 0 ? 1 : 0;
     out.hansokuDirectAgainst += num(s["ijf_hansoku_direct_opp"]) > 0 ? 1 : 0;
+    out.immobilizationYukoFor += immoMe === 1 ? 1 : 0;
+    out.immobilizationYukoAgainst += immoOpp === 1 ? 1 : 0;
+    out.immobilizationWazariFor += immoMe === 2 ? 1 : 0;
+    out.immobilizationWazariAgainst += immoOpp === 2 ? 1 : 0;
+    out.immobilizationIpponFor += immoMe === 3 ? 1 : 0;
+    out.immobilizationIpponAgainst += immoOpp === 3 ? 1 : 0;
+    out.standingGroundTransitions += num(s["ijf_transition_s2g"]);
+    out.standingAttempts += num(s["ijf_standing_attempts"]);
+    out.standingSuccess += num(s["ijf_standing_success"]);
 
     out.osaekomiSecFor += osaeMe;
     out.osaekomiSecAgainst += osaeOpp;
@@ -136,6 +161,9 @@ export function summarizeTournamentRounds(rounds: JudoRoundStatsRow[]): JudoTour
     : 0;
   out.avgDominanceStanding = dominanceCount > 0
     ? Math.round((dominanceSum / dominanceCount) * 10) / 10
+    : 0;
+  out.standingSuccessRate = out.standingAttempts > 0
+    ? Math.round((out.standingSuccess / out.standingAttempts) * 1000) / 10
     : 0;
 
   return out;
@@ -173,11 +201,6 @@ export const JUDO_METRIC_GROUPS: JudoMetricGroup[] = [
       { key: "yukoFor", label: "Yuko pour", format: "int", higherIsBetter: true },
       { key: "yukoAgainst", label: "Yuko contre", format: "int", higherIsBetter: false },
       { key: "wazariAgainst", label: "Waza-ari contre", format: "int", higherIsBetter: false },
-    ],
-  },
-  {
-    title: "Discipline",
-    metrics: [
       { key: "shidoFor", label: "Shido reçus", format: "int", higherIsBetter: false },
       { key: "shidoAgainst", label: "Shido adverses", format: "int", higherIsBetter: true },
       { key: "hansokuDirectFor", label: "Hansoku-make subis", format: "int", higherIsBetter: false },
@@ -187,34 +210,24 @@ export const JUDO_METRIC_GROUPS: JudoMetricGroup[] = [
   {
     title: "Ne-waza",
     metrics: [
-      { key: "osaekomiSecFor", label: "Osaekomi cumulé (pour)", format: "duration", higherIsBetter: true },
-      { key: "osaekomiSecAgainst", label: "Osaekomi cumulé (contre)", format: "duration", higherIsBetter: false },
-      { key: "immoAttempts", label: "Immobilisations tentées", format: "int", higherIsBetter: true },
-      { key: "immoSuccess", label: "Immobilisations réussies", format: "int", higherIsBetter: true },
-      { key: "chokeAttempts", label: "Étranglements tentés", format: "int", higherIsBetter: true },
-      { key: "chokeSuccess", label: "Étranglements réussis", format: "int", higherIsBetter: true },
-      { key: "armlockAttempts", label: "Clés tentées", format: "int", higherIsBetter: true },
-      { key: "armlockSuccess", label: "Clés réussies", format: "int", higherIsBetter: true },
-      { key: "submissionsFor", label: "Abandons provoqués", format: "int", higherIsBetter: true },
-      { key: "submissionsAgainst", label: "Abandons subis", format: "int", higherIsBetter: false },
-      { key: "groundTimeSec", label: "Temps au sol total", format: "duration", higherIsBetter: true },
+      { key: "immobilizationYukoFor", label: "Yuko sur immobilisation", format: "int", higherIsBetter: true },
+      { key: "immobilizationWazariFor", label: "Waza-ari sur immobilisation", format: "int", higherIsBetter: true },
+      { key: "immobilizationIpponFor", label: "Ippon sur immobilisation", format: "int", higherIsBetter: true },
+      { key: "standingGroundTransitions", label: "Liaisons debout-sol", format: "int", higherIsBetter: true },
     ],
   },
   {
-    title: "Défense",
+    title: "Techniques debout",
     metrics: [
-      { key: "attacksReceived", label: "Attaques reçues", format: "int", higherIsBetter: false },
-      { key: "attacksNeutralized", label: "Attaques neutralisées", format: "int", higherIsBetter: true },
-      { key: "neutralizationRate", label: "% Neutralisation", format: "percent", higherIsBetter: true },
-      { key: "scoresConceded", label: "Scores concédés", format: "int", higherIsBetter: false },
+      { key: "standingAttempts", label: "Techniques tentées", format: "int", higherIsBetter: true },
+      { key: "standingSuccess", label: "Techniques réussies", format: "int", higherIsBetter: true },
+      { key: "standingSuccessRate", label: "% de réussite", format: "percent", higherIsBetter: true },
     ],
   },
   {
     title: "Tactique",
     metrics: [
       { key: "goldenScoreCount", label: "Combats en Golden Score", format: "int", higherIsBetter: false },
-      { key: "combatDurationSec", label: "Durée cumulée des combats", format: "duration", higherIsBetter: true },
-      { key: "avgDominanceStanding", label: "Dominance debout moyenne", format: "percent", higherIsBetter: true },
     ],
   },
 ];

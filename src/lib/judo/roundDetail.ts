@@ -76,6 +76,9 @@ const HIDDEN_KEYS = new Set<string>([
   "ijf_def_scores_conceded",
   "ijf_activity_profile",
   "ijf_dominance_standing",
+  "ijf_combat_profile",
+  "ijf_opp_style_mask",
+  "ijf_gs_decision",
 ]);
 
 export function formatStatValue(value: number, format: StatFormat): string {
