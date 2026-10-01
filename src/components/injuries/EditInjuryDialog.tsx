@@ -120,14 +120,26 @@ export function EditInjuryDialog({ open, onOpenChange, injury }: EditInjuryDialo
                 <SelectValue placeholder={t("health.addInjuryDialog.selectInjuryTypePlaceholder")} />
               </SelectTrigger>
               <SelectContent className="max-h-[300px]">
-                {RUGBY_INJURY_TYPES.map((inj) => (
-                  <SelectItem key={inj.name} value={inj.name}>
-                    <div className="flex items-center gap-2">
-                      <span>{inj.name}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-                <SelectItem value="other">{t("health.addInjuryDialog.otherCustom")}</SelectItem>
+                {INJURY_ZONES.map((zone) => {
+                  const zoneInjuries = RUGBY_INJURY_TYPES.filter((inj) => inj.zone === zone);
+                  if (zoneInjuries.length === 0) return null;
+                  return (
+                    <SelectGroup key={zone}>
+                      <SelectLabel className="font-semibold">{zone}</SelectLabel>
+                      {zoneInjuries.map((inj) => (
+                        <SelectItem key={inj.name} value={inj.name}>
+                          <div className="flex items-center gap-2">
+                            <span>{inj.name}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  );
+                })}
+                <SelectGroup>
+                  <SelectLabel className="font-semibold">Autre</SelectLabel>
+                  <SelectItem value="other">{t("health.addInjuryDialog.otherCustom")}</SelectItem>
+                </SelectGroup>
               </SelectContent>
             </Select>
             {selectValue === "other" && (
