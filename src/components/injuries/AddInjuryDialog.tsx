@@ -15,12 +15,14 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { RUGBY_INJURY_TYPES } from "@/lib/constants/rugbyInjuries";
+import { RUGBY_INJURY_TYPES, INJURY_ZONES } from "@/lib/constants/rugbyInjuries";
 import { Badge } from "@/components/ui/badge";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
 import { useTranslation } from "react-i18next";
@@ -177,17 +179,29 @@ export function AddInjuryDialog({
                   <SelectValue placeholder={t("health.addInjuryDialog.selectInjuryTypePlaceholder")} />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px]">
-                  {RUGBY_INJURY_TYPES.map((injury) => (
-                    <SelectItem key={injury.name} value={injury.name}>
-                      <div className="flex items-center gap-2">
-                        <span>{injury.name}</span>
-                        <Badge variant="outline" className="text-xs">
-                          {injury.category}
-                        </Badge>
-                      </div>
-                    </SelectItem>
-                  ))}
-                  <SelectItem value="other">{t("health.addInjuryDialog.otherCustom")}</SelectItem>
+                  {INJURY_ZONES.map((zone) => {
+                    const zoneInjuries = RUGBY_INJURY_TYPES.filter((injury) => injury.zone === zone);
+                    if (zoneInjuries.length === 0) return null;
+                    return (
+                      <SelectGroup key={zone}>
+                        <SelectLabel className="font-semibold">{zone}</SelectLabel>
+                        {zoneInjuries.map((injury) => (
+                          <SelectItem key={injury.name} value={injury.name}>
+                            <div className="flex items-center gap-2">
+                              <span>{injury.name}</span>
+                              <Badge variant="outline" className="text-xs">
+                                {injury.category}
+                              </Badge>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    );
+                  })}
+                  <SelectGroup>
+                    <SelectLabel className="font-semibold">Autre</SelectLabel>
+                    <SelectItem value="other">{t("health.addInjuryDialog.otherCustom")}</SelectItem>
+                  </SelectGroup>
                 </SelectContent>
               </Select>
               {injuryType === "other" && (
