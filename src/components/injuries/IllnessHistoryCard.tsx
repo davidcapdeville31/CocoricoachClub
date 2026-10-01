@@ -40,12 +40,15 @@ export function IllnessHistoryCard({ categoryId }: IllnessHistoryCardProps) {
   const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
   const keepPlayer = makePlayerIdFilter(allowedIds);
 
+  const displayName = (p: any) =>
+    [p?.first_name, p?.name].filter(Boolean).join(" ").trim() || p?.name || "—";
+
   const { data: illnessesRaw, isLoading } = useQuery({
     queryKey: ["illnesses", categoryId],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("illnesses")
-        .select("*, players(name)")
+        .select("*, players(name, first_name)")
         .eq("category_id", categoryId)
         .order("illness_date", { ascending: false });
       if (error) throw error;
@@ -138,7 +141,7 @@ export function IllnessHistoryCard({ categoryId }: IllnessHistoryCardProps) {
                 <TableBody>
                   {illnesses.map((i) => (
                     <TableRow key={i.id}>
-                      <TableCell className="font-medium">{i.players?.name}</TableCell>
+                      <TableCell className="font-medium">{displayName(i.players)}</TableCell>
                       <TableCell>{i.illness_type}</TableCell>
                       <TableCell>{new Date(i.illness_date).toLocaleDateString(getLocaleTag())}</TableCell>
                       <TableCell><Badge className={severityColor(i.severity)}>{i.severity}</Badge></TableCell>
@@ -189,7 +192,7 @@ export function IllnessHistoryCard({ categoryId }: IllnessHistoryCardProps) {
                 <div key={i.id} className="rounded-lg border bg-card p-3 space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
-                      <p className="font-semibold truncate">{i.players?.name}</p>
+                      <p className="font-semibold truncate">{displayName(i.players)}</p>
                       <p className="text-sm text-muted-foreground truncate">{i.illness_type}</p>
                     </div>
                     <div className="flex flex-col items-end gap-1 shrink-0">

@@ -60,12 +60,15 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
   const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
   const keepPlayer = makePlayerIdFilter(allowedIds);
 
+  const displayName = (p: any) =>
+    [p?.first_name, p?.name].filter(Boolean).join(" ").trim() || p?.name || "—";
+
   const { data: injuriesRaw, isLoading } = useQuery({
     queryKey: ["injuries", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("injuries")
-        .select("*, players(name)")
+        .select("*, players(name, first_name)")
         .eq("category_id", categoryId)
         .order("injury_date", { ascending: false });
       if (error) throw error;
@@ -248,7 +251,7 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                     {injuries.map((injury) => (
                       <TableRow key={injury.id}>
                         <TableCell className="font-medium">
-                          {injury.players?.name}
+                          {displayName(injury.players)}
                         </TableCell>
                         <TableCell>{injury.injury_type}</TableCell>
                         <TableCell>
@@ -350,7 +353,7 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
-                        <p className="font-semibold truncate">{injury.players?.name}</p>
+                        <p className="font-semibold truncate">{displayName(injury.players)}</p>
                         <p className="text-sm text-muted-foreground truncate">
                           {injury.injury_type}
                         </p>
