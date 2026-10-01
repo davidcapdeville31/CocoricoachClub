@@ -88,6 +88,9 @@ const getGroupStyles = (group: string | null) => {
       return { border: "border-l-muted", bg: "bg-muted/30", text: "text-muted-foreground" };
   }
 };
+const MUSCU_EQUIPMENT_TAGS = ["Renforcement général", "Machines", "Kettlebell", "Haltères", "Poids de corps", "Barres"];
+const MUSCU_MUSCLE_TAGS = ["Tirages", "Poussées", "Dos", "Pecs", "Épaules", "Bras", "Avant-bras", "Jambes", "Fessiers", "Abdos"];
+
 export function SuperAdminExerciseLibrary() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -95,6 +98,7 @@ export function SuperAdminExerciseLibrary() {
   const [addOpen, setAddOpen] = useState(false);
   const [editExercise, setEditExercise] = useState<any>(null);
   const [activeSubcategory, setActiveSubcategory] = useState<string | null>(null);
+  const [activeTag, setActiveTag] = useState<string | null>(null);
   const [mediaFilter, setMediaFilter] = useState<
     "all" | "missing_any" | "missing_video" | "missing_image" | "missing_both" | "complete"
   >("all");
@@ -113,8 +117,9 @@ export function SuperAdminExerciseLibrary() {
     },
   });
 
-  const systemExercises = exercises?.filter((e) => e.is_system) || [];
-  const userExercises = exercises?.filter((e) => !e.is_system) || [];
+  const visible = exercises?.filter((e: any) => !e.canonical_id) || [];
+  const systemExercises = visible.filter((e) => e.is_system);
+  const userExercises = visible.filter((e) => !e.is_system);
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -166,10 +171,18 @@ export function SuperAdminExerciseLibrary() {
     return LABEL_TO_GROUP[category.toLowerCase().trim()] || null;
   };
 
+  const inGroup = (e: any, group: string) =>
+    group === "all" ||
+    detectGroup(e.category) === group ||
+    (e.categories || []).some((c: string) => detectGroup(c) === group);
+
   const filterExercises = (list: any[], group: string) => {
-    let filtered = group === "all" ? list : list.filter((e) => detectGroup(e.category) === group);
+    let filtered = list.filter((e) => inGroup(e, group));
     if (activeSubcategory) {
       filtered = filtered.filter((e) => e.subcategory === activeSubcategory);
+    }
+    if (activeTag && group === "musculation") {
+      filtered = filtered.filter((e) => (e.subcategories || []).includes(activeTag));
     }
     if (mediaFilter !== "all") {
       filtered = filtered.filter((e) => {
@@ -201,7 +214,7 @@ export function SuperAdminExerciseLibrary() {
   };
 
   const getSubcategoriesForGroup = (list: any[], group: string) => {
-    const groupExercises = group === "all" ? list : list.filter((e) => detectGroup(e.category) === group);
+    const groupExercises = list.filter((e) => inGroup(e, group));
     const subcatValues = [...new Set(groupExercises.map((e) => e.subcategory).filter(Boolean))];
     return EXERCISE_SUBCATEGORIES.filter((s) => subcatValues.includes(s.value)).sort((a, b) => a.label.localeCompare(b.label));
   };
@@ -321,7 +334,7 @@ export function SuperAdminExerciseLibrary() {
   };
 
   const renderGroupTabs = (exerciseList: any[]) => (
-    <Tabs defaultValue="all" onValueChange={() => setActiveSubcategory(null)}>
+    <Tabs defaultValue="all" onValueChange={() => { setActiveSubcategory(null); setActiveTag(null); }}>
       <TabsList className="flex flex-wrap h-auto gap-1 mb-4 bg-muted/50 p-2">
         {CATEGORY_GROUPS.map((group) => {
           const c = CATEGORY_GROUP_CONFIGS[group.value];
@@ -338,6 +351,24 @@ export function SuperAdminExerciseLibrary() {
         const subcats = getSubcategoriesForGroup(exerciseList, group.value);
         return (
           <TabsContent key={group.value} value={group.value}>
+            {group.value === "musculation" && (
+              <div className="space-y-1.5 mb-3 p-2 bg-muted/30 rounded-lg">
+                {[["Matériel", MUSCU_EQUIPMENT_TAGS], ["Muscles", MUSCU_MUSCLE_TAGS]].map(([label, tags]) => (
+                  <div key={label as string} className="flex flex-wrap gap-1.5 items-center">
+                    <span className="text-xs text-muted-foreground w-16">{label as string}</span>
+                    {(tags as string[]).map((t) => {
+                      const n = exerciseList.filter((e) => inGroup(e, "musculation") && (e.subcategories || []).includes(t)).length;
+                      return (
+                        <button key={t} onClick={() => setActiveTag(activeTag === t ? null : t)}
+                          className={cn("px-2.5 py-1 rounded-full text-xs font-medium transition-colors", activeTag === t ? "bg-primary text-primary-foreground shadow-sm" : "bg-muted hover:bg-muted/80 text-muted-foreground")}>
+                          {t} <span className="opacity-70">{n}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            )}
             {subcats.length > 1 && (
               <div className="flex flex-wrap gap-1.5 mb-4 p-2 bg-muted/30 rounded-lg">
                 <button
