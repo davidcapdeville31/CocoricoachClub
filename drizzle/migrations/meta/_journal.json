@@ -36,6 +36,13 @@
       "when": 1790585290293,
       "tag": "0004_realtime_injuries_illnesses",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790862274635,
+      "tag": "0005_exercise_multi_categories",
+      "breakpoints": true
     }
   ]
 }

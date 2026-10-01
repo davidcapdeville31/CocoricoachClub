@@ -3883,6 +3883,8 @@ export type Database = {
       }
       exercise_library: {
         Row: {
+          canonical_id: string | null
+          categories: string[]
           category: string | null
           coach_id: string | null
           created_at: string | null
@@ -3906,6 +3908,7 @@ export type Database = {
           positioning_criteria: Json | null
           safety_prevention: Json | null
           station_name: string
+          subcategories: string[]
           subcategory: string | null
           tips: string | null
           updated_at: string | null
@@ -3914,6 +3917,8 @@ export type Database = {
           youtube_url: string | null
         }
         Insert: {
+          canonical_id?: string | null
+          categories?: string[]
           category?: string | null
           coach_id?: string | null
           created_at?: string | null
@@ -3937,6 +3942,7 @@ export type Database = {
           positioning_criteria?: Json | null
           safety_prevention?: Json | null
           station_name: string
+          subcategories?: string[]
           subcategory?: string | null
           tips?: string | null
           updated_at?: string | null
@@ -3945,6 +3951,8 @@ export type Database = {
           youtube_url?: string | null
         }
         Update: {
+          canonical_id?: string | null
+          categories?: string[]
           category?: string | null
           coach_id?: string | null
           created_at?: string | null
@@ -3968,6 +3976,7 @@ export type Database = {
           positioning_criteria?: Json | null
           safety_prevention?: Json | null
           station_name?: string
+          subcategories?: string[]
           subcategory?: string | null
           tips?: string | null
           updated_at?: string | null
@@ -3975,7 +3984,15 @@ export type Database = {
           video_url?: string | null
           youtube_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "exercise_library_canonical_id_fkey"
+            columns: ["canonical_id"]
+            isOneToOne: false
+            referencedRelation: "exercise_library"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       facilities: {
         Row: {
@@ -15410,6 +15427,7 @@ export type Database = {
       get_merged_exercises_for_coach: {
         Args: { p_coach_id: string }
         Returns: {
+          categories: string[]
           coach_id: string
           created_at: string
           description: string
@@ -15430,6 +15448,7 @@ export type Database = {
           positioning_criteria: Json
           safety_prevention: Json
           station_name: string
+          subcategories: string[]
           tips: string
           updated_at: string
           video_url: string
