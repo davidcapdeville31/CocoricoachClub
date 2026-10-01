@@ -65,7 +65,7 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("injuries")
-        .select("*, players(name)")
+        .select("*, players(name, first_name)")
         .eq("category_id", categoryId)
         .order("injury_date", { ascending: false });
       if (error) throw error;

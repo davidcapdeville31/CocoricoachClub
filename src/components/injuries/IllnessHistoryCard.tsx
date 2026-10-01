@@ -45,7 +45,7 @@ export function IllnessHistoryCard({ categoryId }: IllnessHistoryCardProps) {
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("illnesses")
-        .select("*, players(name)")
+        .select("*, players(name, first_name)")
         .eq("category_id", categoryId)
         .order("illness_date", { ascending: false });
       if (error) throw error;
