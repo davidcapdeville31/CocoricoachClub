@@ -179,17 +179,29 @@ export function AddInjuryDialog({
                   <SelectValue placeholder={t("health.addInjuryDialog.selectInjuryTypePlaceholder")} />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px]">
-                  {RUGBY_INJURY_TYPES.map((injury) => (
-                    <SelectItem key={injury.name} value={injury.name}>
-                      <div className="flex items-center gap-2">
-                        <span>{injury.name}</span>
-                        <Badge variant="outline" className="text-xs">
-                          {injury.category}
-                        </Badge>
-                      </div>
-                    </SelectItem>
-                  ))}
-                  <SelectItem value="other">{t("health.addInjuryDialog.otherCustom")}</SelectItem>
+                  {INJURY_ZONES.map((zone) => {
+                    const zoneInjuries = RUGBY_INJURY_TYPES.filter((injury) => injury.zone === zone);
+                    if (zoneInjuries.length === 0) return null;
+                    return (
+                      <SelectGroup key={zone}>
+                        <SelectLabel className="font-semibold">{zone}</SelectLabel>
+                        {zoneInjuries.map((injury) => (
+                          <SelectItem key={injury.name} value={injury.name}>
+                            <div className="flex items-center gap-2">
+                              <span>{injury.name}</span>
+                              <Badge variant="outline" className="text-xs">
+                                {injury.category}
+                              </Badge>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    );
+                  })}
+                  <SelectGroup>
+                    <SelectLabel className="font-semibold">{t("health.addInjuryDialog.otherZoneLabel") || "Autre"}</SelectLabel>
+                    <SelectItem value="other">{t("health.addInjuryDialog.otherCustom")}</SelectItem>
+                  </SelectGroup>
                 </SelectContent>
               </Select>
               {injuryType === "other" && (
