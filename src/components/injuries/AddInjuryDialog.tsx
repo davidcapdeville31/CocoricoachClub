@@ -199,7 +199,7 @@ export function AddInjuryDialog({
                     );
                   })}
                   <SelectGroup>
-                    <SelectLabel className="font-semibold">{t("health.addInjuryDialog.otherZoneLabel") || "Autre"}</SelectLabel>
+                    <SelectLabel className="font-semibold">Autre</SelectLabel>
                     <SelectItem value="other">{t("health.addInjuryDialog.otherCustom")}</SelectItem>
                   </SelectGroup>
                 </SelectContent>
