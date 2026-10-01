@@ -387,6 +387,7 @@ export interface ExerciseWithDetails {
   id: string;
   station_name: string;
   exercise_name: string;
+  categories?: string[] | null;
   muscles?: string[] | null;
   equipment?: string[] | null;
   joint_movements?: string[] | null;
@@ -409,7 +410,8 @@ export const filterExercises = <T extends ExerciseWithDetails>(
     }
 
     // Category filter
-    if (filters.selectedCategory !== "all" && exercise.station_name !== filters.selectedCategory) {
+    const cats = exercise.categories && exercise.categories.length ? exercise.categories : [exercise.station_name];
+    if (filters.selectedCategory !== "all" && !cats.includes(filters.selectedCategory)) {
       return false;
     }
     
