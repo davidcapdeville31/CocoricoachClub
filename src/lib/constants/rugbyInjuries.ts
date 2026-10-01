@@ -353,7 +353,7 @@ export const RUGBY_INJURY_TYPES = [
     category: "rachidien",
     durationMin: 3,
     durationMax: 14,
-    description: "Blocage lombaire brutal,Contracture des muscles lombaires"
+    description: "Blocage lombaire brutal, contracture des muscles lombaires"
   },
   {
     name: "Douleur au dos",

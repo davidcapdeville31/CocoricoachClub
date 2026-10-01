@@ -15,12 +15,14 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { RUGBY_INJURY_TYPES } from "@/lib/constants/rugbyInjuries";
+import { RUGBY_INJURY_TYPES, INJURY_ZONES } from "@/lib/constants/rugbyInjuries";
 import { Badge } from "@/components/ui/badge";
 import { useSeasonGuard } from "@/hooks/use-season-guard";
 import { useTranslation } from "react-i18next";
