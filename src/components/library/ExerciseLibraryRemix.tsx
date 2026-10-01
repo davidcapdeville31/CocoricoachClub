@@ -1151,7 +1151,7 @@ const ExerciseLibrary = () => {
       </Card>
 
       {/* Category Tabs */}
-      <Tabs value={selectedStation} onValueChange={setSelectedStation} className="w-full">
+      <Tabs value={selectedStation} onValueChange={(v) => { setSelectedStation(v); setSelectedSub("all"); }} className="w-full">
         <TabsList className="flex-wrap h-auto gap-1">
           <TabsTrigger value="all">Tous</TabsTrigger>
           {EXERCISE_CATEGORIES.map(cat => (
