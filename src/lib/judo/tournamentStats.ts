@@ -33,27 +33,8 @@ export interface JudoTournamentSummary {
   standingAttempts: number;
   standingSuccess: number;
   standingSuccessRate: number;
-  // Ne-waza
-  osaekomiSecFor: number;
-  osaekomiSecAgainst: number;
-  immoAttempts: number;
-  immoSuccess: number;
-  chokeAttempts: number;
-  chokeSuccess: number;
-  armlockAttempts: number;
-  armlockSuccess: number;
-  submissionsFor: number;
-  submissionsAgainst: number;
-  // Défense
-  attacksReceived: number;
-  attacksNeutralized: number;
-  scoresConceded: number;
-  neutralizationRate: number; // %
   // Divers
   goldenScoreCount: number;
-  combatDurationSec: number;
-  groundTimeSec: number;
-  avgDominanceStanding: number; // %
 }
 
 const num = (v: unknown) => (typeof v === "number" && !isNaN(v) ? v : Number(v) || 0);
@@ -81,19 +62,12 @@ export function emptyJudoSummary(): JudoTournamentSummary {
     immobilizationWazariFor: 0, immobilizationWazariAgainst: 0,
     immobilizationIpponFor: 0, immobilizationIpponAgainst: 0,
     standingGroundTransitions: 0, standingAttempts: 0, standingSuccess: 0, standingSuccessRate: 0,
-    osaekomiSecFor: 0, osaekomiSecAgainst: 0,
-    immoAttempts: 0, immoSuccess: 0, chokeAttempts: 0, chokeSuccess: 0,
-    armlockAttempts: 0, armlockSuccess: 0, submissionsFor: 0, submissionsAgainst: 0,
-    attacksReceived: 0, attacksNeutralized: 0, scoresConceded: 0, neutralizationRate: 0,
-    goldenScoreCount: 0, combatDurationSec: 0, groundTimeSec: 0, avgDominanceStanding: 0,
+    goldenScoreCount: 0,
   };
 }
 
 export function summarizeTournamentRounds(rounds: JudoRoundStatsRow[]): JudoTournamentSummary {
   const out = emptyJudoSummary();
-  let dominanceSum = 0;
-  let dominanceCount = 0;
-
   for (const r of rounds) {
     const s = r.stats || {};
     out.combats += 1;
@@ -127,41 +101,11 @@ export function summarizeTournamentRounds(rounds: JudoRoundStatsRow[]): JudoTour
     out.standingAttempts += num(s["ijf_standing_attempts"]);
     out.standingSuccess += num(s["ijf_standing_success"]);
 
-    out.osaekomiSecFor += osaeMe;
-    out.osaekomiSecAgainst += osaeOpp;
-
-    out.immoAttempts += num(s["immobilizationAttempts"]);
-    out.immoSuccess += num(s["ijf_immo_success"]);
-    out.chokeAttempts += num(s["chokeAttempts"]);
-    out.chokeSuccess += num(s["ijf_choke_success"]);
-    out.armlockAttempts += num(s["armLockAttempts"]);
-    out.armlockSuccess += num(s["ijf_armlock_success"]);
-    out.submissionsFor += num(s["ijf_submission_me"]);
-    out.submissionsAgainst += num(s["ijf_submission_opp"]);
-
-    out.attacksReceived += num(s["ijf_def_attacks_received"]);
-    out.attacksNeutralized += num(s["ijf_def_attacks_neutralized"]);
-    out.scoresConceded += num(s["ijf_def_scores_conceded"]);
-
     if (num(s["goldenScore"]) > 0) out.goldenScoreCount += 1;
-    out.combatDurationSec += num(s["combatDuration"]);
-    out.groundTimeSec += num(s["groundTimeSeconds"]);
-
-    const dom = num(s["ijf_dominance_standing"]);
-    if (dom > 0) {
-      dominanceSum += dom;
-      dominanceCount += 1;
-    }
   }
 
   const decisive = out.wins + out.losses;
   out.winRate = decisive > 0 ? Math.round((out.wins / decisive) * 1000) / 10 : 0;
-  out.neutralizationRate = out.attacksReceived > 0
-    ? Math.round((out.attacksNeutralized / out.attacksReceived) * 1000) / 10
-    : 0;
-  out.avgDominanceStanding = dominanceCount > 0
-    ? Math.round((dominanceSum / dominanceCount) * 10) / 10
-    : 0;
   out.standingSuccessRate = out.standingAttempts > 0
     ? Math.round((out.standingSuccess / out.standingAttempts) * 1000) / 10
     : 0;
