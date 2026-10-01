@@ -22,7 +22,7 @@ export function InjuryTimeline({ playerId, categoryId, limit = 10 }: InjuryTimel
     queryFn: async () => {
       let query = supabase
         .from("injuries")
-        .select("*, players(name)")
+        .select("*, players(name, first_name)")
         .eq("category_id", categoryId)
         .order("injury_date", { ascending: false })
         .limit(limit);
@@ -154,7 +154,7 @@ export function InjuryTimeline({ playerId, categoryId, limit = 10 }: InjuryTimel
                           </p>
                           {!playerId && (
                             <p className="text-sm text-muted-foreground">
-                              {injury.players?.name}
+                              {[injury.players?.first_name, injury.players?.name].filter(Boolean).join(" ")}
                             </p>
                           )}
                         </div>
