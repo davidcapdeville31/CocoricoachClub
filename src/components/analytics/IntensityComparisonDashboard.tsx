@@ -721,84 +721,39 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="space-y-2">
+            <div className="space-y-2 sm:col-span-2 lg:col-span-1">
               <Label>Période</Label>
-              <Select
-                value={dateMode === "custom" ? "custom" : dateRange}
-                onValueChange={(v) => {
-                  if (v === "custom") setDateMode("custom");
-                  else { setDateMode("preset"); setDateRange(v); }
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0">Aujourd'hui</SelectItem>
-                  <SelectItem value="1">Hier</SelectItem>
-                  <SelectItem value="7">7 derniers jours</SelectItem>
-                  <SelectItem value="14">14 derniers jours</SelectItem>
-                  <SelectItem value="30">30 derniers jours</SelectItem>
-                  <SelectItem value="60">60 derniers jours</SelectItem>
-                  <SelectItem value="90">90 derniers jours</SelectItem>
-                  <SelectItem value="custom">Période personnalisée…</SelectItem>
-                </SelectContent>
-              </Select>
-              {dateMode === "custom" && (
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="date"
-                    value={customFrom}
-                    onChange={(e) => setCustomFrom(e.target.value)}
-                    className="h-9"
-                  />
-                  <span className="text-xs text-muted-foreground">au</span>
-                  <Input
-                    type="date"
-                    value={customTo}
-                    onChange={(e) => setCustomTo(e.target.value)}
-                    className="h-9"
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label>Jour de l'événement</Label>
-              <div className="flex gap-2">
-                <Popover open={dayPickerOpen} onOpenChange={setDayPickerOpen}>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("flex-1 justify-start font-normal", !selectedDay && "text-muted-foreground")}>
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {selectedDay
-                        ? format(parseISO(selectedDay), "EEEE dd MMMM yyyy", { locale: getDateLocale() })
-                        : "Tous les jours de la période"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={selectedDay ? parseISO(selectedDay) : undefined}
-                      onSelect={(d) => {
-                        setSelectedDay(d ? format(d, "yyyy-MM-dd") : null);
-                        setSelectedEventIds(null);
-                        setDayPickerOpen(false);
-                      }}
-                      modifiers={{ hasEvent: (d) => eventDays.has(format(d, "yyyy-MM-dd")) }}
-                      modifiersClassNames={{ hasEvent: "font-bold text-primary underline underline-offset-4" }}
-                      disabled={(d) => !eventDays.has(format(d, "yyyy-MM-dd"))}
-                      initialFocus
-                      className="p-3 pointer-events-auto"
-                    />
-                    <p className="px-3 pb-3 text-xs text-muted-foreground">Les jours soulignés contiennent une séance ou une compétition.</p>
-                  </PopoverContent>
-                </Popover>
-                {selectedDay && (
-                  <Button variant="ghost" onClick={() => { setSelectedDay(null); setSelectedEventIds(null); }}>
-                    Tous
+              <Popover open={dayPickerOpen} onOpenChange={setDayPickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start font-normal", !range?.from && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {range?.from
+                      ? range.to && range.from.getTime() !== range.to.getTime()
+                        ? `${format(range.from, "dd MMM yyyy", { locale: getDateLocale() })} → ${format(range.to, "dd MMM yyyy", { locale: getDateLocale() })}`
+                        : format(range.from, "EEEE dd MMMM yyyy", { locale: getDateLocale() })
+                      : "Choisir une période"}
                   </Button>
-                )}
-              </div>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="range"
+                    selected={range}
+                    onSelect={(r) => {
+                      setRange(r);
+                      setSelectedEventIds(null);
+                      if (r?.from && r?.to) setDayPickerOpen(false);
+                    }}
+                    numberOfMonths={2}
+                    modifiers={{ hasEvent: (d) => eventDays.has(format(d, "yyyy-MM-dd")) }}
+                    modifiersClassNames={{ hasEvent: "font-bold text-primary underline underline-offset-4" }}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                  <p className="px-3 pb-3 text-xs text-muted-foreground">
+                    Clique un jour de début puis un jour de fin. Les jours soulignés contiennent une séance ou une compétition.
+                  </p>
+                </PopoverContent>
+              </Popover>
               {selectedDay && dayOptions.length > 0 && (
                 <div className="space-y-1.5 rounded-xl bg-surface-sunken p-2">
                   <label className="flex cursor-pointer items-center gap-2 text-sm font-medium">
