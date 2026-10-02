@@ -43,6 +43,13 @@
       "when": 1790862274635,
       "tag": "0005_exercise_multi_categories",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790925019754,
+      "tag": "0006_remove_rest_rows_conflicting_real_rpe",
+      "breakpoints": true
     }
   ]
 }
