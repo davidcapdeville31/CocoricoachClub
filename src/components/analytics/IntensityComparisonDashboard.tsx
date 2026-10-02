@@ -59,11 +59,9 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
   useEffect(() => {
     if (!urlSessionId) return;
     if (urlSessionDate) {
-      setDateMode("custom");
-      setCustomFrom(urlSessionDate);
-      setCustomTo(urlSessionDate);
+      const d = parseISO(urlSessionDate);
+      setRange({ from: d, to: d });
     }
-    if (urlSessionDate) setSelectedDay(urlSessionDate);
     setSelectedEventIds([urlSessionId]);
   }, [urlSessionId, urlSessionDate]);
   const { activeSeasonOnly, activeSeasonId, activeSeasonStart, activeSeasonEnd, isDateInActiveSeason } = useSeasonRosterFilter();
@@ -71,12 +69,17 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
   const scopeKey = activeSeasonOnly && activeSeasonId ? `season:${activeSeasonId}` : "all";
   const allowedIdsKey = allowedIds ? Array.from(allowedIds).sort().join(",") : "all";
 
-  const useCustom = dateMode === "custom" && !!customFrom;
-  const rangeFrom = useCustom
-    ? customFrom
-    : subDays(new Date(), parseInt(dateRange)).toISOString().split("T")[0];
-  const rangeTo = useCustom && customTo ? customTo : null;
-  const rangeKey = `${rangeFrom}|${rangeTo || ""}`;
+  // Période affichée (issue du calendrier)
+  const rangeFrom = range?.from ? format(range.from, "yyyy-MM-dd") : subDays(new Date(), 30).toISOString().split("T")[0];
+  const rangeTo = range?.to ? format(range.to, "yyyy-MM-dd") : null;
+  // Un seul jour sélectionné = détail par événement
+  const selectedDay = rangeFrom && rangeTo && rangeFrom === rangeTo ? rangeFrom : null;
+
+  // Fenêtre de récupération large : tous les événements passés restent visibles dans le calendrier
+  const fetchFrom = activeSeasonOnly && activeSeasonStart
+    ? activeSeasonStart
+    : subDays(new Date(), 365).toISOString().split("T")[0];
+  const fetchKey = `${fetchFrom}|${activeSeasonOnly && activeSeasonEnd ? activeSeasonEnd : ""}`;
 
 
   // Fetch players
