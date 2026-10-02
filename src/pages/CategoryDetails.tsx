@@ -12,6 +12,7 @@ import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { usePendingWeightLogsCount } from "@/lib/hooks/usePendingWeightLogsCount";
 import { usePendingTestResultsCount } from "@/lib/hooks/usePendingTestResultsCount";
 import { useUnreadAthleteSessionsCount } from "@/lib/hooks/useUnreadAthleteSessionsCount";
+import { useUnreadRpeNotificationsCount } from "@/lib/hooks/useUnreadRpeNotificationsCount";
 import { OverviewTab } from "@/components/category/OverviewTab";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { CategoryCoverUpload, LogoHoverActions } from "@/components/category/CategoryCoverUpload";
@@ -182,7 +183,8 @@ function CategoryDetailsContent() {
   const { total: unreadMessagesCount } = useUnreadMessages(categoryId || "");
   const pendingWeightLogsCount = usePendingWeightLogsCount(categoryId);
   const pendingTestResultsCount = usePendingTestResultsCount(categoryId);
-  const workloadBadge = pendingWeightLogsCount + pendingTestResultsCount;
+  const unreadRpeCount = useUnreadRpeNotificationsCount(categoryId);
+  const workloadBadge = pendingWeightLogsCount + pendingTestResultsCount + unreadRpeCount;
   const athleteSessionsBadge = useUnreadAthleteSessionsCount(categoryId);
 
   // Fetch category data - use edge function for public access, direct query for authenticated

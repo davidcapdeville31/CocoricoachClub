@@ -35,6 +35,7 @@ import { MetricType, METRICS_CONFIG, assessLoadWindowFromSeries } from "@/lib/tr
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useUnreadRpeNotificationsCount } from "@/lib/hooks/useUnreadRpeNotificationsCount";
 
 interface TrainingLoadTabProps {
   categoryId: string;
@@ -53,6 +54,7 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
   const [searchParams] = useSearchParams();
   const urlLoadTab = searchParams.get("loadtab");
   const [contentTab, setContentTab] = useState<string>(urlLoadTab || "chart");
+  const unreadRpeCount = useUnreadRpeNotificationsCount(categoryId);
 
   useEffect(() => {
     if (urlLoadTab) setContentTab(urlLoadTab);
@@ -472,6 +474,11 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
                 </ColoredSubTabsTrigger>
                 <ColoredSubTabsTrigger value="rpe" colorKey="performance" icon={<TrendingUp className="h-4 w-4" />}>
                   {t("workload.tab.subtabs.rpe")}
+                  {unreadRpeCount > 0 && (
+                    <span className="ml-1 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                      {unreadRpeCount > 9 ? "9+" : unreadRpeCount}
+                    </span>
+                  )}
                 </ColoredSubTabsTrigger>
                 <ColoredSubTabsTrigger value="team" colorKey="performance" icon={<Users className="h-4 w-4" />}>
                   {t("workload.tab.subtabs.team")}

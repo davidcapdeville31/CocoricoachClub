@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
 import { usePendingWeightLogsCount } from "@/lib/hooks/usePendingWeightLogsCount";
 import { usePendingTestResultsCount } from "@/lib/hooks/usePendingTestResultsCount";
+import { useUnreadRpeNotificationsCount } from "@/lib/hooks/useUnreadRpeNotificationsCount";
 import { SeasonRosterFilterToggle } from "@/components/category/SeasonRosterFilterToggle";
 
 
@@ -44,6 +45,7 @@ export function PerformanceTab({ categoryId, sportType }: PerformanceTabProps) {
   const { isViewer } = useViewerModeContext();
   const pendingCount = usePendingWeightLogsCount(categoryId);
   const pendingTestsCount = usePendingTestResultsCount(categoryId);
+  const unreadRpeCount = useUnreadRpeNotificationsCount(categoryId);
   const totalPending = pendingCount + pendingTestsCount;
   const [searchParams] = useSearchParams();
   const urlSubTab = searchParams.get("subtab");
@@ -73,6 +75,11 @@ export function PerformanceTab({ categoryId, sportType }: PerformanceTabProps) {
           >
             <span className="hidden sm:inline">{t("subnav.performance.trainingLoad")}</span>
             <span className="sm:hidden">{t("subnav.performance.trainingLoadShort")}</span>
+            {unreadRpeCount > 0 && (
+              <span className="ml-1 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                {unreadRpeCount > 9 ? "9+" : unreadRpeCount}
+              </span>
+            )}
           </ColoredSubTabsTrigger>
           <ColoredSubTabsTrigger 
             value="physical-prep" 

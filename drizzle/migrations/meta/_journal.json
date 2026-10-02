@@ -50,6 +50,20 @@
       "when": 1790925019754,
       "tag": "0006_remove_rest_rows_conflicting_real_rpe",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790926520530,
+      "tag": "0007_enrich_athlete_rpe_staff_notifications",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790926580066,
+      "tag": "0008_align_rpe_notification_with_session_objective",
+      "breakpoints": true
     }
   ]
 }

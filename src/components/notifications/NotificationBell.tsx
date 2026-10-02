@@ -88,6 +88,12 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
       return `/categories/${categoryId}?tab=performance&subtab=training-load&loadtab=rpe&session=${sessionId}${date ? `&sessionDate=${date}` : ""}`;
     }
 
+    // RPE saisi par un athlète → comparaison RPE prévu/réel de la séance
+    if (n.notification_type === "session_feedback" && categoryId && sessionId) {
+      const date = meta.session_date;
+      return `/categories/${categoryId}?tab=performance&subtab=training-load&loadtab=rpe&session=${sessionId}${date ? `&sessionDate=${date}` : ""}`;
+    }
+
     // Rappel RPE athlète → espace athlète, onglet RPE
     if (n.notification_type === "rpe_reminder" || n.notification_type === "wellness_reminder") {
       const tab = n.notification_type === "rpe_reminder" ? "rpe" : "wellness";
@@ -160,6 +166,7 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["unread-rpe-notifications-count"] });
     },
   });
 
@@ -175,6 +182,7 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["unread-rpe-notifications-count"] });
       toast.success("Toutes les notifications ont été marquées comme lues");
     },
   });
@@ -189,6 +197,7 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["unread-rpe-notifications-count"] });
       toast.success("Notification supprimée");
     },
   });
@@ -205,7 +214,7 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
       case "test_reminder": return "🏃";
       case "category_link_request": return "🔗";
       case "athlete_session": return "🏋️";
-      case "session_feedback": return "✅";
+      case "session_feedback": return "📈";
       case "athlete_document": return "📄";
       case "global": return "📣";
       default: return "ℹ️";
