@@ -175,13 +175,24 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
     queryFn: async () => {
       let query = supabase
         .from("matches")
-        .select("match_date")
+        .select("*")
         .eq("category_id", categoryId)
         .gte("match_date", rangeFrom);
       if (rangeTo) query = query.lte("match_date", rangeTo);
       const { data, error } = await query;
       if (error) throw error;
       return new Set((data || []).map((m: any) => m.match_date));
+    },
+  });
+
+  const { data: matchList } = useQuery({
+    queryKey: ["match-list-intensity", categoryId, rangeKey, scopeKey],
+    queryFn: async () => {
+      let query = supabase.from("matches").select("*").eq("category_id", categoryId).gte("match_date", rangeFrom);
+      if (rangeTo) query = query.lte("match_date", rangeTo);
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data || []) as any[];
     },
   });
 
@@ -220,9 +231,23 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
 
   // Options de séances (entraînements) de la période
   const sessionOptions = useMemo(() => {
-    if (!sessions) return [];
-    return [...sessions].sort((a, b) => b.session_date.localeCompare(a.session_date));
-  }, [sessions]);
+    const opts: { id: string; session_date: string; label: string }[] = (sessions || []).map((s) => ({
+      id: s.id,
+      session_date: s.session_date,
+      label: s.training_type || "Séance",
+    }));
+    const seen = new Set<string>();
+    (matchList || []).forEach((m: any) => {
+      if (seen.has(m.match_date)) return;
+      seen.add(m.match_date);
+      opts.push({
+        id: `match:${m.match_date}`,
+        session_date: m.match_date,
+        label: `🏆 Compétition${m.opponent ? ` vs ${m.opponent}` : ""}`,
+      });
+    });
+    return opts.sort((a, b) => b.session_date.localeCompare(a.session_date));
+  }, [sessions, matchList]);
 
   useEffect(() => {
     if (sessionOptions.length > 0 && selectedSession !== "all" && !sessionOptions.some((s) => s.id === selectedSession)) {
@@ -237,10 +262,18 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
     return sessions.filter((s) => s.id === selectedSession);
   }, [sessions, selectedSession]);
 
+  // Dates de compétition retenues après filtre
+  const scopedMatchDates = useMemo(() => {
+    if (!matchDates) return matchDates;
+    if (selectedSession === "all") return matchDates;
+    if (selectedSession.startsWith("match:")) return new Set([selectedSession.slice(6)]);
+    return new Set<string>();
+  }, [matchDates, selectedSession]);
+
 
   // Calculate comparison data with weighted RPE
   const comparisonData = useMemo(() => {
-    if (!scopedSessions || !awcrData || !players || !matchDates) return [];
+    if (!scopedSessions || !awcrData || !players || !scopedMatchDates) return [];
 
     const playersToAnalyze = selectedPlayer === "all" 
       ? filteredPlayers 
@@ -285,7 +318,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
         if (playerMatch) {
           sessionMap.get(awcr.training_session_id)!.actual.push(awcr.rpe);
         }
-      } else if (!awcr.training_session_id && matchDates?.has(awcr.session_date)) {
+      } else if (!awcr.training_session_id && scopedMatchDates?.has(awcr.session_date)) {
         // RPE saisi sur une compétition : référence fixe (match = effort élevé)
         const playerMatch = playersToAnalyze.find(p => p.id === awcr.player_id);
         if (!playerMatch) return;
@@ -324,11 +357,11 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
         };
       })
       .sort((a, b) => a.fullDate.localeCompare(b.fullDate));
-  }, [scopedSessions, awcrData, players, selectedPlayer, filteredPlayers, blocksBySession, matchDates]);
+  }, [scopedSessions, awcrData, players, selectedPlayer, filteredPlayers, blocksBySession, scopedMatchDates]);
 
   // Calculate per-player stats with weighted RPE
   const playerStats = useMemo(() => {
-    if (!scopedSessions || !awcrData || !players || !matchDates) return [];
+    if (!scopedSessions || !awcrData || !players || !scopedMatchDates) return [];
 
     const playersToAnalyze = selectedPosition === "all" 
       ? players 
@@ -360,7 +393,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
               count++;
             }
           }
-        } else if (matchDates.has(awcr.session_date)) {
+        } else if (scopedMatchDates.has(awcr.session_date)) {
           // Compétition : référence fixe
           totalDiff += awcr.rpe - MATCH_PLANNED_RPE;
           totalPlanned += MATCH_PLANNED_RPE;
@@ -385,7 +418,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       };
     }).filter(p => p.sessionsCount > 0)
       .sort((a, b) => Math.abs(b.avgDiff) - Math.abs(a.avgDiff));
-  }, [scopedSessions, awcrData, players, selectedPosition, blocksBySession, matchDates]);
+  }, [scopedSessions, awcrData, players, selectedPosition, blocksBySession, scopedMatchDates]);
 
   const displayedPlayerStats = useMemo(
     () => (statusFilter === "all" ? playerStats : playerStats.filter((p) => p.status === statusFilter)),
@@ -394,7 +427,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
 
   // Détail ligne à ligne (athlète × séance) pour l'export CSV / Excel
   const detailRows = useMemo(() => {
-    if (!scopedSessions || !awcrData || !players || !matchDates) return [];
+    if (!scopedSessions || !awcrData || !players || !scopedMatchDates) return [];
     const playerMap = new Map(players.map((p) => [p.id, p]));
     // Seuils d'alerte : vigilance à ±1.5, alerte à ±2
     const statusOf = (diff: number) => {
@@ -412,7 +445,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
     };
 
     const matchRows = awcrData
-      .filter((a) => !a.training_session_id && matchDates.has(a.session_date))
+      .filter((a) => !a.training_session_id && scopedMatchDates.has(a.session_date))
       .filter((a) => {
         const p = playerMap.get(a.player_id);
         if (!p) return false;
@@ -492,8 +525,8 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
         if (statusFilter === "under") return r.diff <= -1.5;
         return r.diff > -1.5 && r.diff < 1.5;
       })
-      .sort((a, b) => a.date.localeCompare(b.date) || a.name.localeCompare(b.name));
-  }, [scopedSessions, awcrData, players, blocksBySession, selectedPlayer, selectedPosition, statusFilter, matchDates]);
+      .sort((a, b) => b.date.localeCompare(a.date) || a.name.localeCompare(b.name));
+  }, [scopedSessions, awcrData, players, blocksBySession, selectedPlayer, selectedPosition, statusFilter, scopedMatchDates]);
 
   const handleExportCsv = () => {
     if (detailRows.length === 0) {
@@ -721,13 +754,13 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
               <Label>Entraînement</Label>
               <Select value={selectedSession} onValueChange={setSelectedSession}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Tous les entraînements" />
+                  <SelectValue placeholder="Toutes les séances et compétitions" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tous les entraînements</SelectItem>
+                  <SelectItem value="all">Toutes les séances et compétitions</SelectItem>
                   {sessionOptions.map((s) => (
                     <SelectItem key={s.id} value={s.id}>
-                      {format(new Date(s.session_date), "dd/MM/yyyy", { locale: getDateLocale() })} · {s.training_type || "Séance"}
+                      {format(new Date(s.session_date), "dd/MM/yyyy", { locale: getDateLocale() })} · {s.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
