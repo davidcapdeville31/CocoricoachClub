@@ -215,6 +215,23 @@ export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualPr
       });
     });
 
+    // Compétitions : RPE saisi sans séance liée, comparé à la référence match
+    awcrData?.forEach(entry => {
+      if (entry.training_session_id) return;
+      if (!matchDates.has(entry.session_date)) return;
+      const playerData = entry.players as any;
+      comparisons.push({
+        playerId: entry.player_id,
+        playerName: [playerData?.first_name, playerData?.name].filter(Boolean).join(" ") || "Inconnu",
+        position: playerData?.position,
+        plannedRpe: MATCH_PLANNED_RPE,
+        actualRpe: entry.rpe,
+        difference: Math.round((entry.rpe - MATCH_PLANNED_RPE) * 10) / 10,
+        sessionDate: entry.session_date,
+        sessionName: "Compétition",
+      });
+    });
+
     // Check alert condition: more than 5 players with +2 difference
     const playersWithHighDiff = comparisons.filter(c => c.difference >= 2);
     const uniquePlayersWithHighDiff = new Set(playersWithHighDiff.map(c => c.playerId));
