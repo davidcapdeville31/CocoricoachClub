@@ -109,6 +109,7 @@ export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualPr
           session_date,
           rpe,
           training_session_id,
+          auto_filled,
           players(id, name, first_name, position)
         `)
         .eq("category_id", categoryId)
