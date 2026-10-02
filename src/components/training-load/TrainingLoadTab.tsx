@@ -33,8 +33,9 @@ import { HrvAnalysisPanel } from "./HrvAnalysisPanel";
 import { useTrainingLoad, useTeamTrainingLoad } from "@/hooks/use-training-load";
 import { MetricType, METRICS_CONFIG, assessLoadWindowFromSeries } from "@/lib/trainingLoadCalculations";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { useUnreadRpeNotificationsCount } from "@/lib/hooks/useUnreadRpeNotificationsCount";
 
 interface TrainingLoadTabProps {
@@ -45,6 +46,8 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { isViewer } = useViewerModeContext();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [loadModel, setLoadModel] = useState<"ewma" | "awcr">("ewma");
   const [selectedMetric, setSelectedMetric] = useState<MetricType>("ewma_srpe");
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | undefined>();
@@ -59,6 +62,24 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
   useEffect(() => {
     if (urlLoadTab) setContentTab(urlLoadTab);
   }, [urlLoadTab]);
+
+  // Ouvrir l'onglet RPE prévu/réel marque les notifications RPE athlète comme lues → la pastille disparaît
+  useEffect(() => {
+    if (contentTab !== "rpe" || !categoryId || !user?.id) return;
+    (async () => {
+      const { error } = await supabase
+        .from("notifications")
+        .update({ is_read: true })
+        .eq("user_id", user.id)
+        .eq("category_id", categoryId)
+        .eq("notification_type", "session_feedback")
+        .eq("is_read", false);
+      if (!error) {
+        queryClient.invalidateQueries({ queryKey: ["unread-rpe-notifications-count", categoryId, user.id] });
+        queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      }
+    })();
+  }, [contentTab, categoryId, user?.id, queryClient]);
 
   // Sync metric when model changes
   const handleModelChange = (model: "ewma" | "awcr") => {
