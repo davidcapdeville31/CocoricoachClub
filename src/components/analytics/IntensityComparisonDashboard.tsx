@@ -376,7 +376,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
 
   // Détail ligne à ligne (athlète × séance) pour l'export CSV / Excel
   const detailRows = useMemo(() => {
-    if (!scopedSessions || !awcrData || !players) return [];
+    if (!scopedSessions || !awcrData || !players || !matchDates) return [];
     const playerMap = new Map(players.map((p) => [p.id, p]));
     // Seuils d'alerte : vigilance à ±1.5, alerte à ±2
     const statusOf = (diff: number) => {
