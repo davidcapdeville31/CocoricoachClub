@@ -89,6 +89,7 @@ export function AthleteMatchRpe({ matchId, playerId, categoryId, matchDate }: Pr
         training_session_id: null,
         rpe: rpeNum,
         duration_minutes: durationNum,
+        auto_filled: false,
       };
       if (existing) {
         const { error } = await supabase.from("awcr_tracking").update(payload).eq("id", existing.id);
