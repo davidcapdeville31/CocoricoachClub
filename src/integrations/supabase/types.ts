@@ -3852,6 +3852,41 @@ export type Database = {
           },
         ]
       }
+      exercise_custom_subcategories: {
+        Row: {
+          category_id: string
+          created_at: string
+          created_by: string
+          exercise_category: string
+          id: string
+          name: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          created_by?: string
+          exercise_category: string
+          id?: string
+          name: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          created_by?: string
+          exercise_category?: string
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_custom_subcategories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercise_favorites: {
         Row: {
           coach_id: string
