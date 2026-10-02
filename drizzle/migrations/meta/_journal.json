@@ -57,6 +57,13 @@
       "when": 1790926520530,
       "tag": "0007_enrich_athlete_rpe_staff_notifications",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790926580066,
+      "tag": "0008_align_rpe_notification_with_session_objective",
+      "breakpoints": true
     }
   ]
 }
