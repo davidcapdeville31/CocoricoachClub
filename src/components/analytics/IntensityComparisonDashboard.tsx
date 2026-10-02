@@ -102,21 +102,17 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
     },
   });
 
-  // Fetch sessions with planned intensity
+  // Fetch sessions with planned intensity (fenêtre large, filtrage par période côté client)
   const { data: sessions } = useQuery({
-    queryKey: ["sessions-intensity", categoryId, rangeKey, scopeKey, activeSeasonStart, activeSeasonEnd],
+    queryKey: ["sessions-intensity", categoryId, fetchKey, scopeKey],
     queryFn: async () => {
-      const fromDate = rangeFrom;
       let query = supabase
         .from("training_sessions")
         .select("id, session_date, training_type, intensity, notes")
         .eq("category_id", categoryId)
-        .gte("session_date", activeSeasonOnly && activeSeasonStart && activeSeasonStart > fromDate ? activeSeasonStart : fromDate);
+        .gte("session_date", fetchFrom);
 
-      const upper = activeSeasonOnly && activeSeasonEnd
-        ? (rangeTo && rangeTo < activeSeasonEnd ? rangeTo : activeSeasonEnd)
-        : rangeTo;
-      if (upper) query = query.lte("session_date", upper);
+      if (activeSeasonOnly && activeSeasonEnd) query = query.lte("session_date", activeSeasonEnd);
 
       const { data, error } = await query.order("session_date");
       if (error) throw error;
@@ -126,7 +122,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
 
   // Fetch session blocks for weighted RPE calculation
   const { data: sessionBlocks } = useQuery({
-    queryKey: ["session-blocks-intensity", categoryId, rangeKey, scopeKey, sessions?.map(s => s.id).join(",")],
+    queryKey: ["session-blocks-intensity", categoryId, fetchKey, scopeKey, sessions?.map(s => s.id).join(",")],
     queryFn: async () => {
       if (!sessions || sessions.length === 0) return [];
       const sessionIds = sessions.map(s => s.id);
