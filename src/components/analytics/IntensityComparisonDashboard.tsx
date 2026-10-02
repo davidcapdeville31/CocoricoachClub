@@ -137,11 +137,10 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
     enabled: !!sessions && sessions.length > 0,
   });
 
-  // Fetch AWCR data (actual RPE)
+  // Fetch AWCR data (actual RPE) — fenêtre large, filtrage par période côté client
   const { data: awcrData } = useQuery({
-    queryKey: ["awcr-intensity", categoryId, rangeKey, scopeKey, allowedIdsKey, activeSeasonStart, activeSeasonEnd],
+    queryKey: ["awcr-intensity", categoryId, fetchKey, scopeKey, allowedIdsKey],
     queryFn: async () => {
-      const fromDate = rangeFrom;
       if (allowedIds && allowedIds.size === 0) return [];
 
       let query = supabase
@@ -149,12 +148,9 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
         .select("player_id, session_date, rpe, training_session_id, training_load, duration_minutes, auto_filled")
         .or("auto_filled.is.null,auto_filled.eq.false")
         .eq("category_id", categoryId)
-        .gte("session_date", activeSeasonOnly && activeSeasonStart && activeSeasonStart > fromDate ? activeSeasonStart : fromDate);
+        .gte("session_date", fetchFrom);
 
-      const upper = activeSeasonOnly && activeSeasonEnd
-        ? (rangeTo && rangeTo < activeSeasonEnd ? rangeTo : activeSeasonEnd)
-        : rangeTo;
-      if (upper) query = query.lte("session_date", upper);
+      if (activeSeasonOnly && activeSeasonEnd) query = query.lte("session_date", activeSeasonEnd);
 
       if (allowedIds) {
         query = query.in("player_id", Array.from(allowedIds));
@@ -173,28 +169,24 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
   // RPE prévu de référence pour une compétition (pas de séance planifiée)
   const MATCH_PLANNED_RPE = 8;
 
-  // Fetch match dates for the category in range
+  // Fetch match dates for the category (fenêtre large)
   const { data: matchDates } = useQuery({
-    queryKey: ["match-dates-intensity", categoryId, rangeKey, scopeKey],
+    queryKey: ["match-dates-intensity", categoryId, fetchKey, scopeKey],
     queryFn: async () => {
-      let query = supabase
+      const { data, error } = await supabase
         .from("matches")
         .select("*")
         .eq("category_id", categoryId)
-        .gte("match_date", rangeFrom);
-      if (rangeTo) query = query.lte("match_date", rangeTo);
-      const { data, error } = await query;
+        .gte("match_date", fetchFrom);
       if (error) throw error;
       return new Set((data || []).map((m: any) => m.match_date));
     },
   });
 
   const { data: matchList } = useQuery({
-    queryKey: ["match-list-intensity", categoryId, rangeKey, scopeKey],
+    queryKey: ["match-list-intensity", categoryId, fetchKey, scopeKey],
     queryFn: async () => {
-      let query = supabase.from("matches").select("*").eq("category_id", categoryId).gte("match_date", rangeFrom);
-      if (rangeTo) query = query.lte("match_date", rangeTo);
-      const { data, error } = await query;
+      const { data, error } = await supabase.from("matches").select("*").eq("category_id", categoryId).gte("match_date", fetchFrom);
       if (error) throw error;
       return (data || []) as any[];
     },
