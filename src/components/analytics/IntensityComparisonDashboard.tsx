@@ -324,22 +324,12 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
         };
       })
       .sort((a, b) => a.fullDate.localeCompare(b.fullDate));
-  }, [scopedSessions, awcrData, players, selectedPlayer, filteredPlayers, blocksBySession]);
+  }, [scopedSessions, awcrData, players, selectedPlayer, filteredPlayers, blocksBySession, matchDates]);
 
   // Calculate per-player stats with weighted RPE
   const playerStats = useMemo(() => {
-    if (!scopedSessions || !awcrData || !players) return [];
-
-    const playersToAnalyze = selectedPosition === "all" 
-      ? players 
-      : players.filter(p => p.position === selectedPosition);
-
-    return playersToAnalyze.map(player => {
-      const playerAwcr = awcrData.filter(a => a.player_id === player.id);
-      
-      let totalDiff = 0;
-      let count = 0;
-      
+    if (!scopedSessions || !awcrData || !players || !matchDates) return [];
+...
       playerAwcr.forEach(awcr => {
         if (awcr.training_session_id) {
           const session = scopedSessions.find(s => s.id === awcr.training_session_id);
@@ -356,6 +346,10 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
               count++;
             }
           }
+        } else if (matchDates.has(awcr.session_date)) {
+          // Compétition : référence fixe
+          totalDiff += awcr.rpe - MATCH_PLANNED_RPE;
+          count++;
         }
       });
 
