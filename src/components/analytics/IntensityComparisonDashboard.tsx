@@ -329,7 +329,17 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
   // Calculate per-player stats with weighted RPE
   const playerStats = useMemo(() => {
     if (!scopedSessions || !awcrData || !players || !matchDates) return [];
-...
+
+    const playersToAnalyze = selectedPosition === "all" 
+      ? players 
+      : players.filter(p => p.position === selectedPosition);
+
+    return playersToAnalyze.map(player => {
+      const playerAwcr = awcrData.filter(a => a.player_id === player.id);
+      
+      let totalDiff = 0;
+      let count = 0;
+      
       playerAwcr.forEach(awcr => {
         if (awcr.training_session_id) {
           const session = scopedSessions.find(s => s.id === awcr.training_session_id);
