@@ -136,6 +136,9 @@ serve(async (req) => {
         rpe: 0,
         duration_minutes: 0,
         training_session_id: null,
+        // Marqué auto pour que les écrans « RPE prévu/réel » ne le comptent
+        // pas comme une saisie réelle de l'athlète
+        auto_filled: true,
       }));
 
       const { error: insertError } = await supabase

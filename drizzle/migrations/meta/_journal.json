@@ -71,6 +71,13 @@
       "when": 1790930794830,
       "tag": "0009_exercise_custom_subcategories",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790931660363,
+      "tag": "0010_mark_restday_autofill_as_auto",
+      "breakpoints": true
     }
   ]
 }

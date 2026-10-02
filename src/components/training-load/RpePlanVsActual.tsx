@@ -109,9 +109,12 @@ export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualPr
           session_date,
           rpe,
           training_session_id,
+          auto_filled,
           players(id, name, first_name, position)
         `)
         .eq("category_id", categoryId)
+        // Seules les saisies réelles comptent (exclut les RPE auto-remplis)
+        .or("auto_filled.is.null,auto_filled.eq.false")
         .gte("session_date", startDate);
 
       if (awcrError) throw awcrError;
