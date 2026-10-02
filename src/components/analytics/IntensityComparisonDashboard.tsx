@@ -22,7 +22,11 @@ import {
   ReferenceLine
 } from "recharts";
 import { Target, Users, AlertTriangle, TrendingUp, TrendingDown, Minus, Calculator, Info } from "lucide-react";
-import { format, subDays } from "date-fns";
+import { format, subDays, parseISO } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarDays as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { calculateWeightedRpe, checkTeamRpeAlert, type SessionBlock } from "@/lib/weightedRpeCalculations";
 import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -45,7 +49,9 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
   const [dateMode, setDateMode] = useState<"preset" | "custom">("preset");
   const [customFrom, setCustomFrom] = useState<string>("");
   const [customTo, setCustomTo] = useState<string>("");
-  const [selectedSession, setSelectedSession] = useState<string>("all");
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [selectedEventIds, setSelectedEventIds] = useState<string[] | null>(null); // null = tous les événements du jour
+  const [dayPickerOpen, setDayPickerOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchParams] = useSearchParams();
   const urlSessionId = searchParams.get("session");
@@ -249,26 +255,47 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
     return opts.sort((a, b) => b.session_date.localeCompare(a.session_date));
   }, [sessions, matchList]);
 
+  // Jours ayant au moins un événement (pour le calendrier)
+  const eventDays = useMemo(() => new Set(sessionOptions.map((s) => s.session_date)), [sessionOptions]);
+  const dayOptions = useMemo(
+    () => (selectedDay ? sessionOptions.filter((s) => s.session_date === selectedDay) : []),
+    [sessionOptions, selectedDay],
+  );
+
   useEffect(() => {
-    if (sessionOptions.length > 0 && selectedSession !== "all" && !sessionOptions.some((s) => s.id === selectedSession)) {
-      setSelectedSession("all");
+    if (selectedDay && sessionOptions.length > 0 && !eventDays.has(selectedDay)) {
+      setSelectedDay(null);
+      setSelectedEventIds(null);
     }
-  }, [sessionOptions, selectedSession]);
+  }, [eventDays, selectedDay, sessionOptions.length]);
+
+  const isEventIncluded = (id: string, date: string) => {
+    if (!selectedDay) return true;
+    if (date !== selectedDay) return false;
+    return selectedEventIds === null || selectedEventIds.includes(id);
+  };
 
   // Séances retenues après filtre "entraînement"
   const scopedSessions = useMemo(() => {
     if (!sessions) return sessions;
-    if (selectedSession === "all") return sessions;
-    return sessions.filter((s) => s.id === selectedSession);
-  }, [sessions, selectedSession]);
+    return sessions.filter((s) => isEventIncluded(s.id, s.session_date));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessions, selectedDay, selectedEventIds]);
 
   // Dates de compétition retenues après filtre
   const scopedMatchDates = useMemo(() => {
     if (!matchDates) return matchDates;
-    if (selectedSession === "all") return matchDates;
-    if (selectedSession.startsWith("match:")) return new Set([selectedSession.slice(6)]);
-    return new Set<string>();
-  }, [matchDates, selectedSession]);
+    if (!selectedDay) return matchDates;
+    return new Set([...matchDates].filter((d) => isEventIncluded(`match:${d}`, d)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [matchDates, selectedDay, selectedEventIds]);
+
+  const toggleEvent = (id: string) => {
+    const all = dayOptions.map((o) => o.id);
+    const current = selectedEventIds ?? all;
+    const next = current.includes(id) ? current.filter((x) => x !== id) : [...current, id];
+    setSelectedEventIds(next.length === all.length ? null : next);
+  };
 
 
   // Calculate comparison data with weighted RPE
@@ -751,20 +778,61 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
             </div>
 
             <div className="space-y-2">
-              <Label>Entraînement</Label>
-              <Select value={selectedSession} onValueChange={setSelectedSession}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Toutes les séances et compétitions" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Toutes les séances et compétitions</SelectItem>
-                  {sessionOptions.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {format(new Date(s.session_date), "dd/MM/yyyy", { locale: getDateLocale() })} · {s.label}
-                    </SelectItem>
+              <Label>Jour de l'événement</Label>
+              <div className="flex gap-2">
+                <Popover open={dayPickerOpen} onOpenChange={setDayPickerOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("flex-1 justify-start font-normal", !selectedDay && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {selectedDay
+                        ? format(parseISO(selectedDay), "EEEE dd MMMM yyyy", { locale: getDateLocale() })
+                        : "Tous les jours de la période"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDay ? parseISO(selectedDay) : undefined}
+                      onSelect={(d) => {
+                        setSelectedDay(d ? format(d, "yyyy-MM-dd") : null);
+                        setSelectedEventIds(null);
+                        setDayPickerOpen(false);
+                      }}
+                      modifiers={{ hasEvent: (d) => eventDays.has(format(d, "yyyy-MM-dd")) }}
+                      modifiersClassNames={{ hasEvent: "font-bold text-primary underline underline-offset-4" }}
+                      disabled={(d) => !eventDays.has(format(d, "yyyy-MM-dd"))}
+                      initialFocus
+                      className="p-3 pointer-events-auto"
+                    />
+                    <p className="px-3 pb-3 text-xs text-muted-foreground">Les jours soulignés contiennent une séance ou une compétition.</p>
+                  </PopoverContent>
+                </Popover>
+                {selectedDay && (
+                  <Button variant="ghost" onClick={() => { setSelectedDay(null); setSelectedEventIds(null); }}>
+                    Tous
+                  </Button>
+                )}
+              </div>
+              {selectedDay && dayOptions.length > 0 && (
+                <div className="space-y-1.5 rounded-xl bg-surface-sunken p-2">
+                  <label className="flex cursor-pointer items-center gap-2 text-sm font-medium">
+                    <Checkbox
+                      checked={selectedEventIds === null}
+                      onCheckedChange={() => setSelectedEventIds(selectedEventIds === null ? [] : null)}
+                    />
+                    Tous les événements du jour ({dayOptions.length})
+                  </label>
+                  {dayOptions.map((o) => (
+                    <label key={o.id} className="flex cursor-pointer items-center gap-2 pl-4 text-sm">
+                      <Checkbox
+                        checked={selectedEventIds === null || selectedEventIds.includes(o.id)}
+                        onCheckedChange={() => toggleEvent(o.id)}
+                      />
+                      {o.label}
+                    </label>
                   ))}
-                </SelectContent>
-              </Select>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
