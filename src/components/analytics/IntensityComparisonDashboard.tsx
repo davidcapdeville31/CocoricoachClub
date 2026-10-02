@@ -23,6 +23,7 @@ import {
 } from "recharts";
 import { Target, Users, AlertTriangle, TrendingUp, TrendingDown, Minus, Calculator, Info } from "lucide-react";
 import { format, subDays, parseISO } from "date-fns";
+import type { DateRange } from "react-day-picker";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -45,11 +46,8 @@ interface IntensityComparisonDashboardProps {
 export function IntensityComparisonDashboard({ categoryId }: IntensityComparisonDashboardProps) {
   const [selectedPlayer, setSelectedPlayer] = useState<string>("all");
   const [selectedPosition, setSelectedPosition] = useState<string>("all");
-  const [dateRange, setDateRange] = useState<string>("30");
-  const [dateMode, setDateMode] = useState<"preset" | "custom">("preset");
-  const [customFrom, setCustomFrom] = useState<string>("");
-  const [customTo, setCustomTo] = useState<string>("");
-  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  // Période choisie directement dans le calendrier (par défaut : 30 derniers jours)
+  const [range, setRange] = useState<DateRange | undefined>({ from: subDays(new Date(), 30), to: new Date() });
   const [selectedEventIds, setSelectedEventIds] = useState<string[] | null>(null); // null = tous les événements du jour
   const [dayPickerOpen, setDayPickerOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
