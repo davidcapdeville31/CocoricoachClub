@@ -363,6 +363,8 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
         } else if (matchDates.has(awcr.session_date)) {
           // Compétition : référence fixe
           totalDiff += awcr.rpe - MATCH_PLANNED_RPE;
+          totalPlanned += MATCH_PLANNED_RPE;
+          totalActual += awcr.rpe;
           count++;
         }
       });
