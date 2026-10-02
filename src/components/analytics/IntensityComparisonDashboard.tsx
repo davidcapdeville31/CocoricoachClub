@@ -65,7 +65,8 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       setCustomFrom(urlSessionDate);
       setCustomTo(urlSessionDate);
     }
-    setSelectedSession(urlSessionId);
+    if (urlSessionDate) setSelectedDay(urlSessionDate);
+    setSelectedEventIds([urlSessionId]);
   }, [urlSessionId, urlSessionDate]);
   const { activeSeasonOnly, activeSeasonId, activeSeasonStart, activeSeasonEnd, isDateInActiveSeason } = useSeasonRosterFilter();
   const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
