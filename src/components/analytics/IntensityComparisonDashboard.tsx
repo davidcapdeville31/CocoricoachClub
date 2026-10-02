@@ -367,7 +367,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       };
     }).filter(p => p.sessionsCount > 0)
       .sort((a, b) => Math.abs(b.avgDiff) - Math.abs(a.avgDiff));
-  }, [scopedSessions, awcrData, players, selectedPosition, blocksBySession]);
+  }, [scopedSessions, awcrData, players, selectedPosition, blocksBySession, matchDates]);
 
   const displayedPlayerStats = useMemo(
     () => (statusFilter === "all" ? playerStats : playerStats.filter((p) => p.status === statusFilter)),
