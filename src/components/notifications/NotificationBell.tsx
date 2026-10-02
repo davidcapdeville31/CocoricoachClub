@@ -197,6 +197,7 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["unread-rpe-notifications-count"] });
       toast.success("Notification supprimée");
     },
   });
@@ -213,7 +214,7 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
       case "test_reminder": return "🏃";
       case "category_link_request": return "🔗";
       case "athlete_session": return "🏋️";
-      case "session_feedback": return "✅";
+      case "session_feedback": return "📈";
       case "athlete_document": return "📄";
       case "global": return "📣";
       default: return "ℹ️";
