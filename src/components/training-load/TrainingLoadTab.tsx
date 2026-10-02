@@ -33,8 +33,9 @@ import { HrvAnalysisPanel } from "./HrvAnalysisPanel";
 import { useTrainingLoad, useTeamTrainingLoad } from "@/hooks/use-training-load";
 import { MetricType, METRICS_CONFIG, assessLoadWindowFromSeries } from "@/lib/trainingLoadCalculations";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { useUnreadRpeNotificationsCount } from "@/lib/hooks/useUnreadRpeNotificationsCount";
 
 interface TrainingLoadTabProps {
