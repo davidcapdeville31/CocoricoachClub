@@ -338,6 +338,8 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       const playerAwcr = awcrData.filter(a => a.player_id === player.id);
       
       let totalDiff = 0;
+      let totalPlanned = 0;
+      let totalActual = 0;
       let count = 0;
       
       playerAwcr.forEach(awcr => {
@@ -353,6 +355,8 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
 
             if (effectivePlanned > 0) {
               totalDiff += awcr.rpe - effectivePlanned;
+              totalPlanned += effectivePlanned;
+              totalActual += awcr.rpe;
               count++;
             }
           }
