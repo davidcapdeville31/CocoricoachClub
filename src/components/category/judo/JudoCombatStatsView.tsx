@@ -94,10 +94,19 @@ const K = {
 
 const num = (value: unknown) => Number(value) || 0;
 
+function resolvedImmobilizationScore(stats: Record<string, number>, side: "me" | "opp") {
+  const scoreKey = side === "me" ? K.immoScoreMe : K.immoScoreOpp;
+  if (Object.prototype.hasOwnProperty.call(stats, scoreKey)) return num(stats[scoreKey]);
+  const seconds = num(stats[side === "me" ? "ijf_osaekomi_me_sec" : "ijf_osaekomi_opp_sec"]);
+  if (seconds >= 20) return 3;
+  if (seconds >= 10) return 2;
+  return 0;
+}
+
 function scoreLabel(round: JudoRound) {
   const stats = round.stats || {};
-  const immoMe = num(stats[K.immoScoreMe]);
-  const immoOpp = num(stats[K.immoScoreOpp]);
+  const immoMe = resolvedImmobilizationScore(stats, "me");
+  const immoOpp = resolvedImmobilizationScore(stats, "opp");
   const ipponMe = num(stats[K.ipponMe]) + (immoMe === 3 ? 1 : 0);
   const ipponOpp = num(stats[K.ipponOpp]) + (immoOpp === 3 ? 1 : 0);
   const wazariMe = num(stats[K.wazariMe]) + (immoMe === 2 ? 1 : 0);
@@ -421,8 +430,8 @@ function CombatReviewPanel({
             <Card className="space-y-4 p-3">
               <SectionHeader icon={<Hand className="h-4 w-4 text-primary" />} title="Immobilisation" />
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <ImmobilizationChoice label="Athlète" value={num(round.stats?.[K.immoScoreMe])} onChange={(value) => onUpdateStat(K.immoScoreMe, value)} />
-                <ImmobilizationChoice label="Adversaire" value={num(round.stats?.[K.immoScoreOpp])} onChange={(value) => onUpdateStat(K.immoScoreOpp, value)} />
+                <ImmobilizationChoice label="Athlète" value={resolvedImmobilizationScore(round.stats || {}, "me")} onChange={(value) => onUpdateStat(K.immoScoreMe, value)} />
+                <ImmobilizationChoice label="Adversaire" value={resolvedImmobilizationScore(round.stats || {}, "opp")} onChange={(value) => onUpdateStat(K.immoScoreOpp, value)} />
               </div>
             </Card>
             <Card className="p-3">

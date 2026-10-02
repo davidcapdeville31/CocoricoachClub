@@ -105,7 +105,7 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
     queryFn: async () => {
       const { data } = await supabase
         .from("categories")
-        .select("sport_type, gender")
+        .select("sport_type:rugby_type, gender")
         .eq("id", categoryId)
         .maybeSingle();
       return data;

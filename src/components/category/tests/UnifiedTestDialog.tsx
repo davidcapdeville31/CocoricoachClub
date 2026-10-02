@@ -215,7 +215,7 @@ export function UnifiedTestDialog({
     queryKey: ["category-info-for-scoring", categoryId],
     enabled: open && !!activeScoringScale,
     queryFn: async () => {
-      const { data } = await supabase.from("categories").select("gender, sport_type").eq("id", categoryId).maybeSingle();
+      const { data } = await supabase.from("categories").select("gender, sport_type:rugby_type").eq("id", categoryId).maybeSingle();
       return data as { gender?: string | null; sport_type?: string | null } | null;
     },
   });

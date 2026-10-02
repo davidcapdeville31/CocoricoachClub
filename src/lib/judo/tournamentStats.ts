@@ -39,6 +39,20 @@ export interface JudoTournamentSummary {
 
 const num = (v: unknown) => (typeof v === "number" && !isNaN(v) ? v : Number(v) || 0);
 
+function resolvedImmobilizationScore(
+  stats: Record<string, number>,
+  scoreKey: "ijf_immo_score_me" | "ijf_immo_score_opp",
+  legacySecondsKey: "ijf_osaekomi_me_sec" | "ijf_osaekomi_opp_sec",
+): number {
+  // Once the new choice has been saved (including "Aucun" = 0), it is the
+  // source of truth. Fall back to the old timer only for historical rounds.
+  if (Object.prototype.hasOwnProperty.call(stats, scoreKey)) return num(stats[scoreKey]);
+  const seconds = num(stats[legacySecondsKey]);
+  if (seconds >= 20) return 3;
+  if (seconds >= 10) return 2;
+  return 0;
+}
+
 const WIN_TOKENS = ["v", "w", "win", "victoire", "ippon", "wazari", "yuko"];
 const LOSS_TOKENS = ["d", "l", "loss", "defaite", "défaite", "perdu"];
 
@@ -76,17 +90,15 @@ export function summarizeTournamentRounds(rounds: JudoRoundStatsRow[]): JudoTour
     else out.draws += 1;
 
     // Keep legacy osaekomi scores readable while aggregating the new post-combat choice.
-    const osaeMe = num(s["ijf_osaekomi_me_sec"]);
-    const osaeOpp = num(s["ijf_osaekomi_opp_sec"]);
-    const immoMe = num(s["ijf_immo_score_me"]);
-    const immoOpp = num(s["ijf_immo_score_opp"]);
+    const immoMe = resolvedImmobilizationScore(s, "ijf_immo_score_me", "ijf_osaekomi_me_sec");
+    const immoOpp = resolvedImmobilizationScore(s, "ijf_immo_score_opp", "ijf_osaekomi_opp_sec");
 
-    out.ipponFor += num(s["ijf_ippon_me"]) + (immoMe === 3 || osaeMe >= 20 ? 1 : 0);
-    out.ipponAgainst += num(s["ijf_ippon_opp"]) + (immoOpp === 3 || osaeOpp >= 20 ? 1 : 0);
+    out.ipponFor += num(s["ijf_ippon_me"]) + (immoMe === 3 ? 1 : 0);
+    out.ipponAgainst += num(s["ijf_ippon_opp"]) + (immoOpp === 3 ? 1 : 0);
     out.yukoFor += num(s["ijf_yuko_me"]) + (immoMe === 1 ? 1 : 0);
     out.yukoAgainst += num(s["ijf_yuko_opp"]) + (immoOpp === 1 ? 1 : 0);
-    out.wazariFor += num(s["ijf_wazari_me"]) + (immoMe === 2 || (osaeMe >= 10 && osaeMe < 20) ? 1 : 0);
-    out.wazariAgainst += num(s["ijf_wazari_opp"]) + (immoOpp === 2 || (osaeOpp >= 10 && osaeOpp < 20) ? 1 : 0);
+    out.wazariFor += num(s["ijf_wazari_me"]) + (immoMe === 2 ? 1 : 0);
+    out.wazariAgainst += num(s["ijf_wazari_opp"]) + (immoOpp === 2 ? 1 : 0);
     out.shidoFor += num(s["ijf_shido_me"]);
     out.shidoAgainst += num(s["ijf_shido_opp"]);
     out.hansokuDirectFor += num(s["ijf_hansoku_direct_me"]) > 0 ? 1 : 0;

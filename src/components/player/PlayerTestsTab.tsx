@@ -126,7 +126,7 @@ export function PlayerTestsTab({ playerId, categoryId, sportType }: PlayerTestsT
     queryFn: async () => {
       const [{ data: p }, { data: c }] = await Promise.all([
         supabase.from("players").select("position, gender").eq("id", playerId).maybeSingle(),
-        supabase.from("categories").select("gender, sport_type").eq("id", categoryId).maybeSingle(),
+        supabase.from("categories").select("gender, sport_type:rugby_type").eq("id", categoryId).maybeSingle(),
       ]);
       return { player: p, category: c } as any;
     },
