@@ -61,6 +61,7 @@ import { RecoverySessionDialog } from "@/components/athlete-space/RecoverySessio
 import { SessionDetailDialog } from "@/components/athlete-space/SessionDetailDialog";
 import { SessionAttendanceResponse } from "@/components/athlete-space/SessionAttendanceResponse";
 import { MatchAttendanceResponse } from "@/components/athlete-space/MatchAttendanceResponse";
+import { AthleteMatchRpe } from "@/components/athlete-space/AthleteMatchRpe";
 import { Eye, Trophy } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -732,6 +733,12 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                         matchDate={m.match_date}
                         matchTime={m.match_time}
                       />
+                      <AthleteMatchRpe
+                        matchId={m.id}
+                        playerId={playerId}
+                        categoryId={categoryId}
+                        matchDate={m.match_date}
+                      />
                     </div>
                   ))}
                 </div>
@@ -967,12 +974,20 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                               )}
                             </div>
                             {!isPersonalMine && (
-                              <MatchAttendanceResponse
-                                matchId={match.id}
-                                playerId={playerId}
-                                matchDate={match.match_date}
-                                matchTime={match.match_time}
-                              />
+                              <>
+                                <MatchAttendanceResponse
+                                  matchId={match.id}
+                                  playerId={playerId}
+                                  matchDate={match.match_date}
+                                  matchTime={match.match_time}
+                                />
+                                <AthleteMatchRpe
+                                  matchId={match.id}
+                                  playerId={playerId}
+                                  categoryId={categoryId}
+                                  matchDate={match.match_date}
+                                />
+                              </>
                             )}
                           </div>
                         );
