@@ -225,8 +225,8 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
     return map;
   }, [sessionBlocks]);
 
-  // Options de séances (entraînements) de la période
-  const sessionOptions = useMemo(() => {
+  // Tous les événements récupérés (entraînements + compétitions), triés du plus récent au plus ancien
+  const allEventOptions = useMemo(() => {
     const opts: { id: string; session_date: string; label: string }[] = (sessions || []).map((s) => ({
       id: s.id,
       session_date: s.session_date,
@@ -245,40 +245,36 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
     return opts.sort((a, b) => b.session_date.localeCompare(a.session_date));
   }, [sessions, matchList]);
 
-  // Jours ayant au moins un événement (pour le calendrier)
-  const eventDays = useMemo(() => new Set(sessionOptions.map((s) => s.session_date)), [sessionOptions]);
+  // Jours ayant au moins un événement (tout l'historique → calendrier jamais grisé)
+  const eventDays = useMemo(() => new Set(allEventOptions.map((s) => s.session_date)), [allEventOptions]);
+  // Événements du jour sélectionné (quand la période = un seul jour)
   const dayOptions = useMemo(
-    () => (selectedDay ? sessionOptions.filter((s) => s.session_date === selectedDay) : []),
-    [sessionOptions, selectedDay],
+    () => (selectedDay ? allEventOptions.filter((s) => s.session_date === selectedDay) : []),
+    [allEventOptions, selectedDay],
   );
 
-  useEffect(() => {
-    if (selectedDay && sessionOptions.length > 0 && !eventDays.has(selectedDay)) {
-      setSelectedDay(null);
-      setSelectedEventIds(null);
-    }
-  }, [eventDays, selectedDay, sessionOptions.length]);
+  const isInRange = (date: string) => date >= rangeFrom && (!rangeTo || date <= rangeTo);
 
   const isEventIncluded = (id: string, date: string) => {
+    if (!isInRange(date)) return false;
     if (!selectedDay) return true;
     if (date !== selectedDay) return false;
     return selectedEventIds === null || selectedEventIds.includes(id);
   };
 
-  // Séances retenues après filtre "entraînement"
+  // Séances retenues après filtre période / événements
   const scopedSessions = useMemo(() => {
     if (!sessions) return sessions;
     return sessions.filter((s) => isEventIncluded(s.id, s.session_date));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessions, selectedDay, selectedEventIds]);
+  }, [sessions, rangeFrom, rangeTo, selectedDay, selectedEventIds]);
 
   // Dates de compétition retenues après filtre
   const scopedMatchDates = useMemo(() => {
     if (!matchDates) return matchDates;
-    if (!selectedDay) return matchDates;
     return new Set([...matchDates].filter((d) => isEventIncluded(`match:${d}`, d)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [matchDates, selectedDay, selectedEventIds]);
+  }, [matchDates, rangeFrom, rangeTo, selectedDay, selectedEventIds]);
 
   const toggleEvent = (id: string) => {
     const all = dayOptions.map((o) => o.id);
