@@ -376,6 +376,8 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
         name: player.fullName,
         position: player.position,
         avgDiff: parseFloat(avgDiff.toFixed(1)),
+        avgPlanned: count > 0 ? parseFloat((totalPlanned / count).toFixed(1)) : 0,
+        avgActual: count > 0 ? parseFloat((totalActual / count).toFixed(1)) : 0,
         sessionsCount: count,
         // Vigilance dès ±1.5, alerte à ±2
         status: avgDiff >= 1.5 ? "over" : avgDiff <= -1.5 ? "under" : "optimal",
