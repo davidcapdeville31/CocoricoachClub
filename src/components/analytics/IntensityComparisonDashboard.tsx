@@ -338,6 +338,8 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       const playerAwcr = awcrData.filter(a => a.player_id === player.id);
       
       let totalDiff = 0;
+      let totalPlanned = 0;
+      let totalActual = 0;
       let count = 0;
       
       playerAwcr.forEach(awcr => {
@@ -353,12 +355,16 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
 
             if (effectivePlanned > 0) {
               totalDiff += awcr.rpe - effectivePlanned;
+              totalPlanned += effectivePlanned;
+              totalActual += awcr.rpe;
               count++;
             }
           }
         } else if (matchDates.has(awcr.session_date)) {
           // Compétition : référence fixe
           totalDiff += awcr.rpe - MATCH_PLANNED_RPE;
+          totalPlanned += MATCH_PLANNED_RPE;
+          totalActual += awcr.rpe;
           count++;
         }
       });
@@ -370,6 +376,8 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
         name: player.fullName,
         position: player.position,
         avgDiff: parseFloat(avgDiff.toFixed(1)),
+        avgPlanned: count > 0 ? parseFloat((totalPlanned / count).toFixed(1)) : 0,
+        avgActual: count > 0 ? parseFloat((totalActual / count).toFixed(1)) : 0,
         sessionsCount: count,
         // Vigilance dès ±1.5, alerte à ±2
         status: avgDiff >= 1.5 ? "over" : avgDiff <= -1.5 ? "under" : "optimal",
@@ -920,13 +928,41 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
                       player.status === "optimal" && "border-green-500/30 bg-green-500/5"
                     )}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
                       {getStatusIcon(player.status)}
-                      <div>
-                        <p className="font-medium">{player.name}</p>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium truncate">{player.name}</p>
                         <p className="text-xs text-muted-foreground">
                           {player.position || "—"} • {player.sessionsCount} séance(s)
                         </p>
+                        {/* Visualisation RPE réel vs objectif */}
+                        <div className="mt-1.5 space-y-1 max-w-[260px]">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] text-muted-foreground w-12 shrink-0">Objectif</span>
+                            <div className="h-1.5 flex-1 rounded-full bg-muted overflow-hidden">
+                              <div
+                                className="h-full rounded-full bg-muted-foreground/50"
+                                style={{ width: `${Math.min(100, (player.avgPlanned / 10) * 100)}%` }}
+                              />
+                            </div>
+                            <span className="text-[10px] font-medium w-7 text-right">{player.avgPlanned}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] text-muted-foreground w-12 shrink-0">Réel</span>
+                            <div className="h-1.5 flex-1 rounded-full bg-muted overflow-hidden">
+                              <div
+                                className={cn(
+                                  "h-full rounded-full",
+                                  player.status === "over" && "bg-red-500",
+                                  player.status === "under" && "bg-yellow-500",
+                                  player.status === "optimal" && "bg-green-500"
+                                )}
+                                style={{ width: `${Math.min(100, (player.avgActual / 10) * 100)}%` }}
+                              />
+                            </div>
+                            <span className="text-[10px] font-medium w-7 text-right">{player.avgActual}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
