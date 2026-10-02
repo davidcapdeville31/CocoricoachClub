@@ -39,10 +39,15 @@ import { ExerciseVisual } from "./ExerciseVisual";
 import { ExerciseFocusPanel } from "./ExerciseFocusPanel";
 import { ExerciseVideoModal } from "./ExerciseVideoModal";
 
+// Sous-catégories Musculation (mêmes libellés que la bibliothèque admin)
+const MUSCU_EQUIPMENT_TAGS = ["Renforcement général", "Machines", "Kettlebell", "Haltères", "Poids de corps", "Barres"];
+const MUSCU_MUSCLE_TAGS = ["Tirages", "Poussées", "Dos", "Pecs", "Épaules", "Bras", "Avant-bras", "Jambes", "Fessiers", "Abdos"];
+
 export interface PickedExerciseRich {
   id: string;
   exercise_name: string;
   station_name: string;
+  subcategories?: string[] | null;
   image_url?: string | null;
   video_url?: string | null;
   general_description?: string | null;
@@ -67,6 +72,7 @@ export function V2ExerciseBankSidebar({ onClickInsert, onInserted, mode = "exerc
     return <TestsBankSidebar onClickInsert={onClickInsert} onInserted={onInserted} categoryId={categoryId} />;
   }
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeSubcategory, setActiveSubcategory] = useState<string | null>(null);
   const [filters, setFilters] = useState<ExerciseFiltersState>({
     showFavoritesOnly: false,
     selectedCategory: "all",
@@ -125,7 +131,7 @@ export function V2ExerciseBankSidebar({ onClickInsert, onInserted, mode = "exerc
       const { data, error } = await supabase
         .from("exercise_library")
         .select(
-          "id, exercise_name, station_name, image_url, video_url, general_description, positioning_criteria, execution_criteria, safety_prevention, muscles, equipment, categories",
+          "id, exercise_name, station_name, image_url, video_url, general_description, positioning_criteria, execution_criteria, safety_prevention, muscles, equipment, categories, subcategories",
         )
         .is("canonical_id", null)
         .order("exercise_name", { ascending: true })
@@ -150,8 +156,10 @@ export function V2ExerciseBankSidebar({ onClickInsert, onInserted, mode = "exerc
   }, [exercises, favoriteCategories]);
 
   const filteredExercises = useMemo(() => {
-    return filterExercises(exercises, filters, exerciseFavorites, searchTerm);
-  }, [exercises, filters, exerciseFavorites, searchTerm]);
+    const base = filterExercises(exercises, filters, exerciseFavorites, searchTerm);
+    if (!activeSubcategory) return base;
+    return base.filter((e: any) => (e.subcategories || []).includes(activeSubcategory));
+  }, [exercises, filters, exerciseFavorites, searchTerm, activeSubcategory]);
 
   const queryClient = useQueryClient();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -209,9 +217,10 @@ export function V2ExerciseBankSidebar({ onClickInsert, onInserted, mode = "exerc
       <div className="px-2 py-1.5 border-b bg-muted/50 space-y-1.5">
         <Select
           value={filters.selectedCategory}
-          onValueChange={(value) =>
-            setFilters((prev) => ({ ...prev, selectedCategory: value }))
-          }
+          onValueChange={(value) => {
+            setFilters((prev) => ({ ...prev, selectedCategory: value }));
+            setActiveSubcategory(null);
+          }}
         >
           <SelectTrigger className="h-8 text-xs">
             <SelectValue placeholder="Toutes catégories" />
@@ -230,6 +239,41 @@ export function V2ExerciseBankSidebar({ onClickInsert, onInserted, mode = "exerc
             ))}
           </SelectContent>
         </Select>
+
+        {/* Sous-catégories Musculation : matériel + muscles/mouvements */}
+        {filters.selectedCategory === "Musculation" && (
+          <div className="space-y-1.5 pt-1">
+            <div className="flex flex-wrap gap-1">
+              {MUSCU_EQUIPMENT_TAGS.map((tag) => (
+                <Button
+                  key={tag}
+                  type="button"
+                  variant={activeSubcategory === tag ? "default" : "outline"}
+                  size="sm"
+                  className="h-6 text-[11px] px-2"
+                  onClick={() => setActiveSubcategory(activeSubcategory === tag ? null : tag)}
+                >
+                  {tag}
+                </Button>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {MUSCU_MUSCLE_TAGS.map((tag) => (
+                <Button
+                  key={tag}
+                  type="button"
+                  variant={activeSubcategory === tag ? "default" : "outline"}
+                  size="sm"
+                  className="h-6 text-[11px] px-2"
+                  onClick={() => setActiveSubcategory(activeSubcategory === tag ? null : tag)}
+                >
+                  {tag}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center justify-between">
           <span className="text-xs text-muted-foreground">
             {filteredExercises.length} exercice
