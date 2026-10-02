@@ -127,9 +127,27 @@ export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualPr
     },
   });
 
+  // RPE prévu de référence pour une compétition (pas de séance planifiée)
+  const MATCH_PLANNED_RPE = 8;
+
+  // Fetch match dates for the category in the selected period
+  const { data: matchDates } = useQuery({
+    queryKey: ["rpe-comparison-match-dates", categoryId, periodDays, scopeKey],
+    queryFn: async () => {
+      const startDate = format(subDays(new Date(), periodDays), "yyyy-MM-dd");
+      const { data, error } = await supabase
+        .from("matches")
+        .select("match_date")
+        .eq("category_id", categoryId)
+        .gte("match_date", startDate);
+      if (error) throw error;
+      return new Set((data || []).map((m: any) => m.match_date));
+    },
+  });
+
   // Process data to compare planned vs actual RPE
   const comparisonData = useMemo(() => {
-    if (!sessionsData) return { comparisons: [], alert: null, summary: null };
+    if (!sessionsData || !matchDates) return { comparisons: [], alert: null, summary: null };
 
     const { sessions, awcrData, blocksData } = sessionsData;
     const comparisons: PlayerRpeComparison[] = [];
