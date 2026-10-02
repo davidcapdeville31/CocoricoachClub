@@ -258,7 +258,7 @@ export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualPr
         onTarget: comparisons.filter(c => Math.abs(c.difference) <= 1).length,
       },
     };
-  }, [sessionsData]);
+  }, [sessionsData, matchDates]);
 
   // Aggregate by player for chart
   const chartData = useMemo(() => {
