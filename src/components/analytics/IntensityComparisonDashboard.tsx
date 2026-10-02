@@ -166,6 +166,25 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
     },
   });
 
+  // RPE prévu de référence pour une compétition (pas de séance planifiée)
+  const MATCH_PLANNED_RPE = 8;
+
+  // Fetch match dates for the category in range
+  const { data: matchDates } = useQuery({
+    queryKey: ["match-dates-intensity", categoryId, rangeKey, scopeKey],
+    queryFn: async () => {
+      let query = supabase
+        .from("matches")
+        .select("match_date")
+        .eq("category_id", categoryId)
+        .gte("match_date", rangeFrom);
+      if (rangeTo) query = query.lte("match_date", rangeTo);
+      const { data, error } = await query;
+      if (error) throw error;
+      return new Set((data || []).map((m: any) => m.match_date));
+    },
+  });
+
 
   // Get unique positions
   const positions = useMemo(() => {
@@ -221,7 +240,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
 
   // Calculate comparison data with weighted RPE
   const comparisonData = useMemo(() => {
-    if (!scopedSessions || !awcrData || !players) return [];
+    if (!scopedSessions || !awcrData || !players || !matchDates) return [];
 
     const playersToAnalyze = selectedPlayer === "all" 
       ? filteredPlayers 
@@ -266,6 +285,22 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
         if (playerMatch) {
           sessionMap.get(awcr.training_session_id)!.actual.push(awcr.rpe);
         }
+      } else if (!awcr.training_session_id && matchDates?.has(awcr.session_date)) {
+        // RPE saisi sur une compétition : référence fixe (match = effort élevé)
+        const playerMatch = playersToAnalyze.find(p => p.id === awcr.player_id);
+        if (!playerMatch) return;
+        const key = `match:${awcr.session_date}`;
+        if (!sessionMap.has(key)) {
+          sessionMap.set(key, {
+            date: awcr.session_date,
+            planned: MATCH_PLANNED_RPE,
+            weightedPlanned: MATCH_PLANNED_RPE,
+            hasBlocks: false,
+            actual: [],
+            sessionType: "Compétition",
+          });
+        }
+        sessionMap.get(key)!.actual.push(awcr.rpe);
       }
     });
 
@@ -289,11 +324,11 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
         };
       })
       .sort((a, b) => a.fullDate.localeCompare(b.fullDate));
-  }, [scopedSessions, awcrData, players, selectedPlayer, filteredPlayers, blocksBySession]);
+  }, [scopedSessions, awcrData, players, selectedPlayer, filteredPlayers, blocksBySession, matchDates]);
 
   // Calculate per-player stats with weighted RPE
   const playerStats = useMemo(() => {
-    if (!scopedSessions || !awcrData || !players) return [];
+    if (!scopedSessions || !awcrData || !players || !matchDates) return [];
 
     const playersToAnalyze = selectedPosition === "all" 
       ? players 
@@ -321,6 +356,10 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
               count++;
             }
           }
+        } else if (matchDates.has(awcr.session_date)) {
+          // Compétition : référence fixe
+          totalDiff += awcr.rpe - MATCH_PLANNED_RPE;
+          count++;
         }
       });
 
@@ -338,7 +377,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       };
     }).filter(p => p.sessionsCount > 0)
       .sort((a, b) => Math.abs(b.avgDiff) - Math.abs(a.avgDiff));
-  }, [scopedSessions, awcrData, players, selectedPosition, blocksBySession]);
+  }, [scopedSessions, awcrData, players, selectedPosition, blocksBySession, matchDates]);
 
   const displayedPlayerStats = useMemo(
     () => (statusFilter === "all" ? playerStats : playerStats.filter((p) => p.status === statusFilter)),
@@ -347,7 +386,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
 
   // Détail ligne à ligne (athlète × séance) pour l'export CSV / Excel
   const detailRows = useMemo(() => {
-    if (!scopedSessions || !awcrData || !players) return [];
+    if (!scopedSessions || !awcrData || !players || !matchDates) return [];
     const playerMap = new Map(players.map((p) => [p.id, p]));
     // Seuils d'alerte : vigilance à ±1.5, alerte à ±2
     const statusOf = (diff: number) => {
@@ -364,7 +403,37 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       return "—";
     };
 
-    return awcrData
+    const matchRows = awcrData
+      .filter((a) => !a.training_session_id && matchDates.has(a.session_date))
+      .filter((a) => {
+        const p = playerMap.get(a.player_id);
+        if (!p) return false;
+        if (selectedPosition !== "all" && p.position !== selectedPosition) return false;
+        if (selectedPlayer !== "all" && p.id !== selectedPlayer) return false;
+        return true;
+      })
+      .map((a) => {
+        const diff = a.rpe - MATCH_PLANNED_RPE;
+        const p = playerMap.get(a.player_id)!;
+        const durationMin =
+          (a as any).duration_minutes != null ? Number((a as any).duration_minutes) : null;
+        return {
+          date: a.session_date,
+          sessionType: "Compétition",
+          theme: "Compétition",
+          name: p.fullName,
+          position: p.position || "—",
+          planned: MATCH_PLANNED_RPE,
+          actual: a.rpe,
+          diff: Number(diff.toFixed(1)),
+          durationMin,
+          load: a.training_load ?? (durationMin != null ? a.rpe * durationMin : ""),
+          status: statusOf(diff),
+          alert: alertOf(diff),
+        };
+      });
+
+    const sessionRows = awcrData
       .filter((a) => a.training_session_id && scopedSessions.some((s) => s.id === a.training_session_id))
       .filter((a) => {
         const p = playerMap.get(a.player_id);
@@ -406,6 +475,9 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
           alert: alertOf(diff),
         };
       })
+      ;
+
+    return [...sessionRows, ...matchRows]
       .filter((r) => {
         if (statusFilter === "all") return true;
         if (statusFilter === "over") return r.diff >= 1.5;
@@ -413,7 +485,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
         return r.diff > -1.5 && r.diff < 1.5;
       })
       .sort((a, b) => a.date.localeCompare(b.date) || a.name.localeCompare(b.name));
-  }, [scopedSessions, awcrData, players, blocksBySession, selectedPlayer, selectedPosition, statusFilter]);
+  }, [scopedSessions, awcrData, players, blocksBySession, selectedPlayer, selectedPosition, statusFilter, matchDates]);
 
   const handleExportCsv = () => {
     if (detailRows.length === 0) {

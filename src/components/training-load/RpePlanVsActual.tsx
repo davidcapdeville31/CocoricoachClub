@@ -127,9 +127,27 @@ export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualPr
     },
   });
 
+  // RPE prévu de référence pour une compétition (pas de séance planifiée)
+  const MATCH_PLANNED_RPE = 8;
+
+  // Fetch match dates for the category in the selected period
+  const { data: matchDates } = useQuery({
+    queryKey: ["rpe-comparison-match-dates", categoryId, periodDays, scopeKey],
+    queryFn: async () => {
+      const startDate = format(subDays(new Date(), periodDays), "yyyy-MM-dd");
+      const { data, error } = await supabase
+        .from("matches")
+        .select("match_date")
+        .eq("category_id", categoryId)
+        .gte("match_date", startDate);
+      if (error) throw error;
+      return new Set((data || []).map((m: any) => m.match_date));
+    },
+  });
+
   // Process data to compare planned vs actual RPE
   const comparisonData = useMemo(() => {
-    if (!sessionsData) return { comparisons: [], alert: null, summary: null };
+    if (!sessionsData || !matchDates) return { comparisons: [], alert: null, summary: null };
 
     const { sessions, awcrData, blocksData } = sessionsData;
     const comparisons: PlayerRpeComparison[] = [];
@@ -197,6 +215,23 @@ export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualPr
       });
     });
 
+    // Compétitions : RPE saisi sans séance liée, comparé à la référence match
+    awcrData?.forEach(entry => {
+      if (entry.training_session_id) return;
+      if (!matchDates.has(entry.session_date)) return;
+      const playerData = entry.players as any;
+      comparisons.push({
+        playerId: entry.player_id,
+        playerName: [playerData?.first_name, playerData?.name].filter(Boolean).join(" ") || "Inconnu",
+        position: playerData?.position,
+        plannedRpe: MATCH_PLANNED_RPE,
+        actualRpe: entry.rpe,
+        difference: Math.round((entry.rpe - MATCH_PLANNED_RPE) * 10) / 10,
+        sessionDate: entry.session_date,
+        sessionName: "Compétition",
+      });
+    });
+
     // Check alert condition: more than 5 players with +2 difference
     const playersWithHighDiff = comparisons.filter(c => c.difference >= 2);
     const uniquePlayersWithHighDiff = new Set(playersWithHighDiff.map(c => c.playerId));
@@ -223,7 +258,7 @@ export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualPr
         onTarget: comparisons.filter(c => Math.abs(c.difference) <= 1).length,
       },
     };
-  }, [sessionsData]);
+  }, [sessionsData, matchDates]);
 
   // Aggregate by player for chart
   const chartData = useMemo(() => {
