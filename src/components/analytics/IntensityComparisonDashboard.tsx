@@ -23,6 +23,7 @@ import {
 } from "recharts";
 import { Target, Users, AlertTriangle, TrendingUp, TrendingDown, Minus, Calculator, Info } from "lucide-react";
 import { format, subDays, parseISO } from "date-fns";
+import type { DateRange } from "react-day-picker";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -45,11 +46,8 @@ interface IntensityComparisonDashboardProps {
 export function IntensityComparisonDashboard({ categoryId }: IntensityComparisonDashboardProps) {
   const [selectedPlayer, setSelectedPlayer] = useState<string>("all");
   const [selectedPosition, setSelectedPosition] = useState<string>("all");
-  const [dateRange, setDateRange] = useState<string>("30");
-  const [dateMode, setDateMode] = useState<"preset" | "custom">("preset");
-  const [customFrom, setCustomFrom] = useState<string>("");
-  const [customTo, setCustomTo] = useState<string>("");
-  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  // Période choisie directement dans le calendrier (par défaut : 30 derniers jours)
+  const [range, setRange] = useState<DateRange | undefined>({ from: subDays(new Date(), 30), to: new Date() });
   const [selectedEventIds, setSelectedEventIds] = useState<string[] | null>(null); // null = tous les événements du jour
   const [dayPickerOpen, setDayPickerOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -61,11 +59,9 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
   useEffect(() => {
     if (!urlSessionId) return;
     if (urlSessionDate) {
-      setDateMode("custom");
-      setCustomFrom(urlSessionDate);
-      setCustomTo(urlSessionDate);
+      const d = parseISO(urlSessionDate);
+      setRange({ from: d, to: d });
     }
-    if (urlSessionDate) setSelectedDay(urlSessionDate);
     setSelectedEventIds([urlSessionId]);
   }, [urlSessionId, urlSessionDate]);
   const { activeSeasonOnly, activeSeasonId, activeSeasonStart, activeSeasonEnd, isDateInActiveSeason } = useSeasonRosterFilter();
@@ -73,12 +69,17 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
   const scopeKey = activeSeasonOnly && activeSeasonId ? `season:${activeSeasonId}` : "all";
   const allowedIdsKey = allowedIds ? Array.from(allowedIds).sort().join(",") : "all";
 
-  const useCustom = dateMode === "custom" && !!customFrom;
-  const rangeFrom = useCustom
-    ? customFrom
-    : subDays(new Date(), parseInt(dateRange)).toISOString().split("T")[0];
-  const rangeTo = useCustom && customTo ? customTo : null;
-  const rangeKey = `${rangeFrom}|${rangeTo || ""}`;
+  // Période affichée (issue du calendrier)
+  const rangeFrom = range?.from ? format(range.from, "yyyy-MM-dd") : subDays(new Date(), 30).toISOString().split("T")[0];
+  const rangeTo = range?.to ? format(range.to, "yyyy-MM-dd") : null;
+  // Un seul jour sélectionné = détail par événement
+  const selectedDay = rangeFrom && rangeTo && rangeFrom === rangeTo ? rangeFrom : null;
+
+  // Fenêtre de récupération large : tous les événements passés restent visibles dans le calendrier
+  const fetchFrom = activeSeasonOnly && activeSeasonStart
+    ? activeSeasonStart
+    : subDays(new Date(), 365).toISOString().split("T")[0];
+  const fetchKey = `${fetchFrom}|${activeSeasonOnly && activeSeasonEnd ? activeSeasonEnd : ""}`;
 
 
   // Fetch players
@@ -101,21 +102,17 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
     },
   });
 
-  // Fetch sessions with planned intensity
+  // Fetch sessions with planned intensity (fenêtre large, filtrage par période côté client)
   const { data: sessions } = useQuery({
-    queryKey: ["sessions-intensity", categoryId, rangeKey, scopeKey, activeSeasonStart, activeSeasonEnd],
+    queryKey: ["sessions-intensity", categoryId, fetchKey, scopeKey],
     queryFn: async () => {
-      const fromDate = rangeFrom;
       let query = supabase
         .from("training_sessions")
         .select("id, session_date, training_type, intensity, notes")
         .eq("category_id", categoryId)
-        .gte("session_date", activeSeasonOnly && activeSeasonStart && activeSeasonStart > fromDate ? activeSeasonStart : fromDate);
+        .gte("session_date", fetchFrom);
 
-      const upper = activeSeasonOnly && activeSeasonEnd
-        ? (rangeTo && rangeTo < activeSeasonEnd ? rangeTo : activeSeasonEnd)
-        : rangeTo;
-      if (upper) query = query.lte("session_date", upper);
+      if (activeSeasonOnly && activeSeasonEnd) query = query.lte("session_date", activeSeasonEnd);
 
       const { data, error } = await query.order("session_date");
       if (error) throw error;
@@ -125,7 +122,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
 
   // Fetch session blocks for weighted RPE calculation
   const { data: sessionBlocks } = useQuery({
-    queryKey: ["session-blocks-intensity", categoryId, rangeKey, scopeKey, sessions?.map(s => s.id).join(",")],
+    queryKey: ["session-blocks-intensity", categoryId, fetchKey, scopeKey, sessions?.map(s => s.id).join(",")],
     queryFn: async () => {
       if (!sessions || sessions.length === 0) return [];
       const sessionIds = sessions.map(s => s.id);
@@ -140,11 +137,10 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
     enabled: !!sessions && sessions.length > 0,
   });
 
-  // Fetch AWCR data (actual RPE)
+  // Fetch AWCR data (actual RPE) — fenêtre large, filtrage par période côté client
   const { data: awcrData } = useQuery({
-    queryKey: ["awcr-intensity", categoryId, rangeKey, scopeKey, allowedIdsKey, activeSeasonStart, activeSeasonEnd],
+    queryKey: ["awcr-intensity", categoryId, fetchKey, scopeKey, allowedIdsKey],
     queryFn: async () => {
-      const fromDate = rangeFrom;
       if (allowedIds && allowedIds.size === 0) return [];
 
       let query = supabase
@@ -152,12 +148,9 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
         .select("player_id, session_date, rpe, training_session_id, training_load, duration_minutes, auto_filled")
         .or("auto_filled.is.null,auto_filled.eq.false")
         .eq("category_id", categoryId)
-        .gte("session_date", activeSeasonOnly && activeSeasonStart && activeSeasonStart > fromDate ? activeSeasonStart : fromDate);
+        .gte("session_date", fetchFrom);
 
-      const upper = activeSeasonOnly && activeSeasonEnd
-        ? (rangeTo && rangeTo < activeSeasonEnd ? rangeTo : activeSeasonEnd)
-        : rangeTo;
-      if (upper) query = query.lte("session_date", upper);
+      if (activeSeasonOnly && activeSeasonEnd) query = query.lte("session_date", activeSeasonEnd);
 
       if (allowedIds) {
         query = query.in("player_id", Array.from(allowedIds));
@@ -176,28 +169,24 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
   // RPE prévu de référence pour une compétition (pas de séance planifiée)
   const MATCH_PLANNED_RPE = 8;
 
-  // Fetch match dates for the category in range
+  // Fetch match dates for the category (fenêtre large)
   const { data: matchDates } = useQuery({
-    queryKey: ["match-dates-intensity", categoryId, rangeKey, scopeKey],
+    queryKey: ["match-dates-intensity", categoryId, fetchKey, scopeKey],
     queryFn: async () => {
-      let query = supabase
+      const { data, error } = await supabase
         .from("matches")
         .select("*")
         .eq("category_id", categoryId)
-        .gte("match_date", rangeFrom);
-      if (rangeTo) query = query.lte("match_date", rangeTo);
-      const { data, error } = await query;
+        .gte("match_date", fetchFrom);
       if (error) throw error;
       return new Set((data || []).map((m: any) => m.match_date));
     },
   });
 
   const { data: matchList } = useQuery({
-    queryKey: ["match-list-intensity", categoryId, rangeKey, scopeKey],
+    queryKey: ["match-list-intensity", categoryId, fetchKey, scopeKey],
     queryFn: async () => {
-      let query = supabase.from("matches").select("*").eq("category_id", categoryId).gte("match_date", rangeFrom);
-      if (rangeTo) query = query.lte("match_date", rangeTo);
-      const { data, error } = await query;
+      const { data, error } = await supabase.from("matches").select("*").eq("category_id", categoryId).gte("match_date", fetchFrom);
       if (error) throw error;
       return (data || []) as any[];
     },
@@ -236,8 +225,8 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
     return map;
   }, [sessionBlocks]);
 
-  // Options de séances (entraînements) de la période
-  const sessionOptions = useMemo(() => {
+  // Tous les événements récupérés (entraînements + compétitions), triés du plus récent au plus ancien
+  const allEventOptions = useMemo(() => {
     const opts: { id: string; session_date: string; label: string }[] = (sessions || []).map((s) => ({
       id: s.id,
       session_date: s.session_date,
@@ -256,40 +245,36 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
     return opts.sort((a, b) => b.session_date.localeCompare(a.session_date));
   }, [sessions, matchList]);
 
-  // Jours ayant au moins un événement (pour le calendrier)
-  const eventDays = useMemo(() => new Set(sessionOptions.map((s) => s.session_date)), [sessionOptions]);
+  // Jours ayant au moins un événement (tout l'historique → calendrier jamais grisé)
+  const eventDays = useMemo(() => new Set(allEventOptions.map((s) => s.session_date)), [allEventOptions]);
+  // Événements du jour sélectionné (quand la période = un seul jour)
   const dayOptions = useMemo(
-    () => (selectedDay ? sessionOptions.filter((s) => s.session_date === selectedDay) : []),
-    [sessionOptions, selectedDay],
+    () => (selectedDay ? allEventOptions.filter((s) => s.session_date === selectedDay) : []),
+    [allEventOptions, selectedDay],
   );
 
-  useEffect(() => {
-    if (selectedDay && sessionOptions.length > 0 && !eventDays.has(selectedDay)) {
-      setSelectedDay(null);
-      setSelectedEventIds(null);
-    }
-  }, [eventDays, selectedDay, sessionOptions.length]);
+  const isInRange = (date: string) => date >= rangeFrom && (!rangeTo || date <= rangeTo);
 
   const isEventIncluded = (id: string, date: string) => {
+    if (!isInRange(date)) return false;
     if (!selectedDay) return true;
     if (date !== selectedDay) return false;
     return selectedEventIds === null || selectedEventIds.includes(id);
   };
 
-  // Séances retenues après filtre "entraînement"
+  // Séances retenues après filtre période / événements
   const scopedSessions = useMemo(() => {
     if (!sessions) return sessions;
     return sessions.filter((s) => isEventIncluded(s.id, s.session_date));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessions, selectedDay, selectedEventIds]);
+  }, [sessions, rangeFrom, rangeTo, selectedDay, selectedEventIds]);
 
   // Dates de compétition retenues après filtre
   const scopedMatchDates = useMemo(() => {
     if (!matchDates) return matchDates;
-    if (!selectedDay) return matchDates;
     return new Set([...matchDates].filter((d) => isEventIncluded(`match:${d}`, d)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [matchDates, selectedDay, selectedEventIds]);
+  }, [matchDates, rangeFrom, rangeTo, selectedDay, selectedEventIds]);
 
   const toggleEvent = (id: string) => {
     const all = dayOptions.map((o) => o.id);
@@ -736,84 +721,39 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="space-y-2">
+            <div className="space-y-2 sm:col-span-2 lg:col-span-1">
               <Label>Période</Label>
-              <Select
-                value={dateMode === "custom" ? "custom" : dateRange}
-                onValueChange={(v) => {
-                  if (v === "custom") setDateMode("custom");
-                  else { setDateMode("preset"); setDateRange(v); }
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0">Aujourd'hui</SelectItem>
-                  <SelectItem value="1">Hier</SelectItem>
-                  <SelectItem value="7">7 derniers jours</SelectItem>
-                  <SelectItem value="14">14 derniers jours</SelectItem>
-                  <SelectItem value="30">30 derniers jours</SelectItem>
-                  <SelectItem value="60">60 derniers jours</SelectItem>
-                  <SelectItem value="90">90 derniers jours</SelectItem>
-                  <SelectItem value="custom">Période personnalisée…</SelectItem>
-                </SelectContent>
-              </Select>
-              {dateMode === "custom" && (
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="date"
-                    value={customFrom}
-                    onChange={(e) => setCustomFrom(e.target.value)}
-                    className="h-9"
-                  />
-                  <span className="text-xs text-muted-foreground">au</span>
-                  <Input
-                    type="date"
-                    value={customTo}
-                    onChange={(e) => setCustomTo(e.target.value)}
-                    className="h-9"
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label>Jour de l'événement</Label>
-              <div className="flex gap-2">
-                <Popover open={dayPickerOpen} onOpenChange={setDayPickerOpen}>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("flex-1 justify-start font-normal", !selectedDay && "text-muted-foreground")}>
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {selectedDay
-                        ? format(parseISO(selectedDay), "EEEE dd MMMM yyyy", { locale: getDateLocale() })
-                        : "Tous les jours de la période"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={selectedDay ? parseISO(selectedDay) : undefined}
-                      onSelect={(d) => {
-                        setSelectedDay(d ? format(d, "yyyy-MM-dd") : null);
-                        setSelectedEventIds(null);
-                        setDayPickerOpen(false);
-                      }}
-                      modifiers={{ hasEvent: (d) => eventDays.has(format(d, "yyyy-MM-dd")) }}
-                      modifiersClassNames={{ hasEvent: "font-bold text-primary underline underline-offset-4" }}
-                      disabled={(d) => !eventDays.has(format(d, "yyyy-MM-dd"))}
-                      initialFocus
-                      className="p-3 pointer-events-auto"
-                    />
-                    <p className="px-3 pb-3 text-xs text-muted-foreground">Les jours soulignés contiennent une séance ou une compétition.</p>
-                  </PopoverContent>
-                </Popover>
-                {selectedDay && (
-                  <Button variant="ghost" onClick={() => { setSelectedDay(null); setSelectedEventIds(null); }}>
-                    Tous
+              <Popover open={dayPickerOpen} onOpenChange={setDayPickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start font-normal", !range?.from && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {range?.from
+                      ? range.to && range.from.getTime() !== range.to.getTime()
+                        ? `${format(range.from, "dd MMM yyyy", { locale: getDateLocale() })} → ${format(range.to, "dd MMM yyyy", { locale: getDateLocale() })}`
+                        : format(range.from, "EEEE dd MMMM yyyy", { locale: getDateLocale() })
+                      : "Choisir une période"}
                   </Button>
-                )}
-              </div>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="range"
+                    selected={range}
+                    onSelect={(r) => {
+                      setRange(r);
+                      setSelectedEventIds(null);
+                      if (r?.from && r?.to) setDayPickerOpen(false);
+                    }}
+                    numberOfMonths={2}
+                    modifiers={{ hasEvent: (d) => eventDays.has(format(d, "yyyy-MM-dd")) }}
+                    modifiersClassNames={{ hasEvent: "font-bold text-primary underline underline-offset-4" }}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                  <p className="px-3 pb-3 text-xs text-muted-foreground">
+                    Clique un jour de début puis un jour de fin. Les jours soulignés contiennent une séance ou une compétition.
+                  </p>
+                </PopoverContent>
+              </Popover>
               {selectedDay && dayOptions.length > 0 && (
                 <div className="space-y-1.5 rounded-xl bg-surface-sunken p-2">
                   <label className="flex cursor-pointer items-center gap-2 text-sm font-medium">
