@@ -240,7 +240,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
 
   // Calculate comparison data with weighted RPE
   const comparisonData = useMemo(() => {
-    if (!scopedSessions || !awcrData || !players) return [];
+    if (!scopedSessions || !awcrData || !players || !matchDates) return [];
 
     const playersToAnalyze = selectedPlayer === "all" 
       ? filteredPlayers 
@@ -285,6 +285,22 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
         if (playerMatch) {
           sessionMap.get(awcr.training_session_id)!.actual.push(awcr.rpe);
         }
+      } else if (!awcr.training_session_id && matchDates?.has(awcr.session_date)) {
+        // RPE saisi sur une compétition : référence fixe (match = effort élevé)
+        const playerMatch = playersToAnalyze.find(p => p.id === awcr.player_id);
+        if (!playerMatch) return;
+        const key = `match:${awcr.session_date}`;
+        if (!sessionMap.has(key)) {
+          sessionMap.set(key, {
+            date: awcr.session_date,
+            planned: MATCH_PLANNED_RPE,
+            weightedPlanned: MATCH_PLANNED_RPE,
+            hasBlocks: false,
+            actual: [],
+            sessionType: "Compétition",
+          });
+        }
+        sessionMap.get(key)!.actual.push(awcr.rpe);
       }
     });
 
