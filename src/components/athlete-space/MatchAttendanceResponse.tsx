@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Check, X, Lock, Trophy } from "lucide-react";
+import { Check, X, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
@@ -17,8 +17,6 @@ interface Props {
 }
 
 type Status = "present" | "absent" | "no_response";
-
-const LOCK_MINUTES = 30;
 
 export function MatchAttendanceResponse({ matchId, playerId, matchDate, matchTime }: Props) {
   const { t } = useTranslation();
@@ -46,23 +44,15 @@ export function MatchAttendanceResponse({ matchId, playerId, matchDate, matchTim
     if (participant?.attendance_status === "absent") setShowComment(true);
   }, [participant?.absence_comment, participant?.attendance_status]);
 
-  const locked = useMemo(() => {
-    const time = (matchTime || "00:00").slice(0, 5);
-    const start = new Date(`${matchDate}T${time}:00`);
-    return new Date() >= new Date(start.getTime() - LOCK_MINUTES * 60_000);
-  }, [matchDate, matchTime]);
-
   if (isLoading) return null;
   // Athlete is not convoked to this competition → no attendance block
   if (!participant) return null;
 
   const status: Status = (participant.attendance_status as Status) || "no_response";
 
+  // Athletes can answer present/absent at any time, including after the
+  // competition (a posteriori), so late responses are always possible.
   const respond = async (nextStatus: "present" | "absent", nextComment?: string) => {
-    if (locked) {
-      t("athleteSpace.calendar.attendance.lockedMatch")
-      return;
-    }
     setSaving(true);
     try {
       const { error } = await supabase
@@ -108,7 +98,7 @@ export function MatchAttendanceResponse({ matchId, playerId, matchDate, matchTim
             size="sm"
             variant={status === "present" ? "default" : "outline"}
             className={cn("h-7 px-2 gap-1", status === "present" && "bg-emerald-600 hover:bg-emerald-700 text-white")}
-            disabled={saving || locked}
+            disabled={saving}
             onClick={(e) => {
               e.stopPropagation();
               setShowComment(false);
@@ -122,7 +112,7 @@ export function MatchAttendanceResponse({ matchId, playerId, matchDate, matchTim
             size="sm"
             variant={status === "absent" ? "default" : "outline"}
             className={cn("h-7 px-2 gap-1", status === "absent" && "bg-rose-600 hover:bg-rose-700 text-white")}
-            disabled={saving || locked}
+            disabled={saving}
             onClick={(e) => {
               e.stopPropagation();
               setShowComment(true);
@@ -134,7 +124,7 @@ export function MatchAttendanceResponse({ matchId, playerId, matchDate, matchTim
         </div>
       </div>
 
-      {status === "absent" && showComment && !locked && (
+      {status === "absent" && showComment && (
         <div className="mt-2" onClick={(e) => e.stopPropagation()}>
           <Textarea
             value={comment}
@@ -155,13 +145,6 @@ export function MatchAttendanceResponse({ matchId, playerId, matchDate, matchTim
             </Button>
           </div>
         </div>
-      )}
-
-      {locked && (
-        <p className="mt-1.5 flex items-center gap-1 text-[11px] text-muted-foreground">
-          <Lock className="h-3 w-3" />
-          {t("athleteSpace.calendar.attendance.lockedMatch")}
-        </p>
       )}
     </div>
   );
