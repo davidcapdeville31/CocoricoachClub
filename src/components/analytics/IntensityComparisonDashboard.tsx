@@ -393,7 +393,37 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       return "—";
     };
 
-    return awcrData
+    const matchRows = awcrData
+      .filter((a) => !a.training_session_id && matchDates.has(a.session_date))
+      .filter((a) => {
+        const p = playerMap.get(a.player_id);
+        if (!p) return false;
+        if (selectedPosition !== "all" && p.position !== selectedPosition) return false;
+        if (selectedPlayer !== "all" && p.id !== selectedPlayer) return false;
+        return true;
+      })
+      .map((a) => {
+        const diff = a.rpe - MATCH_PLANNED_RPE;
+        const p = playerMap.get(a.player_id)!;
+        const durationMin =
+          (a as any).duration_minutes != null ? Number((a as any).duration_minutes) : null;
+        return {
+          date: a.session_date,
+          sessionType: "Compétition",
+          theme: "Compétition",
+          name: p.fullName,
+          position: p.position || "—",
+          planned: MATCH_PLANNED_RPE,
+          actual: a.rpe,
+          diff: Number(diff.toFixed(1)),
+          durationMin,
+          load: a.training_load ?? (durationMin != null ? a.rpe * durationMin : ""),
+          status: statusOf(diff),
+          alert: alertOf(diff),
+        };
+      });
+
+    const sessionRows = awcrData
       .filter((a) => a.training_session_id && scopedSessions.some((s) => s.id === a.training_session_id))
       .filter((a) => {
         const p = playerMap.get(a.player_id);
