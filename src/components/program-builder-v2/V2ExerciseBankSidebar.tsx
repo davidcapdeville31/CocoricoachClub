@@ -38,6 +38,7 @@ import {
 import { ExerciseVisual } from "./ExerciseVisual";
 import { ExerciseFocusPanel } from "./ExerciseFocusPanel";
 import { ExerciseVideoModal } from "./ExerciseVideoModal";
+import { useCustomExerciseSubcategories } from "@/hooks/useCustomExerciseSubcategories";
 
 // Sous-catégories Musculation (mêmes libellés que la bibliothèque admin)
 const MUSCU_EQUIPMENT_TAGS = ["Renforcement général", "Machines", "Kettlebell", "Haltères", "Poids de corps", "Barres"];
@@ -73,6 +74,7 @@ export function V2ExerciseBankSidebar({ onClickInsert, onInserted, mode = "exerc
   }
   const [searchTerm, setSearchTerm] = useState("");
   const [activeSubcategory, setActiveSubcategory] = useState<string | null>(null);
+  const { subcategories: customSubs } = useCustomExerciseSubcategories(categoryId);
   const [filters, setFilters] = useState<ExerciseFiltersState>({
     showFavoritesOnly: false,
     selectedCategory: "all",
