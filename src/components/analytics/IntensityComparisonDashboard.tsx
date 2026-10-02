@@ -465,6 +465,9 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
           alert: alertOf(diff),
         };
       })
+      ;
+
+    return [...sessionRows, ...matchRows]
       .filter((r) => {
         if (statusFilter === "all") return true;
         if (statusFilter === "over") return r.diff >= 1.5;
@@ -472,7 +475,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
         return r.diff > -1.5 && r.diff < 1.5;
       })
       .sort((a, b) => a.date.localeCompare(b.date) || a.name.localeCompare(b.name));
-  }, [scopedSessions, awcrData, players, blocksBySession, selectedPlayer, selectedPosition, statusFilter]);
+  }, [scopedSessions, awcrData, players, blocksBySession, selectedPlayer, selectedPosition, statusFilter, matchDates]);
 
   const handleExportCsv = () => {
     if (detailRows.length === 0) {
