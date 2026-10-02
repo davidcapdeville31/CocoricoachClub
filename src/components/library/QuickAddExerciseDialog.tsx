@@ -27,6 +27,7 @@ import {
 } from "@/lib/constants/exerciseCategories";
 import { z } from "zod";
 import { translateOnSave } from "@/lib/i18n/contentTranslation";
+import { useCustomExerciseSubcategories } from "@/hooks/useCustomExerciseSubcategories";
 
 interface QuickAddExerciseDialogProps {
   open: boolean;
@@ -75,8 +76,33 @@ export function QuickAddExerciseDialog({
   const [difficulty, setDifficulty] = useState("intermediate");
   const queryClient = useQueryClient();
 
-  const availableSubcategories = getSubcategoriesForCategory(category);
   const availableCategories = getCategoriesForSport(sportType);
+  const categoryLabel = availableCategories.find((c) => c.value === category)?.label || category;
+  const { categoryId: teamCategoryId, subcategories: customSubs } = useCustomExerciseSubcategories();
+  const [creatingSub, setCreatingSub] = useState(false);
+  const [newSubName, setNewSubName] = useState("");
+  const customForCategory = customSubs.filter(
+    (s) => s.exercise_category === category || s.exercise_category === categoryLabel
+  );
+  const availableSubcategories = [
+    ...getSubcategoriesForCategory(category),
+    ...customForCategory.map((s) => ({ value: s.name, label: `${s.name} ★` })),
+  ];
+
+  const handleCreateSub = async () => {
+    const n = newSubName.trim();
+    if (!n) return toast.error("Saisis un nom de sous-catégorie");
+    if (!teamCategoryId) return toast.error("Ouvre une catégorie pour créer une sous-catégorie");
+    const { error } = await supabase
+      .from("exercise_custom_subcategories" as any)
+      .insert({ category_id: teamCategoryId, exercise_category: categoryLabel, name: n } as any);
+    if (error && !String(error.message).includes("duplicate")) return toast.error(error.message);
+    await queryClient.invalidateQueries({ queryKey: ["exercise-custom-subcategories", teamCategoryId] });
+    setSubcategory(n);
+    setNewSubName("");
+    setCreatingSub(false);
+    toast.success(`Sous-catégorie « ${n} » créée`);
+  };
 
   useEffect(() => {
     if (initialName) setName(initialName);
@@ -119,6 +145,8 @@ export function QuickAddExerciseDialog({
         category: parsed.data.category,
         station_name: parsed.data.category,
         subcategory: subcategory || null,
+        categories: [categoryLabel],
+        subcategories: subcategory ? [subcategory] : [],
         youtube_url: parsed.data.youtubeUrl || null,
         video_url: parsed.data.youtubeUrl || null,
         description: parsed.data.description || null,
@@ -214,10 +242,27 @@ export function QuickAddExerciseDialog({
               </Select>
             </div>
 
-            {availableSubcategories.length > 0 && (
-              <div className="space-y-2">
-                <Label htmlFor="subcategory">Sous-catégorie</Label>
-                <Select value={subcategory} onValueChange={setSubcategory}>
+            <div className="space-y-2">
+              <Label htmlFor="subcategory">Sous-catégorie</Label>
+              {creatingSub ? (
+                <div className="flex gap-1">
+                  <Input
+                    autoFocus
+                    value={newSubName}
+                    onChange={(e) => setNewSubName(e.target.value)}
+                    placeholder="Ex : Grip"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") { e.preventDefault(); handleCreateSub(); }
+                      if (e.key === "Escape") setCreatingSub(false);
+                    }}
+                  />
+                  <Button type="button" size="sm" onClick={handleCreateSub}>OK</Button>
+                </div>
+              ) : (
+                <Select
+                  value={subcategory}
+                  onValueChange={(v) => (v === "__new__" ? setCreatingSub(true) : setSubcategory(v))}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Optionnel" />
                   </SelectTrigger>
@@ -227,10 +272,13 @@ export function QuickAddExerciseDialog({
                         {sub.label}
                       </SelectItem>
                     ))}
+                    <SelectItem value="__new__" className="text-primary font-medium">
+                      + Créer une sous-catégorie
+                    </SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

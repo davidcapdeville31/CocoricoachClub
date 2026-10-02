@@ -64,6 +64,13 @@
       "when": 1790926580066,
       "tag": "0008_align_rpe_notification_with_session_objective",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790930794830,
+      "tag": "0009_exercise_custom_subcategories",
+      "breakpoints": true
     }
   ]
 }
