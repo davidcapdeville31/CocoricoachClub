@@ -166,6 +166,25 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
     },
   });
 
+  // RPE prévu de référence pour une compétition (pas de séance planifiée)
+  const MATCH_PLANNED_RPE = 8;
+
+  // Fetch match dates for the category in range
+  const { data: matchDates } = useQuery({
+    queryKey: ["match-dates-intensity", categoryId, rangeKey, scopeKey],
+    queryFn: async () => {
+      let query = supabase
+        .from("matches")
+        .select("match_date")
+        .eq("category_id", categoryId)
+        .gte("match_date", rangeFrom);
+      if (rangeTo) query = query.lte("match_date", rangeTo);
+      const { data, error } = await query;
+      if (error) throw error;
+      return new Set((data || []).map((m: any) => m.match_date));
+    },
+  });
+
 
   // Get unique positions
   const positions = useMemo(() => {
