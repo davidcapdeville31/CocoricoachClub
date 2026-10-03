@@ -2088,6 +2088,7 @@ export type Database = {
           archived_at: string | null
           archived_by: string | null
           club_id: string
+          competition_planned_rpe: number
           cover_image_position: string
           cover_image_scale: number
           cover_image_url: string | null
@@ -2107,6 +2108,7 @@ export type Database = {
           archived_at?: string | null
           archived_by?: string | null
           club_id: string
+          competition_planned_rpe?: number
           cover_image_position?: string
           cover_image_scale?: number
           cover_image_url?: string | null
@@ -2126,6 +2128,7 @@ export type Database = {
           archived_at?: string | null
           archived_by?: string | null
           club_id?: string
+          competition_planned_rpe?: number
           cover_image_position?: string
           cover_image_scale?: number
           cover_image_url?: string | null

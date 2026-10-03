@@ -1,0 +1,2 @@
+ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS competition_planned_rpe smallint NOT NULL DEFAULT 8 CHECK (competition_planned_rpe BETWEEN 1 AND 10);
+COMMENT ON COLUMN public.categories.competition_planned_rpe IS 'Staff-defined RPE target applied to competitions (load calendar and planned vs actual RPE).';

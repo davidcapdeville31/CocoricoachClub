@@ -78,6 +78,13 @@
       "when": 1790931660363,
       "tag": "0010_mark_restday_autofill_as_auto",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791033295425,
+      "tag": "0011_category_competition_planned_rpe",
+      "breakpoints": true
     }
   ]
 }
