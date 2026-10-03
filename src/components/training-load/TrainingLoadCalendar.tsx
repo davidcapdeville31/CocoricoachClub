@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useState, useMemo } from "react";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, addWeeks, subWeeks, addMonths, subMonths, isSameDay } from "date-fns";
-import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTranslation } from "react-i18next";
@@ -25,6 +25,7 @@ interface TrainingLoadCalendarProps {
 }
 
 type ViewMode = "week" | "month";
+const COMPETITION_PLANNED_RPE = 8;
 
 export function TrainingLoadCalendar({ categoryId }: TrainingLoadCalendarProps) {
   const { t } = useTranslation();
@@ -32,9 +33,9 @@ export function TrainingLoadCalendar({ categoryId }: TrainingLoadCalendarProps) 
   const [currentDate, setCurrentDate] = useState(new Date());
 
   useRealtimeSync({
-    tables: ["training_sessions", "training_session_blocks"],
+    tables: ["training_sessions", "training_session_blocks", "matches"],
     categoryId,
-    queryKeys: [["load-calendar-sessions", categoryId]],
+    queryKeys: [["load-calendar-sessions", categoryId], ["load-calendar-competitions", categoryId]],
     channelName: `load-calendar-sync-${categoryId}`,
   });
 
@@ -72,13 +73,32 @@ export function TrainingLoadCalendar({ categoryId }: TrainingLoadCalendarProps) 
       if (!sessions?.length) return { sessions: [], blocks: [] };
 
       const sessionIds = sessions.map(s => s.id);
-      const { data: blocks } = await supabase
+      const { data: blocks, error: blocksError } = await supabase
         .from("training_session_blocks")
         .select("*")
         .in("training_session_id", sessionIds)
         .order("block_order");
+      if (blocksError) throw blocksError;
 
       return { sessions, blocks: blocks || [] };
+    },
+  });
+
+  const { data: competitions = [] } = useQuery({
+    queryKey: ["load-calendar-competitions", categoryId, dateRange.start, dateRange.end],
+    queryFn: async () => {
+      const start = format(dateRange.start, "yyyy-MM-dd");
+      const end = format(dateRange.end, "yyyy-MM-dd");
+      const { data, error } = await supabase
+        .from("matches")
+        .select("id, match_date, end_date, opponent, competition, event_type")
+        .eq("category_id", categoryId)
+        .eq("is_personal", false)
+        .lte("match_date", end)
+        .or(`match_date.gte.${start},end_date.gte.${start}`)
+        .order("match_date");
+      if (error) throw error;
+      return data || [];
     },
   });
 
@@ -96,6 +116,7 @@ export function TrainingLoadCalendar({ categoryId }: TrainingLoadCalendarProps) 
     const map = new Map<string, {
       sessions: any[];
       blocks: any[];
+      competitions: typeof competitions;
       summary: {
         sessionTypes: string[];
         objectives: string[];
@@ -109,6 +130,7 @@ export function TrainingLoadCalendar({ categoryId }: TrainingLoadCalendarProps) 
     days.forEach(day => {
       const dateStr = format(day, "yyyy-MM-dd");
       const daySessions = sessionsData.sessions.filter(s => s.session_date?.startsWith(dateStr));
+      const dayCompetitions = competitions.filter(c => c.match_date <= dateStr && (c.end_date || c.match_date) >= dateStr);
       const dayBlocks = daySessions.flatMap(s =>
         sessionsData.blocks.filter(b => b.training_session_id === s.id)
       );
@@ -131,20 +153,21 @@ export function TrainingLoadCalendar({ categoryId }: TrainingLoadCalendarProps) 
       // RPE: from blocks first, fallback to session-level intensity
       const blockRpeValues = dayBlocks.filter(b => b.intensity != null).map(b => b.intensity);
       const sessionRpeValues = daySessions.filter(s => s.intensity != null).map(s => s.intensity);
-      const rpeValues = blockRpeValues.length > 0 ? blockRpeValues : sessionRpeValues;
+      const rpeValues = [...(blockRpeValues.length > 0 ? blockRpeValues : sessionRpeValues), ...dayCompetitions.map(() => COMPETITION_PLANNED_RPE)];
       const avgRpe = rpeValues.length > 0 ? Math.round((rpeValues.reduce((a: number, b: number) => a + b, 0) / rpeValues.length) * 10) / 10 : null;
 
-      if (daySessions.length > 0) {
+      if (daySessions.length > 0 || dayCompetitions.length > 0) {
         map.set(dateStr, {
           sessions: daySessions,
           blocks: dayBlocks,
+          competitions: dayCompetitions,
           summary: { sessionTypes, objectives, intensities: [...new Set(intensities)], volumes: [...new Set(volumes)], contactCharges: [...new Set(contactCharges)], avgRpe },
         });
       }
     });
 
     return map;
-  }, [sessionsData, days]);
+  }, [sessionsData, competitions, days]);
 
   const getIntensityColor = (intensity: string): string => {
     const found = TARGET_INTENSITIES.find(i => i.value === intensity);
@@ -217,6 +240,12 @@ export function TrainingLoadCalendar({ categoryId }: TrainingLoadCalendarProps) 
                       <div className="text-xs font-medium mb-1">{format(day, "d")}</div>
                       {data && (
                         <div className="space-y-1">
+                          {data.competitions.map(c => (
+                            <Badge key={c.id} variant="outline" className="flex w-full min-w-0 items-center gap-1 border-primary/30 bg-primary/10 px-1 py-0 text-[10px] text-primary">
+                              <Trophy className="h-3 w-3 shrink-0" />
+                              <span className="min-w-0 break-words">{c.competition || t("nav.competition.label")} · {c.opponent}</span>
+                            </Badge>
+                          ))}
                           {data.summary.avgRpe !== null && (
                             <Badge variant="secondary" className="text-[10px] px-1 py-0">
                               {t("workload.calendar.rpeBadge", { value: data.summary.avgRpe })}
@@ -257,7 +286,10 @@ export function TrainingLoadCalendar({ categoryId }: TrainingLoadCalendarProps) 
                     <TooltipContent className="max-w-xs">
                       <div className="space-y-1">
                         <p className="font-medium">{format(day, "EEEE d MMMM", { locale: getDateLocale() })}</p>
-                        <p className="text-xs">{t("workload.calendar.sessionsCount", { count: data.sessions.length })}</p>
+                        {data.sessions.length > 0 && <p className="text-xs">{t("workload.calendar.sessionsCount", { count: data.sessions.length })}</p>}
+                        {data.competitions.map(c => (
+                          <p key={c.id} className="text-xs">{c.competition || t("nav.competition.label")} · {c.opponent} · RPE {COMPETITION_PLANNED_RPE}/10</p>
+                        ))}
                         {data.summary.sessionTypes.length > 0 && (
                           <p className="text-xs">{t("workload.calendar.tooltip.types", { value: data.summary.sessionTypes.map(getSessionTypeLabel).join(", ") })}</p>
                         )}

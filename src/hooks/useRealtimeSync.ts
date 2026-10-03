@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 type TableName = 
   | "training_sessions"
   | "training_session_blocks"
+  | "matches"
   | "awcr_tracking"
   | "wellness_tracking";
 
