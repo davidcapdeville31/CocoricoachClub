@@ -13,6 +13,7 @@ import { usePendingWeightLogsCount } from "@/lib/hooks/usePendingWeightLogsCount
 import { usePendingTestResultsCount } from "@/lib/hooks/usePendingTestResultsCount";
 import { useUnreadAthleteSessionsCount } from "@/lib/hooks/useUnreadAthleteSessionsCount";
 import { useUnreadRpeNotificationsCount } from "@/lib/hooks/useUnreadRpeNotificationsCount";
+import { useUnreadWellnessNotificationsCount } from "@/lib/hooks/useUnreadWellnessNotificationsCount";
 import { OverviewTab } from "@/components/category/OverviewTab";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { CategoryCoverUpload, LogoHoverActions } from "@/components/category/CategoryCoverUpload";
@@ -184,6 +185,7 @@ function CategoryDetailsContent() {
   const pendingWeightLogsCount = usePendingWeightLogsCount(categoryId);
   const pendingTestResultsCount = usePendingTestResultsCount(categoryId);
   const unreadRpeCount = useUnreadRpeNotificationsCount(categoryId);
+  const unreadWellnessCount = useUnreadWellnessNotificationsCount(categoryId);
   const workloadBadge = pendingWeightLogsCount + pendingTestResultsCount + unreadRpeCount;
   const athleteSessionsBadge = useUnreadAthleteSessionsCount(categoryId);
 
@@ -524,6 +526,7 @@ function CategoryDetailsContent() {
                   icon={<Heart className="h-5 w-5" />}
                   label={t("nav.sante.label")}
                   shortLabel={t("nav.sante.short")}
+                  badge={isViewer ? 0 : unreadWellnessCount}
                   tooltip={t("nav.sante.tooltip")}
                 />
               )}
