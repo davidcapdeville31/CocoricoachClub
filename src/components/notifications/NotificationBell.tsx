@@ -167,6 +167,7 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
       queryClient.invalidateQueries({ queryKey: ["unread-rpe-notifications-count"] });
+      queryClient.invalidateQueries({ queryKey: ["unread-wellness-notifications-count"] });
     },
   });
 
@@ -183,6 +184,7 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
       queryClient.invalidateQueries({ queryKey: ["unread-rpe-notifications-count"] });
+      queryClient.invalidateQueries({ queryKey: ["unread-wellness-notifications-count"] });
       toast.success("Toutes les notifications ont été marquées comme lues");
     },
   });
@@ -198,6 +200,7 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
       queryClient.invalidateQueries({ queryKey: ["unread-rpe-notifications-count"] });
+      queryClient.invalidateQueries({ queryKey: ["unread-wellness-notifications-count"] });
       toast.success("Notification supprimée");
     },
   });

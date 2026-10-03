@@ -12,8 +12,11 @@ import { NutritionTab } from "@/components/category/NutritionTab";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
 import { SeasonRosterFilterToggle } from "@/components/category/SeasonRosterFilterToggle";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useUnreadWellnessNotificationsCount } from "@/lib/hooks/useUnreadWellnessNotificationsCount";
+import { toast } from "sonner";
 import { isRugbyType } from "@/lib/constants/sportTypes";
 import React from "react";
 import { useSearchParams } from "react-router-dom";
@@ -53,6 +56,9 @@ class SanteErrorBoundary extends React.Component<
 export function SanteTab({ categoryId }: SanteTabProps) {
   const { t } = useTranslation();
   const { isViewer } = useViewerModeContext();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const unreadWellnessCount = useUnreadWellnessNotificationsCount(categoryId);
   const [searchParams] = useSearchParams();
   const urlSubTab = searchParams.get("subtab");
   const [subTab, setSubTab] = React.useState(urlSubTab || "dashboard");
@@ -60,6 +66,29 @@ export function SanteTab({ categoryId }: SanteTabProps) {
   React.useEffect(() => {
     if (urlSubTab) setSubTab(urlSubTab);
   }, [urlSubTab]);
+
+  React.useEffect(() => {
+    if (subTab !== "wellness-health" || isViewer || !user?.id) return;
+    const userId = user.id;
+    const openedAt = new Date().toISOString();
+    const markWellnessAsRead = async () => {
+      const { error } = await supabase
+        .from("notifications")
+        .update({ is_read: true })
+        .eq("user_id", userId)
+        .eq("category_id", categoryId)
+        .eq("notification_type", "wellness_submitted")
+        .eq("is_read", false)
+        .lte("created_at", openedAt);
+      if (error) {
+        toast.error("Impossible de marquer les notifications wellness comme lues.");
+        return;
+      }
+      queryClient.invalidateQueries({ queryKey: ["unread-wellness-notifications-count", categoryId, userId] });
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    };
+    void markWellnessAsRead();
+  }, [subTab, isViewer, user?.id, categoryId, queryClient]);
 
   const { data: category } = useQuery({
     queryKey: ["category-sport-type-sante", categoryId],
@@ -101,6 +130,11 @@ export function SanteTab({ categoryId }: SanteTabProps) {
               tooltip={t("subnav.sante.wellnessTooltip")}
             >
               {t("subnav.sante.wellness")}
+              {!isViewer && unreadWellnessCount > 0 && (
+                <span className="inline-flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                  {unreadWellnessCount > 9 ? "9+" : unreadWellnessCount}
+                </span>
+              )}
             </ColoredSubTabsTrigger>
             {/* Nutrition masquée pour toutes les disciplines (non pertinent pour le moment) */}
             {!isViewer && (
