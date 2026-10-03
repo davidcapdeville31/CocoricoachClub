@@ -1,5 +1,5 @@
-# Wellness notification badges
+# Calendrier de charge
 
-- [x] Reuse athlete wellness notifications and add Santé / Wellness counters for every discipline.
-- [x] Mark the current staff user's category wellness notifications read on consultation and synchronize bell actions.
-- [x] Verify real notification badges and read state in the signed-in preview.
+- [ ] Afficher entraînements et compétitions, y compris amicales, dans la semaine et le mois pour toutes les disciplines.
+- [ ] Intégrer la référence compétition RPE 8 au résumé journalier sans modifier les charges réellement saisies.
+- [ ] Vérifier le calendrier avec une compétition réelle.
