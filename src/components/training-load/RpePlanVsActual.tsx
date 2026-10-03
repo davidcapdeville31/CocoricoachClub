@@ -1,3 +1,4 @@
+import { useCompetitionPlannedRpe } from "@/hooks/useCompetitionPlannedRpe";
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo } from "react";
 import { calculateWeightedRpe } from "@/lib/weightedRpeCalculations";
@@ -131,7 +132,7 @@ export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualPr
   });
 
   // RPE prévu de référence pour une compétition (pas de séance planifiée)
-  const MATCH_PLANNED_RPE = 8;
+  const MATCH_PLANNED_RPE = useCompetitionPlannedRpe(categoryId);
 
   // Fetch match dates for the category in the selected period
   const { data: matchDates } = useQuery({

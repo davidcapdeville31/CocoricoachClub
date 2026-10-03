@@ -1,3 +1,4 @@
+import { CompetitionRpeSetting } from "@/components/category/CompetitionRpeSetting";
 import { useTranslation } from "react-i18next";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Trophy, Swords, Flag, Award, Mountain, BarChart3, Users, LineChart } from "lucide-react";
@@ -119,7 +120,8 @@ export function CompetitionTab({ categoryId, isRugby7, isNationalTeam, sportType
         </div>
       )}
 
-      <TabsContent value="matches">
+      <TabsContent value="matches" className="space-y-4">
+        <CompetitionRpeSetting categoryId={categoryId} />
         {isSkiSport ? (
           <FisCompetitionsTab categoryId={categoryId} />
         ) : (

@@ -1,3 +1,4 @@
+import { useCompetitionPlannedRpe } from "@/hooks/useCompetitionPlannedRpe";
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useEffect, useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -167,7 +168,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
   });
 
   // RPE prévu de référence pour une compétition (pas de séance planifiée)
-  const MATCH_PLANNED_RPE = 8;
+  const MATCH_PLANNED_RPE = useCompetitionPlannedRpe(categoryId);
 
   // Fetch match dates for the category (fenêtre large)
   const { data: matchDates } = useQuery({
