@@ -1,3 +1,4 @@
+import { useCompetitionPlannedRpe } from "@/hooks/useCompetitionPlannedRpe";
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,10 +26,10 @@ interface TrainingLoadCalendarProps {
 }
 
 type ViewMode = "week" | "month";
-const COMPETITION_PLANNED_RPE = 8;
 
 export function TrainingLoadCalendar({ categoryId }: TrainingLoadCalendarProps) {
   const { t } = useTranslation();
+  const COMPETITION_PLANNED_RPE = useCompetitionPlannedRpe(categoryId);
   const [viewMode, setViewMode] = useState<ViewMode>("week");
   const [currentDate, setCurrentDate] = useState(new Date());
 
