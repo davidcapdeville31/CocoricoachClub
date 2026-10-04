@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { getMethodColors } from "@/components/program-builder-v2/shared/MethodGroupWrapper";
 import { getTrainingStyleConfig } from "@/lib/program-builder-v2/trainingStyles";
 import { parseNotesStatus } from "@/components/athlete-space/AthleteWeightLogInput";
+import { parseCardioTag, formatCardioSummary } from "@/lib/utils/cardioLogMetric";
 
 interface SessionWeightLogTabProps {
   sessionId: string;
@@ -209,7 +210,7 @@ export function SessionWeightLogTab({
                           )}
                           {status !== "skipped" && (
                             <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
-                              ✓ {existing.actual_weight_kg}kg {existing.actual_sets}×{existing.actual_reps}
+                              ✓ {(() => { const c = parseCardioTag(existing.notes ?? null); return c ? formatCardioSummary(c) : `${existing.actual_weight_kg}kg ${existing.actual_sets}×${existing.actual_reps}`; })()}
                             </span>
                           )}
                         </div>

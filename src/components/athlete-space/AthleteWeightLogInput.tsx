@@ -110,7 +110,9 @@ export type WeightLogQuickEntry = CommonExerciseFields & {
 export type WeightLogDetailedEntry = CommonExerciseFields & {
   mode: "detailed";
   seriesLabel?: string; // "Série" | "Tour" | "Round"
-  series: Array<{ weight: string; reps: string }>;
+  /** When set, the athlete logs distance (m) and/or duration instead of kg × reps. */
+  cardioFields?: CardioField[];
+  series: Array<{ weight: string; reps: string; distance?: string; duration?: string }>;
 };
 
 // Auto mode for special methods (drop set, cluster, rest-pause, pyramid).
@@ -265,16 +267,18 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange, tr
   });
 
   const existingByName = useMemo(() => {
-    const map = new Map<string, { weight: number; sets: number | null; reps: number | null; notes: string | null; status: ExerciseStatus }>();
+    const map = new Map<string, { weight: number; sets: number | null; reps: number | null; notes: string | null; status: ExerciseStatus; cardioSummary: string | null }>();
     existingLogs.forEach((l) => {
       const notes = (l as any).notes ?? null;
       const { status, comment } = parseNotesStatus(notes);
+      const cardio = parseCardioTag(notes);
       map.set(l.exercise_name, {
         weight: Number(l.actual_weight_kg),
         sets: l.actual_sets,
         reps: l.actual_reps,
         notes: comment || null,
         status,
+        cardioSummary: cardio ? formatCardioSummary(cardio) : null,
       });
     });
     return map;
@@ -302,8 +306,21 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange, tr
 
       const method = (ex.method || ex.set_type || "normal") as string;
       const baseWeight = ex.weight_kg ? Number(ex.weight_kg) : null;
+      const cardio = getCardioPrescription(ex);
 
-      if (SPECIAL_AUTO_METHODS.has(method)) {
+      if (cardio) {
+        next[ex.exercise_name] = {
+          mode: "detailed",
+          seriesLabel: t("athleteSpace.components.weightLogInput.series"),
+          cardioFields: cardio.fields,
+          series: Array.from({ length: cardio.count }, () => ({
+            weight: "",
+            reps: "",
+            distance: cardio.distancePerSet ? String(cardio.distancePerSet) : "",
+            duration: cardio.durationPerSet ? formatDuration(cardio.durationPerSet) : "",
+          })),
+        };
+      } else if (SPECIAL_AUTO_METHODS.has(method)) {
         next[ex.exercise_name] = {
           mode: "special",
           method,
@@ -408,6 +425,8 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange, tr
         const existing = existingByName.get(ex.exercise_name);
         const entry = value[ex.exercise_name];
         const method = (ex.method || ex.set_type || "normal") as string;
+        const cardioPrescription = getCardioPrescription(ex);
+        const isCardio = !!cardioPrescription;
         const isSpecial = SPECIAL_AUTO_METHODS.has(method);
 
         if (existing) {
@@ -428,7 +447,7 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange, tr
                 {statusBadge}
                 {existing.status !== "skipped" && (
                   <Badge variant="secondary" className="text-[10px]">
-                    ✓ {existing.weight}kg {existing.sets ?? "–"}×{existing.reps ?? "–"}
+                    ✓ {existing.cardioSummary ?? `${existing.weight}kg ${existing.sets ?? "–"}×${existing.reps ?? "–"}`}
                   </Badge>
                 )}
               </div>
@@ -475,7 +494,16 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange, tr
                     {getMethodLabel(method)}
                   </Badge>
                 )}
-                {ex.sets && ex.reps && !isSpecial && (
+                {isCardio && (cardioPrescription.distancePerSet || cardioPrescription.durationPerSet) && (
+                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                    {cardioPrescription.count > 1 ? `${cardioPrescription.count} × ` : ""}
+                    {[
+                      cardioPrescription.distancePerSet ? formatDistance(cardioPrescription.distancePerSet) : null,
+                      cardioPrescription.durationPerSet ? formatDuration(cardioPrescription.durationPerSet) : null,
+                    ].filter(Boolean).join(" · ")}
+                  </span>
+                )}
+                {!isCardio && ex.sets && ex.reps && !isSpecial && (
                   <span className="text-[10px] text-muted-foreground whitespace-nowrap">
                     {t("athleteSpace.components.weightLogInput.prescribed", { sets: ex.sets, reps: ex.reps })}
                     {ex.weight_kg ? t("athleteSpace.components.weightLogInput.atWeight", { weight: ex.weight_kg }) : ""}
@@ -510,7 +538,7 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange, tr
                   activeClass="bg-destructive/15 text-destructive border-destructive/40"
                 />
                 <div className="ml-auto" />
-                {!isSpecial && entry.status !== "skipped" && (
+                {!isSpecial && !isCardio && entry.status !== "skipped" && (
                   <Button
                     type="button"
                     variant="ghost"
@@ -526,7 +554,9 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange, tr
               {entry.status !== "skipped" && (
                 <>
                   <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    {t("athleteSpace.components.weightLogInput.myRealLoads")}
+                    {entry.mode === "detailed" && entry.cardioFields?.length
+                      ? "Ma réalisation"
+                      : t("athleteSpace.components.weightLogInput.myRealLoads")}
                   </Label>
 
                   {entry.mode === "quick" && (
@@ -536,12 +566,17 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange, tr
                     />
                   )}
 
-                  {entry.mode === "detailed" && (
+                  {entry.mode === "detailed" && entry.cardioFields?.length ? (
+                    <CardioModeRows
+                      entry={entry}
+                      onChange={(e) => updateEntry(ex.exercise_name, e)}
+                    />
+                  ) : entry.mode === "detailed" ? (
                     <DetailedModeRows
                       entry={entry}
                       onChange={(e) => updateEntry(ex.exercise_name, e)}
                     />
-                  )}
+                  ) : null}
 
                   {entry.mode === "special" && (
                     <SpecialModeRows
@@ -697,6 +732,85 @@ function DetailedModeRows({
           >
             <Trash2 className="h-3 w-3 text-muted-foreground" />
           </Button>
+        </div>
+      ))}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="h-7 text-[11px] w-full"
+        onClick={() => {
+          const last = entry.series[entry.series.length - 1] || { weight: "", reps: "" };
+          onChange({ ...entry, series: [...entry.series, { ...last }] });
+        }}
+      >
+        <Plus className="h-3 w-3 mr-1" />
+        {t("athleteSpace.components.weightLogInput.addSeries")}
+      </Button>
+    </div>
+  );
+}
+
+function CardioModeRows({
+  entry,
+  onChange,
+}: {
+  entry: WeightLogDetailedEntry;
+  onChange: (next: WeightLogDetailedEntry) => void;
+}) {
+  const { t } = useTranslation();
+  const fields = entry.cardioFields ?? [];
+  const update = (idx: number, patch: Partial<WeightLogDetailedEntry["series"][number]>) => {
+    const next = [...entry.series];
+    next[idx] = { ...next[idx], ...patch };
+    onChange({ ...entry, series: next });
+  };
+  return (
+    <div className="space-y-1.5">
+      {entry.series.map((serie, idx) => (
+        <div key={idx} className="flex items-center gap-1.5 flex-wrap">
+          {entry.series.length > 1 && (
+            <span className="text-[10px] text-muted-foreground w-14 shrink-0">
+              {(entry.seriesLabel || t("athleteSpace.components.weightLogInput.series"))} {idx + 1}
+            </span>
+          )}
+          {fields.includes("distance") && (
+            <>
+              <Input
+                type="number"
+                inputMode="numeric"
+                placeholder="mètres"
+                className="h-7 w-20 text-xs"
+                value={serie.distance ?? ""}
+                onChange={(e) => update(idx, { distance: e.target.value })}
+              />
+              <span className="text-[10px] text-muted-foreground">m</span>
+            </>
+          )}
+          {fields.includes("duration") && (
+            <>
+              <Input
+                type="text"
+                inputMode="numeric"
+                placeholder="mm:ss"
+                className="h-7 w-20 text-xs ml-1"
+                value={serie.duration ?? ""}
+                onChange={(e) => update(idx, { duration: e.target.value })}
+              />
+              <span className="text-[10px] text-muted-foreground">temps</span>
+            </>
+          )}
+          {entry.series.length > 1 && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 ml-auto"
+              onClick={() => onChange({ ...entry, series: entry.series.filter((_, i) => i !== idx) })}
+            >
+              <Trash2 className="h-3 w-3 text-muted-foreground" />
+            </Button>
+          )}
         </div>
       ))}
       <Button
@@ -885,6 +999,30 @@ export function buildWeightLogRecords(
       return;
     }
 
+    // Cardio: distance (m) and/or duration — no kg, no reps.
+    if (entry.mode === "detailed" && entry.cardioFields?.length) {
+      const cs = entry.series.map((s) => ({
+        m: entry.cardioFields!.includes("distance") ? Math.round(Number(s.distance) || 0) : undefined,
+        s: entry.cardioFields!.includes("duration") ? parseDurationInput(s.duration) : undefined,
+      }));
+      const valid = cs.filter((s) => (s.m ?? 0) > 0 || (s.s ?? 0) > 0);
+      if (valid.length === 0 && !notes) return;
+      const totalM = valid.reduce((a, s) => a + (s.m ?? 0), 0);
+      const totalS = valid.reduce((a, s) => a + (s.s ?? 0), 0);
+      const tag = encodeCardioTag({ fields: entry.cardioFields, series: valid });
+      out.push({
+        player_id: ctx.playerId,
+        category_id: ctx.categoryId,
+        training_session_id: ctx.trainingSessionId,
+        exercise_name: exerciseName,
+        actual_weight_kg: 0,
+        actual_sets: valid.length,
+        actual_reps: totalM || totalS,
+        notes: valid.length ? (notes ? `${notes} ${tag}` : tag) : notes,
+      });
+      return;
+    }
+
     // detailed OR special: aggregate exactly per sub-set
     const series = entry.series;
     let totalTonnage = 0;
@@ -943,6 +1081,11 @@ export function countIncompleteWeightLogs(state: WeightLogState): number {
       const s = parseInt(entry.sets);
       const r = parseInt(entry.reps);
       if (!w || !s || !r) incomplete += 1;
+      return;
+    }
+    if (entry.mode === "detailed" && entry.cardioFields?.length) {
+      const ok = entry.series.some((sr) => (Number(sr.distance) || 0) > 0 || parseDurationInput(sr.duration) > 0);
+      if (!ok) incomplete += 1;
       return;
     }
     const hasAny = entry.series.some((sr) => parseFloat(sr.weight) > 0 && parseInt(sr.reps) > 0);

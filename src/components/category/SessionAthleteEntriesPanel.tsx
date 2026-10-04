@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { DetailedBlockView } from "@/components/bowling/simplified/DetailedBlockView";
 import type { SimplifiedBlock } from "@/components/bowling/simplified/types";
 import { parseNotesStatus, isMusculationType } from "@/components/athlete-space/AthleteWeightLogInput";
+import { parseCardioTag, formatCardioSummary } from "@/lib/utils/cardioLogMetric";
 
 interface Props {
   sessionId: string;
@@ -497,8 +498,11 @@ export function SessionAthleteEntriesPanel({
                               )}
                               {status !== "skipped" && (
                                 <span className="text-foreground font-medium">
-                                  Réalisé : {log.actual_sets ?? "?"}×{log.actual_reps ?? "?"}
-                                  {log.actual_weight_kg != null ? ` @ ${log.actual_weight_kg}kg` : ""}
+                                  Réalisé : {(() => {
+                                    const c = parseCardioTag(log.notes ?? null);
+                                    if (c) return formatCardioSummary(c);
+                                    return `${log.actual_sets ?? "?"}×${log.actual_reps ?? "?"}${log.actual_weight_kg != null ? ` @ ${log.actual_weight_kg}kg` : ""}`;
+                                  })()}
                                 </span>
                               )}
                               {log.tonnage != null && Number(log.tonnage) > 0 && (
