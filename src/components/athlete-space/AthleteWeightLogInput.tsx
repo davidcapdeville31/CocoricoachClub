@@ -14,6 +14,17 @@ import { parseV2MethodConfig } from "@/lib/program-builder-v2/parseV2MethodConfi
 import { getMethodColors } from "@/components/program-builder-v2/shared/MethodGroupWrapper";
 import { useTranslation } from "react-i18next";
 import i18n from "@/i18n";
+import {
+  getCardioPrescription,
+  parseDurationInput,
+  formatDuration,
+  formatDistance,
+  encodeCardioTag,
+  parseCardioTag,
+  stripCardioTag,
+  formatCardioSummary,
+  type CardioField,
+} from "@/lib/utils/cardioLogMetric";
 
 // ============= Notes encoding (status + comment in a single `notes` column) =============
 const STATUS_TAGS: Record<"skipped" | "adapted", string> = {
@@ -26,7 +37,7 @@ export function parseNotesStatus(notes: string | null): {
   comment: string;
 } {
   if (!notes) return { status: "done", comment: "" };
-  const trimmed = notes.trim();
+  const trimmed = stripCardioTag(notes);
   if (trimmed.startsWith(STATUS_TAGS.skipped)) {
     return { status: "skipped", comment: trimmed.slice(STATUS_TAGS.skipped.length).trim() };
   }
