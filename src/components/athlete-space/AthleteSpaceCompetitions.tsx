@@ -79,17 +79,21 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
     queryFn: async () => {
       const { data, error } = await supabase
         .from("competition_rounds")
-        .select("match_id, ranking")
+        .select("match_id, ranking, round_number")
         .eq("player_id", playerId);
       if (error) throw error;
       const counts: Record<string, number> = {};
       const bestRanks: Record<string, number> = {};
+      const lastRound: Record<string, number> = {};
       (data || []).forEach((r: any) => {
         counts[r.match_id] = (counts[r.match_id] || 0) + 1;
+        // Classement final = classement du dernier combat renseigné
         if (typeof r.ranking === "number" && r.ranking > 0) {
-          bestRanks[r.match_id] = bestRanks[r.match_id]
-            ? Math.min(bestRanks[r.match_id], r.ranking)
-            : r.ranking;
+          const rn = r.round_number ?? 0;
+          if (lastRound[r.match_id] === undefined || rn >= lastRound[r.match_id]) {
+            lastRound[r.match_id] = rn;
+            bestRanks[r.match_id] = r.ranking;
+          }
         }
       });
       return { counts, bestRanks };
