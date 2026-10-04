@@ -412,6 +412,21 @@ export function CompetitionRoundsDialog({
           }
         }
       }
+      // Côté staff : ajoute les athlètes convoqués (match_participants) qui
+      // ne sont pas dans la composition, pour pouvoir saisir leurs combats.
+      if (!restrictToPlayerId) {
+        const { data: parts } = await supabase
+          .from("match_participants")
+          .select("player_id, players(id, name, first_name, discipline, specialty, gender)")
+          .eq("match_id", matchId);
+        const inLineup = new Set(data.map((d: any) => d.player_id));
+        (parts || []).forEach((pp: any) => {
+          if (pp.player_id && !inLineup.has(pp.player_id) && pp.players) {
+            inLineup.add(pp.player_id);
+            data.push({ id: `virtual-${pp.player_id}`, player_id: pp.player_id, boat_type: null, crew_role: null, seat_position: null, discipline: null, specialty: null, start_order: null, players: pp.players });
+          }
+        });
+      }
       // Sort by athlete name then by start_order so events appear in starting order
       return (data || []).sort((a: any, b: any) => {
         const nameA = [a.players?.first_name, a.players?.name].filter(Boolean).join(" ");
