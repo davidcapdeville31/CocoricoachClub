@@ -3188,10 +3188,11 @@ export function CompetitionRoundsDialog({
                   const target = restrictToPlayerId
                     ? playerRoundsData.find((p) => p.playerId === restrictToPlayerId)
                     : playerRoundsData.find((p) => p.entryKey === selectedPlayerId) || playerRoundsData[0];
-                  const ranks = (target?.rounds || [])
-                    .map((r) => r.ranking)
-                    .filter((n): n is number => typeof n === "number" && n > 0);
-                  const best = ranks.length > 0 ? Math.min(...ranks) : null;
+                  // Classement final = classement du dernier combat renseigné
+                  const ranked = [...(target?.rounds || [])]
+                    .filter((r) => typeof r.ranking === "number" && r.ranking > 0)
+                    .sort((a, b) => b.round_number - a.round_number);
+                  const best = ranked.length > 0 ? ranked[0].ranking! : null;
                   const label =
                     best === 1 ? "🥇 1er" :
                     best === 2 ? "🥈 2e" :
