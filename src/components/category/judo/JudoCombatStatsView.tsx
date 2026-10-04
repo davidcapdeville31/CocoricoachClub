@@ -36,6 +36,7 @@ interface JudoRound {
   phase: string;
   isLocked?: boolean;
   video_url?: string | null;
+  ranking?: number;
 }
 
 interface OpponentProfile {
@@ -384,12 +385,45 @@ function CombatReviewPanel({
         </Card>
 
         <Tabs defaultValue="score" className="space-y-3">
-          <TabsList className="grid h-auto w-full grid-cols-4">
+          <TabsList className="grid h-auto w-full grid-cols-5">
             <TabsTrigger value="score" className="py-1.5 text-[11px]">Score</TabsTrigger>
             <TabsTrigger value="newaza" className="py-1.5 text-[11px]">Ne-waza</TabsTrigger>
             <TabsTrigger value="tactique" className="py-1.5 text-[11px]">Tactique</TabsTrigger>
             <TabsTrigger value="details" className="py-1.5 text-[11px]">Détails</TabsTrigger>
+            <TabsTrigger value="resultat" className="py-1.5 text-[11px]">Résultat</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="resultat" className="mt-0">
+            <Card className="space-y-3 p-3">
+              <SectionHeader icon={<Zap className="h-4 w-4 text-primary" />} title="Classement de la compétition" />
+              <p className="text-xs text-muted-foreground">
+                Le classement saisi sur le dernier combat est retenu comme classement final.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { v: 0, label: "NC" },
+                  { v: 7, label: "7e" },
+                  { v: 5, label: "5e" },
+                  { v: 3, label: "🥉 3e" },
+                  { v: 2, label: "🥈 2e" },
+                  { v: 1, label: "🥇 1er" },
+                ].map((opt) => {
+                  const active = (round.ranking || 0) === opt.v;
+                  return (
+                    <Button
+                      key={opt.v}
+                      type="button"
+                      size="sm"
+                      variant={active ? "default" : "outline"}
+                      onClick={() => onUpdate({ ranking: opt.v || undefined })}
+                    >
+                      {opt.label}
+                    </Button>
+                  );
+                })}
+              </div>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="score" className="mt-0">
             <Card className="space-y-3 p-3">
