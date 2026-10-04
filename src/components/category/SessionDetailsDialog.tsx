@@ -623,7 +623,7 @@ export function SessionDetailsDialog({
               if (parts.length === 0) return null;
               return (
                 <span key={i} className="px-2 py-0.5 rounded-md bg-muted/60 border text-xs">
-                  <span className="text-muted-foreground">S{s.setNumber ?? i + 1}:</span>{" "}
+                  <span className="text-muted-foreground">Série {s.setNumber ?? i + 1}:</span>{" "}
                   {parts.join(" · ")}
                 </span>
               );

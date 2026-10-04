@@ -229,7 +229,7 @@ const VariableSetsDetail = ({ sets }: { sets: any[] }) => {
         {sets.map((s: any, idx: number) => (
           <div key={idx} className="flex items-center gap-1.5 flex-wrap">
             <Badge variant="outline" className="text-[10px] px-1.5 py-0.5 min-w-[40px] justify-center">
-              S{idx + 1}
+              Série {idx + 1}
             </Badge>
             {s.reps && (
               <Badge variant="secondary" className={cn("text-[10px] px-1.5 py-0.5 font-bold", s.reps === "MAX" && "bg-red-600 text-white")}>
