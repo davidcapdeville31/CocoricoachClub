@@ -1,4 +1,5 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
+import { parseCardioTag, formatCardioSummary } from "@/lib/utils/cardioLogMetric";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,7 +41,7 @@ export function PendingWeightLogsValidation({ categoryId }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("athlete_exercise_logs")
-        .select("id, exercise_name, actual_weight_kg, actual_sets, actual_reps, player_id, training_session_id, players(name, first_name), training_sessions(session_date)")
+        .select("id, exercise_name, actual_weight_kg, actual_sets, actual_reps, notes, player_id, training_session_id, players(name, first_name), training_sessions(session_date)")
         .eq("category_id", categoryId)
         .eq("validation_status", "pending")
         .order("created_at", { ascending: false });
@@ -126,17 +127,18 @@ export function PendingWeightLogsValidation({ categoryId }: Props) {
             const player = log.players;
             const playerName = player ? `${player.first_name || ""} ${player.name}`.trim() : "—";
             const date = log.training_sessions?.session_date;
+            const cardio = parseCardioTag(log.notes);
             return (
               <div key={log.id} className="flex items-center gap-1 p-2 rounded-md border bg-card text-sm">
                 <Dumbbell className="h-3.5 w-3.5 text-primary shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="font-medium truncate text-xs">{playerName}</div>
                   <div className="text-[11px] text-muted-foreground truncate">
-                    {log.exercise_name} • {log.actual_weight_kg}kg × {log.actual_sets}×{log.actual_reps}
+                    {log.exercise_name} • {cardio ? formatCardioSummary(cardio) : `${log.actual_weight_kg}kg × ${log.actual_sets}×${log.actual_reps}`}
                     {date && ` • ${format(new Date(date), "d MMM", { locale: getDateLocale() })}`}
                   </div>
                 </div>
-                <Button
+                {!cardio && <Button
                   size="sm"
                   variant="ghost"
                   className="h-7 w-7 p-0"
@@ -152,7 +154,7 @@ export function PendingWeightLogsValidation({ categoryId }: Props) {
                   })}
                 >
                   <Pencil className="h-4 w-4" />
-                </Button>
+                </Button>}
                 <Button
                   size="sm"
                   variant="ghost"
