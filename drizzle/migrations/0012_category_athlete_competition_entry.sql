@@ -1,0 +1,1 @@
+ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS athlete_competition_entry_enabled boolean NOT NULL DEFAULT true;

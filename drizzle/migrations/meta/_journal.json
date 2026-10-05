@@ -85,6 +85,13 @@
       "when": 1791033295425,
       "tag": "0011_category_competition_planned_rpe",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1791188803154,
+      "tag": "0012_category_athlete_competition_entry",
+      "breakpoints": true
     }
   ]
 }
