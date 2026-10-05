@@ -450,9 +450,9 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
     return (
       <>
       <Card className="bg-gradient-card shadow-md">
-        <CardContent className="py-6 space-y-4">
+        <CardContent className="py-4 sm:py-6 space-y-3 sm:space-y-4">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${NAV_COLORS.sante.base}20` }}>
+            <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${NAV_COLORS.sante.base}20` }}>
               <CheckCircle2 className="h-5 w-5 text-status-optimal" />
             </div>
             <div className="flex-1">
@@ -502,21 +502,21 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
         type="button"
         onClick={() => setExpanded(true)}
         aria-label={t("athleteSpace.wellness.fillDailyAria")}
-        className="group w-full rounded-2xl px-5 py-5 sm:py-6 text-left shadow-lg border-2 transition-all duration-150 active:scale-[0.99] hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-offset-2 flex items-center gap-4"
+        className="group w-full rounded-2xl px-3.5 py-3 sm:px-5 sm:py-5 text-left shadow-lg border-2 transition-all duration-150 active:scale-[0.99] hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-offset-2 flex items-center gap-3 sm:gap-4"
         style={{
           backgroundColor: NAV_COLORS.sante.base,
           borderColor: NAV_COLORS.sante.base,
           color: "#fff",
         }}
       >
-        <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-white/20 flex items-center justify-center shrink-0 backdrop-blur-sm">
-          <Heart className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
+        <div className="h-10 w-10 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl bg-white/20 flex items-center justify-center shrink-0 backdrop-blur-sm">
+          <Heart className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-lg sm:text-xl font-bold leading-tight">{t("athleteSpace.wellness.todayFillTitle")}</p>
-          <p className="text-xs sm:text-sm text-white/85 mt-0.5">{t("athleteSpace.wellness.todayFillSubtitle")}</p>
+          <p className="text-base sm:text-xl font-bold leading-tight">{t("athleteSpace.wellness.todayFillTitle")}</p>
+          <p className="text-xs sm:text-sm text-white/85 mt-0.5 line-clamp-2">{t("athleteSpace.wellness.todayFillSubtitle")}</p>
         </div>
-        <ChevronDown className="h-6 w-6 text-white shrink-0 transition-transform group-hover:translate-y-0.5" />
+        <ChevronDown className="h-5 w-5 sm:h-6 sm:w-6 text-white shrink-0 transition-transform group-hover:translate-y-0.5" />
       </button>
     ) : (
     <Card className="shadow-md border-2" style={{ borderColor: `${NAV_COLORS.sante.base}40`, backgroundColor: `${NAV_COLORS.sante.base}06` }}>
