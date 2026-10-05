@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Activity } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { useAthleteCompetitionEntry } from "@/hooks/useAthleteCompetitionEntry";
 
 interface Props {
   matchId: string;
@@ -24,6 +25,7 @@ interface Props {
 export function AthleteMatchRpe({ matchId, playerId, categoryId, matchDate }: Props) {
   const { t } = useTranslation();
   const qc = useQueryClient();
+  const entryEnabled = useAthleteCompetitionEntry(categoryId);
   const [saving, setSaving] = useState(false);
   const [rpe, setRpe] = useState("");
   const [duration, setDuration] = useState("");
@@ -69,6 +71,7 @@ export function AthleteMatchRpe({ matchId, playerId, categoryId, matchDate }: Pr
   }, [existing?.id, existing?.rpe, existing?.duration_minutes]);
 
   if (loadingParticipant || loadingRpe) return null;
+  if (!entryEnabled) return null;
   // Not convoked, match not played yet, or athlete declared absent → no RPE entry
   if (!participant || !isMatchDayReached) return null;
   if (participant.attendance_status === "absent") return null;
