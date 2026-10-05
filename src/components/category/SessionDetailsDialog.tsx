@@ -307,7 +307,7 @@ export function SessionDetailsDialog({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("event_participants")
-        .select("player_id, attendance_status, absence_comment, responded_at, players(id, name, first_name, avatar_url)")
+        .select("player_id, attendance_status, absence_comment, responded_at, created_at, players(id, name, first_name, avatar_url)")
         .eq("training_session_id", sessionId);
       if (error) throw error;
       return data || [];
@@ -327,10 +327,17 @@ export function SessionDetailsDialog({
 
   const eventParticipants = useMemo(() => {
     const rows = rawEventParticipants || [];
-    // Convocation explicite : on n'affiche QUE les athlètes sélectionnés.
-    if (rows.length > 0) return rows;
     if (!rosterPlayers?.length) return rows;
     if (isAthletePrivateSession) return rows;
+    // Convocation explicite = lignes créées avec la séance. Les lignes créées
+    // plus tard viennent des réponses Présent/Absent d'une séance collective :
+    // dans ce cas on complète avec tout l'effectif.
+    const sessionCreated = (session as any)?.created_at ? new Date((session as any).created_at).getTime() : null;
+    const isExplicitConvocation =
+      rows.length > 0 &&
+      sessionCreated !== null &&
+      rows.some((r: any) => r.created_at && Math.abs(new Date(r.created_at).getTime() - sessionCreated) < 10 * 60 * 1000);
+    if (isExplicitConvocation) return rows;
     const responded = new Set(rows.map((r: any) => r.player_id));
     const missing = (rosterPlayers || [])
       .filter((p: any) => !responded.has(p.id))
