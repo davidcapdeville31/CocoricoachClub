@@ -186,8 +186,8 @@ export function AthleteOpponentProfiles({ playerId, categoryId }: Props) {
           </div>
         </div>
         <CardContent className="p-4 space-y-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="relative flex-1 min-w-[180px]">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
+            <div className="relative col-span-2 min-w-0 sm:flex-1 sm:min-w-[180px]">
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Rechercher un nom, un club, un pays…"
@@ -197,7 +197,7 @@ export function AthleteOpponentProfiles({ playerId, categoryId }: Props) {
               />
             </div>
             <Select value={genderFilter} onValueChange={setGenderFilter}>
-              <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-full min-w-0 sm:w-[130px]"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tous sexes</SelectItem>
                 <SelectItem value="male">Hommes</SelectItem>
@@ -205,7 +205,7 @@ export function AthleteOpponentProfiles({ playerId, categoryId }: Props) {
               </SelectContent>
             </Select>
             <Select value={weightFilter} onValueChange={setWeightFilter}>
-              <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-full min-w-0 sm:w-[160px]"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Toutes catégories</SelectItem>
                 {JUDO_WEIGHT_CATEGORIES.map((c) => (
@@ -214,7 +214,7 @@ export function AthleteOpponentProfiles({ playerId, categoryId }: Props) {
               </SelectContent>
             </Select>
             <Select value={ageFilter} onValueChange={setAgeFilter}>
-              <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-full min-w-0 sm:w-[130px]"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tous âges</SelectItem>
                 {["Benjamin","Minime","Cadet","Junior","Senior","Vétéran"].map((a) => (
@@ -223,7 +223,7 @@ export function AthleteOpponentProfiles({ playerId, categoryId }: Props) {
               </SelectContent>
             </Select>
             <Select value={handFilter} onValueChange={setHandFilter}>
-              <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-full min-w-0 sm:w-[140px]"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Latéralité</SelectItem>
                 <SelectItem value="right">Droitier</SelectItem>
@@ -244,7 +244,53 @@ export function AthleteOpponentProfiles({ playerId, categoryId }: Props) {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-xl border">
+            <>
+            <div className="space-y-3 sm:hidden">
+              {filtered.map((p) => (
+                <article key={p.id} className="min-w-0 rounded-2xl border border-border bg-surface p-3 shadow-sm">
+                  <div className="flex items-start gap-3">
+                    {p.photo_url ? (
+                      <img src={p.photo_url} alt="" className="h-12 w-12 shrink-0 rounded-full object-cover ring-1 ring-border" />
+                    ) : (
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-base font-bold text-primary">
+                        {(p.first_name?.[0] || "").toUpperCase()}{(p.last_name?.[0] || "?").toUpperCase()}
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <h3 className="break-words text-sm font-semibold leading-snug">{p.last_name} {p.first_name || ""}</h3>
+                      <p className="break-words text-xs text-muted-foreground">{[p.club_origin, p.country].filter(Boolean).join(" • ") || "Club / Pays : —"}</p>
+                      <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                        <Badge variant="secondary" className="whitespace-nowrap">{p.weight_category?.replace(/^judo_/, "") || "Poids : —"}</Badge>
+                        <span>{genderLabel(p.gender)}{p.birth_year ? ` · ${p.birth_year}` : ""}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <dl className="mt-3 grid grid-cols-3 gap-2 border-t border-border pt-3 text-center">
+                    <div className="min-w-0">
+                      <dt className="text-[10px] text-muted-foreground">Âge</dt>
+                      <dd className="mt-1 break-words text-xs font-medium">{p.age_category || "—"}</dd>
+                    </div>
+                    <div className="min-w-0 border-x border-border px-1">
+                      <dt className="text-[10px] text-muted-foreground">Latéralité</dt>
+                      <dd className="mt-1 break-words text-xs font-medium">{handLabel(p.handedness)}</dd>
+                    </div>
+                    <div className="min-w-0">
+                      <dt className="text-[10px] text-muted-foreground">Profil</dt>
+                      <dd className="mt-1 break-words text-xs font-medium">{styleLabel(p.fighting_style)}</dd>
+                    </div>
+                  </dl>
+                  <div className="mt-3 flex items-center justify-end gap-2">
+                    <Button variant="outline" size="sm" className="gap-2" onClick={() => { setScoutingId(p.id); setScoutingOpen(true); }}>
+                      <Pencil className="h-4 w-4" />Fiche adversaire
+                    </Button>
+                    <Button variant="ghost" size="icon" aria-label={`Supprimer ${p.last_name} ${p.first_name || ""}`} title="Supprimer cet adversaire" onClick={() => setToDelete(p)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                </article>
+              ))}
+            </div>
+            <div className="hidden overflow-x-auto rounded-xl border sm:block">
               <table className="w-full text-sm">
                 <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
                   <tr>
@@ -326,6 +372,7 @@ export function AthleteOpponentProfiles({ playerId, categoryId }: Props) {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </CardContent>
       </Card>
