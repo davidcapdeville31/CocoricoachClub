@@ -2087,6 +2087,7 @@ export type Database = {
           academy_enabled: boolean | null
           archived_at: string | null
           archived_by: string | null
+          athlete_competition_entry_enabled: boolean
           club_id: string
           competition_planned_rpe: number
           cover_image_position: string
@@ -2107,6 +2108,7 @@ export type Database = {
           academy_enabled?: boolean | null
           archived_at?: string | null
           archived_by?: string | null
+          athlete_competition_entry_enabled?: boolean
           club_id: string
           competition_planned_rpe?: number
           cover_image_position?: string
@@ -2127,6 +2129,7 @@ export type Database = {
           academy_enabled?: boolean | null
           archived_at?: string | null
           archived_by?: string | null
+          athlete_competition_entry_enabled?: boolean
           club_id?: string
           competition_planned_rpe?: number
           cover_image_position?: string
