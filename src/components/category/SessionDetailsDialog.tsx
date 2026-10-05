@@ -349,7 +349,7 @@ export function SessionDetailsDialog({
         players: { id: p.id, name: p.name, first_name: p.first_name, avatar_url: p.avatar_url },
       }));
     return [...rows, ...missing];
-  }, [rawEventParticipants, rosterPlayers, isAthletePrivateSession]);
+  }, [rawEventParticipants, rosterPlayers, isAthletePrivateSession, session]);
 
 
   // Parse tests metadata embedded in notes (<!--TESTS:[...]-->)
