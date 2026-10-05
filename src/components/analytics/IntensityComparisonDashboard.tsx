@@ -110,6 +110,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       let query = supabase
         .from("training_sessions")
         .select("id, session_date, training_type, intensity, notes")
+        .is("created_by_player_id", null)
         .eq("category_id", categoryId)
         .gte("session_date", fetchFrom);
 

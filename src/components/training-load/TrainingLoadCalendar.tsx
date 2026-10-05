@@ -65,6 +65,7 @@ export function TrainingLoadCalendar({ categoryId }: TrainingLoadCalendarProps) 
       const { data: sessions, error } = await supabase
         .from("training_sessions")
         .select("id, session_date, training_type, intensity")
+        .is("created_by_player_id", null)
         .eq("category_id", categoryId)
         .gte("session_date", startStr)
         .lte("session_date", endStr)

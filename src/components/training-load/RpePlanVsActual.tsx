@@ -81,6 +81,7 @@ export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualPr
       const { data: sessions, error: sessionsError } = await supabase
         .from("training_sessions")
         .select("id, session_date, training_type, notes, intensity, planned_intensity")
+        .is("created_by_player_id", null)
         .eq("category_id", categoryId)
         .gte("session_date", startDate)
         .order("session_date", { ascending: false }) as { data: any[] | null, error: any };
