@@ -1153,13 +1153,13 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
           {/* Today: Pending sessions */}
           {pendingSessions.length > 0 && (
             <Card className="bg-gradient-card shadow-md border-accent/30 h-full">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm sm:text-base flex items-center gap-2">
                   <Activity className="h-4 w-4 text-accent" />
                   {t("athleteSpace.rpe.sessionsToFill")}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3 sm:space-y-4">
             {pendingSessions.map(session => {
               const isTest = session.training_type === "test";
               return (
@@ -1167,7 +1167,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                 <div
                   onClick={() => handleSelectSession(session.id)}
                   className={cn(
-                    "w-full text-left p-3 rounded-lg border transition-colors cursor-pointer",
+                    "w-full text-left px-2.5 py-2 sm:p-3 rounded-lg border transition-colors cursor-pointer",
                     isTest
                       ? selectedSession === session.id
                         ? "border-cyan-500 bg-cyan-500/10"
@@ -1232,7 +1232,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                 </div>
 
                 {selectedSession === session.id && (
-                  <div className="mt-3 p-4 rounded-lg bg-muted/30 space-y-4">
+                  <div className="mt-2.5 p-3 sm:p-4 rounded-lg bg-muted/30 space-y-4">
                     {attendanceAbsent && isOpenCampaign(session) ? (
                       <div className="space-y-3">
                         <AthleteAbsentLockNotice />
