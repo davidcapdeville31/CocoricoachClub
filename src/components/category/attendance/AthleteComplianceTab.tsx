@@ -15,6 +15,12 @@ import {
   useGroupPlayerIds,
 } from "@/components/category/players/PlayerGroupFilter";
 import { collectWeightHistory } from "@/lib/weight/weightHistory";
+import { Button } from "@/components/ui/button";
+import { FileSpreadsheet, FileText } from "lucide-react";
+import { toast } from "sonner";
+import jsPDF from "jspdf";
+import { generateCsv, downloadCsv } from "@/lib/csv";
+import { usePlayerGroups } from "@/hooks/usePlayerGroups";
 
 interface Props {
   categoryId: string;
@@ -190,6 +196,73 @@ export function AthleteComplianceTab({ categoryId }: Props) {
     return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null;
   }, [rows]);
 
+  const { data: groups = [] } = usePlayerGroups(categoryId);
+  const groupLabel =
+    groupFilter === ALL_GROUPS
+      ? "Effectif global"
+      : (groups as any[]).find((g) => g.id === groupFilter)?.name || "Groupe";
+  const periodLabel = `${format(parseISO(startDate), "dd/MM/yyyy")} – ${format(parseISO(endDate), "dd/MM/yyyy")}`;
+  const fileBase = `assiduite_${groupLabel.replace(/\s+/g, "_")}_${startDate}_${endDate}`;
+
+  const exportRows = () =>
+    rows.map((r) => [
+      r.name,
+      r.wRate === null ? "—" : `${r.wRate}%`,
+      `${r.wDone}/${r.wTotal}`,
+      r.lRate === null ? "—" : `${r.lRate}%`,
+      `${r.lDone}/${r.lTotal}`,
+      String(r.testCount),
+      r.lastWeight ? `${r.lastWeight.weight_kg} kg` : "Aucune pesée",
+      r.lastWeight ? format(parseISO(r.lastWeight.measurement_date), "dd/MM/yyyy") : "",
+      r.global === null ? "—" : `${r.global}%`,
+    ]);
+  const headers = ["Athlète", "Wellness %", "Wellness remplis", "RPE %", "RPE séances", "Tests", "Dernier poids", "Date pesée", "Assiduité"];
+
+  const handleCsv = () => {
+    if (rows.length === 0) return toast.error("Aucun athlète à exporter");
+    downloadCsv(`${fileBase}.csv`, generateCsv(headers, exportRows()));
+  };
+
+  const handlePdf = () => {
+    if (rows.length === 0) return toast.error("Aucun athlète à exporter");
+    const doc = new jsPDF({ orientation: "landscape" });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    doc.setFontSize(16);
+    doc.text("Assiduité dans l'application", 14, 16);
+    doc.setFontSize(10);
+    doc.text(`${groupLabel}  •  Période : ${periodLabel}  •  ${rows.length} athlète(s)`, 14, 23);
+    if (average !== null) doc.text(`Assiduité moyenne : ${average}%`, 14, 29);
+    const widths = [62, 24, 30, 20, 26, 16, 32, 28, 24];
+    let y = 38;
+    const drawRow = (cells: string[], bold = false) => {
+      let x = 14;
+      doc.setFont("helvetica", bold ? "bold" : "normal");
+      cells.forEach((c, i) => {
+        doc.text(doc.splitTextToSize(c, widths[i] - 2)[0] ?? "", x + 1, y);
+        x += widths[i];
+      });
+      y += 7;
+    };
+    doc.setFillColor(34, 67, 120);
+    doc.setTextColor(255, 255, 255);
+    doc.rect(14, y - 5, pageW - 28, 7, "F");
+    drawRow(headers, true);
+    doc.setTextColor(0, 0, 0);
+    exportRows().forEach((row, idx) => {
+      if (y > pageH - 12) {
+        doc.addPage();
+        y = 16;
+      }
+      if (idx % 2 === 1) {
+        doc.setFillColor(241, 245, 249);
+        doc.rect(14, y - 5, pageW - 28, 7, "F");
+      }
+      drawRow(row);
+    });
+    doc.save(`${fileBase}.pdf`);
+  };
+
   return (
     <div className="space-y-4">
       <Card>
@@ -229,6 +302,14 @@ export function AthleteComplianceTab({ categoryId }: Props) {
                 value={groupFilter}
                 onChange={setGroupFilter}
               />
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handleCsv}>
+                <FileSpreadsheet className="h-4 w-4 mr-1" /> CSV
+              </Button>
+              <Button variant="outline" size="sm" onClick={handlePdf}>
+                <FileText className="h-4 w-4 mr-1" /> PDF
+              </Button>
             </div>
             {average !== null && (
               <div className="ml-auto text-right">
