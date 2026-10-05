@@ -452,7 +452,6 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
         </Card>
       )}
 
-      <PlayerMedalsSection playerId={playerId} />
 
     </div>
   );

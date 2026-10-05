@@ -5,6 +5,7 @@ import { AthleteSpaceTests } from "./AthleteSpaceTests";
 import { AthleteSpaceProgression } from "./AthleteSpaceProgression";
 import { AthleteSpaceObjectives } from "./AthleteSpaceObjectives";
 import { TonnageDashboard } from "@/components/tonnage/TonnageDashboard";
+import { PlayerMedalsSection } from "@/components/player/PlayerMedalsSection";
 import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 
 interface Props {
@@ -43,7 +44,7 @@ export function AthleteSpacePerformance({ playerId, categoryId, sportType }: Pro
         </TabsList>
 
         <TabsContent value="tests" className="mt-4 space-y-6">
-          {/* Ordre demandé : Derniers résultats → Comparatif tests → Historique complet */}
+          {/* Ordre demandé : Derniers résultats → Comparatif tests → Historique complet → Palmarès */}
           <AthleteSpaceProgression
             playerId={playerId}
             categoryId={categoryId}
@@ -54,6 +55,7 @@ export function AthleteSpacePerformance({ playerId, categoryId, sportType }: Pro
             categoryId={categoryId}
             sportType={sportType}
           />
+          <PlayerMedalsSection playerId={playerId} />
         </TabsContent>
 
         <TabsContent value="tonnage" className="mt-4">
