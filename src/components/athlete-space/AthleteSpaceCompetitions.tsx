@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Trophy, MapPin, CalendarDays, Swords } from "lucide-react";
 import { CompetitionRoundsDialog } from "@/components/category/matches/CompetitionRoundsDialog";
 import { toast } from "sonner";
+import { useAthleteCompetitionEntry } from "@/hooks/useAthleteCompetitionEntry";
 
 interface AthleteSpaceCompetitionsProps {
   playerId: string;
@@ -27,6 +28,7 @@ interface AthleteMatch {
 
 export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: AthleteSpaceCompetitionsProps) {
   const [selected, setSelected] = useState<AthleteMatch | null>(null);
+  const entryEnabled = useAthleteCompetitionEntry(categoryId);
 
   const { data: matches = [], isLoading, refetch } = useQuery({
     queryKey: ["athlete-space-competitions", playerId],
@@ -134,6 +136,10 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
     const notYetOpen = !!matchDay && matchDay > today;
 
     const handleOpen = () => {
+      if (!entryEnabled) {
+        toast.info("La saisie des compétitions est gérée par ton staff.");
+        return;
+      }
       if (notYetOpen) {
         toast.info(
           `Tu pourras saisir tes résultats à partir du ${format(matchDay!, "EEEE d MMMM", { locale: getDateLocale() })}, jour de la compétition.`,
