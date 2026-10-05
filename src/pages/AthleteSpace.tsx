@@ -313,7 +313,7 @@ export default function AthleteSpace() {
             <p className="text-sm text-muted-foreground">{loadError}</p>
             <div className="flex gap-2 justify-center">
               <Button variant="outline" onClick={() => { setLoadError(null); setIsLoading(true); fetchAthleteData(); }}>
-                <span className="hidden sm:inline">{t("athlete.retry")}</span>
+                {t("athlete.retry")}
               </Button>
               <Button variant="ghost" onClick={() => signOut()}>
                 <LogOut className="h-4 w-4 mr-2" />
