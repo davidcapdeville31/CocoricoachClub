@@ -5,6 +5,7 @@ import { AthleteSpaceTests } from "./AthleteSpaceTests";
 import { AthleteSpaceProgression } from "./AthleteSpaceProgression";
 import { AthleteSpaceObjectives } from "./AthleteSpaceObjectives";
 import { TonnageDashboard } from "@/components/tonnage/TonnageDashboard";
+import { PlayerMedalsSection } from "@/components/player/PlayerMedalsSection";
 import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 
 interface Props {
