@@ -31,7 +31,11 @@ export function getCardioPrescription(ex: any): CardioPrescription | null {
   const sets = Math.max(1, Number(ex.sets) || 1);
 
   // Intermittent cardio (e.g. 10 × 200 m)
-  const inter = parseJson(ex.intermittent_config);
+  let inter = parseJson(ex.intermittent_config);
+  if (!inter && typeof ex.notes === "string") {
+    const m = ex.notes.match(/<!--\s*v2-intermittent:(.*?)-->/s);
+    if (m) inter = parseJson(m[1]);
+  }
   if (inter && (inter.effortMode === "distance" || inter.effortMode === "duration")) {
     const count = Math.max(1, (Number(inter.repetitions) || 1) * (Number(inter.series) || 1));
     if (inter.effortMode === "distance") {
