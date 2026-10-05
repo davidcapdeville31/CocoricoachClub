@@ -1,4 +1,5 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
+import { parseCardioTag, formatCardioSummary } from "@/lib/utils/cardioLogMetric";
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -90,7 +91,7 @@ export function QuickRpeEntryDialog({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("athlete_exercise_logs")
-        .select("player_id, exercise_name, actual_weight_kg, actual_sets, actual_reps, validation_status")
+        .select("player_id, exercise_name, actual_weight_kg, actual_sets, actual_reps, validation_status, notes")
         .eq("training_session_id", sessionId);
       if (error) throw error;
       return data || [];
@@ -285,8 +286,8 @@ export function QuickRpeEntryDialog({
                           <span className="text-xs flex-1 truncate">{p.name}</span>
                           {ex0 ? (
                             <Badge variant="secondary" className="text-[10px]">
-                              {ex0.validation_status === "pending" ? "⏳" : "✓"} {ex0.actual_weight_kg}kg{" "}
-                              {ex0.actual_sets}×{ex0.actual_reps}
+                              {ex0.validation_status === "pending" ? "⏳" : "✓"}{" "}
+                              {(() => { const c = parseCardioTag((ex0 as any).notes); return c ? formatCardioSummary(c) : `${ex0.actual_weight_kg}kg ${ex0.actual_sets}×${ex0.actual_reps}`; })()}
                             </Badge>
                           ) : (
                             <div className="flex items-center gap-1">

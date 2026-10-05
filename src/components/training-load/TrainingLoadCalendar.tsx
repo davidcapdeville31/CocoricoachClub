@@ -169,7 +169,7 @@ export function TrainingLoadCalendar({ categoryId }: TrainingLoadCalendarProps) 
     });
 
     return map;
-  }, [sessionsData, competitions, days]);
+  }, [sessionsData, competitions, days, COMPETITION_PLANNED_RPE]);
 
   const getIntensityColor = (intensity: string): string => {
     const found = TARGET_INTENSITIES.find(i => i.value === intensity);

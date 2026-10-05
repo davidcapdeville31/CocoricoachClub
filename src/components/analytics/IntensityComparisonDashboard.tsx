@@ -372,7 +372,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
         };
       })
       .sort((a, b) => a.fullDate.localeCompare(b.fullDate));
-  }, [scopedSessions, awcrData, players, selectedPlayer, filteredPlayers, blocksBySession, scopedMatchDates]);
+  }, [scopedSessions, awcrData, players, selectedPlayer, filteredPlayers, blocksBySession, scopedMatchDates, MATCH_PLANNED_RPE]);
 
   // Calculate per-player stats with weighted RPE
   const playerStats = useMemo(() => {
@@ -433,7 +433,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       };
     }).filter(p => p.sessionsCount > 0)
       .sort((a, b) => Math.abs(b.avgDiff) - Math.abs(a.avgDiff));
-  }, [scopedSessions, awcrData, players, selectedPosition, blocksBySession, scopedMatchDates]);
+  }, [scopedSessions, awcrData, players, selectedPosition, blocksBySession, scopedMatchDates, MATCH_PLANNED_RPE]);
 
   const displayedPlayerStats = useMemo(
     () => (statusFilter === "all" ? playerStats : playerStats.filter((p) => p.status === statusFilter)),
@@ -541,7 +541,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
         return r.diff > -1.5 && r.diff < 1.5;
       })
       .sort((a, b) => b.date.localeCompare(a.date) || a.name.localeCompare(b.name));
-  }, [scopedSessions, awcrData, players, blocksBySession, selectedPlayer, selectedPosition, statusFilter, scopedMatchDates]);
+  }, [scopedSessions, awcrData, players, blocksBySession, selectedPlayer, selectedPosition, statusFilter, scopedMatchDates, MATCH_PLANNED_RPE]);
 
   const handleExportCsv = () => {
     if (detailRows.length === 0) {
