@@ -452,10 +452,10 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
       <Card className="bg-gradient-card shadow-md">
         <CardContent className="py-4 sm:py-6 space-y-3 sm:space-y-4">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${NAV_COLORS.sante.base}20` }}>
+            <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-success/10 flex items-center justify-center shrink-0">
               <CheckCircle2 className="h-5 w-5 text-status-optimal" />
             </div>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm">{t("athleteSpace.wellness.todaySavedTitle")}</p>
               <p className="text-xs text-muted-foreground">{t("athleteSpace.wellness.globalScore", { score })}</p>
             </div>
@@ -478,9 +478,9 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                 display = `${(9.5 - Number(raw)).toFixed(1)}h`;
               }
               return (
-                <div key={q.key} className="text-center p-2 rounded-lg" style={{ backgroundColor: `${NAV_COLORS.sante.base}08` }}>
-                  <p className="text-lg font-bold" style={{ color: NAV_COLORS.sante.base }}>{display}</p>
-                  <p className="text-[9px] text-muted-foreground leading-tight">{q.label}</p>
+                <div key={q.key} className="text-center p-2 rounded-lg bg-success/10 min-w-0">
+                  <p className="text-lg font-bold text-foreground">{display}</p>
+                  <p className="text-[11px] text-foreground leading-tight">{q.label}</p>
                 </div>
               );
             })}
