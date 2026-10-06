@@ -487,10 +487,34 @@ All colors MUST be HSL.
   .bg-slate-500 { background-color: rgb(100, 116, 139) !important; color: white !important; }
 }
 
+/* Athlete navigation: valid HSL alpha, shared semantic navigation tokens. */
+.athlete-tab[data-nav-color="sante"] { --athlete-nav-color: var(--nav-sante); }
+.athlete-tab[data-nav-color="performance"] { --athlete-nav-color: var(--nav-performance); }
+.athlete-tab[data-nav-color="planification"] { --athlete-nav-color: var(--nav-planification); }
+.athlete-tab[data-nav-color="competition"] { --athlete-nav-color: var(--nav-competition); }
+.athlete-tab[data-nav-color="programmation"] { --athlete-nav-color: var(--nav-programmation); }
+.athlete-tab[data-nav-color="admin"] { --athlete-nav-color: var(--nav-admin); }
+.athlete-tab[data-nav-color="communication"] { --athlete-nav-color: var(--nav-communication); }
+.athlete-tab[data-nav-color="settings"] { --athlete-nav-color: var(--nav-settings); }
+.athlete-tab[data-nav-color] {
+  --tab-color: hsl(var(--athlete-nav-color));
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--athlete-nav-color) / 0.12);
+  border-bottom: 3px solid hsl(var(--athlete-nav-color));
+}
+.athlete-tab svg { flex-shrink: 0; }
+@media (max-width: 639px) {
+  .athlete-tab[data-nav-color] {
+    width: 30px;
+    height: 36px;
+    padding: 0;
+  }
+}
+
 /* Athlete Space tabs — active state uses CSS custom property --tab-color for background */
 .athlete-tab[data-state="active"] {
   background-color: var(--tab-color) !important;
-  color: white !important;
+  color: hsl(var(--foreground)) !important;
   border-bottom-color: transparent !important;
 }
 
