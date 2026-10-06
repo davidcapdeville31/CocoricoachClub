@@ -567,80 +567,50 @@ export default function AthleteSpace() {
               <TabsTrigger 
                  value="dashboard" 
                  className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
-                style={{
-                  color: NAV_COLORS.sante.base,
-                  backgroundColor: `${NAV_COLORS.sante.base}15`,
-                  borderBottom: `3px solid ${NAV_COLORS.sante.base}`,
-                  ["--tab-color" as string]: NAV_COLORS.sante.base,
-                }}
+                data-nav-color="sante"
               >
                 <BarChart3 className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                <span className="hidden sm:inline">{t("athlete.home")}</span>
+                <span className="sr-only sm:not-sr-only">{t("athlete.home")}</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="rpe"
                  className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
-                 style={{
-                   color: NAV_COLORS.performance.base,
-                  backgroundColor: `${NAV_COLORS.performance.base}15`,
-                  borderBottom: `3px solid ${NAV_COLORS.performance.base}`,
-                  ["--tab-color" as string]: NAV_COLORS.performance.base,
-                }}
+                 data-nav-color="performance"
               >
                 <Activity className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                <span className="hidden sm:inline">{t("athlete.load")}</span>
+                <span className="sr-only sm:not-sr-only">{t("athlete.load")}</span>
               </TabsTrigger>
                <TabsTrigger 
                  value="wellness"
                   className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
-                  style={{
-                    color: NAV_COLORS.sante.base,
-                    backgroundColor: `${NAV_COLORS.sante.base}15`,
-                    borderBottom: `3px solid ${NAV_COLORS.sante.base}`,
-                    ["--tab-color" as string]: NAV_COLORS.sante.base,
-                  }}
+                  data-nav-color="sante"
                 >
                   <Heart className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                  <span className="hidden sm:inline">{t("athlete.wellness")}</span>
+                  <span className="sr-only sm:not-sr-only">{t("athlete.wellness")}</span>
                </TabsTrigger>
                <TabsTrigger 
                  value="calendar"
                   className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
-                  style={{
-                    color: NAV_COLORS.planification.base,
-                    backgroundColor: `${NAV_COLORS.planification.base}15`,
-                    borderBottom: `3px solid ${NAV_COLORS.planification.base}`,
-                    ["--tab-color" as string]: NAV_COLORS.planification.base,
-                  }}
+                  data-nav-color="planification"
                 >
                   <CalendarDays className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                  <span className="hidden sm:inline">{t("athlete.calendar")}</span>
+                  <span className="sr-only sm:not-sr-only">{t("athlete.calendar")}</span>
                </TabsTrigger>
               <TabsTrigger 
                 value="performance"
                  className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
-                 style={{
-                   color: NAV_COLORS.performance.base,
-                  backgroundColor: `${NAV_COLORS.performance.base}15`,
-                  borderBottom: `3px solid ${NAV_COLORS.performance.base}`,
-                  ["--tab-color" as string]: NAV_COLORS.performance.base,
-                }}
+                 data-nav-color="performance"
               >
                 <BarChart3 className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                <span className="hidden sm:inline">{t("athlete.performance")}</span>
+                <span className="sr-only sm:not-sr-only">{t("athlete.performance")}</span>
               </TabsTrigger>
               <TabsTrigger
                  value="stats"
                  className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg relative"
-                 style={{
-                   color: NAV_COLORS.competition.base,
-                   backgroundColor: `${NAV_COLORS.competition.base}15`,
-                   borderBottom: `3px solid ${NAV_COLORS.competition.base}`,
-                   ["--tab-color" as string]: NAV_COLORS.competition.base,
-                 }}
+                 data-nav-color="competition"
                >
                  <Trophy className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                  <span className="hidden sm:inline">{t("athlete.stats")}</span>
+                  <span className="sr-only sm:not-sr-only">{t("athlete.stats")}</span>
                  {recordNotifCount > 0 && (
                    <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background" />
                  )}
@@ -650,104 +620,69 @@ export default function AthleteSpace() {
                  <TabsTrigger 
                    value="arsenal"
                    className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
-                   style={{
-                     color: NAV_COLORS.programmation.base,
-                     backgroundColor: `${NAV_COLORS.programmation.base}15`,
-                     borderBottom: `3px solid ${NAV_COLORS.programmation.base}`,
-                     ["--tab-color" as string]: NAV_COLORS.programmation.base,
-                   }}
+                   data-nav-color="programmation"
                  >
                    <CircleDot className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                   <span className="hidden sm:inline">{t("athlete.arsenal")}</span>
+                   <span className="sr-only sm:not-sr-only">{t("athlete.arsenal")}</span>
                  </TabsTrigger>
                )}
                {isSurf && (
                  <TabsTrigger 
                    value="equipment"
                    className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
-                   style={{
-                     color: NAV_COLORS.programmation.base,
-                     backgroundColor: `${NAV_COLORS.programmation.base}15`,
-                     borderBottom: `3px solid ${NAV_COLORS.programmation.base}`,
-                     ["--tab-color" as string]: NAV_COLORS.programmation.base,
-                   }}
+                   data-nav-color="programmation"
                  >
                    <Waves className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                   <span className="hidden sm:inline">{t("athlete.equipment")}</span>
+                   <span className="sr-only sm:not-sr-only">{t("athlete.equipment")}</span>
                  </TabsTrigger>
                )}
                {isSki && (
                  <TabsTrigger 
                    value="ski-equipment"
                    className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
-                   style={{
-                     color: NAV_COLORS.programmation.base,
-                     backgroundColor: `${NAV_COLORS.programmation.base}15`,
-                     borderBottom: `3px solid ${NAV_COLORS.programmation.base}`,
-                     ["--tab-color" as string]: NAV_COLORS.programmation.base,
-                   }}
+                   data-nav-color="programmation"
                  >
                    <Waves className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                   <span className="hidden sm:inline">{t("athlete.material")}</span>
+                   <span className="sr-only sm:not-sr-only">{t("athlete.material")}</span>
                  </TabsTrigger>
                )}
                {isPadel && (
                  <TabsTrigger 
                    value="padel-equipment"
                    className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
-                   style={{
-                     color: NAV_COLORS.programmation.base,
-                     backgroundColor: `${NAV_COLORS.programmation.base}15`,
-                     borderBottom: `3px solid ${NAV_COLORS.programmation.base}`,
-                     ["--tab-color" as string]: NAV_COLORS.programmation.base,
-                   }}
+                   data-nav-color="programmation"
                  >
                    🏓
-                   <span className="hidden sm:inline">{t("athlete.material")}</span>
+                   <span className="sr-only sm:not-sr-only">{t("athlete.material")}</span>
                  </TabsTrigger>
                 )}
                 {isJudo && (
                   <TabsTrigger
                     value="competitions"
                     className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
-                    style={{
-                      color: NAV_COLORS.competition.base,
-                      backgroundColor: `${NAV_COLORS.competition.base}15`,
-                      borderBottom: `3px solid ${NAV_COLORS.competition.base}`,
-                      ["--tab-color" as string]: NAV_COLORS.competition.base,
-                    }}
+                    data-nav-color="competition"
                   >
                     <Trophy className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                    <span className="hidden sm:inline">Compétitions</span>
+                    <span className="sr-only sm:not-sr-only">Compétitions</span>
                   </TabsTrigger>
                 )}
                 {isJudo && (
                   <TabsTrigger
                     value="opponents"
                    className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
-                   style={{
-                     color: NAV_COLORS.competition.base,
-                     backgroundColor: `${NAV_COLORS.competition.base}15`,
-                     borderBottom: `3px solid ${NAV_COLORS.competition.base}`,
-                     ["--tab-color" as string]: NAV_COLORS.competition.base,
-                   }}
+                   data-nav-color="competition"
                  >
                    <Users className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                   <span className="hidden sm:inline">{t("athlete.opponents")}</span>
+                   <span className="sr-only sm:not-sr-only">{t("athlete.opponents")}</span>
                  </TabsTrigger>
                )}
                <TabsTrigger 
                   value="documents"
                   className="athlete-tab shrink-0 relative gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
-                  style={{
-                    color: NAV_COLORS.admin.base,
-                    backgroundColor: `${NAV_COLORS.admin.base}15`,
-                    borderBottom: `3px solid ${NAV_COLORS.admin.base}`,
-                    ["--tab-color" as string]: NAV_COLORS.admin.base,
-                  }}
+                  data-nav-color="admin"
                 >
                   <FileText className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                  <span className="hidden sm:inline">{t("athlete.documents")}</span>
+                  <span className="sr-only sm:not-sr-only">{t("athlete.documents")}</span>
                   {docNotifCount > 0 && (
                     <span className="absolute -top-1 -right-1 h-4 min-w-[16px] flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1">
                       {docNotifCount > 9 ? "9+" : docNotifCount}
@@ -759,15 +694,10 @@ export default function AthleteSpace() {
                   <TabsTrigger 
                     value="messaging"
                     className="athlete-tab shrink-0 relative gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
-                    style={{
-                      color: NAV_COLORS.communication.base,
-                      backgroundColor: `${NAV_COLORS.communication.base}15`,
-                      borderBottom: `3px solid ${NAV_COLORS.communication.base}`,
-                      ["--tab-color" as string]: NAV_COLORS.communication.base,
-                    }}
+                    data-nav-color="communication"
                   >
                     <MessageSquare className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                    <span className="hidden sm:inline">{t("athlete.chat")}</span>
+                    <span className="sr-only sm:not-sr-only">{t("athlete.chat")}</span>
                     {unreadCount > 0 && (
                       <span className="absolute -top-1 -right-1 h-4 min-w-[16px] flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1">
                         {unreadCount > 9 ? "9+" : unreadCount}
@@ -779,15 +709,10 @@ export default function AthleteSpace() {
                   <TabsTrigger 
                     value="settings"
                      className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
-                     style={{
-                       color: NAV_COLORS.settings.base,
-                       backgroundColor: `${NAV_COLORS.settings.base}15`,
-                       borderBottom: `3px solid ${NAV_COLORS.settings.base}`,
-                       ["--tab-color" as string]: NAV_COLORS.settings.base,
-                    }}
+                     data-nav-color="settings"
                   >
                     <Settings className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                    <span className="hidden sm:inline">{t("athlete.settings")}</span>
+                    <span className="sr-only sm:not-sr-only">{t("athlete.settings")}</span>
                   </TabsTrigger>
                 )}
              </TabsList>
