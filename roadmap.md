@@ -6,5 +6,5 @@
 
 # Affichage mobile de l’espace athlète
 
-- [ ] Corriger les pictogrammes du menu et la lisibilité du résumé wellness, toutes disciplines.
-- [ ] Vérifier le menu et un wellness enregistré sur mobile en thèmes clair et sombre.
+- [x] Corriger les pictogrammes du menu et la lisibilité du résumé wellness, toutes disciplines.
+- [x] Vérifier le menu et un wellness enregistré sur mobile en thèmes clair et sombre.
