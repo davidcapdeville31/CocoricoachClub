@@ -329,14 +329,14 @@ export function SessionDetailsDialog({
     const rows = rawEventParticipants || [];
     if (!rosterPlayers?.length) return rows;
     if (isAthletePrivateSession) return rows;
-    // Convocation explicite = lignes créées avec la séance. Les lignes créées
-    // plus tard viennent des réponses Présent/Absent d'une séance collective :
-    // dans ce cas on complète avec tout l'effectif.
-    const sessionCreated = (session as any)?.created_at ? new Date((session as any).created_at).getTime() : null;
-    const isExplicitConvocation =
-      rows.length > 0 &&
-      sessionCreated !== null &&
-      rows.some((r: any) => r.created_at && Math.abs(new Date(r.created_at).getTime() - sessionCreated) < 10 * 60 * 1000);
+    // Convocation explicite = au moins une ligne sans statut de réponse : le
+    // staff insère les athlètes convoqués sans attendance_status, alors que les
+    // réponses Présent/Absent des athlètes portent toujours un statut. Si toutes
+    // les lignes ont un statut, c'est une séance collective → on complète avec
+    // tout l'effectif en "no_response".
+    const isExplicitConvocation = rows.some(
+      (r: any) => !r.attendance_status || r.attendance_status === "no_response",
+    );
     if (isExplicitConvocation) return rows;
     const responded = new Set(rows.map((r: any) => r.player_id));
     const missing = (rosterPlayers || [])
