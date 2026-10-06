@@ -817,7 +817,7 @@ export default function AthleteSpace() {
                   className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   <Heart className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                  <span className="hidden sm:inline">{t("athlete.wellness")}</span>
+                  <span className="sr-only sm:not-sr-only">{t("athlete.wellness")}</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="health-sub"
@@ -825,7 +825,7 @@ export default function AthleteSpace() {
                   className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   <Shield className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                  <span className="hidden sm:inline">{t("athlete.health")}</span>
+                  <span className="sr-only sm:not-sr-only">{t("athlete.health")}</span>
                 </TabsTrigger>
               </TabsList>
 
