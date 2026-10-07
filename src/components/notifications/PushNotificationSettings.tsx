@@ -37,11 +37,12 @@ export function PushNotificationSettings() {
     setIsLoading(true);
     try {
       localStorage.setItem(`${PERMISSION_GRANTED_KEY}_${user.id}`, "true");
-      await initOneSignal();
       const granted = await requestOneSignalPermission();
       if (granted) {
-        const tags = await buildUserTags(user.id);
-        const subscribed = await oneSignalLogin(user.id, user.email || "", tags);
+        const subscribed = await Promise.race([
+          buildUserTags(user.id).then((tags) => oneSignalLogin(user.id, user.email || "", tags)),
+          new Promise<false>((r) => setTimeout(() => r(false), 15000)),
+        ]);
         localStorage.setItem(`${ONBOARDING_KEY}_${user.id}`, "done");
         setPermission(getOneSignalPermission());
         setServerSubscribed(subscribed);
