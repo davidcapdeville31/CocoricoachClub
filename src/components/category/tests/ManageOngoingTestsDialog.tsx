@@ -132,17 +132,15 @@ export function ManageOngoingTestsDialog({
     onError: () => toast.error("Suppression impossible"),
   });
 
-  const { standalone, recurring } = useMemo(() => {
-    const all = sessions || [];
-    return {
-      standalone: all.filter((s: any) => !s.test_reminder_id && !s.created_by_player_id),
-      recurringCount: all.filter((s: any) => !!s.test_reminder_id).length,
-    };
-  }, [sessions]);
+  const standalone = useMemo(
+    () => (sessions || []).filter((s: any) => !s.test_reminder_id && !s.created_by_player_id),
+    [sessions],
+  );
 
   return (
     <>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CalendarClock className="h-5 w-5 text-primary" />
