@@ -123,16 +123,21 @@ export async function requestOneSignalPermission(): Promise<boolean> {
  * Check current OneSignal push permission status.
  */
 export function getOneSignalPermission(): NotificationPermission {
-  // Try OneSignal SDK first (more reliable across domains)
+  // The native permission distinguishes an unanswered prompt from a refusal.
+  // OneSignal v16's boolean `permission` is false in BOTH cases.
+  if (hasNotificationAPI()) return window.Notification.permission;
+
+  if (typeof window === "undefined") return "default";
   try {
+    const nativePermission = window.OneSignal?.Notifications?.permissionNative;
+    if (nativePermission === "granted" || nativePermission === "denied" || nativePermission === "default") {
+      return nativePermission;
+    }
     const sdkPermission = window.OneSignal?.Notifications?.permission;
     if (sdkPermission === true || sdkPermission === "granted") return "granted";
-    if (sdkPermission === false || sdkPermission === "denied") return "denied";
-    if (sdkPermission === "default") return "default";
+    if (sdkPermission === "denied") return "denied";
   } catch { /* ignore */ }
-  
-  if (!hasNotificationAPI()) return "default";
-  return window.Notification.permission;
+  return "default";
 }
 
 async function ensurePushSubscription(): Promise<boolean> {
