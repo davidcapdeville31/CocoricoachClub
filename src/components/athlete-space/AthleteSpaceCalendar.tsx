@@ -646,11 +646,9 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
             const upcoming = sessions
               .filter((s: any) => {
                 if (s.created_by_player_id === playerId) return false;
-                if (s.session_date >= todayStr) return true;
-                // Séance passée ajoutée a posteriori par le staff : réponse encore attendue
-                if (!s.created_at) return false;
-                const start = new Date(`${s.session_date}T${(s.session_start_time || "00:00").slice(0, 5)}:00`);
-                return new Date(s.created_at).getTime() > start.getTime();
+                // Uniquement les séances à venir : les séances passées restent
+                // accessibles en cliquant sur leur jour dans le calendrier.
+                return s.session_date >= todayStr;
               })
               .sort((a: any, b: any) => a.session_date.localeCompare(b.session_date))
               .slice(0, 5);
