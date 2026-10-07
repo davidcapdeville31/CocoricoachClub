@@ -121,7 +121,7 @@ export function InjuryHistoryPanel({ injuries, illnesses, to }: Props) {
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <BucketBlock title={t("health.injuryHistory.injuries", "Blessures")} data={inj} tone="text-destructive" />
-        <BucketBlock title={t("health.injuryHistory.illnesses", "Maladies")} data={ill} tone="text-warning" />
+        <BucketBlock title={t("health.injuryHistory.illnesses", "Maladies")} data={ill} tone="text-orange-500" />
       </div>
 
       <h3 className="text-sm font-semibold flex items-center gap-2 pt-2">
