@@ -116,16 +116,16 @@ export function ManageOngoingTestsDialog({
     },
     onSuccess: ({ sessionInfo, participantIds }) => {
       invalidateAll();
-      if (sessionInfo) {
+      if (sessionInfo && participantIds.length > 0) {
         notify({
-          action: "deleted",
+          action: "cancelled",
           sessionId: sessionInfo.id,
           categoryId,
           sessionDate: sessionInfo.session_date,
           sessionStartTime: sessionInfo.session_start_time,
           sessionType: "test",
-          participantIds,
-        });
+          participantPlayerIds: participantIds,
+        }).catch((e: any) => console.warn("[ManageOngoingTests] cancel notify failed:", e));
       }
       toast.success("Séance de tests supprimée");
     },
