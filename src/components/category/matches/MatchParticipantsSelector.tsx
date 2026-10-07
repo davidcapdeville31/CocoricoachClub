@@ -2,8 +2,7 @@ import { useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { CheckCircle2, Users } from "lucide-react";
+import { Check, CheckCircle2, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
 import { PlayerGroupChips } from "@/components/category/players/PlayerGroupChips";
@@ -100,7 +99,15 @@ export function MatchParticipantsSelector({
           aria-checked={allSelected}
           onClick={() => onChange(allSelected ? [] : list.map((p) => p.id))}
         >
-          <Checkbox checked={allSelected} className="pointer-events-none" />
+          <span
+            aria-hidden
+            className={cn(
+              "flex h-4 w-4 items-center justify-center rounded-sm border border-primary pointer-events-none",
+              allSelected ? "bg-primary text-primary-foreground" : "bg-transparent",
+            )}
+          >
+            {allSelected && <Check className="h-3 w-3" />}
+          </span>
           <span className="text-xs pointer-events-none">Tous</span>
         </div>
       </div>
