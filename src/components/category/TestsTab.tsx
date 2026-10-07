@@ -410,6 +410,14 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
               </Button>
               <Button
                 size="sm"
+                variant="outline"
+                onClick={() => setIsManageOpen(true)}
+                className="border-primary/40 text-primary hover:bg-primary/10"
+              >
+                <CalendarClock className="h-4 w-4 mr-1" /> Gérer les tests en cours
+              </Button>
+              <Button
+                size="sm"
                 onClick={() => setIsCreateBatteryOpen(true)}
                 className="bg-gradient-to-r from-fuchsia-500 to-pink-500 text-white hover:opacity-90 border-0"
               >
