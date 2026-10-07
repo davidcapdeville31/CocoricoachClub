@@ -231,7 +231,8 @@ export function ManageOngoingTestsDialog({
           </h3>
           <PlanTestsSection categoryId={categoryId} sportType={sportType} hidePlanner />
         </div>
-      </DialogContent>
+        </DialogContent>
+      </Dialog>
 
       <SessionFormDialog
         open={!!editSession}
