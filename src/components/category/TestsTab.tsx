@@ -545,6 +545,13 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
           <PlanTestsSection categoryId={categoryId} sportType={sportType} />
         </DialogContent>
       </Dialog>
+
+      <ManageOngoingTestsDialog
+        open={isManageOpen}
+        onOpenChange={setIsManageOpen}
+        categoryId={categoryId}
+        sportType={sportType}
+      />
     </Card>
   );
 }
