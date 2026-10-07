@@ -208,9 +208,14 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
       const days = Math.max(0, Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
       durations.push(days);
     }
-    const avgDuration = durations.length
-      ? Math.round(durations.reduce((s, d) => s + d, 0) / durations.length)
-      : 0;
+    // Médiane : une blessure très longue ne fausse pas la durée type des autres
+    const median = (arr: number[]) => {
+      if (!arr.length) return 0;
+      const a = [...arr].sort((x, y) => x - y);
+      const m = Math.floor(a.length / 2);
+      return Math.round(a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2);
+    };
+    const avgDuration = median(durations);
 
     // Illnesses on same period
     const illList = (illnesses || []).filter((i: any) => {
@@ -228,9 +233,7 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
       const end = i.actual_return_date ? new Date(i.actual_return_date) : to;
       illDurations.push(Math.max(0, Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))));
     }
-    const illAvgDuration = illDurations.length
-      ? Math.round(illDurations.reduce((s, d) => s + d, 0) / illDurations.length)
-      : 0;
+    const illAvgDuration = median(illDurations);
 
     const allDates = [
       ...list.map((i: any) => new Date(i.injury_date).getTime()),
