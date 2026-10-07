@@ -60,6 +60,8 @@ interface TestReminder {
 interface PlanTestsSectionProps {
   categoryId: string;
   sportType?: string;
+  /** Hide the planning form (used when only managing existing tests) */
+  hidePlanner?: boolean;
 }
 
 // ---------- Helpers ----------
@@ -98,7 +100,7 @@ const DEFAULT_FORM = {
 };
 
 // ---------- Component ----------
-export function PlanTestsSection({ categoryId, sportType }: PlanTestsSectionProps) {
+export function PlanTestsSection({ categoryId, sportType, hidePlanner }: PlanTestsSectionProps) {
   const queryClient = useQueryClient();
   const { isViewer } = useViewerModeContext();
   const { notify } = useSessionNotifications();
@@ -609,6 +611,7 @@ export function PlanTestsSection({ categoryId, sportType }: PlanTestsSectionProp
   return (
     <div className="space-y-6">
       {/* === Planification === */}
+      {!hidePlanner && (
       <Card className="bg-gradient-card shadow-md">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -925,6 +928,7 @@ export function PlanTestsSection({ categoryId, sportType }: PlanTestsSectionProp
           </div>
         </CardContent>
       </Card>
+      )}
 
       {/* === Existing reminders === */}
       <Card className="bg-gradient-card shadow-md">

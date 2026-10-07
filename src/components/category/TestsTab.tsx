@@ -13,11 +13,12 @@ import { TestBatteriesManager } from "./tests/TestBatteriesManager";
 import { formatCategoryLabel } from "./tests/customTestCatalog";
 import { CategoryVisibilityManager } from "./tests/CategoryVisibilityManager";
 import { Button } from "@/components/ui/button";
-import { FolderPlus, Plus, ClipboardList, CalendarPlus } from "lucide-react";
+import { FolderPlus, Plus, ClipboardList, CalendarPlus, CalendarClock } from "lucide-react";
 import { CreateCustomTestDialog } from "./tests/CreateCustomTestDialog";
 import { CreateThemeCategoryDialog } from "./tests/CreateThemeCategoryDialog";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { PlanTestsSection } from "./tests/PlanTestsSection";
+import { ManageOngoingTestsDialog } from "./tests/ManageOngoingTestsDialog";
 import { BenchmarkTab } from "./benchmarks/BenchmarkTab";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -383,6 +384,7 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
   const [isCreateTestOpen, setIsCreateTestOpen] = useState(false);
   const [isCreateBatteryOpen, setIsCreateBatteryOpen] = useState(false);
   const [isPlanTestOpen, setIsPlanTestOpen] = useState(false);
+  const [isManageOpen, setIsManageOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("all");
 
   return (
@@ -405,6 +407,14 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
                 className="border-primary/40 text-primary hover:bg-primary/10"
               >
                 <CalendarPlus className="h-4 w-4 mr-1" /> Planifier un test
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setIsManageOpen(true)}
+                className="border-primary/40 text-primary hover:bg-primary/10"
+              >
+                <CalendarClock className="h-4 w-4 mr-1" /> Gérer les tests en cours
               </Button>
               <Button
                 size="sm"
@@ -535,6 +545,13 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
           <PlanTestsSection categoryId={categoryId} sportType={sportType} />
         </DialogContent>
       </Dialog>
+
+      <ManageOngoingTestsDialog
+        open={isManageOpen}
+        onOpenChange={setIsManageOpen}
+        categoryId={categoryId}
+        sportType={sportType}
+      />
     </Card>
   );
 }
