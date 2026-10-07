@@ -24,6 +24,7 @@ import jsPDF from "jspdf";
 import { toast } from "sonner";
 import { getExcelBranding, addBrandedHeader, styleDataHeaderRow, addZebraRows, addFooter, downloadWorkbook } from "@/lib/excelExport";
 import { preparePdfWithSettings } from "@/lib/pdfExport";
+import { InjuryHistoryPanel } from "./InjuryHistoryPanel";
 
 interface InjuryStatsPanelProps {
   categoryId: string;
@@ -670,6 +671,10 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
             </CardContent>
           </Card>
         </div>
+
+        <InjuryHistoryPanel injuries={filteredInjuries} illnesses={filteredIllnesses} to={to} />
+
+
 
         <div>
           <h3 className="text-sm font-semibold mb-3">{t("health.injuryStatsPanel.distributionTitle")}</h3>
