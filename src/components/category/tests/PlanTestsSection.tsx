@@ -60,6 +60,8 @@ interface TestReminder {
 interface PlanTestsSectionProps {
   categoryId: string;
   sportType?: string;
+  /** Hide the planning form (used when only managing existing tests) */
+  hidePlanner?: boolean;
 }
 
 // ---------- Helpers ----------
