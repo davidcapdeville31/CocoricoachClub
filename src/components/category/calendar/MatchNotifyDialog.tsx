@@ -202,11 +202,29 @@ export function MatchNotifyDialog({
       return results;
     },
     onSuccess: (data) => {
-      const parts = [];
-      if (data.emailsSent > 0) parts.push(`${data.emailsSent} email(s)`);
-      if (data.pushSent > 0) parts.push(`${data.pushSent} push`);
-      
-      toast.success(t("planning.calendarDialogs.matchNotify.toasts.sent", { parts: parts.join(", ") || t("planning.calendarDialogs.matchNotify.toasts.none") }));
+      const total = athletes.length;
+      const lines: string[] = [];
+      let anyFail = false;
+      let anySent = false;
+      if (sendPush) {
+        const ok = Math.min(data.pushSent, total);
+        const fail = Math.max(total - ok, 0);
+        if (ok > 0) anySent = true;
+        if (fail > 0) anyFail = true;
+        lines.push(`Push : ${ok} envoyée(s) / ${total} — ${fail} échec(s)${ok === 0 ? " (aucune athlète n'a activé les notifications push)" : ""}`);
+      }
+      if (sendEmail) {
+        const ok = data.emailsSent;
+        const fail = Math.max(athletesWithEmail - ok, 0);
+        if (ok > 0) anySent = true;
+        if (fail > 0) anyFail = true;
+        lines.push(`E-mail : ${ok} envoyé(s) / ${athletesWithEmail} — ${fail} échec(s)${ok === 0 && athletesWithEmail > 0 ? " (envoi d'e-mails désactivé)" : ""}`);
+      }
+      const title = anySent ? "Convocations envoyées" : "Aucune convocation envoyée";
+      const opts = { description: lines.join("\n"), duration: 10000 };
+      if (!anySent) toast.error(title, opts);
+      else if (anyFail) toast.warning(title, opts);
+      else toast.success(title, opts);
       onOpenChange(false);
       setMessage("");
     },
