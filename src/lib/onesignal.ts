@@ -100,19 +100,25 @@ export async function requestOneSignalPermission(): Promise<boolean> {
   if (window.Notification.permission === "granted") return true;
   if (window.Notification.permission === "denied") return false;
 
+  // The SDK prompt can hang forever (never resolves) on some devices/domains.
+  // Bound it, then fall back to the native browser prompt.
+  const withTimeout = <T,>(p: Promise<T>, ms: number) =>
+    Promise.race([p, new Promise<"timeout">((r) => setTimeout(() => r("timeout"), ms))]);
+
   try {
-    await initOneSignal();
+    await withTimeout(initOneSignal(), 6000);
     if (window.OneSignal?.Notifications?.requestPermission) {
-      await window.OneSignal.Notifications.requestPermission();
+      await withTimeout(Promise.resolve(window.OneSignal.Notifications.requestPermission()), 15000);
     } else if (window.OneSignal?.showNativePrompt) {
-      await window.OneSignal.showNativePrompt();
-    } else {
-      await window.Notification.requestPermission();
+      await withTimeout(Promise.resolve(window.OneSignal.showNativePrompt()), 15000);
     }
   } catch (err) {
     console.error("[OneSignal] Permission request error:", err);
+  }
+
+  if ((window.Notification.permission as string) === "default") {
     try {
-      await window.Notification.requestPermission();
+      await withTimeout(Promise.resolve(window.Notification.requestPermission()), 30000);
     } catch { /* ignore */ }
   }
 

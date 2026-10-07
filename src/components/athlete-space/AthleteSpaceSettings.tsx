@@ -107,12 +107,14 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
   const handleActivateNotifications = async () => {
     setIsActivating(true);
     try {
-      await initOneSignal();
       const granted = await requestOneSignalPermission();
       if (granted) {
         if (!user) throw new Error(t("athleteSpace.settings.userNotFound"));
-        const tags = await buildUserTags(user.id);
-        const subscribed = await oneSignalLogin(user.id, user.email || "", tags);
+        const timeout = new Promise<false>((r) => setTimeout(() => r(false), 15000));
+        const subscribed = await Promise.race([
+          buildUserTags(user.id).then((tags) => oneSignalLogin(user.id, user.email || "", tags)),
+          timeout,
+        ]);
         setPermission(getOneSignalPermission());
         setServerSubscribed(subscribed);
         if (subscribed) toast.success(t("athleteSpace.settings.activatedSuccess"));
