@@ -120,8 +120,19 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
         if (subscribed) toast.success(t("athleteSpace.settings.activatedSuccess"));
         else toast.warning(t("athleteSpace.settings.grantedNotSubscribed"));
       } else {
-        setPermission(getOneSignalPermission());
-        toast.error(t("athleteSpace.settings.denied"));
+        const perm = getOneSignalPermission();
+        setPermission(perm);
+        const hasApi = typeof window !== "undefined" && "Notification" in window;
+        const inIframe = typeof window !== "undefined" && window.self !== window.top;
+        if (perm === "denied") {
+          toast.error(t("athleteSpace.settings.denied"));
+        } else if (inIframe) {
+          toast.warning("Les notifications ne peuvent pas être activées dans l'aperçu. Ouvre l'app en ligne (cocoricoachclub.com).");
+        } else if (!hasApi) {
+          toast.warning("Ce navigateur ne gère pas les notifications. Sur iPhone : installe l'app sur l'écran d'accueil (Safari → Partager → « Sur l'écran d'accueil ») puis ouvre-la depuis l'icône.");
+        } else {
+          toast.warning("La demande d'autorisation n'a pas abouti. Réessaie depuis l'app installée sur l'écran d'accueil.");
+        }
       }
     } catch {
       toast.error(t("athleteSpace.settings.activationError"));
