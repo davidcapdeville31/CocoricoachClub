@@ -928,6 +928,7 @@ export function PlanTestsSection({ categoryId, sportType, hidePlanner }: PlanTes
           </div>
         </CardContent>
       </Card>
+      )}
 
       {/* === Existing reminders === */}
       <Card className="bg-gradient-card shadow-md">
