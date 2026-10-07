@@ -384,6 +384,7 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
   const [isCreateTestOpen, setIsCreateTestOpen] = useState(false);
   const [isCreateBatteryOpen, setIsCreateBatteryOpen] = useState(false);
   const [isPlanTestOpen, setIsPlanTestOpen] = useState(false);
+  const [isManageOpen, setIsManageOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("all");
 
   return (
