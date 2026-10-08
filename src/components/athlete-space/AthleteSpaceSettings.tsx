@@ -202,15 +202,35 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
                 </p>
               </div>
             </div>
-          ) : pushIsDenied ? (
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-destructive/10">
-              <AlertCircle className="h-5 w-5 text-destructive" />
+          ) : pushIsDenied && typeof window !== "undefined" && window.top !== window.self ? (
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-warning/10">
+              <Bell className="h-5 w-5 text-warning" />
               <div>
-                <p className="text-sm font-medium">{t("athleteSpace.settings.blocked")}</p>
+                <p className="text-sm font-medium">Aperçu de l'éditeur</p>
                 <p className="text-xs text-muted-foreground">
-                  {t("athleteSpace.settings.blockedDesc")}
+                  Les notifications ne peuvent pas être activées dans l'aperçu. Ouvre cocoricoachclub.com (ou l'app installée) pour les activer.
                 </p>
               </div>
+            </div>
+          ) : pushIsDenied ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-destructive/10">
+                <AlertCircle className="h-5 w-5 text-destructive" />
+                <div>
+                  <p className="text-sm font-medium">{t("athleteSpace.settings.blocked")}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Ce téléphone ou ce navigateur a refusé les notifications pour CocoriCoach. Seuls ses réglages peuvent les réautoriser :
+                  </p>
+                  <ul className="mt-1 text-xs text-muted-foreground list-disc pl-4 space-y-0.5">
+                    <li>iPhone : Réglages → Notifications → CocoriCoach → Autoriser</li>
+                    <li>Android : appui long sur l'icône → Infos sur l'app → Notifications → Autoriser</li>
+                    <li>Ordinateur : cadenas à gauche de l'adresse → Notifications → Autoriser</li>
+                  </ul>
+                </div>
+              </div>
+              <Button variant="outline" className="w-full" onClick={() => window.location.reload()}>
+                J'ai autorisé, vérifier à nouveau
+              </Button>
             </div>
           ) : (
             <div className="space-y-3">
