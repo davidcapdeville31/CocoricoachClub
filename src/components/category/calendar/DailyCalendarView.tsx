@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getDisplayNotes, isSimplifiedSession, parseTestsFromNotes, getSessionTitleFromNotes } from "@/lib/utils/sessionNotes";
 import { useCustomTestLabels, labelizeTestType } from "@/hooks/useCustomTestLabels";
 import { useTranslation } from "react-i18next";
+import { MatchAttendancePreviewButton } from "./MatchAttendancePreview";
 
 interface Session {
   id: string;
@@ -59,6 +60,7 @@ interface DailyCalendarViewProps {
   isViewer: boolean;
   onViewSession?: (session: Session) => void;
   onViewMatch?: (match: Match) => void;
+  onPreviewMatch?: (match: Match) => void;
   onEditMatch?: (match: Match) => void;
   onAddEvent?: (day: Date) => void;
   onDeleteMatch?: (matchId: string) => void;
@@ -78,6 +80,7 @@ export function DailyCalendarView({
   isViewer,
   onViewSession,
   onViewMatch,
+  onPreviewMatch,
   onEditMatch,
   onAddEvent,
   onDeleteMatch,
@@ -291,8 +294,8 @@ export function DailyCalendarView({
                     <div className={cn("w-1.5 flex-shrink-0", compColor.bg)} />
 
                     {/* Content */}
-                    <div className="flex-1 p-4 flex items-center justify-between">
-                      <div>
+                    <div className="min-w-0 flex-1 p-3 sm:p-4 flex flex-wrap items-center justify-between gap-2">
+                      <div className="min-w-0 flex-1 break-words">
                         <span className={cn(
                           "inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold mb-1",
                           compColor.soft,
@@ -311,6 +314,7 @@ export function DailyCalendarView({
                           </p>
                         )}
                       </div>
+                      {onPreviewMatch && <MatchAttendancePreviewButton onClick={() => onPreviewMatch(match)} />}
                       {!isViewer && (
                         <div className="flex items-center gap-1 shrink-0">
                           {onEditMatch && (
