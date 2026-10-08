@@ -148,7 +148,7 @@ export function WellnessReminderButton({ categoryId }: WellnessReminderButtonPro
 
   return (
     <>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Button
           variant={alreadySent ? "secondary" : "outline"}
           onClick={() => setOpen(true)}
