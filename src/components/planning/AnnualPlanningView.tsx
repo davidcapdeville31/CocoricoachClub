@@ -191,11 +191,19 @@ export function AnnualPlanningView({ categoryId, readOnly = false, playerId }: A
 
       const { data: assignments, error: assignmentError } = await supabase
         .from("periodization_cycle_players")
-        .select("cycle_id")
-        .eq("player_id", playerId);
+        .select("cycle_id, player_id")
+        .in("cycle_id", cycleRows.map((c: any) => c.id));
       if (assignmentError) throw assignmentError;
-      const assignedCycleIds = new Set((assignments || []).map((assignment: any) => assignment.cycle_id));
-      return cycleRows.filter((cycle: any) => assignedCycleIds.has(cycle.id)) as unknown as PeriodizationCycle[];
+      // A cycle with no assignment rows is collective: visible to every athlete.
+      const assignmentsByCycle = new Map<string, Set<string>>();
+      for (const a of assignments || []) {
+        if (!assignmentsByCycle.has(a.cycle_id)) assignmentsByCycle.set(a.cycle_id, new Set());
+        assignmentsByCycle.get(a.cycle_id)!.add(a.player_id);
+      }
+      return cycleRows.filter((cycle: any) => {
+        const assigned = assignmentsByCycle.get(cycle.id);
+        return !assigned || assigned.size === 0 || assigned.has(playerId);
+      }) as unknown as PeriodizationCycle[];
     },
   });
 
