@@ -101,7 +101,7 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
   useEffect(() => {
     const targetUserId = playerData?.user_id || user?.id;
     if (!targetUserId) return;
-    checkOneSignalSubscriptionStatus(targetUserId).then(setServerSubscribed).catch(() => setServerSubscribed(false));
+    checkOneSignalSubscriptionStatus(targetUserId, { fresh: true }).then(setServerSubscribed).catch(() => setServerSubscribed(false));
   }, [playerData?.user_id, user?.id]);
 
   // Auto-relink the device when the browser permission is already granted but
@@ -119,7 +119,7 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
         await initOneSignal();
         const tags = await buildUserTags(targetUserId);
         const timeout = new Promise<false>((r) => setTimeout(() => r(false), 15000));
-        const ok = await Promise.race([oneSignalLogin(targetUserId, user.email || "", tags), timeout]);
+        const ok = await Promise.race([oneSignalLogin(targetUserId, user.email || "", tags, { force: true }), timeout]);
         if (!cancelled && ok) setServerSubscribed(true);
       } catch {
         // Silently ignore — the manual button remains available
@@ -136,7 +136,7 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
         if (!user) throw new Error(t("athleteSpace.settings.userNotFound"));
         const timeout = new Promise<false>((r) => setTimeout(() => r(false), 15000));
         const subscribed = await Promise.race([
-          buildUserTags(user.id).then((tags) => oneSignalLogin(user.id, user.email || "", tags)),
+          buildUserTags(user.id).then((tags) => oneSignalLogin(user.id, user.email || "", tags, { force: true })),
           timeout,
         ]);
         setPermission(getOneSignalPermission());
