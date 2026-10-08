@@ -1,4 +1,5 @@
 # Architecture decisions
+- Global calendar attendance previews read only `match_participants` and minimal player display fields, never lineups or the full roster, so counts reflect invited athletes and their actual responses across all sports.
 
 - Push permission reads the native three-state permission first; OneSignal's boolean false is never treated as denied because it also means not requested.
 

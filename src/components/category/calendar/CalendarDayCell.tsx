@@ -63,6 +63,7 @@ interface CalendarDayCellProps {
   onDuplicateSession?: (session: Session) => void;
   onNotifyMatch?: (match: Match) => void;
   onViewMatch?: (match: Match) => void;
+  onPreviewMatch?: (match: Match) => void;
   onStatsMatch?: (match: Match) => void;
   onEditMatch?: (match: Match) => void;
   onDeleteMatch?: (matchId: string) => void;
@@ -90,6 +91,7 @@ export function CalendarDayCell({
   onDuplicateSession,
   onNotifyMatch,
   onViewMatch,
+  onPreviewMatch,
   onStatsMatch,
   onEditMatch,
   onDeleteMatch,
@@ -237,6 +239,7 @@ export function CalendarDayCell({
               }
               isViewer={isViewer}
               onClick={() => (onViewMatch ? onViewMatch(event.data) : onDayClick(day))}
+              onPreview={onPreviewMatch ? () => onPreviewMatch(event.data) : undefined}
               onNotify={onNotifyMatch ? () => onNotifyMatch(event.data) : undefined}
               onStats={onStatsMatch ? () => onStatsMatch(event.data) : undefined}
               onEdit={onEditMatch ? () => onEditMatch(event.data) : undefined}

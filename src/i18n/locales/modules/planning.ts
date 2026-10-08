@@ -37,6 +37,13 @@ export const planningFr = {
   },
   calendarViews: {
     daysShort: ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],
+    attendancePreview: {
+      open: "Aperçu des présences",
+      title: "Présences à la compétition",
+      total: "{{count}} athlète(s) convoqué(s)",
+      empty: "Aucun athlète convoqué à cette compétition.",
+      error: "Impossible de charger les réponses. Réessayez.",
+    },
     daysFull: ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"],
     titleMatches: "Calendrier & Matchs",
     titleCompetitions: "Calendrier & Compétitions",
@@ -1025,6 +1032,13 @@ export const planningEn = {
   },
   calendarViews: {
     daysShort: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    attendancePreview: {
+      open: "Attendance preview",
+      title: "Competition attendance",
+      total: "{{count}} invited athlete(s)",
+      empty: "No athletes invited to this competition.",
+      error: "Unable to load responses. Please try again.",
+    },
     daysFull: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
     titleMatches: "Calendar & Matches",
     titleCompetitions: "Calendar & Competitions",

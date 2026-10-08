@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
 import { getCompetitionColor } from "@/lib/constants/competitionColors";
 import { useTranslation } from "react-i18next";
+import { MatchAttendancePreviewButton } from "./MatchAttendancePreview";
 
 interface Match {
   id: string;
@@ -26,6 +27,7 @@ interface MatchVignetteProps {
   onStats?: () => void;
   onDelete?: () => void;
   onEdit?: () => void;
+  onPreview?: () => void;
 }
 
 export function MatchVignette({
@@ -38,6 +40,7 @@ export function MatchVignette({
   onStats,
   onDelete,
   onEdit,
+  onPreview,
 }: MatchVignetteProps) {
   const { t } = useTranslation();
   const [isHovered, setIsHovered] = useState(false);
@@ -92,6 +95,7 @@ export function MatchVignette({
       <div
         className={cn(
           "text-white text-[11px] px-2 py-1.5 rounded-lg truncate font-medium cursor-pointer transition-colors relative overflow-hidden",
+          onPreview && "pr-10 min-h-9",
           color.bg,
           color.bgHover
         )}
@@ -120,7 +124,8 @@ export function MatchVignette({
         {/* Hover Actions Overlay */}
         {isHovered && !isViewer && (onEdit || onNotify || onStats || onDelete) && (
           <div className={cn(
-            "absolute inset-0 flex items-center justify-center gap-2 rounded-lg z-[100] animate-fade-in",
+            "absolute inset-y-0 left-0 flex items-center justify-center gap-0 rounded-lg z-[100] animate-fade-in",
+            onPreview ? "right-9" : "right-0",
             color.bgSolidDark
           )}>
 
@@ -160,6 +165,11 @@ export function MatchVignette({
                 <Trash2 className="h-4 w-4" />
               </button>
             )}
+          </div>
+        )}
+        {onPreview && (
+          <div className="absolute right-1 top-1/2 -translate-y-1/2 z-[101]">
+            <MatchAttendancePreviewButton onClick={onPreview} />
           </div>
         )}
       </div>

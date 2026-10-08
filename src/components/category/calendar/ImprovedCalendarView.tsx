@@ -30,6 +30,7 @@ import { DuplicateSessionDialog } from "./DuplicateSessionDialog";
 import { SessionFeedbackDialog } from "./SessionFeedbackDialog";
 import { SessionNotifyDialog } from "./SessionNotifyDialog";
 import { MatchNotifyDialog } from "./MatchNotifyDialog";
+import { MatchAttendancePreview, MatchAttendancePreviewButton } from "./MatchAttendancePreview";
 import { CreateEventDialog } from "./CreateEventDialog";
 import { FieldSessionDialog } from "./FieldSessionDialog";
 import { SimplifiedSessionDialog } from "@/components/athlete-space/SimplifiedSessionDialog";
@@ -143,6 +144,7 @@ export function ImprovedCalendarView({
   const addEventDateRef = useRef<Date | null>(null);
   const [notifySession, setNotifySession] = useState<Session | null>(null);
   const [notifyMatch, setNotifyMatch] = useState<Match | null>(null);
+  const [previewMatch, setPreviewMatch] = useState<Match | null>(null);
   const [duplicateSession, setDuplicateSession] = useState<Session | null>(null);
   const [allEventsDay, setAllEventsDay] = useState<Date | null>(null);
   
@@ -744,6 +746,7 @@ export function ImprovedCalendarView({
                       onDuplicateSession={(session) => setDuplicateSession(session)}
                       onNotifyMatch={(match) => setNotifyMatch(match)}
                       onViewMatch={(match) => onViewMatch?.(match)}
+                      onPreviewMatch={setPreviewMatch}
                       onEditMatch={onEditMatch ? (match) => onEditMatch(match) : undefined}
                       onStatsMatch={(match) => onStatsMatch?.(match)}
                       onDeleteMatch={(matchId) => onDeleteMatch?.(matchId)}
@@ -857,6 +860,7 @@ export function ImprovedCalendarView({
                                 >
                                   <div className="flex items-center gap-2 text-xs font-medium">
                                     <span className="opacity-80">{match.match_time ? formatTime(match.match_time) : ""}</span>
+                                    <div className="ml-auto shrink-0"><MatchAttendancePreviewButton onClick={() => setPreviewMatch(match)} /></div>
                                     {compLabel && (
                                       <span className="opacity-90 truncate">{compLabel}</span>
                                     )}
@@ -955,6 +959,7 @@ export function ImprovedCalendarView({
                   isViewer={isViewer}
                   onViewSession={onViewSession}
                   onViewMatch={onViewMatch}
+                  onPreviewMatch={setPreviewMatch}
                   onEditMatch={onEditMatch}
                   onAddEvent={handleDayClickWithAdd}
                   onDeleteMatch={onDeleteMatch}
@@ -1113,6 +1118,7 @@ export function ImprovedCalendarView({
       )}
 
       {/* Match Notify Dialog */}
+      {previewMatch && <MatchAttendancePreview match={previewMatch} onOpenChange={(open) => { if (!open) setPreviewMatch(null); }} />}
       {notifyMatch && (
         <MatchNotifyDialog
           open={!!notifyMatch}
@@ -1158,6 +1164,7 @@ export function ImprovedCalendarView({
                       }
                       isViewer={isViewer}
                       onClick={() => { setAllEventsDay(null); onViewMatch?.(event.data); }}
+                      onPreview={() => { setAllEventsDay(null); setPreviewMatch(event.data); }}
                       onNotify={() => { setAllEventsDay(null); setNotifyMatch(event.data); }}
                       onStats={() => { setAllEventsDay(null); onStatsMatch?.(event.data); }}
                       onEdit={onEditMatch ? () => { setAllEventsDay(null); onEditMatch(event.data); } : undefined}
