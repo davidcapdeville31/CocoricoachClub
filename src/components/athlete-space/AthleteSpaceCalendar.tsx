@@ -634,7 +634,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                 onClick={() => setIsRecoveryOpen(true)}
               >
                 <Leaf className="h-3.5 w-3.5" />
-                Récupération
+                {t("athleteSpace.calendar.recoverySession")}
               </Button>
             </div>
 
