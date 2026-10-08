@@ -260,8 +260,7 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
         supabase
           .from("gym_session_exercises")
           .select("*")
-          .eq("training_session_id", session.id)
-          .is("player_id", null),
+          .eq("training_session_id", session.id),
         t("planning.calendarDialogs.duplicateSession.toasts.duplicatingBlocks")
       );
       if (exErr) throw exErr;
