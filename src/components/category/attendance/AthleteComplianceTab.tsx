@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format, parseISO, subDays } from "date-fns";
-import { Activity, HeartPulse, Scale, ClipboardList, Gauge } from "lucide-react";
+import { Activity, HeartPulse, Scale, ClipboardList, Gauge, Bell, Mail } from "lucide-react";
 import {
   ALL_GROUPS,
   PlayerGroupFilter,
@@ -51,11 +51,30 @@ export function AthleteComplianceTab({ categoryId }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
-        .select("id, name, first_name")
+        .select("id, name, first_name, user_id")
         .eq("category_id", categoryId)
         .order("name");
       if (error) throw error;
       return data || [];
+    },
+  });
+
+  const notifUserIds = useMemo(
+    () => (players as any[]).map((p) => p.user_id).filter(Boolean).sort() as string[],
+    [players],
+  );
+  // Statut réel des appareils (push) et e-mails, rafraîchi automatiquement
+  const { data: notifStatus = {}, isFetching: notifLoading } = useQuery({
+    queryKey: ["compliance-notif-status", categoryId, notifUserIds.join(",")],
+    enabled: notifUserIds.length > 0,
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke("check-onesignal-subscriptions", {
+        body: { user_ids: notifUserIds },
+      });
+      if (error) throw error;
+      return (data?.results || {}) as Record<string, { hasPush: boolean; hasEmail: boolean }>;
     },
   });
 
@@ -186,10 +205,13 @@ export function AthleteComplianceTab({ categoryId }: Props) {
           lastWeight,
           weightsInPeriod,
           global,
+          hasAccount: !!p.user_id,
+          hasPush: p.user_id ? !!(notifStatus as any)[p.user_id]?.hasPush : false,
+          hasEmail: p.user_id ? !!(notifStatus as any)[p.user_id]?.hasEmail : false,
         };
       })
       .sort((a, b) => (b.global ?? -1) - (a.global ?? -1));
-  }, [players, groupPlayerIds, wellness, loads, tests, weights, startDate, endDate]);
+  }, [players, groupPlayerIds, wellness, loads, tests, weights, startDate, endDate, notifStatus]);
 
   const average = useMemo(() => {
     const vals = rows.map((r) => r.global).filter((v): v is number => v !== null);
@@ -215,8 +237,10 @@ export function AthleteComplianceTab({ categoryId }: Props) {
       r.lastWeight ? `${r.lastWeight.weight_kg} kg` : "Aucune pesée",
       r.lastWeight ? format(parseISO(r.lastWeight.measurement_date), "dd/MM/yyyy") : "",
       r.global === null ? "—" : `${r.global}%`,
+      !r.hasAccount ? "Pas de compte" : r.hasPush ? "Oui" : "Non",
+      !r.hasAccount ? "Pas de compte" : r.hasEmail ? "Oui" : "Non",
     ]);
-  const headers = ["Athlète", "Wellness %", "Wellness remplis", "RPE %", "RPE séances", "Tests", "Dernier poids", "Date pesée", "Assiduité"];
+  const headers = ["Athlète", "Wellness %", "Wellness remplis", "RPE %", "RPE séances", "Tests", "Dernier poids", "Date pesée", "Assiduité", "Push", "Mail"];
 
   const handleCsv = () => {
     if (rows.length === 0) return toast.error("Aucun athlète à exporter");
@@ -233,7 +257,7 @@ export function AthleteComplianceTab({ categoryId }: Props) {
     doc.setFontSize(10);
     doc.text(`${groupLabel}  •  Période : ${periodLabel}  •  ${rows.length} athlète(s)`, 14, 23);
     if (average !== null) doc.text(`Assiduité moyenne : ${average}%`, 14, 29);
-    const widths = [62, 24, 30, 20, 26, 16, 32, 28, 24];
+    const widths = [50, 20, 26, 18, 24, 14, 28, 24, 22, 20, 20];
     let y = 38;
     const drawRow = (cells: string[], bold = false) => {
       let x = 14;
@@ -352,6 +376,12 @@ export function AthleteComplianceTab({ categoryId }: Props) {
                       </span>
                     </TableHead>
                     <TableHead className="text-center">Assiduité</TableHead>
+                    <TableHead className="text-center">
+                      <span className="inline-flex items-center gap-1">
+                        <Bell className="h-3.5 w-3.5" /> Notifications
+                        {notifLoading && <span className="text-[10px] text-muted-foreground">…</span>}
+                      </span>
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -403,6 +433,20 @@ export function AthleteComplianceTab({ categoryId }: Props) {
                             <span className={`text-sm font-semibold ${rateColor(r.global)}`}>
                               {r.global}%
                             </span>
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {!r.hasAccount ? (
+                          <span className="text-[11px] text-muted-foreground">Pas de compte</span>
+                        ) : (
+                          <div className="flex flex-wrap items-center justify-center gap-1">
+                            <Badge variant={r.hasPush ? "default" : "outline"} className="gap-1">
+                              <Bell className="h-3 w-3" /> {r.hasPush ? "Push" : "Pas de push"}
+                            </Badge>
+                            <Badge variant={r.hasEmail ? "default" : "outline"} className="gap-1">
+                              <Mail className="h-3 w-3" /> {r.hasEmail ? "Mail" : "Pas de mail"}
+                            </Badge>
                           </div>
                         )}
                       </TableCell>
