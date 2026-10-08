@@ -64,11 +64,16 @@ export function AthleteComplianceTab({ categoryId }: Props) {
     [players],
   );
   // Statut réel des appareils (push) et e-mails, rafraîchi automatiquement
-  const { data: notifStatus = {}, isFetching: notifLoading } = useQuery({
+  const {
+    data: notifStatus,
+    isFetching: notifLoading,
+    isError: notifError,
+  } = useQuery({
     queryKey: ["compliance-notif-status", categoryId, notifUserIds.join(",")],
     enabled: notifUserIds.length > 0,
-    refetchInterval: 30_000,
+    refetchInterval: 10_000,
     refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke("check-onesignal-subscriptions", {
         body: { user_ids: notifUserIds },
@@ -206,12 +211,19 @@ export function AthleteComplianceTab({ categoryId }: Props) {
           weightsInPeriod,
           global,
           hasAccount: !!p.user_id,
-          hasPush: p.user_id ? !!(notifStatus as any)[p.user_id]?.hasPush : false,
-          hasEmail: p.user_id ? !!(notifStatus as any)[p.user_id]?.hasEmail : false,
+          notificationStatus: !p.user_id
+            ? "no-account"
+            : notifError
+              ? "unavailable"
+              : !notifStatus
+                ? "checking"
+                : "ready",
+          hasPush: p.user_id ? (notifStatus as any)?.[p.user_id]?.hasPush === true : false,
+          hasEmail: p.user_id ? (notifStatus as any)?.[p.user_id]?.hasEmail === true : false,
         };
       })
       .sort((a, b) => (b.global ?? -1) - (a.global ?? -1));
-  }, [players, groupPlayerIds, wellness, loads, tests, weights, startDate, endDate, notifStatus]);
+  }, [players, groupPlayerIds, wellness, loads, tests, weights, startDate, endDate, notifStatus, notifError]);
 
   const average = useMemo(() => {
     const vals = rows.map((r) => r.global).filter((v): v is number => v !== null);
@@ -237,8 +249,24 @@ export function AthleteComplianceTab({ categoryId }: Props) {
       r.lastWeight ? `${r.lastWeight.weight_kg} kg` : "Aucune pesée",
       r.lastWeight ? format(parseISO(r.lastWeight.measurement_date), "dd/MM/yyyy") : "",
       r.global === null ? "—" : `${r.global}%`,
-      !r.hasAccount ? "Pas de compte" : r.hasPush ? "Oui" : "Non",
-      !r.hasAccount ? "Pas de compte" : r.hasEmail ? "Oui" : "Non",
+      r.notificationStatus === "no-account"
+        ? "Pas de compte"
+        : r.notificationStatus === "checking"
+          ? "Vérification…"
+          : r.notificationStatus === "unavailable"
+            ? "Statut indisponible"
+            : r.hasPush
+              ? "Push actif"
+              : "Push inactif",
+      r.notificationStatus === "no-account"
+        ? "Pas de compte"
+        : r.notificationStatus === "checking"
+          ? "Vérification…"
+          : r.notificationStatus === "unavailable"
+            ? "Statut indisponible"
+            : r.hasEmail
+              ? "Mail actif"
+              : "Mail inactif",
     ]);
   const headers = ["Athlète", "Wellness %", "Wellness remplis", "RPE %", "RPE séances", "Tests", "Dernier poids", "Date pesée", "Assiduité", "Push", "Mail"];
 
@@ -437,15 +465,19 @@ export function AthleteComplianceTab({ categoryId }: Props) {
                         )}
                       </TableCell>
                       <TableCell className="text-center">
-                        {!r.hasAccount ? (
+                        {r.notificationStatus === "no-account" ? (
                           <span className="text-[11px] text-muted-foreground">Pas de compte</span>
+                        ) : r.notificationStatus === "checking" ? (
+                          <span className="text-[11px] text-muted-foreground">Vérification…</span>
+                        ) : r.notificationStatus === "unavailable" ? (
+                          <span className="text-[11px] text-destructive">Statut indisponible</span>
                         ) : (
                           <div className="flex flex-wrap items-center justify-center gap-1">
                             <Badge variant={r.hasPush ? "default" : "outline"} className="gap-1">
-                              <Bell className="h-3 w-3" /> {r.hasPush ? "Push" : "Pas de push"}
+                              <Bell className="h-3 w-3" /> {r.hasPush ? "Push actif" : "Push inactif"}
                             </Badge>
                             <Badge variant={r.hasEmail ? "default" : "outline"} className="gap-1">
-                              <Mail className="h-3 w-3" /> {r.hasEmail ? "Mail" : "Pas de mail"}
+                              <Mail className="h-3 w-3" /> {r.hasEmail ? "Mail actif" : "Mail inactif"}
                             </Badge>
                           </div>
                         )}

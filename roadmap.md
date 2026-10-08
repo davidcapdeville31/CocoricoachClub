@@ -8,6 +8,7 @@
 ## Vérification des notifications push toutes disciplines
 - [x] Contrôler les abonnements des athlètes ayant activé tous les types de push : le service détecte 3 abonnements actifs sur 88 comptes, dont Axelle seule sur 46 Seniores.
 - [x] Vérifier les rappels wellness/RPE sans envoyer de rappels supplémentaires : tâches planifiées actives ; RPE ciblé mais compteurs « envoyés » non probants ; wellness de 8h sans réponse après délai de 5 secondes.
+- [x] Dans le rapport d’assiduité, déclarer Push/Mail actifs uniquement après confirmation d’un abonnement réellement activé ; afficher un état de vérification ou d’indisponibilité sinon.
 - [ ] Confirmer la réception wellness/RPE sur les autres téléphones (nécessite leur activation effective et une confirmation des athlètes ; non vérifiable à distance).
 
 ## Aperçu des présences aux compétitions

@@ -1,5 +1,6 @@
 # Architecture decisions
 - OneSignal device registration waits for the explicit post-init readiness flag and caches only successful syncs; SDK method availability alone does not mean initialization has completed.
+- Attendance reports label notification channels active only from confirmed enabled OneSignal subscriptions; preference toggles alone never prove delivery readiness.
 - Global calendar attendance previews read only `match_participants` and minimal player display fields, never lineups or the full roster, so counts reflect invited athletes and their actual responses across all sports.
 
 - Push permission reads the native three-state permission first; OneSignal's boolean false is never treated as denied because it also means not requested.
