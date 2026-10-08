@@ -12,3 +12,5 @@
 
 - [x] Corriger les pictogrammes du menu et la lisibilité du résumé wellness, toutes disciplines.
 - [x] Vérifier le menu et un wellness enregistré sur mobile en thèmes clair et sombre.
+- [x] Décaler les boutons « Ajouter une séance » et « Récupération » sous le titre « Mon calendrier » sur mobile, sans chevauchement, toutes disciplines.
+- [x] Vérifier l’en-tête du calendrier sur téléphone (393×665) et sur grand écran (boutons alignés à droite).
