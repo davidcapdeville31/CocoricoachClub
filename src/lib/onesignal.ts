@@ -181,7 +181,7 @@ async function ensurePushSubscription(): Promise<boolean> {
 
 export async function waitForOneSignalServerSubscription(userId: string, attempts = 2, delayMs = 1500): Promise<boolean> {
   for (let attempt = 0; attempt < attempts; attempt++) {
-    const subscribed = await checkOneSignalSubscriptionStatus(userId);
+    const subscribed = await checkOneSignalSubscriptionStatus(userId, { fresh: true });
     if (subscribed) return true;
     if (attempt < attempts - 1) await sleep(delayMs);
   }
@@ -193,11 +193,15 @@ export async function waitForOneSignalServerSubscription(userId: string, attempt
  * Check OneSignal subscription status server-side for a given user.
  * Returns true if the user has an active push subscription in OneSignal.
  */
-export async function checkOneSignalSubscriptionStatus(userId: string): Promise<boolean> {
+export async function checkOneSignalSubscriptionStatus(
+  userId: string,
+  options: { fresh?: boolean } = {},
+): Promise<boolean> {
   // Persistent guard: avoid hammering check-onesignal-subscriptions for the
   // same user within the TTL. If a previous check confirmed a subscription,
-  // we cache "true" alongside the timestamp.
-  try {
+  // we cache "true" alongside the timestamp. `fresh` bypasses the cache so
+  // the UI never claims a device is linked when the server says otherwise.
+  if (!options.fresh) try {
     const cached = sessionStorage.getItem(OS_SUBCHECK_KEY(userId));
     if (cached) {
       const [tsRaw, valueRaw] = cached.split("|");
@@ -231,23 +235,32 @@ export async function checkOneSignalSubscriptionStatus(userId: string): Promise<
  * Also calls the server-side edge function to ensure tags are synced
  * even if the SDK is unavailable or blocked.
  */
+function readCachedSubscription(userId: string): boolean {
+  try {
+    return sessionStorage.getItem(OS_SUBCHECK_KEY(userId))?.split("|")[1] === "1";
+  } catch {
+    return false;
+  }
+}
+
 export async function oneSignalLogin(
   userId: string,
   email: string,
-  userTags: Record<string, string>
+  userTags: Record<string, string>,
+  options: { force?: boolean } = {},
 ): Promise<boolean> {
   // Memoize: once logged in for this user in this tab session, skip re-sync
-  // (auth listener can refire on focus / token refresh).
-  if (lastLoggedInUserId === userId) {
-    return true;
+  // (auth listener can refire on focus / token refresh). The memoized result
+  // is the last known server state — never an optimistic "true".
+  // `force` (explicit user action / relink) always runs the full cycle.
+  if (!options.force && lastLoggedInUserId === userId) {
+    return readCachedSubscription(userId);
   }
 
   // Persistent guard (survives reloads, HMR, tab focus) — TTL 30 min.
-  // Avoids spamming sync-onesignal-tags + check-onesignal-subscriptions
-  // for a user already synced recently.
-  if (isGuardFresh(OS_SYNC_KEY(userId))) {
+  if (!options.force && isGuardFresh(OS_SYNC_KEY(userId))) {
     lastLoggedInUserId = userId;
-    return true;
+    return readCachedSubscription(userId);
   }
 
   lastLoggedInUserId = userId;
