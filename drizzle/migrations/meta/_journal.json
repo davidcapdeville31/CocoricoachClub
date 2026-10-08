@@ -92,6 +92,13 @@
       "when": 1791188803154,
       "tag": "0012_category_athlete_competition_entry",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1791463198545,
+      "tag": "0013_auto_push_on_assignment",
+      "breakpoints": true
     }
   ]
 }
