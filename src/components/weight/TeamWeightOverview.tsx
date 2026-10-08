@@ -244,7 +244,8 @@ export function TeamWeightOverview({ categoryId }: Props) {
                 })}
               </TableBody>
             </Table>
-          </div>
+            </div>
+          </>
         )}
 
         {rows.length - withData.length > 0 && (
