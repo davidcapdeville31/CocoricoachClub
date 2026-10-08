@@ -81,7 +81,7 @@ export function NotificationReminderModal() {
       if (granted) {
         localStorage.setItem(`${PERMISSION_GRANTED_KEY}_${user.id}`, "true");
         const tags = await buildUserTags(user.id);
-        await oneSignalLogin(user.id, user.email || "", tags);
+        await oneSignalLogin(user.id, user.email || "", tags, { force: true });
         localStorage.setItem(`${ONBOARDING_KEY}_${user.id}`, "done");
         console.log("[NotificationReminderModal] Push granted & synced");
       } else {

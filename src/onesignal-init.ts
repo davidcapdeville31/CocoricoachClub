@@ -12,8 +12,13 @@ window.OneSignalDeferred = window.OneSignalDeferred || [];
     return;
   }
 
+  // Never block OneSignal forever on the app worker: `ready` only resolves once
+  // some worker controls this scope, which may never happen on some phones.
   if (navigator.serviceWorker) {
-    await navigator.serviceWorker.ready;
+    await Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise((resolve) => setTimeout(resolve, 4000)),
+    ]);
   }
 
   try {

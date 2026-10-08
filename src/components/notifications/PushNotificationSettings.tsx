@@ -29,7 +29,7 @@ export function PushNotificationSettings() {
   // Check server-side OneSignal subscription status
   useEffect(() => {
     if (!user?.id) return;
-    checkOneSignalSubscriptionStatus(user.id).then(setServerSubscribed);
+    checkOneSignalSubscriptionStatus(user.id, { fresh: true }).then(setServerSubscribed);
   }, [user?.id]);
 
   const handleActivate = async () => {
@@ -40,7 +40,7 @@ export function PushNotificationSettings() {
       const granted = await requestOneSignalPermission();
       if (granted) {
         const subscribed = await Promise.race([
-          buildUserTags(user.id).then((tags) => oneSignalLogin(user.id, user.email || "", tags)),
+          buildUserTags(user.id).then((tags) => oneSignalLogin(user.id, user.email || "", tags, { force: true })),
           new Promise<false>((r) => setTimeout(() => r(false), 15000)),
         ]);
         localStorage.setItem(`${ONBOARDING_KEY}_${user.id}`, "done");
