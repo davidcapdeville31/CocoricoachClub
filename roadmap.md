@@ -1,5 +1,9 @@
 # Calendrier de charge
 
+## Notifications push d’Axelle
+- [ ] Corriger l’attente du démarrage réel du service avant d’enregistrer le téléphone.
+- [ ] Vérifier le parcours d’enregistrement ; réception sur le téléphone à confirmer avec Axelle après publication.
+
 ## Aperçu des présences aux compétitions
 - [x] Ajouter l’œil et les listes Présent / Absent / Sans réponse dans les vues du calendrier global, toutes disciplines.
 - [x] Vérifier l’aperçu connecté avec les convocations réelles (Seniores, Blagnac et Racing Club de France), sur ordinateur et téléphone.
