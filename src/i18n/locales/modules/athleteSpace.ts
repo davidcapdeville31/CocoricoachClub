@@ -204,6 +204,7 @@ export const athleteSpaceFr = {
     },
     title: "Mon calendrier",
     addSession: "Ajouter une séance",
+    recoverySession: "Récupération",
     upcomingConfirm: "Prochaines séances — confirme ta présence",
     upcomingConfirmMatch: "Prochaines compétitions — confirme ta présence",
     legend: {
@@ -1096,6 +1097,7 @@ export const athleteSpaceEn = {
     },
     title: "My calendar",
     addSession: "Add a session",
+    recoverySession: "Recovery",
     upcomingConfirm: "Upcoming sessions — confirm your attendance",
     upcomingConfirmMatch: "Upcoming competitions — confirm your attendance",
     legend: {
