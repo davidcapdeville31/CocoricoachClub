@@ -104,6 +104,30 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
     checkOneSignalSubscriptionStatus(targetUserId).then(setServerSubscribed).catch(() => setServerSubscribed(false));
   }, [playerData?.user_id, user?.id]);
 
+  // Auto-relink the device when the browser permission is already granted but
+  // no push subscription is attached (e.g. after app restart / cache refresh).
+  // The athlete already chose to enable notifications, so we re-register silently.
+  useEffect(() => {
+    const targetUserId = playerData?.user_id || user?.id;
+    if (!targetUserId || !user?.email) return;
+    if (serverSubscribed !== false) return;
+    if (getOneSignalPermission() !== "granted") return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        await initOneSignal();
+        const tags = await buildUserTags(targetUserId);
+        const timeout = new Promise<false>((r) => setTimeout(() => r(false), 15000));
+        const ok = await Promise.race([oneSignalLogin(targetUserId, user.email || "", tags), timeout]);
+        if (!cancelled && ok) setServerSubscribed(true);
+      } catch {
+        // Silently ignore — the manual button remains available
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [serverSubscribed, playerData?.user_id, user?.id, user?.email]);
+
   const handleActivateNotifications = async () => {
     setIsActivating(true);
     try {
