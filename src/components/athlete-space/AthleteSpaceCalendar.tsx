@@ -612,12 +612,12 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
     <div className="space-y-4">
       <Card className="bg-gradient-card shadow-md">
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Activity className="h-4 w-4" style={{ color: NAV_COLORS.planification.base }} />
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+            <CardTitle className="text-base flex items-center gap-2 min-w-0">
+              <Activity className="h-4 w-4 shrink-0" style={{ color: NAV_COLORS.planification.base }} />
               {t("athleteSpace.calendar.title")}
             </CardTitle>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2 sm:justify-end">
               <Button
                 size="sm"
                 onClick={() => setIsPickerOpen(true)}
