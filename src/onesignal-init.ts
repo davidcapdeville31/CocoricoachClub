@@ -2,6 +2,7 @@
 
 
 window.OneSignalDeferred = window.OneSignalDeferred || [];
+window.OneSignalReady = false;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (window.OneSignalDeferred as any[]).push(async function (OneSignal: any) {
@@ -10,15 +11,6 @@ window.OneSignalDeferred = window.OneSignalDeferred || [];
   if (!oneSignalAppId) {
     console.warn("[OneSignal] Missing App ID — SDK initialization skipped");
     return;
-  }
-
-  // Never block OneSignal forever on the app worker: `ready` only resolves once
-  // some worker controls this scope, which may never happen on some phones.
-  if (navigator.serviceWorker) {
-    await Promise.race([
-      navigator.serviceWorker.ready,
-      new Promise((resolve) => setTimeout(resolve, 4000)),
-    ]);
   }
 
   try {
@@ -33,6 +25,7 @@ window.OneSignalDeferred = window.OneSignalDeferred || [];
       ...(import.meta.env.DEV && { allowLocalhostAsSecureOrigin: true }),
     });
     window.OneSignal = OneSignal;
+    window.OneSignalReady = true;
     console.log("[OneSignal] SDK v16 initialized");
 
     // Listen for badge updates from the service worker and apply them to the app icon.
