@@ -797,7 +797,10 @@ export function SessionDetailsDialog({
                 </Badge>
               )}
               {(() => {
-                const count = (attendance?.length || 0) + (eventParticipants?.length || 0);
+                const count = new Set([
+                  ...((attendance as any[]) || []).map((a) => a.player_id),
+                  ...((eventParticipants as any[]) || []).map((e) => e.player_id),
+                ]).size;
                 if (count === 0) return null;
                 return (
                   <Badge variant="outline" className="flex items-center gap-1">

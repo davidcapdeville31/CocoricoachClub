@@ -206,13 +206,11 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
       const allSessionIds = allSessions.map((s: any) => s.id);
 
       // Convocations ciblées : séances ayant au moins une ligne event_participants
-      const { data: allParticipants } = allSessionIds.length > 0
-        ? await supabase
-            .from("event_participants")
-            .select("training_session_id, player_id")
-            .in("training_session_id", allSessionIds)
+      // RPC : l'athlète ne voit pas les convocations des autres (RLS)
+      const { data: targetedIds } = allSessionIds.length > 0
+        ? await supabase.rpc("get_targeted_session_ids", { _session_ids: allSessionIds })
         : { data: [] };
-      const targetedSessionIds = new Set((allParticipants || []).map((p: any) => p.training_session_id));
+      const targetedSessionIds = new Set<string>(((targetedIds as any[]) || []).map((v: any) => (typeof v === "string" ? v : v?.get_targeted_session_ids ?? v)));
 
       // Réponses présent/absent de l'athlète (séances collectives)
       const { data: ownAttendance } = allSessionIds.length > 0
