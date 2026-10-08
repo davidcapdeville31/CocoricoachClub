@@ -286,6 +286,10 @@ export async function oneSignalLogin(
   if (typeof window === "undefined" || !window.OneSignalReady || !window.OneSignal) {
     await serverSync;
     const ok = await waitForOneSignalServerSubscription(userId, 2, 1000);
+    if (!ok) {
+      clearGuards(userId);
+      lastLoggedInUserId = null;
+    }
     return ok;
   }
 
