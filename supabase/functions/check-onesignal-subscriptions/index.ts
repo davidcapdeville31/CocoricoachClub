@@ -54,7 +54,9 @@ serve(async (req: Request) => {
              s.type === "iOSPush" || s.type === "AndroidPush" || s.type === "WindowsPush") && 
             s.enabled === true
           );
-          const hasEmail = subscriptions.some((s: any) => s.type === "Email");
+          const hasEmail = subscriptions.some((s: any) =>
+            s.type === "Email" && s.enabled === true
+          );
 
           return { userId, hasPush, hasEmail };
         } catch (err) {
