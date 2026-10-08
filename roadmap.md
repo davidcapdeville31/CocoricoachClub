@@ -1,8 +1,9 @@
 # Calendrier de charge
 
 ## Notifications push d’Axelle
-- [ ] Corriger l’attente du démarrage réel du service avant d’enregistrer le téléphone.
-- [ ] Vérifier le parcours d’enregistrement ; réception sur le téléphone à confirmer avec Axelle après publication.
+- [x] Corriger l’attente du démarrage réel du service avant d’enregistrer le téléphone.
+- [x] Vérifier en simulation l’ordre démarrage → connexion → abonnement et l’absence de blocage après échec.
+- [ ] Confirmer la réception réelle sur le téléphone d’Axelle après publication et nouvelle activation (nécessite son téléphone).
 
 ## Aperçu des présences aux compétitions
 - [x] Ajouter l’œil et les listes Présent / Absent / Sans réponse dans les vues du calendrier global, toutes disciplines.
