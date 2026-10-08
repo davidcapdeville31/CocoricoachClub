@@ -255,6 +255,33 @@ export function DuplicateSessionDialog({ open, onOpenChange, session, categoryId
         if (error) throw error;
       }
 
+      // 2b) Copy planned exercises (musculation, cardio, etc.) so athletes see the content
+      const { data: srcExercises, error: exErr } = await withTimeout(
+        supabase
+          .from("gym_session_exercises")
+          .select("*")
+          .eq("training_session_id", session.id)
+          .is("player_id", null),
+        t("planning.calendarDialogs.duplicateSession.toasts.duplicatingBlocks")
+      );
+      if (exErr) throw exErr;
+      if (srcExercises && srcExercises.length > 0) {
+        const allExRows: any[] = [];
+        for (const ns of newSessions) {
+          for (const ex of srcExercises as any[]) {
+            const { id, created_at, training_session_id, ...rest } = ex;
+            allExRows.push({ ...rest, training_session_id: ns.id, category_id: categoryId });
+          }
+        }
+        for (const exChunk of chunkArray(allExRows, CHILD_INSERT_CHUNK_SIZE)) {
+          const { error } = await withTimeout(
+            supabase.from("gym_session_exercises").insert(exChunk),
+            t("planning.calendarDialogs.duplicateSession.toasts.duplicatingBlocks")
+          );
+          if (error) throw error;
+        }
+      }
+
       // 3) Fire-and-forget notifications with limited concurrency (don't block UI)
       if (participantIds.length > 0) {
         const sessionType = (src as any).training_type;
