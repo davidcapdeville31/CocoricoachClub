@@ -262,13 +262,13 @@ export function AnnualTimelineView({
               {/* Row label */}
               <div
                 style={{ width: labelWidth, minWidth: labelWidth }}
-                className="shrink-0 sticky left-0 z-20 bg-card flex items-center px-2 sm:px-3 py-3 gap-1.5 sm:gap-2.5"
+                className="shrink-0 sticky left-0 z-20 bg-card flex items-center px-2 sm:px-3 py-3 gap-1.5 sm:gap-2.5 overflow-hidden"
               >
                 <div
                   className="w-3 h-3 rounded-md shrink-0 shadow-sm"
                   style={{ backgroundColor: cat.color }}
                 />
-                <span className="text-xs font-bold leading-tight break-words">{cat.name}</span>
+                <span className="text-xs font-bold leading-tight break-words flex-1 min-w-0">{cat.name}</span>
                 {!isViewer && (
                   <button
                     className="opacity-0 group-hover/row:opacity-100 transition-opacity ml-auto p-0.5 rounded hover:bg-muted"
