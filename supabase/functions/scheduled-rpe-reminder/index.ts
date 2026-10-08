@@ -45,41 +45,43 @@ serve(async (req) => {
       Authorization: `Key ${oneSignalApiKey}`,
     };
 
-    // Get current time and check for sessions that ended in the last 30 minutes
+    // Fuseau horaire par club : rappel 30 min après la fin de séance (heure locale)
+    // + relance le lendemain à 8h00 locale si le RPE n'est toujours pas saisi.
     const now = new Date();
-    const thirtyMinutesAgo = new Date(now.getTime() - 30 * 60 * 1000);
-    const today = now.toISOString().split("T")[0];
-    const currentTime = now.toTimeString().split(" ")[0].substring(0, 5);
-    const thirtyMinAgoTime = thirtyMinutesAgo.toTimeString().split(" ")[0].substring(0, 5);
+    const { data: clubs } = await supabase.from("clubs").select("id, timezone");
+    const sel = `id, session_date, session_end_time, training_type, category_id,
+        categories!inner(id, name, club_id, clubs!inner(name))`;
+    const local = (d: Date, tz: string) => {
+      const parts = new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(d);
+      const g = (t: string) => parts.find((x) => x.type === t)!.value;
+      return { date: `${g("year")}-${g("month")}-${g("day")}`, time: `${g("hour")}:${g("minute")}`, hour: Number(g("hour")), minute: Number(g("minute")) };
+    };
+    const sessions: any[] = [];
+    for (const club of clubs || []) {
+      const tz = club.timezone || "Europe/Paris";
+      let from, to, nowL;
+      try { from = local(new Date(now.getTime() - 60 * 60000), tz); to = local(new Date(now.getTime() - 30 * 60000), tz); nowL = local(now, tz); } catch { continue; }
+      // Séances terminées il y a 30 à 60 min (le cron tourne toutes les 30 min)
+      if (from.date === to.date) {
+        const { data } = await supabase.from("training_sessions").select(sel)
+          .eq("categories.club_id", club.id).eq("session_date", to.date)
+          .not("session_end_time", "is", null)
+          .gt("session_end_time", from.time).lte("session_end_time", to.time + ":59");
+        for (const x of data || []) sessions.push({ ...x, kind: "rpe_reminder" });
+      }
+      // Relance du lendemain 8h00
+      if (nowL.hour === 8 && nowL.minute < 30) {
+        const y = local(new Date(now.getTime() - 24 * 3600000), tz).date;
+        const { data } = await supabase.from("training_sessions").select(sel)
+          .eq("categories.club_id", club.id).eq("session_date", y);
+        for (const x of data || []) sessions.push({ ...x, kind: "rpe_reminder_followup" });
+      }
+    }
+    console.log(`[rpe] ${sessions.length} session(s) to remind`);
 
-    console.log(`[rpe] Checking sessions ending between ${thirtyMinAgoTime} and ${currentTime} on ${today}`);
-
-    // Get sessions that ended in the last 30 minutes
-    const { data: sessions, error: sessionsError } = await supabase
-      .from("training_sessions")
-      .select(`
-        id,
-        session_date,
-        session_end_time,
-        training_type,
-        category_id,
-        categories!inner(
-          id,
-          name,
-          club_id,
-          clubs!inner(name)
-        )
-      `)
-      .eq("session_date", today)
-      .not("session_end_time", "is", null)
-      .gte("session_end_time", thirtyMinAgoTime)
-      .lte("session_end_time", currentTime);
-
-    if (sessionsError) throw sessionsError;
-
-    if (!sessions || sessions.length === 0) {
+    if (sessions.length === 0) {
       return new Response(
-        JSON.stringify({ message: "No sessions ended in the last 30 minutes" }),
+        JSON.stringify({ message: "No sessions to remind" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -157,20 +159,22 @@ serve(async (req) => {
       const appBaseUrl = "https://cocoricoachclub.com";
       const rpeDeepLink = `${appBaseUrl}/athlete-space?tab=rpe`;
 
+      const isFollowup = session.kind === "rpe_reminder_followup";
       const tonnageHint = isStrength
         ? " (et le tonnage si ton coach ne l'a pas encore renseigné)"
         : "";
 
+      let alreadyNotified = new Set<string>();
       // ── IN-APP NOTIFICATIONS (cloche rouge) ─────────────────────────────
       try {
         // Dédup: ne pas réinsérer si déjà créée pour cette session
         const { data: existingNotifs } = await supabase
           .from("notifications")
           .select("user_id")
-          .eq("notification_type", "rpe_reminder")
+          .eq("notification_type", session.kind)
           .filter("metadata->>session_id", "eq", session.id);
 
-        const alreadyNotified = new Set(
+        alreadyNotified = new Set(
           (existingNotifs ?? []).map((n: any) => n.user_id),
         );
 
@@ -179,10 +183,10 @@ serve(async (req) => {
           .map((p) => ({
             user_id: p.user_id!,
             category_id: session.category_id,
-            notification_type: "rpe_reminder",
+            notification_type: session.kind,
             notification_subtype: session.training_type,
-            title: "RPE à renseigner 💪",
-            message: `Ta séance "${trainingTypeLabel}" (${category.name}) est terminée. Pense à renseigner ton RPE${tonnageHint}.`,
+            title: isFollowup ? "RPE d'hier non renseigné ⏰" : "RPE à renseigner 💪",
+            message: isFollowup ? `Tu n'as pas encore donné ton RPE pour ta séance "${trainingTypeLabel}" d'hier (${category.name}).` : `Ta séance "${trainingTypeLabel}" (${category.name}) est terminée. Pense à renseigner ton RPE${tonnageHint}.`,
             is_read: false,
             priority: "normal",
             metadata: {
@@ -205,6 +209,7 @@ serve(async (req) => {
         }
       } catch (e) {
         console.error("[rpe] In-app notification error:", e);
+        continue;
       }
 
       // Filter recipients by per-user notification preferences (push only — pas d'email pour ce rappel)
@@ -216,7 +221,7 @@ serve(async (req) => {
 
       // ── PUSH via OneSignal (external_id targeting) ─────────────────────
       const pushUserIds = players
-        .filter((p) => p.user_id && allowedPushSet.has(p.user_id!))
+        .filter((p) => p.user_id && allowedPushSet.has(p.user_id!) && !alreadyNotified.has(p.user_id!))
         .map((p) => p.user_id!);
 
       if (pushUserIds.length > 0) {
@@ -229,16 +234,16 @@ serve(async (req) => {
               include_aliases: { external_id: pushUserIds },
               target_channel: "push",
               headings: {
-                fr: "Comment s'est passée la séance ? 💪",
+                fr: isFollowup ? "RPE d'hier non renseigné ⏰" : "Comment s'est passée la séance ? 💪",
                 en: "How did your session go? 💪",
               },
               contents: {
-                fr: `"${trainingTypeLabel}" (${category.name}) est terminée. Donne ton RPE${tonnageHint} en 10 secondes !`,
+                fr: isFollowup ? `Donne ton RPE pour "${trainingTypeLabel}" d'hier (${category.name}) en 10 secondes !` : `"${trainingTypeLabel}" (${category.name}) est terminée. Donne ton RPE${tonnageHint} en 10 secondes !`,
                 en: `"${trainingTypeLabel}" (${category.name}) is done. Log your RPE${tonnageHint} in 10s!`,
               },
               web_url: rpeDeepLink,
               ttl: 7200,
-              web_push_topic: `rpe-reminder-${session.id}`,
+              web_push_topic: `${session.kind}-${session.id}`,
               data: {
                 type: "rpe_reminder",
                 session_id: session.id,
@@ -267,7 +272,7 @@ serve(async (req) => {
         totalPlayers: playerIds.length,
         alreadySubmitted: submittedPlayerIds.size,
         pushTargeted: pushUserIds.length,
-        type: "rpe_reminder",
+        type: session.kind,
       });
     }
 

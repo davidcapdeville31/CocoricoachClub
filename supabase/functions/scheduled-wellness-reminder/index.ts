@@ -54,9 +54,9 @@ serve(async (req) => {
         const tz = club.timezone || "Europe/Paris";
         const nowInTz = new Date().toLocaleString("en-US", { timeZone: tz });
         const localHour = new Date(nowInTz).getHours();
-        if (localHour === 8) {
+        if (localHour === 7) {
           eligibleClubIds.push(club.id);
-          console.log(`[wellness] Club "${club.name}" (${tz}) → 8h local ✓`);
+          console.log(`[wellness] Club "${club.name}" (${tz}) → 7h local ✓`);
         } else {
           console.log(`[wellness] Club "${club.name}" (${tz}) → ${localHour}h local, skipping`);
         }
@@ -66,9 +66,9 @@ serve(async (req) => {
     }
 
     if (eligibleClubIds.length === 0) {
-      console.log("[wellness] No clubs at 8h local right now");
+      console.log("[wellness] No clubs at 7h local right now");
       return new Response(
-        JSON.stringify({ skipped: true, reason: "No clubs at 8h local" }),
+        JSON.stringify({ skipped: true, reason: "No clubs at 7h local" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -132,7 +132,17 @@ serve(async (req) => {
       if (!players || players.length === 0) continue;
 
       // Filter by per-user push preferences
-      const allUserIds = players.filter((p) => p.user_id).map((p) => p.user_id!);
+      // Ne pas relancer celles qui ont déjà rempli leur wellness aujourd'hui (date locale)
+      const club = allClubs.find((c: any) => c.id === category.club_id);
+      const localToday = new Date().toLocaleDateString("en-CA", { timeZone: club?.timezone || "Europe/Paris" });
+      const { data: done } = await supabase
+        .from("wellness_tracking")
+        .select("player_id")
+        .eq("tracking_date", localToday)
+        .eq("auto_filled", false)
+        .in("player_id", players.map((p) => p.id));
+      const doneSet = new Set((done || []).map((d: any) => d.player_id));
+      const allUserIds = players.filter((p) => p.user_id && !doneSet.has(p.id)).map((p) => p.user_id!);
       const { pushUserIds: allowedPushUserIds } =
         await filterByPreferences(supabase, allUserIds, "wellness_reminder");
       const allowedPushSet = new Set(allowedPushUserIds);
