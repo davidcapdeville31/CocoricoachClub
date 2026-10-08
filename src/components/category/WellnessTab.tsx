@@ -375,7 +375,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                 <div className="flex flex-wrap items-center gap-2">
                   {/* Player filter */}
                   <Select value={filterPlayerId} onValueChange={setFilterPlayerId}>
-                    <SelectTrigger className="w-[200px]">
+                    <SelectTrigger className="w-full sm:w-[200px]">
                       <SelectValue placeholder={t("health.wellness.allAthletes")} />
                     </SelectTrigger>
                     <SelectContent>
@@ -489,7 +489,50 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
           </div>
         ) : (
           <>
-            <div className="rounded-md border overflow-auto max-h-[60vh]">
+            {/* Mobile : cartes empilées pour éviter le scroll horizontal */}
+            <div className="sm:hidden space-y-3">
+              {filteredWellnessData.map((entry) => (
+                <Card key={entry.id}>
+                  <CardContent className="p-3 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-medium text-sm inline-flex items-center gap-2 min-w-0">
+                        <span className="truncate">{[entry.players?.first_name, entry.players?.name].filter(Boolean).join(" ")}</span>
+                        {entry.auto_filled && (
+                          <Badge variant="outline" className="text-[10px] text-muted-foreground shrink-0">
+                            {t("health.wellness.table.auto")}
+                          </Badge>
+                        )}
+                      </span>
+                      <span className="text-xs text-muted-foreground shrink-0">
+                        {format(new Date(entry.tracking_date), "dd MMM yyyy", { locale: getDateLocale() })}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {activeQuestions.map((q) => {
+                        const raw = getAnswer(entry, q);
+                        if (raw == null) return null;
+                        return (
+                          <Badge key={q.key} variant="outline" className="text-[11px]" style={styleForQuestion(q, raw)}>
+                            {q.emoji ? `${q.emoji} ` : ""}{q.is_sleep_duration ? `${q.label} ${sleepScoreLabel(raw)}` : `${q.label} ${raw}`}
+                          </Badge>
+                        );
+                      })}
+                      <Badge variant="outline" className="text-[11px]" style={styleFor(parseFloat(calculateWellnessScore(entry)))}>
+                        {t("health.wellness.table.averageScore")} {calculateWellnessScore(entry)}
+                      </Badge>
+                    </div>
+                    {entry.has_specific_pain && (
+                      <div className="flex items-center gap-1.5 text-destructive text-xs">
+                        <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                        <span>{entry.pain_location || t("health.wellness.table.yes")}</span>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <div className="hidden sm:block rounded-md border overflow-auto max-h-[60vh]">
               <Table className="min-w-max">
                 <TableHeader>
                   <TableRow>
