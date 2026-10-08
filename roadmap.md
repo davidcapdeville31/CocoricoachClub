@@ -1,8 +1,8 @@
 # Calendrier de charge
 
 ## Aperçu des présences aux compétitions
-- [ ] Ajouter l’œil et les listes Présent / Absent / Sans réponse dans les vues du calendrier global, toutes disciplines.
-- [ ] Vérifier l’aperçu connecté avec les convocations réelles.
+- [x] Ajouter l’œil et les listes Présent / Absent / Sans réponse dans les vues du calendrier global, toutes disciplines.
+- [x] Vérifier l’aperçu connecté avec les convocations réelles (Seniores, Blagnac et Racing Club de France), sur ordinateur et téléphone.
 
 - [x] Afficher entraînements et compétitions, y compris amicales, dans la semaine et le mois pour toutes les disciplines.
 - [x] Intégrer la référence compétition RPE 8 au résumé journalier sans modifier les charges réellement saisies.

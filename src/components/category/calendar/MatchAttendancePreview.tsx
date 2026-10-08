@@ -71,6 +71,13 @@ export function MatchAttendancePreview({ match, onOpenChange }: Props) {
         ) : (
           <div className="space-y-5">
             <p className="text-sm font-medium">{t("planning.calendarViews.attendancePreview.total", { count: participants.length })}</p>
+            <div className="flex flex-wrap gap-x-4 gap-y-2 border-b border-border pb-3">
+              {groups.map(({ status, label, icon: Icon, color }) => (
+                <span key={status} className={cn("flex items-center gap-1.5 text-xs font-semibold", color)}>
+                  <Icon className="h-3.5 w-3.5" />{label} · {participants.filter((p) => p.status === status).length}
+                </span>
+              ))}
+            </div>
             {groups.map(({ status, label, icon: Icon, color }) => {
               const members = participants.filter((p) => p.status === status);
               return (
