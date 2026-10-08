@@ -3,7 +3,11 @@
 ## Notifications push d’Axelle
 - [x] Corriger l’attente du démarrage réel du service avant d’enregistrer le téléphone.
 - [x] Vérifier en simulation l’ordre démarrage → connexion → abonnement et l’absence de blocage après échec.
-- [ ] Confirmer la réception réelle sur le téléphone d’Axelle après publication et nouvelle activation (nécessite son téléphone).
+- [x] Confirmer la réception réelle sur le téléphone d’Axelle après nouvelle activation (confirmée par David).
+
+## Vérification des notifications push toutes disciplines
+- [ ] Contrôler les abonnements des athlètes ayant activé tous les types de push.
+- [ ] Vérifier les rappels wellness/RPE et les preuves d’envoi disponibles, sans envoyer de rappels supplémentaires.
 
 ## Aperçu des présences aux compétitions
 - [x] Ajouter l’œil et les listes Présent / Absent / Sans réponse dans les vues du calendrier global, toutes disciplines.
