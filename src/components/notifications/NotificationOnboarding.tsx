@@ -137,7 +137,7 @@ export function NotificationOnboarding() {
         (async () => {
           try {
             const tags = await buildUserTags(user.id);
-            await oneSignalLogin(user.id, user.email || "", tags);
+            await oneSignalLogin(user.id, user.email || "", tags, { force: true });
             console.log("[NotificationOnboarding] Push permission granted & synced");
           } catch (err) {
             console.error("[NotificationOnboarding] Background sync error:", err);
