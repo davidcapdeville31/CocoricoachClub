@@ -15531,6 +15531,10 @@ export type Database = {
         }[]
       }
       get_security_stats: { Args: { _days?: number }; Returns: Json }
+      get_targeted_session_ids: {
+        Args: { _session_ids: string[] }
+        Returns: string[]
+      }
       has_club_role: {
         Args: {
           _club_id: string
