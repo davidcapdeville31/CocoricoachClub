@@ -172,13 +172,14 @@ export function AnnualTimelineView({
     return eachWeekOfInterval({ start: yearStart, end: yearEnd }, { weekStartsOn: 1 });
   }, [year]);
 
-  const labelWidth = isMobile ? "96px" : "200px";
+  const labelWidth = isMobile ? "120px" : "200px";
   // Sur mobile, on garde ~64px par mois et on scrolle horizontalement pour rester lisible
-  const timelineMinWidth = isMobile ? `${96 + months.length * 64}px` : undefined;
+  const timelineMinWidth = isMobile ? `${120 + months.length * 64}px` : undefined;
 
   return (
     <div className="relative w-full overflow-x-auto">
       <div className="w-full" style={{ minWidth: timelineMinWidth }}>
+        <div className="relative">
         {/* MONTH HEADER */}
         <div className="flex border-b-2 border-border/60">
           <div style={{ width: labelWidth, minWidth: labelWidth }} className="shrink-0 sticky left-0 z-20 bg-card" />
@@ -261,13 +262,13 @@ export function AnnualTimelineView({
               {/* Row label */}
               <div
                 style={{ width: labelWidth, minWidth: labelWidth }}
-                className="shrink-0 sticky left-0 z-20 bg-card flex items-center px-2 sm:px-3 py-3 gap-1.5 sm:gap-2.5"
+                className="shrink-0 sticky left-0 z-20 bg-card flex items-center px-2 sm:px-3 py-3 gap-1.5 sm:gap-2.5 overflow-hidden"
               >
                 <div
                   className="w-3 h-3 rounded-md shrink-0 shadow-sm"
                   style={{ backgroundColor: cat.color }}
                 />
-                <span className="text-xs font-bold leading-tight break-words">{cat.name}</span>
+                <span className="text-xs font-bold leading-tight break-words hyphens-auto flex-1 min-w-0">{cat.name}</span>
                 {!isViewer && (
                   <button
                     className="opacity-0 group-hover/row:opacity-100 transition-opacity ml-auto p-0.5 rounded hover:bg-muted"
@@ -499,6 +500,7 @@ export function AnnualTimelineView({
             </div>
           </div>
         )}
+        </div>
 
         {/* LOAD BAR (global intensity visualization)
             Pour chaque jour de l'année, on calcule la moyenne des intensités
