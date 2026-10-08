@@ -103,7 +103,65 @@ export function TeamWeightOverview({ categoryId }: Props) {
         ) : rows.length === 0 ? (
           <p className="text-sm text-muted-foreground">Aucun athlète dans cette catégorie.</p>
         ) : (
-          <div className="rounded-xl border overflow-x-auto">
+          <>
+            {/* Mobile : cartes empilées pour éviter le scroll horizontal */}
+            <div className="sm:hidden space-y-2">
+              {rows.map((r) => {
+                const d = r.trend?.deltaPrev ?? null;
+                const Icon = !d ? Minus : d > 0 ? TrendingUp : TrendingDown;
+                const color = !d ? "text-muted-foreground" : d > 0 ? "text-warning" : "text-status-optimal";
+                const hasChart = (r.trend?.count || 0) >= 2;
+                return (
+                  <div
+                    key={r.id}
+                    className={`rounded-2xl border p-3 ${r.trend ? "" : "opacity-60"}`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        {hasChart ? (
+                          <button
+                            type="button"
+                            onClick={() => setFocusPlayer({ id: r.id, name: r.name })}
+                            className="font-medium truncate hover:text-primary hover:underline underline-offset-2 text-left"
+                            title="Voir la courbe de poids"
+                          >
+                            {r.name}
+                          </button>
+                        ) : (
+                          <span className="font-medium truncate">{r.name}</span>
+                        )}
+                        {hasChart && (
+                          <button
+                            type="button"
+                            className="text-primary shrink-0"
+                            title="Voir la courbe de poids"
+                            onClick={() => setFocusPlayer({ id: r.id, name: r.name })}
+                          >
+                            <LineChartIcon className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      </div>
+                      <span className="font-bold shrink-0">{r.trend ? `${r.trend.current} kg` : "—"}</span>
+                    </div>
+                    {r.trend && (
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-muted-foreground">
+                        <span>{format(new Date(r.trend.currentDate), "dd/MM/yyyy")}</span>
+                        <span className={`inline-flex items-center gap-1 ${color}`}>
+                          <Icon className="h-3 w-3" />
+                          {d == null ? "—" : `${d > 0 ? "+" : ""}${d} kg`}
+                        </span>
+                        <span>
+                          30 j : {r.trend.delta30 > 0 ? "+" : ""}{r.trend.delta30} kg
+                        </span>
+                        <Badge variant="secondary" className="text-[10px]">{r.trend.count} mesures</Badge>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="hidden sm:block rounded-xl border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
