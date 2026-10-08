@@ -9,6 +9,7 @@ declare global {
   interface Window {
     OneSignal?: any;
     OneSignalDeferred?: any[];
+    OneSignalReady?: boolean;
   }
 }
 
@@ -63,16 +64,16 @@ const hasNotificationAPI = () =>
  * Attend que le SDK soit prêt avant de résoudre.
  */
 export async function initOneSignal(): Promise<void> {
-  if (isInitialized && window.OneSignal) return;
   if (typeof window === "undefined") return;
+  if (isInitialized && window.OneSignalReady && window.OneSignal) return;
 
   // Attendre que window.OneSignal soit peuplé par OneSignalDeferred
   await new Promise<void>((resolve) => {
     let attempts = 0;
-    const maxAttempts = 25; // 5s max (200ms * 25)
+    const maxAttempts = 40; // Initialization includes network and worker registration.
     const check = () => {
       attempts++;
-      if (window.OneSignal && typeof window.OneSignal.login === "function") {
+      if (window.OneSignalReady === true && typeof window.OneSignal?.login === "function") {
         isInitialized = true;
         console.log("[OneSignal] SDK v16 ready");
         resolve();
@@ -147,21 +148,22 @@ export function getOneSignalPermission(): NotificationPermission {
 }
 
 async function ensurePushSubscription(): Promise<boolean> {
-  if (typeof window === "undefined" || !window.OneSignal) return false;
+  if (typeof window === "undefined" || !window.OneSignalReady) return false;
+  if (getOneSignalPermission() !== "granted") return false;
 
   try {
-    const pushSubscription = window.OneSignal.User?.PushSubscription;
-
-    if (pushSubscription?.optIn) {
-      await pushSubscription.optIn();
+    if (window.OneSignal.User?.PushSubscription?.optIn) {
+      await window.OneSignal.User.PushSubscription.optIn();
     }
 
     for (let attempt = 0; attempt < 8; attempt++) {
+      // login() can replace the User model; never poll a stale reference.
+      const pushSubscription = window.OneSignal.User?.PushSubscription;
       const optedIn = pushSubscription?.optedIn === true;
       const token = typeof pushSubscription?.token === "string" && pushSubscription.token.length > 0;
       const subscriptionId = typeof pushSubscription?.id === "string" && pushSubscription.id.length > 0;
 
-      if (optedIn || token || subscriptionId) {
+      if (optedIn && token && subscriptionId) {
         console.log("[OneSignal] Push subscription ready", {
           optedIn,
           hasToken: token,
@@ -263,10 +265,8 @@ export async function oneSignalLogin(
     return readCachedSubscription(userId);
   }
 
-  lastLoggedInUserId = userId;
-
-  // ── Always sync server-side first (most reliable — works on any domain) ──
-  try {
+  // Do not let tag synchronization delay registration of the actual device.
+  const serverSync = (async () => { try {
     const res = await supabase.functions.invoke("sync-onesignal-tags", {
       body: { user_id: userId },
     });
@@ -277,13 +277,15 @@ export async function oneSignalLogin(
     }
   } catch (err) {
     console.warn("[OneSignal] Server sync failed:", err);
-  }
+  } })();
+
+  await initOneSignal();
 
   // ── SDK-side: link external_id and set tags in the browser ───────────────
   // This only works on the production domain (cocoricoachclub.com)
-  if (typeof window === "undefined" || !window.OneSignal) {
+  if (typeof window === "undefined" || !window.OneSignalReady || !window.OneSignal) {
+    await serverSync;
     const ok = await waitForOneSignalServerSubscription(userId, 2, 1000);
-    setGuard(OS_SYNC_KEY(userId));
     return ok;
   }
 
@@ -329,9 +331,14 @@ export async function oneSignalLogin(
   }
 
   const subscribed = await waitForOneSignalServerSubscription(userId);
-  // Mark guard fresh once the full sync cycle has run, even if not subscribed yet —
-  // we don't want to re-spam the edge functions on every focus event.
-  setGuard(OS_SYNC_KEY(userId));
+  // A failed attempt must not block registration on the next app opening.
+  if (subscribed) {
+    lastLoggedInUserId = userId;
+    setGuard(OS_SYNC_KEY(userId));
+  } else {
+    clearGuards(userId);
+    lastLoggedInUserId = null;
+  }
   return subscribed;
 }
 
