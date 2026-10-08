@@ -202,11 +202,36 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
       const sessionsById = new Map(
         [...(categorySessions || []), ...(linkedSessions || [])].map((session) => [session.id, session]),
       );
-      // Un athlète ne voit une séance que si (a) il l'a créée lui-même,
-      // ou (b) il figure explicitement dans les participants convoqués.
-      return Array.from(sessionsById.values()).filter((s: any) => {
-        if (s.created_by_player_id && s.created_by_player_id === playerId) return true;
-        return assignedSessionIds.has(s.id);
+      const allSessions = Array.from(sessionsById.values());
+      const allSessionIds = allSessions.map((s: any) => s.id);
+
+      // Convocations ciblées : séances ayant au moins une ligne event_participants
+      const { data: allParticipants } = allSessionIds.length > 0
+        ? await supabase
+            .from("event_participants")
+            .select("training_session_id, player_id")
+            .in("training_session_id", allSessionIds)
+        : { data: [] };
+      const targetedSessionIds = new Set((allParticipants || []).map((p: any) => p.training_session_id));
+
+      // Réponses présent/absent de l'athlète (séances collectives)
+      const { data: ownAttendance } = allSessionIds.length > 0
+        ? await supabase
+            .from("training_attendance")
+            .select("training_session_id")
+            .eq("player_id", playerId)
+            .in("training_session_id", allSessionIds)
+        : { data: [] };
+      const attendedSessionIds = new Set((ownAttendance || []).map((a: any) => a.training_session_id));
+
+      // Un athlète voit une séance si (a) il l'a créée lui-même,
+      // (b) il figure dans les participants convoqués,
+      // (c) il a déjà répondu présent/absent,
+      // ou (d) la séance est collective (aucune convocation ciblée enregistrée).
+      return allSessions.filter((s: any) => {
+        if (s.created_by_player_id) return s.created_by_player_id === playerId;
+        if (assignedSessionIds.has(s.id) || attendedSessionIds.has(s.id)) return true;
+        return !targetedSessionIds.has(s.id);
       }).sort((a, b) => b.session_date.localeCompare(a.session_date));
     },
   });
