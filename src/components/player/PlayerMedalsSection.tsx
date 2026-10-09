@@ -5,9 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Award, Trophy, Calendar, MapPin, Users } from "lucide-react";
 import { format } from "date-fns";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { AddManualMedalDialog } from "./AddManualMedalDialog";
 
 interface PlayerMedalsSectionProps {
   playerId: string;
+  categoryId?: string;
 }
 
 const MEDAL_ICONS: Record<string, string> = {
@@ -34,7 +39,8 @@ const MEDAL_COLORS: Record<string, string> = {
   title: "bg-primary/10 border-primary/30 text-primary",
 };
 
-export function PlayerMedalsSection({ playerId }: PlayerMedalsSectionProps) {
+export function PlayerMedalsSection({ playerId, categoryId }: PlayerMedalsSectionProps) {
+  const [addOpen, setAddOpen] = useState(false);
   const { data: medals, isLoading } = useQuery({
     queryKey: ["player-medals", playerId],
     queryFn: async () => {
@@ -46,25 +52,47 @@ export function PlayerMedalsSection({ playerId }: PlayerMedalsSectionProps) {
         .eq("player_id", playerId)
         .order("awarded_date", { ascending: false });
       if (error) throw error;
-      return data;
+      const { data: manual } = await supabase
+        .from("player_manual_medals")
+        .select("*")
+        .eq("player_id", playerId);
+      const merged = [
+        ...(data || []),
+        ...(manual || []).map((m: any) => ({ ...m, matches: { competition: m.competition_name, location: m.location } })),
+      ];
+      merged.sort((a: any, b: any) => (b.awarded_date || "").localeCompare(a.awarded_date || ""));
+      return merged;
     },
   });
+
+  const addButton = categoryId ? (
+    <Button size="sm" variant="outline" className="gap-1" onClick={() => setAddOpen(true)}>
+      <Plus className="h-4 w-4" /> Ajouter
+    </Button>
+  ) : null;
+  const dialog = categoryId ? (
+    <AddManualMedalDialog open={addOpen} onOpenChange={setAddOpen} playerId={playerId} categoryId={categoryId} />
+  ) : null;
 
   if (isLoading) return null;
   if (!medals || medals.length === 0) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Award className="h-5 w-5 text-primary" />
-            Palmarès
-          </CardTitle>
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Award className="h-5 w-5 text-primary" />
+              Palmarès
+            </CardTitle>
+            {addButton}
+          </div>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground text-center py-4">
-            Aucune médaille pour le moment. Ajoute des récompenses depuis l'onglet Compétition.
+            Aucune médaille pour le moment. Ajoute des récompenses depuis l'onglet Compétition ou avec le bouton « Ajouter ».
           </p>
         </CardContent>
+        {dialog}
       </Card>
     );
   }
@@ -96,6 +124,7 @@ export function PlayerMedalsSection({ playerId }: PlayerMedalsSectionProps) {
                   </Badge>
                 )
             )}
+            {addButton}
           </div>
         </div>
       </CardHeader>
@@ -169,6 +198,7 @@ export function PlayerMedalsSection({ playerId }: PlayerMedalsSectionProps) {
           })}
         </div>
       </CardContent>
+      {dialog}
     </Card>
   );
 }
