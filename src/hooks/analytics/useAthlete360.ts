@@ -292,6 +292,7 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
             .from("event_participants")
             .select("training_session_id, player_id, attendance_status")
             .in("training_session_id", sessionIds)
+            .order("id", { ascending: true })
             .range(from, from + page - 1);
           if (error) throw error;
           eventParticipants.push(...(data || []));
@@ -308,6 +309,7 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
             .from("match_participants")
             .select("match_id, player_id, attendance_status")
             .in("match_id", matchIds)
+            .order("id", { ascending: true })
             .range(from, from + page - 1);
           if (error) throw error;
           matchParticipants.push(...(data || []));
