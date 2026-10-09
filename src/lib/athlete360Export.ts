@@ -21,6 +21,9 @@ export interface Athlete360ExportSubject {
   chronicLoad?: number | null;
   totalLoad?: number | null;
   loadSessions?: number;
+  realRpeSessions?: number;
+  autoRpeSessions?: number;
+  sessionDetails?: { date: string; type: string; present: boolean | null; duration: number | null; rpe: number | null; source: string; load: number }[];
   acwr: number | null;
   acwrInsufficient: boolean;
   injuryCount: number;
@@ -70,10 +73,14 @@ const COLUMNS: Col[] = [
   { domain: "presence", header: "Présence compétitions (%)", pdf: "Compét. %", w: 0.07, csv: (s) => s.matchRate, pdfVal: (s) => pct(s.matchRate) },
   { domain: "presence", header: "Compétitions (présent/convoqué)", pdf: "Compét.", w: 0.06, csv: (s) => `${s.matchPresent}/${s.matchCalled}`, pdfVal: (s) => `${s.matchPresent}/${s.matchCalled}` },
   { domain: "load", header: "Séances avec charge", pdf: "Séances", w: 0.06, csv: (s) => s.loadSessions ?? null, pdfVal: (s) => String(s.loadSessions ?? "—") },
+  { domain: "load", header: "Séances RPE saisi athlète", pdf: "RPE réel", w: 0.06, csv: (s) => s.realRpeSessions ?? null, pdfVal: (s) => String(s.realRpeSessions ?? "—") },
+  { domain: "load", header: "Séances RPE auto-complété", pdf: "RPE auto", w: 0.06, csv: (s) => s.autoRpeSessions ?? null, pdfVal: (s) => String(s.autoRpeSessions ?? "—") },
   { domain: "load", header: "Charge totale (UA)", pdf: "Total", w: 0.07, csv: (s) => s.totalLoad ?? null, pdfVal: (s) => num(s.totalLoad ?? null) },
   { domain: "load", header: "Charge hebdo moyenne (UA)", pdf: "Charge/sem", w: 0.07, csv: (s) => s.weeklyLoad, pdfVal: (s) => num(s.weeklyLoad) },
   { domain: "load", header: "Charge aiguë (UA/j, 7 j)", pdf: "Aiguë", w: 0.06, csv: (s) => s.acuteLoad ?? null, pdfVal: (s) => num(s.acuteLoad ?? null) },
   { domain: "load", header: "Charge chronique (UA/j, 28 j)", pdf: "Chron.", w: 0.06, csv: (s) => s.chronicLoad ?? null, pdfVal: (s) => num(s.chronicLoad ?? null) },
+  { domain: "load", header: "Diviseur charge aiguë", pdf: "÷ aiguë", w: 0.05, csv: () => "7 jours calendaires", pdfVal: () => "7 j" },
+  { domain: "load", header: "Diviseur charge chronique", pdf: "÷ chron.", w: 0.05, csv: () => "28 jours calendaires", pdfVal: () => "28 j" },
   { domain: "load", header: "Ratio charge (ACWR)", pdf: "Ratio", w: 0.07, csv: fmtAcwr, pdfVal: (s) => (s.acwrInsufficient ? "Reprise" : s.acwr != null ? s.acwr.toFixed(2) : "—") },
   { domain: "health", header: "Blessures (épisodes)", pdf: "Bless.", w: 0.06, csv: (s) => s.injuryCount, pdfVal: (s) => String(s.injuryCount) },
   { domain: "health", header: "Jours indisponible", pdf: "Jours indispo", w: 0.07, csv: (s) => s.injuryDays, pdfVal: (s) => `${s.injuryDays} j` },
@@ -107,6 +114,36 @@ export function exportAthlete360Csv(ctx: Athlete360ExportContext) {
     `comparaison_360_${format(new Date(), "yyyyMMdd")}.csv`,
     generateCsv(headers, rows),
   );
+}
+
+const SOURCE_LABEL: Record<string, string> = {
+  athlete: "Saisie athlète",
+  auto_planned: "Prévu coach (auto)",
+  auto_default: "Valeur par défaut (auto)",
+};
+
+/** Export détaillé séance par séance (audit de la charge). */
+export function exportAthlete360SessionsCsv(ctx: Athlete360ExportContext) {
+  const headers = ["Athlète", "Date", "Type de séance", "Présence", "Durée (min)", "RPE saisi", "Source du RPE", "Charge calculée (UA)"];
+  const rows: (string | number | null)[][] = [];
+  ctx.subjects.forEach((s) =>
+    (s.sessionDetails || [])
+      .slice()
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .forEach((d) =>
+        rows.push([
+          s.name,
+          fmtDate(d.date),
+          d.type,
+          d.present === true ? "oui" : d.present === false ? "non" : "non renseignée",
+          d.duration,
+          d.source === "athlete" ? d.rpe : "",
+          SOURCE_LABEL[d.source] || d.source,
+          d.load,
+        ]),
+      ),
+  );
+  downloadCsv(`comparaison_360_seances_${format(new Date(), "yyyyMMdd")}.csv`, generateCsv(headers, rows));
 }
 
 export async function exportAthlete360Pdf(ctx: Athlete360ExportContext) {

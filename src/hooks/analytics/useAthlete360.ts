@@ -164,7 +164,7 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
         fetchAllRows((f, t) =>
           supabase
             .from("awcr_tracking")
-            .select("player_id, session_date, auto_filled, rpe, duration_minutes, training_load, training_session_id, training_type")
+            .select("player_id, session_date, auto_filled, rpe, duration_minutes, training_load, training_session_id")
             .eq("category_id", categoryId)
             .gte("session_date", loadStart)
             .lte("session_date", endDate)
@@ -573,7 +573,7 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
             : (Number(r.rpe) || 0) * (Number(r.duration_minutes) || 0);
         return {
           date: String(r.session_date).slice(0, 10),
-          type: (r.training_session_id && sessionTypeById.get(r.training_session_id)) || r.training_type || "—",
+          type: (r.training_session_id && sessionTypeById.get(r.training_session_id)) || (r.auto_filled ? "Repos / auto" : "Séance perso"),
           present: r.training_session_id ? (presentSessions.has(r.training_session_id) ? true : null) : true,
           duration: r.duration_minutes != null ? Number(r.duration_minutes) : null,
           rpe: Number(r.rpe) > 0 ? Number(r.rpe) : null,
