@@ -395,7 +395,11 @@ export function MatchLineupDialog({
       playerName: [player.first_name, player.name].filter(Boolean).join(" ") || "Athlète inconnu",
     }));
   const starterCount = lineupData?.filter((p) => p.isSelected && p.isStarter).length ?? 0;
-  const substituteCount = lineupData?.filter((p) => p.isSelected && !p.isStarter).length ?? 0;
+  const substituteCount = fieldConfig.noField
+    ? lineupData?.filter((p) => p.isSelected && !p.isStarter).length ?? 0
+    : lineupData?.filter((p) => p.isSelected && !p.isStarter && p.position?.startsWith("SUB")).length
+      || lineupData?.filter((p) => p.isSelected && !p.isStarter && (existingLineup || []).some((l: any) => l.player_id === p.playerId)).length
+      || 0;
   
   // Check if this sport has a field layout
   const hasFieldLayout = !fieldConfig.noField;
@@ -408,9 +412,11 @@ export function MatchLineupDialog({
       return acc;
     }, {} as Record<string, string>);
 
-  // Get initial substitutes
+  // Get initial substitutes: only players actually saved as substitutes in the lineup.
+  // Convoked-only athletes stay available to be placed on the field.
+  const savedLineupIds = new Set((existingLineup || []).map((l: any) => l.player_id));
   const initialSubstitutes = lineupData
-    .filter(p => p.isSelected && !p.isStarter)
+    .filter(p => p.isSelected && !p.isStarter && savedLineupIds.has(p.playerId))
     .map(p => p.playerId);
 
   return (
