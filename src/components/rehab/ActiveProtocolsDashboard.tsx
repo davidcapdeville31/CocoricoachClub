@@ -40,6 +40,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { differenceInDays, parseISO, format } from "date-fns";
 import { toast } from "sonner";
+import { ProtocolManager } from "@/components/injuries/ProtocolManager";
 
 interface ActiveProtocolsDashboardProps {
   categoryId: string;
@@ -65,6 +66,7 @@ export function ActiveProtocolsDashboard({ categoryId }: ActiveProtocolsDashboar
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isAddEventOpen, setIsAddEventOpen] = useState(false);
+  const [isProtocolManagerOpen, setIsProtocolManagerOpen] = useState(false);
   const [eventPlayerId, setEventPlayerId] = useState("");
   const [eventProtocolId, setEventProtocolId] = useState("");
   const [eventType, setEventType] = useState("exercise");
@@ -345,8 +347,8 @@ export function ActiveProtocolsDashboard({ categoryId }: ActiveProtocolsDashboar
 
   return (
     <div className="space-y-6">
-      {/* Header with add button */}
-      <div className="flex items-center justify-between">
+      {/* Header with protocol manager button */}
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <div>
           <h2 className="text-xl font-semibold flex items-center gap-2">
             <Dumbbell className="h-5 w-5 text-primary" />
@@ -354,6 +356,10 @@ export function ActiveProtocolsDashboard({ categoryId }: ActiveProtocolsDashboar
           </h2>
           <p className="text-sm text-muted-foreground">Suivi des joueurs blessés et événements de réhab</p>
         </div>
+        <Button variant="outline" className="gap-2" onClick={() => setIsProtocolManagerOpen(true)}>
+          <Plus className="h-4 w-4" />
+          Gérer les protocoles
+        </Button>
       </div>
 
       {/* Summary Cards */}
@@ -726,6 +732,16 @@ export function ActiveProtocolsDashboard({ categoryId }: ActiveProtocolsDashboar
               Ajouter
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Gestion des protocoles de réhabilitation (création / modification) */}
+      <Dialog open={isProtocolManagerOpen} onOpenChange={setIsProtocolManagerOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Protocoles de réhabilitation</DialogTitle>
+          </DialogHeader>
+          <ProtocolManager categoryId={categoryId} />
         </DialogContent>
       </Dialog>
     </div>
