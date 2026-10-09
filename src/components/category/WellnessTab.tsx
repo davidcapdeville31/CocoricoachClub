@@ -489,8 +489,8 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
           </div>
         ) : (
           <>
-            {/* Mobile : cartes empilées pour éviter le scroll horizontal */}
-            <div className="sm:hidden space-y-3">
+            {/* Tablettes et mobile : cartes empilées pour éviter le scroll horizontal */}
+            <div className="md:hidden space-y-3">
               {filteredWellnessData.map((entry) => (
                 <Card key={entry.id}>
                   <CardContent className="p-3 space-y-2">
@@ -532,48 +532,64 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
               ))}
             </div>
 
-            <div className="hidden sm:block rounded-md border overflow-auto max-h-[60vh]">
-              <Table className="min-w-max">
+            <div className="hidden md:block rounded-md border overflow-y-auto max-h-[60vh]">
+              <Table className="w-full table-fixed">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="whitespace-nowrap">{t("health.wellness.table.player")}</TableHead>
-                    <TableHead className="whitespace-nowrap">{t("health.wellness.table.date")}</TableHead>
+                    <TableHead className="whitespace-nowrap w-[16%] min-w-[110px]">
+                      <span className="truncate block">{t("health.wellness.table.player")}</span>
+                    </TableHead>
+                    <TableHead className="whitespace-nowrap text-center w-[9%] min-w-[64px]">
+                      {t("health.wellness.table.date")}
+                    </TableHead>
                     {activeQuestions.map((q) => (
-                      <TableHead key={q.key} className="text-center whitespace-nowrap">
-                        {q.emoji ? `${q.emoji} ` : ""}{q.label}
+                      <TableHead key={q.key} className="text-center px-1.5">
+                        <span
+                          className="block mx-auto max-w-[92px] leading-tight text-[11px] break-words"
+                          title={q.label}
+                        >
+                          {q.emoji ? `${q.emoji} ` : ""}{q.label}
+                        </span>
                       </TableHead>
                     ))}
-                    <TableHead className="text-center whitespace-nowrap">{t("health.wellness.table.averageScore")}</TableHead>
-                    <TableHead className="whitespace-nowrap">{t("health.wellness.table.specificPain")}</TableHead>
+                    <TableHead className="text-center whitespace-nowrap px-1.5 w-[8%] min-w-[64px]">
+                      {t("health.wellness.table.averageScore")}
+                    </TableHead>
+                    <TableHead className="whitespace-nowrap w-[14%] min-w-[90px]">
+                      {t("health.wellness.table.specificPain")}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredWellnessData.map((entry) => (
                     <TableRow key={entry.id}>
-                      <TableCell className="font-medium whitespace-nowrap">
-                        <span className="inline-flex items-center gap-2">
-                          {[entry.players?.first_name, entry.players?.name].filter(Boolean).join(" ")}
+                      <TableCell className="font-medium">
+                        <span className="inline-flex items-center gap-2 min-w-0 max-w-full">
+                          <span className="truncate" title={[entry.players?.first_name, entry.players?.name].filter(Boolean).join(" ")}>
+                            {[entry.players?.first_name, entry.players?.name].filter(Boolean).join(" ")}
+                          </span>
                           {entry.auto_filled && (
-                            <Badge variant="outline" className="text-[10px] text-muted-foreground">
+                            <Badge variant="outline" className="text-[10px] text-muted-foreground shrink-0">
                               {t("health.wellness.table.auto")}
                             </Badge>
                           )}
                         </span>
                       </TableCell>
 
-                      <TableCell className="whitespace-nowrap">
-                        {format(new Date(entry.tracking_date), "dd MMM yyyy", { locale: getDateLocale() })}
+                      <TableCell className="whitespace-nowrap text-center text-sm px-1.5">
+                        {format(new Date(entry.tracking_date), "dd/MM", { locale: getDateLocale() })}
                       </TableCell>
 
                       {activeQuestions.map((q) => {
                         const raw = getAnswer(entry, q);
                         return (
-                          <TableCell key={q.key} className="text-center">
+                          <TableCell key={q.key} className="text-center px-1.5">
                             {raw == null ? (
                               <span className="text-muted-foreground text-sm">—</span>
                             ) : (
                               <Badge
                                 variant="outline"
+                                className="px-1.5"
                                 style={styleForQuestion(q, raw)}
                               >
                                 {q.is_sleep_duration ? sleepScoreLabel(raw) : raw}
@@ -582,16 +598,18 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                           </TableCell>
                         );
                       })}
-                      <TableCell className="text-center">
-                        <Badge variant="outline" style={styleFor(parseFloat(calculateWellnessScore(entry)))}>
+                      <TableCell className="text-center px-1.5">
+                        <Badge variant="outline" className="px-1.5" style={styleFor(parseFloat(calculateWellnessScore(entry)))}>
                           {calculateWellnessScore(entry)}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         {entry.has_specific_pain ? (
-                          <div className="flex items-center gap-2 text-destructive">
-                            <AlertTriangle className="h-4 w-4" />
-                            <span className="text-sm">{entry.pain_location || t("health.wellness.table.yes")}</span>
+                          <div className="flex items-center gap-1.5 text-destructive min-w-0">
+                            <AlertTriangle className="h-4 w-4 shrink-0" />
+                            <span className="text-sm truncate" title={entry.pain_location || t("health.wellness.table.yes")}>
+                              {entry.pain_location || t("health.wellness.table.yes")}
+                            </span>
                           </div>
                         ) : (
                           <span className="text-muted-foreground text-sm">{t("health.wellness.table.no")}</span>
