@@ -326,7 +326,7 @@ function CategoryDetailsContent() {
             {!isViewer && (
               <div className="flex items-center gap-2 self-end sm:self-auto">
                 <GlobalPlayerSearch />
-                <NotificationBell />
+                <NotificationBell categoryIds={categoryId ? [categoryId] : undefined} />
               </div>
             )}
           </div>
