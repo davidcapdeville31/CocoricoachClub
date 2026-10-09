@@ -532,19 +532,32 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
               ))}
             </div>
 
-            <div className="hidden sm:block rounded-md border overflow-auto max-h-[60vh]">
-              <Table className="min-w-max">
+            <div className="hidden md:block rounded-md border overflow-y-auto max-h-[60vh]">
+              <Table className="w-full table-fixed">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="whitespace-nowrap">{t("health.wellness.table.player")}</TableHead>
-                    <TableHead className="whitespace-nowrap">{t("health.wellness.table.date")}</TableHead>
+                    <TableHead className="whitespace-nowrap w-[16%] min-w-[110px]">
+                      <span className="truncate block">{t("health.wellness.table.player")}</span>
+                    </TableHead>
+                    <TableHead className="whitespace-nowrap text-center w-[9%] min-w-[64px]">
+                      {t("health.wellness.table.date")}
+                    </TableHead>
                     {activeQuestions.map((q) => (
-                      <TableHead key={q.key} className="text-center whitespace-nowrap">
-                        {q.emoji ? `${q.emoji} ` : ""}{q.label}
+                      <TableHead key={q.key} className="text-center px-1.5">
+                        <span
+                          className="block mx-auto max-w-[92px] leading-tight text-[11px] break-words"
+                          title={q.label}
+                        >
+                          {q.emoji ? `${q.emoji} ` : ""}{q.label}
+                        </span>
                       </TableHead>
                     ))}
-                    <TableHead className="text-center whitespace-nowrap">{t("health.wellness.table.averageScore")}</TableHead>
-                    <TableHead className="whitespace-nowrap">{t("health.wellness.table.specificPain")}</TableHead>
+                    <TableHead className="text-center whitespace-nowrap px-1.5 w-[8%] min-w-[64px]">
+                      {t("health.wellness.table.averageScore")}
+                    </TableHead>
+                    <TableHead className="whitespace-nowrap w-[14%] min-w-[90px]">
+                      {t("health.wellness.table.specificPain")}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
