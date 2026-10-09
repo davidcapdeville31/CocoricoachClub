@@ -35,6 +35,7 @@ export interface CategoryMembershipLite {
 export interface CurrentUserIdentity {
   userId: string | null;
   isSuperAdmin: boolean;
+  isArsenalBankManager: boolean;
   ownedClubIds: string[];
   clubMemberships: ClubMembershipLite[];
   categoryMemberships: CategoryMembershipLite[];
