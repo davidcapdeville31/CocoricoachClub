@@ -64,11 +64,12 @@ const TABS = [
     const defaultTab = searchParams.get("tab") || "dashboard";
     const [activeTab, setActiveTab] = useState(defaultTab);
  
-   // Check if current user is super admin
-   const { isSuperAdmin, isLoading: checkingAdmin } = useCurrentUserIdentity();
+   // Check if current user is super admin (or arsenal bank manager with limited access)
+   const { isSuperAdmin, isArsenalBankManager, isLoading: checkingAdmin } = useCurrentUserIdentity();
+   const hasAccess = isSuperAdmin || isArsenalBankManager;
 
  
-   // Redirect if not authenticated or not super admin
+   // Redirect if not authenticated or not authorized
    useEffect(() => {
      if (!authLoading && !user) {
        navigate("/auth");
@@ -76,11 +77,11 @@ const TABS = [
    }, [authLoading, user, navigate]);
  
    useEffect(() => {
-     if (!checkingAdmin && isSuperAdmin === false && user) {
+     if (!checkingAdmin && !hasAccess && user) {
        toast.error("Accès non autorisé");
        navigate("/");
      }
-   }, [checkingAdmin, isSuperAdmin, user, navigate]);
+   }, [checkingAdmin, hasAccess, user, navigate]);
  
    if (authLoading || checkingAdmin) {
      return (
@@ -90,7 +91,7 @@ const TABS = [
      );
    }
  
-   if (!isSuperAdmin) {
+   if (!hasAccess) {
      return null;
    }
  
