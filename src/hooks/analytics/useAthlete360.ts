@@ -125,7 +125,7 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
     },
   });
 
-  const { data: bundle, isLoading } = useQuery({
+  const { data: bundle, isLoading, isFetching } = useQuery({
     queryKey: ["a360-bundle", categoryId, startDate, endDate],
     enabled: !!categoryId,
     queryFn: async () => {
@@ -684,5 +684,5 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
     });
   }, [bundle, players, startDate, endDate, allTests]);
 
-  return { players, rows, testOptions, isLoading };
+  return { players, rows, testOptions, isLoading, isFetching };
 }
