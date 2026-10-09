@@ -489,8 +489,8 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
           </div>
         ) : (
           <>
-            {/* Mobile : cartes empilées pour éviter le scroll horizontal */}
-            <div className="sm:hidden space-y-3">
+            {/* Tablettes et mobile : cartes empilées pour éviter le scroll horizontal */}
+            <div className="md:hidden space-y-3">
               {filteredWellnessData.map((entry) => (
                 <Card key={entry.id}>
                   <CardContent className="p-3 space-y-2">
