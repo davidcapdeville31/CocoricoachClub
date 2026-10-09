@@ -734,6 +734,16 @@ export function ActiveProtocolsDashboard({ categoryId }: ActiveProtocolsDashboar
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Gestion des protocoles de réhabilitation (création / modification) */}
+      <Dialog open={isProtocolManagerOpen} onOpenChange={setIsProtocolManagerOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Protocoles de réhabilitation</DialogTitle>
+          </DialogHeader>
+          <ProtocolManager categoryId={categoryId} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
