@@ -35,6 +35,7 @@ export interface CategoryMembershipLite {
 export interface CurrentUserIdentity {
   userId: string | null;
   isSuperAdmin: boolean;
+  isArsenalBankManager: boolean;
   ownedClubIds: string[];
   clubMemberships: ClubMembershipLite[];
   categoryMemberships: CategoryMembershipLite[];
@@ -46,6 +47,7 @@ export interface CurrentUserIdentity {
 const EMPTY_IDENTITY: Omit<CurrentUserIdentity, "getClubRole" | "getCategoryRole" | "isClubOwner"> = {
   userId: null,
   isSuperAdmin: false,
+  isArsenalBankManager: false,
   ownedClubIds: [],
   clubMemberships: [],
   categoryMemberships: [],
@@ -64,11 +66,16 @@ export function useCurrentUserIdentity() {
     queryFn: async (): Promise<typeof EMPTY_IDENTITY> => {
       if (!user?.id) return EMPTY_IDENTITY;
 
-      const [superAdminRes, ownedClubsRes, clubMembersRes, categoryMembersRes] =
+      const [superAdminRes, arsenalManagerRes, ownedClubsRes, clubMembersRes, categoryMembersRes] =
         await Promise.all([
           supabase
             .from("super_admin_users")
             .select("id")
+            .eq("user_id", user.id)
+            .maybeSingle(),
+          supabase
+            .from("arsenal_bank_managers")
+            .select("user_id")
             .eq("user_id", user.id)
             .maybeSingle(),
           supabase.from("clubs").select("id").eq("user_id", user.id),
@@ -85,6 +92,7 @@ export function useCurrentUserIdentity() {
       return {
         userId: user.id,
         isSuperAdmin: !!superAdminRes.data,
+        isArsenalBankManager: !!arsenalManagerRes.data,
         ownedClubIds: (ownedClubsRes.data ?? []).map((c: any) => c.id),
         clubMemberships: (clubMembersRes.data ?? []) as ClubMembershipLite[],
         categoryMemberships: (categoryMembersRes.data ?? []) as CategoryMembershipLite[],

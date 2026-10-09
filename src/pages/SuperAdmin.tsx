@@ -64,11 +64,12 @@ const TABS = [
     const defaultTab = searchParams.get("tab") || "dashboard";
     const [activeTab, setActiveTab] = useState(defaultTab);
  
-   // Check if current user is super admin
-   const { isSuperAdmin, isLoading: checkingAdmin } = useCurrentUserIdentity();
+   // Check if current user is super admin (or arsenal bank manager with limited access)
+   const { isSuperAdmin, isArsenalBankManager, isLoading: checkingAdmin } = useCurrentUserIdentity();
+   const hasAccess = isSuperAdmin || isArsenalBankManager;
 
  
-   // Redirect if not authenticated or not super admin
+   // Redirect if not authenticated or not authorized
    useEffect(() => {
      if (!authLoading && !user) {
        navigate("/auth");
@@ -76,11 +77,11 @@ const TABS = [
    }, [authLoading, user, navigate]);
  
    useEffect(() => {
-     if (!checkingAdmin && isSuperAdmin === false && user) {
+     if (!checkingAdmin && !hasAccess && user) {
        toast.error("Accès non autorisé");
        navigate("/");
      }
-   }, [checkingAdmin, isSuperAdmin, user, navigate]);
+   }, [checkingAdmin, hasAccess, user, navigate]);
  
    if (authLoading || checkingAdmin) {
      return (
@@ -90,7 +91,7 @@ const TABS = [
      );
    }
  
-   if (!isSuperAdmin) {
+   if (!hasAccess) {
      return null;
    }
  
@@ -102,7 +103,10 @@ const TABS = [
       navigate(`?tab=${value}`, { replace: true });
     };
 
-    const activeTabInfo = TABS.find((t) => t.value === activeTab) ?? TABS[0];
+    // Arsenal bank managers (non super admins) only see the arsenal bank tab
+    const visibleTabs = isSuperAdmin ? TABS : TABS.filter((t) => t.value === "arsenal-bank");
+    const effectiveTab = isSuperAdmin ? activeTab : "arsenal-bank";
+    const activeTabInfo = visibleTabs.find((t) => t.value === effectiveTab) ?? visibleTabs[0];
     const ActiveIcon = activeTabInfo.icon;
 
     return (
@@ -123,7 +127,7 @@ const TABS = [
           </div>
 
           {/* Main Content */}
-          <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
+          <Tabs value={effectiveTab} onValueChange={handleTabChange} className="space-y-6">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="flex items-center gap-2 min-w-[220px] justify-between">
@@ -135,7 +139,7 @@ const TABS = [
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-[220px] max-h-[60vh] overflow-y-auto">
-                {TABS.map((tab) => {
+                {visibleTabs.map((tab) => {
                   const Icon = tab.icon;
                   return (
                     <DropdownMenuItem
