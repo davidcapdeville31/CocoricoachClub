@@ -142,6 +142,7 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
             .gte("tracking_date", startDate)
             .lte("tracking_date", endDate)
             .order("tracking_date", { ascending: true })
+            .order("id", { ascending: true })
             .range(f, t),
         ),
         fetchAllRows((f, t) =>
@@ -152,6 +153,7 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
             .gte("session_date", loadStart)
             .lte("session_date", endDate)
             .order("session_date", { ascending: true })
+            .order("id", { ascending: true })
             .range(f, t),
         ),
         fetchAllRows((f, t) =>
@@ -162,6 +164,7 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
             .gte("session_date", startDate)
             .lte("session_date", endDate)
             .order("session_date", { ascending: true })
+            .order("id", { ascending: true })
             .range(f, t),
         ),
         fetchAllRows((f, t) =>
@@ -172,6 +175,7 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
             .gte("attendance_date", startDate)
             .lte("attendance_date", endDate)
             .order("attendance_date", { ascending: true })
+            .order("id", { ascending: true })
             .range(f, t),
         ),
         fetchAllRows((f, t) =>
@@ -182,6 +186,7 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
             .gte("match_date", startDate)
             .lte("match_date", endDate)
             .order("match_date", { ascending: true })
+            .order("id", { ascending: true })
             .range(f, t),
         ),
         fetchAllRows((f, t) =>
@@ -190,6 +195,7 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
             .select("player_id, injury_date, actual_return_date, estimated_return_date, status, severity, injury_type")
             .eq("category_id", categoryId)
             .order("injury_date", { ascending: true })
+            .order("id", { ascending: true })
             .range(f, t),
         ),
         fetchAllRows((f, t) =>
@@ -198,6 +204,7 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
             .select("player_id, test_type, result_value, result_unit, test_date")
             .eq("category_id", categoryId)
             .order("test_date", { ascending: true })
+            .order("id", { ascending: true })
             .range(f, t),
         ),
         fetchAllRows((f, t) =>
@@ -206,6 +213,7 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
             .select("player_id, test_name, weight_kg, test_date")
             .eq("category_id", categoryId)
             .order("test_date", { ascending: true })
+            .order("id", { ascending: true })
             .range(f, t),
         ),
         fetchAllRows((f, t) =>
@@ -214,6 +222,7 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
             .select("player_id, test_type, vma_kmh, speed_kmh, time_40m_seconds, test_date")
             .eq("category_id", categoryId)
             .order("test_date", { ascending: true })
+            .order("id", { ascending: true })
             .range(f, t),
         ),
         fetchAllRows((f, t) =>
@@ -222,6 +231,7 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
             .select("player_id, measurement_date, weight_kg, created_at")
             .eq("category_id", categoryId)
             .order("measurement_date", { ascending: true })
+            .order("id", { ascending: true })
             .range(f, t),
         ),
         fetchAllRows((f, t) =>
@@ -230,6 +240,7 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
             .select("player_id, measurement_date, weight_kg, created_at")
             .eq("category_id", categoryId)
             .order("measurement_date", { ascending: true })
+            .order("id", { ascending: true })
             .range(f, t),
         ),
         fetchAllRows((f, t) =>
@@ -238,10 +249,11 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
             .select("player_id, test_date, test_type, test_category, result_value, result_unit, created_at")
             .eq("category_id", categoryId)
             .order("test_date", { ascending: true })
+            .order("id", { ascending: true })
             .range(f, t),
         ),
         fetchAllRows((f, t) =>
-          supabase.from("custom_tests").select("id, name, unit, test_category").range(f, t),
+          supabase.from("custom_tests").select("id, name, unit, test_category").order("id").range(f, t),
         ),
         supabase
           .from("wellness_question_configs")
@@ -265,6 +277,7 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
             .select("player_id, tracking_date, custom_answers, created_at")
             .eq("category_id", categoryId)
             .order("tracking_date", { ascending: true })
+            .order("id", { ascending: true })
             .range(f, t),
         );
       }
