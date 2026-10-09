@@ -8993,6 +8993,86 @@ export type Database = {
           },
         ]
       }
+      player_manual_medals: {
+        Row: {
+          awarded_date: string
+          category_id: string
+          competition_name: string
+          created_at: string
+          created_by: string | null
+          custom_title: string | null
+          id: string
+          location: string | null
+          medal_type: string
+          notes: string | null
+          player_id: string
+          rank: number | null
+          team_label: string | null
+          updated_at: string
+        }
+        Insert: {
+          awarded_date: string
+          category_id: string
+          competition_name: string
+          created_at?: string
+          created_by?: string | null
+          custom_title?: string | null
+          id?: string
+          location?: string | null
+          medal_type: string
+          notes?: string | null
+          player_id: string
+          rank?: number | null
+          team_label?: string | null
+          updated_at?: string
+        }
+        Update: {
+          awarded_date?: string
+          category_id?: string
+          competition_name?: string
+          created_at?: string
+          created_by?: string | null
+          custom_title?: string | null
+          id?: string
+          location?: string | null
+          medal_type?: string
+          notes?: string | null
+          player_id?: string
+          rank?: number | null
+          team_label?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_manual_medals_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_manual_medals_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "player_tags"
+            referencedColumns: ["player_id"]
+          },
+          {
+            foreignKeyName: "player_manual_medals_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_manual_medals_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_match_stats: {
         Row: {
           breakthroughs: number | null

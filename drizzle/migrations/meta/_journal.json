@@ -120,6 +120,13 @@
       "when": 1791541572288,
       "tag": "0016_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1791541924350,
+      "tag": "0017_create_player_manual_medals",
+      "breakpoints": true
     }
   ]
 }

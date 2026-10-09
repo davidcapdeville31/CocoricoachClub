@@ -539,7 +539,7 @@ function PlayerDetailsContent() {
 
         {/* Palmarès / Médailles */}
         <div className="mb-3">
-          <PlayerMedalsSection playerId={playerId!} />
+          <PlayerMedalsSection playerId={playerId!} categoryId={effectiveCategoryId || undefined} />
         </div>
 
         {/* Records personnels (athlétisme uniquement) */}
