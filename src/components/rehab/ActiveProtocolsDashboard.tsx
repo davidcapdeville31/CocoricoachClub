@@ -66,6 +66,7 @@ export function ActiveProtocolsDashboard({ categoryId }: ActiveProtocolsDashboar
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isAddEventOpen, setIsAddEventOpen] = useState(false);
+  const [isProtocolManagerOpen, setIsProtocolManagerOpen] = useState(false);
   const [eventPlayerId, setEventPlayerId] = useState("");
   const [eventProtocolId, setEventProtocolId] = useState("");
   const [eventType, setEventType] = useState("exercise");
