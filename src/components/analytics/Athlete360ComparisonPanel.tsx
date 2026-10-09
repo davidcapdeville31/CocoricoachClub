@@ -299,6 +299,7 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
     const ctx = {
       categoryId,
       mode,
+      domains,
       periodLabel: `${format(parseISO(startDate), "dd/MM/yyyy")} — ${format(parseISO(endDate), "dd/MM/yyyy")}`,
       subjects: subjects.map<Athlete360ExportSubject>((s) => ({
         name: s.name,
@@ -313,6 +314,10 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
         matchPresent: s.row.matchPresent,
         matchCalled: s.row.matchCalled,
         weeklyLoad: s.row.weeklyLoad,
+        acuteLoad: s.row.acuteLoad,
+        chronicLoad: s.row.chronicLoad,
+        totalLoad: s.row.totalLoad,
+        loadSessions: s.row.loadSessions,
         acwr: s.row.acwr,
         acwrInsufficient: s.row.acwrInsufficient,
         injuryCount: s.row.injuryCount,
