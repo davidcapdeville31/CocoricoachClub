@@ -583,12 +583,13 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                       {activeQuestions.map((q) => {
                         const raw = getAnswer(entry, q);
                         return (
-                          <TableCell key={q.key} className="text-center">
+                          <TableCell key={q.key} className="text-center px-1.5">
                             {raw == null ? (
                               <span className="text-muted-foreground text-sm">—</span>
                             ) : (
                               <Badge
                                 variant="outline"
+                                className="px-1.5"
                                 style={styleForQuestion(q, raw)}
                               >
                                 {q.is_sleep_duration ? sleepScoreLabel(raw) : raw}
@@ -597,16 +598,18 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                           </TableCell>
                         );
                       })}
-                      <TableCell className="text-center">
-                        <Badge variant="outline" style={styleFor(parseFloat(calculateWellnessScore(entry)))}>
+                      <TableCell className="text-center px-1.5">
+                        <Badge variant="outline" className="px-1.5" style={styleFor(parseFloat(calculateWellnessScore(entry)))}>
                           {calculateWellnessScore(entry)}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         {entry.has_specific_pain ? (
-                          <div className="flex items-center gap-2 text-destructive">
-                            <AlertTriangle className="h-4 w-4" />
-                            <span className="text-sm">{entry.pain_location || t("health.wellness.table.yes")}</span>
+                          <div className="flex items-center gap-1.5 text-destructive min-w-0">
+                            <AlertTriangle className="h-4 w-4 shrink-0" />
+                            <span className="text-sm truncate" title={entry.pain_location || t("health.wellness.table.yes")}>
+                              {entry.pain_location || t("health.wellness.table.yes")}
+                            </span>
                           </div>
                         ) : (
                           <span className="text-muted-foreground text-sm">{t("health.wellness.table.no")}</span>
