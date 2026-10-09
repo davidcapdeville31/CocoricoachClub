@@ -161,10 +161,10 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
   const { data: lineupCount } = useQuery({
     queryKey: ["match_lineup_count", match.id],
     queryFn: async () => {
-      // The card counter must mirror exactly the athletes selected in the
-      // competition creation/edit form, independently from the lineup.
+      // The card counter shows the athletes actually added to the lineup
+      // (composition), not the full convocation list.
       const { data, error } = await supabase
-        .from("match_participants")
+        .from("match_lineups")
         .select("player_id")
         .eq("match_id", match.id);
       if (error) throw error;
