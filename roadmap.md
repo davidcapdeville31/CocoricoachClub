@@ -1,5 +1,9 @@
 # Calendrier de charge
 
+## Notification de composition
+- [ ] Préremplir un message de sélection modifiable et retirer les options et compteurs mail/SMS du dialogue partagé.
+- [ ] Vérifier le dialogue sur une composition réelle, sans envoyer de push de test aux athlètes.
+
 ## Notifications push d’Axelle
 - [x] Corriger l’attente du démarrage réel du service avant d’enregistrer le téléphone.
 - [x] Vérifier en simulation l’ordre démarrage → connexion → abonnement et l’absence de blocage après échec.
