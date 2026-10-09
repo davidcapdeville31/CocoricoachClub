@@ -121,7 +121,7 @@ function ClubDetailsContent() {
               >
                 {APP_VERSION_LABEL}
               </span>
-              <NotificationBell />
+              <NotificationBell categoryIds={categories?.map((c: { id: string }) => c.id)} />
               <Button
                 variant="ghost"
                 size="icon"

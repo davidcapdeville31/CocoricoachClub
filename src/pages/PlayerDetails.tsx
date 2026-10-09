@@ -351,7 +351,7 @@ function PlayerDetailsContent() {
               <span className="hidden sm:inline">Espace Athlète</span>
             </Button>
             <GlobalPlayerSearch categoryId={effectiveCategoryId} />
-            <NotificationBell variant="default" />
+            <NotificationBell variant="default" categoryIds={effectiveCategoryId ? [effectiveCategoryId] : undefined} />
           </div>
         </div>
 
