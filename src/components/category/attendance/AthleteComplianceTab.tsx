@@ -86,28 +86,46 @@ export function AthleteComplianceTab({ categoryId }: Props) {
   const { data: wellness = [] } = useQuery({
     queryKey: ["compliance-wellness", categoryId, startDate, endDate],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("wellness_tracking")
-        .select("player_id, tracking_date, auto_filled")
-        .eq("category_id", categoryId)
-        .gte("tracking_date", startDate)
-        .lte("tracking_date", endDate);
-      if (error) throw error;
-      return data || [];
+      // Récupération par paquets : la période peut dépasser 1000 lignes
+      const all: any[] = [];
+      const PAGE = 1000;
+      for (let from = 0; ; from += PAGE) {
+        const { data, error } = await supabase
+          .from("wellness_tracking")
+          .select("player_id, tracking_date, auto_filled")
+          .eq("category_id", categoryId)
+          .gte("tracking_date", startDate)
+          .lte("tracking_date", endDate)
+          .order("tracking_date", { ascending: true })
+          .range(from, from + PAGE - 1);
+        if (error) throw error;
+        all.push(...(data || []));
+        if (!data || data.length < PAGE) break;
+      }
+      return all;
     },
   });
 
   const { data: loads = [] } = useQuery({
     queryKey: ["compliance-rpe", categoryId, startDate, endDate],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("awcr_tracking")
-        .select("player_id, session_date, auto_filled, rpe, training_session_id")
-        .eq("category_id", categoryId)
-        .gte("session_date", startDate)
-        .lte("session_date", endDate);
-      if (error) throw error;
-      return data || [];
+      // Récupération par paquets : la période peut dépasser 1000 lignes
+      const all: any[] = [];
+      const PAGE = 1000;
+      for (let from = 0; ; from += PAGE) {
+        const { data, error } = await supabase
+          .from("awcr_tracking")
+          .select("player_id, session_date, auto_filled, rpe, training_session_id")
+          .eq("category_id", categoryId)
+          .gte("session_date", startDate)
+          .lte("session_date", endDate)
+          .order("session_date", { ascending: true })
+          .range(from, from + PAGE - 1);
+        if (error) throw error;
+        all.push(...(data || []));
+        if (!data || data.length < PAGE) break;
+      }
+      return all;
     },
   });
 
