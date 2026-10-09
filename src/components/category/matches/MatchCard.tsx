@@ -1086,7 +1086,13 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
       <NotifyAthletesDialog
         open={isNotifyOpen}
         onOpenChange={setIsNotifyOpen}
-        athletes={players || []}
+        athletes={(() => {
+          // Once a lineup exists, only notify athletes in the composition.
+          // Without a lineup yet, notify everyone to ask availability.
+          const ids = new Set((lineupPlayers || []).map((lp: any) => lp.player_id));
+          const all = players || [];
+          return ids.size > 0 ? all.filter((p: any) => ids.has(p.id)) : all;
+        })()}
         eventType="match"
         defaultSubject={isIndividual 
           ? t("competition.card.notifySubjectCompetition", { name: match.competition || match.opponent || t("competition.card.defaultCompetitionLabel") })
