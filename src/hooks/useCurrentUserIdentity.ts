@@ -92,6 +92,7 @@ export function useCurrentUserIdentity() {
       return {
         userId: user.id,
         isSuperAdmin: !!superAdminRes.data,
+        isArsenalBankManager: !!arsenalManagerRes.data,
         ownedClubIds: (ownedClubsRes.data ?? []).map((c: any) => c.id),
         clubMemberships: (clubMembersRes.data ?? []) as ClubMembershipLite[],
         categoryMemberships: (categoryMembersRes.data ?? []) as CategoryMembershipLite[],
