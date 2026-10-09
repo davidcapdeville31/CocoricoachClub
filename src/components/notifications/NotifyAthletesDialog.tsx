@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -14,14 +14,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Mail, Phone, Send, Loader2, Users, Bell } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Send, Loader2, Users, Bell } from "lucide-react";
 
 interface Athlete {
   id: string;
   name: string;
   email?: string | null;
   phone?: string | null;
+  user_id?: string | null;
 }
 
 interface NotifyAthletesDialogProps {
@@ -30,6 +30,7 @@ interface NotifyAthletesDialogProps {
   athletes: Athlete[];
   eventType: "session" | "match" | "event" | "custom";
   defaultSubject?: string;
+  defaultMessage?: string;
   categoryId?: string;
   eventDetails?: {
     date?: string;
@@ -44,50 +45,35 @@ export function NotifyAthletesDialog({
   athletes,
   eventType,
   defaultSubject = "",
+  defaultMessage = "",
   categoryId,
   eventDetails,
 }: NotifyAthletesDialogProps) {
   const [subject, setSubject] = useState(defaultSubject);
-  const [message, setMessage] = useState("");
-  const [sendEmail, setSendEmail] = useState(true);
-  const [sendSms, setSendSms] = useState(false);
+  const [message, setMessage] = useState(defaultMessage);
   const [sendPush, setSendPush] = useState(true);
 
-  // Count athletes with email/phone
-  const athletesWithEmail = athletes.filter((a) => a.email).length;
-  const athletesWithPhone = athletes.filter((a) => a.phone).length;
+  const linkedAthletes = athletes.filter((a) => a.user_id);
 
   const sendNotification = useMutation({
     mutationFn: async () => {
-      const channels: ("email" | "sms" | "push")[] = [];
-      if (sendEmail) channels.push("email");
-      if (sendSms) channels.push("sms");
-      if (sendPush) channels.push("push");
-
-      if (channels.length === 0) {
-        throw new Error("Veuillez sélectionner au moins un canal de notification");
+      if (!sendPush) {
+        throw new Error("Veuillez sélectionner les notifications push");
       }
 
-      const athletesToNotify = athletes.filter((a) => {
-        if (sendEmail && a.email) return true;
-        if (sendSms && a.phone) return true;
-        return false;
-      });
-
-      if (athletesToNotify.length === 0) {
-        throw new Error("Aucun athlète n'a les coordonnées requises pour la notification");
+      if (linkedAthletes.length === 0) {
+        throw new Error("Aucun athlète sélectionné n'a de compte lié");
       }
 
       const { data, error } = await supabase.functions.invoke("notify-athletes", {
         body: {
-          athletes: athletesToNotify.map((a) => ({
+          athletes: linkedAthletes.map((a) => ({
             name: a.name,
-            email: a.email,
-            phone: a.phone,
+            user_id: a.user_id,
           })),
           subject,
           message,
-          channels,
+          channels: ["push"],
           eventType,
           eventDetails,
           category_id: categoryId,
@@ -95,15 +81,15 @@ export function NotifyAthletesDialog({
       });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
       return data;
     },
     onSuccess: (data) => {
-      const parts = [];
-      if (data.emailsSent > 0) parts.push(`${data.emailsSent} email(s)`);
-      if (data.smsSent > 0) parts.push(`${data.smsSent} SMS`);
-      if (data.pushSent > 0) parts.push(`${data.pushSent} push`);
-      
-      toast.success(`Notifications envoyées : ${parts.join(", ")}`);
+      if (data.errors?.length) {
+        toast.warning("Envoi partiel : certaines notifications n'ont pas pu être envoyées");
+      } else {
+        toast.success("Notifications transmises au service push et à la cloche de l'application");
+      }
       onOpenChange(false);
       setMessage("");
     },
@@ -114,6 +100,7 @@ export function NotifyAthletesDialog({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (sendNotification.isPending) return;
     if (!subject.trim() || !message.trim()) {
       toast.error("Veuillez remplir le sujet et le message");
       return;
@@ -121,12 +108,13 @@ export function NotifyAthletesDialog({
     sendNotification.mutate();
   };
 
-  // Update subject when dialog opens
-  useState(() => {
-    if (open && defaultSubject) {
+  useEffect(() => {
+    if (open) {
       setSubject(defaultSubject);
+      setMessage(defaultMessage);
+      setSendPush(true);
     }
-  });
+  }, [open, defaultSubject, defaultMessage]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -146,8 +134,8 @@ export function NotifyAthletesDialog({
           <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
             <Users className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm">
-              <strong>{athletes.length}</strong> athlète(s) • 
-              <span className="text-muted-foreground"> {athletesWithEmail} avec email, {athletesWithPhone} avec téléphone</span>
+               <strong>{athletes.length}</strong> athlète(s) • 
+               <span className="text-muted-foreground"> {linkedAthletes.length} avec un compte lié</span>
             </span>
           </div>
 
@@ -155,44 +143,6 @@ export function NotifyAthletesDialog({
           <div className="space-y-3">
             <Label>Canaux de notification</Label>
             <div className="flex flex-wrap gap-4">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="sendEmail"
-                  checked={sendEmail}
-                  onCheckedChange={(checked) => setSendEmail(checked as boolean)}
-                  disabled={athletesWithEmail === 0}
-                />
-                <label
-                  htmlFor="sendEmail"
-                  className="flex items-center gap-2 text-sm font-medium cursor-pointer"
-                >
-                  <Mail className="h-4 w-4" />
-                  Email
-                  <Badge variant="secondary" className="text-xs">
-                    {athletesWithEmail}
-                  </Badge>
-                </label>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="sendSms"
-                  checked={sendSms}
-                  onCheckedChange={(checked) => setSendSms(checked as boolean)}
-                  disabled={athletesWithPhone === 0}
-                />
-                <label
-                  htmlFor="sendSms"
-                  className="flex items-center gap-2 text-sm font-medium cursor-pointer"
-                >
-                  <Phone className="h-4 w-4" />
-                  SMS
-                  <Badge variant="secondary" className="text-xs">
-                    {athletesWithPhone}
-                  </Badge>
-                </label>
-              </div>
-
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="sendPush"
@@ -208,7 +158,7 @@ export function NotifyAthletesDialog({
                 </label>
               </div>
             </div>
-            {!sendEmail && !sendSms && !sendPush && (
+            {!sendPush && (
               <p className="text-sm text-destructive">
                 Sélectionnez au moins un canal
               </p>
@@ -262,7 +212,6 @@ export function NotifyAthletesDialog({
             </Button>
             <Button
               type="submit"
-              disabled={sendNotification.isPending || (!sendEmail && !sendSms && !sendPush)}
             >
               {sendNotification.isPending ? (
                 <>
