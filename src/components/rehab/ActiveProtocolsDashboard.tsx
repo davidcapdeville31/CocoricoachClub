@@ -346,8 +346,8 @@ export function ActiveProtocolsDashboard({ categoryId }: ActiveProtocolsDashboar
 
   return (
     <div className="space-y-6">
-      {/* Header with add button */}
-      <div className="flex items-center justify-between">
+      {/* Header with protocol manager button */}
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <div>
           <h2 className="text-xl font-semibold flex items-center gap-2">
             <Dumbbell className="h-5 w-5 text-primary" />
@@ -355,6 +355,10 @@ export function ActiveProtocolsDashboard({ categoryId }: ActiveProtocolsDashboar
           </h2>
           <p className="text-sm text-muted-foreground">Suivi des joueurs blessés et événements de réhab</p>
         </div>
+        <Button variant="outline" className="gap-2" onClick={() => setIsProtocolManagerOpen(true)}>
+          <Plus className="h-4 w-4" />
+          Gérer les protocoles
+        </Button>
       </div>
 
       {/* Summary Cards */}
