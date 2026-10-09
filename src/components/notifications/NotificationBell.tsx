@@ -139,17 +139,27 @@ export function NotificationBell({ variant = "hero", categoryIds }: Notification
   };
 
 
+  const filterKey = categoryIds?.length ? categoryIds.slice().sort().join(",") : "all";
+
   const { data: notifications } = useQuery({
-    queryKey: ["notifications", user?.id],
+    queryKey: ["notifications", user?.id, filterKey],
     queryFn: async () => {
       if (!user?.id) return [];
-      const { data, error } = await supabase
+      let query = supabase
         .from("notifications")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(20);
 
+      if (categoryIds?.length) {
+        // Notifications des catégories visibles + notifications globales (sans catégorie)
+        query = query.or(
+          `category_id.is.null,category_id.in.(${categoryIds.join(",")})`
+        );
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data as Notification[];
     },
