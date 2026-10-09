@@ -197,6 +197,15 @@ export function MatchLineupDialog({
       return;
     }
 
+    const subNumberFromPosition = (pos: any): string => {
+      if (pos == null) return "";
+      const s = String(pos).trim();
+      if (/^\d+$/.test(s)) return s;
+      const sub = s.match(/^SUB(\d+)$/i);
+      // Anciennes compositions : SUB1 → 16, SUB2 → 17…
+      if (sub) return String(fieldConfig.starters + parseInt(sub[1], 10));
+      return s;
+    };
     const lineup = (players as any[]).map((player) => {
       const existing = existingLineup?.find((l) => l.player_id === player.id);
       const fullName = [player.first_name, player.name].filter(Boolean).join(" ") || "Athlète inconnu";
@@ -204,7 +213,7 @@ export function MatchLineupDialog({
         playerId: player.id,
         playerName: fullName,
         isStarter: existing?.is_starter ?? false,
-        position: existing?.position ?? "",
+        position: subNumberFromPosition(existing?.position),
         minutesPlayed: existing?.minutes_played ?? 0,
         isSelected: !!existing || (!hasLineup && convoked.has(player.id)),
       };
@@ -368,10 +377,10 @@ export function MatchLineupDialog({
         // Player is a starter on the field
         return { ...p, isSelected: true, isStarter: true, position: positionNumber };
       }
-      if (substitutes.includes(p.playerId)) {
-        // Player is a substitute
-        const subIndex = substitutes.indexOf(p.playerId);
-        return { ...p, isSelected: true, isStarter: false, position: `SUB${subIndex + 1}` };
+      const subIndex = substitutes.indexOf(p.playerId);
+      if (subIndex !== -1) {
+        // Player is a substitute: numbered after the starters (16, 17, 18…)
+        return { ...p, isSelected: true, isStarter: false, position: String(fieldConfig.starters + subIndex + 1) };
       }
       // Player not selected
       return { ...p, isSelected: false, isStarter: false, position: "" };
@@ -395,11 +404,7 @@ export function MatchLineupDialog({
       playerName: [player.first_name, player.name].filter(Boolean).join(" ") || "Athlète inconnu",
     }));
   const starterCount = lineupData?.filter((p) => p.isSelected && p.isStarter).length ?? 0;
-  const substituteCount = fieldConfig.noField
-    ? lineupData?.filter((p) => p.isSelected && !p.isStarter).length ?? 0
-    : lineupData?.filter((p) => p.isSelected && !p.isStarter && p.position?.startsWith("SUB")).length
-      || lineupData?.filter((p) => p.isSelected && !p.isStarter && (existingLineup || []).some((l: any) => l.player_id === p.playerId)).length
-      || 0;
+  const substituteCount = lineupData?.filter((p) => p.isSelected && !p.isStarter).length ?? 0;
   
   // Check if this sport has a field layout
   const hasFieldLayout = !fieldConfig.noField;
