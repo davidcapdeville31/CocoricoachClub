@@ -37,6 +37,8 @@ export interface Athlete360ExportContext {
   categoryId: string;
   mode: "players" | "groups";
   periodLabel: string;
+  startDate?: string;
+  endDate?: string;
   /** Domaines sélectionnés à l'écran (tests, app, presence, load, health, weight). Absent = tout. */
   domains?: string[];
   subjects: Athlete360ExportSubject[];
@@ -110,8 +112,9 @@ export function exportAthlete360Csv(ctx: Athlete360ExportContext) {
   });
   }
 
+  rows.unshift([`Période : ${ctx.periodLabel}`]);
   downloadCsv(
-    `comparaison_360_${format(new Date(), "yyyyMMdd")}.csv`,
+    `comparaison_360_${ctx.startDate && ctx.endDate ? `${ctx.startDate}_${ctx.endDate}` : format(new Date(), "yyyyMMdd")}.csv`,
     generateCsv(headers, rows),
   );
 }
@@ -128,7 +131,7 @@ export function exportAthlete360SessionsCsv(ctx: Athlete360ExportContext) {
   const rows: (string | number | null)[][] = [];
   ctx.subjects.forEach((s) =>
     (s.sessionDetails || [])
-      .slice()
+      .filter((d) => (!ctx.startDate || d.date >= ctx.startDate) && (!ctx.endDate || d.date <= ctx.endDate))
       .sort((a, b) => a.date.localeCompare(b.date))
       .forEach((d) =>
         rows.push([
@@ -143,7 +146,9 @@ export function exportAthlete360SessionsCsv(ctx: Athlete360ExportContext) {
         ]),
       ),
   );
-  downloadCsv(`comparaison_360_seances_${format(new Date(), "yyyyMMdd")}.csv`, generateCsv(headers, rows));
+  const suffix = ctx.startDate && ctx.endDate ? `${ctx.startDate}_${ctx.endDate}` : format(new Date(), "yyyyMMdd");
+  rows.unshift([`Période : ${ctx.periodLabel}`]);
+  downloadCsv(`comparaison_360_seances_${suffix}.csv`, generateCsv(headers, rows));
 }
 
 export async function exportAthlete360Pdf(ctx: Athlete360ExportContext) {

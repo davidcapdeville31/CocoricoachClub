@@ -101,7 +101,7 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
   const [endDate, setEndDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
 
   const { data: groups = [] } = usePlayerGroups(categoryId);
-  const { players, rows, testOptions, isLoading } = useAthlete360(categoryId, startDate, endDate);
+  const { players, rows, testOptions, isLoading, isFetching } = useAthlete360(categoryId, startDate, endDate);
 
   const rowById = useMemo(() => {
     const m = new Map<string, Athlete360Row>();
@@ -300,10 +300,16 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
       toast.error("Sélectionne au moins un athlète ou un groupe.");
       return;
     }
+    if (isLoading || isFetching) {
+      toast.error("Les données de la période choisie sont en cours de chargement, réessaie dans un instant.");
+      return;
+    }
     const ctx = {
       categoryId,
       mode,
       domains,
+      startDate,
+      endDate,
       periodLabel: `${format(parseISO(startDate), "dd/MM/yyyy")} — ${format(parseISO(endDate), "dd/MM/yyyy")}`,
       subjects: subjects.map<Athlete360ExportSubject>((s) => ({
         name: s.name,
