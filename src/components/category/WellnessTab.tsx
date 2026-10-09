@@ -563,19 +563,21 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                 <TableBody>
                   {filteredWellnessData.map((entry) => (
                     <TableRow key={entry.id}>
-                      <TableCell className="font-medium whitespace-nowrap">
-                        <span className="inline-flex items-center gap-2">
-                          {[entry.players?.first_name, entry.players?.name].filter(Boolean).join(" ")}
+                      <TableCell className="font-medium">
+                        <span className="inline-flex items-center gap-2 min-w-0 max-w-full">
+                          <span className="truncate" title={[entry.players?.first_name, entry.players?.name].filter(Boolean).join(" ")}>
+                            {[entry.players?.first_name, entry.players?.name].filter(Boolean).join(" ")}
+                          </span>
                           {entry.auto_filled && (
-                            <Badge variant="outline" className="text-[10px] text-muted-foreground">
+                            <Badge variant="outline" className="text-[10px] text-muted-foreground shrink-0">
                               {t("health.wellness.table.auto")}
                             </Badge>
                           )}
                         </span>
                       </TableCell>
 
-                      <TableCell className="whitespace-nowrap">
-                        {format(new Date(entry.tracking_date), "dd MMM yyyy", { locale: getDateLocale() })}
+                      <TableCell className="whitespace-nowrap text-center text-sm px-1.5">
+                        {format(new Date(entry.tracking_date), "dd/MM", { locale: getDateLocale() })}
                       </TableCell>
 
                       {activeQuestions.map((q) => {
