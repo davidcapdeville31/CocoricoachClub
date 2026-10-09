@@ -9,6 +9,7 @@ import { usePlayerGroups, PLAYER_GROUP_COLORS } from "@/hooks/usePlayerGroups";
 import { useAthlete360, type Athlete360Row } from "@/hooks/analytics/useAthlete360";
 import {
   exportAthlete360Csv,
+  exportAthlete360SessionsCsv,
   exportAthlete360Pdf,
   type Athlete360ExportSubject,
 } from "@/lib/athlete360Export";
@@ -233,6 +234,9 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
           acwr: avg(members.filter((m) => !m.acwrInsufficient).map((m) => m.acwr)),
           acwrInsufficient: members.length > 0 && members.every((m) => m.acwrInsufficient),
           loadSessions: members.reduce((s, m) => s + m.loadSessions, 0),
+          realRpeSessions: members.reduce((s, m) => s + m.realRpeSessions, 0),
+          autoRpeSessions: members.reduce((s, m) => s + m.autoRpeSessions, 0),
+          sessionDetails: [],
           injuryCount: members.reduce((s, m) => s + m.injuryCount, 0),
           injuryDays: members.reduce((s, m) => s + m.injuryDays, 0),
           injuryActive: members.some((m) => m.injuryActive),
@@ -291,7 +295,7 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
     return { data, series };
   }, [subjects, mode]);
 
-  const runExport = async (kind: "pdf" | "csv") => {
+  const runExport = async (kind: "pdf" | "csv" | "sessions") => {
     if (!hasSelection) {
       toast.error("Sélectionne au moins un athlète ou un groupe.");
       return;
@@ -318,6 +322,9 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
         chronicLoad: s.row.chronicLoad,
         totalLoad: s.row.totalLoad,
         loadSessions: s.row.loadSessions,
+        realRpeSessions: s.row.realRpeSessions,
+        autoRpeSessions: s.row.autoRpeSessions,
+        sessionDetails: mode === "players" ? s.row.sessionDetails : [],
         acwr: s.row.acwr,
         acwrInsufficient: s.row.acwrInsufficient,
         injuryCount: s.row.injuryCount,
@@ -329,7 +336,13 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
     };
     try {
       if (kind === "pdf") await exportAthlete360Pdf(ctx);
-      else exportAthlete360Csv(ctx);
+      else if (kind === "sessions") {
+        if (mode !== "players") {
+          toast.error("Le détail par séance est disponible en mode athlètes.");
+          return;
+        }
+        exportAthlete360SessionsCsv(ctx);
+      } else exportAthlete360Csv(ctx);
       toast.success(kind === "pdf" ? "Export PDF généré" : "Export CSV généré");
     } catch (e) {
       console.error("[Athlete360] export", e);
@@ -474,6 +487,15 @@ export function Athlete360ComparisonPanel({ categoryId }: Props) {
             >
               <FileSpreadsheet className="h-3.5 w-3.5" />
               CSV
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 gap-1.5 rounded-lg text-xs"
+              onClick={() => runExport("sessions")}
+            >
+              <FileSpreadsheet className="h-3.5 w-3.5" />
+              Détail séances
             </Button>
           </div>
         </div>
