@@ -389,6 +389,21 @@ export type Database = {
         }
         Relationships: []
       }
+      arsenal_bank_managers: {
+        Row: {
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       athlete_access_tokens: {
         Row: {
           category_id: string
@@ -15556,6 +15571,7 @@ export type Database = {
         Returns: boolean
       }
       is_approved_user: { Args: { _user_id: string }; Returns: boolean }
+      is_arsenal_bank_manager: { Args: { _user_id: string }; Returns: boolean }
       is_category_athlete: {
         Args: { _category_id: string; _user_id: string }
         Returns: boolean
