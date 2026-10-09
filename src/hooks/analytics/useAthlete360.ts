@@ -52,6 +52,12 @@ export interface Athlete360Row {
   acwr: number | null;
   acwrInsufficient: boolean;
   loadSessions: number;
+  /** Séances dont le RPE a été réellement saisi par l'athlète */
+  realRpeSessions: number;
+  /** Séances dont le RPE a été auto-complété (prévu coach / défaut) */
+  autoRpeSessions: number;
+  /** Détail séance par séance (export audit) */
+  sessionDetails: Athlete360SessionDetail[];
   /** Blessures */
   injuryCount: number;
   injuryDays: number;
@@ -92,6 +98,16 @@ async function fetchAllRows<T = any>(
     if (chunk.length < PAGE_SIZE) break;
   }
   return out;
+}
+
+export interface Athlete360SessionDetail {
+  date: string;
+  type: string;
+  present: boolean | null;
+  duration: number | null;
+  rpe: number | null;
+  source: "athlete" | "auto_planned" | "auto_default";
+  load: number;
 }
 
 export function useAthlete360(categoryId: string, startDate: string, endDate: string) {
@@ -148,7 +164,7 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
         fetchAllRows((f, t) =>
           supabase
             .from("awcr_tracking")
-            .select("player_id, session_date, auto_filled, rpe, duration_minutes, training_load, training_session_id")
+            .select("player_id, session_date, auto_filled, rpe, duration_minutes, training_load, training_session_id, training_type")
             .eq("category_id", categoryId)
             .gte("session_date", loadStart)
             .lte("session_date", endDate)
@@ -511,8 +527,18 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
       const matchPresent = mp.filter((m) => m.attendance_status === "present").length;
 
       // --- Charge ---
-      const loadRows: LoadRow[] = (bundle.loads as any[])
-        .filter((r) => r.player_id === p.id)
+      // Absences déclarées (staff ou réponse athlète) : la séance ne compte pas
+      const absentSessions = new Set<string>();
+      (bundle.attendance as any[]).forEach((a) => {
+        if (a.player_id === p.id && a.status === "absent" && a.training_session_id) absentSessions.add(a.training_session_id);
+      });
+      (bundle.eventParticipants as any[]).forEach((e) => {
+        if (e.player_id === p.id && e.attendance_status === "absent") absentSessions.add(e.training_session_id);
+      });
+      const playerLoads = (bundle.loads as any[]).filter(
+        (r) => r.player_id === p.id && !(r.training_session_id && absentSessions.has(r.training_session_id)),
+      );
+      const loadRows: LoadRow[] = playerLoads
         .map((r) => ({
           session_date: r.session_date,
           rpe: r.rpe,
@@ -524,6 +550,37 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
         r.training_load != null && Number.isFinite(Number(r.training_load))
           ? Number(r.training_load)
           : (Number(r.rpe) || 0) * (Number(r.duration_minutes) || 0);
+      // Une « séance avec charge » = une vraie séance (pas une ligne de repos auto à 0)
+      const isRealSession = (r: any) =>
+        !!r.training_session_id || (!r.auto_filled) || (Number(r.training_load) || 0) > 0;
+      const periodRaw = playerLoads.filter(
+        (r) => r.session_date >= startDate && r.session_date <= endDate && isRealSession(r),
+      );
+      const sessionTypeById = new Map((bundle.sessions as any[]).map((s: any) => [s.id, s.training_type]));
+      const presentSessions = new Set<string>();
+      (bundle.attendance as any[]).forEach((a) => {
+        if (a.player_id === p.id && (a.status === "present" || a.status === "late") && a.training_session_id) presentSessions.add(a.training_session_id);
+      });
+      (bundle.eventParticipants as any[]).forEach((e) => {
+        if (e.player_id === p.id && e.attendance_status === "present") presentSessions.add(e.training_session_id);
+      });
+      const realRpeSessions = periodRaw.filter((r) => !r.auto_filled && Number(r.rpe) > 0).length;
+      const autoRpeSessions = periodRaw.filter((r) => r.auto_filled && Number(r.rpe) > 0).length;
+      const sessionDetails: Athlete360SessionDetail[] = periodRaw.map((r) => {
+        const load =
+          r.training_load != null && Number.isFinite(Number(r.training_load))
+            ? Number(r.training_load)
+            : (Number(r.rpe) || 0) * (Number(r.duration_minutes) || 0);
+        return {
+          date: String(r.session_date).slice(0, 10),
+          type: (r.training_session_id && sessionTypeById.get(r.training_session_id)) || r.training_type || "—",
+          present: r.training_session_id ? (presentSessions.has(r.training_session_id) ? true : null) : true,
+          duration: r.duration_minutes != null ? Number(r.duration_minutes) : null,
+          rpe: Number(r.rpe) > 0 ? Number(r.rpe) : null,
+          source: !r.auto_filled ? "athlete" : r.training_session_id && Number(r.rpe) > 0 ? "auto_planned" : "auto_default",
+          load: Math.round(load),
+        };
+      });
       const totalLoad = inPeriod.reduce((sum, r) => sum + loadOf(r), 0);
       const spanDays = Math.max(
         1,
@@ -609,7 +666,10 @@ export function useAthlete360(categoryId: string, startDate: string, endDate: st
         // 21 jours continus après la reprise. Ne jamais présenter 0,00
         // comme un ratio exploitable dans cette situation.
         acwrInsufficient: acwrDetail.insufficientHistory || !loadWindow.reliable,
-        loadSessions: inPeriod.length,
+        loadSessions: periodRaw.length,
+        realRpeSessions,
+        autoRpeSessions,
+        sessionDetails,
         injuryCount: injuries.length,
         injuryDays,
         injuryActive: injuries.some((i) => i.status === "active" || i.status === "recovering"),
