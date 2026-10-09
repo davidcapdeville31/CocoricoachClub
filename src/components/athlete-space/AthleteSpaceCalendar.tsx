@@ -1155,17 +1155,19 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                     <GroupedExerciseList exercises={exercises} maxHeight="500px" />
                                   </div>
                                 )}
-                                {session.training_type !== "mental" && session.training_type !== "test" && (
+                                 {session.training_type !== "test" && (
                                    <div className="flex flex-col sm:flex-row gap-2">
-                                     <Button
-                                       size="sm"
-                                       variant="outline"
-                                       className="w-full gap-1.5"
-                                       onClick={() => setDetailSession({ session, exercises })}
-                                     >
-                                       <Eye className="h-3.5 w-3.5" />
-                                       {t("athleteSpace.calendar.viewSession")}
-                                     </Button>
+                                     {session.training_type !== "mental" && (
+                                       <Button
+                                         size="sm"
+                                         variant="outline"
+                                         className="w-full gap-1.5"
+                                         onClick={() => setDetailSession({ session, exercises })}
+                                       >
+                                         <Eye className="h-3.5 w-3.5" />
+                                         {t("athleteSpace.calendar.viewSession")}
+                                       </Button>
+                                     )}
                                      <Button
                                        size="sm"
                                        className="w-full gap-1.5"
@@ -1185,7 +1187,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                              setIsBowlingTrainingOpen(true);
                                            }
                                          } else {
-                                           // Séance générique (prépa physique, musculation, cardio, terrain, etc.)
+                                           // Séance générique (prépa physique, musculation, cardio, terrain, mental, etc.)
                                            setValidationSession(session);
                                          }
                                        }}
