@@ -1,8 +1,8 @@
 # Calendrier de charge
 
 ## Notification de composition
-- [ ] Préremplir un message de sélection modifiable et retirer les options et compteurs mail/SMS du dialogue partagé.
-- [ ] Vérifier le dialogue sur une composition réelle, sans envoyer de push de test aux athlètes.
+- [x] Préremplir un message de sélection modifiable et retirer les options et compteurs mail/SMS du dialogue partagé.
+- [x] Vérifier le dialogue sur la composition Racing (23 comptes liés), sans envoyer de push de test aux athlètes ; Push décoché bloque l'envoi avec un message explicite.
 
 ## Notifications push d’Axelle
 - [x] Corriger l’attente du démarrage réel du service avant d’enregistrer le téléphone.
