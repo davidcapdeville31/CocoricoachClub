@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { format, parseISO, subDays } from "date-fns";
+import { format, parseISO, startOfWeek, subDays } from "date-fns";
 import { Activity, HeartPulse, Scale, ClipboardList, Gauge, Bell, Mail } from "lucide-react";
 import {
   ALL_GROUPS,
@@ -229,6 +229,90 @@ export function AthleteComplianceTab({ categoryId }: Props) {
     const vals = rows.map((r) => r.global).filter((v): v is number => v !== null);
     return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null;
   }, [rows]);
+
+  // Détail hebdomadaire : une ligne par athlète et par semaine + total période
+  const weekly = useMemo(() => {
+    const out: { name: string; week: string; sessions: number; rpe: number; wel: number; rate: number | null; isTotal?: boolean }[] = [];
+    rows.forEach((r) => {
+      const realWellnessDates = new Set(
+        wellness.filter((w: any) => w.player_id === r.id && !w.auto_filled).map((w: any) => w.tracking_date),
+      );
+      const sessions = new Map<string, { date: string; rpe: boolean }>();
+      loads
+        .filter((l: any) => l.player_id === r.id && l.training_session_id)
+        .forEach((l: any) => {
+          const prev = sessions.get(l.training_session_id);
+          const real = !l.auto_filled && Number(l.rpe) > 0;
+          sessions.set(l.training_session_id, { date: l.session_date, rpe: (prev?.rpe ?? false) || real });
+        });
+      const byWeek = new Map<string, { s: number; rpe: number; wel: number }>();
+      sessions.forEach((s) => {
+        const wk = format(startOfWeek(parseISO(s.date), { weekStartsOn: 1 }), "yyyy-MM-dd");
+        const b = byWeek.get(wk) || { s: 0, rpe: 0, wel: 0 };
+        b.s++;
+        if (s.rpe) b.rpe++;
+        if (realWellnessDates.has(s.date)) b.wel++;
+        byWeek.set(wk, b);
+      });
+      const tot = { s: 0, rpe: 0, wel: 0 };
+      [...byWeek.entries()].sort(([a], [b]) => a.localeCompare(b)).forEach(([wk, b]) => {
+        tot.s += b.s; tot.rpe += b.rpe; tot.wel += b.wel;
+        out.push({ name: r.name, week: wk, sessions: b.s, rpe: b.rpe, wel: b.wel, rate: pct(b.rpe + b.wel, b.s * 2) });
+      });
+      out.push({ name: r.name, week: "TOTAL", sessions: tot.s, rpe: tot.rpe, wel: tot.wel, rate: pct(tot.rpe + tot.wel, tot.s * 2), isTotal: true });
+    });
+    return out;
+  }, [rows, wellness, loads]);
+
+  const weeklyHeaders = ["Athlète", "Semaine (lundi)", "Nb séances concernées", "Nb séances avec RPE saisi", "Nb séances avec wellness saisi", "% de saisie"];
+  const weeklyExportRows = () =>
+    weekly.map((w) => [
+      w.name,
+      w.isTotal ? `TOTAL ${periodLabel}` : format(parseISO(w.week), "dd/MM/yyyy"),
+      String(w.sessions),
+      String(w.rpe),
+      String(w.wel),
+      w.rate === null ? "—" : `${w.rate}%`,
+    ]);
+  const handleWeeklyCsv = () => {
+    if (weekly.length === 0) return toast.error("Aucune donnée à exporter");
+    downloadCsv(`${fileBase}_hebdo.csv`, generateCsv(weeklyHeaders, weeklyExportRows()));
+  };
+  const handleWeeklyPdf = () => {
+    if (weekly.length === 0) return toast.error("Aucune donnée à exporter");
+    const doc = new jsPDF({ orientation: "landscape" });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    doc.setFontSize(16);
+    doc.text("Assiduité hebdomadaire", 14, 16);
+    doc.setFontSize(10);
+    doc.text(`${groupLabel}  •  Période : ${periodLabel}`, 14, 23);
+    const widths = [60, 50, 40, 45, 50, 25];
+    let y = 34;
+    const drawRow = (cells: string[], bold = false) => {
+      let x = 14;
+      doc.setFont("helvetica", bold ? "bold" : "normal");
+      cells.forEach((c, i) => {
+        doc.text(doc.splitTextToSize(c, widths[i] - 2)[0] ?? "", x + 1, y);
+        x += widths[i];
+      });
+      y += 7;
+    };
+    doc.setFillColor(34, 67, 120);
+    doc.setTextColor(255, 255, 255);
+    doc.rect(14, y - 5, pageW - 28, 7, "F");
+    drawRow(weeklyHeaders, true);
+    doc.setTextColor(0, 0, 0);
+    weeklyExportRows().forEach((row, idx) => {
+      if (y > pageH - 12) { doc.addPage(); y = 16; }
+      if (weekly[idx].isTotal) {
+        doc.setFillColor(226, 232, 240);
+        doc.rect(14, y - 5, pageW - 28, 7, "F");
+      }
+      drawRow(row, !!weekly[idx].isTotal);
+    });
+    doc.save(`${fileBase}_hebdo.pdf`);
+  };
 
   const { data: groups = [] } = usePlayerGroups(categoryId);
   const groupLabel =
@@ -482,6 +566,59 @@ export function AthleteComplianceTab({ categoryId }: Props) {
                           </div>
                         )}
                       </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <CardTitle className="text-base">Détail par semaine</CardTitle>
+              <CardDescription>
+                Une ligne par athlète et par semaine (lundi), puis le total sur la période. % = (RPE + wellness réellement saisis) ÷ (2 × séances).
+              </CardDescription>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handleWeeklyCsv}>
+                <FileSpreadsheet className="h-4 w-4 mr-1" /> CSV hebdo
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleWeeklyPdf}>
+                <FileText className="h-4 w-4 mr-1" /> PDF hebdo
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {weekly.length === 0 ? (
+            <p className="py-6 text-center text-muted-foreground">Aucune séance sur la période</p>
+          ) : (
+            <div className="max-h-[600px] overflow-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Athlète</TableHead>
+                    <TableHead>Semaine</TableHead>
+                    <TableHead className="text-center">Séances</TableHead>
+                    <TableHead className="text-center">RPE saisis</TableHead>
+                    <TableHead className="text-center">Wellness saisis</TableHead>
+                    <TableHead className="text-center">% saisie</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {weekly.map((w, i) => (
+                    <TableRow key={`${w.name}-${w.week}-${i}`} className={w.isTotal ? "bg-muted/60 font-semibold" : ""}>
+                      <TableCell>{w.name}</TableCell>
+                      <TableCell>{w.isTotal ? "Total période" : format(parseISO(w.week), "dd/MM/yyyy")}</TableCell>
+                      <TableCell className="text-center">{w.sessions}</TableCell>
+                      <TableCell className="text-center">{w.rpe}</TableCell>
+                      <TableCell className="text-center">{w.wel}</TableCell>
+                      <TableCell className={`text-center ${rateColor(w.rate)}`}>{w.rate === null ? "—" : `${w.rate}%`}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
