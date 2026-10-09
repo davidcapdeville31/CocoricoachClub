@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { format, parseISO, subDays } from "date-fns";
+import { format, parseISO, startOfWeek, subDays } from "date-fns";
 import { Activity, HeartPulse, Scale, ClipboardList, Gauge, Bell, Mail } from "lucide-react";
 import {
   ALL_GROUPS,
@@ -566,6 +566,59 @@ export function AthleteComplianceTab({ categoryId }: Props) {
                           </div>
                         )}
                       </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <CardTitle className="text-base">Détail par semaine</CardTitle>
+              <CardDescription>
+                Une ligne par athlète et par semaine (lundi), puis le total sur la période. % = (RPE + wellness réellement saisis) ÷ (2 × séances).
+              </CardDescription>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handleWeeklyCsv}>
+                <FileSpreadsheet className="h-4 w-4 mr-1" /> CSV hebdo
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleWeeklyPdf}>
+                <FileText className="h-4 w-4 mr-1" /> PDF hebdo
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {weekly.length === 0 ? (
+            <p className="py-6 text-center text-muted-foreground">Aucune séance sur la période</p>
+          ) : (
+            <div className="max-h-[600px] overflow-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Athlète</TableHead>
+                    <TableHead>Semaine</TableHead>
+                    <TableHead className="text-center">Séances</TableHead>
+                    <TableHead className="text-center">RPE saisis</TableHead>
+                    <TableHead className="text-center">Wellness saisis</TableHead>
+                    <TableHead className="text-center">% saisie</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {weekly.map((w, i) => (
+                    <TableRow key={`${w.name}-${w.week}-${i}`} className={w.isTotal ? "bg-muted/60 font-semibold" : ""}>
+                      <TableCell>{w.name}</TableCell>
+                      <TableCell>{w.isTotal ? "Total période" : format(parseISO(w.week), "dd/MM/yyyy")}</TableCell>
+                      <TableCell className="text-center">{w.sessions}</TableCell>
+                      <TableCell className="text-center">{w.rpe}</TableCell>
+                      <TableCell className="text-center">{w.wel}</TableCell>
+                      <TableCell className={`text-center ${rateColor(w.rate)}`}>{w.rate === null ? "—" : `${w.rate}%`}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
