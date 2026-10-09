@@ -408,9 +408,11 @@ export function MatchLineupDialog({
       return acc;
     }, {} as Record<string, string>);
 
-  // Get initial substitutes
+  // Get initial substitutes: only players actually saved as substitutes in the lineup.
+  // Convoked-only athletes stay available to be placed on the field.
+  const savedLineupIds = new Set((existingLineup || []).map((l: any) => l.player_id));
   const initialSubstitutes = lineupData
-    .filter(p => p.isSelected && !p.isStarter)
+    .filter(p => p.isSelected && !p.isStarter && savedLineupIds.has(p.playerId))
     .map(p => p.playerId);
 
   return (
