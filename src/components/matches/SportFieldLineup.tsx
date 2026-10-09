@@ -463,56 +463,52 @@ export function SportFieldLineup({
             </Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
-          {/* Current substitutes */}
-          {substitutePlayers.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {substitutePlayers.map((player, index) => (
-                <Badge 
-                  key={player.id} 
-                  variant="secondary" 
-                  className="text-sm py-1 px-2 flex items-center gap-1"
-                >
-                  <span className="font-bold text-orange-600">{fieldConfig.starters + index + 1}</span>
-                  <span>{formatPlayerName(player)}</span>
-                  {!readOnly && (
-                    <button
-                      onClick={() => handleRemoveSubstitute(player.id)}
-                      className="ml-1 text-muted-foreground hover:text-destructive"
+        <CardContent className="space-y-2">
+          {/* Numbered substitute slots: pick each substitute by number (e.g. 16 to 23) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {Array.from({ length: fieldConfig.substitutes }, (_, index) => {
+              const slotNumber = fieldConfig.starters + index + 1;
+              const currentId = substitutes[index] || "";
+              const slotOptions = players.filter(
+                (p) => !starterIds.includes(p.id) && (!substitutes.includes(p.id) || p.id === currentId)
+              );
+              return (
+                <div key={slotNumber} className="flex items-center gap-2">
+                  <span className="w-7 shrink-0 text-center font-bold text-orange-600">{slotNumber}</span>
+                  {readOnly ? (
+                    <span className="text-sm">{currentId ? getPlayerName(currentId) : "—"}</span>
+                  ) : (
+                    <Select
+                      value={currentId || "none"}
+                      onValueChange={(value) => {
+                        const newSubs = [...substitutes];
+                        while (newSubs.length < fieldConfig.substitutes) newSubs.push("");
+                        newSubs[index] = value === "none" ? "" : value;
+                        // Compact: drop trailing empty slots, keep array aligned to slots
+                        while (newSubs.length > 0 && newSubs[newSubs.length - 1] === "") newSubs.pop();
+                        setSubstitutes(newSubs);
+                        onLineupChange?.(lineup, newSubs.filter(Boolean));
+                      }}
                     >
-                      ×
-                    </button>
+                      <SelectTrigger className="h-8 text-sm">
+                        <SelectValue placeholder="Choisir…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">—</SelectItem>
+                        {slotOptions.map((player) => (
+                          <SelectItem key={player.id} value={player.id}>
+                            {formatPlayerName(player)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   )}
-                </Badge>
-              ))}
-            </div>
-          )}
+                </div>
+              );
+            })}
+          </div>
 
-          {/* Add substitutes */}
-          {!readOnly && substitutes.length < fieldConfig.substitutes && availablePlayers.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-xs text-muted-foreground">
-                Sélectionner les remplaçants ({fieldConfig.substitutes - substitutes.length} places restantes)
-              </p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-32 overflow-y-auto">
-                {availablePlayers.map((player) => (
-                  <div 
-                    key={player.id}
-                    className="flex items-center gap-2 p-2 rounded border hover:bg-muted/50 cursor-pointer"
-                    onClick={() => handleToggleSubstitute(player.id)}
-                  >
-                    <Checkbox 
-                      checked={substitutes.includes(player.id)}
-                      onCheckedChange={() => handleToggleSubstitute(player.id)}
-                    />
-                    <span className="text-sm truncate">{formatPlayerName(player)}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {substitutes.length >= fieldConfig.substitutes && (
+          {substitutes.filter(Boolean).length >= fieldConfig.substitutes && (
             <p className="text-xs text-muted-foreground">
               Effectif complet ({fieldConfig.totalSquad} joueurs au total)
             </p>
