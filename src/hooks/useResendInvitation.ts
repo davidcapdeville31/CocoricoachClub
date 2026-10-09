@@ -71,7 +71,7 @@ export function useResendInvitation() {
           queryClient.invalidateQueries({ queryKey: key });
         });
       }
-      toast.success("Invitation renvoyée avec un nouveau lien (valable 48h)");
+      toast.success("Invitation renvoyée avec un nouveau lien (valable 60 jours)");
     },
     onError: () => {
       toast.error("Erreur lors du renvoi de l'invitation");
