@@ -103,7 +103,10 @@ const TABS = [
       navigate(`?tab=${value}`, { replace: true });
     };
 
-    const activeTabInfo = TABS.find((t) => t.value === activeTab) ?? TABS[0];
+    // Arsenal bank managers (non super admins) only see the arsenal bank tab
+    const visibleTabs = isSuperAdmin ? TABS : TABS.filter((t) => t.value === "arsenal-bank");
+    const effectiveTab = isSuperAdmin ? activeTab : "arsenal-bank";
+    const activeTabInfo = visibleTabs.find((t) => t.value === effectiveTab) ?? visibleTabs[0];
     const ActiveIcon = activeTabInfo.icon;
 
     return (
