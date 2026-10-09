@@ -40,6 +40,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { differenceInDays, parseISO, format } from "date-fns";
 import { toast } from "sonner";
+import { ProtocolManager } from "@/components/injuries/ProtocolManager";
 
 interface ActiveProtocolsDashboardProps {
   categoryId: string;
