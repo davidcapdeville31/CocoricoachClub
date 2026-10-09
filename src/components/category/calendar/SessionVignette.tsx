@@ -189,7 +189,7 @@ export function SessionVignette({
           !hasBlocks && !isAthleteCreated && bgColor,
           isAthleteCreated && ATHLETE_SESSION_COLOR_CLASS,
           isDragging && "shadow-lg ring-2 ring-primary/50",
-          isAthleteCreated && "ring-2 ring-pink-300"
+          isAthleteCreated && "ring-2 ring-purple-300"
         )}
         style={
           !isAthleteCreated && hasBlocks ? (() => {
