@@ -247,7 +247,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
-        .select("id, name, email, phone")
+        .select("id, name, user_id")
         .eq("category_id", categoryId)
         .order("name");
       if (error) throw error;
@@ -1094,6 +1094,12 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
           return ids.size > 0 ? all.filter((p: any) => ids.has(p.id)) : all;
         })()}
         eventType="match"
+        categoryId={categoryId}
+        defaultMessage={(lineupPlayers?.length ?? 0) > 0
+          ? isIndividual
+            ? `Félicitations ! Tu fais partie de la sélection pour ${match.competition || match.opponent}.`
+            : `Félicitations ! Tu fais partie de la composition pour la compétition contre ${match.opponent}. Rendez-vous dans ton calendrier pour les détails !`
+          : ""}
         defaultSubject={isIndividual 
           ? t("competition.card.notifySubjectCompetition", { name: match.competition || match.opponent || t("competition.card.defaultCompetitionLabel") })
           : t("competition.card.notifySubjectMatch", { prefix: match.is_home ? "vs" : "@", opponent: match.opponent })
