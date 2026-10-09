@@ -29,7 +29,13 @@ interface Notification {
   metadata: any;
 }
 
-export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "default" }) {
+interface NotificationBellProps {
+  variant?: "hero" | "default";
+  /** Limite la cloche aux notifications de ces catégories (les notifications globales sans catégorie restent visibles) */
+  categoryIds?: string[];
+}
+
+export function NotificationBell({ variant = "hero", categoryIds }: NotificationBellProps) {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
   const { user } = useAuth();
