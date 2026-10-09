@@ -127,7 +127,7 @@ const TABS = [
           </div>
 
           {/* Main Content */}
-          <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
+          <Tabs value={effectiveTab} onValueChange={handleTabChange} className="space-y-6">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="flex items-center gap-2 min-w-[220px] justify-between">
@@ -139,7 +139,7 @@ const TABS = [
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-[220px] max-h-[60vh] overflow-y-auto">
-                {TABS.map((tab) => {
+                {visibleTabs.map((tab) => {
                   const Icon = tab.icon;
                   return (
                     <DropdownMenuItem
