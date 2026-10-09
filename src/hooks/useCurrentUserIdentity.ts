@@ -47,6 +47,7 @@ export interface CurrentUserIdentity {
 const EMPTY_IDENTITY: Omit<CurrentUserIdentity, "getClubRole" | "getCategoryRole" | "isClubOwner"> = {
   userId: null,
   isSuperAdmin: false,
+  isArsenalBankManager: false,
   ownedClubIds: [],
   clubMemberships: [],
   categoryMemberships: [],
@@ -65,11 +66,16 @@ export function useCurrentUserIdentity() {
     queryFn: async (): Promise<typeof EMPTY_IDENTITY> => {
       if (!user?.id) return EMPTY_IDENTITY;
 
-      const [superAdminRes, ownedClubsRes, clubMembersRes, categoryMembersRes] =
+      const [superAdminRes, arsenalManagerRes, ownedClubsRes, clubMembersRes, categoryMembersRes] =
         await Promise.all([
           supabase
             .from("super_admin_users")
             .select("id")
+            .eq("user_id", user.id)
+            .maybeSingle(),
+          supabase
+            .from("arsenal_bank_managers")
+            .select("user_id")
             .eq("user_id", user.id)
             .maybeSingle(),
           supabase.from("clubs").select("id").eq("user_id", user.id),
