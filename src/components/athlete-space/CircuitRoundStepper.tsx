@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { confirmCircuitRound, copyPreviousCircuitRound, type CircuitLog } from "@/lib/weight/circuitLog";
+import { confirmCircuitRound, copyPreviousCircuitRound, type CircuitLog, type CircuitCell } from "@/lib/weight/circuitLog";
 export { buildCircuitLog, aggregateCircuit, encodeCircuitTag, stripCircuitTag } from "@/lib/weight/circuitLog";
 export type { CircuitCell, CircuitLog } from "@/lib/weight/circuitLog";
 
