@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { aggregateGamesStats, itemLabel, technicalThemeLabel, type SimplifiedBlock } from "./types";
 
-const STEPS = ["Informations", "Séance", "Parties"];
+const STEPS = ["Informations", "Séance", "Récapitulatif"];
 
 export function BowlingStepper({ step, onStep }: { step: number; onStep: (s: number) => void }) {
   return (
