@@ -77,7 +77,10 @@ export function changeThrow(frames: FrameData[], index: number, throwIndex: numb
   const frame = copy[index];
   const previous = frame.throws[throwIndex];
   const value = upper === "" ? "" : pins === 10 && freshRack ? "X" : pins === remaining && !freshRack ? "/" : upper === "G" || upper === "-" ? "-" : String(pins);
-  frame.throws[throwIndex] = { isPocket: false, isSplit: false, isSinglePin: false, isSinglePinConverted: false, observed: [], ...previous, value, pins };
+  // A fresh first ball is pre-set to an explicit "no split" (an unobserved split is assumed absent);
+  // overwriting a throw keeps its previously recorded observations.
+  const defaultObserved = previous?.observed ?? (freshRack && value !== "X" ? ["isSplit"] : []);
+  frame.throws[throwIndex] = { isPocket: false, isSplit: false, isSinglePin: false, isSinglePinConverted: false, observed: defaultObserved, ...previous, value, pins };
   let incompatible = false;
   for (let t = throwIndex + 1; t < frame.throws.length; t++) {
     const roll = frame.throws[t];
