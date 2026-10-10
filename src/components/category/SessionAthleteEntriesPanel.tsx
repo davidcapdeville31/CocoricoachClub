@@ -368,13 +368,13 @@ export function SessionAthleteEntriesPanel({
                       RPE {Number(avgRpe).toFixed(1)}
                     </Badge>
                   )}
-                  {isMuscu && playerAwcr?.duration != null && (
+                  {playerAwcr?.duration != null && (
                     <Badge variant="outline" className="gap-1 text-xs">
                       <Clock className="h-3 w-3" />
                       {playerAwcr.duration} min
                     </Badge>
                   )}
-                  {isMuscu && playerLogs.length > 0 && (
+                  {playerLogs.length > 0 && (
                     <Badge variant="outline" className="gap-1 text-xs">
                       <Dumbbell className="h-3 w-3" />
                       {playerLogs.length} ex.
@@ -418,7 +418,7 @@ export function SessionAthleteEntriesPanel({
                 </div>
               )}
 
-              {canExpand && isOpen && isMuscu && (
+              {canExpand && isOpen && !isBowling && (
                 <div className="border-t bg-muted/20 p-3 space-y-3">
                   {/* Synthèse globale */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
