@@ -19,7 +19,7 @@ export function BowlingObservationButton({ label, value, readOnly, tone, clearab
   const good = value !== undefined && (tone === "negative" ? !value : value);
   const bad = value !== undefined && !good;
   return <div className="flex min-w-0 items-stretch gap-1">
-    <Button variant="outline" aria-label={`${label} : ${state}`} aria-pressed={value === true}
+    <Button variant="outline" data-observation="" aria-label={`${label} : ${state}`} aria-pressed={value === true}
       className={cn("h-12 min-w-0 flex-1 gap-2 rounded-lg bg-card px-2 font-semibold",
         tone === undefined && value === true && "border-selection bg-selection text-selection-foreground",
         good && "border-success bg-success text-success-foreground",
