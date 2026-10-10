@@ -42,6 +42,8 @@ import { SimplifiedGamesBlockEditor } from "./simplified/SimplifiedGamesBlockEdi
 import {
   newGamesBlock,
   aggregateGamesStats,
+  hasGameEntry,
+  isFinishedGame,
   type SimplifiedGamesBlock,
 } from "./simplified/types";
 import {
@@ -229,7 +231,7 @@ export function BowlingAdvancedDialog({
       if (b.draft.duration_min <= 0) return "La durée doit être supérieure à 0";
       return null;
     }
-    const saved = b.block.parties.filter((p) => p.stats !== null).length;
+    const saved = b.block.parties.filter(hasGameEntry).length;
     if (saved === 0)
       return "Enregistrez au moins une partie avant de verrouiller le bloc";
     return null;
@@ -259,7 +261,7 @@ export function BowlingAdvancedDialog({
 
   const blockDuration = (b: AdvancedBlock): number | null => {
     if (b.kind === "draft") return b.draft.duration_min || null;
-    const saved = b.block.parties.filter((p) => p.stats !== null).length;
+    const saved = b.block.parties.filter(hasGameEntry).length;
     return saved > 0 ? saved * 10 : null;
   };
 
@@ -301,7 +303,7 @@ export function BowlingAdvancedDialog({
       .filter((b): b is AdvancedBlockGames => b.kind === "games")
       .flatMap((b) =>
         b.block.parties
-          .filter((p) => p.stats !== null)
+          .filter(isFinishedGame)
           .map((p) => ({ entry: p, block: b.block })),
       );
 
@@ -721,7 +723,7 @@ export function BowlingAdvancedDialog({
               const subtitle =
                 b.kind === "draft"
                   ? `${b.draft.duration_min} min · ${b.draft.planned_throws} lancers`
-                  : `${b.block.parties.filter((p) => p.stats !== null).length} partie(s) enregistrée(s)`;
+                  : `${b.block.parties.filter(hasGameEntry).length} partie(s) enregistrée(s)`;
               return (
                 <Card
                   key={b.id}
