@@ -35,6 +35,8 @@ export default {
           DEFAULT: "hsl(var(--warning))",
           foreground: "hsl(var(--warning-foreground))",
         },
+        "bowling-canvas": "hsl(var(--bowling-canvas))",
+        "bowling-accent": "hsl(var(--bowling-accent))",
         success: {
           DEFAULT: "hsl(var(--success))",
           foreground: "hsl(var(--success-foreground))",

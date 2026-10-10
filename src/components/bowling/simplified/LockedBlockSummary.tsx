@@ -48,7 +48,7 @@ export function LockedBlockSummary({ block, index, categoryId, playerId, onEdit,
   const typeLabel = isTactical ? "Tactique" : isTechnical ? "Technique" : "Parties";
 
   return (
-    <Card className="rounded-2xl border-l-4 border-l-emerald-500 bg-surface p-4 shadow-sm">
+    <Card className="rounded-[20px] border-0 bg-card p-4 shadow-[0_2px_12px_-4px_hsl(var(--foreground)/0.08)]">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
           <div className={`rounded-lg p-2 ${iconBg}`}>

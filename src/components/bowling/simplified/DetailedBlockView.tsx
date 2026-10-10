@@ -69,7 +69,7 @@ export function DetailedBlockView({ block, index, categoryId, playerId }: Props)
       : null;
 
   return (
-    <Card className={`rounded-2xl border-l-4 ${borderColor} bg-surface p-4 shadow-sm`}>
+    <Card className={`rounded-2xl border-l-4 ${borderColor} bg-card p-4 shadow-sm`}>
       {/* Header */}
       <div className="flex items-start gap-3">
         <div className={`rounded-lg p-2 ${iconBg}`}>

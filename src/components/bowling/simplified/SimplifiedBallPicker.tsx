@@ -73,7 +73,7 @@ export function SimplifiedBallPicker({
         value={value || "__none__"}
         onValueChange={(v) => onChange(v === "__none__" ? null : v)}
       >
-        <SelectTrigger className="h-9 text-sm bg-surface-sunken">
+        <SelectTrigger className="h-9 text-sm bg-bowling-canvas">
           <SelectValue placeholder="Sélectionner une boule" />
         </SelectTrigger>
         <SelectContent className="z-[100]">

@@ -66,22 +66,20 @@ export function SimplifiedTacticalBlockEditor({
     totalAttempts > 0 ? Math.round((totalSuccess / totalAttempts) * 100) : null;
 
   return (
-    <Card className="space-y-4 rounded-2xl border-l-4 border-l-blue-500 bg-surface p-4 shadow-sm">
+    <Card className="space-y-4 rounded-[20px] border-0 bg-card p-5 shadow-[0_2px_12px_-4px_hsl(var(--foreground)/0.08)]">
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2">
-          <div className="rounded-lg bg-blue-500/10 p-2">
-            <Target className="h-4 w-4 text-blue-600" />
+          <div className="rounded-xl bg-bowling-accent/10 p-2.5">
+            <Target className="h-5 w-5 text-bowling-accent" />
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Bloc {index + 1} · Tactique
-            </p>
+            <p className="text-base font-semibold text-primary">Tactique #{index + 1}</p>
             <Input
               value={value.title}
               onChange={(e) => update({ title: e.target.value })}
-              placeholder="Titre du bloc (optionnel)"
-              className="mt-1 h-8 text-sm"
+              placeholder="Titre (facultatif)"
+              className="mt-1 h-9 rounded-xl border-0 bg-bowling-canvas text-sm"
             />
           </div>
         </div>
@@ -93,7 +91,7 @@ export function SimplifiedTacticalBlockEditor({
       {/* Durée */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
-          <Label className="text-xs">Durée (min)</Label>
+          <Label className="text-xs text-muted-foreground">Durée (min)</Label>
           <Input
             type="number"
             min={1}
@@ -101,12 +99,12 @@ export function SimplifiedTacticalBlockEditor({
             onChange={(e) =>
               update({ duration_min: e.target.value === "" ? 0 : Math.max(0, parseInt(e.target.value, 10) || 0) })
             }
-            className="h-9 text-sm"
+            className="h-11 rounded-xl border-0 bg-bowling-canvas text-base"
           />
         </div>
         {globalPct !== null && (
           <div className="flex items-end justify-end">
-            <Badge variant="secondary" className="text-xs">
+            <Badge className="rounded-full bg-success/15 px-3 py-1 text-sm text-success hover:bg-success/15">
               {totalSuccess}/{totalAttempts} réussis · {globalPct}%
             </Badge>
           </div>
@@ -131,194 +129,102 @@ export function SimplifiedTacticalBlockEditor({
       )}
 
 
-      {/* Items */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Situations travaillées
-          </Label>
+      {/* Situations */}
+      <div className="space-y-3">
+        <Label className="text-sm font-semibold text-primary">Situations travaillées</Label>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {TARGET_TYPES.map((t) => {
+            const count = value.items.filter((it) => it.target_type === t.value).length;
+            return (
+              <button
+                key={t.value}
+                type="button"
+                onClick={() => addItem(t.value)}
+                className={`flex h-12 items-center justify-center gap-1.5 rounded-xl px-3 text-sm font-medium transition-colors ${count > 0 ? "bg-primary text-primary-foreground" : "bg-bowling-canvas text-foreground hover:bg-muted"}`}
+              >
+                <Plus className="h-4 w-4" />
+                {t.label}
+                {count > 1 && <span className="text-xs opacity-80">×{count}</span>}
+              </button>
+            );
+          })}
         </div>
 
-        {value.items.length === 0 && (
-          <p className="rounded-lg border border-dashed border-border/60 bg-muted/20 p-3 text-center text-xs italic text-muted-foreground">
-            Aucune situation. Ajoutez-en une ci-dessous.
-          </p>
-        )}
-
         {value.items.map((item) => {
-          const pct =
-            item.attempts > 0
-              ? Math.round((item.success / item.attempts) * 100)
-              : null;
+          const pct = item.attempts > 0 ? Math.round((Math.min(item.success, item.attempts) / item.attempts) * 100) : null;
           return (
-            <div
-              key={item.id}
-              className="space-y-2 rounded-xl border border-border/60 bg-surface-sunken p-3"
-            >
+            <div key={item.id} className="space-y-3 rounded-2xl bg-bowling-canvas p-4">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-medium">{itemLabel(item)}</span>
-                <div className="flex items-center gap-2">
-                  {pct !== null && (
-                    <Badge
-                      variant="outline"
-                      className={
-                        pct >= 70
-                          ? "border-emerald-500 text-emerald-600"
-                          : pct >= 40
-                            ? "border-amber-500 text-amber-600"
-                            : "border-rose-500 text-rose-600"
-                      }
-                    >
-                      {pct}%
-                    </Badge>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => removeItem(item.id)}
-                  >
-                    <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                  </Button>
-                </div>
+                <span className="text-base font-semibold text-primary">{itemLabel(item)}</span>
+                <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Retirer la situation" onClick={() => removeItem(item.id)}>
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
               </div>
 
-              {/* Sous-sélection */}
               {item.target_type === "composed_spare" && (
-                <div className="space-y-1">
-                  <Label className="text-[10px] uppercase text-muted-foreground">
-                    Combinaison de quilles
-                  </Label>
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    <Select
-                      value={item.composed_spare || "6_10"}
-                      onValueChange={(v) =>
-                        updateItem(item.id, { composed_spare: v as any })
-                      }
-                    >
-                      <SelectTrigger className="h-10 text-sm">
-                        <SelectValue placeholder="Choisir un spare" />
-                      </SelectTrigger>
-                      <SelectContent className="z-[100] max-h-[60vh]">
-                        {COMPOSED_SPARES.map((s) => (
-                          <SelectItem key={s.value} value={s.value} className="text-sm py-2">
-                            {s.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {item.composed_spare === "custom" && (
-                      <Input
-                        placeholder="ex. 2-4-10"
-                        className="h-10 text-sm"
-                        value={(item.custom_pins || []).join("-")}
-                        onChange={(e) => {
-                          const pins = e.target.value
-                            .split(/[-,\s]+/)
-                            .map((x) => parseInt(x, 10))
-                            .filter((n) => Number.isFinite(n) && n >= 1 && n <= 10);
-                          updateItem(item.id, { custom_pins: pins });
-                        }}
-                      />
-                    )}
-                  </div>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <Select value={item.composed_spare || "6_10"} onValueChange={(v) => updateItem(item.id, { composed_spare: v as any })}>
+                    <SelectTrigger className="h-11 rounded-xl bg-card text-sm"><SelectValue placeholder="Choisir un spare" /></SelectTrigger>
+                    <SelectContent className="z-[200] max-h-[60vh]">
+                      {COMPOSED_SPARES.map((s) => <SelectItem key={s.value} value={s.value} className="py-2 text-sm">{s.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  {item.composed_spare === "custom" && (
+                    <Input placeholder="ex. 2-4-10" className="h-11 rounded-xl bg-card text-sm" value={(item.custom_pins || []).join("-")}
+                      onChange={(e) => {
+                        const pins = e.target.value.split(/[-,\s]+/).map((x) => parseInt(x, 10)).filter((n) => Number.isFinite(n) && n >= 1 && n <= 10);
+                        updateItem(item.id, { custom_pins: pins });
+                      }} />
+                  )}
                 </div>
               )}
               {item.target_type === "single_pin" && (
-                <div className="space-y-1">
-                  <Label className="text-[10px] uppercase text-muted-foreground">
-                    Quille travaillée
-                  </Label>
-                  <Select
-                    value={item.single_pin || "10"}
-                    onValueChange={(v) => updateItem(item.id, { single_pin: v as any })}
-                  >
-                    <SelectTrigger className="h-10 text-sm">
-                      <SelectValue placeholder="Choisir une quille" />
-                    </SelectTrigger>
-                    <SelectContent className="z-[100] max-h-[60vh]">
-                      {SINGLE_PINS.map((s) => (
-                        <SelectItem key={s.value} value={s.value} className="text-sm py-2">
-                          {s.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <Select value={item.single_pin || "10"} onValueChange={(v) => updateItem(item.id, { single_pin: v as any })}>
+                  <SelectTrigger className="h-11 rounded-xl bg-card text-sm"><SelectValue placeholder="Choisir une quille" /></SelectTrigger>
+                  <SelectContent className="z-[200] max-h-[60vh]">
+                    {SINGLE_PINS.map((s) => <SelectItem key={s.value} value={s.value} className="py-2 text-sm">{s.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               )}
 
-              {/* Attempts + success */}
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label className="text-[10px] uppercase text-muted-foreground">
-                    Nb lancers
-                  </Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={item.attempts || ""}
-                    onChange={(e) =>
-                      updateItem(item.id, {
-                        attempts: Math.max(0, parseInt(e.target.value || "0", 10)),
-                      })
-                    }
-                    className="h-8 text-sm"
-                  />
+                  <Label className="text-xs text-muted-foreground">Lancers</Label>
+                  <Input type="number" inputMode="numeric" min={0} value={item.attempts || ""}
+                    onChange={(e) => updateItem(item.id, { attempts: Math.max(0, parseInt(e.target.value || "0", 10)) })}
+                    className="h-12 rounded-xl bg-card text-base" />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-[10px] uppercase text-muted-foreground">
-                    Réussis
-                  </Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={item.attempts || undefined}
-                    value={item.success || ""}
+                  <Label className="text-xs text-muted-foreground">Réussites</Label>
+                  <Input type="number" inputMode="numeric" min={0} max={item.attempts || undefined} value={item.success || ""}
                     onChange={(e) => {
                       const v = Math.max(0, parseInt(e.target.value || "0", 10));
-                      updateItem(item.id, {
-                        success: item.attempts ? Math.min(v, item.attempts) : v,
-                      });
+                      updateItem(item.id, { success: item.attempts ? Math.min(v, item.attempts) : v });
                     }}
-                    className="h-8 text-sm"
-                  />
+                    className="h-12 rounded-xl bg-card text-base" />
                 </div>
               </div>
+              {pct !== null && (
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Réussite</span>
+                    <span className="font-semibold text-success">{pct} %</span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-card">
+                    <div className="h-full rounded-full bg-success transition-all" style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}
-
-        {/* Add buttons */}
-        <div className="flex flex-wrap gap-2 pt-1">
-          {TARGET_TYPES.map((t) => (
-            <Button
-              key={t.value}
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-8 gap-1 text-xs"
-              onClick={() => addItem(t.value)}
-            >
-              <Plus className="h-3.5 w-3.5" />
-              {t.label}
-            </Button>
-          ))}
-        </div>
       </div>
 
       {/* Note libre */}
-      <div className="space-y-1">
-        <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Note de séance (optionnel)
-        </Label>
-        <Textarea
-          value={value.notes ?? ""}
-          onChange={(e) => update({ notes: e.target.value })}
-          placeholder="Ressentis, observations, axes à retravailler…"
-          rows={3}
-          className="text-sm"
-        />
-      </div>
+      <details className="group">
+        <summary className="cursor-pointer list-none text-sm font-medium text-muted-foreground hover:text-foreground">+ Notes (facultatif)</summary>
+        <Textarea value={value.notes ?? ""} onChange={(e) => update({ notes: e.target.value })} placeholder="Ressentis, observations, axes à retravailler…" rows={3} className="mt-2 rounded-xl border-0 bg-bowling-canvas text-sm" />
+      </details>
     </Card>
   );
 }
