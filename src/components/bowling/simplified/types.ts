@@ -103,6 +103,7 @@ export interface SimplifiedTechnicalBlock {
 
 // ----- Bloc "Parties" (réutilise BowlingScoreSheet / BowlingStats) -----
 
+import { isGameComplete } from "@/lib/bowling/scoreRules";
 import type { FrameData, BowlingStats } from "@/components/athlete-portal/BowlingScoreSheet";
 
 export interface SimplifiedGameEntry {
@@ -270,20 +271,24 @@ export function newGamesBlock(): SimplifiedGamesBlock {
   };
 }
 
-/** Agrégat des stats sur toutes les parties du bloc Parties. */
+export const isFinishedGame = (p: SimplifiedGameEntry) => p.stats !== null && (!p.frames || isGameComplete(p.frames));
+export const hasGameEntry = (p: SimplifiedGameEntry) => p.stats !== null || !!p.frames?.some(f => f.throws.some(t => !!t.value));
+
+/** Only finished games enter score aggregates; drafts remain in the block JSON. */
 export function aggregateGamesStats(block: SimplifiedGamesBlock) {
-  const saved = block.parties.filter((p) => p.stats !== null);
+  const saved = block.parties.filter(isFinishedGame);
   if (saved.length === 0) return null;
-  const totalScore = saved.reduce((s, p) => s + (p.stats!.totalScore || 0), 0);
-  const strikes = saved.reduce((s, p) => s + (p.stats!.strikes || 0), 0);
-  const spares = saved.reduce((s, p) => s + (p.stats!.spares || 0), 0);
-  const splits = saved.reduce((s, p) => s + (p.stats!.splitCount || 0), 0);
-  const splitsConv = saved.reduce((s, p) => s + (p.stats!.splitConverted || 0), 0);
-  const singles = saved.reduce((s, p) => s + (p.stats!.singlePinCount || 0), 0);
-  const singlesConv = saved.reduce((s, p) => s + (p.stats!.singlePinConverted || 0), 0);
-  const pockets = saved.reduce((s, p) => s + (p.stats!.pocketCount || 0), 0);
-  const throws = saved.reduce((s, p) => s + (p.stats!.totalThrows || 0), 0);
-  const frames = saved.reduce((s, p) => s + (p.stats!.totalFrames || 0), 0);
+  const totalScore = saved.reduce((s, p) => s + (p.stats?.totalScore || 0), 0);
+  const strikes = saved.reduce((s, p) => s + (p.stats?.strikes || 0), 0);
+  const spares = saved.reduce((s, p) => s + (p.stats?.spares || 0), 0);
+  const splits = saved.reduce((s, p) => s + (p.stats?.splitCount || 0), 0);
+  const splitsConv = saved.reduce((s, p) => s + (p.stats?.splitConverted || 0), 0);
+  const singles = saved.reduce((s, p) => s + (p.stats?.singlePinCount || 0), 0);
+  const singlesConv = saved.reduce((s, p) => s + (p.stats?.singlePinConverted || 0), 0);
+  const pockets = saved.reduce((s, p) => s + (p.stats?.pocketCount || 0), 0);
+  const pocketOpportunities = saved.reduce((s, p) => s + (p.stats?.pocketOpportunities ?? (p.stats?.totalFrames || 0)), 0);
+  const spareOpportunities = saved.reduce((s, p) => s + (p.stats?.spareOpportunities ?? (p.stats?.totalFrames || 0)), 0);
+  const frames = saved.reduce((s, p) => s + (p.stats?.totalFrames || 0), 0);
   return {
     count: saved.length,
     totalScore,
@@ -295,9 +300,11 @@ export function aggregateGamesStats(block: SimplifiedGamesBlock) {
     singles,
     singlesConv,
     pockets,
-    pocketPct: throws > 0 ? Math.round((pockets / throws) * 100) : 0,
+    pocketPct: pocketOpportunities > 0 ? Math.round((pockets / pocketOpportunities) * 100) : 0,
+    pocketOpportunities, spareOpportunities, frames,
+    bestScore: Math.max(...saved.map(p => p.stats?.totalScore ?? 0)),
     strikePct: frames > 0 ? Math.round((strikes / frames) * 100) : 0,
-    sparePct: frames > 0 ? Math.round((spares / frames) * 100) : 0,
+    sparePct: spareOpportunities > 0 ? Math.round((spares / spareOpportunities) * 100) : 0,
   };
 }
 

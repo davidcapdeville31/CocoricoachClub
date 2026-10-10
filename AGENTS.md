@@ -18,3 +18,7 @@
 - Athlete mental content is rendered with a safe Markdown renderer and navigation derived only from stored headings; coach content is never rewritten.
 - Circuit tour completion uses explicit confirmations persisted in the backward-compatible circuit notes tag, not visits or prescribed values; tonnage aggregation remains independent.
 - Athlete entry drafts are kept in component memory keyed by session and discarded on successful validation or account change; sensitive responses are never written to browser storage.
+
+- Bowling desktop and guided mobile share frame state and pure score/validation helpers; absent throws never resolve bonuses or cumulative scores, avoiding divergent score engines.
+- Optional bowling observations use a backward-compatible observed-fields list on existing throw JSON; omitted metadata preserves legacy meaning, while new absent observations are excluded from denominators.
+- In-progress bowling games remain in block configuration but never enter completed-game aggregates or flattened competition results; this preserves resumable input without publishing provisional scores.

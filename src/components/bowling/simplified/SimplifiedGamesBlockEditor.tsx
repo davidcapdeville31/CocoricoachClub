@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { isGameComplete } from "@/lib/bowling/scoreRules";
 import pinsIllu from "@/assets/bowling/hero-pins.png";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +11,8 @@ import { SimplifiedOilPatternPicker } from "./SimplifiedOilPatternPicker";
 import { BowlingScoreSheet } from "@/components/athlete-portal/BowlingScoreSheet";
 import {
   aggregateGamesStats,
+  isFinishedGame,
+  hasGameEntry,
   newGameEntry,
   quickScoreStats,
   type SimplifiedGameEntry,
@@ -37,6 +41,7 @@ export function SimplifiedGamesBlockEditor({
   onRemove,
   hideOilPicker,
 }: Props) {
+  const [expanded, setExpanded] = useState<string | null>(value.parties[0]?.id ?? null);
   const card = "rounded-[20px] border border-border/40 bg-card p-4 sm:p-5 shadow-[0_6px_20px_-10px_hsl(var(--bowling-ink)/0.18)]";
 
   const update = (patch: Partial<SimplifiedGamesBlock>) =>
@@ -47,17 +52,21 @@ export function SimplifiedGamesBlockEditor({
       parties: value.parties.map((p) => (p.id === id ? { ...p, ...patch } : p)),
     });
 
-  const addParty = () =>
-    update({ parties: [...value.parties, newGameEntry()] });
+  const addParty = () => {
+    const entry = newGameEntry();
+    setExpanded(entry.id);
+    update({ parties: [...value.parties, entry] });
+  };
 
   const removeParty = (id: string) => {
     if (value.parties.length <= 1) return;
+    if (value.parties.some(p => p.id === id && hasGameEntry(p)) && !window.confirm("Supprimer cette partie et ses lancers ?")) return;
     update({ parties: value.parties.filter((p) => p.id !== id) });
   };
 
   const agg = aggregateGamesStats(value);
   const mode = value.entry_mode ?? "detailed";
-  const best = Math.max(0, ...value.parties.map((p) => p.stats?.totalScore || 0));
+  const best = agg?.bestScore ?? 0;
 
   const setCount = (n: number) => {
     const cur = value.parties;
@@ -128,9 +137,10 @@ export function SimplifiedGamesBlockEditor({
                         const next = all[idx + 1];
                         if (next) { next.focus(); next.select(); } else (e.target as HTMLInputElement).blur();
                       }}
-                      value={p.stats ? p.stats.totalScore : ""}
+                      value={isFinishedGame(p) ? p.stats?.totalScore : ""}
                       onChange={(e) => {
                         const raw = e.target.value;
+                        if (p.frames?.some(f => f.throws.some(t => t.value)) && !window.confirm("Remplacer les lancers détaillés de cette partie par un score seul ?")) return;
                         if (raw === "") return updateParty(p.id, { stats: null, frames: null });
                         const v = Math.max(0, Math.min(300, parseInt(raw, 10) || 0));
                         updateParty(p.id, { stats: quickScoreStats(v), frames: null });
@@ -140,7 +150,6 @@ export function SimplifiedGamesBlockEditor({
                     <span className="flex-1" />
                     {value.parties.length > 1 && (
                       <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" aria-label="Supprimer la partie" onClick={() => {
-                        if (p.stats && !window.confirm("Supprimer cette partie ?")) return;
                         removeParty(p.id);
                       }}><Trash2 className="h-4 w-4 text-muted-foreground" /></Button>
                     )}
@@ -183,7 +192,7 @@ export function SimplifiedGamesBlockEditor({
           <div className="flex flex-wrap items-center gap-2 text-sm">
             <BarChart3 className="h-5 w-5 text-bowling-accent" />
             <span className="font-semibold text-bowling-ink">{agg ? `${agg.count} partie${agg.count > 1 ? "s" : ""} · Moyenne ${avgFmt}` : "Aucune partie enregistrée"}</span>
-            {agg && <span className="text-muted-foreground">· Meilleure {best}</span>}
+            {agg && <span className="text-muted-foreground">· Meilleure {best} · Total {agg.totalScore}</span>}
           </div>
           <details className="mt-3 rounded-xl bg-bowling-field px-3 py-2">
             <summary className="cursor-pointer list-none text-sm font-medium text-muted-foreground hover:text-foreground">+ Statistiques avancées</summary>
@@ -196,7 +205,7 @@ export function SimplifiedGamesBlockEditor({
                 <div className="flex flex-wrap items-center gap-2 text-xs">
                   <Badge variant="outline">Strike {agg.strikePct}%</Badge>
                   <Badge variant="outline">Spare {agg.sparePct}%</Badge>
-                  {value.track_pockets && <Badge variant="outline">Poche {agg.pocketPct}%</Badge>}
+                  {value.track_pockets && <Badge variant="outline">Poche {agg.pocketOpportunities ? `${agg.pocketPct}%` : "—"}</Badge>}
                 </div>
               ) : <span className="text-xs text-muted-foreground">Disponibles après la première partie enregistrée.</span>}
             </div>
@@ -212,20 +221,32 @@ export function SimplifiedGamesBlockEditor({
             <div className="flex items-center justify-between gap-2 px-1">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-semibold text-bowling-ink">Partie {idx + 1}</span>
-                {p.stats && <Badge variant="outline" className="border-bowling-games text-bowling-games">{p.stats.totalScore}</Badge>}
+                {p.stats && <Badge variant="outline" className="border-bowling-games text-bowling-games">{isFinishedGame(p) ? p.stats.totalScore : "En cours"}</Badge>}
               </div>
               {value.parties.length > 1 && (
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeParty(p.id)}><Trash2 className="h-3.5 w-3.5 text-muted-foreground" /></Button>
+                <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Supprimer la partie" onClick={() => removeParty(p.id)}><Trash2 className="h-3.5 w-3.5 text-muted-foreground" /></Button>
               )}
             </div>
-            <BowlingScoreSheet
-              key={`${p.id}-${value.track_pockets}`}
-              initialFrames={p.frames ?? undefined}
-              playerId={playerId}
-              categoryId={categoryId}
-              trackPockets={value.track_pockets}
-              onSave={(stats, frames, ballData) => updateParty(p.id, { stats, frames, ball_id: ballData?.ballId ?? p.ball_id ?? null })}
-            />
+            <Button type="button" variant="outline" className="h-11 w-full gap-2" onClick={() => setExpanded(expanded === p.id ? null : p.id)} aria-expanded={expanded === p.id}>
+              {expanded === p.id ? "Replier la partie" : isFinishedGame(p) ? "Consulter / corriger" : "Continuer la partie"}<ChevronDown className={`h-4 w-4 ${expanded === p.id ? "rotate-180" : ""}`} />
+            </Button>
+            {expanded === p.id && <>
+              {p.stats && !p.frames && <p className="px-2 text-sm text-muted-foreground">Score rapide conservé : {p.stats.totalScore}. Aucun lancer détaillé enregistré.</p>}
+              <BowlingScoreSheet
+                key={p.id}
+                initialFrames={p.frames ?? undefined}
+                gameNumber={idx + 1}
+                playerId={playerId}
+                categoryId={categoryId}
+                trackPockets={value.track_pockets}
+                beforeThrowChange={() => !p.stats || !!p.frames || window.confirm("Remplacer le score rapide par ces nouveaux lancers détaillés ?")}
+                onDraftChange={(stats, frames) => {
+                  updateParty(p.id, { stats, frames });
+                }}
+                onSave={(stats, frames, ballData) => updateParty(p.id, { stats, frames, ball_id: ballData?.ballId ?? p.ball_id ?? null })}
+              />
+            </>}
+
           </div>
         ))}
         <Button type="button" variant="outline" size="sm" onClick={addParty} className="gap-1 rounded-xl"><Plus className="h-3.5 w-3.5" /> Ajouter une partie</Button>

@@ -33,6 +33,8 @@ import {
   newGamesBlock,
   technicalThemeLabel,
   aggregateGamesStats,
+  hasGameEntry,
+  isFinishedGame,
   type SimplifiedBlock,
   type SimplifiedOilPattern,
 } from "./simplified/types";
@@ -377,7 +379,7 @@ export function BowlingSimplifiedDialog({
         return "Décrivez ce que vous avez travaillé";
     }
     if (b.type === "games") {
-      const saved = b.parties.filter((p) => p.stats !== null).length;
+      const saved = b.parties.filter(hasGameEntry).length;
       if (saved === 0)
         return "Saisissez au moins un score dans le bloc Parties";
     }
@@ -405,7 +407,7 @@ export function BowlingSimplifiedDialog({
     });
 
   /** Les parties sans aucun score = étape passée : elles ne sont pas enregistrées. */
-  const effectiveBlocks = blocks.filter((b) => b.type !== "games" || b.parties.some((p) => p.stats !== null));
+  const effectiveBlocks = blocks.filter((b) => b.type !== "games" || b.parties.some(hasGameEntry));
   const computedDuration = (list: SimplifiedBlock[]) => list.reduce((sum, b) => sum + (blockDuration(b) || 0), 0);
 
   // ---------- Persistance ----------
@@ -419,7 +421,7 @@ export function BowlingSimplifiedDialog({
     if (b.type === "tactical" || b.type === "technical") return b.duration_min;
     // games : pas de durée explicite, on estime ~10 min / partie sauvegardée
     if (b.type === "games") {
-      const saved = b.parties.filter((p) => p.stats !== null).length;
+      const saved = b.parties.filter(hasGameEntry).length;
       return saved > 0 ? saved * 10 : null;
     }
     return null;
@@ -521,7 +523,7 @@ export function BowlingSimplifiedDialog({
       .filter((b): b is Extract<SimplifiedBlock, { type: "games" }> => b.type === "games")
       .flatMap((b) =>
         b.parties
-          .filter((p) => p.stats !== null)
+          .filter(isFinishedGame)
           .map((p) => ({ entry: p, block: b })),
       );
 

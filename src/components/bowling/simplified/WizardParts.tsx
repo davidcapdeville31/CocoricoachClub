@@ -78,7 +78,7 @@ export function blockCompactLine(b: SimplifiedBlock): { title: string; detail: s
   }
   const agg = aggregateGamesStats(b);
   if (!agg) return { title: "Aucun score", detail: "Scores à saisir" };
-  const best = Math.max(0, ...b.parties.map((p) => p.stats?.totalScore || 0));
+  const best = agg?.bestScore ?? 0;
   return { title: `${agg.count} partie${agg.count > 1 ? "s" : ""}`, detail: `Moyenne ${fmt(agg.avgScore)}${best > 0 ? ` · Meilleure ${best}` : ""}` };
 }
 
@@ -98,7 +98,7 @@ function blockLine(b: SimplifiedBlock): { icon: typeof Target; color: string; ti
     return { icon: Wrench, color: "text-bowling-technical", title: b.title?.trim() || "Technique", detail: `${technicalThemeLabel(b)} · ${b.duration_min} min` };
   }
   const agg = aggregateGamesStats(b);
-  const best = Math.max(0, ...b.parties.map((p) => p.stats?.totalScore || 0));
+  const best = agg?.bestScore ?? 0;
   return {
     icon: Circle,
     color: "text-bowling-games",
