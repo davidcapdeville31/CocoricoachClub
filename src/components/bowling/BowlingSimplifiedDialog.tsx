@@ -12,7 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sparkles, Plus, Target, Wrench, Save, Circle, Users, Loader2, Droplet } from "lucide-react";
+import { Sparkles, Plus, Target, Wrench, Save, Circle, Users, Loader2, Droplet, ArrowUp, ArrowDown, Copy, ArrowLeft, ArrowRight, CheckCircle2, CalendarDays } from "lucide-react";
+import { BowlingStepper, BowlingSessionRecap } from "./simplified/WizardParts";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -814,12 +815,14 @@ export function BowlingSimplifiedDialog({
       setSelectedPlayers([]);
       setOilPatternName("none");
       setOilScope("session");
+      setStep(0);
     }
     onOpenChange(next);
   };
 
   // Réinitialise quand on ouvre (sauf en édition : on attend la requête)
   useEffect(() => {
+    if (open) setStep(isEditMode ? 1 : 0);
     if (open && !isEditMode) {
       setBlocks([]);
       setLockedIds(new Set());
@@ -850,7 +853,7 @@ export function BowlingSimplifiedDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="w-[calc(100vw-1rem)] sm:w-[95vw] max-w-[1200px] border-border/70 bg-background/95 shadow-2xl backdrop-blur-md max-h-[92vh] overflow-y-auto">
+      <DialogContent className="w-[calc(100vw-1rem)] sm:w-[95vw] max-w-[760px] border-border/70 bg-surface-sunken shadow-2xl backdrop-blur-md max-h-[92vh] overflow-y-auto">
         <DialogHeader className="space-y-4">
           <BowlingStepper step={step} onStep={goToStep} />
           <div>
