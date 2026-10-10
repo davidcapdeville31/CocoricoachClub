@@ -652,7 +652,7 @@ function StatusPill({
       type="button"
       onClick={onClick}
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium transition",
+        "inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors motion-reduce:transition-none",
         active ? activeClass : "border-border bg-background text-muted-foreground hover:bg-muted",
       )}
     >
