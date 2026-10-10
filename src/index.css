@@ -781,3 +781,30 @@ body:has([role="dialog"][data-state="open"]) .field-mode-toggle { display: none;
 }
 
 body:has(.athlete-space) .field-mode-toggle { display: none; }
+
+/* The shared field theme declares tokens on every descendant; athlete roles must inherit its scoped palette. */
+.field-mode .athlete-space * {
+  --background: inherit;
+  --foreground: inherit;
+  --card: inherit;
+  --card-foreground: inherit;
+  --popover: inherit;
+  --popover-foreground: inherit;
+  --primary: inherit;
+  --primary-foreground: inherit;
+  --secondary: inherit;
+  --secondary-foreground: inherit;
+  --muted: inherit;
+  --muted-foreground: inherit;
+  --accent: inherit;
+  --accent-foreground: inherit;
+  --border: inherit;
+  --input: inherit;
+  --ring: inherit;
+  --success: inherit;
+  --success-foreground: inherit;
+  --status-optimal: inherit;
+  --warning: inherit;
+  --warning-foreground: inherit;
+  --gradient-card: inherit;
+}
