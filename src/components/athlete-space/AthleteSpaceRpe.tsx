@@ -20,7 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Activity, CheckCircle2, Clock, Calendar, Lock, Target, Heart, Dumbbell, ChevronDown, ChevronUp, FlaskConical } from "lucide-react";
+import { Activity, CheckCircle2, Clock, Calendar, Lock, Target, Heart, Dumbbell, ChevronDown, ChevronUp, ChevronRight, Brain, FlaskConical } from "lucide-react";
 import { toast } from "sonner";
 import { format, parseISO, addDays } from "date-fns";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
@@ -61,6 +61,7 @@ interface Props {
   playerId: string;
   categoryId: string;
   hideHistory?: boolean;
+  onViewCalendar?: () => void;
 }
 
 /**
@@ -116,7 +117,7 @@ const formatBodyWeightRatioResult = (rawValue: unknown, playerWeight?: number | 
   return `ratio ${formatFrNumber(ratio, 2)} (${formatFrNumber(loadKg, 1)}/${formatFrNumber(playerWeight, 1)} kg)`;
 };
 
-export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
+export function AthleteSpaceRpe({ playerId, categoryId, hideHistory, onViewCalendar }: Props) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const today = new Date().toISOString().split("T")[0];
@@ -1199,11 +1200,12 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
           {/* Today: Pending sessions */}
           {pendingSessions.length > 0 && (
             <Card className="athlete-session-section bg-transparent border-0 shadow-none h-full">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm sm:text-base flex items-center gap-2">
+              <CardHeader className="pb-2 flex flex-row items-center justify-between gap-2 space-y-0">
+                <CardTitle className="text-sm sm:text-base flex items-center gap-2 min-w-0">
                   <Activity className="h-4 w-4 text-accent" />
                   Mes séances à réaliser
                 </CardTitle>
+                {onViewCalendar && <Button variant="ghost" size="sm" className="athlete-all-sessions shrink-0 px-0 text-muted-foreground" onClick={onViewCalendar}>Tout voir<ChevronRight className="h-4 w-4" /></Button>}
               </CardHeader>
               <CardContent className="space-y-3 sm:space-y-4">
             {pendingSessions.map(session => {
@@ -1227,9 +1229,9 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                     <div className="min-w-0 flex-1">
                       <p className="font-semibold text-base leading-snug flex items-center gap-1.5 flex-wrap">
                         {isTest ? (
-                          <FlaskConical className="h-4 w-4 text-cyan-600 dark:text-cyan-400 shrink-0" />
+                          <FlaskConical className="athlete-session-icon h-4 w-4 text-accent shrink-0" />
                         ) : (
-                          <Activity className="h-4 w-4 text-accent shrink-0" />
+                          session.training_type === "mental" ? <Brain className="athlete-session-icon h-4 w-4 text-accent shrink-0" /> : session.training_type === "musculation" ? <Dumbbell className="athlete-session-icon h-4 w-4 text-accent shrink-0" /> : <Activity className="athlete-session-icon h-4 w-4 text-accent shrink-0" />
                         )}
                         <span>{getSessionTrainingLabel(session)}</span>
                         {isTest && (
@@ -1238,13 +1240,13 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                           </Badge>
                         )}
                       </p>
-                      {session.session_date !== today && (
+                      {(
                         <p className="text-xs font-medium text-muted-foreground mt-1">
                           {format(parseISO(session.session_date), "EEEE dd/MM", { locale: getDateLocale() })}
                         </p>
                       )}
                       {renderTestInfo(session)}
-                      {session.training_type === "mental" ? <p className="mt-1 text-sm text-muted-foreground break-words">{getSessionTitleFromNotes(session.notes)?.replace(/^#+\s*|\*\*/g, "")}</p> : renderSessionNotes(session.notes, session.training_type === "test")}
+                      {session.training_type === "mental" ? <FormattedText className="athlete-session-preview mt-1 text-sm text-muted-foreground" text={getSessionTitleFromNotes(session.notes) || ""} /> : renderSessionNotes(session.notes, session.training_type === "test")}
                       {session.session_start_time && (
                         <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                           <Clock className="h-3 w-3" />
@@ -1274,7 +1276,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                       );
                     })()}
                   </div>
-                  {session.training_type === "mental" && <Button type="button" className="mt-3 h-11 w-full sm:w-auto sm:min-w-48 rounded-xl" onClick={(e) => { e.stopPropagation(); setMentalSession(session); }}>Découvrir ma séance</Button>}
+                  {session.training_type === "mental" && <Button type="button" className="athlete-session-action mt-3 h-11 w-full sm:w-auto sm:min-w-48 rounded-xl" onClick={(e) => { e.stopPropagation(); setMentalSession(session); }}>Découvrir ma séance<ChevronRight /></Button>}
                   {renderExerciseToggle(session.id)}
                 </div>
 

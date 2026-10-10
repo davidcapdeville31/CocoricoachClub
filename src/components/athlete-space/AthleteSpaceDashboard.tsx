@@ -21,9 +21,10 @@ interface Props {
   categoryId: string;
   playerName: string;
   sportType?: string;
+  onViewCalendar?: () => void;
 }
 
-export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportType }: Props) {
+export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportType, onViewCalendar }: Props) {
   const { t } = useTranslation();
   const { data: awcrData } = useQuery({
     queryKey: ["athlete-space-awcr", playerId],
@@ -279,12 +280,12 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
   }));
 
   return (
-    <div className="space-y-6">
+    <div className="athlete-home space-y-6">
       {/* Wellness du jour — hissé en haut pour saisie rapide sur mobile */}
       <AthleteSpaceWellness playerId={playerId} categoryId={categoryId} hideHistory />
 
       {/* RPE du jour — hissé en haut pour saisie rapide sur mobile */}
-      <AthleteSpaceRpe playerId={playerId} categoryId={categoryId} hideHistory />
+      <AthleteSpaceRpe playerId={playerId} categoryId={categoryId} hideHistory onViewCalendar={onViewCalendar} />
 
       {/* Cycle en cours — visibilité de la planification du coach */}
       <CurrentCyclesCard categoryId={categoryId} playerId={playerId} />

@@ -1,5 +1,6 @@
 # Architecture decisions
 - Athlete visual tokens are scoped to the athlete shell and reuse existing theme classes, so shared coach screens and business behavior remain unchanged.
+- Athlete mobile navigation selects the existing URL tab state and mirrors sport visibility; the secondary drawer and desktop theme command reuse FieldModeContext to preserve preferences and all modules.
 - The shared athlete notification dialog sends push-only requests using linked user IDs; composition announcements use an editable default message without changing global-calendar availability invitations.
 - OneSignal device registration waits for the explicit post-init readiness flag and caches only successful syncs; SDK method availability alone does not mean initialization has completed.
 - Attendance reports label notification channels active only from confirmed enabled OneSignal subscriptions; preference toggles alone never prove delivery readiness.

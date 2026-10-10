@@ -24,6 +24,7 @@ import { PlayerPadelEquipment } from "@/components/padel/PlayerPadelEquipment";
 import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 import { AthletePWAInstallPopup } from "@/components/athlete/AthletePWAInstallPopup";
 import { AthleteSpaceDashboard } from "@/components/athlete-space/AthleteSpaceDashboard";
+import { AthleteMobileNavigation, AthleteThemeCommand, type AthleteDestination } from "@/components/athlete-space/AthleteMobileNavigation";
 import { AthleteSpaceRpe } from "@/components/athlete-space/AthleteSpaceRpe";
 import { AthleteSpaceWellness } from "@/components/athlete-space/AthleteSpaceWellness";
 import { AthleteSpaceObjectives } from "@/components/athlete-space/AthleteSpaceObjectives";
@@ -473,16 +474,39 @@ export default function AthleteSpace() {
     .toUpperCase()
     .slice(0, 2);
 
+  const navigateTab = (value: string) => {
+    if (value === "documents") markDocNotifsRead();
+    const next = new URLSearchParams(searchParams);
+    next.set("tab", value);
+    setSearchParams(next, { replace: true });
+  };
+  const returnToSelection = () => {
+    if (isSuperAdminView) navigate(-1);
+    else { setAthleteInfo(null); setShowCategorySelector(true); setSearchParams({}); }
+  };
+  const secondaryDestinations: AthleteDestination[] = [
+    { value: "rpe", label: t("athlete.load"), icon: Activity },
+    { value: "wellness", label: t("athlete.wellness"), icon: Heart },
+    { value: "performance", label: t("athlete.performance"), icon: BarChart3 },
+    ...(isBowling ? [{ value: "arsenal", label: t("athlete.arsenal"), icon: CircleDot }] : []),
+    ...(isSurf ? [{ value: "equipment", label: t("athlete.equipment"), icon: Waves }] : []),
+    ...(isSki ? [{ value: "ski-equipment", label: t("athlete.material"), icon: Waves }] : []),
+    ...(isPadel ? [{ value: "padel-equipment", label: t("athlete.material"), icon: EquipmentIcon }] : []),
+    ...(isJudo ? [{ value: "competitions", label: "Compétitions", icon: Trophy }, { value: "opponents", label: t("athlete.opponents"), icon: Users }] : []),
+    { value: "documents", label: t("athlete.documents"), icon: FileText, count: docNotifCount },
+    { value: "settings", label: t("athlete.settings"), icon: Settings },
+  ];
+
   return (
     <div className="athlete-space min-h-screen bg-background">
       {!isSuperAdminView && <AthletePWAInstallPopup playerId={athleteInfo.player_id} />}
 
       {/* Header */}
       <header className="athlete-header sticky top-0 z-50 border-b bg-card/95 backdrop-blur">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+        <div className="athlete-header-inner max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+          <div className="athlete-identity flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             {(isSuperAdminView || allAthleteEntries.length > 1) && (
-              <Button variant="ghost" size="icon" className="shrink-0" onClick={() => {
+              <Button aria-label="Retour" variant="ghost" size="icon" className="hidden md:inline-flex shrink-0" onClick={() => {
                 if (isSuperAdminView) {
                   navigate(-1);
                 } else {
@@ -503,7 +527,7 @@ export default function AthleteSpace() {
             </div>
             <div className="min-w-0 flex-1">
               <h1 className="text-base sm:text-lg font-semibold leading-snug break-words">{displayName}</h1>
-              <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
+              <div className="athlete-identity-badges flex flex-wrap items-center gap-1 sm:gap-1.5 min-w-0">
                 {isSuperAdminView && (
                   <Badge variant="outline" className="text-[10px] h-5 border-primary text-primary shrink-0">{t("athleteSpace.shell.adminView")}</Badge>
                 )}
@@ -512,7 +536,8 @@ export default function AthleteSpace() {
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-1 shrink-0">
+          <div className="athlete-header-actions flex items-center gap-1 shrink-0">
+            <div className="hidden md:block"><AthleteThemeCommand /></div>
             {canSwitchLanguage && <LanguageSwitcher />}
             <span
               className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground text-[10px] font-mono border"
@@ -524,7 +549,7 @@ export default function AthleteSpace() {
             <Button
               size="sm"
               variant="secondary"
-              className="px-3 shrink-0"
+              className="athlete-info-button px-2 shrink-0"
               onClick={() => setShowPersonalInfoDialog(true)}
               aria-label={t("athlete.personalInfo")}
             >
@@ -533,7 +558,7 @@ export default function AthleteSpace() {
               <span className="sm:hidden text-xs font-medium">{t("athlete.personalInfoShort")}</span>
             </Button>
             {!isSuperAdminView && (
-              <Button variant="ghost" size="icon" onClick={() => signOut()}>
+              <Button aria-label="Déconnexion" variant="ghost" size="icon" className="hidden md:inline-flex" onClick={() => signOut()}>
                 <LogOut className="h-4 w-4" />
               </Button>
             )}
@@ -557,14 +582,9 @@ export default function AthleteSpace() {
        <Tabs
          value={searchParams.get("tab") || "dashboard"}
          className="w-full"
-         onValueChange={(v) => {
-           if (v === "documents") markDocNotifsRead();
-           const next = new URLSearchParams(searchParams);
-           next.set("tab", v);
-           setSearchParams(next, { replace: true });
-         }}
+         onValueChange={navigateTab}
        >
-             <TabsList className="athlete-navigation w-full grid grid-cols-3 sm:flex sm:flex-wrap gap-1.5 h-auto justify-center bg-transparent p-0 mb-6">
+             <TabsList className="athlete-navigation w-full hidden md:flex flex-wrap gap-1.5 h-auto justify-center bg-transparent p-0 mb-6">
               <TabsTrigger 
                  value="dashboard" 
                  className="athlete-tab relative"
@@ -724,6 +744,7 @@ export default function AthleteSpace() {
               categoryId={athleteInfo.category_id}
               playerName={displayName}
               sportType={athleteInfo.sport_type}
+              onViewCalendar={() => navigateTab("calendar")}
             />
           </TabsContent>
 
@@ -999,6 +1020,10 @@ export default function AthleteSpace() {
             </TabsContent>
         </Tabs>
       </main>
+      <AthleteMobileNavigation active={searchParams.get("tab") || "dashboard"} onNavigate={navigateTab}
+        secondary={secondaryDestinations} unreadMessages={unreadCount} recordCount={recordNotifCount}
+        onBack={isSuperAdminView || allAthleteEntries.length > 1 ? returnToSelection : undefined}
+        onSignOut={!isSuperAdminView ? () => { signOut(); } : undefined} />
     </div>
   );
 }
