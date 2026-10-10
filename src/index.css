@@ -32,6 +32,14 @@ All colors MUST be HSL.
     --bowling-games: 28 100% 57%;
     --bowling-success: 160 92% 38%;
     --bowling-coral: 0 100% 67%;
+    --judo-ink: 218 62% 16%;
+    --judo-canvas: 220 45% 97%;
+    --judo-soft: 214 100% 96%;
+    --judo-technique: 216 87% 55%;
+    --judo-tactic: 38 92% 50%;
+    --judo-randori: 1 83% 63%;
+    --judo-physical: 169 77% 41%;
+    --judo-mental: 264 61% 61%;
     --foreground: 220 20% 15%;
 
     --card: 0 0% 100%;
@@ -144,6 +152,14 @@ All colors MUST be HSL.
     --bowling-field: 220 22% 15%;
     --bowling-success: 160 80% 45%;
     --bowling-coral: 0 90% 70%;
+    --judo-ink: 214 40% 92%;
+    --judo-canvas: 220 25% 9%;
+    --judo-soft: 218 30% 16%;
+    --judo-technique: 216 87% 65%;
+    --judo-tactic: 38 92% 58%;
+    --judo-randori: 1 83% 68%;
+    --judo-physical: 169 65% 48%;
+    --judo-mental: 264 61% 70%;
     --bowling-tactical: 217 85% 65%;
     --bowling-technical: 178 60% 50%;
     --bowling-games: 28 92% 60%;
