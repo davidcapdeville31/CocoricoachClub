@@ -902,7 +902,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                   )}
                             </div>
                             {(() => {
-                              const preview = String(session.notes || "").replace(/<!--[\s\S]*?-->/g, "").trim().split("\n")[0];
+                              const preview = getReadableNotes(session.notes).split("\n")[0];
                               return preview ? <p className="px-3 pb-2 text-xs text-muted-foreground line-clamp-2">{preview}</p> : null;
                             })()}
                             {!isAthleteSession && (
