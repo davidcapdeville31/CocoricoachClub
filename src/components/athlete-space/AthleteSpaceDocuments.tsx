@@ -16,8 +16,9 @@ import { FileText, File, Image, Download, Eye, Users, User, Calendar, Plus, Uplo
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 import { useTranslation } from "react-i18next";
+import { canAddAthleteDocument } from "@/lib/athleteDocumentAccess";
+import "@/styles/athlete-documents.css";
 
 interface AthleteSpaceDocumentsProps {
   playerId: string;
@@ -67,6 +68,27 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
   const queryClient = useQueryClient();
 
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [activeScope, setActiveScope] = useState<"personal" | "team">("personal");
+  const { data: documentAccess } = useQuery({
+    queryKey: ["athlete-document-access", user?.id, categoryId, playerId],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      if (!user?.id) return { ownsPlayer: false, managesCategory: false };
+      const [owner, manager] = await Promise.all([
+        supabase.rpc("is_player_owner", { _user_id: user.id, _player_id: playerId }),
+        supabase.rpc("can_manage_category_documents", { _user_id: user.id, _category_id: categoryId }),
+      ]);
+      if (owner.error || manager.error) throw owner.error || manager.error;
+      return { ownsPlayer: owner.data === true, managesCategory: manager.data === true };
+    },
+  });
+  const canAdd = (scope: "personal" | "team") => canAddAthleteDocument(scope, documentAccess?.ownsPlayer === true, documentAccess?.managesCategory === true);
+  const openAddDialog = () => {
+    if (!canAdd(activeScope)) return;
+    resetForm();
+    setFormData((prev) => ({ ...prev, scope: activeScope }));
+    setShowAddDialog(true);
+  };
   const [editingDoc, setEditingDoc] = useState<any | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -80,7 +102,7 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
     scope: "personal" as "personal" | "team",
   });
 
-  const { data: teamDocuments, isLoading: teamLoading } = useQuery({
+  const { data: teamDocuments, isLoading: teamLoading, isError: teamError, refetch: refetchTeam } = useQuery({
     queryKey: ["athlete-team-documents", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -94,7 +116,7 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
     },
   });
 
-  const { data: personalDocuments, isLoading: personalLoading } = useQuery({
+  const { data: personalDocuments, isLoading: personalLoading, isError: personalError, refetch: refetchPersonal } = useQuery({
     queryKey: ["athlete-personal-documents", categoryId, playerId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -335,21 +357,22 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
     const name = author?.full_name || author?.email || null;
     const role = doc.created_by_role || (doc.created_by ? null : "legacy");
     const roleLabel = role ? ROLE_LABEL[role] || role : null;
-    const date = format(new Date(doc.created_at), "dd/MM/yyyy", { locale: getDateLocale() });
+    const addedAt = doc.created_at ? new Date(doc.created_at) : null;
+    const date = addedAt && !Number.isNaN(addedAt.getTime()) ? format(addedAt, "dd/MM/yyyy", { locale: getDateLocale() }) : null;
 
     if (!name && role === "legacy") {
       return (
-        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-          <UserCircle className="h-3 w-3" />
-          {t("athleteSpace.documents.unspecifiedAuthor", { date })}
+        <p className="text-xs text-muted-foreground flex items-start gap-1 mt-1 break-words">
+          <UserCircle className="h-3 w-3 shrink-0 mt-0.5" />
+          {date ? t("athleteSpace.documents.unspecifiedAuthor", { date }) : t("athleteSpace.documents.role.legacy")}
         </p>
       );
     }
     return (
-      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-        <UserCircle className="h-3 w-3" />
+      <p className="text-xs text-muted-foreground flex items-start gap-1 mt-1 break-words">
+        <UserCircle className="h-3 w-3 shrink-0 mt-0.5" />
         {t("athleteSpace.documents.addedBy", { name: name || t("athleteSpace.documents.addedByFallbackUser") })}
-        {roleLabel ? ` (${roleLabel})` : ""} le {date}
+        {roleLabel ? ` (${roleLabel})` : ""}{date ? ` · ${date}` : ""}
       </p>
     );
   };
@@ -364,27 +387,36 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
   const renderDocumentList = (
     documents: any[] | undefined,
     isLoading: boolean,
-    emptyMessage: string,
+    scope: "personal" | "team",
+    isError: boolean,
+    retry: () => void,
   ) => {
-    if (isLoading) return <Skeleton className="h-32 w-full" />;
+    if (isLoading) return <div role="status" aria-label={t("athleteSpace.documents.loading")} className="space-y-3"><Skeleton className="h-24 w-full rounded-xl" /><Skeleton className="h-24 w-full rounded-xl" /></div>;
+    if (isError) return <div role="alert" className="py-8 text-center space-y-3"><FileText className="h-7 w-7 mx-auto text-muted-foreground" /><p className="text-sm text-foreground">{t("athleteSpace.documents.loadError")}</p><Button variant="outline" onClick={retry}>{t("athleteSpace.documents.retry")}</Button></div>;
     if (!documents || documents.length === 0) {
-      return <p className="text-center text-muted-foreground py-8">{emptyMessage}</p>;
+      return <div className="py-8 px-4 text-center space-y-3">
+        <div className="mx-auto w-12 h-12 rounded-xl bg-muted flex items-center justify-center"><FileText className="h-6 w-6 text-muted-foreground" aria-hidden="true" /></div>
+        <h3 className="text-base font-semibold text-foreground">{t("athleteSpace.documents.emptyTitle")}</h3>
+        <p className="text-sm text-muted-foreground max-w-sm mx-auto">{t(scope === "personal" ? "athleteSpace.documents.emptyPersonalDescription" : "athleteSpace.documents.emptyTeamDescription")}</p>
+        {canAdd(scope) && <Button onClick={openAddDialog} className="min-h-11 h-auto whitespace-normal"><Plus className="h-4 w-4 mr-2 shrink-0" />{t(scope === "personal" ? "athleteSpace.documents.addFirstDocument" : "athleteSpace.documents.addDocument")}</Button>}
+      </div>;
     }
 
     return (
       <div className="space-y-3">
         {documents.map((doc: any) => (
-          <Card key={doc.id} className="bg-card">
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between gap-3">
+          <Card key={doc.id} className="bg-card rounded-xl shadow-sm">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row items-start justify-between gap-2">
                 <div className="flex items-start gap-3 min-w-0 flex-1">
                   {getFileIcon(doc.file_url)}
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-sm truncate">{doc.title}</p>
+                    <p className="font-semibold text-sm break-words [overflow-wrap:anywhere]">{doc.title}</p>
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
                       <Badge variant="secondary" className="text-xs">
                         {getDocTypeLabel(doc.document_type)}
                       </Badge>
+                      <span className="text-xs text-muted-foreground">{t(doc.player_id ? "athleteSpace.documents.personalOrigin" : "athleteSpace.documents.teamOrigin")}</span>
                       {doc.original_filename && (
                         <span className="text-xs text-muted-foreground truncate max-w-[200px]">
                           {doc.original_filename}
@@ -403,7 +435,7 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
                     {renderAuthorLine(doc)}
                   </div>
                 </div>
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="document-actions flex items-center gap-1 shrink-0 self-end sm:self-start">
                   {doc.file_url && (
                     <>
                       <Button
@@ -411,17 +443,18 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
                         size="sm"
                         onClick={() => handleView(doc.file_url)}
                         title={t("athleteSpace.documents.view")}
+                        aria-label={`${t("athleteSpace.documents.view")} : ${doc.title}`}
                       >
-                        <Eye className="h-4 w-4 sm:mr-1" />
-                        <span className="hidden sm:inline">{t("athleteSpace.documents.view")}</span>
+                        <Eye className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleDownload(doc.file_url, doc.title)}
+                        title={t("athleteSpace.documents.download")}
+                        aria-label={`${t("athleteSpace.documents.download")} : ${doc.title}`}
                       >
-                        <Download className="h-4 w-4 sm:mr-1" />
-                        <span className="hidden sm:inline">{t("athleteSpace.documents.download")}</span>
+                        <Download className="h-4 w-4" />
                       </Button>
                     </>
                   )}
@@ -431,6 +464,7 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
                       size="icon"
                       onClick={() => openEditDialog(doc)}
                       title={t("athleteSpace.documents.edit")}
+                      aria-label={`${t("athleteSpace.documents.edit")} : ${doc.title}`}
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
@@ -440,6 +474,8 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
                       variant="ghost"
                       size="icon"
                       className="text-destructive hover:text-destructive"
+                      title={t("athleteSpace.documents.delete")}
+                      aria-label={`${t("athleteSpace.documents.delete")} : ${doc.title}`}
                       onClick={() => {
                         if (confirm(t("athleteSpace.documents.confirmDelete"))) deleteDocumentMutation.mutate(doc);
                       }}
@@ -457,47 +493,46 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
   };
 
   return (
-    <div className="space-y-4">
-      <Tabs defaultValue="personal" className="w-full">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div className="athlete-documents space-y-4">
+      <Tabs value={activeScope} onValueChange={(value) => setActiveScope(value === "team" ? "team" : "personal")} className="w-full">
+        <div className="space-y-4">
           <TabsList
-            className="grid grid-cols-2 bg-muted/40 rounded-xl p-1 sm:w-auto"
-            style={{ ["--tab-accent" as any]: NAV_COLORS.admin.base }}
+            className="document-tabs grid grid-cols-2 w-full bg-muted rounded-xl p-1 gap-1"
+            aria-label={t("athleteSpace.documents.tabsLabel")}
           >
             <TabsTrigger
               value="personal"
-              className="gap-1.5 rounded-lg font-semibold transition-all data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
+              className="document-tab gap-1 rounded-lg px-1.5 font-semibold"
             >
-              <User className="h-3.5 w-3.5" />
-              {t("athleteSpace.documents.myDocuments", { count: personalDocuments?.length || 0 })}
+              <User className="h-3.5 w-3.5 shrink-0 hidden min-[360px]:block" />
+              <span>{t("athleteSpace.documents.personalTab")}</span>
+              <span className="document-tab-count">{personalLoading || personalError ? "—" : personalDocuments?.length || 0}</span>
             </TabsTrigger>
             <TabsTrigger
               value="team"
-              className="gap-1.5 rounded-lg font-semibold transition-all data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
+              className="document-tab gap-1 rounded-lg px-1.5 font-semibold"
             >
-              <Users className="h-3.5 w-3.5" />
-              {t("athleteSpace.documents.teamDocuments", { count: teamDocuments?.length || 0 })}
+              <Users className="h-3.5 w-3.5 shrink-0 hidden min-[360px]:block" />
+              <span>{t("athleteSpace.documents.teamTab")}</span>
+              <span className="document-tab-count">{teamLoading || teamError ? "—" : teamDocuments?.length || 0}</span>
             </TabsTrigger>
           </TabsList>
 
-          <Button
-            onClick={() => {
-              resetForm();
-              setShowAddDialog(true);
-            }}
-            size="sm"
+          {canAdd(activeScope) && (activeScope === "personal" ? (personalDocuments?.length || 0) > 0 : (teamDocuments?.length || 0) > 0) && <Button
+            onClick={openAddDialog}
+            size="sm" variant="outline" className="min-h-11"
           >
             <Plus className="h-4 w-4 mr-1" />
             {t("athleteSpace.documents.addDocument")}
-          </Button>
+          </Button>}
         </div>
 
         <TabsContent value="personal" className="mt-4">
-          {renderDocumentList(personalDocuments, personalLoading, t("athleteSpace.documents.noPersonalDocuments"))}
+          {renderDocumentList(personalDocuments, personalLoading, "personal", personalError, () => { void refetchPersonal(); })}
         </TabsContent>
 
         <TabsContent value="team" className="mt-4">
-          {renderDocumentList(teamDocuments, teamLoading, t("athleteSpace.documents.noTeamDocuments"))}
+          {renderDocumentList(teamDocuments, teamLoading, "team", teamError, () => { void refetchTeam(); })}
         </TabsContent>
       </Tabs>
 
@@ -558,8 +593,8 @@ export function AthleteSpaceDocuments({ playerId, categoryId, viewerMode = "athl
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="personal">{t("athleteSpace.documents.visibilityPersonal")}</SelectItem>
-                  <SelectItem value="team">{t("athleteSpace.documents.visibilityTeam")}</SelectItem>
+                  {canAdd("personal") && <SelectItem value="personal">{t("athleteSpace.documents.visibilityPersonal")}</SelectItem>}
+                  {canAdd("team") && <SelectItem value="team">{t("athleteSpace.documents.visibilityTeam")}</SelectItem>}
                 </SelectContent>
               </Select>
             </div>

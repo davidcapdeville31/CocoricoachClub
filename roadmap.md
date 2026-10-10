@@ -1,5 +1,9 @@
 # Calendrier de charge
 
+## Espace Documents athlète
+- [x] Compacter onglets, compteurs, cartes et état vide ; ajout contextuel par droits existants, données inchangées.
+- [x] 4 tests de droits ; 24 états réels et 12 états simulés (zéro/un/plusieurs, noms longs, chargement/erreur/retry), 320–1280 px ; aucune écriture. Rapport `.lovable/athlete-documents-verification.md`.
+
 ## Refonte ciblée du calendrier athlète
 - [x] Auditer les composants, dépendances et données ; observer le calendrier réel connecté de Manon à 390 px et analyser les deux références.
 - [x] Plan approuvé avant les changements structurants.
