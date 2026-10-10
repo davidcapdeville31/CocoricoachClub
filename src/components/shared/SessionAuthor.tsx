@@ -46,7 +46,7 @@ export function SessionAuthor({ sessionId, playerId, className }: { sessionId?: 
   });
   if (!sessionId) return null;
   const mine = data && isOwnSession(data, user?.id, playerId);
-  const name = data?.author_name?.trim();
+  const name = data?.author_name?.trim().split(/\s+/)[0];
   const text = isLoading ? "Auteur…" : isError ? "Auteur indisponible" : mine ? "par moi" : name ? `par ${name}` : "Auteur non renseigné";
   return <span data-session-author={sessionId} className={cn("block min-w-0 break-words text-xs font-normal leading-snug text-muted-foreground", className)}>{text}</span>;
 }
