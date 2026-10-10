@@ -1,12 +1,12 @@
 # Architecture decisions
-- Athlete visuals inherit scoped tokens to avoid portal regressions.
+- Athlete visuals inherit scoped tokens to avoid portal regressions; Documents reads existing ownership/management RPCs for contextual upload UI, never new grants.
 - Selectable controls use shared tokens and state attributes, preserving functional statuses.
-- Athlete mobile navigation uses URL tabs and sport visibility; drawer/theme commands reuse FieldModeContext to preserve preferences.
+- Athlete navigation uses URL tabs and sport visibility; drawer/theme commands reuse FieldModeContext to preserve preferences.
 - Athlete content reserves ResizeObserver-measured navigation and safe-area height; visualViewport hides navigation under the keyboard, preserving form state.
 - Athlete notifications are push-only via linked user IDs; composition messages stay editable and calendar availability invitations unchanged.
 - BrandLogo uses identical artwork and transparency across themes; its CDN dark variant has light strokes to avoid checkerboards and brand drift.
 - OneSignal registration waits for explicit post-init readiness and caches only successful syncs; available SDK methods do not prove readiness.
-- Attendance reports require confirmed enabled OneSignal subscriptions to mark push active; preferences alone never prove readiness.
+- Attendance marks push active only for confirmed enabled OneSignal subscriptions, never preferences alone.
 - Attendance previews read `match_participants` and minimal player fields, never lineups, to count actual invitations/responses.
 
 - Push permission reads the native three-state permission first; OneSignal's boolean false is never treated as denied because it also means not requested.
@@ -20,7 +20,7 @@
 - Bowling session kind is stored in the structured column `training_sessions.session_kind` (training/competition/personal/evaluation, nullable), never in free-text notes, so histories and stats can filter on it.
 - Circuit V2 athlete logs keep one `athlete_exercise_logs` row per circuit (aggregated so tonnage = Σ charge × reps) and store per-exercise/per-round detail in a `<!--circuit-log:...-->` notes tag, so the unique key and tonnage stay unchanged.
 
-- Athlete mental content is rendered with a safe Markdown renderer and navigation derived only from stored headings; coach content is never rewritten.
+- Athlete mental content uses safe Markdown and stored headings for navigation; never rewrite coach content.
 - Circuit tour completion uses explicit confirmations persisted in the backward-compatible circuit notes tag, not visits or prescribed values; tonnage aggregation remains independent.
 - Athlete entry drafts are kept in component memory keyed by session and discarded on successful validation or account change; sensitive responses are never written to browser storage.
 
@@ -36,4 +36,4 @@
 - Attendance uses `data-attendance` status tokens outside selection overrides; session actions stay outside disclosures to remain accessible when collapsed.
 
 - Athlete calendar uses scoped Day Picker/month and date-fns/week over identical data; mounted tabs preserve drafts and civil-date URL context without changing business dialogs.
-- Upcoming summaries batch attendance reads; controls retain write destinations and locks to avoid a parallel RSVP model.
+- Upcoming summaries batch attendance reads; preserve RSVP write destinations and locks.
