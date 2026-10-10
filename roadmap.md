@@ -1,5 +1,9 @@
 # Calendrier de charge
 
+## Ressenti après séance
+- [x] Raccorder les cinq choix de forme aux couleurs fonctionnelles communes, hors sélection générique, sans changer les valeurs ni la sauvegarde.
+- [ ] Vérifier les cinq sélections dans les deux thèmes sur le formulaire et sur petit écran, sans enregistrer de données.
+
 ## Audit global thèmes clair/sombre
 - Première étape documentée dans `.lovable/theme-audit-report.md` : 84 états connectés, 7 écrans, clair/sombre et six largeurs ; aucun contraste/label/bouton sans nom détecté au dernier passage, zéro débordement et erreur JS ; 28 tests réussis. Audit exhaustif, modales, autres disciplines, états interactifs et anomalies de structure encore à traiter.
 - [ ] Inventorier routes, styles fixes, composants partagés, RPE et graphiques.

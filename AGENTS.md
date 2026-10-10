@@ -1,6 +1,6 @@
 # Architecture decisions
-- Athlete visuals stay scoped; semantic surface/text/action roles inherit global tokens for consistent portals.
-- Selectable controls use shared tokens and semantic state attributes, overriding legacy sport colors but preserving functional statuses.
+- Athlete visuals stay scoped; semantic roles inherit global tokens for consistent portals.
+- Selectable controls use shared tokens and state attributes, preserving functional statuses.
 - Athlete mobile navigation uses URL tabs and sport visibility; drawer/theme commands reuse FieldModeContext to preserve preferences.
 - Athlete content reserves ResizeObserver-measured navigation and safe-area height; visualViewport hides navigation under the keyboard, preserving form state.
 - Athlete notifications are push-only via linked user IDs; composition messages stay editable and calendar availability invitations unchanged.
@@ -31,4 +31,4 @@
 - Judo premium sessions reuse training_sessions/training_session_blocks (training_type terrain + judo_* blocks) with structured detail in backward-compatible `<!--judo-block:...-->`/`<!--judo-session:...-->` notes tags, so existing calendars, workload and history keep working without schema changes.
 
 - The existing FieldModeContext preference activates the same canonical dark tokens and Tailwind dark variants as `.dark`; never add a parallel theme provider.
-- Genuine effort controls declare `data-rpe` and derive their appearance from the global RPE tokens; generic selected-state overrides exclude RPE and bowling observations to preserve functional meaning.
+- RPE uses `data-rpe`; form uses shared FeelingChoices and `data-feeling` tokens; selection overrides exclude both and bowling to preserve meaning.
