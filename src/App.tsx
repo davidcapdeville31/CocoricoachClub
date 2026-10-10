@@ -47,7 +47,6 @@ import PolitiqueCookies from "./pages/legal/PolitiqueCookies";
 import { CookieConsentBanner } from "./components/legal/CookieConsentBanner";
 import { MaintenanceGate } from "./components/MaintenanceGate";
 import { useRadixPointerEventsGuard } from "@/hooks/useRadixPointerEventsGuard";
-import BowlingObservationHarness from "./dev/BowlingObservationHarness";
 
 // Auth wrapper component that allows public access
 function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -185,7 +184,6 @@ const App = () => (
                     <Route path="/athlete-space" element={<AthleteSpace />} />
                     <Route path="/accept-athlete-invitation" element={<AcceptAthleteInvitation />} />
                     <Route path="/install" element={<Install />} />
-                    <Route path="/dev-bowling" element={<BowlingObservationHarness />} />
                     <Route path="/admin" element={<Admin />} />
                      <Route path="/super-admin" element={<SuperAdmin />} />
                     <Route path="/ambassador-invitation" element={<AcceptAmbassadorInvitation />} />
