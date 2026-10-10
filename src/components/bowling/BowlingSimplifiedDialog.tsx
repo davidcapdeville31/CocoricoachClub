@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Timer, Sparkles, Plus, Target, Wrench, Save, Circle, Users, Loader2, Droplet, ArrowUp, ArrowDown, Copy, ArrowLeft, ArrowRight, CheckCircle2, CalendarDays, X, ChevronDown, ChevronUp, Flag, Repeat, Zap, Eye, Brain } from "lucide-react";
+import { Trophy, PersonStanding, ClipboardCheck, Timer, Sparkles, Plus, Target, Wrench, Save, Circle, Users, Loader2, Droplet, ArrowUp, ArrowDown, Copy, ArrowLeft, ArrowRight, CheckCircle2, CalendarDays, X, ChevronDown, ChevronUp, Flag, Repeat, Zap, Eye, Brain } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { BowlingStepper, BowlingSessionRecap, blockSummary } from "./simplified/WizardParts";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -43,10 +43,10 @@ import targetIllu from "@/assets/bowling/target.png";
 import statsIllu from "@/assets/bowling/stats.png";
 
 export const SESSION_KINDS = [
-  { value: "training", label: "Entraînement", hint: "Séance classique", emoji: "🎳" },
-  { value: "competition", label: "Compétition", hint: "Match / Tournoi", emoji: "🏆" },
-  { value: "personal", label: "Personnelle", hint: "Loisir / jeu libre", emoji: "🏃" },
-  { value: "evaluation", label: "Évaluation", hint: "Test / bilan", emoji: "📋" },
+  { value: "training", label: "Entraînement", hint: "Séance classique", icon: "pins", color: "" },
+  { value: "competition", label: "Compétition", hint: "Match / Tournoi", icon: "trophy", color: "text-bowling-games" },
+  { value: "personal", label: "Personnelle", hint: "Loisir / jeu libre", icon: "run", color: "text-bowling-coral" },
+  { value: "evaluation", label: "Évaluation", hint: "Test / bilan", icon: "check", color: "text-bowling-accent" },
 ] as const;
 export type SessionKind = (typeof SESSION_KINDS)[number]["value"];
 const DURATION_PRESETS = [30, 60, 90, 120];
@@ -1043,7 +1043,9 @@ export function BowlingSimplifiedDialog({
                       const on = sessionKind === k.value;
                       return (
                         <button key={k.value} type="button" aria-pressed={on} onClick={() => setSessionKind(on ? null : k.value)} className={`flex flex-col items-center justify-center gap-1 rounded-2xl px-2 py-4 text-center transition-all duration-200 active:scale-[0.97] ${on ? "bg-bowling-ink text-card shadow-lg" : "border border-border/70 bg-card text-bowling-ink hover:-translate-y-0.5 hover:shadow-md"}`}>
-                          <span className="text-3xl leading-none" aria-hidden>{k.emoji}</span>
+                          <span className="flex h-9 items-center justify-center" aria-hidden>
+                            {k.icon === "pins" ? <img src={heroPins} alt="" width={36} height={36} className="h-9 w-9 object-contain" /> : k.icon === "trophy" ? <Trophy className={`h-7 w-7 ${on ? "text-card" : k.color}`} /> : k.icon === "run" ? <PersonStanding className={`h-7 w-7 ${on ? "text-card" : k.color}`} /> : <ClipboardCheck className={`h-7 w-7 ${on ? "text-card" : k.color}`} />}
+                          </span>
                           <span className="mt-1 text-sm font-semibold">{k.label}</span>
                           <span className={`text-xs ${on ? "text-card/75" : "text-muted-foreground"}`}>{k.hint}</span>
                         </button>

@@ -115,7 +115,7 @@ export function BowlingSessionRecap({
         {athleteCount !== null && (
           <p className="flex items-center gap-2 text-sm"><Users className="h-4 w-4 text-bowling-accent" />{athleteCount} athlète{athleteCount > 1 ? "s" : ""}</p>
         )}
-        {sessionKindLabel && <p className="flex items-center gap-2 text-sm text-bowling-ink"><span className="w-4 text-center" aria-hidden>🎳</span>{sessionKindLabel}</p>}
+        {sessionKindLabel && <p className="flex items-center gap-2 text-sm text-bowling-ink"><Target className="h-4 w-4 text-bowling-accent" />{sessionKindLabel}</p>}
         {(() => { const g = blocks.find((b) => b.type === "games"); const agg = g && g.type === "games" ? aggregateGamesStats(g) : null; return agg ? <p className="flex items-center gap-2 text-sm text-bowling-ink"><BarChart3 className="h-4 w-4 text-bowling-accent" />{agg.count} partie{agg.count > 1 ? "s" : ""} – Moy. {agg.avgScore.toLocaleString("fr-FR", { maximumFractionDigits: 1 })}</p> : null; })()}
         {objective && <p className="flex items-center gap-2 text-sm"><Flag className="h-4 w-4 text-bowling-accent" />Objectif : {objective}</p>}
         {oilName && <p className="flex items-center gap-2 text-sm"><Droplet className="h-4 w-4 text-bowling-accent" />{oilName}</p>}
