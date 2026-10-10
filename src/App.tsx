@@ -174,6 +174,7 @@ const App = () => (
                 <MaintenanceGate>
                   <Routes>
                     <Route path="/auth" element={<Auth />} />
+                    <Route path="/dev-bowling-obs" element={<BowlingObservationHarness />} />
                     <Route path="/" element={<Clubs />} />
                     <Route path="/clubs" element={<Navigate to="/" replace />} />
                     <Route path="/dashboard" element={<Dashboard />} />
