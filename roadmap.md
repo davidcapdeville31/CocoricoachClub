@@ -2,7 +2,7 @@
 
 ## Rétablir la présence depuis l’accueil
 - [x] Réutiliser Présent / Absent sur les cartes à remplir, absentes et à venir ; mêmes sauvegardes et restrictions, séances personnelles exclues.
-- [ ] Vérifier affichage et interactions clair/sombre sans modifier de réponse réelle.
+- [x] Cinq cartes connectées : Présent/Absent visibles en clair/sombre à 320/360/390/430/768/1280 px, sans débordement ni erreur JS ; les deux clics déclenchent la sauvegarde (écritures bloquées volontairement). Enregistrement réel non retesté ; build OK.
 
 ## Espace Documents athlète
 - [x] Compacter onglets, compteurs, cartes et état vide ; ajout contextuel par droits existants, données inchangées.
