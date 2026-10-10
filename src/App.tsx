@@ -1,4 +1,3 @@
-import TmpBowlingPreview from "./pages/TmpBowlingPreview";
 import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -174,7 +173,6 @@ const App = () => (
                 <CookieConsentBanner />
                 <MaintenanceGate>
                   <Routes>
-                    <Route path="/tmp-bowling" element={<TmpBowlingPreview />} />
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/" element={<Clubs />} />
                     <Route path="/clubs" element={<Navigate to="/" replace />} />
