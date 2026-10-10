@@ -871,7 +871,7 @@ body:has(.athlete-space) .field-mode-toggle { display: none; }
 /* Shared selection contract. Last in the cascade to supersede legacy sport
    colors and dark pastel safety rules without touching data/status badges. */
 :is([role="tab"], .brand-selectable, .colored-tab-trigger, .athlete-tab):not([data-state="active"]):not([data-state="on"]):not([aria-pressed="true"]) {
-  background: transparent !important;
+  background: hsl(var(--card)) !important;
   color: hsl(var(--muted-foreground)) !important;
   border-color: hsl(var(--border)) !important;
   box-shadow: none;
