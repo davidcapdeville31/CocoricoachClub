@@ -1213,7 +1213,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                 <div
                   onClick={() => session.training_type === "mental" ? setMentalSession(session) : handleSelectSession(session.id)}
                   className={cn(
-                    "w-full text-left px-2.5 py-2 sm:p-3 rounded-lg border transition-colors cursor-pointer",
+                    "athlete-session-card w-full text-left p-4 rounded-2xl border bg-card transition-colors cursor-pointer",
                     isTest
                       ? selectedSession === session.id
                         ? "border-accent bg-accent/5"

@@ -51,6 +51,8 @@
 .athlete-space .athlete-session-section h3 { font-size: 18px; line-height: 1.4; }
 .athlete-space .athlete-session-card { box-shadow: var(--shadow-sm); }
 .athlete-space .athlete-session-card:hover { box-shadow: var(--shadow-md); }
+.athlete-space .athlete-session-card > div { min-width: 0; }
+.athlete-space .athlete-session-card button { min-height: 44px; }
 .athlete-space button { transition-duration: 180ms; }
 .athlete-space button[class*="bg-primary"] { border-radius: 12px; box-shadow: var(--shadow-sm); }
 .athlete-space button[class*="hover:bg-accent/10"]:hover { color: hsl(var(--foreground)); }
