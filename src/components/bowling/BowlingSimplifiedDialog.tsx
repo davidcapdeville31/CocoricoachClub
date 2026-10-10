@@ -932,7 +932,7 @@ export function BowlingSimplifiedDialog({
     { key: "Mental", icon: Brain, cls: "bg-muted text-foreground" },
   ];
   const oilLabel = oilPatternName === "none" ? null : oilPatternName === "__custom__" ? (customOilName || "Personnalisé") : oilPatternName;
-  const cardCls = "rounded-[20px] bg-card p-5 shadow-[0_2px_12px_-4px_hsl(var(--foreground)/0.08)]";
+  const cardCls = "rounded-[20px] border border-border/40 bg-card p-4 sm:p-5 shadow-[0_6px_20px_-10px_hsl(var(--bowling-ink)/0.18)]";
 
   const renderEditor = (b: SimplifiedBlock) =>
     b.type === "tactical" ? (

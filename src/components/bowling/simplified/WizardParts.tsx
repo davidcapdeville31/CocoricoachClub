@@ -1,4 +1,4 @@
-import { Flag, Check, CalendarDays, Clock, Users, Droplet, Target, Wrench, Circle } from "lucide-react";
+import { ListChecks, BarChart3, Flag, Check, CalendarDays, Clock, Users, Droplet, Target, Wrench, Circle } from "lucide-react";
 import { format } from "date-fns";
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { Button } from "@/components/ui/button";
@@ -91,6 +91,7 @@ export function BowlingSessionRecap({
   athleteCount,
   oilName,
   objective,
+  sessionKindLabel,
   onEditStep,
 }: {
   date: Date;
@@ -99,22 +100,25 @@ export function BowlingSessionRecap({
   athleteCount: number | null;
   oilName: string | null;
   objective?: string | null;
+  sessionKindLabel?: string | null;
   onEditStep: (s: number) => void;
 }) {
   return (
     <div className="space-y-3">
-      <div className="rounded-[20px] bg-bowling-accent/10 p-5 space-y-2.5">
+      <div className="rounded-[20px] bg-bowling-accent/10 p-5 space-y-2.5 border border-bowling-accent/10">
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-semibold text-bowling-ink">Résumé de la séance</h3>
+          <h3 className="flex items-center gap-2.5 text-base font-semibold text-bowling-ink"><ListChecks className="h-5 w-5 text-bowling-accent" />Résumé de la séance</h3>
           <Button variant="ghost" size="sm" className="h-8 rounded-lg bg-card text-bowling-accent" onClick={() => onEditStep(0)}>Modifier</Button>
         </div>
-        <p className="flex items-center gap-2 text-sm capitalize"><CalendarDays className="h-4 w-4 text-bowling-ink" />{format(date, "EEEE d MMMM yyyy", { locale: getDateLocale() })}</p>
-        <p className="flex items-center gap-2 text-sm"><Clock className="h-4 w-4 text-bowling-ink" />{totalDuration} min</p>
+        <p className="flex items-center gap-2 text-sm capitalize"><CalendarDays className="h-4 w-4 text-bowling-accent" />{format(date, "EEEE d MMMM yyyy", { locale: getDateLocale() })}</p>
+        <p className="flex items-center gap-2 text-sm"><Clock className="h-4 w-4 text-bowling-accent" />{totalDuration} min</p>
         {athleteCount !== null && (
-          <p className="flex items-center gap-2 text-sm"><Users className="h-4 w-4 text-bowling-ink" />{athleteCount} athlète{athleteCount > 1 ? "s" : ""}</p>
+          <p className="flex items-center gap-2 text-sm"><Users className="h-4 w-4 text-bowling-accent" />{athleteCount} athlète{athleteCount > 1 ? "s" : ""}</p>
         )}
-        {objective && <p className="flex items-center gap-2 text-sm"><Flag className="h-4 w-4 text-bowling-ink" />Objectif : {objective}</p>}
-        {oilName && <p className="flex items-center gap-2 text-sm"><Droplet className="h-4 w-4 text-bowling-ink" />{oilName}</p>}
+        {sessionKindLabel && <p className="flex items-center gap-2 text-sm text-bowling-ink"><span className="w-4 text-center" aria-hidden>🎳</span>{sessionKindLabel}</p>}
+        {(() => { const g = blocks.find((b) => b.type === "games"); const agg = g && g.type === "games" ? aggregateGamesStats(g) : null; return agg ? <p className="flex items-center gap-2 text-sm text-bowling-ink"><BarChart3 className="h-4 w-4 text-bowling-accent" />{agg.count} partie{agg.count > 1 ? "s" : ""} – Moy. {agg.avgScore.toLocaleString("fr-FR", { maximumFractionDigits: 1 })}</p> : null; })()}
+        {objective && <p className="flex items-center gap-2 text-sm"><Flag className="h-4 w-4 text-bowling-accent" />Objectif : {objective}</p>}
+        {oilName && <p className="flex items-center gap-2 text-sm"><Droplet className="h-4 w-4 text-bowling-accent" />{oilName}</p>}
       </div>
 
       <div className="rounded-[20px] bg-card p-5 shadow-[0_2px_12px_-4px_hsl(var(--foreground)/0.08)] space-y-2">
