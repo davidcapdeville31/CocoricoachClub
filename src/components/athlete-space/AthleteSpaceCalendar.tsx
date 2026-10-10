@@ -1,3 +1,4 @@
+import { FormattedText, CollapsibleFormattedText } from "@/components/ui/formatted-text";
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -1146,7 +1147,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                       <p className="text-[10px] uppercase tracking-wide font-semibold text-primary mb-1">
                                         {t("athleteSpace.calendar.coachInstructions")}
                                       </p>
-                                      <p className="text-xs whitespace-pre-line text-foreground/90">{rawNotes}</p>
+                                      <FormattedText text={rawNotes} className="text-xs text-foreground/90" />
                                     </div>
                                   );
                                 })()}

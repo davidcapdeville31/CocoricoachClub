@@ -1,3 +1,4 @@
+import { FormattedText, CollapsibleFormattedText } from "@/components/ui/formatted-text";
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useMemo, useState } from "react";
 import { AthleteSpaceRpeHistory } from "./AthleteSpaceRpeHistory";
@@ -1083,7 +1084,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
       .join("\n")
       .trim();
     if (!cleaned) return null;
-    return <p className="text-xs text-muted-foreground mt-0.5 italic whitespace-pre-line">{cleaned}</p>;
+    return <CollapsibleFormattedText text={cleaned} className="mt-1 text-muted-foreground" />;
   };
 
   const renderExerciseToggle = (sessionId: string) => {

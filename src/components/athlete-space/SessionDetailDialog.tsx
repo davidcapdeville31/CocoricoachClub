@@ -1,3 +1,4 @@
+import { FormattedText, CollapsibleFormattedText } from "@/components/ui/formatted-text";
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
@@ -156,7 +157,7 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
               <p className="text-xs uppercase tracking-wide font-semibold text-primary mb-1.5">
                 {t('athleteSpace.components.sessionDetailDialog.coachInstructions')}
               </p>
-              <p className="text-sm whitespace-pre-line text-foreground/90">{rawNotes}</p>
+              <FormattedText text={rawNotes} className="text-foreground/90" />
             </div>
           )}
 
@@ -202,7 +203,7 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
                           ) : null}
                         </div>
                         {blockNotes && (
-                          <p className="text-xs whitespace-pre-line text-muted-foreground">{blockNotes}</p>
+                          <FormattedText text={blockNotes} className="text-xs text-muted-foreground" />
                         )}
                       </div>
                     );
@@ -310,7 +311,7 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
                                 </p>
                               )}
                               {c.description && (
-                                <p className="whitespace-pre-line text-foreground/80">{c.description}</p>
+                                <FormattedText text={c.description} className="text-foreground/80" />
                               )}
                             </div>
                           )}
