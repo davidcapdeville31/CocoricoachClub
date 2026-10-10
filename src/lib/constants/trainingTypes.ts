@@ -175,6 +175,11 @@ export const ALL_TRAINING_TYPES: TrainingTypeOption[] = [
   { value: "judo_kata", label: "Kata", hasExercises: false, forSports: ["judo"], category: "judo" },
   { value: "judo_kumikata", label: "Kumi-kata (Préhension)", hasExercises: false, forSports: ["judo"], category: "judo" },
   { value: "judo_tokui_waza", label: "Tokui-waza (Spéciale)", hasExercises: false, forSports: ["judo"], category: "judo" },
+  { value: "judo_technique", label: "Technique", hasExercises: false, forSports: ["judo"], category: "judo" },
+  { value: "judo_tactique", label: "Tactique", hasExercises: false, forSports: ["judo"], category: "judo" },
+  { value: "judo_physique", label: "Préparation physique", hasExercises: false, forSports: ["judo"], category: "judo" },
+  { value: "judo_echauffement", label: "Échauffement", hasExercises: false, forSports: ["judo"], category: "judo" },
+  { value: "judo_retour_calme", label: "Retour au calme", hasExercises: false, forSports: ["judo"], category: "judo" },
   
   // Bowling specific — 3 grandes catégories DTN FFBSQ (Technique / Tactique / Parties)
   { value: "bowling_technique", label: "Travail Technique", hasExercises: false, forSports: ["bowling"], category: "bowling" },

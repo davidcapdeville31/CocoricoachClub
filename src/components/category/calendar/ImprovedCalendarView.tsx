@@ -35,6 +35,7 @@ import { CreateEventDialog } from "./CreateEventDialog";
 import { FieldSessionDialog } from "./FieldSessionDialog";
 import { SimplifiedSessionDialog } from "@/components/athlete-space/SimplifiedSessionDialog";
 import { BowlingSimplifiedDialog } from "@/components/bowling/BowlingSimplifiedDialog";
+import { JudoSessionDialog } from "@/components/judo/session/JudoSessionDialog";
 import { BowlingAdvancedDialog } from "@/components/bowling/BowlingAdvancedDialog";
 import { ScheduleTestEventDialog } from "./ScheduleTestEventDialog";
 import { DailyCalendarView } from "./DailyCalendarView";
@@ -1054,9 +1055,15 @@ export function ImprovedCalendarView({
         lockedTrainingType="musculation"
       />
 
-      {/* Field Session Dialog */}
+      {/* Field Session Dialog (judo : assistant premium dédié) */}
+      <JudoSessionDialog
+        open={!!fieldSessionDate && (sportType || "").toLowerCase().includes("judo")}
+        onOpenChange={(open) => !open && setFieldSessionDate(null)}
+        date={fieldSessionDate || new Date()}
+        categoryId={categoryId}
+      />
       <FieldSessionDialog
-        open={!!fieldSessionDate}
+        open={!!fieldSessionDate && !(sportType || "").toLowerCase().includes("judo")}
         onOpenChange={(open) => !open && setFieldSessionDate(null)}
         date={fieldSessionDate || new Date()}
         categoryId={categoryId}
