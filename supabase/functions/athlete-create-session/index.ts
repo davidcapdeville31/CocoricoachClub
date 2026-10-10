@@ -158,6 +158,7 @@ serve(async (req) => {
         session_end_time: session_end_time || null,
         intensity: Number.isNaN(parsedIntensity) ? null : parsedIntensity,
         created_by_player_id: player_id,
+        author_user_id: userId,
         session_kind: ["training", "competition", "personal", "evaluation"].includes(session_kind) ? session_kind : null,
         notes: notes ? `[Séance athlète] ${notes}` : "[Séance athlète]",
       })

@@ -28,7 +28,8 @@
 - Optional bowling observations use a backward-compatible observed-fields list on existing throw JSON; omitted metadata preserves legacy meaning, while new absent observations are excluded from denominators.
 - Poche/Split use one typed tri-state component with invariant tokens and a dedicated Button variant; null adapts to observed-fields JSON, preserving statistics. Mobile entry holds each throw until explicit continuation.
 - In-progress bowling games remain in block configuration but never enter completed-game aggregates or flattened competition results; this preserves resumable input without publishing provisional scores.
-- Judo premium sessions reuse training_sessions/training_session_blocks (training_type terrain + judo_* blocks) with structured detail in backward-compatible `<!--judo-block:...-->`/`<!--judo-session:...-->` notes tags, so existing calendars, workload and history keep working without schema changes.
+- Judo sessions use training_sessions/blocks and judo notes tags to preserve calendars and workload.
+- Session authors are immutable, separate from assignment: DB stamps authenticated actors, functions pass validated JWT subjects, labels batch RLS reads; unknown legacy authors stay unknown.
 
 - FieldModeContext activates canonical `.dark` tokens and Tailwind variants; no parallel theme provider.
 - RPE uses `data-rpe`; form uses shared FeelingChoices and `data-feeling` tokens; selection overrides exclude both and bowling to preserve meaning.

@@ -148,6 +148,7 @@ serve(async (req) => {
             session_date,
             training_type: "precision",
             created_by_player_id: player_id,
+            author_user_id: userId,
             notes: `[Séance athlète] Précision - ${exercise_label}`,
           })
           .select("id")

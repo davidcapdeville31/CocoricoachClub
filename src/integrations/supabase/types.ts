@@ -15635,6 +15635,15 @@ export type Database = {
         }[]
       }
       get_security_stats: { Args: { _days?: number }; Returns: Json }
+      get_session_authorship: {
+        Args: { session_ids: string[] }
+        Returns: {
+          author_name: string
+          author_player_id: string
+          author_user_id: string
+          session_id: string
+        }[]
+      }
       get_targeted_session_ids: {
         Args: { _session_ids: string[] }
         Returns: string[]

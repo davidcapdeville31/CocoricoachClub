@@ -141,6 +141,13 @@
       "when": 1791668108555,
       "tag": "0019_record_training_session_authorship",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1791668183806,
+      "tag": "0020_read_session_authorship_with_legacy_creator",
+      "breakpoints": true
     }
   ]
 }
