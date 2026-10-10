@@ -448,9 +448,9 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
   if (existingWellness && isToday && !forceEdit) {
     return (
       <>
-      <Card className="athlete-wellness-card bg-card border-border shadow-sm">
+      <Card className={cn("athlete-wellness-card bg-card border-border shadow-sm", hideHistory && "athlete-wellness-saved")}>
         <CardContent className="p-4 space-y-3">
-          <div className="flex items-center gap-3">
+          <div className="athlete-wellness-saved-heading flex items-center gap-3">
             <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-success/10 flex items-center justify-center shrink-0">
               <CheckCircle2 className="h-5 w-5 text-status-optimal" />
             </div>
@@ -469,6 +469,8 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
               {t("athleteSpace.wellness.edit")}
             </Button>
           </div>
+          <details className={cn(hideHistory && "athlete-wellness-answers")} open={!hideHistory || undefined}>
+          <summary className={cn("text-xs font-medium cursor-pointer py-2", !hideHistory && "hidden")}>Voir mes réponses</summary>
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
             {activeQuestions.map(q => {
               const raw = (existingWellness as any)[q.key] ?? (existingWellness.custom_answers as any)?.[q.key];
@@ -484,6 +486,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
               );
             })}
           </div>
+          </details>
         </CardContent>
       </Card>
       {!hideHistory && <AthleteSpaceWellnessHistory playerId={playerId} categoryId={categoryId} />}

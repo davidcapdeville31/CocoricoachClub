@@ -52,6 +52,12 @@
 .athlete-wellness-icon { background: hsl(var(--wellness-banner-foreground) / 0.16); color: hsl(var(--wellness-banner-foreground)); }
 .athlete-wellness-title, .athlete-wellness-chevron { color: hsl(var(--wellness-banner-foreground)); }
 .athlete-wellness-subtitle { color: hsl(var(--wellness-banner-foreground) / 0.86); }
+.athlete-space .athlete-wellness-saved { background: var(--gradient-wellness); color: hsl(var(--wellness-banner-foreground)); border: 0; border-radius: 22px; }
+.athlete-wellness-saved-heading { min-height: 60px; }
+.athlete-wellness-saved-heading p, .athlete-wellness-saved-heading svg { color: inherit; }
+.athlete-wellness-saved-heading > div:first-child { background: hsl(var(--wellness-banner-foreground) / 0.16); }
+.athlete-space .athlete-wellness-saved-heading button { background: hsl(var(--wellness-banner-foreground) / 0.12); color: inherit; border-color: hsl(var(--wellness-banner-foreground) / 0.3); padding: 8px; }
+.athlete-wellness-answers > div { padding-top: 8px; }
 .athlete-space .athlete-session-section > div { padding-left: 0; padding-right: 0; }
 .athlete-space .athlete-session-section > div:first-child { padding-top: 0; padding-bottom: 12px; }
 .athlete-space .athlete-session-section h3 { font-size: 18px; line-height: 1.4; }
@@ -113,6 +119,15 @@
 }
 @media (min-width: 768px) {
   .athlete-bottom-nav { display: none; }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  .athlete-header-inner { flex-wrap: wrap; }
+  .athlete-identity { flex-basis: 55%; }
+  .athlete-header-actions { flex-wrap: wrap; justify-content: flex-end; }
+  .athlete-header-actions > div:first-child { order: 2; }
+  .athlete-header-actions > span { display: none; }
+  .athlete-header .athlete-info-button { width: 44px; padding: 4px; }
+  .athlete-info-button span { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .athlete-space *, .athlete-space *::before, .athlete-space *::after {
