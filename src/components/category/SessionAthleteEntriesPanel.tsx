@@ -47,7 +47,7 @@ export function SessionAthleteEntriesPanel({
       if (error) throw error;
       return data;
     },
-    enabled: !!sessionId && isMuscu,
+    enabled: !!sessionId,
   });
 
   const { data: exerciseLogs } = useQuery({
@@ -74,7 +74,7 @@ export function SessionAthleteEntriesPanel({
       if (error) throw error;
       return data || [];
     },
-    enabled: !!sessionId && isMuscu,
+    enabled: !!sessionId,
   });
 
   const { data: wellness } = useQuery({
@@ -88,7 +88,7 @@ export function SessionAthleteEntriesPanel({
       if (error) throw error;
       return data || [];
     },
-    enabled: !!sessionId && isMuscu && !!sessionMeta?.session_date,
+    enabled: !!sessionId && !!sessionMeta?.session_date,
   });
 
   const toggle = (id: string) =>
@@ -177,6 +177,8 @@ export function SessionAthleteEntriesPanel({
     const extraIds = new Set<string>();
     (rpes || []).forEach((r: any) => extraIds.add(r.player_id));
     (bowlingBlocks || []).forEach((b: any) => b.athlete_id && extraIds.add(b.athlete_id));
+    (awcr || []).forEach((a: any) => a.player_id && extraIds.add(a.player_id));
+    (exerciseLogs || []).forEach((l: any) => l.player_id && extraIds.add(l.player_id));
     extraIds.forEach((pid) => {
       if (!map.has(pid)) {
         const cp = (categoryPlayers || []).find((p: any) => p.id === pid);
@@ -196,7 +198,7 @@ export function SessionAthleteEntriesPanel({
       const nb = `${b.first_name || ""} ${b.name}`.trim().toLowerCase();
       return na.localeCompare(nb);
     });
-  }, [attendance, eventParticipants, categoryPlayers, rpes, bowlingBlocks]);
+  }, [attendance, eventParticipants, categoryPlayers, rpes, bowlingBlocks, awcr, exerciseLogs]);
 
   if (players.length === 0) return null;
 
@@ -315,7 +317,7 @@ export function SessionAthleteEntriesPanel({
           const playerWellness = wellnessByPlayer.get(p.id);
           const playerFeeling = normalizeFeeling(playerAwcr?.feeling) ?? normalizeFeeling(playerWellness?.feeling);
           const playerComment = playerAwcr?.notes ?? playerWellness?.notes ?? null;
-          const hasMuscuData = isMuscu && (playerLogs.length > 0 || !!playerAwcr || !!playerWellness);
+          const hasMuscuData = playerLogs.length > 0 || !!playerAwcr || !!playerWellness;
           const hasAnyData = rpeList.length > 0 || (bowl?.total || 0) > 0 || hasMuscuData;
           const avgRpe =
             playerAwcr?.rpe != null
@@ -325,7 +327,7 @@ export function SessionAthleteEntriesPanel({
                 : null;
           const displayName = p.first_name ? `${p.first_name} ${p.name}` : p.name || "Athlète";
           const initials = (p.first_name || p.name || "A").slice(0, 2).toUpperCase();
-          const canExpand = (isBowling && playerBlocks.length > 0) || (isMuscu && hasMuscuData);
+          const canExpand = (isBowling && playerBlocks.length > 0) || hasMuscuData;
           const isOpen = expanded.has(p.id);
 
           return (
@@ -366,13 +368,13 @@ export function SessionAthleteEntriesPanel({
                       RPE {Number(avgRpe).toFixed(1)}
                     </Badge>
                   )}
-                  {isMuscu && playerAwcr?.duration != null && (
+                  {playerAwcr?.duration != null && (
                     <Badge variant="outline" className="gap-1 text-xs">
                       <Clock className="h-3 w-3" />
                       {playerAwcr.duration} min
                     </Badge>
                   )}
-                  {isMuscu && playerLogs.length > 0 && (
+                  {playerLogs.length > 0 && (
                     <Badge variant="outline" className="gap-1 text-xs">
                       <Dumbbell className="h-3 w-3" />
                       {playerLogs.length} ex.
@@ -416,7 +418,7 @@ export function SessionAthleteEntriesPanel({
                 </div>
               )}
 
-              {canExpand && isOpen && isMuscu && (
+              {canExpand && isOpen && !isBowling && (
                 <div className="border-t bg-muted/20 p-3 space-y-3">
                   {/* Synthèse globale */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
