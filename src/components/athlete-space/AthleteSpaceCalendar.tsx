@@ -1,4 +1,5 @@
 import { FormattedText, CollapsibleFormattedText } from "@/components/ui/formatted-text";
+import { SessionAuthor } from "@/components/shared/SessionAuthor";
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -859,6 +860,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                       )}
                                     </div>
                                     <p className="text-xs text-muted-foreground">{isAthleteSession ? "Séance personnelle" : "Séance programmée"}</p>
+                                    <SessionAuthor sessionId={session.id} playerId={playerId} />
                                     {session.session_start_time && (
                                       <p className="text-xs text-muted-foreground flex items-center gap-1">
                                         <Clock className="h-3 w-3" />

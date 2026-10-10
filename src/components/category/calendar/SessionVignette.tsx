@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { SessionAuthor } from "@/components/shared/SessionAuthor";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { Eye, Pencil, MessageSquare, Trash2, Bell, User, Copy } from "lucide-react";
@@ -231,11 +232,11 @@ export function SessionVignette({
             </>
           )}
           <span className="truncate opacity-90">
-            {isAthleteCreated && playerName ? `${playerName} · ` : ""}
             {hasBlocks && !testLabel ? blocksLabel : label}
           </span>
         </div>
 
+        <SessionAuthor sessionId={session.id} className="mt-0.5 rounded bg-card px-1 py-0.5" />
         {/* Hover Actions Overlay - displayed ON the session */}
         {isHovered && !isDragging && (
           <div className="absolute inset-0 flex items-center justify-center bg-card/95 rounded-lg z-[100] animate-fade-in">

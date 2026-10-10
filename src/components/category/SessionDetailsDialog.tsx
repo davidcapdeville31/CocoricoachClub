@@ -1,4 +1,5 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
+import { SessionAuthor } from "@/components/shared/SessionAuthor";
 import { useState, useRef, useMemo } from "react";
 import { getObjectiveLabel } from "@/lib/constants/sessionBlockOptions";
 import { getDisplayNotes, parsePrecisionExerciseFromNotes, parseV2BlockTag, parseMentalFromNotes } from "@/lib/utils/sessionNotes";
@@ -809,15 +810,7 @@ export function SessionDetailsDialog({
                   </Badge>
                 );
               })()}
-              {session.created_by_player_id && (() => {
-                const creator = players?.find(p => p.id === session.created_by_player_id);
-                return creator ? (
-                  <Badge variant="outline" className="flex items-center gap-1 border-violet-300 text-violet-600 bg-violet-50 dark:bg-violet-950/20 dark:text-violet-400">
-                    <Users className="h-3 w-3" />
-                    Créée par {creator.first_name ? `${creator.first_name} ${creator.name}` : creator.name}
-                  </Badge>
-                ) : null;
-              })()}
+              <SessionAuthor sessionId={session.id} />
               {/* Precision exercise theme badge */}
               {session.training_type === "precision" && (() => {
                 const precisionEx = parsePrecisionExerciseFromNotes(session.notes);

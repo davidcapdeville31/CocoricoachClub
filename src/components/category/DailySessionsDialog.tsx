@@ -1,4 +1,5 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
+import { SessionAuthor } from "@/components/shared/SessionAuthor";
 import { useState } from "react";
 import { getDisplayNotes } from "@/lib/utils/sessionNotes";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -274,6 +275,7 @@ export function DailySessionsDialog({
                     <p className="text-xs font-medium text-primary uppercase">
                       {trainingTypeLabels[session.training_type] || session.training_type}
                     </p>
+                    <SessionAuthor sessionId={session.id} />
                     {session.session_start_time && session.session_end_time && (
                       <p className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
                         <Clock className="h-3 w-3" />

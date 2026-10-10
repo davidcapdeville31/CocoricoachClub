@@ -1,4 +1,5 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
+import { SessionAuthor } from "@/components/shared/SessionAuthor";
 import { useMemo, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -237,12 +238,10 @@ export function WeeklySessionsView({
                                   (session as any).created_by_player_id ? "bg-purple-500" : bgColor
                                 )} />
                                 <span className="font-medium truncate">
-                                  {(session as any).created_by_player_id && playerNamesMap?.[(session as any).created_by_player_id]
-                                    ? `${playerNamesMap[(session as any).created_by_player_id].split(' ')[0]} · `
-                                    : ""}
                                   {label.slice(0, 12)}
                                 </span>
                               </div>
+                              <SessionAuthor sessionId={session.id} />
                               <div className="flex items-center gap-1 mt-0.5 text-[10px] text-muted-foreground">
                                 {session.session_start_time && (
                                   <span>{session.session_start_time.slice(0, 5)}</span>

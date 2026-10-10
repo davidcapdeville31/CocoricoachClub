@@ -1,4 +1,5 @@
 import { MentalSessionDialog } from "./MentalSessionDialog";
+import { SessionAuthor } from "@/components/shared/SessionAuthor";
 import { MentalSessionContent } from "./MentalSessionContent";
 import { FeelingChoices } from "./FeelingChoices";
 import { Textarea } from "@/components/ui/textarea";
@@ -1264,6 +1265,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory, onViewCalen
                     {session.session_start_time && <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{session.session_start_time.slice(0, 5)}{session.session_end_time && ` – ${session.session_end_time.slice(0, 5)}`}</span>}
                   </div>
                   {renderTestInfo(session)}
+                  <SessionAuthor sessionId={session.id} playerId={playerId} />
                   {session.training_type === "mental" ? <FormattedText className="athlete-session-preview mt-1 text-sm text-muted-foreground" text={getSessionTitleFromNotes(session.notes) || ""} /> : renderSessionNotes(session.notes, session.training_type === "test")}
                   {session.training_type === "mental" && <Button type="button" className="athlete-session-action mt-3 h-11 w-full sm:w-auto sm:min-w-48 rounded-xl" onClick={(e) => { e.stopPropagation(); setMentalSession(session); }}>Découvrir ma séance<ChevronRight /></Button>}
                   {renderExerciseToggle(session.id)}
@@ -1765,6 +1767,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory, onViewCalen
                             <span>{getSessionTrainingLabel(session)}</span>
                           </p>
                           {renderSessionNotes(session.notes, session.training_type === "test")}
+                          <SessionAuthor sessionId={session.id} playerId={playerId} />
                           {session.session_start_time && (
                             <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                               <Clock className="h-3 w-3" />
@@ -1812,7 +1815,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory, onViewCalen
       )}
 
 
-      {doneSessions.length > 0 && <section className="space-y-3 border-t border-border pt-5" aria-label="Mes séances terminées"><h2 className="text-base font-semibold">Mes séances terminées</h2>{doneSessions.map((session) => <div key={session.id} className="flex flex-wrap items-center justify-between gap-3 border-b border-border py-3"><div className="min-w-0"><p className="text-sm font-medium">{getSessionTrainingLabel(session)}</p><p className="text-xs text-muted-foreground">{format(parseISO(session.session_date), "dd/MM/yyyy")}</p></div><Badge variant="outline" className="text-status-optimal"><CheckCircle2 className="mr-1 h-3 w-3" />Renseignée</Badge>{session.training_type === "mental" && <Button variant="outline" size="sm" onClick={() => setMentalSession(session)}>Relire ma séance</Button>}</div>)}</section>}
+      {doneSessions.length > 0 && <section className="space-y-3 border-t border-border pt-5" aria-label="Mes séances terminées"><h2 className="text-base font-semibold">Mes séances terminées</h2>{doneSessions.map((session) => <div key={session.id} className="flex flex-wrap items-center justify-between gap-3 border-b border-border py-3"><div className="min-w-0"><p className="text-sm font-medium">{getSessionTrainingLabel(session)}</p><SessionAuthor sessionId={session.id} playerId={playerId} /><p className="text-xs text-muted-foreground">{format(parseISO(session.session_date), "dd/MM/yyyy")}</p></div><Badge variant="outline" className="text-status-optimal"><CheckCircle2 className="mr-1 h-3 w-3" />Renseignée</Badge>{session.training_type === "mental" && <Button variant="outline" size="sm" onClick={() => setMentalSession(session)}>Relire ma séance</Button>}</div>)}</section>}
 
       {pendingSessions.length === 0 && (
 
@@ -1862,6 +1865,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory, onViewCalen
                             <div>
                               <p className="font-medium text-sm">{getSessionTrainingLabel(session)}</p>
                               {renderTestInfo(session)}
+                              <SessionAuthor sessionId={session.id} playerId={playerId} />
                               {renderSessionNotes(session.notes, session.training_type === "test")}
                               {session.session_start_time && (
                                 <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">

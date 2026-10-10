@@ -1,4 +1,5 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
+import { SessionAuthor } from "@/components/shared/SessionAuthor";
 import { useState, useRef } from "react";
 import { getDisplayNotes } from "@/lib/utils/sessionNotes";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -587,6 +588,10 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
                                   <Pencil className="h-3.5 w-3.5" />
                                 </span>
                               </div>
+                              {session.session_start_time && (
+                                <SessionAuthor sessionId={session.id} />
+                              )}
+                              {!session.session_start_time && <SessionAuthor sessionId={session.id} />}
                               {session.session_start_time && (
                                 <p className={cn(
                                   "text-xs",
