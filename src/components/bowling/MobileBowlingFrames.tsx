@@ -48,7 +48,7 @@ export function MobileBowlingFrames({ frames, stats, gameNumber, readOnly, track
           <span className={cn("h-1.5 w-full rounded-full", isFrameComplete(f, i) ? "bg-bowling-success" : i === active ? "bg-bowling-accent" : "bg-border")} />
         </Button>)}
       </div>
-      <div className="mt-2 flex items-end justify-between gap-2 border-b border-border pb-3">
+      <div className="mt-2 grid grid-cols-[minmax(0,1fr)_108px] items-end gap-2 border-b border-border pb-3">
         <div><p className="text-xs text-muted-foreground">{pending ? "Score provisoire · Bonus en attente" : "Score cumulé confirmé"}</p><p className="text-3xl font-bold tabular-nums text-bowling-ink">{confirmedScore(frames)}</p></div>
         <div className="text-right text-xs text-muted-foreground"><p>{completed} / 10 terminées</p><p className="mt-1">Dernière : {last ? `F${last.i + 1} · ${last.f.throws.filter(hasThrow).map(t => t.value).join(" ")}` : "—"}</p></div>
       </div>
