@@ -47,7 +47,7 @@ export function SessionAthleteEntriesPanel({
       if (error) throw error;
       return data;
     },
-    enabled: !!sessionId && isMuscu,
+    enabled: !!sessionId,
   });
 
   const { data: exerciseLogs } = useQuery({
@@ -74,7 +74,7 @@ export function SessionAthleteEntriesPanel({
       if (error) throw error;
       return data || [];
     },
-    enabled: !!sessionId && isMuscu,
+    enabled: !!sessionId,
   });
 
   const { data: wellness } = useQuery({
@@ -88,7 +88,7 @@ export function SessionAthleteEntriesPanel({
       if (error) throw error;
       return data || [];
     },
-    enabled: !!sessionId && isMuscu && !!sessionMeta?.session_date,
+    enabled: !!sessionId && !!sessionMeta?.session_date,
   });
 
   const toggle = (id: string) =>
