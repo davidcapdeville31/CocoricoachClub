@@ -830,7 +830,7 @@ body:has(.athlete-space) .field-mode-toggle { display: none; }
 :is([role="tab"], .brand-selectable, .colored-tab-trigger, .athlete-tab):not([data-state="active"]):not([data-state="on"]):not([aria-pressed="true"]) :is(svg, .colored-tab-text) {
   color: hsl(var(--muted-foreground)) !important;
 }
-:is([role="tab"][data-state="active"], .brand-selectable[data-state="on"], button[aria-pressed="true"], button[aria-selected="true"], a[aria-current="page"], [data-sidebar="menu-button"][data-active="true"], [data-sidebar="menu-sub-button"][data-active="true"], .athlete-bottom-item.is-active, .athlete-more-item.is-active) {
+:is([role="tab"][data-state="active"], .brand-selectable[data-state="on"], [role="button"][aria-pressed="true"], button[aria-pressed="true"], button[aria-selected="true"], a[aria-current="page"], [data-sidebar="menu-button"][data-active="true"], [data-sidebar="menu-sub-button"][data-active="true"], .athlete-bottom-item.is-active, .athlete-more-item.is-active) {
   background: hsl(var(--selection)) !important;
   color: hsl(var(--selection-foreground)) !important;
   border-color: hsl(var(--selection-border)) !important;
@@ -838,7 +838,7 @@ body:has(.athlete-space) .field-mode-toggle { display: none; }
   opacity: 1;
   box-shadow: var(--shadow-sm);
 }
-:is([role="tab"][data-state="active"], .brand-selectable[data-state="on"], button[aria-pressed="true"], button[aria-selected="true"], a[aria-current="page"], [data-sidebar="menu-button"][data-active="true"], [data-sidebar="menu-sub-button"][data-active="true"], .athlete-bottom-item.is-active, .athlete-more-item.is-active) :is(svg, .colored-tab-text) {
+:is([role="tab"][data-state="active"], .brand-selectable[data-state="on"], [role="button"][aria-pressed="true"], button[aria-pressed="true"], button[aria-selected="true"], a[aria-current="page"], [data-sidebar="menu-button"][data-active="true"], [data-sidebar="menu-sub-button"][data-active="true"], .athlete-bottom-item.is-active, .athlete-more-item.is-active) :is(svg, .colored-tab-text) {
   color: hsl(var(--selection-foreground)) !important;
 }
 /* Filled shared buttons remain on-brand even when the dark primary token is

@@ -1,8 +1,8 @@
 # Calendrier de charge
 
 ## Identité officielle bleu blanc rouge
-- [ ] Harmoniser les sélections partagées et les exceptions visuelles en bleu marine opaque et blanc ; rouge notifications, Wellness vert conservé.
-- [ ] Vérifier les états actifs/inactifs en clair et sombre sur les vues staff et athlète, sans modifier les données.
+- [x] Harmoniser onglets partagés, navigation, commandes, groupes et filtres exercices/tests en bleu marine opaque et blanc ; rouge notifications, Wellness vert conservé.
+- [x] Vérifier en consultation connectée les onglets Admin/Planning/Programmation/Santé et l’espace Manon : sélections #10264A, texte/icônes blancs, graisse 600 ; clair/sombre à 320/360/390/430/768/1280 px sans débordement, menu Plus et thème testés ; aucun enregistrement ni push. Contrôle non exhaustif de chaque formulaire spécifique.
 
 ## Feuille de score bowling mobile
 - [x] Examiner la feuille actuelle et les points de sauvegarde ; formaliser le plan.
