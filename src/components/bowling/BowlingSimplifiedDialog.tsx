@@ -38,6 +38,19 @@ import {
 } from "./simplified/types";
 import { SimplifiedOilPatternPicker } from "./simplified/SimplifiedOilPatternPicker";
 import { Input } from "@/components/ui/input";
+import heroPins from "@/assets/bowling/hero-pins.png";
+import targetIllu from "@/assets/bowling/target.png";
+import statsIllu from "@/assets/bowling/stats.png";
+
+export const SESSION_KINDS = [
+  { value: "training", label: "Entraînement", hint: "Séance classique", emoji: "🎳" },
+  { value: "competition", label: "Compétition", hint: "Match / Tournoi", emoji: "🏆" },
+  { value: "personal", label: "Personnelle", hint: "Loisir / jeu libre", emoji: "🏃" },
+  { value: "evaluation", label: "Évaluation", hint: "Test / bilan", emoji: "📋" },
+] as const;
+export type SessionKind = (typeof SESSION_KINDS)[number]["value"];
+const DURATION_PRESETS = [30, 60, 90, 120];
+const fmtDuration = (m: number) => (m < 60 ? `${m} min` : `${Math.floor(m / 60)} h${m % 60 ? ` ${m % 60}` : ""}`);
 
 const EMPTY_OIL: SimplifiedOilPattern = {
   preset_name: null,
@@ -278,6 +291,10 @@ export function BowlingSimplifiedDialog({
   const [athletesOpen, setAthletesOpen] = useState(false);
   const [oilOpen, setOilOpen] = useState(false);
   const [objective, setObjective] = useState<string | null>(null);
+  const [sessionKind, setSessionKind] = useState<SessionKind | null>(null);
+  /** Durée globale (null = somme des blocs). */
+  const [sessionDuration, setSessionDuration] = useState<number | null>(null);
+  const [customDuration, setCustomDuration] = useState(false);
 
   // En mode "session", propage le huilage de séance à tous les blocs existants
   // dès que l'utilisateur change le pattern ou bascule en mode session.
@@ -332,11 +349,8 @@ export function BowlingSimplifiedDialog({
       return;
     }
     if (s === 2) {
-      if (blocks.length === 0) {
-        toast.error("Ajoutez au moins un bloc à la séance");
-        return;
-      }
       for (const b of blocks) {
+        if (b.type === "games") continue;
         const err = validateBlock(b);
         if (err) {
           openBlock(b.id);
@@ -344,6 +358,9 @@ export function BowlingSimplifiedDialog({
           toast.error(err);
           return;
         }
+      }
+      if (!blocks.some((b) => b.type === "games")) {
+        setBlocks((prev) => [...prev, withSessionOil({ ...newGamesBlock(), entry_mode: "quick" } as SimplifiedBlock)]);
       }
     }
     setStep(Math.max(0, Math.min(2, s)));
@@ -386,6 +403,10 @@ export function BowlingSimplifiedDialog({
       next.delete(id);
       return next;
     });
+
+  /** Les parties sans aucun score = étape passée : elles ne sont pas enregistrées. */
+  const effectiveBlocks = blocks.filter((b) => b.type !== "games" || b.parties.some((p) => p.stats !== null));
+  const computedDuration = (list: SimplifiedBlock[]) => list.reduce((sum, b) => sum + (blockDuration(b) || 0), 0);
 
   // ---------- Persistance ----------
   const blockTitle = (b: SimplifiedBlock): string => {
@@ -613,6 +634,7 @@ export function BowlingSimplifiedDialog({
 
   const saveMutation = useMutation({
     mutationFn: async () => {
+      const blocks = effectiveBlocks;
       const targetPlayers = isAthleteMode
         ? [athletePlayerId!]
         : selectedPlayers;
@@ -626,10 +648,7 @@ export function BowlingSimplifiedDialog({
       // Chaque bloc est validé dans handleSave ; un bloc ouvert conserve ses données.
 
       const sessionDate = format(date, "yyyy-MM-dd");
-      const totalDuration = blocks.reduce(
-        (s, b) => s + (blockDuration(b) || 0),
-        0,
-      );
+      const totalDuration = sessionDuration && sessionDuration > 0 ? sessionDuration : computedDuration(blocks);
       const athleteAuth = isAthleteMode ? await getAthleteAuthContext() : null;
       const athleteDb = athleteAuth?.client ?? supabase;
 
@@ -725,6 +744,7 @@ export function BowlingSimplifiedDialog({
                 return `${h}:${m}`;
               })(),
               intensity: athleteRpe,
+              session_kind: sessionKind,
               notes: `Séance bowling — Mode simplifié\nDurée : ${totalDuration} min · RPE : ${athleteRpe}/10${objective ? `\nObjectif : ${objective}` : ""}`,
             },
           },
@@ -743,6 +763,7 @@ export function BowlingSimplifiedDialog({
             session_date: sessionDate,
             training_type: "bowling_simplified",
             notes: `Séance bowling — Mode simplifié${objective ? `\nObjectif : ${objective}` : ""}`,
+            session_kind: sessionKind,
             intensity: null,
             planned_intensity: null,
           })
@@ -837,11 +858,15 @@ export function BowlingSimplifiedDialog({
 
 
   const handleSave = () => {
-    for (const b of blocks) {
+    if (effectiveBlocks.length === 0) {
+      toast.error("Ajoute au moins un bloc ou un score de partie");
+      return;
+    }
+    for (const b of effectiveBlocks) {
       const err = validateBlock(b);
       if (err) {
         openBlock(b.id);
-        setStep(1);
+        setStep(b.type === "games" ? 2 : 1);
         toast.error(err);
         return;
       }
@@ -858,6 +883,9 @@ export function BowlingSimplifiedDialog({
       setOilScope("session");
       setStep(0);
       setObjective(null);
+      setSessionKind(null);
+      setSessionDuration(null);
+      setCustomDuration(false);
       setAthletesOpen(false);
       setOilOpen(false);
     }
