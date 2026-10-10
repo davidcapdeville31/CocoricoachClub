@@ -1,4 +1,5 @@
 import { FormattedText, CollapsibleFormattedText } from "@/components/ui/formatted-text";
+import { MentalSessionContent } from "./MentalSessionContent";
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
@@ -129,7 +130,7 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className={trainingType === "mental" ? "max-w-2xl h-[calc(100dvh-1rem)] max-h-[calc(100dvh-1rem)] overflow-y-auto sm:h-auto sm:max-h-[90vh]" : "max-w-2xl max-h-[90vh] overflow-y-auto"}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Activity className="h-5 w-5 text-primary" />
@@ -157,7 +158,7 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
               <p className="text-xs uppercase tracking-wide font-semibold text-primary mb-1.5">
                 {t('athleteSpace.components.sessionDetailDialog.coachInstructions')}
               </p>
-              <FormattedText text={rawNotes} className="text-foreground/90" />
+              {trainingType === "mental" ? <MentalSessionContent text={rawNotes} /> : <FormattedText text={rawNotes} className="text-foreground/90" />}
             </div>
           )}
 

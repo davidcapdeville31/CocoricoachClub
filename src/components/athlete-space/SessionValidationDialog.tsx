@@ -1,4 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { FeelingChoices } from "./FeelingChoices";
+import { MentalSessionContent } from "./MentalSessionContent";
+import { getDisplayNotes, getSessionTitleFromNotes } from "@/lib/utils/sessionNotes";
+import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -80,20 +84,22 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
     [blocks],
   );
 
+  const initializedSession = useRef<string | null>(null);
+  const durationTouched = useRef(false);
   useEffect(() => {
-    if (open) {
-      setFeeling(2);
-      setRpe(5);
-      setComment("");
+    if (!session?.id || !open) return;
+    if (initializedSession.current !== session.id) {
+      initializedSession.current = session.id;
+      durationTouched.current = false;
+      setFeeling(2); setRpe(5); setComment(""); setWeightLogs({});
       setDuration(plannedDuration > 0 ? plannedDuration : 60);
-      setWeightLogs({});
-    }
-  }, [open, plannedDuration]);
+    } else if (!durationTouched.current && plannedDuration > 0) setDuration(plannedDuration);
+  }, [session?.id, open, plannedDuration]);
 
   const totalLoad = rpe * (duration || 0);
 
   const handleSubmit = async () => {
-    if (!session || !playerId || !categoryId) return;
+    if (!session || !playerId || !categoryId || submitting) return;
     if (isAbsent) {
       toast.error(t("athleteSpace.calendar.attendance.absentLockTitle"));
       return;
@@ -220,6 +226,7 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
       qc.invalidateQueries({ queryKey: ["tonnage"] });
       qc.invalidateQueries({ queryKey: ["pending-weight-logs"] });
       qc.invalidateQueries({ queryKey: ["notifications"] });
+      initializedSession.current = null;
       onOpenChange(false);
     } catch (e: any) {
       toast.error(e?.message || t("athleteSpace.components.sessionValidationDialog.saveError"));
@@ -237,12 +244,14 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
             {t("athleteSpace.components.sessionValidationDialog.title")}
           </DialogTitle>
           <DialogDescription>
-            {t("athleteSpace.components.sessionValidationDialog.description")}
+            {session && <span className="block font-semibold text-foreground">{getTrainingTypeLabel(session.training_type || "")} · {session.session_date.split("-").reverse().join("/")}</span>}
+            {getSessionTitleFromNotes(session?.notes)?.replace(/^#+\s*|\*\*/g, "")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
           {isAbsent && <AthleteAbsentLockNotice />}
+          {session?.training_type === "mental" && <details><summary className="cursor-pointer text-sm font-semibold text-primary">Relire mes consignes</summary><div className="pt-3"><MentalSessionContent text={getDisplayNotes(session.notes)} /></div></details>}
 
           {/* Exercise logs (reps / sets / weight) — feeds tonnage & training load */}
           {session && playerId && (
@@ -258,23 +267,7 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
           {/* Feeling */}
           <div>
             <Label className="text-sm mb-2 block">{t("athleteSpace.components.sessionValidationDialog.feelingQuestion")}</Label>
-            <div className="grid grid-cols-5 gap-1.5">
-              {FEELINGS.map((f) => (
-                <button
-                  key={f.value}
-                  type="button"
-                  onClick={() => setFeeling(f.value)}
-                  className={`rounded-lg border px-1 py-2 text-[10px] sm:text-xs font-medium transition ${
-                    feeling === f.value
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border bg-surface hover:bg-muted"
-                  }`}
-                >
-                  <div className="text-base sm:text-lg">{f.emoji}</div>
-                  <div className="leading-tight">{f.label}</div>
-                </button>
-              ))}
-            </div>
+            <FeelingChoices options={FEELINGS} value={feeling} onChange={setFeeling} />
           </div>
 
           {/* Duration */}
@@ -287,7 +280,7 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
               min={1}
               max={600}
               value={duration}
-              onChange={(e) => setDuration(parseInt(e.target.value || "0", 10))}
+              onChange={(e) => { durationTouched.current = true; setDuration(parseInt(e.target.value || "0", 10)); }}
             />
             {plannedDuration > 0 && (
               <p className="text-[11px] text-muted-foreground mt-1">
@@ -326,10 +319,10 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
           </div>
 
           <div className="flex gap-2 pt-1">
-            <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)} disabled={submitting}>
+            <Button variant="outline" className="flex-1 min-w-0 h-auto min-h-11 whitespace-normal" onClick={() => onOpenChange(false)} aria-busy={submitting}>
               {t("athleteSpace.components.sessionValidationDialog.cancel")}
             </Button>
-            <Button className="flex-1 gap-1.5" onClick={handleSubmit} disabled={submitting}>
+            <Button className="flex-1 min-w-0 h-auto min-h-11 whitespace-normal gap-1.5" onClick={handleSubmit} aria-busy={submitting}>
               <Send className="h-4 w-4" /> {t("athleteSpace.components.sessionValidationDialog.submit")}
             </Button>
           </div>

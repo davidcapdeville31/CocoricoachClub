@@ -27,11 +27,12 @@
 
 ## UX athlète mobile V2
 - [x] Auditer contenu mental, cartes, circuits, bilans et statuts ; présenter le plan avant modification importante.
-- [ ] Donner priorité à une fiche mentale complète, lisible et liée aux réponses existantes.
-- [ ] Compacter les circuits, séparer consignes/résultats et clarifier la progression sans changer les calculs.
-- [ ] Identifier chaque bilan par sa séance et optimiser les cinq ressentis sur téléphone.
-- [ ] Séparer séances à réaliser et terminées selon les statuts réels.
-- [ ] Vérifier les écrans à 320/360/390/430 px et les allers-retours ; vérifier l’enregistrement authentifié si disponible.
+- [x] Donner priorité à une fiche mentale complète, lisible et liée aux réponses existantes.
+- [x] Compacter les circuits, séparer consignes/résultats et clarifier la progression sans changer les calculs.
+- [x] Identifier chaque bilan par sa séance et optimiser les cinq ressentis sur téléphone.
+- [x] Séparer séances à réaliser et terminées selon les statuts réels.
+- [x] Vérifier en simulation les écrans à 320/360/390/430/768/1280 px et les allers-retours ; six tests de circuits réussis.
+- [ ] Vérifier l’enregistrement réel mental/circuit et la lecture coach : bloqué par l’absence de compte athlète authentifié autorisé dans ce fil.
 
 - [x] Corriger les pictogrammes du menu et la lisibilité du résumé wellness, toutes disciplines.
 - [x] Vérifier le menu et un wellness enregistré sur mobile en thèmes clair et sombre.
