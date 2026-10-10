@@ -30,6 +30,7 @@ export function MobileBowlingFrames({ frames, stats, gameNumber, readOnly, track
   const select = (index: number) => { setActive(index); setRoll(nextThrowIndex(frames[index], index)); };
   const freshRack = isFirstBall(active, roll, frame);
   const currentThrow = frame.throws[roll];
+  const hasNextThrow = roll < (active === 9 ? 2 : 1) && remainingPins(frame, active, roll + 1) !== null;
   const quickFields = quickObservationFields(frame, active, roll, trackPockets);
   const observationSummary = (f: FrameData, i: number) => f.throws.flatMap((t, ti) =>
     quickObservationFields(f, i, ti, trackPockets).flatMap(field => {
@@ -42,7 +43,7 @@ export function MobileBowlingFrames({ frames, stats, gameNumber, readOnly, track
   };
   const continueThrow = () => {
     if (!hasThrow(currentThrow)) return;
-    if (remainingPins(frame, active, roll + 1) !== null && roll < (active === 9 ? 2 : 1)) setRoll(roll + 1);
+    if (hasNextThrow) setRoll(roll + 1);
     else if (active < 9) select(active + 1);
   };
 
@@ -82,7 +83,7 @@ export function MobileBowlingFrames({ frames, stats, gameNumber, readOnly, track
       {currentThrow && quickFields.length > 0 && <div className="grid grid-cols-2 gap-2 border-t border-border pt-3" role="group" aria-label={`Informations lancer ${roll + 1}`}>
         {quickFields.map(field => <BowlingObservationButton key={field} label={field === "isPocket" ? "Poche" : "Split"} value={observationValue(currentThrow, field)} readOnly={readOnly} onChange={value => onObservation(active, roll, field, value)} />)}
       </div>}
-      {!readOnly && hasThrow(currentThrow) && !(active === 9 && isFrameComplete(frame, active) && remainingPins(frame, active, roll + 1) === null) && <Button className="h-11 w-full gap-2" onClick={continueThrow}>{remainingPins(frame, active, roll + 1) !== null && roll < (active === 9 ? 2 : 1) ? "Lancer suivant" : "Frame suivante"}<ArrowRight className="h-4 w-4" /></Button>}
+      {!readOnly && hasThrow(currentThrow) && (hasNextThrow || active < 9) && <Button className="h-11 w-full gap-2" onClick={continueThrow}>{hasNextThrow ? "Lancer suivant" : "Frame suivante"}<ArrowRight className="h-4 w-4" /></Button>}
       {isFrameComplete(frame, active) && observationSummary(frame, active) && <p className="text-xs text-muted-foreground">{observationSummary(frame, active)}</p>}
     </div>
 
