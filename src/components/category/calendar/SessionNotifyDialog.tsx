@@ -1,3 +1,4 @@
+import { getSessionDisplayTitle } from "@/lib/sessionPresentation";
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -284,7 +285,7 @@ export function SessionNotifyDialog({
             {t("planning.calendarDialogs.sessionNotify.title")}
           </DialogTitle>
           <DialogDescription>
-            {t("planning.calendarDialogs.sessionNotify.sessionSummary", { type: getTrainingTypeLabel(session.training_type), date: format(new Date(session.session_date), "d MMMM yyyy", { locale: getDateLocale() }) })}
+            {t("planning.calendarDialogs.sessionNotify.sessionSummary", { type: getSessionDisplayTitle({ training_type: session.training_type }), date: format(new Date(session.session_date), "d MMMM yyyy", { locale: getDateLocale() }) })}
           </DialogDescription>
         </DialogHeader>
 

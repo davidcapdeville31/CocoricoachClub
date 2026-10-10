@@ -1,3 +1,4 @@
+import { getReadableNotes, getNotesSectionKey, getSessionOrigin, getSessionDisplayTitle } from "@/lib/sessionPresentation";
 import { FormattedText, CollapsibleFormattedText } from "@/components/ui/formatted-text";
 import { SessionAuthor } from "@/components/shared/SessionAuthor";
 import { getDateLocale } from "@/lib/i18n/dateLocale";
@@ -826,7 +827,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                       <p className="font-medium text-sm">
                                         {(() => {
                                           if (session.training_type !== "test") {
-                                            return getTrainingTypeLabel(session.training_type);
+                                            return getSessionDisplayTitle({ training_type: session.training_type });
                                           }
                                           const reminderId = (session as any).test_reminder_id;
                                           if (reminderId && testTypeByReminderId[reminderId]) {
@@ -841,7 +842,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                           // Fallback 2: legacy "Test auto-planifié: <label>" in notes
                                           const legacy = ((session as any).notes || "").match(/Test auto-planifi[ée]\s*:\s*([^\n<]+)/i);
                                           if (legacy) return t("athleteSpace.calendar.testLabel", { label: legacy[1].trim() });
-                                          return getTrainingTypeLabel(session.training_type);
+                                          return getSessionDisplayTitle({ training_type: session.training_type });
                                         })()}
                                       </p>
                                       {blocks.length > 0 && blocks.some(b => b.training_type !== session.training_type) && (
@@ -965,12 +966,13 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                             {(isExpanded && (exercises.length > 0 || (session as any).notes || isBowling || isBasket)) && (
                               <div className="px-3 pb-3 border-t border-border/50 pt-2 space-y-2">
                                 {(() => {
-                                  const rawNotes = ((session as any).notes || "").replace(/<!--[\s\S]*?-->/g, "").trim();
+                                  const rawNotes = getReadableNotes((session as any).notes);
                                   if (!rawNotes) return null;
+                                  const notesKey = getNotesSectionKey(getSessionOrigin(session as any));
                                   return (
                                     <div className="rounded-md border border-primary/20 bg-primary/5 p-2">
                                       <p className="text-[10px] uppercase tracking-wide font-semibold text-primary mb-1">
-                                        {t("athleteSpace.calendar.coachInstructions")}
+                                        {t(notesKey === "myNotes" ? "athleteSpace.components.sessionDetailDialog.myNotes" : "athleteSpace.calendar.coachInstructions")}
                                       </p>
                                       <FormattedText text={rawNotes} className="text-xs text-foreground/90" />
                                     </div>

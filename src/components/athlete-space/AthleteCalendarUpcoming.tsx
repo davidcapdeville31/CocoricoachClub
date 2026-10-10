@@ -1,3 +1,4 @@
+import { getSessionDisplayTitle } from "@/lib/sessionPresentation";
 import { useQuery } from "@tanstack/react-query";
 import { SessionAuthor } from "@/components/shared/SessionAuthor";
 import { format, parseISO } from "date-fns";
@@ -17,7 +18,7 @@ interface Props {
 export function AthleteCalendarUpcoming({ playerId, selectedDate, sessions, matches, onSelect }: Props) {
   const today = format(new Date(), "yyyy-MM-dd");
   const events = [
-    ...sessions.filter(s => !s.created_by_player_id && s.session_date >= today).map(s => ({ id: s.id, date: s.session_date, kind: "session", title: getTrainingTypeLabel(s.training_type) })),
+    ...sessions.filter(s => !s.created_by_player_id && s.session_date >= today).map(s => ({ id: s.id, date: s.session_date, kind: "session", title: getSessionDisplayTitle({ training_type: s.training_type }) })),
     ...matches.filter(m => m.created_by_player_id !== playerId && m.match_date >= today).map(m => ({ id: m.id, date: m.match_date, kind: "match", title: m.competition || m.opponent })),
   ].sort((a, b) => a.date.localeCompare(b.date));
   const { data, isLoading, isError, refetch } = useQuery({

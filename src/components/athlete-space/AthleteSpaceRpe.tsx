@@ -1,3 +1,4 @@
+import { getSessionDisplayTitle } from "@/lib/sessionPresentation";
 import { MentalSessionDialog } from "./MentalSessionDialog";
 import { SessionAuthor } from "@/components/shared/SessionAuthor";
 import { MentalSessionContent } from "./MentalSessionContent";
@@ -654,7 +655,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory, onViewCalen
       successesValue <= attemptsValue);
 
   const getSessionTrainingLabel = (session: SessionRow) => {
-    const baseLabel = getTrainingTypeLabel(session.training_type);
+    const baseLabel = getSessionDisplayTitle({ training_type: session.training_type });
     
     // Show precision exercise theme for rugby precision sessions
     if (session.training_type === "precision") {
@@ -1180,7 +1181,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory, onViewCalen
                   {infoTodaySessions.map((s) => (
                     <div key={s.id} className="p-3 rounded-lg border bg-background/60 flex items-center justify-between flex-wrap gap-2">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-sm">{getTrainingTypeLabel(s.training_type)}</span>
+                        <span className="font-medium text-sm">{getSessionDisplayTitle({ training_type: s.training_type })}</span>
                         {s.session_start_time && (
                           <span className="text-xs text-muted-foreground">
                             • {s.session_start_time.slice(0,5)}{s.session_end_time ? ` – ${s.session_end_time.slice(0,5)}` : ""}

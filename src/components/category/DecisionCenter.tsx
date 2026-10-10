@@ -1,3 +1,4 @@
+import { getSessionDisplayTitle } from "@/lib/sessionPresentation";
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
@@ -791,7 +792,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
         
         return {
           sessionId: session.id,
-          sessionName: getTrainingTypeLabel(session.training_type),
+          sessionName: getSessionDisplayTitle({ training_type: session.training_type }),
           sessionTime: session.session_start_time?.slice(0, 5) || "",
           plannedIntensity: session.planned_intensity || 5,
           totalParticipants,
@@ -1535,7 +1536,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                         <div className="flex items-center gap-2">
                           <Activity className="h-4 w-4 text-primary" />
                           <div>
-                            <p className="font-medium text-sm">{getTrainingTypeLabel(session.training_type)}</p>
+                            <p className="font-medium text-sm">{getSessionDisplayTitle({ training_type: session.training_type })}</p>
                             <p className="text-xs text-muted-foreground">
                               {session.session_start_time?.slice(0, 5)} • {t("decision.sessions.targetLoad", { value: session.planned_intensity || 5 })}
                             </p>
@@ -1601,7 +1602,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                         <div className="flex items-center gap-2">
                           <Activity className="h-4 w-4 text-muted-foreground" />
                           <div>
-                            <p className="font-medium text-sm">{getTrainingTypeLabel(session.training_type)}</p>
+                            <p className="font-medium text-sm">{getSessionDisplayTitle({ training_type: session.training_type })}</p>
                             <p className="text-xs text-muted-foreground">
                               {session.session_start_time?.slice(0, 5)} • {t("decision.sessions.targetLoad", { value: session.planned_intensity || 5 })}
                             </p>
@@ -1954,7 +1955,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                         <div className="flex items-center gap-2 pb-2 border-b">
                           <Activity className="h-4 w-4 text-blue-600" />
                           <h4 className="font-semibold text-sm">
-                            {session ? getTrainingTypeLabel(session.training_type) : t("decision.dialogs.attendanceDetail.sessionUndefined")}
+                            {session ? getSessionDisplayTitle({ training_type: session.training_type }) : t("decision.dialogs.attendanceDetail.sessionUndefined")}
                           </h4>
                           {session?.session_start_time && (
                             <Badge variant="outline" className="text-xs ml-auto">

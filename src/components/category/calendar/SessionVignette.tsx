@@ -1,3 +1,4 @@
+import { getSessionDisplayTitle } from "@/lib/sessionPresentation";
 import { useState } from "react";
 import { SessionAuthor } from "@/components/shared/SessionAuthor";
 import { useDraggable } from "@dnd-kit/core";
@@ -129,7 +130,7 @@ export function SessionVignette({
   const label =
     session.training_type === "mental" && customTitle
       ? customTitle
-      : testLabel || getTrainingTypeLabel(session.training_type);
+      : testLabel || getSessionDisplayTitle({ training_type: session.training_type });
   const startTime = formatTime(session.session_start_time);
   const hasBlocks = blocks && blocks.length > 0;
   const blocksLabel = hasBlocks

@@ -747,7 +747,7 @@ export function BowlingSimplifiedDialog({
               })(),
               intensity: athleteRpe,
               session_kind: sessionKind,
-              notes: `Séance bowling — Mode simplifié\nDurée : ${totalDuration} min · RPE : ${athleteRpe}/10${objective ? `\nObjectif : ${objective}` : ""}`,
+              notes: `Durée : ${totalDuration} min · RPE : ${athleteRpe}/10${objective ? `\nObjectif : ${objective}` : ""}`,
             },
           },
         );
@@ -764,7 +764,7 @@ export function BowlingSimplifiedDialog({
             category_id: categoryId,
             session_date: sessionDate,
             training_type: "bowling_simplified",
-            notes: `Séance bowling — Mode simplifié${objective ? `\nObjectif : ${objective}` : ""}`,
+            notes: objective ? `Objectif : ${objective}` : null,
             session_kind: sessionKind,
             intensity: null,
             planned_intensity: null,

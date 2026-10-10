@@ -767,6 +767,11 @@ export const athleteSpaceFr = {
     sessionDetailDialog: {
       coachInstructions: "Consignes du coach",
       myData: "Mes données saisies",
+      myDataEntered: "Mes données enregistrées",
+      myNotes: "Mes notes",
+      origin: { personal: "Séance personnelle", prescribed: "Séance du coach", unknown: "Séance" },
+      completion: { scheduled: "Programmée", inProgress: "En cours", done: "Terminée", cancelled: "Annulée" },
+      entry: { toComplete: "À compléter", partial: "Données partielles", recorded: "Données enregistrées" },
       avgRpe: "RPE moyen {{rpe}}/10",
       minutes: "{{count}} min",
       onBlocks: "sur {{count}} bloc{{plural}}",
@@ -1672,6 +1677,11 @@ export const athleteSpaceEn = {
     sessionDetailDialog: {
       coachInstructions: "Coach instructions",
       myData: "My recorded data",
+      myDataEntered: "My recorded data",
+      myNotes: "My notes",
+      origin: { personal: "Personal session", prescribed: "Coach session", unknown: "Session" },
+      completion: { scheduled: "Scheduled", inProgress: "In progress", done: "Completed", cancelled: "Cancelled" },
+      entry: { toComplete: "To complete", partial: "Partial data", recorded: "Data recorded" },
       avgRpe: "Average RPE {{rpe}}/10",
       minutes: "{{count}} min",
       onBlocks: "over {{count}} block{{plural}}",
