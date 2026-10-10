@@ -29,6 +29,7 @@ Dernier passage : aucun échec détecté par les règles contraste, nom de bouto
 
 ## Anomalies et limites restantes
 - Axe signale encore des régions principales manquantes sur six routes et des sauts de niveaux de titres sur paramètres, Admin, Super Admin et espace athlète ; corrections structurelles à traiter séparément.
+- La vérification visuelle révèle aussi le tableau Admin trop comprimé sur mobile (mots coupés lettre par lettre) et les libellés de préférences de notifications étroits ; absence de débordement ne signifie pas lisibilité optimale. Ces présentations restent à améliorer.
 - Les onglets secondaires, modales, formulaires ouverts, erreurs de validation, hover/focus et toutes les disciplines n’ont pas été parcourus exhaustivement.
 - La palette RPE a été raccordée dans le code ; ses dix états n’ont pas tous été vérifiés dans un formulaire connecté durant cette étape.
 - Android physique, iOS, clavier virtuel, technologies d’assistance et contrastes de tous les graphiques non vérifiés.
