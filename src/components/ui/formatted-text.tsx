@@ -1,101 +1,42 @@
-import { Fragment, useState, type ReactNode } from "react";
+import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-/**
- * Rendu léger du Markdown saisi par le staff (titres, gras, italique, listes,
- * paragraphes, retours à la ligne). Les marqueurs orphelins (« ** » non fermés)
- * sont retirés au lieu d'être affichés. Le texte enregistré n'est jamais modifié.
- */
-function renderInline(text: string, key: string): ReactNode[] {
-  const out: ReactNode[] = [];
-  const re = /\*\*([^*]+?)\*\*|__([^_]+?)__|\*([^*\s][^*]*?)\*|_([^_\s][^_]*?)_/g;
-  let last = 0;
-  let m: RegExpExecArray | null;
-  let i = 0;
-  const clean = (s: string) => s.replace(/\*\*|__/g, "");
-  while ((m = re.exec(text))) {
-    if (m.index > last) out.push(clean(text.slice(last, m.index)));
-    if (m[1] || m[2]) out.push(<strong key={`${key}-${i++}`} className="font-semibold text-foreground">{m[1] || m[2]}</strong>);
-    else out.push(<em key={`${key}-${i++}`}>{m[3] || m[4]}</em>);
-    last = m.index + m[0].length;
-  }
-  if (last < text.length) out.push(clean(text.slice(last)));
-  return out;
-}
-
-type Block =
-  | { t: "h"; level: number; text: string }
-  | { t: "ul" | "ol"; items: string[] }
-  | { t: "p"; lines: string[] };
-
-export function parseBlocks(src: string): Block[] {
-  const blocks: Block[] = [];
-  let para: string[] = [];
-  const flush = () => { if (para.length) { blocks.push({ t: "p", lines: para }); para = []; } };
-  src.replace(/\r\n/g, "\n").split("\n").forEach((raw) => {
-    const line = raw.trimEnd();
-    if (!line.trim()) { flush(); return; }
-    const h = line.match(/^\s*(#{1,6})\s+(.*)$/);
-    if (h) { flush(); blocks.push({ t: "h", level: h[1].length, text: h[2] }); return; }
-    const ul = line.match(/^\s*[-*•]\s+(.*)$/);
-    const ol = line.match(/^\s*\d+[.)]\s+(.*)$/);
-    if (ul || ol) {
-      flush();
-      const type = ul ? "ul" : "ol";
-      const prev = blocks[blocks.length - 1];
-      if (prev && prev.t === type) prev.items.push((ul || ol)![1]);
-      else blocks.push({ t: type, items: [(ul || ol)![1]] });
-      return;
-    }
-    para.push(line.trim());
-  });
-  flush();
-  return blocks;
-}
-
-export function FormattedText({ text, className }: { text: string; className?: string }) {
-  const blocks = parseBlocks(text);
+/** Raw HTML is not executed; links use the renderer's safe URL transform. */
+export function FormattedText({ text, className, headingIdPrefix }: { text: string; className?: string; headingIdPrefix?: string }) {
+  let headingIndex = 0;
+  const heading = ({ children }: { children?: React.ReactNode }) => {
+    const id = headingIdPrefix ? `${headingIdPrefix}-${headingIndex++}` : undefined;
+    return <h3 id={id} className="scroll-mt-4 pt-3 text-base font-semibold leading-snug text-foreground">{children}</h3>;
+  };
   return (
-    <div className={cn("space-y-2 text-sm leading-relaxed break-words", className)}>
-      {blocks.map((b, i) => {
-        if (b.t === "h") return <p key={i} className="font-semibold text-foreground pt-1">{renderInline(b.text, `h${i}`)}</p>;
-        if (b.t === "ul" || b.t === "ol") {
-          const L = (b.t === "ul" ? "ul" : "ol") as "ul" | "ol";
-          return (
-            <L key={i} className={cn("pl-5 space-y-1", b.t === "ul" ? "list-disc" : "list-decimal")}>
-              {b.items.map((it, j) => <li key={j}>{renderInline(it, `l${i}-${j}`)}</li>)}
-            </L>
-          );
-        }
-        if (b.t !== "p") return null;
-        return (
-          <p key={i}>
-            {b.lines.map((l, j) => (
-              <Fragment key={j}>{j > 0 && <br />}{renderInline(l, `p${i}-${j}`)}</Fragment>
-            ))}
-          </p>
-        );
-      })}
+    <div className={cn("min-w-0 space-y-3 text-sm leading-relaxed break-words [overflow-wrap:anywhere]", className)}>
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={{
+        h1: heading, h2: heading, h3: heading, h4: heading, h5: heading, h6: heading,
+        p: ({ children }) => <p className="whitespace-pre-wrap">{children}</p>,
+        ul: ({ children }) => <ul className="list-disc space-y-1 pl-5">{children}</ul>,
+        ol: ({ children, start }) => <ol start={start} className="list-decimal space-y-1 pl-5">{children}</ol>,
+        a: ({ children, href }) => <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary underline">{children}</a>,
+        blockquote: ({ children }) => <blockquote className="border-l-2 border-accent pl-3 text-muted-foreground">{children}</blockquote>,
+        pre: ({ children }) => <pre className="whitespace-pre-wrap rounded-lg bg-muted p-3">{children}</pre>,
+        table: ({ children }) => <div className="overflow-x-auto"><table className="w-full text-sm">{children}</table></div>,
+        th: ({ children }) => <th className="border border-border p-2 text-left">{children}</th>,
+        td: ({ children }) => <td className="border border-border p-2">{children}</td>,
+      }}>{text}</ReactMarkdown>
     </div>
   );
 }
 
-/** Aperçu court (quelques lignes) avec « Voir plus » pour éviter les longs défilements. */
 export function CollapsibleFormattedText({ text, className, lines = 3 }: { text: string; className?: string; lines?: number }) {
   const [open, setOpen] = useState(false);
   const long = text.length > 180 || text.split("\n").length > lines + 1;
   return (
     <div className={className}>
-      <div className={cn(!open && long && "relative max-h-[4.5rem] overflow-hidden")}>
-        <FormattedText text={text} />
-        {!open && long && <div className="pointer-events-none absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-card to-transparent" />}
-      </div>
-      {long && (
-        <button type="button" onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }}
-          className="mt-1 text-xs font-medium text-primary" aria-expanded={open}>
-          {open ? "Voir moins" : "Voir les consignes"}
-        </button>
-      )}
+      <div className={cn(!open && long && "max-h-[4.5rem] overflow-hidden")}><FormattedText text={text} /></div>
+      {long && <Button type="button" variant="ghost" size="sm" className="mt-1 h-9 px-0 text-primary" aria-expanded={open}
+        onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }}>{open ? "Voir moins" : "Voir les consignes"}</Button>}
     </div>
   );
 }
