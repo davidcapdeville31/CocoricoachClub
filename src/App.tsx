@@ -47,6 +47,7 @@ import PolitiqueCookies from "./pages/legal/PolitiqueCookies";
 import { CookieConsentBanner } from "./components/legal/CookieConsentBanner";
 import { MaintenanceGate } from "./components/MaintenanceGate";
 import { useRadixPointerEventsGuard } from "@/hooks/useRadixPointerEventsGuard";
+import BowlingObservationHarness from "./dev/BowlingObservationHarness";
 
 // Auth wrapper component that allows public access
 function AuthGuard({ children }: { children: React.ReactNode }) {
