@@ -177,6 +177,8 @@ export function SessionAthleteEntriesPanel({
     const extraIds = new Set<string>();
     (rpes || []).forEach((r: any) => extraIds.add(r.player_id));
     (bowlingBlocks || []).forEach((b: any) => b.athlete_id && extraIds.add(b.athlete_id));
+    (awcr || []).forEach((a: any) => a.player_id && extraIds.add(a.player_id));
+    (exerciseLogs || []).forEach((l: any) => l.player_id && extraIds.add(l.player_id));
     extraIds.forEach((pid) => {
       if (!map.has(pid)) {
         const cp = (categoryPlayers || []).find((p: any) => p.id === pid);
