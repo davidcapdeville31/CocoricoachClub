@@ -78,7 +78,7 @@ export function MobileBowlingFrames({ frames, stats, gameNumber, readOnly, track
         ...(t.value !== "X" && t.value !== "/" ? [["isSplit", "Split"]] : []),
         ...(isFirstBall(active, ti, frame) && t.pins === 9 ? [["isSinglePin", "Quille seule"], ["isSinglePinConverted", "Quille seule convertie"]] : []),
       ] as Array<["isPocket" | "isSplit" | "isSinglePin" | "isSinglePinConverted", string]>).map(([field, label]) => {
-        const observed = t.observed === undefined || t.observed.includes(field);
+    const observed = t.observed === undefined || t.observed.includes(field);
         return <div key={field} className="space-y-1"><p className="text-xs">{label}</p><div className="grid grid-cols-3 gap-1" role="group" aria-label={`${label} lancer ${ti + 1}`}>
           {([undefined, true, false] as const).map((v, i) => <Button key={i} variant="outline" size="sm" className={cn("h-10 min-w-0 px-1 text-xs", (v === undefined ? !observed : observed && t[field] === v) && "border-bowling-accent bg-bowling-accent/10")} aria-pressed={v === undefined ? !observed : observed && t[field] === v} onClick={() => { if (!readOnly) onObservation(active, ti, field, v); }}>{i === 0 ? "Non saisi" : v ? "Oui" : "Non"}</Button>)}
         </div></div>;

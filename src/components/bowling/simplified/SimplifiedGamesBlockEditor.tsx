@@ -239,8 +239,8 @@ export function SimplifiedGamesBlockEditor({
                 playerId={playerId}
                 categoryId={categoryId}
                 trackPockets={value.track_pockets}
+                beforeThrowChange={() => !p.stats || !!p.frames || window.confirm("Remplacer le score rapide par ces nouveaux lancers détaillés ?")}
                 onDraftChange={(stats, frames) => {
-                  if (p.stats && !p.frames && !window.confirm("Remplacer le score rapide par ces nouveaux lancers détaillés ?")) return;
                   updateParty(p.id, { stats, frames });
                 }}
                 onSave={(stats, frames, ballData) => updateParty(p.id, { stats, frames, ball_id: ballData?.ballId ?? p.ball_id ?? null })}

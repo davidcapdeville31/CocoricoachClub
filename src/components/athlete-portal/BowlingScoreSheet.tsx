@@ -68,6 +68,7 @@ interface BowlingScoreSheetProps {
   compact?: boolean;
   gameNumber?: number;
   onDraftChange?: (stats: BowlingStats, frames: FrameData[]) => void;
+  beforeThrowChange?: () => boolean;
 }
 
 const createEmptyFrame = (): FrameData => ({
@@ -85,7 +86,7 @@ const createEmptyThrow = (): ThrowData => ({
   isSinglePinConverted: false,
 });
 
-export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, categoryId, readOnly, trackPockets = true, compact: compactProp = false, gameNumber = 1, onDraftChange }: BowlingScoreSheetProps) {
+export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, categoryId, readOnly, trackPockets = true, compact: compactProp = false, gameNumber = 1, onDraftChange, beforeThrowChange }: BowlingScoreSheetProps) {
   const isMobile = useIsMobile();
   const compact = compactProp || isMobile;
   const [frames, setFrames] = useState<FrameData[]>(() => 
@@ -256,6 +257,7 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
     const result = changeThrow(frames, frameIndex, throwIndex, rawValue);
     if (result.error) { toast.error(result.error); return null; }
     if (result.incompatible && !window.confirm("Cette correction rend des lancers de cette frame incompatibles. Retirer uniquement ces lancers ? Les frames suivantes seront conservées.")) return null;
+    if (beforeThrowChange && !beforeThrowChange()) return null;
     const updated = result.frames;
     setFrames(updated);
     setIsSaved(false);
@@ -735,7 +737,7 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
 
       {/* Statistics Summary — collapsed by default in compact (multi-athlete) mode */}
       <Card className={`bg-gradient-to-br from-primary/5 to-primary/10 ${compact ? "shadow-sm border-muted/50" : ""}`}>
-        <Collapsible defaultOpen={!compact}>
+        <Collapsible defaultOpen={!compact && !isMobile}>
           <CollapsibleTrigger asChild>
             <CardHeader className={`${compact ? "p-2.5 pb-2" : "pb-2"} cursor-pointer hover:bg-primary/5 transition-colors rounded-t-xl`}>
               <CardTitle className={`${compact ? "text-xs font-semibold" : "text-lg"} flex items-center gap-1.5`}>
@@ -860,7 +862,7 @@ function StatBox({ label, value, detail, note, highlight, colorClass, bgColorCla
   const valueSizeClass = compact ? "text-sm" : "text-xl";
   const detailSizeClass = compact ? "text-[9px]" : "text-xs";
 
-  if (bgColorClass) {
+  if (bgColorClass && !compact) {
     const isNoire2 = textColorClass?.includes("text-red");
     const valueColor = isNoire2 ? "text-red-600 font-extrabold" : "text-white";
     return (

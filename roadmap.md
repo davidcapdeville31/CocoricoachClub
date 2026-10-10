@@ -2,10 +2,10 @@
 
 ## Feuille de score bowling mobile
 - [x] Examiner la feuille actuelle et les points de sauvegarde ; formaliser le plan.
-- [ ] Ajouter une saisie guidée mobile compatible avec la feuille ordinateur.
-- [ ] Préserver corrections, statistiques optionnelles, modes et parties incomplètes.
-- [ ] Vérifier les dix scénarios demandés et les quatre largeurs mobiles.
-- [ ] Vérifier sauvegarde/réouverture et statistiques sur compte connecté autorisé, si disponible.
+- [x] Ajouter une saisie guidée mobile compatible avec la feuille ordinateur.
+- [x] Préserver corrections, statistiques optionnelles, modes et parties incomplètes.
+- [x] Vérifier les dix scénarios de calcul et le parcours à 320/360/390/430 px ; feuille ordinateur conservée.
+- [ ] Vérifier sauvegarde/réouverture et statistiques sur compte connecté autorisé : simulation JSON validée, accès au compte demandeur indisponible.
 
 ## Notification de composition
 - [x] Préremplir un message de sélection modifiable et retirer les options et compteurs mail/SMS du dialogue partagé.
