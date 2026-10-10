@@ -504,14 +504,14 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
         aria-label={t("athleteSpace.wellness.fillDailyAria")}
         className="athlete-wellness-banner group w-full h-auto rounded-2xl p-4 text-left whitespace-normal shadow-sm border transition-colors duration-200 flex items-center gap-3"
       >
-        <div className="h-11 w-11 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
-          <Heart className="h-5 w-5 text-accent" />
+        <div className="athlete-wellness-icon h-11 w-11 rounded-xl flex items-center justify-center shrink-0">
+          <Heart className="h-6 w-6" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-base font-semibold leading-snug text-foreground">{t("athleteSpace.wellness.todayFillTitle")}</p>
-          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{t("athleteSpace.wellness.todayFillSubtitle")}</p>
+          <p className="athlete-wellness-title text-base font-semibold leading-snug">{t("athleteSpace.wellness.todayFillTitle")}</p>
+          <p className="athlete-wellness-subtitle text-xs mt-1 leading-relaxed">{t("athleteSpace.wellness.todayFillSubtitle")}</p>
         </div>
-        <ChevronDown className="h-5 w-5 text-accent shrink-0" />
+        <ChevronDown className="athlete-wellness-chevron h-5 w-5 -rotate-90 shrink-0" />
       </Button>
     ) : (
     <Card className="athlete-wellness-card bg-card border-border shadow-sm">

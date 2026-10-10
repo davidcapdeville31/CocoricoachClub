@@ -713,6 +713,12 @@ body:has([role="dialog"][data-state="open"]) .field-mode-toggle { display: none;
 
 /* Reuses the existing .dark / .field-mode theme mechanism; athlete-only roles. */
 .athlete-space {
+  --wellness-banner: 159 77% 32%;
+  --wellness-banner-end: 163 75% 37%;
+  --wellness-banner-foreground: 160 45% 99%;
+  --athlete-action: 213 65% 17%;
+  --athlete-action-foreground: 214 50% 98%;
+  --gradient-wellness: linear-gradient(110deg, hsl(var(--wellness-banner)), hsl(var(--wellness-banner-end)));
   --background: 216 45% 98%;
   --foreground: 216 45% 17%;
   --card: 216 40% 99%;
@@ -748,6 +754,9 @@ body:has([role="dialog"][data-state="open"]) .field-mode-toggle { display: none;
   padding-bottom: max(env(safe-area-inset-bottom), 1rem);
 }
 .dark .athlete-space, .field-mode .athlete-space {
+  --wellness-banner: 159 75% 26%;
+  --wellness-banner-end: 163 70% 30%;
+  --athlete-action: 213 52% 25%;
   --background: 216 53% 9%;
   --foreground: 214 50% 96%;
   --card: 217 47% 15%;
@@ -770,3 +779,5 @@ body:has([role="dialog"][data-state="open"]) .field-mode-toggle { display: none;
   --shadow-md: none;
   --shadow-lg: none;
 }
+
+body:has(.athlete-space) .field-mode-toggle { display: none; }
