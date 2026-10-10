@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { blockDuration, decodeBlockNotes, durationFromTimes, encodeBlockNotes, newBlock, randoriDurations, sumBlocks, toBlockRow } from "./sessionModel";
 import { searchTechniques } from "./nomenclature";
 
