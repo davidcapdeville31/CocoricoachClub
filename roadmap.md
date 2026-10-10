@@ -1,6 +1,7 @@
 # Calendrier de charge
 
 ## Audit global thèmes clair/sombre
+- Première étape documentée dans `.lovable/theme-audit-report.md` : 84 états connectés, 7 écrans, clair/sombre et six largeurs ; aucun contraste/label/bouton sans nom détecté au dernier passage, zéro débordement et erreur JS ; 28 tests réussis. Audit exhaustif, modales, autres disciplines, états interactifs et anomalies de structure encore à traiter.
 - [ ] Inventorier routes, styles fixes, composants partagés, RPE et graphiques.
 - [ ] Fiabiliser tokens et contrastes, formulaires, sélections imbriquées et portails sans changement métier.
 - [ ] Déployer l’échelle RPE chromatique commune, préserver les observations bowling et Wellness.
