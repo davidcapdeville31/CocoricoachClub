@@ -1198,7 +1198,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
 
           {/* Today: Pending sessions */}
           {pendingSessions.length > 0 && (
-            <Card className="bg-gradient-card shadow-md border-accent/30 h-full">
+            <Card className="athlete-session-section bg-transparent border-0 shadow-none h-full">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm sm:text-base flex items-center gap-2">
                   <Activity className="h-4 w-4 text-accent" />
@@ -1213,11 +1213,11 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                 <div
                   onClick={() => session.training_type === "mental" ? setMentalSession(session) : handleSelectSession(session.id)}
                   className={cn(
-                    "w-full text-left px-2.5 py-2 sm:p-3 rounded-lg border transition-colors cursor-pointer",
+                    "athlete-session-card w-full text-left p-4 rounded-2xl border bg-card transition-colors cursor-pointer",
                     isTest
                       ? selectedSession === session.id
-                        ? "border-cyan-500 bg-cyan-500/10"
-                        : "border-cyan-500/50 bg-cyan-500/5 hover:border-cyan-500"
+                        ? "border-accent bg-accent/5"
+                        : "border-border hover:border-accent/50"
                       : selectedSession === session.id
                         ? "border-accent bg-accent/5"
                         : "border-border hover:border-accent/50"
@@ -1225,7 +1225,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                 >
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium text-sm flex items-center gap-1.5 flex-wrap">
+                      <p className="font-semibold text-base leading-snug flex items-center gap-1.5 flex-wrap">
                         {isTest ? (
                           <FlaskConical className="h-4 w-4 text-cyan-600 dark:text-cyan-400 shrink-0" />
                         ) : (
@@ -1239,7 +1239,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                         )}
                       </p>
                       {session.session_date !== today && (
-                        <p className="text-[11px] font-medium text-amber-600 mt-0.5">
+                        <p className="text-xs font-medium text-muted-foreground mt-1">
                           {format(parseISO(session.session_date), "EEEE dd/MM", { locale: getDateLocale() })}
                         </p>
                       )}
@@ -1257,10 +1257,10 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                       const { percent } = getSessionCompletion(session);
                       const tone =
                         percent === 100
-                          ? "text-green-600 border-green-500/50 bg-green-500/10"
+                          ? "text-success border-success/20 bg-success/10"
                           : percent === 0
-                            ? "text-red-600 border-red-500/50 bg-red-500/10"
-                            : "text-amber-600 border-amber-500/50 bg-amber-500/10";
+                            ? "text-accent border-accent/20 bg-accent/10"
+                            : "text-warning border-warning/20 bg-warning/10";
                       const label =
                         percent === 100
                           ? t("athleteSpace.rpe.completed")
@@ -1274,7 +1274,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                       );
                     })()}
                   </div>
-                  {session.training_type === "mental" && <Button type="button" className="mt-3 h-11 w-full" onClick={(e) => { e.stopPropagation(); setMentalSession(session); }}>Découvrir ma séance</Button>}
+                  {session.training_type === "mental" && <Button type="button" className="mt-3 h-11 w-full sm:w-auto sm:min-w-48 rounded-xl" onClick={(e) => { e.stopPropagation(); setMentalSession(session); }}>Découvrir ma séance</Button>}
                   {renderExerciseToggle(session.id)}
                 </div>
 
@@ -1748,7 +1748,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
           )}
 
           {absentTodaySessions.length > 0 && (
-            <Card className="bg-gradient-card shadow-md border-border/60">
+            <Card className="athlete-session-section bg-transparent border-0 shadow-none">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Clock className="h-4 w-4 text-muted-foreground" />
@@ -1760,11 +1760,11 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                   <div key={session.id}>
                     <div
                       onClick={() => handleSelectSession(session.id)}
-                      className="w-full text-left p-3 rounded-lg border border-border bg-muted/20 transition-colors cursor-pointer hover:border-border"
+                      className="athlete-session-card w-full text-left p-4 rounded-2xl border border-border bg-card transition-colors cursor-pointer hover:border-accent/50"
                     >
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium text-sm flex items-center gap-1.5 flex-wrap">
+                          <p className="font-semibold text-base leading-snug flex items-center gap-1.5 flex-wrap">
                             <Activity className="h-4 w-4 text-muted-foreground shrink-0" />
                             <span>{getSessionTrainingLabel(session)}</span>
                           </p>

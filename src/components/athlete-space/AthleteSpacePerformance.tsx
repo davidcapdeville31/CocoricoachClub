@@ -6,7 +6,6 @@ import { AthleteSpaceProgression } from "./AthleteSpaceProgression";
 import { AthleteSpaceObjectives } from "./AthleteSpaceObjectives";
 import { TonnageDashboard } from "@/components/tonnage/TonnageDashboard";
 import { PlayerMedalsSection } from "@/components/player/PlayerMedalsSection";
-import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 
 interface Props {
   playerId: string;
@@ -16,28 +15,24 @@ interface Props {
 
 export function AthleteSpacePerformance({ playerId, categoryId, sportType }: Props) {
   const { t } = useTranslation();
-  const accent = NAV_COLORS.performance.base;
-  const triggerStyle = {
-    ["--tab-accent" as any]: accent,
-  } as React.CSSProperties;
   const triggerClass =
-    "text-xs sm:text-sm gap-1 flex-1 rounded-lg transition-colors " +
-    "data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white " +
+    "text-xs sm:text-sm gap-1 flex-1 min-w-0 whitespace-normal min-h-11 rounded-lg transition-colors " +
+    "data-[state=active]:bg-accent/10 data-[state=active]:text-accent " +
     "data-[state=active]:shadow-md";
 
   return (
     <div className="space-y-4">
       <Tabs defaultValue="tests" className="w-full">
         <TabsList className="flex flex-wrap h-auto gap-1 w-full bg-muted/40 rounded-xl p-1">
-          <TabsTrigger value="tests" style={triggerStyle} className={triggerClass}>
+          <TabsTrigger value="tests" className={triggerClass}>
             <FlaskConical className="h-3.5 w-3.5" />
             <span>{t("athleteSpace.performance.testsAndProgression")}</span>
           </TabsTrigger>
-          <TabsTrigger value="tonnage" style={triggerStyle} className={triggerClass}>
+          <TabsTrigger value="tonnage" className={triggerClass}>
             <Weight className="h-3.5 w-3.5" />
             <span>{t("athleteSpace.performance.tonnage")}</span>
           </TabsTrigger>
-          <TabsTrigger value="objectives" style={triggerStyle} className={triggerClass}>
+          <TabsTrigger value="objectives" className={triggerClass}>
             <Target className="h-3.5 w-3.5" />
             <span>{t("athleteSpace.performance.objectives")}</span>
           </TabsTrigger>

@@ -32,6 +32,11 @@
 
 # Affichage mobile de l’espace athlète
 
+## Identité visuelle premium athlète
+- [x] Auditer les styles et le mécanisme de thème existants.
+- [x] Harmoniser en-tête, navigation, wellness, séances et surfaces dans un périmètre athlète isolé.
+- [x] Contrôler clair/sombre à 320/360/390/430/768/1280 px sur les espaces réels d’Axelle et Manon en consultation staff ; ouverture Wellness, séance mentale, bilan musculation, calendrier et Performance vérifiée sans enregistrer de données. Sauvegarde en identité athlète non testée (hors refonte visuelle).
+
 ## UX athlète mobile V2
 - [x] Auditer contenu mental, cartes, circuits, bilans et statuts ; présenter le plan avant modification importante.
 - [x] Donner priorité à une fiche mentale complète, lisible et liée aux réponses existantes.

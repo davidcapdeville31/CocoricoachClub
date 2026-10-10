@@ -643,19 +643,18 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
 
   return (
     <div className="space-y-4">
-      <Card className="bg-gradient-card shadow-md">
+      <Card className="bg-card border-border shadow-sm">
         <CardHeader className="pb-3">
           <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle className="text-base flex items-center gap-2 min-w-0">
-              <Activity className="h-4 w-4 shrink-0" style={{ color: NAV_COLORS.planification.base }} />
+              <Activity className="h-4 w-4 shrink-0 text-accent" />
               {t("athleteSpace.calendar.title")}
             </CardTitle>
             <div className="flex flex-wrap items-center gap-2 sm:justify-end">
               <Button
                 size="sm"
                 onClick={() => setIsPickerOpen(true)}
-                className="gap-1.5"
-                style={{ backgroundColor: ATHLETE_SESSION_COLOR }}
+                className="gap-1.5 min-h-11 rounded-xl"
               >
                 <Plus className="h-3.5 w-3.5" />
                 {t("athleteSpace.calendar.addSession")}
@@ -663,7 +662,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
               <Button
                 size="sm"
                 variant="outline"
-                className="gap-1.5 border-emerald-500/50 text-emerald-700 dark:text-emerald-300"
+                className="gap-1.5 min-h-11 rounded-xl border-border text-foreground"
                 onClick={() => setIsRecoveryOpen(true)}
               >
                 <Leaf className="h-3.5 w-3.5" />
