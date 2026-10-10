@@ -60,13 +60,14 @@ export function FormattedText({ text, className }: { text: string; className?: s
       {blocks.map((b, i) => {
         if (b.t === "h") return <p key={i} className="font-semibold text-foreground pt-1">{renderInline(b.text, `h${i}`)}</p>;
         if (b.t === "ul" || b.t === "ol") {
-          const L = b.t === "ul" ? "ul" : "ol";
+          const L = (b.t === "ul" ? "ul" : "ol") as "ul" | "ol";
           return (
             <L key={i} className={cn("pl-5 space-y-1", b.t === "ul" ? "list-disc" : "list-decimal")}>
               {b.items.map((it, j) => <li key={j}>{renderInline(it, `l${i}-${j}`)}</li>)}
             </L>
           );
         }
+        if (b.t !== "p") return null;
         return (
           <p key={i}>
             {b.lines.map((l, j) => (
