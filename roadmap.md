@@ -1,5 +1,9 @@
 # Calendrier de charge
 
+## Ressenti après séance
+- [x] Raccorder les cinq choix de forme aux couleurs fonctionnelles communes, hors sélection générique, sans changer les valeurs ni la sauvegarde.
+- [x] Vérifier les dix états du composant réel isolé en clair/sombre dans un cadre 320 px : couleurs identiques, focus stable, libellés et coche lisibles ; contrastes 4,97–10,08:1, aucune erreur JS. Compte connecté consulté mais sans séance accessible : formulaire complet et sauvegarde non retestés.
+
 ## Audit global thèmes clair/sombre
 - Première étape documentée dans `.lovable/theme-audit-report.md` : 84 états connectés, 7 écrans, clair/sombre et six largeurs ; aucun contraste/label/bouton sans nom détecté au dernier passage, zéro débordement et erreur JS ; 28 tests réussis. Audit exhaustif, modales, autres disciplines, états interactifs et anomalies de structure encore à traiter.
 - [ ] Inventorier routes, styles fixes, composants partagés, RPE et graphiques.

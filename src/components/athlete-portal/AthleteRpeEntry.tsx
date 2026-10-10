@@ -16,6 +16,7 @@ import { AthleteSpareExerciseForm } from "./AthleteSpareExerciseForm";
 import { BowlingScoreSheet, BowlingStats } from "./BowlingScoreSheet";
 
 import { AthletePortalWeightLog } from "./AthletePortalWeightLog";
+import { FeelingChoices } from "@/components/athlete-space/FeelingChoices";
 
 interface AthleteRpeEntryProps {
   token?: string;
@@ -501,23 +502,7 @@ export function AthleteRpeEntry({ token, playerId, categoryId, sportType, onRefr
 
               <div className="space-y-2">
                 <Label>Ressenti global</Label>
-                <div className="grid grid-cols-5 gap-2">
-                  {FEELINGS.map((f) => (
-                    <button
-                      key={f.value}
-                      type="button"
-                      onClick={() => setFeeling(f.value)}
-                      className={`rounded-lg border p-2 text-center text-xs transition-colors ${
-                        feeling === f.value
-                          ? "border-primary bg-primary/10 ring-2 ring-primary"
-                          : "border-border hover:border-primary/50"
-                      }`}
-                    >
-                      <div className="text-lg leading-none">{f.emoji}</div>
-                      <div className="mt-1 text-[10px] text-muted-foreground">{f.label}</div>
-                    </button>
-                  ))}
-                </div>
+                <FeelingChoices options={FEELINGS} value={feeling} onChange={setFeeling} />
               </div>
 
               <div className="p-3 bg-muted rounded-lg">
