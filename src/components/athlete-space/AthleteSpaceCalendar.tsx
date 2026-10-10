@@ -748,7 +748,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                     <Clock className="h-3 w-3" />{match.match_time.slice(0, 5)}
                                   </p>
                                 )}
-                                <details className="mt-1"><summary className="text-xs text-muted-foreground cursor-pointer min-h-11 flex items-center">Voir les détails</summary>
+                                {(match.location || hasScore || match.notes) && <details className="mt-1"><summary className="text-xs text-muted-foreground cursor-pointer min-h-11 flex items-center">Voir les détails</summary>
                                 {match.location && <p className="text-xs text-muted-foreground">{match.location}</p>}
                                 {hasScore && (
                                   <p className="text-xs text-muted-foreground">{t("athleteSpace.calendar.scoreLabel")}{match.score_home ?? "-"} - {match.score_away ?? "-"}</p>
@@ -756,7 +756,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                 {match.notes && (
                                   <p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">{match.notes}</p>
                                 )}
-                                </details>
+                                </details>}
                                 {isBowling && (
                                   <Button
                                     variant="outline"
@@ -789,13 +789,12 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                   matchDate={match.match_date}
                                   matchTime={match.match_time}
                                 />
-                                <details className="mt-2"><summary className="min-h-11 flex items-center cursor-pointer text-xs font-medium">Données de compétition</summary>
                                 <AthleteMatchRpe
                                   matchId={match.id}
                                   playerId={playerId}
                                   categoryId={categoryId}
                                   matchDate={match.match_date}
-                                /></details>
+                                />
                               </>
                             )}
                           </div>
