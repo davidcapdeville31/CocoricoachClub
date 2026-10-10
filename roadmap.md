@@ -1,5 +1,9 @@
 # Calendrier de charge
 
+## Rétablir la présence depuis l’accueil
+- [x] Réutiliser Présent / Absent sur les cartes à remplir, absentes et à venir ; mêmes sauvegardes et restrictions, séances personnelles exclues.
+- [ ] Vérifier affichage et interactions clair/sombre sans modifier de réponse réelle.
+
 ## Espace Documents athlète
 - [x] Compacter onglets, compteurs, cartes et état vide ; ajout contextuel par droits existants, données inchangées.
 - [x] 4 tests de droits ; 24 états réels et 12 états simulés (zéro/un/plusieurs, noms longs, chargement/erreur/retry), 320–1280 px ; aucune écriture. Rapport `.lovable/athlete-documents-verification.md`.

@@ -52,6 +52,7 @@ import {
 } from "./AthleteTestResultsInput";
 import { AthleteAbsentLockNotice } from "./AthleteAbsentLockNotice";
 import { useAthleteAttendanceLock } from "@/hooks/useAthleteAttendanceLock";
+import { SessionAttendanceResponse } from "./SessionAttendanceResponse";
 
 
 import { latestWeightsByPlayer } from "@/lib/weight/weightHistory";
@@ -80,6 +81,8 @@ type SessionRow = {
   session_start_time: string | null;
   session_end_time: string | null;
   notes: string | null;
+  created_by_player_id?: string | null;
+  created_at?: string | null;
   bowling_exercise_type?: string | null;
 };
 
@@ -182,7 +185,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory, onViewCalen
       );
 
       const fetchRelevantSessions = async () => {
-        const columns = "id, session_date, training_type, session_start_time, session_end_time, notes, created_by_player_id";
+        const columns = "id, session_date, training_type, session_start_time, session_end_time, notes, created_by_player_id, created_at";
         const { data: categorySessions, error: categoryError } = await supabase
           .from("training_sessions")
           .select(columns)
@@ -255,7 +258,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory, onViewCalen
 
       const { data, error } = await supabase
         .from("training_sessions")
-        .select("id, session_date, training_type, session_start_time, session_end_time, notes, created_by_player_id")
+        .select("id, session_date, training_type, session_start_time, session_end_time, notes, created_by_player_id, created_at")
         .in("id", assignedSessionIds)
         .order("session_date")
         .order("session_start_time");
@@ -308,7 +311,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory, onViewCalen
       const from = format(addDays(new Date(), -120), "yyyy-MM-dd");
       const { data, error } = await supabase
         .from("training_sessions")
-        .select("id, session_date, training_type, session_start_time, session_end_time, notes, created_by_player_id, event_participants(player_id)")
+        .select("id, session_date, training_type, session_start_time, session_end_time, notes, created_by_player_id, created_at, event_participants(player_id)")
         .eq("category_id", categoryId)
         .eq("training_type", "test")
         .gte("session_date", from)
@@ -1264,6 +1267,11 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory, onViewCalen
                   {session.training_type === "mental" ? <FormattedText className="athlete-session-preview mt-1 text-sm text-muted-foreground" text={getSessionTitleFromNotes(session.notes) || ""} /> : renderSessionNotes(session.notes, session.training_type === "test")}
                   {session.training_type === "mental" && <Button type="button" className="athlete-session-action mt-3 h-11 w-full sm:w-auto sm:min-w-48 rounded-xl" onClick={(e) => { e.stopPropagation(); setMentalSession(session); }}>Découvrir ma séance<ChevronRight /></Button>}
                   {renderExerciseToggle(session.id)}
+                  {!session.created_by_player_id && (
+                    <div className="mt-3" onClick={(event) => event.stopPropagation()}>
+                      <SessionAttendanceResponse sessionId={session.id} playerId={playerId} categoryId={categoryId} sessionDate={session.session_date} sessionStartTime={session.session_start_time} sessionCreatedAt={session.created_at} />
+                    </div>
+                  )}
                 </div>
 
                 {selectedSession === session.id && (
@@ -1769,6 +1777,11 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory, onViewCalen
                           {t("athleteSpace.rpe.absentBadge")}
                         </Badge>
                       </div>
+                      {!session.created_by_player_id && (
+                        <div className="mt-3" onClick={(event) => event.stopPropagation()}>
+                          <SessionAttendanceResponse sessionId={session.id} playerId={playerId} categoryId={categoryId} sessionDate={session.session_date} sessionStartTime={session.session_start_time} sessionCreatedAt={session.created_at} />
+                        </div>
+                      )}
                     </div>
                     {selectedSession === session.id && (
                       <div className="mt-3 p-4 rounded-lg bg-muted/30">
@@ -1864,6 +1877,11 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory, onViewCalen
                             </div>
                           </div>
                           {renderExerciseToggle(session.id)}
+                          {!session.created_by_player_id && (
+                            <div className="mt-3">
+                              <SessionAttendanceResponse sessionId={session.id} playerId={playerId} categoryId={categoryId} sessionDate={session.session_date} sessionStartTime={session.session_start_time} sessionCreatedAt={session.created_at} />
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
