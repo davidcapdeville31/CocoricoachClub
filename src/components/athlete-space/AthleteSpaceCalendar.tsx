@@ -1,4 +1,4 @@
-import { getReadableNotes, getNotesSectionKey, getSessionOrigin, getSessionDisplayTitle } from "@/lib/sessionPresentation";
+import { getCompletionStatus, getReadableNotes, getNotesSectionKey, getSessionOrigin, getSessionDisplayTitle } from "@/lib/sessionPresentation";
 import { FormattedText, CollapsibleFormattedText } from "@/components/ui/formatted-text";
 import { SessionAuthor } from "@/components/shared/SessionAuthor";
 import { getDateLocale } from "@/lib/i18n/dateLocale";
@@ -854,13 +854,8 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                           ))}
                                         </div>
                                       )}
-                                      {isAthleteSession && (
-                                        <Badge variant="outline" className="text-[10px] px-1.5">
-                                          <User className="h-2.5 w-2.5 mr-0.5" />{t("athleteSpace.calendar.mySessionBadge")}
-                                        </Badge>
-                                      )}
                                     </div>
-                                    <p className="text-xs text-muted-foreground">{isAthleteSession ? "Séance personnelle" : "Séance programmée"}</p>
+                                    <p className="text-xs text-muted-foreground">{t(`athleteSpace.components.sessionDetailDialog.origin.${isAthleteSession ? "personal" : "prescribed"}`)} · {t(`athleteSpace.components.sessionDetailDialog.completion.${getCompletionStatus(session as any)}`)}</p>
                                     <SessionAuthor sessionId={session.id} playerId={playerId} />
                                     {session.session_start_time && (
                                       <p className="text-xs text-muted-foreground flex items-center gap-1">
