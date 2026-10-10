@@ -1,5 +1,5 @@
 # Architecture decisions
-- Athlete visuals inherit scoped global tokens to avoid portal regressions.
+- Athlete visuals inherit scoped tokens to avoid portal regressions.
 - Selectable controls use shared tokens and state attributes, preserving functional statuses.
 - Athlete mobile navigation uses URL tabs and sport visibility; drawer/theme commands reuse FieldModeContext to preserve preferences.
 - Athlete content reserves ResizeObserver-measured navigation and safe-area height; visualViewport hides navigation under the keyboard, preserving form state.
