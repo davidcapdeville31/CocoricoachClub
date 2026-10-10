@@ -1,3 +1,4 @@
+/// <reference types="bun" />
 import { describe, expect, test } from "bun:test";
 import { aggregateCircuit, buildCircuitLog, confirmCircuitRound, copyPreviousCircuitRound, encodeCircuitTag, parseCircuitTag, type CircuitLog } from "./circuitLog";
 
