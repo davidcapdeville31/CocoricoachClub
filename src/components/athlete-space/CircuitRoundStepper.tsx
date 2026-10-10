@@ -43,10 +43,12 @@ export function aggregateCircuit(c: CircuitLog) {
   return { tonnage, reps };
 }
 
-const roundDone = (r: CircuitCell[]) => r.every((c) => (parseInt(c.reps) || 0) > 0);
 
 export function CircuitRoundStepper({ value, onChange }: { value: CircuitLog; onChange: (v: CircuitLog) => void }) {
-  const [idx, setIdx] = useState(0);
+  const [idx, setIdxRaw] = useState(0);
+  const [visited, setVisited] = useState<Set<number>>(() => new Set());
+  const setIdx = (n: number) => { setVisited((v) => new Set(v).add(idx)); setIdxRaw(n); };
+  const roundDone = (i: number) => visited.has(i) && value.rounds[i].every((c) => (parseInt(c.reps) || 0) > 0);
   const total = value.rounds.length;
   const round = value.rounds[idx] || [];
 
@@ -80,22 +82,22 @@ export function CircuitRoundStepper({ value, onChange }: { value: CircuitLog; on
               "h-8 min-w-8 px-2 rounded-full text-xs font-semibold border transition-colors motion-reduce:transition-none",
               i === idx
                 ? "bg-primary text-primary-foreground border-primary"
-                : roundDone(r)
+                : roundDone(i)
                   ? "bg-status-optimal/15 text-status-optimal border-status-optimal/40"
                   : "bg-background text-muted-foreground border-border",
             )}
           >
-            {roundDone(r) && i !== idx ? <Check className="h-3.5 w-3.5 mx-auto" /> : i + 1}
+            {roundDone(i) && i !== idx ? <Check className="h-3.5 w-3.5 mx-auto" /> : i + 1}
           </button>
         ))}
       </div>
 
       <div key={idx} className="rounded-xl border bg-surface-sunken/40 p-3 space-y-3 animate-in fade-in-0 slide-in-from-right-2 duration-200 motion-reduce:animate-none">
         <div className="flex items-center justify-between gap-2">
-          <p className="text-sm font-semibold">Tour {idx + 1} / {total}</p>
+          <p className="text-sm font-semibold whitespace-nowrap">Tour {idx + 1} / {total}</p>
           {idx > 0 && (
-            <Button type="button" variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={copyPrevious}>
-              <Copy className="h-3.5 w-3.5 mr-1" /> Reprendre le tour précédent
+            <Button type="button" variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={copyPrevious} aria-label="Reprendre les valeurs du tour précédent">
+              <Copy className="h-3.5 w-3.5 mr-1" /> Reprendre tour {idx}
             </Button>
           )}
         </div>
