@@ -45,8 +45,6 @@ import statsIllu from "@/assets/bowling/stats.png";
 export const SESSION_KINDS = [
   { value: "training", label: "Entraînement", hint: "Séance classique", icon: "pins", color: "" },
   { value: "competition", label: "Compétition", hint: "Match / Tournoi", icon: "trophy", color: "text-bowling-games" },
-  { value: "personal", label: "Personnelle", hint: "Loisir / jeu libre", icon: "run", color: "text-bowling-coral" },
-  { value: "evaluation", label: "Évaluation", hint: "Test / bilan", icon: "check", color: "text-bowling-accent" },
 ] as const;
 export type SessionKind = (typeof SESSION_KINDS)[number]["value"];
 const DURATION_PRESETS = [30, 60, 90, 120];
@@ -358,9 +356,6 @@ export function BowlingSimplifiedDialog({
           toast.error(err);
           return;
         }
-      }
-      if (!blocks.some((b) => b.type === "games")) {
-        setBlocks((prev) => [...prev, withSessionOil({ ...newGamesBlock(), entry_mode: "quick" } as SimplifiedBlock)]);
       }
     }
     setStep(Math.max(0, Math.min(2, s)));
@@ -1108,10 +1103,11 @@ export function BowlingSimplifiedDialog({
 
           {step === 1 && (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {[
                   { key: "tactical", label: "Tactique", hint: "Strike, spares, quilles", icon: Target, color: "text-bowling-tactical", onClick: addTactical },
                   { key: "technical", label: "Technique", hint: "Thématique & durée", icon: Wrench, color: "text-bowling-technical", onClick: addTechnical },
+                  { key: "games", label: "Parties", hint: "Scores & jeux", icon: Circle, color: "text-bowling-games", onClick: addGames },
                 ].map((c) => (
                   <button key={c.key} type="button" onClick={c.onClick} className={`${cardCls} group flex flex-col items-center gap-1.5 !p-3 text-center transition-all hover:-translate-y-0.5 hover:shadow-md`}>
                     <c.icon className={`h-6 w-6 ${c.color}`} />
@@ -1121,7 +1117,7 @@ export function BowlingSimplifiedDialog({
                 ))}
               </div>
 
-              {blocks.filter((x) => x.type !== "games").length === 0 && (
+              {blocks.length === 0 && (
                 <div className={`${cardCls} py-8 text-center`}>
                   <p className="text-base font-semibold text-bowling-ink">Construis ta séance</p>
                   <p className="mt-1 text-sm text-muted-foreground">Ajoute un bloc tactique ou technique, ou passe directement aux parties.</p>
@@ -1129,7 +1125,6 @@ export function BowlingSimplifiedDialog({
               )}
 
               {blocks.map((b, posIdx) => {
-                if (b.type === "games") return null;
                 const collapsed = lockedIds.has(b.id);
                 const meta = b.type === "tactical"
                   ? { Icon: Target, label: "Tactique", fg: "text-bowling-tactical", bg: "bg-bowling-tactical/10", bar: "bg-bowling-tactical" }
@@ -1187,10 +1182,6 @@ export function BowlingSimplifiedDialog({
 
           {step === 2 && (
             <div className="space-y-4">
-              {blocks.filter((b): b is Extract<SimplifiedBlock, { type: "games" }> => b.type === "games").map((b) => (
-                <SimplifiedGamesBlockEditor key={b.id} value={b} index={gamesIndexById.get(b.id) ?? 0} categoryId={categoryId} playerId={playerIdForEditors} hideOilPicker={oilScope === "session"} onChange={(next) => updateBlock(b.id, next)} onRemove={() => removeBlock(b.id)} premium />
-              ))}
-
               <BowlingSessionRecap
                 date={date}
                 blocks={effectiveBlocks}
