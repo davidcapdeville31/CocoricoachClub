@@ -13,19 +13,13 @@ const ColoredSubTabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,
   ColoredSubTabsListProps
 >(({ className, colorKey, ...props }, ref) => {
-  const colors = NAV_COLORS[colorKey];
   return (
     <TabsPrimitive.List
       ref={ref}
       className={cn(
-        "flex w-full overflow-x-auto no-scrollbar gap-1 h-auto flex-wrap md:flex-nowrap p-1 rounded-lg",
+        "flex w-full overflow-x-auto no-scrollbar gap-1 h-auto flex-wrap md:flex-nowrap p-1 rounded-lg bg-muted border border-border",
         className
       )}
-      style={{ 
-        backgroundColor: `${colors.base}15`,
-        borderColor: colors.base,
-        borderWidth: "1px"
-      }}
       {...props}
     />
   );
@@ -42,8 +36,6 @@ const ColoredSubTabsTrigger = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.Trigger>,
   ColoredSubTabsTriggerProps
 >(({ className, colorKey, icon, children, tooltip, ...props }, ref) => {
-  const colors = NAV_COLORS[colorKey];
-
   const trigger = (
     <TabsPrimitive.Trigger
       ref={ref}
@@ -54,16 +46,9 @@ const ColoredSubTabsTrigger = React.forwardRef<
         "data-[state=active]:shadow-md",
         className
       )}
-      style={{
-        ["--tab-color" as string]: colors.base,
-      }}
       {...props}
     >
-      <span 
-        className="colored-tab-bg pointer-events-none absolute inset-0 rounded-md transition-all duration-200 opacity-0 scale-95 group-data-[state=active]:opacity-100 group-data-[state=active]:scale-100"
-        style={{ backgroundColor: colors.base }}
-      />
-      <span className="colored-tab-text relative z-10 flex items-center gap-1.5 transition-colors duration-200" style={{ color: 'var(--tab-color)' }}>
+      <span className="colored-tab-text relative z-10 flex items-center gap-1.5 transition-colors duration-200">
         {icon && <span className="shrink-0 h-4 w-4">{icon}</span>}
         {children}
       </span>
