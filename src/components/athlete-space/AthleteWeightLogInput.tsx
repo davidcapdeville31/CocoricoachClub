@@ -1,3 +1,5 @@
+import { CircuitResultSummary } from "./CircuitResultSummary";
+import { parseCircuitTag } from "@/lib/weight/circuitLog";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -271,7 +273,7 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange, tr
   });
 
   const existingByName = useMemo(() => {
-    const map = new Map<string, { weight: number; sets: number | null; reps: number | null; notes: string | null; status: ExerciseStatus; cardioSummary: string | null }>();
+    const map = new Map<string, { weight: number; sets: number | null; reps: number | null; notes: string | null; circuitNotes: string | null; status: ExerciseStatus; cardioSummary: string | null }>();
     existingLogs.forEach((l) => {
       const notes = (l as any).notes ?? null;
       const { status, comment } = parseNotesStatus(notes);
@@ -280,7 +282,8 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange, tr
         weight: Number(l.actual_weight_kg),
         sets: l.actual_sets,
         reps: l.actual_reps,
-        notes: comment || null,
+        notes: stripCircuitTag(comment || null) || null,
+        circuitNotes: parseCircuitTag(notes) ? notes : null,
         status,
         cardioSummary: cardio ? formatCardioSummary(cardio) : null,
       });
@@ -463,10 +466,11 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange, tr
                 {statusBadge}
                 {existing.status !== "skipped" && (
                   <Badge variant="secondary" className="text-[10px]">
-                    ✓ {existing.cardioSummary ?? `${existing.weight}kg ${existing.sets ?? "–"}×${existing.reps ?? "–"}`}
+                    ✓ {existing.circuitNotes ? "Circuit enregistré" : existing.cardioSummary ?? `${existing.weight}kg ${existing.sets ?? "–"}×${existing.reps ?? "–"}`}
                   </Badge>
                 )}
               </div>
+              {existing.circuitNotes && <CircuitResultSummary notes={existing.circuitNotes} />}
               {existing.notes && (
                 <p className="text-[10px] text-muted-foreground italic pl-5 truncate">
                   « {existing.notes} »
