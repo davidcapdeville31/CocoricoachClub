@@ -1,5 +1,6 @@
 import { FormattedText, CollapsibleFormattedText } from "@/components/ui/formatted-text";
 import { MentalSessionContent } from "./MentalSessionContent";
+import { SessionAuthor } from "@/components/shared/SessionAuthor";
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
@@ -149,6 +150,7 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
               </span>
             )}
             <Badge variant="outline">{getTrainingTypeLabel(session.training_type)}</Badge>
+            <SessionAuthor sessionId={session.id} playerId={playerId} />
           </DialogDescription>
         </DialogHeader>
 

@@ -1,4 +1,5 @@
 import { useCompetitionPlannedRpe } from "@/hooks/useCompetitionPlannedRpe";
+import { SessionAuthor } from "@/components/shared/SessionAuthor";
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -289,6 +290,7 @@ export function TrainingLoadCalendar({ categoryId }: TrainingLoadCalendarProps) 
                       <div className="space-y-1">
                         <p className="font-medium">{format(day, "EEEE d MMMM", { locale: getDateLocale() })}</p>
                         {data.sessions.length > 0 && <p className="text-xs">{t("workload.calendar.sessionsCount", { count: data.sessions.length })}</p>}
+                        {data.sessions.map(session => <div key={session.id} className="border-t border-border pt-1"><span className="text-xs">{getSessionTypeLabel(session.training_type)}</span><SessionAuthor sessionId={session.id} /></div>)}
                         {data.competitions.map(c => (
                           <p key={c.id} className="text-xs">{c.competition || t("nav.competition.label")} · {c.opponent} · RPE {COMPETITION_PLANNED_RPE}/10</p>
                         ))}

@@ -1,5 +1,11 @@
 # Calendrier de charge
 
+## Auteur des séances toutes disciplines
+- [x] Enregistrer le créateur réel : trigger immuable pour les créations connectées et identité JWT validée dans les trois fonctions ; associations et accès inchangés. Anciennes séances staff sans preuve : Auteur non renseigné.
+- [x] Mention partagée sur accueil, calendrier athlète, prochaines séances, détails/bilan/mental, calendriers coach global/semaine/jour, planification hebdomadaire et infobulles Charge ; toutes disciplines.
+- [x] 4 tests d’identité (5 assertions) réussis ; application publique sans erreur JS, builds OK.
+- [ ] Authenticated path: UNVERIFIED — affichage connecté, création réelle, usurpation et immutabilité : session indisponible, connexion au compte demandée. Parcours invité historique non testé, téléphone physique non testé.
+
 ## Rétablir la présence depuis l’accueil
 - [x] Réutiliser Présent / Absent sur les cartes à remplir, absentes et à venir ; mêmes sauvegardes et restrictions, séances personnelles exclues.
 - [x] Cinq cartes connectées : Présent/Absent visibles en clair/sombre à 320/360/390/430/768/1280 px, sans débordement ni erreur JS ; les deux clics déclenchent la sauvegarde (écritures bloquées volontairement). Enregistrement réel non retesté ; build OK.

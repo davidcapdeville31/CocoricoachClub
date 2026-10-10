@@ -1,4 +1,5 @@
 import { FeelingChoices } from "./FeelingChoices";
+import { SessionAuthor } from "@/components/shared/SessionAuthor";
 import { MentalSessionContent } from "./MentalSessionContent";
 import { getDisplayNotes, getSessionTitleFromNotes } from "@/lib/utils/sessionNotes";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
@@ -246,6 +247,7 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
           <DialogDescription>
             {session && <span className="block font-semibold text-foreground">{getTrainingTypeLabel(session.training_type || "")} · {session.session_date.split("-").reverse().join("/")}</span>}
             {getSessionTitleFromNotes(session?.notes)?.replace(/^#+\s*|\*\*/g, "")}
+            <SessionAuthor sessionId={session?.id} playerId={playerId} />
           </DialogDescription>
         </DialogHeader>
 

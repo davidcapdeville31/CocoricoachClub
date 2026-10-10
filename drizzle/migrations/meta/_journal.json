@@ -134,6 +134,27 @@
       "when": 1791619007143,
       "tag": "0018_add_training_session_kind",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1791668108555,
+      "tag": "0019_record_training_session_authorship",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1791668183806,
+      "tag": "0020_read_session_authorship_with_legacy_creator",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1791668351281,
+      "tag": "0021_include_weekly_planning_session_authors",
+      "breakpoints": true
     }
   ]
 }
