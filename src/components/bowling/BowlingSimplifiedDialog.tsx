@@ -1222,7 +1222,7 @@ export function BowlingSimplifiedDialog({
             )}
             {step < 2 ? (
               <Button className="h-14 flex-1 rounded-2xl bg-gradient-to-b from-bowling-ink-2 to-bowling-ink text-base font-semibold text-card shadow-[0_10px_24px_-10px_hsl(var(--bowling-ink)/0.7)] hover:opacity-95" onClick={() => goToStep(step + 1)}>
-                {step === 0 ? "Suivant" : "Suivant : parties"} <ArrowRight className="ml-2 h-5 w-5" />
+                {step === 0 ? "Suivant" : "Suivant : récapitulatif"} <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             ) : (
               <Button className="h-14 flex-1 rounded-2xl bg-bowling-success text-base font-semibold text-card shadow-[0_10px_24px_-10px_hsl(var(--bowling-success)/0.8)] hover:bg-bowling-success/90" onClick={handleSave} disabled={saveMutation.isPending}>
