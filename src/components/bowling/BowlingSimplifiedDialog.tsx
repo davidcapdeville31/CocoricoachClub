@@ -1039,7 +1039,7 @@ export function BowlingSimplifiedDialog({
                       return (
                         <button key={k.value} type="button" aria-pressed={on} onClick={() => setSessionKind(on ? null : k.value)} className={`flex flex-col items-center justify-center gap-1 rounded-2xl px-2 py-4 text-center transition-all duration-200 active:scale-[0.97] ${on ? "bg-bowling-ink text-card shadow-lg" : "border border-border/70 bg-card text-bowling-ink hover:-translate-y-0.5 hover:shadow-md"}`}>
                           <span className="flex h-9 items-center justify-center" aria-hidden>
-                            {k.icon === "pins" ? <img src={heroPins} alt="" width={36} height={36} className="h-9 w-9 object-contain" /> : k.icon === "trophy" ? <Trophy className={`h-7 w-7 ${on ? "text-card" : k.color}`} /> : k.icon === "run" ? <PersonStanding className={`h-7 w-7 ${on ? "text-card" : k.color}`} /> : <ClipboardCheck className={`h-7 w-7 ${on ? "text-card" : k.color}`} />}
+                            {k.icon === "pins" ? <img src={heroPins} alt="" width={36} height={36} className="h-9 w-9 object-contain" /> : <Trophy className={`h-7 w-7 ${on ? "text-card" : k.color}`} />}
                           </span>
                           <span className="mt-1 text-sm font-semibold">{k.label}</span>
                           <span className={`text-xs ${on ? "text-card/75" : "text-muted-foreground"}`}>{k.hint}</span>
