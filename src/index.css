@@ -215,7 +215,11 @@ All colors MUST be HSL.
   }
 
   .dark, .field-mode {
-    --selection-border: 217 45% 43%;
+    /* Dark theme: active selections flip to a white background with navy text,
+       so selected buttons stay clearly visible on dark surfaces. */
+    --selection: var(--brand-white);
+    --selection-foreground: var(--brand-navy);
+    --selection-border: var(--brand-white);
     /* Dark mode - improved contrast hierarchy
        background (deepest) < card/popover < muted < secondary < border */
     --background: 216.666667 36.000000% 9.803922%;
