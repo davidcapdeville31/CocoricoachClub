@@ -54,6 +54,21 @@ export function SimplifiedGamesBlockEditor({
     update({ parties: value.parties.filter((p) => p.id !== id) });
   };
 
+  const agg = aggregateGamesStats(value);
+  const mode = value.entry_mode ?? "detailed";
+  const best = Math.max(0, ...value.parties.map((p) => p.stats?.totalScore || 0));
+
+  const setCount = (n: number) => {
+    const cur = value.parties;
+    if (n === cur.length) return;
+    if (n > cur.length) update({ parties: [...cur, ...Array.from({ length: n - cur.length }, newGameEntry)] });
+    else {
+      const dropped = cur.slice(n).some((p) => p.stats);
+      if (dropped && !window.confirm("Supprimer les dernières parties déjà saisies ?")) return;
+      update({ parties: cur.slice(0, n) });
+    }
+  };
+
   const avgFmt = agg ? agg.avgScore.toLocaleString("fr-FR", { maximumFractionDigits: 1 }) : null;
   const firstScore = value.parties.find((p) => p.stats)?.stats?.totalScore ?? null;
   const trend = agg && agg.count > 1 && firstScore !== null ? Math.round((agg.avgScore - firstScore) * 10) / 10 : null;
