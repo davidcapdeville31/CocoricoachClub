@@ -110,7 +110,7 @@ const TABS = [
     const ActiveIcon = activeTabInfo.icon;
 
     return (
-      <div className="min-h-screen bg-background">
+      <div role="main" className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
           <div className="flex items-center gap-4 mb-8">
