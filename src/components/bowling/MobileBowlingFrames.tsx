@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, Check, ChevronDown, Trophy, Pencil } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ChevronDown, Trophy, Pencil, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { FrameData, ThrowData, BowlingStats } from "@/components/athlete-portal/BowlingScoreSheet";
 import { confirmedScore, hasThrow, isFirstBall, isFrameComplete, isGameComplete, nextThrowIndex, remainingPins } from "@/lib/bowling/scoreRules";
 import pins from "@/assets/bowling/hero-pins.png";
 import { cn } from "@/lib/utils";
+import { BowlingIndicatorButton } from "./BowlingIndicatorButton";
+import { indicatorValue } from "@/lib/bowling/indicatorState";
 import { BowlingObservationButton } from "./BowlingObservationButton";
 import { observationValue, quickObservationFields } from "@/lib/bowling/observationControls";
 
@@ -15,10 +17,11 @@ interface Props {
   readOnly: boolean;
   trackPockets: boolean;
   onThrow: (frame: number, roll: number, value: string) => FrameData[] | null;
+  onResetIndicators: (frame: number, roll: number) => void;
   onObservation: (frame: number, roll: number, field: keyof ThrowData, value: boolean | undefined) => void;
 }
 
-export function MobileBowlingFrames({ frames, stats, gameNumber, readOnly, trackPockets, onThrow, onObservation }: Props) {
+export function MobileBowlingFrames({ frames, stats, gameNumber, readOnly, trackPockets, onThrow, onObservation, onResetIndicators }: Props) {
   const [active, setActive] = useState(() => Math.max(0, frames.findIndex((f, i) => !isFrameComplete(f, i))));
   const [roll, setRoll] = useState(() => nextThrowIndex(frames[active], active));
   const frame = frames[active];
@@ -80,8 +83,9 @@ export function MobileBowlingFrames({ frames, stats, gameNumber, readOnly, track
           {Array.from({ length: 11 }, (_, n) => n).filter(n => standing !== null && n <= standing).map(n => <Button key={n} variant="outline" aria-label={n === 10 && freshRack ? "Strike X" : n === 0 ? "0 · Gouttière" : `${n} quilles`} aria-pressed={hasThrow(currentThrow) && currentThrow.pins === n} className={cn("h-14 min-w-0 rounded-xl border-border bg-card p-0 text-xl font-semibold motion-safe:transition-transform motion-safe:active:scale-95", n === 10 && freshRack && "col-span-2 border-selection bg-selection text-selection-foreground", hasThrow(currentThrow) && currentThrow.pins === n && "border-selection bg-selection text-selection-foreground")} onClick={() => enter(n)}>{n === 10 && freshRack ? <span className="flex items-center gap-1 text-base">X<span className="text-xs">Strike</span></span> : n === standing && !freshRack ? <span>{n}<span className="ml-1">/</span></span> : n}</Button>)}
         </div>
       </>}
-      {currentThrow && quickFields.length > 0 && <div className="grid grid-cols-2 gap-2 border-t border-border pt-3" role="group" aria-label={`Informations lancer ${roll + 1}`}>
-        {quickFields.map(field => <BowlingObservationButton key={field} label={field === "isPocket" ? "Poche" : "Split"} value={observationValue(currentThrow, field)} readOnly={readOnly} tone={field === "isPocket" ? "positive" : "negative"} clearable={field === "isPocket"} onChange={value => onObservation(active, roll, field, value)} />)}
+      {currentThrow && quickFields.length > 0 && <div className="space-y-1 border-t border-border pt-3" role="group" aria-label={`Informations lancer ${roll + 1}`}>
+        <div className="grid grid-cols-2 gap-2">{quickFields.map(field => <BowlingIndicatorButton key={field} type={field === "isPocket" ? "pocket" : "split"} value={indicatorValue(currentThrow, field === "isPocket" ? "pocket" : "split")} readOnly={readOnly} onChange={value => onObservation(active, roll, field, value ?? undefined)} />)}</div>
+        {!readOnly && <Button type="button" variant="link" className="h-11 w-full gap-2 px-1 text-xs text-muted-foreground" onClick={() => onResetIndicators(active, roll)}><RotateCcw className="h-3.5 w-3.5" />Réinitialiser Poche / Split</Button>}
       </div>}
       {!readOnly && hasThrow(currentThrow) && (hasNextThrow || active < 9) && <Button className="h-11 w-full gap-2" onClick={continueThrow}>{hasNextThrow ? "Lancer suivant" : "Frame suivante"}<ArrowRight className="h-4 w-4" /></Button>}
       {isFrameComplete(frame, active) && observationSummary(frame, active) && <p className="text-xs text-muted-foreground">{observationSummary(frame, active)}</p>}

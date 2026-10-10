@@ -35,7 +35,7 @@
 .athlete-space [role="tablist"] { max-width: 100%; }
 .athlete-space [role="tab"] { white-space: normal; min-width: 0; }
 .athlete-space [role="tab"]:focus-visible,
-.athlete-space button:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; }
+.athlete-space button:not([data-observation]):focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; }
 .athlete-space .athlete-wellness-banner {
   background: var(--gradient-wellness);
   color: hsl(var(--wellness-banner-foreground));
