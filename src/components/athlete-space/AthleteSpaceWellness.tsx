@@ -525,7 +525,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
             <div className="h-8 w-8 rounded-lg bg-accent/10 text-accent flex items-center justify-center shrink-0">
               <Heart className="h-4 w-4" />
             </div>
-            <span className="truncate">
+            <span className="whitespace-normal break-words leading-snug">
               {isToday
                 ? t("athleteSpace.wellness.todayToFillTitle")
                 : t("athleteSpace.wellness.wellnessOfDay", { date: format(selectedDate, "EEEE d MMM", { locale: getDateLocale() }) })}
