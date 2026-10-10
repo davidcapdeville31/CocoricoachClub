@@ -38,6 +38,27 @@ export function BowlingStepper({ step, onStep }: { step: number; onStep: (s: num
   );
 }
 
+/** Résumé court et utile d'un bloc, recalculé à chaque rendu. Aucune valeur nulle inventée. */
+export function blockSummary(b: SimplifiedBlock): string {
+  const fmt = (n: number) => n.toLocaleString("fr-FR", { maximumFractionDigits: 1 });
+  if (b.type === "tactical") {
+    const parts = b.items.map((it) => {
+      const att = it.attempts || 0;
+      if (att <= 0) return itemLabel(it);
+      const suc = Math.min(it.success || 0, att);
+      return `${itemLabel(it)} — ${suc}/${att} — ${Math.round((suc / att) * 100)} %`;
+    });
+    const base = parts.length ? parts.join(" · ") : "Aucune situation";
+    return b.duration_min > 0 ? `${base} · ${b.duration_min} min` : base;
+  }
+  if (b.type === "technical") {
+    return `${technicalThemeLabel(b)}${b.duration_min > 0 ? ` — ${b.duration_min} min` : ""}`;
+  }
+  const agg = aggregateGamesStats(b);
+  if (!agg) return "Aucun score saisi";
+  return `${agg.count} partie${agg.count > 1 ? "s" : ""} — Moyenne ${fmt(agg.avgScore)}`;
+}
+
 function blockLine(b: SimplifiedBlock): { icon: typeof Target; color: string; title: string; detail: string } {
   if (b.type === "tactical") {
     const items = b.items.filter((it) => (it.attempts || 0) > 0);
@@ -45,7 +66,7 @@ function blockLine(b: SimplifiedBlock): { icon: typeof Target; color: string; ti
     const suc = items.reduce((s, it) => s + Math.min(it.success || 0, it.attempts || 0), 0);
     return {
       icon: Target,
-      color: "text-bowling-ink",
+      color: "text-bowling-tactical",
       title: b.title?.trim() || "Tactique",
       detail: `${b.duration_min} min · ${items.map(itemLabel).join(", ") || "aucune situation"}${att ? ` · ${suc}/${att} (${Math.round((suc / att) * 100)} %)` : ""}`,
     };
