@@ -32,6 +32,11 @@
 
 # Affichage mobile de l’espace athlète
 
+## Finitions premium sans refonte
+- [ ] Compacter les séances, harmoniser l’identité et supprimer les espacements cumulés.
+- [ ] Affiner navigation et menu Plus, avec espace final lié à la hauteur réelle et safe areas.
+- [ ] Vérifier cartes longues, dernière action, thèmes et destinations à 320/360/390/430/768/1280 px ; signaler les limites.
+
 ## Accueil premium fidèle à la maquette
 - [x] Auditer navigation, thèmes, visibilité et composants réutilisables.
 - [x] Ajouter navigation mobile fixe et panneau Plus, conserver les destinations et la navigation ordinateur.
