@@ -26,6 +26,9 @@ describe("sessionPresentation", () => {
     expect(getReadableNotes("Séance bowling — Mode simplifié\nDurée : 75 min · RPE : 6/10\nObjectif : spares")).toBe("Objectif : spares");
     expect(getReadableNotes("Séance bowling — Mode simplifié")).toBe("");
   });
+  it("supprime la répétition « X - X »", () => {
+    expect(getReadableNotes("Mental : Concentration - Concentration")).toBe("Mental : Concentration");
+  });
   it("statuts réalisation et saisie distincts", () => {
     const now = new Date("2026-09-09T12:00:00");
     expect(getCompletionStatus({ session_date: "2026-09-09", session_start_time: "09:00", session_end_time: "10:15" }, now)).toBe("done");

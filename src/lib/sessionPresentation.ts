@@ -57,6 +57,7 @@ export function getReadableNotes(notes: string | null | undefined): string {
     .replace(ATHLETE_MARKER, "")
     .split("\n")
     .filter((line) => !AUTO_LINE.test(line.trim()))
+    .map((line) => line.replace(/([^\n:-]+?)\s+-\s+\1\s*$/i, "$1"))
     .join("\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
