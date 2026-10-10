@@ -1,5 +1,10 @@
 # Calendrier de charge
 
+## Auteur des séances toutes disciplines
+- [ ] Enregistrer le créateur réel à la création sans modifier les associations ni les accès ; anciennes séances non attribuables signalées honnêtement.
+- [ ] Ajouter une mention d’auteur partagée sur les calendriers, cartes et détails coach/athlète.
+- [ ] Vérifier affichage connecté, création authentifiée, refus d’usurpation et conservation de l’auteur après modification.
+
 ## Rétablir la présence depuis l’accueil
 - [x] Réutiliser Présent / Absent sur les cartes à remplir, absentes et à venir ; mêmes sauvegardes et restrictions, séances personnelles exclues.
 - [x] Cinq cartes connectées : Présent/Absent visibles en clair/sombre à 320/360/390/430/768/1280 px, sans débordement ni erreur JS ; les deux clics déclenchent la sauvegarde (écritures bloquées volontairement). Enregistrement réel non retesté ; build OK.
