@@ -192,6 +192,7 @@ export function PersonalNotificationPreferences() {
               </div>
             </div>
             <Switch
+              aria-label="Notifications Push"
               checked={prefs.push_enabled}
               onCheckedChange={(v) => handleToggle("push_enabled", v)}
             />
@@ -205,6 +206,7 @@ export function PersonalNotificationPreferences() {
               </div>
             </div>
             <Switch
+              aria-label="Notifications Email"
               checked={prefs.email_enabled}
               onCheckedChange={(v) => handleToggle("email_enabled", v)}
             />
@@ -238,6 +240,7 @@ export function PersonalNotificationPreferences() {
                     <div className="flex items-center gap-2">
                       <Bell className="h-3.5 w-3.5 text-muted-foreground" />
                       <Switch
+                        aria-label={`Push · ${type.label}`}
                         checked={prefs[type.pushKey] && prefs.push_enabled}
                         disabled={!prefs.push_enabled}
                         onCheckedChange={(v) => handleToggle(type.pushKey, v)}
@@ -248,6 +251,7 @@ export function PersonalNotificationPreferences() {
                       <div className="flex items-center gap-2">
                         <Mail className="h-3.5 w-3.5 text-muted-foreground" />
                         <Switch
+                          aria-label={`Email · ${type.label}`}
                           checked={prefs[type.emailKey] && prefs.email_enabled}
                           disabled={!prefs.email_enabled}
                           onCheckedChange={(v) => handleToggle(type.emailKey, v)}

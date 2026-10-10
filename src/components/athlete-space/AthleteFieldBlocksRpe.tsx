@@ -17,12 +17,6 @@ interface Props {
   onAllSubmitted?: () => void;
 }
 
-const getRpeColor = (val: number) => {
-  if (val <= 3) return "text-status-optimal";
-  if (val <= 5) return "text-accent";
-  if (val <= 7) return "text-warning";
-  return "text-destructive";
-};
 
 export function AthleteFieldBlocksRpe({ sessionId, playerId, categoryId, sessionDate, onAllSubmitted }: Props) {
   const qc = useQueryClient();
@@ -162,7 +156,7 @@ export function AthleteFieldBlocksRpe({ sessionId, playerId, categoryId, session
           disabled={alreadySubmitted}
         />
         <div className="flex justify-between mt-1">
-          <span className={`text-lg font-bold ${getRpeColor(rpe)}`}>{rpe}/10</span>
+          <span data-rpe={rpe} aria-pressed="true" className="rounded-md px-2 text-lg font-bold">{rpe}/10</span>
           {totalDuration > 0 && (
             <span className="text-xs text-muted-foreground self-end">
               Charge totale : {totalLoad} UA

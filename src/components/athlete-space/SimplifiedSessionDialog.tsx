@@ -261,11 +261,6 @@ export function SimplifiedSessionDialog({
     onError: (error: any) => toast.error(error?.message || t("athleteSpace.components.simplifiedSessionDialog.saveError")),
   });
 
-  const rpeColors = [
-    "bg-emerald-500", "bg-emerald-500", "bg-emerald-500", "bg-lime-500", "bg-lime-500",
-    "bg-amber-500", "bg-amber-500", "bg-orange-500", "bg-orange-500", "bg-rose-500",
-  ];
-
   const togglePlayer = (playerId: string) => {
     setSelectedPlayers((current) => current.includes(playerId)
       ? current.filter((id) => id !== playerId)
@@ -336,7 +331,7 @@ export function SimplifiedSessionDialog({
           <div className="flex items-center gap-1">
             {Array.from({ length: 10 }).map((_, index) => {
               const value = index + 1;
-              return <button key={value} type="button" onClick={() => setRpe(value)} className={cn("h-8 flex-1 rounded-md text-xs font-semibold text-white transition-opacity", rpeColors[index], value <= rpe ? "opacity-100" : "opacity-25")} aria-label={`RPE ${value}`}>{value}</button>;
+              return <Button variant="outline" data-rpe={value} aria-pressed={value === rpe} key={value} type="button" onClick={() => setRpe(value)} className="h-11 min-w-0 flex-1 rounded-md p-0 text-xs font-semibold" aria-label={`RPE ${value}`}>{value}</Button>;
             })}
           </div>
 
@@ -365,7 +360,7 @@ export function SimplifiedSessionDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>{t("athleteSpace.components.simplifiedSessionDialog.cancel")}</Button>
-          <Button onClick={() => submitMutation.mutate()} disabled={submitMutation.isPending} className="bg-emerald-600 hover:bg-emerald-700">
+          <Button onClick={() => submitMutation.mutate()} disabled={submitMutation.isPending} >
             {submitMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             {isStaffMode ? "Créer la séance" : isEditing ? "Enregistrer les modifications" : t("athleteSpace.components.simplifiedSessionDialog.submit")}
           </Button>

@@ -355,7 +355,7 @@ export default function Admin() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
+          <Button variant="ghost" size="icon" aria-label="Retour à l’accueil" onClick={() => navigate("/")}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex items-center gap-3">
@@ -413,7 +413,7 @@ export default function Admin() {
 
         {/* Main Content */}
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList>
+          <TabsList className="flex h-auto flex-wrap justify-start">
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Utilisateurs
@@ -487,13 +487,13 @@ export default function Admin() {
                                 </Badge>
                               )}
                               {u.is_free_user && (
-                                <Badge variant="default" className="bg-purple-600">
+                                <Badge variant="secondary">
                                   <Gift className="h-3 w-3 mr-1" />
                                   Gratuit
                                 </Badge>
                               )}
                               {!u.is_super_admin && !u.is_free_user && u.is_approved && (
-                                <Badge variant="default" className="bg-green-600">
+                                <Badge variant="success">
                                   <CheckCircle2 className="h-3 w-3 mr-1" />
                                   Approuvé
                                 </Badge>

@@ -1006,7 +1006,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                       >
                         <div className="min-w-0">
                           <p className="text-sm font-medium truncate">{p.name}</p>
-                          <p className="text-[11px] text-orange-600 dark:text-orange-400">{p.reason}</p>
+                          <p className="text-[11px] text-orange-800 dark:text-orange-300">{p.reason}</p>
                         </div>
                         <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                       </div>
@@ -1018,7 +1018,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                 <button
                   type="button"
                   onClick={() => navigate(`/categories/${categoryId}?tab=performance&subtab=physical-prep`)}
-                  className="mt-2 w-full text-xs font-medium text-orange-600 dark:text-orange-400 hover:underline flex items-center justify-center gap-1"
+                  className="mt-2 w-full text-xs font-medium text-orange-800 dark:text-orange-300 hover:underline flex items-center justify-center gap-1"
                 >
                   {t("decision.atRisk.analyzeAll")}
                   <ChevronRight className="h-3.5 w-3.5" />
@@ -1303,7 +1303,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                               <div className="min-w-0">
                                 <span className="font-medium truncate block">{entry.players ? [entry.players.first_name, entry.players.name].filter(Boolean).join(" ") : t("decision.common.unknown")}</span>
                                 {entry.status === "late" && entry.late_minutes && (
-                                  <span className="text-xs text-orange-600 dark:text-orange-400">{t("decision.attendance.lateMinutes", { minutes: entry.late_minutes })}</span>
+                                  <span className="text-xs text-orange-800 dark:text-orange-300">{t("decision.attendance.lateMinutes", { minutes: entry.late_minutes })}</span>
                                 )}
                               </div>
                             </div>
@@ -1338,7 +1338,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                     <Button
                       variant="outline"
                       size="sm"
-                      className="w-full text-blue-600 border-blue-200 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                      className="w-full text-foreground border-border hover:bg-muted"
                       onClick={() => setAttendanceDetailOpen(true)}
                     >
                       <ClipboardCheck className="h-4 w-4 mr-2" />
@@ -1622,7 +1622,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
             {/* Players to adapt */}
             {playersToAdapt.length > 0 && (
               <div className="pt-2 border-t">
-                <p className="text-xs font-medium text-orange-600 dark:text-orange-400 mb-2">
+                <p className="text-xs font-medium text-orange-800 dark:text-orange-300 mb-2">
                   {t("decision.sessions.toAdapt", { count: playersToAdapt.length })}
                 </p>
                 <div className="flex flex-wrap gap-1">
@@ -1733,7 +1733,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                             {isToday ? (
                               <span className="font-semibold text-purple-600 dark:text-purple-400">{t("decision.matches.today")}</span>
                             ) : isTomorrow ? (
-                              <span className="font-medium text-orange-600 dark:text-orange-400">{t("decision.matches.tomorrow")}</span>
+                              <span className="font-medium text-orange-800 dark:text-orange-300">{t("decision.matches.tomorrow")}</span>
                             ) : (
                               <span className="text-muted-foreground">{t("decision.matches.inDays", { count: daysUntil })}</span>
                             )}
@@ -1994,7 +1994,7 @@ import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
                                       {entry.status === "late" && (
                                         <div className="flex flex-col gap-0.5 mt-0.5">
                                           {entry.late_minutes && (
-                                            <span className="text-xs font-medium text-orange-600 dark:text-orange-400">{t("decision.dialogs.attendanceDetail.lateMinutesLong", { minutes: entry.late_minutes })}</span>
+                                            <span className="text-xs font-medium text-orange-800 dark:text-orange-300">{t("decision.dialogs.attendanceDetail.lateMinutesLong", { minutes: entry.late_minutes })}</span>
                                           )}
                                           {entry.late_reason && (
                                             <p className="text-xs text-muted-foreground">{entry.late_reason}</p>

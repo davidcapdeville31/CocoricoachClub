@@ -122,7 +122,7 @@ export function PushNotificationSettings() {
 
         {/* Permission denied warning */}
         {isDenied && (
-          <div className="flex items-start gap-2 p-3 bg-destructive/10 text-destructive rounded-lg">
+          <div className="flex items-start gap-2 p-3 bg-destructive/10 text-danger-text rounded-lg">
             <AlertCircle className="h-5 w-5 mt-0.5 shrink-0" />
             <div className="text-sm">
               <p className="font-medium">Accès bloqué par le navigateur</p>

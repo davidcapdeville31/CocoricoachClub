@@ -12,16 +12,17 @@ export function FieldModeToggle() {
       size="sm"
       onClick={toggleFieldMode}
       className={cn(
-        "field-mode-toggle fixed bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] right-3 z-40 h-9 w-9 p-0 sm:w-auto sm:px-3 gap-2 shadow-lg opacity-80 hover:opacity-100 transition-all duration-300",
+        "field-mode-toggle fixed bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] right-3 z-40 min-h-11 min-w-11 p-0 sm:w-auto sm:px-3 gap-2 shadow-lg  transition-all duration-300",
         fieldMode 
-          ? "bg-slate-800 border-slate-600 text-white hover:bg-slate-700" 
-          : "bg-background border-border hover:bg-accent"
+          ? "bg-card border-border text-foreground hover:bg-muted" 
+          : "bg-card border-border text-foreground hover:bg-muted"
       )}
+      aria-label={fieldMode ? "Désactiver le Mode Terrain" : "Activer le Mode Terrain"}
       title={fieldMode ? "Désactiver le Mode Terrain" : "Activer le Mode Terrain"}
     >
       {fieldMode ? (
         <>
-          <Moon className="h-4 w-4 text-blue-400" />
+          <Moon className="h-4 w-4 text-primary" />
           <span className="hidden sm:inline">Mode Terrain</span>
         </>
       ) : (

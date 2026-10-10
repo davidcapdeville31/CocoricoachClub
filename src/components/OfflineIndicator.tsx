@@ -31,7 +31,7 @@ const OfflineIndicator = () => {
   // Show preloading status
   if (isPreloading) {
     return (
-      <div className="fixed top-0 left-0 right-0 z-[100] bg-blue-500 text-white py-2 px-4 flex items-center justify-center gap-2 text-sm font-medium animate-in slide-in-from-top-2">
+      <div className="fixed top-0 left-0 right-0 z-[100] bg-selection text-selection-foreground py-2 px-4 flex items-center justify-center gap-2 text-sm font-medium animate-in slide-in-from-top-2">
         <Database className="w-4 h-4 animate-pulse" />
         <span>Téléchargement des données pour mode hors-ligne...</span>
       </div>
@@ -41,7 +41,7 @@ const OfflineIndicator = () => {
   // Show sync in progress
   if (isSyncing && syncProgress) {
     return (
-      <div className="fixed top-0 left-0 right-0 z-[100] bg-blue-500 text-white py-2 px-4 flex items-center justify-center gap-2 text-sm font-medium animate-in slide-in-from-top-2">
+      <div className="fixed top-0 left-0 right-0 z-[100] bg-selection text-selection-foreground py-2 px-4 flex items-center justify-center gap-2 text-sm font-medium animate-in slide-in-from-top-2">
         <Loader2 className="w-4 h-4 animate-spin" />
         <span>
           Synchronisation en cours... ({syncProgress.current}/{syncProgress.total})
@@ -53,7 +53,7 @@ const OfflineIndicator = () => {
   // Show offline banner with cached session status
   if (!isOnline) {
     return (
-      <div className="fixed top-0 left-0 right-0 z-[100] bg-amber-500 text-white py-2 px-4 flex items-center justify-center gap-2 text-sm font-medium animate-in slide-in-from-top-2">
+      <div className="fixed top-0 left-0 right-0 z-[100] bg-warning text-warning-foreground py-2 px-4 flex items-center justify-center gap-2 text-sm font-medium animate-in slide-in-from-top-2">
         <WifiOff className="w-4 h-4" />
         <span>
           Mode hors-ligne
@@ -74,7 +74,7 @@ const OfflineIndicator = () => {
   // Show pending operations when online (can manually sync)
   if (pendingCount > 0) {
     return (
-      <div className="fixed top-0 left-0 right-0 z-[100] bg-blue-500 text-white py-2 px-4 flex items-center justify-center gap-2 text-sm font-medium animate-in slide-in-from-top-2">
+      <div className="fixed top-0 left-0 right-0 z-[100] bg-selection text-selection-foreground py-2 px-4 flex items-center justify-center gap-2 text-sm font-medium animate-in slide-in-from-top-2">
         <Cloud className="w-4 h-4" />
         <span>{pendingCount} modification(s) à synchroniser</span>
         <Button
@@ -96,7 +96,7 @@ const OfflineIndicator = () => {
     // Show for 3 seconds after sync, auto-dismiss + manual close
     if (timeSinceSync < 3000) {
       return (
-        <div className="fixed top-0 left-0 right-0 z-[100] bg-green-500 text-white py-2 px-4 flex items-center justify-center gap-2 text-sm font-medium animate-in slide-in-from-top-2">
+        <div className="fixed top-0 left-0 right-0 z-[100] bg-success text-success-foreground py-2 px-4 flex items-center justify-center gap-2 text-sm font-medium animate-in slide-in-from-top-2">
           <CheckCircle className="w-4 h-4" />
           <span>
             Données hors-ligne prêtes - Dernière sync: {format(lastDataSync, "HH:mm", { locale: getDateLocale() })}

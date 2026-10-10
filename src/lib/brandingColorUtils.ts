@@ -344,8 +344,6 @@ export function applyDualModePaletteToDocument(dualPalette: DualModePalette): vo
     --accent: ${hexToHslCss(palette.accent)};
     --accent-foreground: ${hexToHslCss(palette.accentForeground)};
     --ring: ${hexToHslCss(palette.primary)};
-    --destructive: ${hexToHslCss(palette.destructive)};
-    --destructive-foreground: ${hexToHslCss(palette.destructiveForeground)};
     --sidebar-primary: ${hexToHslCss(palette.primary)};
     --sidebar-primary-foreground: ${hexToHslCss(palette.primaryForeground)};
     --sidebar-ring: ${hexToHslCss(palette.primary)};
@@ -355,7 +353,7 @@ export function applyDualModePaletteToDocument(dualPalette: DualModePalette): vo
 
   styleEl.textContent = `
     :root { ${generateCssVars(dualPalette.light)} }
-    .dark { ${generateCssVars(dualPalette.dark)} }
+    .dark, .field-mode { ${generateCssVars(dualPalette.dark)} }
   `;
 }
 

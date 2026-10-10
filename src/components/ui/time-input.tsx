@@ -133,6 +133,7 @@ export const TimeInput = ({
         <Input
           type="number"
           inputMode="numeric"
+          aria-label={label ? `${label} · minutes` : "Minutes"}
           value={minutes}
           onChange={handleMinutesChange}
           disabled={disabled}
@@ -148,6 +149,7 @@ export const TimeInput = ({
         <Input
           type="number"
           inputMode="numeric"
+          aria-label={label ? `${label} · secondes` : "Secondes"}
           value={seconds.toString().padStart(2, '0')}
           onChange={handleSecondsChange}
           disabled={disabled}
@@ -183,6 +185,7 @@ export const TimeInput = ({
           variant="ghost"
           size="icon"
           className="h-7 w-5 p-0"
+          aria-label="Réduire les minutes"
           onClick={decrementMinutes}
           disabled={disabled || minutes <= 0}
           tabIndex={-1}
@@ -192,6 +195,7 @@ export const TimeInput = ({
         <Input
           type="number"
           inputMode="numeric"
+          aria-label={label ? `${label} · minutes` : "Minutes"}
           value={minutes}
           onChange={handleMinutesChange}
           disabled={disabled}
@@ -208,6 +212,7 @@ export const TimeInput = ({
           variant="ghost"
           size="icon"
           className="h-7 w-5 p-0"
+          aria-label="Augmenter les minutes"
           onClick={incrementMinutes}
           disabled={disabled}
           tabIndex={-1}
@@ -225,6 +230,7 @@ export const TimeInput = ({
           variant="ghost"
           size="icon"
           className="h-7 w-5 p-0"
+          aria-label="Réduire les secondes"
           onClick={decrementSeconds}
           disabled={disabled || (minutes <= 0 && seconds <= 0)}
           tabIndex={-1}
@@ -250,6 +256,7 @@ export const TimeInput = ({
           variant="ghost"
           size="icon"
           className="h-7 w-5 p-0"
+          aria-label="Augmenter les secondes"
           onClick={incrementSeconds}
           disabled={disabled}
           tabIndex={-1}

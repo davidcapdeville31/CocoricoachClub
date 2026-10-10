@@ -320,12 +320,6 @@ export function AthleteRpeEntry({ token, playerId, categoryId, sportType, onRefr
     }
   };
 
-  const getRpeColor = (value: number) => {
-    if (value <= 3) return "text-green-600";
-    if (value <= 5) return "text-yellow-600";
-    if (value <= 7) return "text-orange-600";
-    return "text-red-600";
-  };
 
   if (isLoading) {
     return (
@@ -474,7 +468,7 @@ export function AthleteRpeEntry({ token, playerId, categoryId, sportType, onRefr
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <Label>Effort ressenti (RPE)</Label>
-                  <span className={`text-2xl font-bold ${getRpeColor(rpe)}`}>
+                  <span data-rpe={rpe} aria-pressed="true" className="rounded-md px-2 text-2xl font-bold">
                     {rpe}
                   </span>
                 </div>

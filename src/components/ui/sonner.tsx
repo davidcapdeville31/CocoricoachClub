@@ -1,20 +1,25 @@
-import { useTheme } from "next-themes";
+import { useFieldMode } from "@/contexts/FieldModeContext";
 import { Toaster as Sonner, toast } from "sonner";
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme();
+  const { fieldMode } = useFieldMode();
 
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      theme={fieldMode ? "dark" : "light"}
       className="toaster group"
+      style={{
+        "--normal-bg": "hsl(var(--elevated-background))",
+        "--normal-text": "hsl(var(--text-primary))",
+        "--normal-border": "hsl(var(--border-default))",
+      } as React.CSSProperties}
       toastOptions={{
         classNames: {
           toast:
             "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg",
-          description: "group-[.toast]:text-muted-foreground",
+          description: "!text-muted-foreground",
           actionButton: "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
           cancelButton: "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
         },

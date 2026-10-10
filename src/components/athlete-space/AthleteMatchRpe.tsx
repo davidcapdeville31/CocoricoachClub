@@ -130,6 +130,9 @@ export function AthleteMatchRpe({ matchId, playerId, categoryId, matchDate }: Pr
           <Label className="text-[10px] text-muted-foreground">{t("athleteSpace.calendar.matchRpe.rpe")}</Label>
           <Input
             type="number"
+            aria-label={t("athleteSpace.calendar.matchRpe.rpe")}
+            data-rpe={rpe || undefined}
+            aria-pressed="true"
             min="0"
             max="10"
             value={rpe}
@@ -142,6 +145,7 @@ export function AthleteMatchRpe({ matchId, playerId, categoryId, matchDate }: Pr
           <Label className="text-[10px] text-muted-foreground">{t("athleteSpace.calendar.matchRpe.duration")}</Label>
           <Input
             type="number"
+            aria-label={t("athleteSpace.calendar.matchRpe.duration")}
             min="0"
             value={duration}
             onChange={(e) => setDuration(e.target.value)}

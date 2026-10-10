@@ -69,14 +69,14 @@ interface ColoredTabTriggerProps {
 }
 
 function ColoredTabTrigger({ value, colorKey, icon, label, shortLabel, disabled, badge, tooltip }: ColoredTabTriggerProps) {
-  const colors = NAV_COLORS[colorKey];
+
   
   if (disabled) {
     return (
       <div
         className={cn(
           "relative flex flex-col items-center justify-center gap-1 px-3 py-3 rounded-xl font-medium text-xs",
-          "text-muted-foreground/50 cursor-not-allowed bg-muted/30",
+          "text-muted-foreground cursor-not-allowed bg-muted/30",
           "min-w-[70px] sm:min-w-[85px]"
         )}
         title="Accès restreint en mode lecture"
@@ -98,16 +98,13 @@ function ColoredTabTrigger({ value, colorKey, icon, label, shortLabel, disabled,
         "min-w-[70px] sm:min-w-[85px]",
         "hover:shadow-md data-[state=active]:shadow-lg"
       )}
-      style={{
-        ["--tab-color" as string]: colors.base,
-      }}
     >
       {badge != null && badge > 0 && (
         <span className="absolute -top-1 -right-1 z-20 h-5 min-w-[20px] flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1">
           {badge > 9 ? "9+" : badge}
         </span>
       )}
-      <span className="colored-tab-text relative z-10 flex flex-col items-center gap-1 transition-colors duration-200" style={{ color: "var(--tab-color)" }}>
+      <span className="colored-tab-text relative z-10 flex flex-col items-center gap-1 transition-colors duration-200">
         <span className="shrink-0 h-6 w-6 sm:h-7 sm:w-7">{icon}</span>
         <span className="whitespace-nowrap text-center leading-tight hidden sm:block">{label}</span>
         <span className="whitespace-nowrap text-center leading-tight sm:hidden">{shortLabel || label}</span>
@@ -276,6 +273,7 @@ function CategoryDetailsContent() {
             />
           ) : null;
         })()}
+        <div className="pointer-events-none absolute inset-0 z-0 bg-overlay/75" aria-hidden="true" />
         {/* Logo centré : en absolu sur desktop (md+), inline centré au-dessus du contenu sur mobile */}
         {category?.cover_image_url && (
           <div className="hidden lg:flex pointer-events-none absolute inset-0 items-center justify-center z-20">

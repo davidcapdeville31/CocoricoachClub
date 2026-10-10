@@ -974,12 +974,6 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory, onViewCalen
     onError: (error: any) => toast.error(error?.message || t("athleteSpace.rpe.saveError")),
   });
 
-  const getRpeColor = (val: number) => {
-    if (val <= 3) return "text-status-optimal";
-    if (val <= 5) return "text-accent";
-    if (val <= 7) return "text-warning";
-    return "text-destructive";
-  };
 
   const getRpeLabel = (val: number) => {
     if (val <= 2) return t("athleteSpace.rpe.level.veryEasy");
@@ -1247,7 +1241,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory, onViewCalen
                         percent === 100
                           ? "text-success border-success/20 bg-success/10"
                           : percent === 0
-                            ? "text-accent border-accent/20 bg-accent/10"
+                            ? "text-foreground border-border bg-muted"
                             : "text-warning border-warning/20 bg-warning/10";
                       const label =
                         percent === 100
@@ -1332,7 +1326,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory, onViewCalen
                             step={1}
                           />
                           <div className="flex justify-between mt-1">
-                            <span className={`text-2xl font-bold ${getRpeColor(rpe)}`}>{rpe}/10</span>
+                            <span data-rpe={rpe} aria-pressed="true" className="rounded-md px-2 text-2xl font-bold">{rpe}/10</span>
                             <span className="text-sm text-muted-foreground self-end">{getRpeLabel(rpe)}</span>
                           </div>
                         </div>

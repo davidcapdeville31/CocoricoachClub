@@ -267,19 +267,20 @@ export function NotificationBell({ variant = "hero", categoryIds }: Notification
         <Button
           variant="ghost"
           size="icon"
+          aria-label="Notifications"
           className={`relative ${
             variant === "hero"
-              ? "text-primary-foreground hover:bg-primary-foreground/10"
+              ? "text-brand-white hover:bg-brand-white/10"
               : "text-foreground hover:bg-accent"
           }`}
         >
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
             <Badge
-              className={`absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs border-0 text-white ${
+              className={`absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs border-0 ${
                 hasUnreadSupport
-                  ? "bg-amber-500 hover:bg-amber-500 ring-2 ring-amber-300/60 animate-pulse"
-                  : "bg-destructive hover:bg-destructive"
+                  ? "bg-warning text-warning-foreground ring-2 ring-warning/60 animate-pulse"
+                  : "bg-notification text-notification-foreground hover:bg-notification"
               }`}
             >
               {unreadCount > 9 ? "9+" : unreadCount}
@@ -287,7 +288,7 @@ export function NotificationBell({ variant = "hero", categoryIds }: Notification
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-96 p-0" align="end">
+      <PopoverContent className="w-96 max-w-[calc(100vw-2rem)] p-0" align="end">
         <div className="flex items-center justify-between p-4 border-b">
           <h3 className="font-semibold text-lg">Notifications</h3>
           {unreadCount > 0 && (

@@ -284,6 +284,7 @@ export function SecuritySettingsPanel() {
                 <div className="flex items-center gap-2">
                   <Input
                     type="number"
+                    aria-label="Déconnexion automatique en minutes"
                     min={5}
                     max={480}
                     defaultValue={settings?.session_timeout_minutes ?? 30}
@@ -354,6 +355,7 @@ export function SecuritySettingsPanel() {
               <div>
                 <Label>Code à 6 chiffres</Label>
                 <Input
+                  aria-label="Code à 6 chiffres"
                   value={verifyCode}
                   onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                   placeholder="123456"
@@ -389,6 +391,7 @@ export function SecuritySettingsPanel() {
               <Label>Nouveau mot de passe</Label>
               <Input
                 type="password"
+                aria-label="Nouveau mot de passe"
                 value={newPwd}
                 onChange={(e) => setNewPwd(e.target.value)}
                 placeholder="••••••••"
@@ -399,6 +402,7 @@ export function SecuritySettingsPanel() {
               <Label>Confirmer le mot de passe</Label>
               <Input
                 type="password"
+                aria-label="Confirmer le mot de passe"
                 value={confirmPwd}
                 onChange={(e) => setConfirmPwd(e.target.value)}
                 placeholder="••••••••"
