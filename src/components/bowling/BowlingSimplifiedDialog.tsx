@@ -892,7 +892,7 @@ export function BowlingSimplifiedDialog({
     { key: "Régularité", icon: Repeat, cls: "bg-success/10 text-success" },
     { key: "Spare", icon: Target, cls: "bg-warning/10 text-warning" },
     { key: "Strike", icon: Zap, cls: "bg-destructive/10 text-destructive" },
-    { key: "Lecture de piste", icon: Eye, cls: "bg-primary/10 text-primary" },
+    { key: "Lecture de piste", icon: Eye, cls: "bg-primary/10 text-bowling-ink" },
     { key: "Mental", icon: Brain, cls: "bg-muted text-foreground" },
   ];
   const oilLabel = oilPatternName === "none" ? null : oilPatternName === "__custom__" ? (customOilName || "Personnalisé") : oilPatternName;
@@ -923,7 +923,7 @@ export function BowlingSimplifiedDialog({
             <button type="button" onClick={() => handleOpenChange(false)} className="mt-1.5 shrink-0 text-sm text-muted-foreground hover:text-foreground">Annuler</button>
           </div>
           <DialogHeader className="mt-5 text-left">
-            <DialogTitle className="text-2xl sm:text-3xl font-bold tracking-tight text-primary">
+            <DialogTitle className="text-2xl sm:text-3xl font-bold tracking-tight text-bowling-ink">
               {step === 0 ? (isEditMode ? "Remplir la séance bowling" : "Nouvelle séance bowling") : step === 1 ? "Contenu de la séance" : "Récapitulatif"}
             </DialogTitle>
             <p className="text-sm sm:text-base text-muted-foreground">
@@ -937,7 +937,7 @@ export function BowlingSimplifiedDialog({
           {step === 0 && (
             <div className="grid gap-4 md:grid-cols-2">
               <div className={`${cardCls} flex items-center gap-4`}>
-                <CalendarDays className="h-6 w-6 text-primary" />
+                <CalendarDays className="h-6 w-6 text-bowling-ink" />
                 <div>
                   <p className="text-sm text-muted-foreground">Date de la séance</p>
                   <p className="text-base font-semibold capitalize text-foreground">{format(date, "EEEE d MMMM yyyy", { locale: getDateLocale() })}</p>
@@ -947,7 +947,7 @@ export function BowlingSimplifiedDialog({
               {!isAthleteMode && !isEditMode ? (
                 <Collapsible open={athletesOpen} onOpenChange={setAthletesOpen} className={cardCls}>
                   <CollapsibleTrigger className="flex w-full items-center gap-4 text-left">
-                    <Users className="h-6 w-6 text-primary" />
+                    <Users className="h-6 w-6 text-bowling-ink" />
                     <div className="flex-1">
                       <p className="text-sm text-muted-foreground">Athlètes</p>
                       <p className="text-base font-semibold text-foreground">{selectedPlayers.length === 0 ? "Aucun sélectionné" : `${selectedPlayers.length} sélectionné${selectedPlayers.length > 1 ? "s" : ""}`}</p>
@@ -962,7 +962,7 @@ export function BowlingSimplifiedDialog({
                       {players.map((p) => {
                         const on = selectedPlayers.includes(p.id);
                         return (
-                          <button key={p.id} type="button" onClick={() => togglePlayer(p.id)} className={`rounded-full px-3 py-1.5 text-sm transition-colors ${on ? "bg-primary text-primary-foreground" : "bg-bowling-canvas text-foreground hover:bg-muted"}`}>
+                          <button key={p.id} type="button" onClick={() => togglePlayer(p.id)} className={`rounded-full px-3 py-1.5 text-sm transition-colors ${on ? "bg-bowling-ink text-card" : "bg-bowling-canvas text-foreground hover:bg-muted"}`}>
                             {[p.first_name, p.name].filter(Boolean).join(" ") || "Athlète"}
                           </button>
                         );
@@ -974,7 +974,7 @@ export function BowlingSimplifiedDialog({
               ) : <div className="hidden md:block" />}
 
               <div className={`${cardCls} md:col-span-2`}>
-                <p className="mb-3 flex items-center gap-3 text-base font-semibold text-primary"><Flag className="h-5 w-5" />Objectif principal <span className="font-normal text-muted-foreground">(facultatif)</span></p>
+                <p className="mb-3 flex items-center gap-3 text-base font-semibold text-bowling-ink"><Flag className="h-5 w-5" />Objectif principal <span className="font-normal text-muted-foreground">(facultatif)</span></p>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                   {goalOptions.map((g) => {
                     const on = objective === g.key;
@@ -989,7 +989,7 @@ export function BowlingSimplifiedDialog({
 
               <Collapsible open={oilOpen} onOpenChange={setOilOpen} className={`${cardCls} md:col-span-2`}>
                 <CollapsibleTrigger className="flex w-full items-center gap-4 text-left">
-                  <Droplet className="h-6 w-6 text-primary" />
+                  <Droplet className="h-6 w-6 text-bowling-ink" />
                   <div className="flex-1">
                     <p className="text-sm text-muted-foreground">Huilage (facultatif)</p>
                     <p className="text-base font-semibold text-foreground">{oilLabel ?? "Aucun huilage"}</p>
@@ -1016,7 +1016,7 @@ export function BowlingSimplifiedDialog({
                   )}
                   <div className="grid grid-cols-2 gap-2">
                     {([["session", "Pour toute la séance"], ["per_block", "Différent par bloc"]] as const).map(([k, l]) => (
-                      <button key={k} type="button" onClick={() => setOilScope(k)} className={`h-11 rounded-xl text-sm font-medium transition-colors ${oilScope === k ? "bg-primary text-primary-foreground" : "bg-bowling-canvas text-foreground"}`}>{l}</button>
+                      <button key={k} type="button" onClick={() => setOilScope(k)} className={`h-11 rounded-xl text-sm font-medium transition-colors ${oilScope === k ? "bg-bowling-ink text-card" : "bg-bowling-canvas text-foreground"}`}>{l}</button>
                     ))}
                   </div>
                 </CollapsibleContent>
@@ -1034,7 +1034,7 @@ export function BowlingSimplifiedDialog({
                 ].map((c) => (
                   <button key={c.key} type="button" onClick={c.onClick} className={`${cardCls} group flex flex-col items-center gap-2 !p-4 text-center transition-all hover:-translate-y-0.5 hover:shadow-md`}>
                     <c.icon className={`h-7 w-7 ${c.color}`} />
-                    <span className="flex items-center gap-1 text-sm sm:text-base font-semibold text-primary"><Plus className="h-4 w-4" />{c.label}</span>
+                    <span className="flex items-center gap-1 text-sm sm:text-base font-semibold text-bowling-ink"><Plus className="h-4 w-4" />{c.label}</span>
                     <span className="hidden sm:block text-xs text-muted-foreground">{c.hint}</span>
                   </button>
                 ))}
@@ -1042,7 +1042,7 @@ export function BowlingSimplifiedDialog({
 
               {blocks.length === 0 && (
                 <div className={`${cardCls} py-10 text-center`}>
-                  <p className="text-base font-semibold text-primary">Construis ta séance</p>
+                  <p className="text-base font-semibold text-bowling-ink">Construis ta séance</p>
                   <p className="mt-1 text-sm text-muted-foreground">Choisis un bloc ci-dessus pour commencer.</p>
                 </div>
               )}
@@ -1083,13 +1083,13 @@ export function BowlingSimplifiedDialog({
               </div>
               {isAthleteMode && !isEditMode && (
                 <div className={`${cardCls} md:col-span-2 space-y-3`}>
-                  <p className="text-base font-semibold text-primary">RPE ressenti</p>
+                  <p className="text-base font-semibold text-bowling-ink">RPE ressenti</p>
                   <div className="grid grid-cols-10 gap-1.5">
                     {Array.from({ length: 10 }).map((_, i) => {
                       const v = i + 1;
                       const on = v === athleteRpe;
                       return (
-                        <button key={v} type="button" onClick={() => setAthleteRpe(v)} className={`h-11 rounded-xl text-sm font-semibold transition-colors ${on ? "bg-primary text-primary-foreground" : "bg-bowling-canvas text-foreground hover:bg-muted"}`}>{v}</button>
+                        <button key={v} type="button" onClick={() => setAthleteRpe(v)} className={`h-11 rounded-xl text-sm font-semibold transition-colors ${on ? "bg-bowling-ink text-card" : "bg-bowling-canvas text-foreground hover:bg-muted"}`}>{v}</button>
                       );
                     })}
                   </div>

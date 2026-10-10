@@ -76,7 +76,7 @@ export function SimplifiedGamesBlockEditor({
             <Circle className="h-5 w-5 text-warning" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-base font-semibold text-primary">Parties #{index + 1}</p>
+            <p className="text-base font-semibold text-bowling-ink">Parties #{index + 1}</p>
             <Input
               value={value.title}
               onChange={(e) => update({ title: e.target.value })}
@@ -99,7 +99,7 @@ export function SimplifiedGamesBlockEditor({
             key={m}
             type="button"
             onClick={() => update({ entry_mode: m })}
-            className={`rounded-xl px-3 py-2.5 text-center transition-colors ${mode === m ? "bg-primary text-primary-foreground" : "bg-bowling-canvas text-foreground "}`}
+            className={`rounded-xl px-3 py-2.5 text-center transition-colors ${mode === m ? "bg-bowling-ink text-card" : "bg-bowling-canvas text-foreground "}`}
           >
             <span className="block text-sm font-semibold">{t}</span>
             <span className={`block text-[11px] ${mode === m ? "opacity-80" : "text-muted-foreground"}`}>{h}</span>
@@ -117,7 +117,7 @@ export function SimplifiedGamesBlockEditor({
                   key={n}
                   type="button"
                   onClick={() => setCount(n)}
-                  className={`h-11 rounded-xl text-sm font-semibold transition-colors ${value.parties.length === n ? "bg-primary text-primary-foreground" : "bg-bowling-canvas "}`}
+                  className={`h-11 rounded-xl text-sm font-semibold transition-colors ${value.parties.length === n ? "bg-bowling-ink text-card" : "bg-bowling-canvas "}`}
                 >
                   {n}
                 </button>

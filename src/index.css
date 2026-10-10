@@ -24,6 +24,10 @@ All colors MUST be HSL.
     --background: 0 0% 100%;
     --bowling-canvas: 216 60% 97%;
     --bowling-accent: 217 91% 55%;
+    --bowling-ink: 222 47% 18%;
+    --bowling-tactical: 217 80% 52%;
+    --bowling-technical: 178 70% 36%;
+    --bowling-games: 28 92% 52%;
     --foreground: 220 20% 15%;
 
     --card: 0 0% 100%;
@@ -131,6 +135,10 @@ All colors MUST be HSL.
     --background: 220 25% 7%;
     --bowling-canvas: 220 25% 9%;
     --bowling-accent: 217 91% 62%;
+    --bowling-ink: 214 40% 92%;
+    --bowling-tactical: 217 85% 65%;
+    --bowling-technical: 178 60% 50%;
+    --bowling-games: 28 92% 60%;
     --foreground: 210 20% 96%;
 
     --card: 220 22% 12%;

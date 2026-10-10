@@ -40,7 +40,7 @@ export function SimplifiedTechnicalBlockEditor({ value, index, categoryId, playe
             <Wrench className="h-5 w-5 text-success" />
           </div>
           <div>
-            <div className="text-base font-semibold text-primary">
+            <div className="text-base font-semibold text-bowling-ink">
               Technique #{index + 1}
             </div>
             <div className="text-xs text-muted-foreground">
@@ -115,7 +115,7 @@ export function SimplifiedTechnicalBlockEditor({ value, index, categoryId, playe
 
       <div className="space-y-1">
         <div className="flex items-center gap-1.5">
-          <Label className="text-sm font-semibold text-primary">Travail effectué</Label>
+          <Label className="text-sm font-semibold text-bowling-ink">Travail effectué</Label>
           <TooltipProvider delayDuration={150}>
             <Tooltip>
               <TooltipTrigger asChild>

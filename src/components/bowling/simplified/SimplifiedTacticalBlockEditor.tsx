@@ -74,7 +74,7 @@ export function SimplifiedTacticalBlockEditor({
             <Target className="h-5 w-5 text-bowling-accent" />
           </div>
           <div>
-            <p className="text-base font-semibold text-primary">Tactique #{index + 1}</p>
+            <p className="text-base font-semibold text-bowling-ink">Tactique #{index + 1}</p>
             <Input
               value={value.title}
               onChange={(e) => update({ title: e.target.value })}
@@ -131,7 +131,7 @@ export function SimplifiedTacticalBlockEditor({
 
       {/* Situations */}
       <div className="space-y-3">
-        <Label className="text-sm font-semibold text-primary">Situations travaillées</Label>
+        <Label className="text-sm font-semibold text-bowling-ink">Situations travaillées</Label>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {TARGET_TYPES.map((t) => {
             const count = value.items.filter((it) => it.target_type === t.value).length;
@@ -140,7 +140,7 @@ export function SimplifiedTacticalBlockEditor({
                 key={t.value}
                 type="button"
                 onClick={() => addItem(t.value)}
-                className={`flex h-12 items-center justify-center gap-1.5 rounded-xl px-3 text-sm font-medium transition-colors ${count > 0 ? "bg-primary text-primary-foreground" : "bg-bowling-canvas text-foreground hover:bg-muted"}`}
+                className={`flex h-12 items-center justify-center gap-1.5 rounded-xl px-3 text-sm font-medium transition-colors ${count > 0 ? "bg-bowling-ink text-card" : "bg-bowling-canvas text-foreground hover:bg-muted"}`}
               >
                 <Plus className="h-4 w-4" />
                 {t.label}
@@ -155,7 +155,7 @@ export function SimplifiedTacticalBlockEditor({
           return (
             <div key={item.id} className="space-y-3 rounded-2xl bg-bowling-canvas p-4">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-base font-semibold text-primary">{itemLabel(item)}</span>
+                <span className="text-base font-semibold text-bowling-ink">{itemLabel(item)}</span>
                 <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Retirer la situation" onClick={() => removeItem(item.id)}>
                   <Trash2 className="h-4 w-4 text-destructive" />
                 </Button>

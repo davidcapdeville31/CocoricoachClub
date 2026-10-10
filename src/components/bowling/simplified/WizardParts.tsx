@@ -20,7 +20,7 @@ export function BowlingStepper({ step, onStep }: { step: number; onStep: (s: num
                 className={cn(
                   "flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition-colors",
                   done && "bg-bowling-accent text-primary-foreground",
-                  active && "bg-primary text-primary-foreground",
+                  active && "bg-bowling-ink text-card",
                   !done && !active && "bg-muted text-muted-foreground",
                 )}
               >
@@ -45,7 +45,7 @@ function blockLine(b: SimplifiedBlock): { icon: typeof Target; color: string; ti
     const suc = items.reduce((s, it) => s + Math.min(it.success || 0, it.attempts || 0), 0);
     return {
       icon: Target,
-      color: "text-primary",
+      color: "text-bowling-ink",
       title: b.title?.trim() || "Tactique",
       detail: `${b.duration_min} min · ${items.map(itemLabel).join(", ") || "aucune situation"}${att ? ` · ${suc}/${att} (${Math.round((suc / att) * 100)} %)` : ""}`,
     };
@@ -84,21 +84,21 @@ export function BowlingSessionRecap({
     <div className="space-y-3">
       <div className="rounded-[20px] bg-bowling-accent/10 p-5 space-y-2.5">
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-semibold text-primary">Résumé de la séance</h3>
+          <h3 className="text-base font-semibold text-bowling-ink">Résumé de la séance</h3>
           <Button variant="ghost" size="sm" className="h-8 rounded-lg bg-card text-bowling-accent" onClick={() => onEditStep(0)}>Modifier</Button>
         </div>
-        <p className="flex items-center gap-2 text-sm capitalize"><CalendarDays className="h-4 w-4 text-primary" />{format(date, "EEEE d MMMM yyyy", { locale: getDateLocale() })}</p>
-        <p className="flex items-center gap-2 text-sm"><Clock className="h-4 w-4 text-primary" />{totalDuration} min</p>
+        <p className="flex items-center gap-2 text-sm capitalize"><CalendarDays className="h-4 w-4 text-bowling-ink" />{format(date, "EEEE d MMMM yyyy", { locale: getDateLocale() })}</p>
+        <p className="flex items-center gap-2 text-sm"><Clock className="h-4 w-4 text-bowling-ink" />{totalDuration} min</p>
         {athleteCount !== null && (
-          <p className="flex items-center gap-2 text-sm"><Users className="h-4 w-4 text-primary" />{athleteCount} athlète{athleteCount > 1 ? "s" : ""}</p>
+          <p className="flex items-center gap-2 text-sm"><Users className="h-4 w-4 text-bowling-ink" />{athleteCount} athlète{athleteCount > 1 ? "s" : ""}</p>
         )}
-        {objective && <p className="flex items-center gap-2 text-sm"><Flag className="h-4 w-4 text-primary" />Objectif : {objective}</p>}
-        {oilName && <p className="flex items-center gap-2 text-sm"><Droplet className="h-4 w-4 text-primary" />{oilName}</p>}
+        {objective && <p className="flex items-center gap-2 text-sm"><Flag className="h-4 w-4 text-bowling-ink" />Objectif : {objective}</p>}
+        {oilName && <p className="flex items-center gap-2 text-sm"><Droplet className="h-4 w-4 text-bowling-ink" />{oilName}</p>}
       </div>
 
       <div className="rounded-[20px] bg-card p-5 shadow-[0_2px_12px_-4px_hsl(var(--foreground)/0.08)] space-y-2">
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-semibold text-primary">Blocs ({blocks.length})</h3>
+          <h3 className="text-base font-semibold text-bowling-ink">Blocs ({blocks.length})</h3>
           <Button variant="ghost" size="sm" className="h-8 rounded-lg bg-card text-bowling-accent" onClick={() => onEditStep(1)}>Modifier</Button>
         </div>
         {blocks.map((b, i) => {

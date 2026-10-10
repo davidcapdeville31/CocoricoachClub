@@ -37,6 +37,10 @@ export default {
         },
         "bowling-canvas": "hsl(var(--bowling-canvas))",
         "bowling-accent": "hsl(var(--bowling-accent))",
+        "bowling-ink": "hsl(var(--bowling-ink))",
+        "bowling-tactical": "hsl(var(--bowling-tactical))",
+        "bowling-technical": "hsl(var(--bowling-technical))",
+        "bowling-games": "hsl(var(--bowling-games))",
         success: {
           DEFAULT: "hsl(var(--success))",
           foreground: "hsl(var(--success-foreground))",
