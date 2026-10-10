@@ -20,6 +20,14 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
+    /* Official brand primitives and selection roles, identical in both themes. */
+    --brand-navy: 217.241379 64.444444% 17.647059%;
+    --brand-white: 0 0% 100%;
+    --brand-red: 356.363636 90.825688% 57.254902%;
+    --selection: var(--brand-navy);
+    --selection-foreground: var(--brand-white);
+    --selection-border: var(--brand-navy);
+    --notification: var(--brand-red);
     /* Pure White Background - Clean & Modern */
     --background: 0 0% 100%;
     --bowling-canvas: 220 100% 98%;
@@ -62,7 +70,7 @@ All colors MUST be HSL.
     --accent: 188 76% 40%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    --destructive: var(--brand-red);
     --destructive-foreground: 0 0% 100%;
 
     /* Controlled Orange #F28C28 - Alerts & Attention */
@@ -142,6 +150,7 @@ All colors MUST be HSL.
   }
 
   .dark {
+    --selection-border: 217 45% 43%;
     /* Dark mode - improved contrast hierarchy
        background (deepest) < card/popover < muted < secondary < border */
     --background: 220 25% 7%;
@@ -183,7 +192,7 @@ All colors MUST be HSL.
     --accent: 188 76% 52%;
     --accent-foreground: 220 30% 8%;
 
-    --destructive: 0 75% 58%;
+    --destructive: var(--brand-red);
     --destructive-foreground: 0 0% 100%;
 
     --warning: 32 92% 58%;
@@ -249,6 +258,7 @@ All colors MUST be HSL.
   /* Field Mode - High contrast dark theme for outdoor use */
   .field-mode,
   .field-mode * {
+    --selection-border: 217 45% 43%;
     --background: 215 28% 10%;
     --foreground: 210 20% 95%;
 
@@ -270,7 +280,7 @@ All colors MUST be HSL.
     --accent: 200 85% 55%;
     --accent-foreground: 215 28% 10%;
 
-    --destructive: 0 85% 60%;
+    --destructive: var(--brand-red);
     --destructive-foreground: 0 0% 100%;
 
     --warning: 38 95% 55%;
@@ -549,25 +559,25 @@ All colors MUST be HSL.
 
 /* Athlete Space tabs — active state uses CSS custom property --tab-color for background */
 .athlete-tab[data-state="active"] {
-  background-color: var(--tab-color) !important;
-  color: hsl(var(--foreground)) !important;
+  background-color: hsl(var(--selection)) !important;
+  color: hsl(var(--selection-foreground)) !important;
   border-bottom-color: transparent !important;
 }
 
 /* Colored tab trigger active state */
 .colored-tab-trigger[data-state="active"] {
-  background-color: var(--tab-color) !important;
-  color: white !important;
-  box-shadow: 0 4px 8px -2px rgb(0 0 0 / 0.2);
+  background-color: hsl(var(--selection)) !important;
+  color: hsl(var(--selection-foreground)) !important;
+  box-shadow: var(--shadow-sm);
 }
 .colored-tab-trigger[data-state="active"] .colored-tab-text {
-  color: white !important;
+  color: hsl(var(--selection-foreground)) !important;
 }
 .colored-tab-trigger[data-state="active"] svg {
-  color: white !important;
+  color: hsl(var(--selection-foreground)) !important;
 }
 .colored-tab-trigger:not([data-state="active"]):hover {
-  background-color: color-mix(in srgb, var(--tab-color) 15%, transparent);
+  background-color: hsl(var(--muted));
 }
 
 /* ============================================================
@@ -807,4 +817,36 @@ body:has(.athlete-space) .field-mode-toggle { display: none; }
   --warning: inherit;
   --warning-foreground: inherit;
   --gradient-card: inherit;
+}
+
+/* Shared selection contract. Last in the cascade to supersede legacy sport
+   colors and dark pastel safety rules without touching data/status badges. */
+:is([role="tab"], .brand-selectable, .colored-tab-trigger, .athlete-tab):not([data-state="active"]):not([data-state="on"]):not([aria-pressed="true"]) {
+  background: transparent !important;
+  color: hsl(var(--muted-foreground)) !important;
+  border-color: hsl(var(--border)) !important;
+  box-shadow: none;
+}
+:is([role="tab"], .brand-selectable, .colored-tab-trigger, .athlete-tab):not([data-state="active"]):not([data-state="on"]):not([aria-pressed="true"]) :is(svg, .colored-tab-text) {
+  color: hsl(var(--muted-foreground)) !important;
+}
+:is([role="tab"][data-state="active"], .brand-selectable[data-state="on"], [role="button"][aria-pressed="true"], button[aria-pressed="true"], button[aria-selected="true"], a[aria-current="page"], [data-sidebar="menu-button"][data-active="true"], [data-sidebar="menu-sub-button"][data-active="true"], .athlete-bottom-item.is-active, .athlete-more-item.is-active) {
+  background: hsl(var(--selection)) !important;
+  color: hsl(var(--selection-foreground)) !important;
+  border-color: hsl(var(--selection-border)) !important;
+  font-weight: 600 !important;
+  opacity: 1;
+  box-shadow: var(--shadow-sm);
+}
+:is([role="tab"][data-state="active"], .brand-selectable[data-state="on"], [role="button"][aria-pressed="true"], button[aria-pressed="true"], button[aria-selected="true"], a[aria-current="page"], [data-sidebar="menu-button"][data-active="true"], [data-sidebar="menu-sub-button"][data-active="true"], .athlete-bottom-item.is-active, .athlete-more-item.is-active) :is(svg, .colored-tab-text) {
+  color: hsl(var(--selection-foreground)) !important;
+}
+/* Filled shared buttons remain on-brand even when the dark primary token is
+   brighter for standalone text/link contrast. Success/Wellness are excluded. */
+[data-ui-button][data-variant="default"] {
+  background-color: hsl(var(--selection));
+  color: hsl(var(--selection-foreground));
+}
+[data-ui-button][data-variant="default"]:hover {
+  background-color: hsl(var(--selection));
 }

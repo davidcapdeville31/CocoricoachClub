@@ -12,6 +12,7 @@ import { latestWeightsByPlayer } from "@/lib/weight/weightHistory";
 import { useWeightHistory } from "@/lib/hooks/useWeightData";
 import { useTranslation } from "react-i18next";
 import { displayUnit } from "@/lib/constants/testUnits";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   playerId: string;
@@ -228,24 +229,26 @@ export function AthleteSpaceTests({ playerId, categoryId, sportType }: Props) {
           </div>
           <ScrollArea className="w-full whitespace-nowrap">
             <div className="flex gap-2 pb-2">
-              <button
+              <Button variant="ghost"
+                aria-pressed={selectedCategory === "all"}
                 onClick={() => handleSelectCategory("all")}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
-                  selectedCategory === "all" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  selectedCategory === "all" ? "bg-selection text-selection-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
                 }`}
               >
                 {t("athleteSpace.tests.all")}
-              </button>
+              </Button>
               {availableFilters.map(f => (
-                <button
+                <Button variant="ghost"
                   key={f.value}
+                  aria-pressed={selectedCategory === f.value}
                   onClick={() => handleSelectCategory(f.value)}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
-                    selectedCategory === f.value ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    selectedCategory === f.value ? "bg-selection text-selection-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
                   }`}
                 >
                   {f.label}
-                </button>
+                </Button>
               ))}
             </div>
             <ScrollBar orientation="horizontal" />

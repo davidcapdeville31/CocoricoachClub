@@ -99,8 +99,7 @@ const ColoredNavTabsList = React.forwardRef<
     ref={ref}
     className={cn(
       "inline-flex items-center gap-2 p-2 rounded-xl shadow-sm border border-border/50",
-      "bg-white",
-      "field-mode:bg-[hsl(215_25%_14%)] field-mode:border-[hsl(215_25%_25%)]",
+      "bg-card",
       className
     )}
     {...props}
@@ -119,8 +118,6 @@ const ColoredNavTabsTrigger = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.Trigger>,
   ColoredNavTabsTriggerProps
 >(({ className, colorKey, icon, children, ...props }, ref) => {
-  const colors = NAV_COLORS[colorKey];
-  
   return (
     <TabsPrimitive.Trigger
       ref={ref}
@@ -128,19 +125,11 @@ const ColoredNavTabsTrigger = React.forwardRef<
         "group relative inline-flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm",
         "transition-all duration-200 ease-out",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-        colors.text,
-        colors.hover,
-        "data-[state=active]:text-white data-[state=active]:shadow-md",
+        "brand-selectable text-muted-foreground hover:bg-muted data-[state=active]:bg-selection data-[state=active]:text-selection-foreground data-[state=active]:font-semibold",
         className
       )}
-      style={{}}
       {...props}
     >
-      <span 
-        className="absolute inset-0 rounded-lg opacity-0 transition-opacity duration-200 data-[state=active]:opacity-100 -z-10"
-        style={{ backgroundColor: colors.base }}
-        data-state={props["data-state"]}
-      />
       {icon && (
         <span className="shrink-0 transition-colors duration-200">
           {icon}
@@ -165,8 +154,6 @@ const ColoredTabTrigger = React.forwardRef<
   HTMLButtonElement,
   ColoredTabTriggerProps
 >(({ colorKey, icon, children, className, value, badge, label, shortLabel, tooltip, ...props }, ref) => {
-  const colors = NAV_COLORS[colorKey];
-  
   const trigger = (
     <TabsPrimitive.Trigger
       ref={ref}
@@ -177,12 +164,9 @@ const ColoredTabTrigger = React.forwardRef<
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         className
       )}
-      style={{
-        ["--tab-color" as string]: colors.base,
-      }}
       {...props}
     >
-      <span className="colored-tab-text relative z-10 flex items-center gap-2" style={{ color: 'var(--tab-color)' }}>
+      <span className="colored-tab-text relative z-10 flex items-center gap-2">
         {icon && <span className="shrink-0">{icon}</span>}
         <span className="whitespace-nowrap">
           {label ? (
