@@ -317,7 +317,7 @@ export function SessionAthleteEntriesPanel({
           const playerWellness = wellnessByPlayer.get(p.id);
           const playerFeeling = normalizeFeeling(playerAwcr?.feeling) ?? normalizeFeeling(playerWellness?.feeling);
           const playerComment = playerAwcr?.notes ?? playerWellness?.notes ?? null;
-          const hasMuscuData = isMuscu && (playerLogs.length > 0 || !!playerAwcr || !!playerWellness);
+          const hasMuscuData = playerLogs.length > 0 || !!playerAwcr || !!playerWellness;
           const hasAnyData = rpeList.length > 0 || (bowl?.total || 0) > 0 || hasMuscuData;
           const avgRpe =
             playerAwcr?.rpe != null
@@ -327,7 +327,7 @@ export function SessionAthleteEntriesPanel({
                 : null;
           const displayName = p.first_name ? `${p.first_name} ${p.name}` : p.name || "Athlète";
           const initials = (p.first_name || p.name || "A").slice(0, 2).toUpperCase();
-          const canExpand = (isBowling && playerBlocks.length > 0) || (isMuscu && hasMuscuData);
+          const canExpand = (isBowling && playerBlocks.length > 0) || hasMuscuData;
           const isOpen = expanded.has(p.id);
 
           return (
