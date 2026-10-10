@@ -32,6 +32,12 @@
 
 # Affichage mobile de l’espace athlète
 
+## Accueil premium fidèle à la maquette
+- [ ] Auditer navigation, thèmes, visibilité et composants réutilisables.
+- [ ] Ajouter navigation mobile fixe et panneau Plus, conserver les destinations et la navigation ordinateur.
+- [ ] Restaurer Wellness vert, compacter l’identité et harmoniser les séances sans changer les données.
+- [ ] Intégrer le thème sans chevauchement et vérifier les interactions en clair/sombre à 320/360/390/430/768/1280 px.
+
 ## Identité visuelle premium athlète
 - [x] Auditer les styles et le mécanisme de thème existants.
 - [x] Harmoniser en-tête, navigation, wellness, séances et surfaces dans un périmètre athlète isolé.
