@@ -26,7 +26,7 @@
 # Affichage mobile de l’espace athlète
 
 ## UX athlète mobile V2
-- [ ] Auditer contenu mental, cartes, circuits, bilans et statuts ; présenter le plan avant modification importante.
+- [x] Auditer contenu mental, cartes, circuits, bilans et statuts ; présenter le plan avant modification importante.
 - [ ] Donner priorité à une fiche mentale complète, lisible et liée aux réponses existantes.
 - [ ] Compacter les circuits, séparer consignes/résultats et clarifier la progression sans changer les calculs.
 - [ ] Identifier chaque bilan par sa séance et optimiser les cinq ressentis sur téléphone.
