@@ -40,6 +40,11 @@ All colors MUST be HSL.
     --bowling-games: 28 100% 57%;
     --bowling-success: 160 92% 38%;
     --bowling-coral: 0 100% 67%;
+    --observation-pocket: 160.6015037594 75.1412429379% 34.7058823529%;
+    --observation-split: 353.9568345324 56.2753036437% 51.5686274510%;
+    --observation-on-foreground: 0 0% 100%;
+    --observation-no: 220 10% 90%;
+    --observation-no-foreground: 220 20% 20%;
     --judo-ink: 218 62% 16%;
     --judo-canvas: 220 45% 97%;
     --judo-soft: 214 100% 96%;

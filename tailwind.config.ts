@@ -25,6 +25,13 @@ export default {
           border: "hsl(var(--selection-border))",
         },
         notification: "hsl(var(--notification))",
+        observation: {
+          pocket: "hsl(var(--observation-pocket))",
+          split: "hsl(var(--observation-split))",
+          "on-foreground": "hsl(var(--observation-on-foreground))",
+          no: "hsl(var(--observation-no))",
+          "no-foreground": "hsl(var(--observation-no-foreground))",
+        },
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",

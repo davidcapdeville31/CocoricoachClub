@@ -12,6 +12,7 @@ import { getStatTextColor, getStatColor } from "@/lib/bowling/statColors";
 import { MobileBowlingFrames } from "@/components/bowling/MobileBowlingFrames";
 import { changeThrow, emptyFrames, scoreFrames, isGameComplete } from "@/lib/bowling/scoreRules";
 import { calculateBowlingStats } from "@/lib/bowling/scoreStats";
+import { resetThrowIndicators } from "@/lib/bowling/indicatorState";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -282,6 +283,12 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
     onDraftChange?.(calculateStats(updated), updated);
   };
 
+  const handleResetIndicators = (frameIndex: number, throwIndex: number) => {
+    const updated = frames.map((f, fi) => fi !== frameIndex ? f : ({ ...f, throws: f.throws.map((t, ti) => ti !== throwIndex ? t : resetThrowIndicators(t)) }));
+    setFrames(updated);
+    onDraftChange?.(calculateStats(updated), updated);
+  };
+
   // Handle keyboard navigation (arrow keys)
   const handleKeyDown = (frameIndex: number, throwIndex: number, e: React.KeyboardEvent) => {
     if (e.key === "ArrowRight" || e.key === "ArrowDown") {
@@ -416,7 +423,7 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
         />
       )}
 
-      {isMobile && <MobileBowlingFrames frames={scoreFrames(frames)} stats={stats} gameNumber={gameNumber} readOnly={!!readOnly || isSaved} trackPockets={trackPockets} onThrow={applyThrow} onObservation={handleObservation} />}
+      {isMobile && <MobileBowlingFrames frames={scoreFrames(frames)} stats={stats} gameNumber={gameNumber} readOnly={!!readOnly || isSaved} trackPockets={trackPockets} onThrow={applyThrow} onObservation={handleObservation} onResetIndicators={handleResetIndicators} />}
       {/* Classic Bowling Score Sheet remains on desktop. */}
       {!isMobile && <Card>
         <CardHeader className="pb-2">
