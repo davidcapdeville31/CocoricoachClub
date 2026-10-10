@@ -217,14 +217,14 @@ export function PersonalNotificationPreferences() {
 
         {/* Granular preferences */}
         <div className="space-y-1">
-          <h4 className="text-sm font-medium mb-3">Types de notifications</h4>
+          <h3 className="text-sm font-medium mb-3">Types de notifications</h3>
           <div className="space-y-3">
             {notificationTypes.map((type) => {
               const Icon = type.icon;
               return (
                 <div
                   key={type.key}
-                  className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/30 transition-colors"
+                  className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-3 rounded-lg border bg-card hover:bg-muted/30 transition-colors"
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
@@ -232,10 +232,10 @@ export function PersonalNotificationPreferences() {
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-medium">{type.label}</p>
-                      <p className="text-xs text-muted-foreground truncate">{type.description}</p>
+                      <p className="text-xs text-muted-foreground">{type.description}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4 shrink-0 ml-2">
+                  <div className="flex items-center gap-4 shrink-0 self-end sm:self-auto sm:ml-2">
                     {/* Push toggle */}
                     <div className="flex items-center gap-2">
                       <Bell className="h-3.5 w-3.5 text-muted-foreground" />
