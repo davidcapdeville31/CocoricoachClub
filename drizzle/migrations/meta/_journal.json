@@ -148,6 +148,13 @@
       "when": 1791668183806,
       "tag": "0020_read_session_authorship_with_legacy_creator",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1791668351281,
+      "tag": "0021_include_weekly_planning_session_authors",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,5 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
+import { SessionAuthor } from "@/components/shared/SessionAuthor";
 import { useEffect, useState, useMemo, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -504,6 +505,7 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
                         <p className="font-medium truncate">
                         {item.template?.name || item.custom_title || t("planning.weeklyCalendar.sessionFallback")}
                       </p>
+                      <SessionAuthor sessionId={item.id} />
                       {isPrecisionItem(item) && (
                         <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 border-amber-500/40 text-amber-700 dark:text-amber-400 mt-0.5">
                           {getPrecisionTheme(item) || t("planning.weeklyCalendar.precisionFallback")}
