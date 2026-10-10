@@ -185,6 +185,7 @@ const App = () => (
                     <Route path="/athlete-space" element={<AthleteSpace />} />
                     <Route path="/accept-athlete-invitation" element={<AcceptAthleteInvitation />} />
                     <Route path="/install" element={<Install />} />
+                    <Route path="/dev-bowling" element={<BowlingObservationHarness />} />
                     <Route path="/admin" element={<Admin />} />
                      <Route path="/super-admin" element={<SuperAdmin />} />
                     <Route path="/ambassador-invitation" element={<AcceptAmbassadorInvitation />} />
