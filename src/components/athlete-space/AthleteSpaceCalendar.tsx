@@ -1140,7 +1140,6 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                              <div className="px-3 pb-3">
                                  {session.training_type !== "test" && (
                                    <div className="grid grid-cols-2 gap-2">
-                                     {session.training_type !== "mental" && (
                                        <Button
                                          size="sm"
                                          variant="outline"
@@ -1150,11 +1149,9 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                          <Eye className="h-3.5 w-3.5" />
                                          {t("athleteSpace.calendar.viewSession")}
                                        </Button>
-                                     )}
                                      <Button
                                        size="sm"
                                        className="h-auto min-h-11 w-full min-w-0 gap-1.5 whitespace-normal px-2 text-xs leading-tight"
-                                       style={{ backgroundColor: TRAINING_COLOR }}
                                        onClick={() => {
                                          setSelectedDate(parseISO(session.session_date));
                                          const tt = (session.training_type || "").toLowerCase();
