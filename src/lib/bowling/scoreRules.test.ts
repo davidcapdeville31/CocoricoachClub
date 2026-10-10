@@ -108,4 +108,27 @@ describe("Official bowling scoring and safe entry", () => {
     f[1].throws[0].observed = ["isPocket"];
     expect(calculateBowlingStats(f).pocketPercentage).toBe(50);
   });
+  test("first balls pre-set Split to an explicit Non; strikes and second balls stay unobserved", () => {
+    const f = play([[8, 1], [10], [7, 2], ...Array.from({ length: 6 }, () => [0, 0]), [10, 8]]);
+    expect(f[0].throws[0].isSplit).toBe(false);
+    expect(f[0].throws[0].observed).toContain("isSplit");
+    expect(f[0].throws[1].observed ?? []).not.toContain("isSplit");
+    expect(f[1].throws[0].observed).toEqual([]);
+    // Tenth-frame roll after a strike is a fresh first ball.
+    expect(f[9].throws[1].isSplit).toBe(false);
+    expect(f[9].throws[1].observed).toContain("isSplit");
+    expect(calculateBowlingStats(f).splitCount).toBe(0);
+  });
+  test("overwriting a throw keeps its recorded observations and legacy rolls stay legacy", () => {
+    let f = play([[8, 1]]);
+    f[0].throws[0].isSplit = true;
+    f[0].throws[0].observed = ["isSplit", "isPocket"];
+    const next = changeThrow(f, 0, 0, "9");
+    expect(next.frames[0].throws[0].isSplit).toBe(true);
+    expect(next.frames[0].throws[0].observed).toEqual(["isSplit", "isPocket"]);
+    const legacy = play([[7]]);
+    legacy[0].throws[0].observed = undefined;
+    const kept = changeThrow(legacy, 0, 0, "8");
+    expect(kept.frames[0].throws[0].observed).toBeUndefined();
+  });
 });
