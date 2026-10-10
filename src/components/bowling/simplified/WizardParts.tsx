@@ -62,7 +62,7 @@ export function blockSummary(b: SimplifiedBlock): string {
 /** Ligne compacte (titre + détail) d'un bloc replié. Aucune valeur nulle inventée. */
 export function blockCompactLine(b: SimplifiedBlock): { title: string; detail: string } {
   const fmt = (n: number) => n.toLocaleString("fr-FR", { maximumFractionDigits: 1 });
-  const dur = b.duration_min > 0 ? `${b.duration_min} min` : null;
+  const dur = b.type !== "games" && b.duration_min > 0 ? `${b.duration_min} min` : null;
   if (b.type === "tactical") {
     const title = b.items.length ? Array.from(new Set(b.items.map(itemLabel))).join(", ") : (b.title?.trim() || "Aucune situation");
     const items = b.items.filter((it) => (it.attempts || 0) > 0);
