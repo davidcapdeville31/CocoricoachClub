@@ -588,10 +588,7 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
                                   <Pencil className="h-3.5 w-3.5" />
                                 </span>
                               </div>
-                              {session.session_start_time && (
-                                <SessionAuthor sessionId={session.id} />
-                              )}
-                              {!session.session_start_time && <SessionAuthor sessionId={session.id} />}
+                              <SessionAuthor sessionId={session.id} />
                               {session.session_start_time && (
                                 <p className={cn(
                                   "text-xs",
