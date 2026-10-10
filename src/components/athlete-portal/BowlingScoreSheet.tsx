@@ -9,6 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Target, TrendingUp, Save, X, CheckCircle, ChevronDown } from "lucide-react";
 import { getStatTextColor, getStatColor } from "@/lib/bowling/statColors";
+import { MobileBowlingFrames } from "@/components/bowling/MobileBowlingFrames";
+import { changeThrow, emptyFrames, scoreFrames, isGameComplete } from "@/lib/bowling/scoreRules";
+import { calculateBowlingStats } from "@/lib/bowling/scoreStats";
+import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export interface ThrowData {
@@ -18,6 +22,8 @@ export interface ThrowData {
   isSplit: boolean;
   isSinglePin: boolean;
   isSinglePinConverted: boolean;
+  /** Missing metadata means legacy observations; an empty array means not observed. */
+  observed?: string[];
 }
 
 export interface FrameData {
@@ -27,6 +33,8 @@ export interface FrameData {
 }
 
 export interface BowlingStats {
+  pocketOpportunities?: number;
+  spareOpportunities?: number;
   totalScore: number;
   strikes: number;
   spares: number;
@@ -58,6 +66,8 @@ interface BowlingScoreSheetProps {
   readOnly?: boolean;
   trackPockets?: boolean;
   compact?: boolean;
+  gameNumber?: number;
+  onDraftChange?: (stats: BowlingStats, frames: FrameData[]) => void;
 }
 
 const createEmptyFrame = (): FrameData => ({
@@ -75,7 +85,7 @@ const createEmptyThrow = (): ThrowData => ({
   isSinglePinConverted: false,
 });
 
-export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, categoryId, readOnly, trackPockets = true, compact: compactProp = false }: BowlingScoreSheetProps) {
+export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, categoryId, readOnly, trackPockets = true, compact: compactProp = false, gameNumber = 1, onDraftChange }: BowlingScoreSheetProps) {
   const isMobile = useIsMobile();
   const compact = compactProp || isMobile;
   const [frames, setFrames] = useState<FrameData[]>(() => 
@@ -203,285 +213,8 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
     }
   }, [initialFrames, readOnly]);
 
-  // Calculate score for a frame
-  const calculateFrameScore = useCallback((frameIndex: number, allFrames: FrameData[]): number | null => {
-    const frame = allFrames[frameIndex];
-    if (!frame.throws.length) return null;
-
-    const isTenthFrame = frameIndex === 9;
-
-    if (isTenthFrame) {
-      // 10th frame: sum all pins directly
-      return frame.throws.reduce((sum, t) => sum + t.pins, 0);
-    }
-
-    const firstThrow = frame.throws[0];
-    const secondThrow = frame.throws[1];
-
-    if (!firstThrow) return null;
-
-    // Strike
-    if (firstThrow.value === "X") {
-      // Need next two throws for bonus
-      let bonus1: number | null = null;
-      let bonus2: number | null = null;
-
-      const nextFrame = allFrames[frameIndex + 1];
-      if (nextFrame?.throws[0]) {
-        bonus1 = nextFrame.throws[0].pins;
-        if (nextFrame.throws[0].value === "X" && frameIndex < 8) {
-          // Strike in next frame, need to look at frame after
-          const frameAfter = allFrames[frameIndex + 2];
-          if (frameAfter?.throws[0]) {
-            bonus2 = frameAfter.throws[0].pins;
-          }
-        } else if (nextFrame.throws[1]) {
-          bonus2 = nextFrame.throws[1].pins;
-        }
-      }
-
-      if (bonus1 !== null && bonus2 !== null) {
-        return 10 + bonus1 + bonus2;
-      }
-      return null; // Can't calculate yet
-    }
-
-    if (!secondThrow) return null;
-
-    // Spare
-    if (secondThrow.value === "/") {
-      const nextFrame = allFrames[frameIndex + 1];
-      if (nextFrame?.throws[0]) {
-        return 10 + nextFrame.throws[0].pins;
-      }
-      return null; // Can't calculate yet
-    }
-
-    // Open frame
-    return firstThrow.pins + secondThrow.pins;
-  }, []);
-
-  // Calculate cumulative scores
-  const calculateAllScores = useCallback((allFrames: FrameData[]): FrameData[] => {
-    const updatedFrames = [...allFrames];
-    let cumulativeScore = 0;
-
-    for (let i = 0; i < 10; i++) {
-      const frameScore = calculateFrameScore(i, updatedFrames);
-      updatedFrames[i] = {
-        ...updatedFrames[i],
-        score: frameScore,
-        cumulativeScore: frameScore !== null ? cumulativeScore + frameScore : null,
-      };
-      if (frameScore !== null) {
-        cumulativeScore += frameScore;
-      }
-    }
-
-    return updatedFrames;
-  }, [calculateFrameScore]);
-
-  // Calculate statistics
-  const calculateStats = useCallback((allFrames: FrameData[]): BowlingStats => {
-    let strikes = 0;
-    let spares = 0;
-    let splitCount = 0;
-    let splitConverted = 0;
-    let splitOnLastThrow = 0;
-    let singlePinCount = 0;
-    let singlePinConverted = 0;
-    let pocketCount = 0;
-    let totalThrows = 0;
-    let openFrames = 0;
-    let firstThrowCount = 0;
-    let firstBallGte8Count = 0;
-    let firstBallGte8Opportunities = 0;
-
-    allFrames.forEach((frame, frameIndex) => {
-      const isTenthFrame = frameIndex === 9;
-      
-      frame.throws.forEach((throwData, throwIndex) => {
-        if (throwData.value === "") return;
-        
-        totalThrows++;
-        
-        const isFirstThrowContext = isPocketAllowed(frameIndex, throwIndex, frame);
-        if (throwData.isPocket && isFirstThrowContext) {
-          pocketCount++;
-        }
-
-        // Count first ball >= 8 pins (on first throw contexts only)
-        if (isFirstThrowContext && throwData.value !== "") {
-          // Check if this is the last possible throw (12th throw with no conversion chance)
-          const isLastThrowNoConversion = isTenthFrame && throwIndex === 2 && (
-            (frame.throws[0]?.value === "X" && frame.throws[1]?.value === "X") ||
-            (frame.throws[0]?.value !== "X" && frame.throws[1]?.value === "/")
-          );
-          if (!isLastThrowNoConversion) {
-            firstBallGte8Opportunities++;
-            if (throwData.pins >= 8) {
-              firstBallGte8Count++;
-            }
-          }
-        }
-
-        // Count strikes
-        if (throwData.value === "X") {
-          strikes++;
-          if (!isTenthFrame || throwIndex === 0) {
-            firstThrowCount++;
-          } else if (isTenthFrame && throwIndex === 1) {
-            firstThrowCount++;
-          } else if (isTenthFrame && throwIndex === 2 && frame.throws[1]?.value === "X") {
-            firstThrowCount++;
-          }
-        }
-
-        // Count spares
-        if (throwData.value === "/") {
-          const previousThrow = frame.throws[throwIndex - 1];
-          if (previousThrow?.isSplit) {
-            splitConverted++;
-            spares++;
-          } else {
-            spares++;
-          }
-        }
-
-        // Count splits
-        if (throwData.isSplit) {
-          if (isTenthFrame && throwIndex >= 1) {
-            const previousThrows = frame.throws.slice(0, throwIndex);
-            const hasStrikeSequence = previousThrows.every(t => t.value === "X");
-            if (hasStrikeSequence) {
-              splitOnLastThrow++;
-            } else {
-              splitCount++;
-            }
-          } else {
-            splitCount++;
-          }
-        }
-
-        // Count single pins (first throw = 9, leaving 1 pin)
-        // Exclude the last possible throw (12th) where no conversion is possible
-        if (isFirstThrowContext && throwData.value === "9") {
-          const isLastThrowNoConversion = isTenthFrame && throwIndex === 2 && (
-            (frame.throws[0]?.value === "X" && frame.throws[1]?.value === "X") ||
-            (frame.throws[0]?.value !== "X" && frame.throws[1]?.value === "/")
-          );
-          if (!isLastThrowNoConversion) {
-            singlePinCount++;
-            const nextThrow = frame.throws[throwIndex + 1];
-            if (nextThrow?.value === "/") {
-              singlePinConverted++;
-            }
-          }
-        }
-      });
-
-      // Count open frames (frames 1-9) - exclude unconverted splits
-      if (!isTenthFrame && frame.throws.length >= 2) {
-        const first = frame.throws[0];
-        const second = frame.throws[1];
-        if (first.value !== "X" && second.value !== "/" && !first.isSplit) {
-          openFrames++;
-        }
-      }
-    });
-
-    const totalScore = allFrames[9].cumulativeScore || 0;
-
-    const tenthFrame = allFrames[9];
-    let totalFrames = 10;
-    if (tenthFrame.throws.length >= 2) {
-      const first10 = tenthFrame.throws[0];
-      const second10 = tenthFrame.throws[1];
-      if (first10?.value === "X") {
-        totalFrames = 11;
-        if (second10?.value === "X" && tenthFrame.throws[2]?.value) {
-          totalFrames = 12;
-        }
-      } else if (second10?.value === "/") {
-        totalFrames = 11;
-      }
-    }
-
-    let pocketOpportunities = 9;
-    pocketOpportunities++;
-    if (tenthFrame.throws[0]?.value === "X") pocketOpportunities++;
-    if (tenthFrame.throws[1]?.value === "X" || tenthFrame.throws[1]?.value === "/") pocketOpportunities++;
-
-    const strikePercentage = totalFrames > 0 ? (strikes / totalFrames) * 100 : 0;
-    
-    let spareOpportunities = 0;
-    let sparesConverted = 0;
-    for (let i = 0; i < 9; i++) {
-      const f = allFrames[i];
-      if (f.throws.length === 0 || f.throws[0].value === "" || f.throws[0].value === "X") continue;
-      if (f.throws[0].isSplit && f.throws[1]?.value !== "/") continue;
-      spareOpportunities++;
-      if (f.throws[1]?.value === "/") {
-        sparesConverted++;
-      }
-    }
-    if (tenthFrame.throws[0]?.value !== "X" && tenthFrame.throws[0]?.value !== "") {
-      if (!(tenthFrame.throws[0]?.isSplit && tenthFrame.throws[1]?.value !== "/")) {
-        spareOpportunities++;
-        if (tenthFrame.throws[1]?.value === "/") sparesConverted++;
-      }
-    }
-    // 11th frame spare opportunity - but NOT if 12th throw has no subsequent throw for conversion
-    if (tenthFrame.throws[0]?.value === "X" && tenthFrame.throws[1]?.value !== "X" && tenthFrame.throws[1]?.value !== "") {
-      if (!(tenthFrame.throws[1]?.isSplit && tenthFrame.throws[2]?.value !== "/")) {
-        spareOpportunities++;
-        if (tenthFrame.throws[2]?.value === "/") sparesConverted++;
-      }
-    }
-    
-    const sparePercentage = spareOpportunities > 0 
-      ? Math.min(100, (sparesConverted / spareOpportunities) * 100)
-      : 0;
-
-    const splitPercentage = splitCount > 0 
-      ? (splitConverted / splitCount) * 100 
-      : 0;
-
-    const singlePinConversionRate = singlePinCount > 0 
-      ? (singlePinConverted / singlePinCount) * 100 
-      : 0;
-
-    const pocketPercentage = pocketOpportunities > 0 
-      ? (pocketCount / pocketOpportunities) * 100 
-      : 0;
-
-    const firstBallGte8Percentage = firstBallGte8Opportunities > 0
-      ? (firstBallGte8Count / firstBallGte8Opportunities) * 100
-      : 0;
-
-    return {
-      totalScore,
-      strikes,
-      spares,
-      splitCount,
-      splitConverted,
-      splitOnLastThrow,
-      singlePinCount,
-      singlePinConverted,
-      pocketCount,
-      totalThrows,
-      totalFrames,
-      strikePercentage: Math.round(strikePercentage * 10) / 10,
-      sparePercentage: Math.round(sparePercentage * 10) / 10,
-      splitPercentage: Math.round(splitPercentage * 10) / 10,
-      singlePinConversionRate: Math.round(singlePinConversionRate * 10) / 10,
-      pocketPercentage: Math.round(pocketPercentage * 10) / 10,
-      openFrames,
-      firstBallGte8Count,
-      firstBallGte8Opportunities,
-      firstBallGte8Percentage: Math.round(firstBallGte8Percentage * 10) / 10,
-    };
-  }, []);
+  const calculateAllScores = scoreFrames;
+  const calculateStats = calculateBowlingStats;
 
   // Helper: Check if pocket checkbox is allowed for this throw
   const isPocketAllowed = (frameIndex: number, throwIndex: number, frame: FrameData): boolean => {
@@ -519,77 +252,32 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
     setStats(calculateStats(updatedFrames));
   }, [frames, calculateAllScores, calculateStats]);
 
-  // Handle throw input
+  const applyThrow = (frameIndex: number, throwIndex: number, rawValue: string): FrameData[] | null => {
+    const result = changeThrow(frames, frameIndex, throwIndex, rawValue);
+    if (result.error) { toast.error(result.error); return null; }
+    if (result.incompatible && !window.confirm("Cette correction rend des lancers de cette frame incompatibles. Retirer uniquement ces lancers ? Les frames suivantes seront conservées.")) return null;
+    const updated = result.frames;
+    setFrames(updated);
+    setIsSaved(false);
+    onDraftChange?.(calculateStats(updated), updated);
+    return updated;
+  };
   const handleThrowInput = (frameIndex: number, throwIndex: number, rawValue: string) => {
-    // Tablet/IME keyboards may emit multi-char strings (e.g. "8X" when replacing
-    // a value). Keep only the last typed character so saisie tactile works.
-    let upperValue = (rawValue || "").toUpperCase();
-    if (upperValue.length > 1) {
-      upperValue = upperValue.slice(-1);
+    const updated = applyThrow(frameIndex, throwIndex, rawValue.length > 1 ? rawValue.slice(-1) : rawValue);
+    if (updated && rawValue) {
+      const next = findNextThrow(frameIndex, throwIndex, updated);
+      if (next) focusInput(next[0], next[1]);
     }
+  };
 
-    // Validate input
-    if (upperValue !== "" && 
-        upperValue !== "X" && 
-        upperValue !== "/" && 
-        !/^[0-9]$/.test(upperValue) &&
-        upperValue !== "-") {
-      return;
-    }
-
-    setFrames(prevFrames => {
-      const newFrames = [...prevFrames];
-      const frame = { ...newFrames[frameIndex] };
-      const throws = [...frame.throws];
-
-      // Ensure throws array has enough elements
-      while (throws.length <= throwIndex) {
-        throws.push(createEmptyThrow());
-      }
-
-      const currentThrow = { ...throws[throwIndex] };
-      currentThrow.value = upperValue;
-
-      // Calculate pins based on value
-      if (upperValue === "X") {
-        currentThrow.pins = 10;
-      } else if (upperValue === "/") {
-        const isTenthFrame = frameIndex === 9;
-        if (isTenthFrame) {
-          let pinsInCurrentSet = 0;
-          for (let ti = throwIndex - 1; ti >= 0; ti--) {
-            if (throws[ti]?.value === "X" || throws[ti]?.value === "/") {
-              break;
-            }
-            pinsInCurrentSet += throws[ti]?.pins || 0;
-          }
-          currentThrow.pins = 10 - pinsInCurrentSet;
-        } else {
-          const previousPins = throws.slice(0, throwIndex).reduce((sum, t) => sum + t.pins, 0);
-          currentThrow.pins = 10 - previousPins;
-        }
-      } else if (upperValue === "-" || upperValue === "") {
-        currentThrow.pins = 0;
-      } else {
-        currentThrow.pins = parseInt(upperValue) || 0;
-      }
-
-      throws[throwIndex] = currentThrow;
-      frame.throws = throws;
-      newFrames[frameIndex] = frame;
-
-      const calculated = calculateAllScores(newFrames);
-
-      // Auto-advance to next throw if a valid value was entered
-      if (upperValue !== "") {
-        const next = findNextThrow(frameIndex, throwIndex, calculated);
-        if (next) {
-          focusInput(next[0], next[1]);
-        }
-      }
-
-      return calculated;
-    });
+  const handleObservation = (frameIndex: number, throwIndex: number, field: keyof ThrowData, value: boolean | undefined) => {
+    const updated = frames.map((f, fi) => fi !== frameIndex ? f : ({ ...f, throws: f.throws.map((t, ti) => {
+      if (ti !== throwIndex) return t;
+      const observed = t.observed ?? ["isPocket", "isSplit", "isSinglePin", "isSinglePinConverted"];
+      return { ...t, [field]: value ?? false, observed: value === undefined ? observed.filter(k => k !== field) : [...new Set([...observed, field])] };
+    }) }));
+    setFrames(updated);
+    onDraftChange?.(calculateStats(updated), updated);
   };
 
   // Handle keyboard navigation (arrow keys)
@@ -622,22 +310,8 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
     throwIndex: number, 
     field: "isPocket" | "isSplit" | "isSinglePin" | "isSinglePinConverted"
   ) => {
-    setFrames(prevFrames => {
-      const newFrames = [...prevFrames];
-      const frame = { ...newFrames[frameIndex] };
-      const throws = [...frame.throws];
-
-      if (throws[throwIndex]) {
-        throws[throwIndex] = {
-          ...throws[throwIndex],
-          [field]: !throws[throwIndex][field],
-        };
-        frame.throws = throws;
-        newFrames[frameIndex] = frame;
-      }
-
-      return newFrames;
-    });
+    const current = frames[frameIndex]?.throws[throwIndex];
+    if (current) handleObservation(frameIndex, throwIndex, field, !current[field]);
   };
 
   // Get max throws for a frame
@@ -695,7 +369,7 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
       frameLines: ballMode === "advanced" ? frameLines : undefined,
       frameSurfaces: ballMode === "advanced" ? frameSurfaces : undefined,
     } : undefined;
-    onSave?.(stats, frames, ballData);
+    onSave?.(calculateStats(scoreFrames(frames)), scoreFrames(frames), ballData);
   };
 
   // Get cell background color based on throw value and split status
@@ -737,8 +411,9 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
         />
       )}
 
-      {/* Classic Bowling Score Sheet */}
-      <Card>
+      {isMobile && <MobileBowlingFrames frames={scoreFrames(frames)} stats={stats} gameNumber={gameNumber} readOnly={!!readOnly || isSaved} trackPockets={trackPockets} onThrow={applyThrow} onObservation={handleObservation} />}
+      {/* Classic Bowling Score Sheet remains on desktop. */}
+      {!isMobile && <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center justify-between gap-2 flex-wrap">
             <span className="flex items-center gap-2">
@@ -920,11 +595,11 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
           </div>
 
         </CardContent>
-      </Card>
+      </Card>}
 
 
       {/* Throw Details - Collapsible (hidden in compact/focus mode; P/S now inline in scoresheet header) */}
-      {!compact && (
+      {!compact && !isMobile && (
       <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
         <Card className={compact ? "shadow-sm" : ""}>
           <CollapsibleTrigger asChild>
@@ -1075,10 +750,10 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
           </CollapsibleTrigger>
           <CollapsibleContent>
             <CardContent className={compact ? "p-2.5 pt-0" : ""}>
-              <div className={compact ? "grid grid-cols-4 gap-1" : "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"}>
+              <div className={compact ? "grid grid-cols-2 gap-2" : "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"}>
                  <StatBox 
                   label="% Strikes" 
-                  value={`${stats.strikePercentage}%`}
+                  value={stats.totalFrames === 0 ? "—" : `${stats.strikePercentage}%`}
                   detail={`${stats.strikes}/${stats.totalFrames} f.`}
                   bgColorClass={getStatColor("strike", stats.strikePercentage).bg}
                   textColorClass={getStatColor("strike", stats.strikePercentage).text}
@@ -1086,7 +761,7 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                 />
                 <StatBox 
                   label="% Spares" 
-                  value={`${stats.sparePercentage}%`}
+                  value={stats.spareOpportunities === 0 ? "—" : `${stats.sparePercentage}%`}
                   detail={`${stats.spares} sp. (ex. spl)`}
                   bgColorClass={getStatColor("spare", stats.sparePercentage).bg}
                   textColorClass={getStatColor("spare", stats.sparePercentage).text}
@@ -1094,14 +769,14 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                 />
                 <StatBox 
                   label="% Splits conv." 
-                  value={`${stats.splitPercentage}%`}
+                  value={stats.splitCount === 0 ? "—" : `${stats.splitPercentage}%`}
                   detail={`${stats.splitConverted}/${stats.splitCount} spl.`}
                   note={stats.splitOnLastThrow > 0 ? `+${stats.splitOnLastThrow} excl.` : undefined}
                   compact={compact}
                 />
                 <StatBox 
                   label="% QS converties" 
-                  value={`${stats.singlePinConversionRate}%`}
+                  value={stats.singlePinCount === 0 ? "—" : `${stats.singlePinConversionRate}%`}
                   detail={`${stats.singlePinConverted}/${stats.singlePinCount}`}
                   bgColorClass={getStatColor("singlePin", stats.singlePinConversionRate).bg}
                   textColorClass={getStatColor("singlePin", stats.singlePinConversionRate).text}
@@ -1109,7 +784,7 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                 />
                 <StatBox 
                   label="% Poches" 
-                  value={`${stats.pocketPercentage}%`}
+                  value={stats.pocketOpportunities === 0 ? "—" : `${stats.pocketPercentage}%`}
                   detail={`${stats.pocketCount} lanc.`}
                   bgColorClass={getStatColor("pocket", stats.pocketPercentage).bg}
                   textColorClass={getStatColor("pocket", stats.pocketPercentage).text}
@@ -1117,7 +792,7 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                 />
                 <StatBox 
                   label="% Boules ≥8" 
-                  value={`${stats.firstBallGte8Percentage}%`}
+                  value={stats.firstBallGte8Opportunities === 0 ? "—" : `${stats.firstBallGte8Percentage}%`}
                   detail={`${stats.firstBallGte8Count}/${stats.firstBallGte8Opportunities}`}
                   bgColorClass={getStatColor("firstBallGte8", stats.firstBallGte8Percentage).bg}
                   textColorClass={getStatColor("firstBallGte8", stats.firstBallGte8Percentage).text}
@@ -1146,19 +821,20 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
       <div className={`flex gap-2 ${compact ? "mt-2 justify-end" : "mt-4"}`}>
         <Button 
           variant="outline" 
-          className={compact ? "h-7 text-[11px] px-2.5 font-medium flex-1 sm:flex-none" : "flex-1"} 
+          className={isMobile ? "h-12 flex-1" : compact ? "h-7 text-[11px] px-2.5 font-medium flex-1 sm:flex-none" : "flex-1"} 
           onClick={onCancel}
         >
           <X className={compact ? "h-3 w-3 mr-1" : "h-4 w-4 mr-2"} />
           {isSaved ? "Fermer" : "Annuler"}
         </Button>
+        {isSaved && !readOnly && <Button variant="outline" className="h-12 flex-1" onClick={() => setIsSaved(false)}>Modifier</Button>}
         {!isSaved && (
           <Button 
-            className={compact ? "h-7 text-[11px] px-3 font-medium flex-1 sm:flex-none" : "flex-1"} 
+            className={isMobile ? "h-12 flex-1 bg-bowling-ink text-card" : compact ? "h-7 text-[11px] px-3 font-medium flex-1 sm:flex-none" : "flex-1"} 
             onClick={handleSave}
           >
             <Save className={compact ? "h-3 w-3 mr-1" : "h-4 w-4 mr-2"} />
-            Enregistrer
+            {isGameComplete(frames) ? "Enregistrer" : "Enregistrer en cours"}
           </Button>
         )}
       </div>

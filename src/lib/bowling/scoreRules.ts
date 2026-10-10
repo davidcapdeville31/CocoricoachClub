@@ -76,7 +76,7 @@ export function changeThrow(frames: FrameData[], index: number, throwIndex: numb
   const frame = copy[index];
   const previous = frame.throws[throwIndex];
   const value = upper === "" ? "" : pins === 10 && remaining === 10 ? "X" : pins === remaining && remaining < 10 ? "/" : upper === "G" || upper === "-" ? "-" : String(pins);
-  frame.throws[throwIndex] = { value, pins, isPocket: false, isSplit: false, isSinglePin: false, isSinglePinConverted: false, ...previous, value, pins };
+  frame.throws[throwIndex] = { isPocket: false, isSplit: false, isSinglePin: false, isSinglePinConverted: false, observed: [], ...previous, value, pins };
   let incompatible = false;
   for (let t = throwIndex + 1; t < frame.throws.length; t++) {
     const roll = frame.throws[t];
