@@ -72,13 +72,13 @@ function blockLine(b: SimplifiedBlock): { icon: typeof Target; color: string; ti
     };
   }
   if (b.type === "technical") {
-    return { icon: Wrench, color: "text-success", title: b.title?.trim() || "Technique", detail: `${technicalThemeLabel(b)} · ${b.duration_min} min` };
+    return { icon: Wrench, color: "text-bowling-technical", title: b.title?.trim() || "Technique", detail: `${technicalThemeLabel(b)} · ${b.duration_min} min` };
   }
   const agg = aggregateGamesStats(b);
   const best = Math.max(0, ...b.parties.map((p) => p.stats?.totalScore || 0));
   return {
     icon: Circle,
-    color: "text-warning",
+    color: "text-bowling-games",
     title: b.title?.trim() || "Parties",
     detail: agg ? `${agg.count} partie${agg.count > 1 ? "s" : ""} · Moy. ${agg.avgScore.toLocaleString("fr-FR")} · Meilleure ${best}` : "Aucun score saisi",
   };
