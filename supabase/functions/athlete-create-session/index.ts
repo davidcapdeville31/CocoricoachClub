@@ -59,6 +59,7 @@ serve(async (req) => {
       session_blocks,
       exercises,
       partner_player_ids,
+      session_kind,
     } = body ?? {};
 
     if (!category_id || !player_id || !session_date || !training_type) {
@@ -157,6 +158,7 @@ serve(async (req) => {
         session_end_time: session_end_time || null,
         intensity: Number.isNaN(parsedIntensity) ? null : parsedIntensity,
         created_by_player_id: player_id,
+        session_kind: ["training", "competition", "personal", "evaluation"].includes(session_kind) ? session_kind : null,
         notes: notes ? `[Séance athlète] ${notes}` : "[Séance athlète]",
       })
       .select("id")

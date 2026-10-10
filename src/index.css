@@ -22,12 +22,16 @@ All colors MUST be HSL.
   :root {
     /* Pure White Background - Clean & Modern */
     --background: 0 0% 100%;
-    --bowling-canvas: 216 60% 97%;
-    --bowling-accent: 217 91% 55%;
-    --bowling-ink: 222 47% 18%;
-    --bowling-tactical: 217 80% 52%;
-    --bowling-technical: 178 70% 36%;
-    --bowling-games: 28 92% 52%;
+    --bowling-canvas: 220 100% 98%;
+    --bowling-accent: 213 80% 46%;
+    --bowling-ink: 218 62% 16%;
+    --bowling-ink-2: 215 52% 23%;
+    --bowling-field: 225 50% 97%;
+    --bowling-tactical: 213 80% 46%;
+    --bowling-technical: 178 70% 34%;
+    --bowling-games: 28 100% 57%;
+    --bowling-success: 160 92% 38%;
+    --bowling-coral: 0 100% 67%;
     --foreground: 220 20% 15%;
 
     --card: 0 0% 100%;
@@ -136,6 +140,10 @@ All colors MUST be HSL.
     --bowling-canvas: 220 25% 9%;
     --bowling-accent: 217 91% 62%;
     --bowling-ink: 214 40% 92%;
+    --bowling-ink-2: 214 30% 80%;
+    --bowling-field: 220 22% 15%;
+    --bowling-success: 160 80% 45%;
+    --bowling-coral: 0 90% 70%;
     --bowling-tactical: 217 85% 65%;
     --bowling-technical: 178 60% 50%;
     --bowling-games: 28 92% 60%;
