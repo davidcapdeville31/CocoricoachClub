@@ -5,6 +5,8 @@
 - [x] Vérifier en consultation connectée les onglets Admin/Planning/Programmation/Santé et l’espace Manon : sélections #10264A, texte/icônes blancs, graisse 600 ; clair/sombre à 320/360/390/430/768/1280 px sans débordement, menu Plus et thème testés ; aucun enregistrement ni push. Contrôle non exhaustif de chaque formulaire spécifique.
 
 ## Feuille de score bowling mobile
+- [x] Intégrer Poche/Split sous le pavé, trois états et progression volontaire, sans modifier scores ni historiques.
+- [x] Vérifier observations, corrections, dixième frame et rendu clair/sombre à 320/360/390/430/768/1280 px : 17 tests réussis et parcours du composant réel isolé, reprise JSON et statistiques vérifiées ; aucun enregistrement connecté ni téléphone physique testé.
 - [x] Examiner la feuille actuelle et les points de sauvegarde ; formaliser le plan.
 - [x] Ajouter une saisie guidée mobile compatible avec la feuille ordinateur.
 - [x] Préserver corrections, statistiques optionnelles, modes et parties incomplètes.
