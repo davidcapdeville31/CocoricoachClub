@@ -1,5 +1,9 @@
 # Calendrier de charge
 
+## Actions des séances réduites
+- [ ] Garder Voir la séance / Remplir les données visibles côte à côte sans déplier la carte ; préserver les restrictions existantes.
+- [ ] Stabiliser Présent vert / Absent rouge en clair et sombre et vérifier les actions mobiles.
+
 ## Ressenti après séance
 - [x] Raccorder les cinq choix de forme aux couleurs fonctionnelles communes, hors sélection générique, sans changer les valeurs ni la sauvegarde.
 - [x] Vérifier les dix états du composant réel isolé en clair/sombre dans un cadre 320 px : couleurs identiques, focus stable, libellés et coche lisibles ; contrastes 4,97–10,08:1, aucune erreur JS. Compte connecté consulté mais sans séance accessible : formulaire complet et sauvegarde non retestés.
