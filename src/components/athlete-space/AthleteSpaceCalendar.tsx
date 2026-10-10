@@ -1137,42 +1137,21 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                 />
                               </div>
                             )}
-                            {(isExpanded && (exercises.length > 0 || (session as any).notes || isBowling || isBasket)) && (
-                              <div className="px-3 pb-3 border-t border-border/50 pt-2 space-y-2">
-                                {(() => {
-                                  const rawNotes = ((session as any).notes || "").replace(/<!--[\s\S]*?-->/g, "").trim();
-                                  if (!rawNotes) return null;
-                                  return (
-                                    <div className="rounded-md border border-primary/20 bg-primary/5 p-2">
-                                      <p className="text-[10px] uppercase tracking-wide font-semibold text-primary mb-1">
-                                        {t("athleteSpace.calendar.coachInstructions")}
-                                      </p>
-                                      <FormattedText text={rawNotes} className="text-xs text-foreground/90" />
-                                    </div>
-                                  );
-                                })()}
-                                {exercises.length > 0 && (
-                                  <div className="overflow-x-auto -mx-3 px-3">
-                                    <GroupedExerciseList exercises={exercises} maxHeight="500px" />
-                                  </div>
-                                )}
+                             <div className="px-3 pb-3">
                                  {session.training_type !== "test" && (
-                                   <div className="flex flex-col sm:flex-row gap-2">
-                                     {session.training_type !== "mental" && (
+                                   <div className="grid grid-cols-2 gap-2">
                                        <Button
                                          size="sm"
                                          variant="outline"
-                                         className="w-full gap-1.5"
+                                         className="h-auto min-h-11 w-full min-w-0 gap-1.5 whitespace-normal px-2 text-xs leading-tight"
                                          onClick={() => setDetailSession({ session, exercises })}
                                        >
                                          <Eye className="h-3.5 w-3.5" />
                                          {t("athleteSpace.calendar.viewSession")}
                                        </Button>
-                                     )}
                                      <Button
                                        size="sm"
-                                       className="w-full gap-1.5"
-                                       style={{ backgroundColor: TRAINING_COLOR }}
+                                       className="h-auto min-h-11 w-full min-w-0 gap-1.5 whitespace-normal px-2 text-xs leading-tight"
                                        onClick={() => {
                                          setSelectedDate(parseISO(session.session_date));
                                          const tt = (session.training_type || "").toLowerCase();
@@ -1198,6 +1177,26 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                      </Button>
                                    </div>
                                  )}
+                             </div>
+                            {(isExpanded && (exercises.length > 0 || (session as any).notes || isBowling || isBasket)) && (
+                              <div className="px-3 pb-3 border-t border-border/50 pt-2 space-y-2">
+                                {(() => {
+                                  const rawNotes = ((session as any).notes || "").replace(/<!--[\s\S]*?-->/g, "").trim();
+                                  if (!rawNotes) return null;
+                                  return (
+                                    <div className="rounded-md border border-primary/20 bg-primary/5 p-2">
+                                      <p className="text-[10px] uppercase tracking-wide font-semibold text-primary mb-1">
+                                        {t("athleteSpace.calendar.coachInstructions")}
+                                      </p>
+                                      <FormattedText text={rawNotes} className="text-xs text-foreground/90" />
+                                    </div>
+                                  );
+                                })()}
+                                {exercises.length > 0 && (
+                                  <div className="overflow-x-auto -mx-3 px-3">
+                                    <GroupedExerciseList exercises={exercises} maxHeight="500px" />
+                                  </div>
+                                )}
                                 {session.training_type === "mental" && isAthleteSession && (
                                   <Button
                                     size="sm"
