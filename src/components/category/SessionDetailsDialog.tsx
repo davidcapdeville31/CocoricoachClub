@@ -30,6 +30,7 @@ import { cn } from "@/lib/utils";
 import { calculateWeightedRpe, formatDuration } from "@/lib/weightedRpeCalculations";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
+import { getSessionDisplayTitle, getSessionOrigin, getCompletionStatus, getReadableNotes } from "@/lib/sessionPresentation";
 import { NotifyAthletesDialog } from "@/components/notifications/NotifyAthletesDialog";
 import { BowlingSessionContent } from "@/components/bowling/BowlingSessionContent";
 import { TennisDrillTraining } from "@/components/tennis/TennisDrillTraining";
@@ -785,8 +786,10 @@ export function SessionDetailsDialog({
             <div className="flex flex-wrap gap-2 mb-4">
               <Badge variant="secondary" className="flex items-center gap-1">
                 <Activity className="h-3 w-3" />
-                {trainingTypeLabels[session.training_type] || session.training_type}
+                {getSessionDisplayTitle(session as any)}
               </Badge>
+              <Badge variant="outline">{getSessionOrigin(session as any) === "personal" ? "Séance de l'athlète" : "Séance du coach"}</Badge>
+              <Badge variant="outline">{({ scheduled: "Programmée", inProgress: "En cours", done: "Terminée", cancelled: "Annulée" } as const)[getCompletionStatus(session as any)]}</Badge>
               {session.intensity && !isTestSession && (
                 <Badge variant="outline">Intensité: {session.intensity}/10</Badge>
               )}
@@ -996,7 +999,7 @@ export function SessionDetailsDialog({
 
           {(() => {
             const mental = parseMentalFromNotes(session?.notes);
-            const displayNotes = getDisplayNotes(session?.notes);
+            const displayNotes = getReadableNotes(getDisplayNotes(session?.notes));
             if (!mental && !displayNotes) return null;
             return (
               <div className="mb-4 overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-surface to-surface-elevated shadow-sm">
