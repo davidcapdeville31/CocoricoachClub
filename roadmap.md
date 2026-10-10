@@ -1,5 +1,9 @@
 # Calendrier de charge
 
+## Identité officielle bleu blanc rouge
+- [ ] Harmoniser les sélections partagées et les exceptions visuelles en bleu marine opaque et blanc ; rouge notifications, Wellness vert conservé.
+- [ ] Vérifier les états actifs/inactifs en clair et sombre sur les vues staff et athlète, sans modifier les données.
+
 ## Feuille de score bowling mobile
 - [x] Examiner la feuille actuelle et les points de sauvegarde ; formaliser le plan.
 - [x] Ajouter une saisie guidée mobile compatible avec la feuille ordinateur.
