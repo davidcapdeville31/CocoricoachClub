@@ -1,5 +1,6 @@
 # Architecture decisions
 - Athlete visual tokens are scoped to the athlete shell and reuse existing theme classes, so shared coach screens and business behavior remain unchanged.
+- App-wide selectable controls use shared selection tokens and semantic state attributes; the global selection contract supersedes legacy sport colors without changing functional status colors or behavior.
 - Athlete mobile navigation selects the existing URL tab state and mirrors sport visibility; the secondary drawer and desktop theme command reuse FieldModeContext to preserve preferences and all modules.
 - Athlete mobile content reserves the measured bottom-navigation height via ResizeObserver, including safe areas; visualViewport hides navigation during an obstructing keyboard without changing destinations or form state.
 - The shared athlete notification dialog sends push-only requests using linked user IDs; composition announcements use an editable default message without changing global-calendar availability invitations.
