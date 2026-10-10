@@ -33,7 +33,7 @@
 - FieldModeContext activates canonical `.dark` tokens and Tailwind variants; no parallel theme provider.
 - RPE uses `data-rpe`; form uses shared FeelingChoices and `data-feeling` tokens; selection overrides exclude both and bowling to preserve meaning.
 
-- Attendance uses `data-attendance` status tokens outside selection overrides; session actions stay outside disclosures to remain accessible when collapsed.
+- Attendance reuses SessionAttendanceResponse on home/calendar cards; `data-attendance` bypasses selection overrides and actions stay outside disclosures.
 
 - Athlete calendar uses scoped Day Picker/month and date-fns/week over identical data; mounted tabs preserve drafts and civil-date URL context without changing business dialogs.
 - Upcoming summaries batch attendance reads; preserve RSVP write destinations and locks.
