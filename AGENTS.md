@@ -7,7 +7,7 @@
 - BrandLogo uses identical artwork and transparency across themes; its CDN dark variant has light strokes to avoid checkerboards and brand drift.
 - OneSignal registration waits for explicit post-init readiness and caches only successful syncs; available SDK methods do not prove readiness.
 - Attendance reports require confirmed enabled OneSignal subscriptions to mark push active; preferences alone never prove readiness.
-- Global attendance previews read only `match_participants` and minimal player fields, never lineups/full rosters, so all sports count invitations and actual responses.
+- Attendance previews read `match_participants` and minimal player fields, never lineups, to count actual invitations/responses.
 
 - Push permission reads the native three-state permission first; OneSignal's boolean false is never treated as denied because it also means not requested.
 

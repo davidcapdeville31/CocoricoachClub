@@ -4,7 +4,6 @@ import { useState, useMemo, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AthleteCalendarGrid, type CalendarMarker } from "./AthleteCalendarGrid";
 import { AthleteCalendarUpcoming } from "./AthleteCalendarUpcoming";
 import { Button } from "@/components/ui/button";
@@ -39,8 +38,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
-import { cn } from "@/lib/utils";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 import { getTestLabel } from "@/lib/constants/testCategories";
 import { parseTestsFromNotes } from "@/lib/utils/sessionNotes";
@@ -665,7 +662,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
           {(sessionsError || matchesError) && <div role="alert" className="text-sm text-destructive py-3"><p>Impossible de charger tous les événements.</p><Button variant="outline" className="mt-2" onClick={() => { refetchSessions(); refetchMatches(); }}>Réessayer</Button></div>}
               {selectedDate ? (
                 <div>
-                  <h3 className="font-semibold text-base mb-3 capitalize">
+                  <h3 className="font-semibold text-base mb-3">
                     {format(selectedDate, "EEEE d MMMM yyyy", { locale: getDateLocale() })}
                   </h3>
 
@@ -692,19 +689,20 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                   {dayWellnessInfo.done ? "Wellness rempli" : "Wellness à remplir"}
                                 </p>
                                 {dayWellnessInfo.done && (
-                                  <p className="text-xs text-muted-foreground">
+                                  <details className="text-xs text-muted-foreground mt-1"><summary className="cursor-pointer">Voir les indicateurs</summary><p className="mt-1">
                                     {[
                                       dayWellnessInfo.entry?.general_fatigue != null && `Fatigue ${dayWellnessInfo.entry.general_fatigue}/5`,
                                       dayWellnessInfo.entry?.sleep_quality != null && `Sommeil ${dayWellnessInfo.entry.sleep_quality}/5`,
                                       (dayWellnessInfo.entry?.soreness_upper_body != null || dayWellnessInfo.entry?.soreness_lower_body != null) &&
                                         `Courbatures ${Math.max(dayWellnessInfo.entry?.soreness_upper_body ?? 0, dayWellnessInfo.entry?.soreness_lower_body ?? 0)}/5`,
                                     ].filter(Boolean).join(" · ")}
-                                  </p>
+                                  </p></details>
                                 )}
                               </div>
                             </div>
                             <Button
                               size="sm"
+                              className="min-h-11 whitespace-normal"
                               variant={dayWellnessInfo.done ? "outline" : "default"}
                               onClick={() => {
                                 const next = new URLSearchParams(searchParams);
@@ -718,23 +716,6 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                           </div>
                         </div>
                       )}
-
-                      {/* Assigned work cycles */}
-
-                      {dayCycles.map((cycle: any) => (
-                        <details key={cycle.id} className="athlete-calendar-event p-3" data-calendar-kind="cycle">
-                          <summary className="flex items-start gap-2 cursor-pointer">
-                            <Activity className="athlete-event-symbol h-4 w-4 mt-0.5 shrink-0" />
-                            <div className="min-w-0">
-                              <p className="font-medium text-sm">{cycle.name}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {format(parseISO(cycle.start_date), "d MMM", { locale: getDateLocale() })} → {format(parseISO(cycle.end_date), "d MMM yyyy", { locale: getDateLocale() })}
-                              </p>
-                              </div>
-                          </summary>
-                          {cycle.objective && <p className="text-sm text-muted-foreground mt-2">{cycle.objective}</p>}
-                        </details>
-                      ))}
 
                       {/* Matches */}
                       {dayMatches.map(match => {
@@ -767,6 +748,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                     <Clock className="h-3 w-3" />{match.match_time.slice(0, 5)}
                                   </p>
                                 )}
+                                <details className="mt-1"><summary className="text-xs text-muted-foreground cursor-pointer min-h-11 flex items-center">Voir les détails</summary>
                                 {match.location && <p className="text-xs text-muted-foreground">{match.location}</p>}
                                 {hasScore && (
                                   <p className="text-xs text-muted-foreground">{t("athleteSpace.calendar.scoreLabel")}{match.score_home ?? "-"} - {match.score_away ?? "-"}</p>
@@ -774,6 +756,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                 {match.notes && (
                                   <p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">{match.notes}</p>
                                 )}
+                                </details>
                                 {isBowling && (
                                   <Button
                                     variant="outline"
@@ -806,12 +789,13 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                   matchDate={match.match_date}
                                   matchTime={match.match_time}
                                 />
+                                <details className="mt-2"><summary className="min-h-11 flex items-center cursor-pointer text-xs font-medium">Données de compétition</summary>
                                 <AthleteMatchRpe
                                   matchId={match.id}
                                   playerId={playerId}
                                   categoryId={categoryId}
                                   matchDate={match.match_date}
-                                />
+                                /></details>
                               </>
                             )}
                           </div>
@@ -875,6 +859,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                         </Badge>
                                       )}
                                     </div>
+                                    <p className="text-xs text-muted-foreground">{isAthleteSession ? "Séance personnelle" : "Séance programmée"}</p>
                                     {session.session_start_time && (
                                       <p className="text-xs text-muted-foreground flex items-center gap-1">
                                         <Clock className="h-3 w-3" />
@@ -919,6 +904,10 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                     </>
                                   )}
                             </div>
+                            {(() => {
+                              const preview = String(session.notes || "").replace(/<!--[\s\S]*?-->/g, "").trim().split("\n")[0];
+                              return preview ? <p className="px-3 pb-2 text-xs text-muted-foreground line-clamp-2">{preview}</p> : null;
+                            })()}
                             {!isAthleteSession && (
                               <div className="px-3 pb-2">
                                 <SessionAttendanceResponse
@@ -1049,6 +1038,23 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                           </div>
                         );
                       })}
+
+                      {/* Assigned work cycles */}
+
+                      {dayCycles.map((cycle: any) => (
+                        <details key={cycle.id} className="athlete-calendar-event p-3" data-calendar-kind="cycle">
+                          <summary className="flex items-start gap-2 cursor-pointer">
+                            <Activity className="athlete-event-symbol h-4 w-4 mt-0.5 shrink-0" />
+                            <div className="min-w-0">
+                              <p className="font-medium text-sm">{cycle.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {format(parseISO(cycle.start_date), "d MMM", { locale: getDateLocale() })} → {format(parseISO(cycle.end_date), "d MMM yyyy", { locale: getDateLocale() })}
+                              </p>
+                              </div>
+                          </summary>
+                          {cycle.objective && <p className="text-sm text-muted-foreground mt-2">{cycle.objective}</p>}
+                        </details>
+                      ))}
 
                       {/* Prophylaxis routines for this day */}
                       {dayProphylaxis.map((assignment: any) => {
