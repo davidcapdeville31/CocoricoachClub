@@ -15,7 +15,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CheckCircle2, Heart, ChevronDown, ChevronUp, Activity, CalendarIcon, Pencil } from "lucide-react";
 import { toast } from "sonner";
-import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 import { cn } from "@/lib/utils";
 import { PAIN_ZONES } from "@/lib/constants/pain-locations";
 import { sleepHoursToScore, sleepScoreToHours } from "@/lib/sleepConversion";
@@ -425,11 +424,11 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
     })();
     return (
       <>
-        <Card className="bg-gradient-card shadow-md">
+        <Card className="athlete-wellness-card bg-card border-border shadow-sm">
           <CardContent className="py-5 space-y-3">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${NAV_COLORS.sante.base}15` }}>
-                <Heart className="h-5 w-5" style={{ color: NAV_COLORS.sante.base }} />
+              <div className="h-10 w-10 rounded-xl bg-accent/10 text-accent flex items-center justify-center">
+                <Heart className="h-5 w-5" />
               </div>
               <div className="flex-1">
                 <p className="font-semibold text-sm">{t("athleteSpace.wellness.notScheduledTitle")}</p>
@@ -449,8 +448,8 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
   if (existingWellness && isToday && !forceEdit) {
     return (
       <>
-      <Card className="bg-gradient-card shadow-md">
-        <CardContent className="py-4 sm:py-6 space-y-3 sm:space-y-4">
+      <Card className="athlete-wellness-card bg-card border-border shadow-sm">
+        <CardContent className="p-4 space-y-3">
           <div className="flex items-center gap-3">
             <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-success/10 flex items-center justify-center shrink-0">
               <CheckCircle2 className="h-5 w-5 text-status-optimal" />
@@ -463,7 +462,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
               type="button"
               variant="outline"
               size="sm"
-              className="h-8 gap-1 text-xs"
+              className="min-h-11 gap-1 text-xs"
               onClick={() => { setForceEdit(true); setExpanded(true); }}
             >
               <Pencil className="h-3 w-3" />
@@ -478,7 +477,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                 display = `${(9.5 - Number(raw)).toFixed(1)}h`;
               }
               return (
-                <div key={q.key} className="text-center p-2 rounded-lg bg-success/10 min-w-0">
+                <div key={q.key} className="text-center p-2 rounded-lg bg-muted/60 min-w-0">
                   <p className="text-lg font-bold text-foreground">{display}</p>
                   <p className="text-[11px] text-foreground leading-tight">{q.label}</p>
                 </div>
@@ -498,52 +497,48 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
     <>
 
     {!shouldBeExpanded && isToday ? (
-      <button
+      <Button
+        variant="outline"
         type="button"
         onClick={() => setExpanded(true)}
         aria-label={t("athleteSpace.wellness.fillDailyAria")}
-        className="group w-full rounded-2xl px-3.5 py-3 sm:px-5 sm:py-5 text-left shadow-lg border-2 transition-all duration-150 active:scale-[0.99] hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-offset-2 flex items-center gap-3 sm:gap-4"
-        style={{
-          backgroundColor: NAV_COLORS.sante.base,
-          borderColor: NAV_COLORS.sante.base,
-          color: "#fff",
-        }}
+        className="athlete-wellness-banner group w-full h-auto rounded-2xl p-4 text-left whitespace-normal shadow-sm border transition-colors duration-200 flex items-center gap-3"
       >
-        <div className="h-10 w-10 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl bg-white/20 flex items-center justify-center shrink-0 backdrop-blur-sm">
-          <Heart className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
+        <div className="h-11 w-11 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+          <Heart className="h-5 w-5 text-accent" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-base sm:text-xl font-bold leading-tight">{t("athleteSpace.wellness.todayFillTitle")}</p>
-          <p className="text-xs sm:text-sm text-white/85 mt-0.5 line-clamp-2">{t("athleteSpace.wellness.todayFillSubtitle")}</p>
+          <p className="text-base font-semibold leading-snug text-foreground">{t("athleteSpace.wellness.todayFillTitle")}</p>
+          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{t("athleteSpace.wellness.todayFillSubtitle")}</p>
         </div>
-        <ChevronDown className="h-5 w-5 sm:h-6 sm:w-6 text-white shrink-0 transition-transform group-hover:translate-y-0.5" />
-      </button>
+        <ChevronDown className="h-5 w-5 text-accent shrink-0" />
+      </Button>
     ) : (
-    <Card className="shadow-md border-2" style={{ borderColor: `${NAV_COLORS.sante.base}40`, backgroundColor: `${NAV_COLORS.sante.base}06` }}>
+    <Card className="athlete-wellness-card bg-card border-border shadow-sm">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center justify-between gap-2">
+        <CardTitle className="text-base flex flex-wrap items-center justify-between gap-2">
           <button
             type="button"
             onClick={() => setExpanded(!expanded)}
             className="flex items-center gap-2 text-left flex-1 min-w-0"
           >
-            <div className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${NAV_COLORS.sante.base}20` }}>
-              <Heart className="h-4 w-4" style={{ color: NAV_COLORS.sante.base }} />
+            <div className="h-8 w-8 rounded-lg bg-accent/10 text-accent flex items-center justify-center shrink-0">
+              <Heart className="h-4 w-4" />
             </div>
-            <span className="truncate" style={{ color: NAV_COLORS.sante.base }}>
+            <span className="truncate">
               {isToday
                 ? t("athleteSpace.wellness.todayToFillTitle")
                 : t("athleteSpace.wellness.wellnessOfDay", { date: format(selectedDate, "EEEE d MMM", { locale: getDateLocale() }) })}
             </span>
           </button>
           <div className="flex items-center gap-2 shrink-0">
-            <Badge variant="outline" className="text-xs" style={{ borderColor: NAV_COLORS.sante.base, color: NAV_COLORS.sante.base }}>
+            <Badge variant="outline" className="text-xs">
               {existingWellness ? t("athleteSpace.wellness.toEdit") : t("athleteSpace.wellness.toFill")}
             </Badge>
             {shouldBeExpanded ? (
-              <ChevronUp className="h-4 w-4" style={{ color: NAV_COLORS.sante.base }} />
+              <ChevronUp className="h-4 w-4" />
             ) : (
-              <ChevronDown className="h-4 w-4" style={{ color: NAV_COLORS.sante.base }} />
+              <ChevronDown className="h-4 w-4" />
             )}
           </div>
         </CardTitle>
@@ -700,7 +695,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                 if (!v) { setHrvMs(""); setRestingHr(""); }
               }} />
               <Label className="text-xs flex items-center gap-1.5">
-                <Activity className="h-3 w-3" style={{ color: NAV_COLORS.sante.base }} />
+                <Activity className="h-3 w-3" />
                 {t("athleteSpace.wellness.addHrv")}
               </Label>
             </div>
@@ -776,7 +771,6 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
               submitWellness.mutate();
             }}
             className="w-full h-11"
-            style={{ backgroundColor: NAV_COLORS.sante.base }}
           >
             <CheckCircle2 className="h-4 w-4 mr-2" />
             {isToday ? t("athleteSpace.wellness.saveToday") : t("athleteSpace.wellness.saveDate", { date: format(selectedDate, "d MMM", { locale: getDateLocale() }) })}

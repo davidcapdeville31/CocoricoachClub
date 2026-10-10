@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import "@/styles/athlete-space.css";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentUserIdentity } from "@/hooks/useCurrentUserIdentity";
@@ -9,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, User, LogOut, Activity, Heart, BarChart3, Target, Video, Shield, ArrowLeft, Search, ChevronRight, MessageSquare, Settings, CalendarDays, CircleDot, Waves, FileText, Trophy, Medal, Users, LayoutDashboard } from "lucide-react";
+import { Loader2, User, LogOut, Activity, Heart, BarChart3, Target, Video, Shield, ArrowLeft, Search, ChevronRight, MessageSquare, Settings, CalendarDays, CircleDot, Waves, FileText, Trophy, Medal, Users, LayoutDashboard, CircleDot as EquipmentIcon } from "lucide-react";
 import { AnnualPlanningView } from "@/components/planning/AnnualPlanningView";
 import { AthleteOpponentProfiles } from "@/components/athlete-portal/AthleteOpponentProfiles";
 import { AthleteSpaceCompetitions } from "@/components/athlete-space/AthleteSpaceCompetitions";
@@ -473,12 +474,12 @@ export default function AthleteSpace() {
     .slice(0, 2);
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
+    <div className="athlete-space min-h-screen bg-background">
       {!isSuperAdminView && <AthletePWAInstallPopup playerId={athleteInfo.player_id} />}
 
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 pt-[max(env(safe-area-inset-top),1.5rem)]">
-        <div className="max-w-5xl mx-auto px-3 sm:px-4 py-3 flex items-center justify-between gap-2">
+      <header className="athlete-header sticky top-0 z-50 border-b bg-card/95 backdrop-blur">
+        <div className="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             {(isSuperAdminView || allAthleteEntries.length > 1) && (
               <Button variant="ghost" size="icon" className="shrink-0" onClick={() => {
@@ -493,7 +494,7 @@ export default function AthleteSpace() {
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             )}
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden shrink-0 self-center">
+            <div className="w-11 h-11 rounded-full bg-accent/10 ring-1 ring-border flex items-center justify-center overflow-hidden shrink-0 self-center">
               {athleteInfo.avatar_url ? (
                 <img src={athleteInfo.avatar_url} alt={displayName} className="w-full h-full object-cover" />
               ) : (
@@ -501,12 +502,12 @@ export default function AthleteSpace() {
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="text-sm sm:text-base font-semibold leading-tight truncate">{displayName}</h1>
+              <h1 className="text-base sm:text-lg font-semibold leading-snug break-words">{displayName}</h1>
               <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
                 {isSuperAdminView && (
                   <Badge variant="outline" className="text-[10px] h-5 border-primary text-primary shrink-0">{t("athleteSpace.shell.adminView")}</Badge>
                 )}
-                <Badge variant="secondary" className="text-[10px] h-5 truncate min-w-0 max-w-[140px] sm:max-w-none">{athleteInfo.category_name}</Badge>
+                <Badge variant="secondary" className="text-[11px] min-h-5 h-auto whitespace-normal break-words min-w-0">{athleteInfo.category_name}</Badge>
                 <span className="text-xs text-muted-foreground truncate hidden sm:inline">{athleteInfo.club_name}</span>
               </div>
             </div>
@@ -522,8 +523,8 @@ export default function AthleteSpace() {
             <NotificationBell variant="default" />
             <Button
               size="sm"
-              className="px-2 sm:px-3 text-white border-0 shrink-0"
-              style={{ backgroundColor: NAV_COLORS.effectif.base }}
+              variant="secondary"
+              className="px-3 shrink-0"
               onClick={() => setShowPersonalInfoDialog(true)}
               aria-label={t("athlete.personalInfo")}
             >
@@ -552,7 +553,7 @@ export default function AthleteSpace() {
         />
       )}
 
-      <main className="max-w-5xl mx-auto px-4 py-6">
+      <main className="athlete-main max-w-5xl mx-auto px-4 py-5 sm:py-6">
        <Tabs
          value={searchParams.get("tab") || "dashboard"}
          className="w-full"
@@ -563,54 +564,54 @@ export default function AthleteSpace() {
            setSearchParams(next, { replace: true });
          }}
        >
-             <TabsList className="w-full flex flex-wrap gap-1 h-auto justify-center bg-transparent p-0 mb-6 pb-2">
+             <TabsList className="athlete-navigation w-full grid grid-cols-3 sm:flex sm:flex-wrap gap-1.5 h-auto justify-center bg-transparent p-0 mb-6">
               <TabsTrigger 
                  value="dashboard" 
-                 className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
+                 className="athlete-tab relative"
                 data-nav-color="sante"
               >
                 <BarChart3 className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                <span className="sr-only sm:not-sr-only">{t("athlete.home")}</span>
+                <span className="athlete-nav-label">{t("athlete.home")}</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="rpe"
-                 className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
+                 className="athlete-tab relative"
                  data-nav-color="performance"
               >
                 <Activity className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                <span className="sr-only sm:not-sr-only">{t("athlete.load")}</span>
+                <span className="athlete-nav-label">{t("athlete.load")}</span>
               </TabsTrigger>
                <TabsTrigger 
                  value="wellness"
-                  className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
+                  className="athlete-tab relative"
                   data-nav-color="sante"
                 >
                   <Heart className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                  <span className="sr-only sm:not-sr-only">{t("athlete.wellness")}</span>
+                  <span className="athlete-nav-label">{t("athlete.wellness")}</span>
                </TabsTrigger>
                <TabsTrigger 
                  value="calendar"
-                  className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
+                  className="athlete-tab relative"
                   data-nav-color="planification"
                 >
                   <CalendarDays className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                  <span className="sr-only sm:not-sr-only">{t("athlete.calendar")}</span>
+                  <span className="athlete-nav-label">{t("athlete.calendar")}</span>
                </TabsTrigger>
               <TabsTrigger 
                 value="performance"
-                 className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
+                 className="athlete-tab relative"
                  data-nav-color="performance"
               >
                 <BarChart3 className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                <span className="sr-only sm:not-sr-only">{t("athlete.performance")}</span>
+                <span className="athlete-nav-label">{t("athlete.performance")}</span>
               </TabsTrigger>
               <TabsTrigger
                  value="stats"
-                 className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg relative"
+                 className="athlete-tab relative"
                  data-nav-color="competition"
                >
                  <Trophy className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                  <span className="sr-only sm:not-sr-only">{t("athlete.stats")}</span>
+                  <span className="athlete-nav-label">{t("athlete.stats")}</span>
                  {recordNotifCount > 0 && (
                    <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background" />
                  )}
@@ -619,70 +620,70 @@ export default function AthleteSpace() {
                {isBowling && (
                  <TabsTrigger 
                    value="arsenal"
-                   className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
+                   className="athlete-tab relative"
                    data-nav-color="programmation"
                  >
                    <CircleDot className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                   <span className="sr-only sm:not-sr-only">{t("athlete.arsenal")}</span>
+                   <span className="athlete-nav-label">{t("athlete.arsenal")}</span>
                  </TabsTrigger>
                )}
                {isSurf && (
                  <TabsTrigger 
                    value="equipment"
-                   className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
+                   className="athlete-tab relative"
                    data-nav-color="programmation"
                  >
                    <Waves className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                   <span className="sr-only sm:not-sr-only">{t("athlete.equipment")}</span>
+                   <span className="athlete-nav-label">{t("athlete.equipment")}</span>
                  </TabsTrigger>
                )}
                {isSki && (
                  <TabsTrigger 
                    value="ski-equipment"
-                   className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
+                   className="athlete-tab relative"
                    data-nav-color="programmation"
                  >
                    <Waves className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                   <span className="sr-only sm:not-sr-only">{t("athlete.material")}</span>
+                   <span className="athlete-nav-label">{t("athlete.material")}</span>
                  </TabsTrigger>
                )}
                {isPadel && (
                  <TabsTrigger 
                    value="padel-equipment"
-                   className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
+                   className="athlete-tab relative"
                    data-nav-color="programmation"
                  >
-                   🏓
-                   <span className="sr-only sm:not-sr-only">{t("athlete.material")}</span>
+                   <EquipmentIcon className="h-4 w-4" />
+                   <span className="athlete-nav-label">{t("athlete.material")}</span>
                  </TabsTrigger>
                 )}
                 {isJudo && (
                   <TabsTrigger
                     value="competitions"
-                    className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
+                    className="athlete-tab relative"
                     data-nav-color="competition"
                   >
                     <Trophy className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                    <span className="sr-only sm:not-sr-only">Compétitions</span>
+                    <span className="athlete-nav-label">Compétitions</span>
                   </TabsTrigger>
                 )}
                 {isJudo && (
                   <TabsTrigger
                     value="opponents"
-                   className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
+                   className="athlete-tab relative"
                    data-nav-color="competition"
                  >
                    <Users className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                   <span className="sr-only sm:not-sr-only">{t("athlete.opponents")}</span>
+                   <span className="athlete-nav-label">{t("athlete.opponents")}</span>
                  </TabsTrigger>
                )}
                <TabsTrigger 
                   value="documents"
-                  className="athlete-tab shrink-0 relative gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
+                  className="athlete-tab relative"
                   data-nav-color="admin"
                 >
                   <FileText className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                  <span className="sr-only sm:not-sr-only">{t("athlete.documents")}</span>
+                  <span className="athlete-nav-label">{t("athlete.documents")}</span>
                   {docNotifCount > 0 && (
                     <span className="absolute -top-1 -right-1 h-4 min-w-[16px] flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1">
                       {docNotifCount > 9 ? "9+" : docNotifCount}
@@ -693,11 +694,11 @@ export default function AthleteSpace() {
                {(
                   <TabsTrigger 
                     value="messaging"
-                    className="athlete-tab shrink-0 relative gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
+                    className="athlete-tab relative"
                     data-nav-color="communication"
                   >
                     <MessageSquare className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                    <span className="sr-only sm:not-sr-only">{t("athlete.chat")}</span>
+                    <span className="athlete-nav-label">{t("athlete.chat")}</span>
                     {unreadCount > 0 && (
                       <span className="absolute -top-1 -right-1 h-4 min-w-[16px] flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1">
                         {unreadCount > 9 ? "9+" : unreadCount}
@@ -708,11 +709,11 @@ export default function AthleteSpace() {
                {(
                   <TabsTrigger 
                     value="settings"
-                     className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
+                     className="athlete-tab relative"
                      data-nav-color="settings"
                   >
                     <Settings className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                    <span className="sr-only sm:not-sr-only">{t("athlete.settings")}</span>
+                    <span className="athlete-nav-label">{t("athlete.settings")}</span>
                   </TabsTrigger>
                 )}
              </TabsList>
@@ -738,19 +739,17 @@ export default function AthleteSpace() {
               <TabsList className="flex flex-wrap h-auto gap-1 w-full bg-muted/40 rounded-xl p-1">
                 <TabsTrigger
                   value="wellness-entry"
-                  style={{ ["--tab-accent" as any]: NAV_COLORS.sante.base } as React.CSSProperties}
-                  className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-accent/10 data-[state=active]:text-accent"
                 >
                   <Heart className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                  <span className="sr-only sm:not-sr-only">{t("athlete.wellness")}</span>
+                  <span className="athlete-nav-label">{t("athlete.wellness")}</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="health-sub"
-                  style={{ ["--tab-accent" as any]: NAV_COLORS.sante.base } as React.CSSProperties}
-                  className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-accent/10 data-[state=active]:text-accent"
                 >
                   <Shield className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                  <span className="sr-only sm:not-sr-only">{t("athlete.health")}</span>
+                  <span className="athlete-nav-label">{t("athlete.health")}</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -812,8 +811,7 @@ export default function AthleteSpace() {
                 <TabsList className="grid grid-cols-2 w-full bg-muted/40 rounded-xl p-1">
                   <TabsTrigger
                     value="competition"
-                    style={{ ["--tab-accent" as any]: NAV_COLORS.performance.base } as React.CSSProperties}
-                    className="gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
+                    className="gap-1.5 rounded-lg transition-colors data-[state=active]:bg-accent/10 data-[state=active]:text-accent"
                   >
                     <Trophy className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                     <span className="hidden sm:inline">{t("athlete.competitionStats")}</span>
@@ -821,8 +819,7 @@ export default function AthleteSpace() {
                   </TabsTrigger>
                   <TabsTrigger
                     value="training"
-                    style={{ ["--tab-accent" as any]: NAV_COLORS.competition.base } as React.CSSProperties}
-                    className="gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
+                    className="gap-1.5 rounded-lg transition-colors data-[state=active]:bg-accent/10 data-[state=active]:text-accent"
                   >
                     <Target className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                     <span className="hidden sm:inline">{t("athlete.trainingStats")}</span>
@@ -847,24 +844,21 @@ export default function AthleteSpace() {
                 <TabsList className="flex flex-wrap h-auto gap-1 w-full bg-muted/40 rounded-xl p-1">
                   <TabsTrigger
                     value="competition"
-                    style={{ ["--tab-accent" as any]: NAV_COLORS.competition.base } as React.CSSProperties}
-                    className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
+                    className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-accent/10 data-[state=active]:text-accent"
                   >
                     <Trophy className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                     {t("athlete.competitionStats")}
                   </TabsTrigger>
                   <TabsTrigger
                     value="training"
-                    style={{ ["--tab-accent" as any]: NAV_COLORS.performance.base } as React.CSSProperties}
-                    className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
+                    className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-accent/10 data-[state=active]:text-accent"
                   >
                     <Target className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                     {t("athlete.trainingStats")}
                   </TabsTrigger>
                   <TabsTrigger
                     value="records"
-                    style={{ ["--tab-accent" as any]: NAV_COLORS.planification.base } as React.CSSProperties}
-                    className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md relative"
+                    className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-accent/10 data-[state=active]:text-accent relative"
                   >
                     <Medal className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                     {t("athleteSpace.shell.minimasRecords")}
@@ -902,16 +896,14 @@ export default function AthleteSpace() {
                 <TabsList className="flex flex-wrap h-auto gap-1 w-full bg-muted/40 rounded-xl p-1">
                   <TabsTrigger
                     value="competition"
-                    style={{ ["--tab-accent" as any]: NAV_COLORS.performance.base } as React.CSSProperties}
-                    className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
+                    className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-accent/10 data-[state=active]:text-accent"
                   >
                     <Trophy className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                     {t("athlete.competitionStats")}
                   </TabsTrigger>
                   <TabsTrigger
                     value="training"
-                    style={{ ["--tab-accent" as any]: NAV_COLORS.competition.base } as React.CSSProperties}
-                    className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
+                    className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-accent/10 data-[state=active]:text-accent"
                   >
                     <Target className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                     {t("athlete.trainingStats")}

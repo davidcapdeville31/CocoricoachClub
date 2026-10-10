@@ -7,7 +7,6 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Activity, TrendingUp, AlertTriangle, CheckCircle2, MapPin, Calendar as CalendarIcon } from "lucide-react";
 import { calculateEWMASeries, transformToDailyLoadData } from "@/lib/trainingLoadCalculations";
 import { format, subDays, startOfWeek, endOfWeek, addWeeks } from "date-fns";
-import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 import { AthleteSpaceRpe } from "./AthleteSpaceRpe";
 import { AthleteSpaceWellness } from "./AthleteSpaceWellness";
 import { CurrentCyclesCard } from "./CurrentCyclesCard";
@@ -228,9 +227,9 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
       (todayWellness.soreness_lower_body || 0) >= 4
     );
 
-    if (hasInjury || ratioAlert) return { label: t("athleteSpace.dashboard.status.adaptation"), color: "bg-destructive text-destructive-foreground", icon: AlertTriangle };
-    if (wellnessLow) return { label: t("athleteSpace.dashboard.status.toWatch"), color: "bg-warning text-warning-foreground", icon: Activity };
-    return { label: t("athleteSpace.dashboard.status.ok"), color: "bg-status-optimal text-white", icon: CheckCircle2 };
+    if (hasInjury || ratioAlert) return { label: t("athleteSpace.dashboard.status.adaptation"), color: "bg-destructive/10 text-destructive", icon: AlertTriangle };
+    if (wellnessLow) return { label: t("athleteSpace.dashboard.status.toWatch"), color: "bg-warning/10 text-warning", icon: Activity };
+    return { label: t("athleteSpace.dashboard.status.ok"), color: "bg-success/10 text-success", icon: CheckCircle2 };
   };
 
   const dayStatus = getDayStatus();
@@ -291,7 +290,7 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
       <CurrentCyclesCard categoryId={categoryId} playerId={playerId} />
 
       {/* Status + EWMA */}
-      <Card className="shadow-sm border" style={{ borderColor: `${NAV_COLORS.performance.base}40`, backgroundColor: `${NAV_COLORS.performance.base}08` }}>
+      <Card className="shadow-sm border">
         <CardContent className="py-2.5 px-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 min-w-0">
@@ -322,18 +321,18 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
 
       {/* Next match */}
       {nextMatch && (
-        <Card className="shadow-md border-2" style={{ borderColor: `${NAV_COLORS.video.base}40`, backgroundColor: `${NAV_COLORS.video.base}08` }}>
+        <Card className="bg-card border-border shadow-sm">
           <CardContent className="py-3 sm:pt-5 sm:pb-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${NAV_COLORS.video.base}20` }}>
-                <CalendarIcon className="h-5 w-5 sm:h-6 sm:w-6" style={{ color: NAV_COLORS.video.base }} />
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="h-11 w-11 rounded-xl bg-accent/10 text-accent flex items-center justify-center shrink-0">
+                <CalendarIcon className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-medium">{t("athleteSpace.dashboard.nextMatch")}</p>
-                <p className="font-bold text-base" style={{ color: NAV_COLORS.video.base }}>
+                <p className="font-bold text-base">
                   {nextMatch.opponent || t("athleteSpace.dashboard.competition")}
                 </p>
-                <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <CalendarIcon className="h-3 w-3" />
                     {format(new Date(nextMatch.match_date), "EEEE d MMMM", { locale: getDateLocale() })}
@@ -350,7 +349,7 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
                 </div>
               </div>
               {nextMatch.is_home !== null && (
-                <Badge variant="outline" className="text-xs" style={{ borderColor: NAV_COLORS.video.base, color: NAV_COLORS.video.base }}>
+                <Badge variant="outline" className="text-xs">
                   {nextMatch.is_home ? t("athleteSpace.dashboard.home") : t("athleteSpace.dashboard.away")}
                 </Badge>
               )}
@@ -361,27 +360,27 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-        <Card className="shadow-sm border-2" style={{ borderColor: `${NAV_COLORS.sante.base}40`, backgroundColor: `${NAV_COLORS.sante.base}08` }}>
+        <Card className="bg-card border-border shadow-sm">
           <CardContent className="py-2.5 sm:pt-4 sm:pb-3 px-3 sm:px-4">
             <p className="text-[10px] sm:text-[11px] text-muted-foreground uppercase tracking-wide font-medium truncate">{t("athleteSpace.dashboard.load7d")}</p>
-            <p className="text-lg sm:text-xl font-bold" style={{ color: NAV_COLORS.sante.base }}>{latestEwma ? Math.round(latestEwma.acute) : "—"}</p>
+            <p className="text-lg sm:text-xl font-bold">{latestEwma ? Math.round(latestEwma.acute) : "—"}</p>
           </CardContent>
         </Card>
-        <Card className="shadow-sm border-2" style={{ borderColor: `${NAV_COLORS.programmation.base}40`, backgroundColor: `${NAV_COLORS.programmation.base}08` }}>
+        <Card className="bg-card border-border shadow-sm">
           <CardContent className="py-2.5 sm:pt-4 sm:pb-3 px-3 sm:px-4">
             <p className="text-[10px] sm:text-[11px] text-muted-foreground uppercase tracking-wide font-medium truncate">{t("athleteSpace.dashboard.load28d")}</p>
-            <p className="text-lg sm:text-xl font-bold" style={{ color: NAV_COLORS.programmation.base }}>{latestEwma ? Math.round(latestEwma.chronic) : "—"}</p>
+            <p className="text-lg sm:text-xl font-bold">{latestEwma ? Math.round(latestEwma.chronic) : "—"}</p>
           </CardContent>
         </Card>
-        <Card className="shadow-sm border-2" style={{ borderColor: `${NAV_COLORS.video.base}40`, backgroundColor: `${NAV_COLORS.video.base}08` }}>
+        <Card className="bg-card border-border shadow-sm">
           <CardContent className="py-2.5 sm:pt-4 sm:pb-3 px-3 sm:px-4">
             <p className="text-[10px] sm:text-[11px] text-muted-foreground uppercase tracking-wide font-medium truncate">{t("athleteSpace.dashboard.injuries")}</p>
-            <p className={`text-lg sm:text-xl font-bold`} style={{ color: injuries && injuries.length > 0 ? NAV_COLORS.video.base : NAV_COLORS.sante.base }}>
+            <p className={`text-lg sm:text-xl font-bold`}>
               {injuries?.length || 0}
             </p>
           </CardContent>
         </Card>
-        <Card className="shadow-sm border-2" style={{ borderColor: `${NAV_COLORS.planification.base}40`, backgroundColor: `${NAV_COLORS.planification.base}08` }}>
+        <Card className="bg-card border-border shadow-sm">
           <CardContent className="py-2.5 sm:pt-4 sm:pb-3 px-3 sm:px-4">
             <p className="text-[10px] sm:text-[11px] text-muted-foreground uppercase tracking-wide font-medium truncate">
               {nextTests && nextTests.length > 1 ? t("athleteSpace.dashboard.nextTestsCount", { count: nextTests.length }) : t("athleteSpace.dashboard.nextTest")}
@@ -390,7 +389,7 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
               <div className="space-y-0.5 mt-0.5">
                 {nextTests.map((t: any) => (
                   <div key={t.id}>
-                    <p className="text-xs sm:text-sm font-semibold leading-tight truncate" style={{ color: NAV_COLORS.planification.base }}>
+                    <p className="text-xs sm:text-sm font-semibold leading-tight truncate">
                       {t.testLabel}
                     </p>
                     <p className="text-[9px] sm:text-[10px] text-muted-foreground">
@@ -401,7 +400,7 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
                 ))}
               </div>
             ) : (
-              <p className="text-xs sm:text-sm font-semibold" style={{ color: NAV_COLORS.planification.base }}>—</p>
+              <p className="text-xs sm:text-sm font-semibold">—</p>
             )}
           </CardContent>
         </Card>
@@ -409,9 +408,9 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
 
       {/* Séances à venir (14 jours) */}
       {upcomingSessions && upcomingSessions.length > 0 && (
-        <Card className="shadow-md border-2" style={{ borderColor: `${NAV_COLORS.planification.base}40`, backgroundColor: `${NAV_COLORS.planification.base}08` }}>
+        <Card className="bg-card border-border shadow-sm">
           <CardHeader className="pb-1.5 sm:pb-2">
-            <CardTitle className="text-sm sm:text-base flex items-center gap-2" style={{ color: NAV_COLORS.planification.base }}>
+            <CardTitle className="text-sm sm:text-base flex items-center gap-2">
               <CalendarIcon className="h-4 w-4" />
               {t("athleteSpace.dashboard.upcomingSessions")}
             </CardTitle>
@@ -421,13 +420,13 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
               {upcomingSessions.map((s: any) => (
                 <div
                   key={s.id}
-                  className="flex items-center gap-2 sm:gap-3 rounded-lg sm:rounded-xl border bg-background/60 px-2.5 py-1.5 sm:px-3 sm:py-2"
+                  className="flex items-center gap-3 border-b border-border py-3"
                 >
-                  <div className="flex flex-col items-center justify-center rounded-md sm:rounded-lg px-1.5 py-0.5 sm:px-2 sm:py-1 min-w-[40px] sm:min-w-[48px]" style={{ backgroundColor: `${NAV_COLORS.planification.base}15` }}>
-                    <span className="text-[9px] sm:text-[10px] uppercase font-semibold leading-none" style={{ color: NAV_COLORS.planification.base }}>
+                  <div className="flex flex-col items-center justify-center rounded-md sm:rounded-lg px-1.5 py-0.5 sm:px-2 sm:py-1 min-w-[40px] sm:min-w-[48px]">
+                    <span className="text-[9px] sm:text-[10px] uppercase font-semibold leading-none">
                       {format(new Date(s.session_date), "MMM", { locale: getDateLocale() })}
                     </span>
-                    <span className="text-sm sm:text-base font-bold leading-tight" style={{ color: NAV_COLORS.planification.base }}>
+                    <span className="text-sm sm:text-base font-bold leading-tight">
                       {format(new Date(s.session_date), "d", { locale: getDateLocale() })}
                     </span>
                   </div>

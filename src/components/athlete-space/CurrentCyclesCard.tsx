@@ -57,7 +57,7 @@ export function CurrentCyclesCard({ categoryId, playerId }: Props) {
   if (isLoading || cycles.length === 0) return null;
 
   return (
-    <Card className="shadow-sm border-2 rounded-2xl" style={{ borderColor: "hsl(var(--brand-500) / 0.25)" }}>
+    <Card className="bg-card border-border shadow-sm rounded-2xl">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
           <CalendarRange className="h-4 w-4 text-primary" />
@@ -76,8 +76,7 @@ export function CurrentCyclesCard({ categoryId, playerId }: Props) {
           return (
             <div
               key={c.id}
-              className="rounded-xl border bg-surface-sunken/60 p-3 space-y-2"
-              style={{ borderColor: `${c.color || thematic?.color || "#64748b"}50` }}
+              className="border-b border-border pb-4 last:border-0 last:pb-0 space-y-2"
             >
               <div className="flex items-start justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2 min-w-0">
@@ -97,13 +96,13 @@ export function CurrentCyclesCard({ categoryId, playerId }: Props) {
                 )}
               </div>
 
-              <div className="text-sm font-semibold leading-tight">{c.name}</div>
+              <div className="text-base font-semibold leading-snug">{c.name}</div>
 
               {c.objective && (
                 <div className="text-[11px] text-muted-foreground line-clamp-2">{c.objective}</div>
               )}
 
-              <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
                 <span>
                   {format(new Date(c.start_date), "d MMM", { locale: getDateLocale() })} →{" "}
                   {format(new Date(c.end_date), "d MMM yyyy", { locale: getDateLocale() })}
