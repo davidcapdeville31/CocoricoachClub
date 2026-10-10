@@ -208,7 +208,7 @@ export default function Clubs() {
   }
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
+    <div role="main" className="min-h-screen bg-background overflow-x-hidden">
       <div className="bg-card px-4 border-b border-border pt-[max(env(safe-area-inset-top),1.5rem)]">
         <div className="container mx-auto max-w-6xl">
           {/* Header: title + actions on the same row */}
