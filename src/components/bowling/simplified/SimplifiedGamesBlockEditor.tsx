@@ -68,22 +68,20 @@ export function SimplifiedGamesBlockEditor({
   };
 
   return (
-    <Card className="space-y-4 rounded-2xl border-l-4 border-l-amber-500 bg-surface p-4 shadow-sm">
+    <Card className="space-y-4 rounded-[20px] border-0 bg-card p-5 shadow-[0_2px_12px_-4px_hsl(var(--foreground)/0.08)]">
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <div className="rounded-lg bg-amber-500/10 p-2">
-            <Circle className="h-4 w-4 text-amber-600" />
+          <div className="rounded-xl bg-warning/10 p-2.5">
+            <Circle className="h-5 w-5 text-warning" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Bloc {index + 1} · Parties
-            </p>
+            <p className="text-base font-semibold text-primary">Parties #{index + 1}</p>
             <Input
               value={value.title}
               onChange={(e) => update({ title: e.target.value })}
-              placeholder="Titre du bloc (optionnel)"
-              className="mt-1 h-8 text-sm"
+              placeholder="Titre (facultatif)"
+              className="mt-1 h-9 rounded-xl border-0 bg-bowling-canvas text-sm"
             />
           </div>
         </div>
@@ -101,7 +99,7 @@ export function SimplifiedGamesBlockEditor({
             key={m}
             type="button"
             onClick={() => update({ entry_mode: m })}
-            className={`rounded-xl px-3 py-2.5 text-center transition-colors ${mode === m ? "bg-foreground text-background" : "bg-surface-sunken text-foreground ring-1 ring-border/60"}`}
+            className={`rounded-xl px-3 py-2.5 text-center transition-colors ${mode === m ? "bg-primary text-primary-foreground" : "bg-bowling-canvas text-foreground "}`}
           >
             <span className="block text-sm font-semibold">{t}</span>
             <span className={`block text-[11px] ${mode === m ? "opacity-80" : "text-muted-foreground"}`}>{h}</span>
@@ -119,7 +117,7 @@ export function SimplifiedGamesBlockEditor({
                   key={n}
                   type="button"
                   onClick={() => setCount(n)}
-                  className={`h-11 rounded-xl text-sm font-semibold transition-colors ${value.parties.length === n ? "bg-foreground text-background" : "bg-surface-sunken ring-1 ring-border/60"}`}
+                  className={`h-11 rounded-xl text-sm font-semibold transition-colors ${value.parties.length === n ? "bg-primary text-primary-foreground" : "bg-bowling-canvas "}`}
                 >
                   {n}
                 </button>
@@ -144,7 +142,7 @@ export function SimplifiedGamesBlockEditor({
                       const v = Math.max(0, Math.min(300, parseInt(raw, 10) || 0));
                       updateParty(p.id, { stats: quickScoreStats(v), frames: null });
                     }}
-                    className="h-11 bg-surface-sunken text-base"
+                    className="h-12 rounded-xl border-0 bg-bowling-canvas text-base"
                   />
                   {value.parties.length > 1 && (
                     <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" aria-label="Supprimer la partie" onClick={() => {
@@ -160,7 +158,7 @@ export function SimplifiedGamesBlockEditor({
                 <Plus className="h-3.5 w-3.5" /> Ajouter une partie
               </Button>
             </div>
-            <div className="flex flex-row sm:flex-col justify-around gap-2 rounded-2xl bg-primary/10 p-3 text-center">
+            <div className="flex flex-row sm:flex-col justify-around gap-2 rounded-2xl bg-bowling-accent/10 p-4 text-center">
               <div>
                 <p className="text-xs text-muted-foreground">Moyenne</p>
                 <p className="text-2xl font-bold text-foreground">{agg ? agg.avgScore.toLocaleString("fr-FR") : "—"}</p>
@@ -176,7 +174,7 @@ export function SimplifiedGamesBlockEditor({
 
       {mode === "detailed" && (<>
       {/* Pocket toggle + global stats */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 bg-surface-sunken p-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 bg-bowling-canvas p-3">
         <div className="flex items-center gap-3">
           <Switch
             id={`pockets-${value.id}`}
@@ -220,7 +218,7 @@ export function SimplifiedGamesBlockEditor({
         {value.parties.map((p, idx) => (
           <div
             key={p.id}
-            className="space-y-2 rounded-xl border border-border/60 bg-surface-sunken p-3"
+            className="space-y-2 rounded-xl border border-border/60 bg-bowling-canvas p-3"
           >
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">

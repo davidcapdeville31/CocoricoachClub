@@ -22,6 +22,8 @@ All colors MUST be HSL.
   :root {
     /* Pure White Background - Clean & Modern */
     --background: 0 0% 100%;
+    --bowling-canvas: 216 60% 97%;
+    --bowling-accent: 217 91% 55%;
     --foreground: 220 20% 15%;
 
     --card: 0 0% 100%;
@@ -127,6 +129,8 @@ All colors MUST be HSL.
     /* Dark mode - improved contrast hierarchy
        background (deepest) < card/popover < muted < secondary < border */
     --background: 220 25% 7%;
+    --bowling-canvas: 220 25% 9%;
+    --bowling-accent: 217 91% 62%;
     --foreground: 210 20% 96%;
 
     --card: 220 22% 12%;

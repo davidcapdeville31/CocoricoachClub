@@ -109,7 +109,7 @@ export function SimplifiedOilPatternPicker({ value, onChange, categoryId }: Prop
   const category = getOilCategory(value.oil_ratio);
 
   return (
-    <div className="space-y-3 rounded-2xl border border-border/60 bg-surface-sunken p-3">
+    <div className="space-y-3 rounded-2xl border border-border/60 bg-bowling-canvas p-3">
       <div className="flex items-center justify-between gap-2">
         <button
           type="button"
