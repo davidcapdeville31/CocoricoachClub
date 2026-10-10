@@ -14,6 +14,14 @@ function play(rolls: number[][]) {
 }
 
 describe("Official bowling scoring and safe entry", () => {
+  test("gutter then ten is a spare, including tenth-frame bonus rack", () => {
+    const f = play([...Array.from({ length: 9 }, () => [0, 10]), [10, 0, 10]]);
+    expect(f[0].throws[1].value).toBe("/");
+    expect(f[9].throws[2].value).toBe("/");
+    expect(f[9].cumulativeScore).toBe(120);
+    expect(calculateBowlingStats(f).strikes).toBe(1);
+    expect(calculateBowlingStats(f).spares).toBe(10);
+  });
   test("perfect game is 300", () => {
     const f = play([...Array.from({ length: 9 }, () => [10]), [10, 10, 10]]);
     expect(f[9].cumulativeScore).toBe(300);

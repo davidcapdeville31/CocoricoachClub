@@ -26,6 +26,7 @@ export function MobileBowlingFrames({ frames, stats, gameNumber, readOnly, track
   const last = frames.map((f, i) => ({ f, i })).filter(({ f }) => f.throws.some(hasThrow)).at(-1);
   const pending = frames.some((f, i) => isFrameComplete(f, i) && f.score === null);
   const select = (index: number) => { setActive(index); setRoll(nextThrowIndex(frames[index], index)); };
+  const freshRack = isFirstBall(active, roll, frame);
   const enter = (value: number) => {
     const updated = onThrow(active, roll, String(value));
     if (!updated) return;
@@ -66,7 +67,7 @@ export function MobileBowlingFrames({ frames, stats, gameNumber, readOnly, track
       {!readOnly && <>
         <p className="text-sm font-medium">{roll === 0 ? "Premier lancer" : roll === 1 ? "Deuxième lancer" : "Lancer bonus"}<span className="ml-2 text-xs font-normal text-muted-foreground">{standing ?? 0} quilles restantes</span></p>
         <div className="grid grid-cols-4 gap-2" role="group" aria-label="Quilles tombées">
-          {Array.from({ length: 11 }, (_, n) => n).filter(n => standing !== null && n <= standing).map(n => <Button key={n} variant="outline" aria-label={n === 10 ? "Strike X" : n === 0 ? "0 · Gouttière" : `${n} quilles`} className={cn("h-14 min-w-0 rounded-xl border-border bg-card p-0 text-xl font-semibold motion-safe:transition-transform motion-safe:active:scale-95", n === 10 && "border-bowling-accent bg-bowling-accent text-primary-foreground", n === standing && standing < 10 && "border-bowling-success text-bowling-success")} onClick={() => enter(n)}>{n === 10 ? <span className="flex flex-col text-base leading-tight">X<span className="text-[10px]">Strike</span></span> : n === standing && standing < 10 ? <span>{n}<span className="ml-1">/</span></span> : n}</Button>)}
+          {Array.from({ length: 11 }, (_, n) => n).filter(n => standing !== null && n <= standing).map(n => <Button key={n} variant="outline" aria-label={n === 10 && freshRack ? "Strike X" : n === 0 ? "0 · Gouttière" : `${n} quilles`} className={cn("h-14 min-w-0 rounded-xl border-border bg-card p-0 text-xl font-semibold motion-safe:transition-transform motion-safe:active:scale-95", n === 10 && freshRack && "border-bowling-accent bg-bowling-accent text-primary-foreground", n === standing && !freshRack && "border-bowling-success text-bowling-success")} onClick={() => enter(n)}>{n === 10 && freshRack ? <span className="flex flex-col text-base leading-tight">X<span className="text-[10px]">Strike</span></span> : n === standing && !freshRack ? <span>{n}<span className="ml-1">/</span></span> : n}</Button>)}
         </div>
       </>}
     </div>

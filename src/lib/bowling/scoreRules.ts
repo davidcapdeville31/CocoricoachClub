@@ -70,12 +70,13 @@ export function changeThrow(frames: FrameData[], index: number, throwIndex: numb
   const remaining = remainingPins(current, index, throwIndex);
   if (remaining === null) return { frames, incompatible: false, error: "Renseignez d’abord le lancer précédent." };
   const upper = raw.toUpperCase();
+  const freshRack = isFirstBall(index, throwIndex, current);
   const pins = upper === "X" ? 10 : upper === "/" ? remaining : upper === "-" || upper === "G" || upper === "" ? 0 : Number(upper);
-  if (!Number.isInteger(pins) || pins < 0 || pins > remaining || (upper === "/" && remaining === 10)) return { frames, incompatible: false, error: `Il reste ${remaining} quille${remaining > 1 ? "s" : ""}.` };
+  if (!Number.isInteger(pins) || pins < 0 || pins > remaining || (upper === "/" && freshRack)) return { frames, incompatible: false, error: `Il reste ${remaining} quille${remaining > 1 ? "s" : ""}.` };
   const copy = frames.map(f => ({ ...f, throws: f.throws.map(t => ({ ...t })) }));
   const frame = copy[index];
   const previous = frame.throws[throwIndex];
-  const value = upper === "" ? "" : pins === 10 && remaining === 10 ? "X" : pins === remaining && remaining < 10 ? "/" : upper === "G" || upper === "-" ? "-" : String(pins);
+  const value = upper === "" ? "" : pins === 10 && freshRack ? "X" : pins === remaining && !freshRack ? "/" : upper === "G" || upper === "-" ? "-" : String(pins);
   frame.throws[throwIndex] = { isPocket: false, isSplit: false, isSinglePin: false, isSinglePinConverted: false, observed: [], ...previous, value, pins };
   let incompatible = false;
   for (let t = throwIndex + 1; t < frame.throws.length; t++) {
@@ -87,7 +88,8 @@ export function changeThrow(frames: FrameData[], index: number, throwIndex: numb
       frame.throws = frame.throws.slice(0, t);
       break;
     }
-    roll.value = roll.pins === 10 && standing === 10 ? "X" : roll.pins === standing && standing < 10 ? "/" : roll.value === "-" ? "-" : String(roll.pins);
+    const reset = isFirstBall(index, t, frame);
+    roll.value = roll.pins === 10 && reset ? "X" : roll.pins === standing && !reset ? "/" : roll.value === "-" ? "-" : String(roll.pins);
   }
   // A strike or open tenth must not retain irrelevant empty cells.
   if (index < 9 && value === "X" && throwIndex === 0) frame.throws = frame.throws.slice(0, 1);
