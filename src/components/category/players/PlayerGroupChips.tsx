@@ -60,6 +60,7 @@ export function PlayerGroupChips({ categoryId, value, onChange, availableIds, cl
             key={g.id}
             variant="outline"
             role="button"
+            aria-pressed={active}
             tabIndex={0}
             onClick={() => toggleGroup(g.memberIds, active)}
             onKeyDown={(e) => {
@@ -70,13 +71,8 @@ export function PlayerGroupChips({ categoryId, value, onChange, availableIds, cl
             }}
             className={cn(
               "cursor-pointer select-none gap-1.5 rounded-full px-2.5 py-1 text-xs transition-colors",
-              active ? "text-primary-foreground" : "hover:bg-muted",
+              active ? "bg-selection text-selection-foreground border-selection font-semibold" : "border-border text-muted-foreground hover:bg-muted",
             )}
-            style={
-              active
-                ? { backgroundColor: g.color, borderColor: g.color, color: "#fff" }
-                : { borderColor: g.color, color: g.color }
-            }
           >
             {g.name}
             <span className="opacity-80">{g.memberIds.length}</span>
