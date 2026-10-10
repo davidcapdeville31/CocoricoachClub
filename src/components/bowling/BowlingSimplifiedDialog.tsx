@@ -14,9 +14,9 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Trophy, Timer, Sparkles, Plus, Target, Wrench, Save, Circle, Users, Loader2, Droplet, ArrowUp, ArrowDown, Copy, ArrowLeft, ArrowRight, CheckCircle2, CalendarDays, X, ChevronDown, ChevronUp, Flag, Repeat, Zap, Eye, Brain } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { BowlingStepper, BowlingSessionRecap, blockSummary } from "./simplified/WizardParts";
+import { BowlingStepper, BowlingSessionRecap, blockSummary, blockCompactLine } from "./simplified/WizardParts";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Trash2 } from "lucide-react";
+import { MoreHorizontal, Trash2, Check } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -366,6 +366,10 @@ export function BowlingSimplifiedDialog({
     if (b.type === "tactical" || b.type === "technical") {
       if (b.duration_min <= 0) return "La durée doit être supérieure à 0";
     }
+    if (b.type === "tactical") {
+      if (b.items.some((it) => (it.success || 0) > (it.attempts || 0)))
+        return "Les réussites ne peuvent pas dépasser le nombre de lancers";
+    }
     if (b.type === "technical") {
       if (b.theme === "other" && !b.custom_theme?.trim())
         return "Précisez la thématique";
@@ -389,7 +393,8 @@ export function BowlingSimplifiedDialog({
       return;
     }
     setLockedIds((prev) => new Set(prev).add(id));
-    toast.success("Bloc enregistré");
+    // Conserve la position de lecture : ramène l'en-tête du bloc replié à l'écran
+    window.setTimeout(() => document.getElementById(`bowling-block-${id}`)?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 30);
   };
 
   const unlockBlock = (id: string) =>
@@ -1033,11 +1038,11 @@ export function BowlingSimplifiedDialog({
               {!isEditMode && (
                 <div className={`${cardCls} md:col-span-2`}>
                   <p className="mb-3 flex items-center gap-2.5 text-base font-semibold text-bowling-ink"><Target className="h-5 w-5 text-bowling-accent" />Type de séance <span className="font-normal text-muted-foreground">(facultatif)</span></p>
-                  <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+                  <div className="grid w-full grid-cols-2 gap-3">
                     {SESSION_KINDS.map((k) => {
                       const on = sessionKind === k.value;
                       return (
-                        <button key={k.value} type="button" aria-pressed={on} onClick={() => setSessionKind(on ? null : k.value)} className={`flex flex-col items-center justify-center gap-1 rounded-2xl px-2 py-4 text-center transition-all duration-200 active:scale-[0.97] ${on ? "bg-bowling-ink text-card shadow-lg" : "border border-border/70 bg-card text-bowling-ink hover:-translate-y-0.5 hover:shadow-md"}`}>
+                        <button key={k.value} type="button" aria-pressed={on} onClick={() => setSessionKind(on ? null : k.value)} className={`flex w-full min-w-0 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-4 sm:py-5 text-center transition-all duration-200 active:scale-[0.97] ${on ? "bg-bowling-ink text-card shadow-lg" : "border border-border/70 bg-card text-bowling-ink hover:-translate-y-0.5 hover:shadow-md"}`}>
                           <span className="flex h-9 items-center justify-center" aria-hidden>
                             {k.icon === "pins" ? <img src={heroPins} alt="" width={36} height={36} className="h-9 w-9 object-contain" /> : <Trophy className={`h-7 w-7 ${on ? "text-card" : k.color}`} />}
                           </span>
@@ -1103,16 +1108,16 @@ export function BowlingSimplifiedDialog({
 
           {step === 1 && (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 {[
                   { key: "tactical", label: "Tactique", hint: "Strike, spares, quilles", icon: Target, color: "text-bowling-tactical", onClick: addTactical },
                   { key: "technical", label: "Technique", hint: "Thématique & durée", icon: Wrench, color: "text-bowling-technical", onClick: addTechnical },
                   { key: "games", label: "Parties", hint: "Scores & jeux", icon: Circle, color: "text-bowling-games", onClick: addGames },
                 ].map((c) => (
-                  <button key={c.key} type="button" onClick={c.onClick} className={`${cardCls} group flex flex-col items-center gap-1.5 !p-3 text-center transition-all hover:-translate-y-0.5 hover:shadow-md`}>
-                    <c.icon className={`h-6 w-6 ${c.color}`} />
-                    <span className="flex items-center gap-1 text-sm sm:text-base font-semibold text-bowling-ink"><Plus className="h-4 w-4" />{c.label}</span>
-                    <span className="hidden sm:block text-xs text-muted-foreground">{c.hint}</span>
+                  <button key={c.key} type="button" onClick={c.onClick} className={`${cardCls} group flex min-h-[56px] flex-col items-center justify-center gap-1 !px-2 !py-2.5 text-center transition-all hover:-translate-y-0.5 hover:shadow-md sm:flex-row sm:gap-2`}>
+                    <c.icon className={`h-5 w-5 shrink-0 ${c.color}`} />
+                    <span className="flex items-center gap-0.5 text-sm font-semibold text-bowling-ink"><Plus className="h-3.5 w-3.5" />{c.label}</span>
+                    <span className="hidden lg:block text-xs text-muted-foreground">· {c.hint}</span>
                   </button>
                 ))}
               </div>
@@ -1132,7 +1137,8 @@ export function BowlingSimplifiedDialog({
                     ? { Icon: Wrench, label: "Technique", fg: "text-bowling-technical", bg: "bg-bowling-technical/10", bar: "bg-bowling-technical" }
                     : { Icon: Circle, label: "Parties", fg: "text-bowling-games", bg: "bg-bowling-games/10", bar: "bg-bowling-games" };
                 const dur = blockDuration(b);
-                const customTitle = b.title?.trim();
+                const line = blockCompactLine(b);
+                const incomplete = validateBlock(b);
                 return (
                   <div key={b.id} id={`bowling-block-${b.id}`} className="scroll-mt-2 overflow-hidden rounded-[20px] bg-card shadow-[0_2px_12px_-4px_hsl(var(--foreground)/0.08)]">
                     <div className="flex">
@@ -1142,12 +1148,17 @@ export function BowlingSimplifiedDialog({
                           <button type="button" onClick={() => (collapsed ? openBlock(b.id) : collapseBlock(b.id))} className="flex min-w-0 flex-1 items-center gap-3 text-left" aria-expanded={!collapsed}>
                             <span className={`rounded-lg p-2 ${meta.bg}`}><meta.Icon className={`h-4 w-4 ${meta.fg}`} /></span>
                             <span className="min-w-0 flex-1">
-                              <span className="flex items-baseline gap-2">
-                                <span className={`text-sm font-semibold ${meta.fg}`}>{meta.label}</span>
-                                {customTitle && <span className="truncate text-sm font-medium text-bowling-ink">{customTitle}</span>}
-                                {dur ? <span className="ml-auto shrink-0 text-xs text-muted-foreground">{dur} min</span> : null}
+                              <span className="flex items-baseline gap-1.5">
+                                <span className={`shrink-0 text-sm font-semibold ${meta.fg}`}>{meta.label}</span>
+                                <span className="truncate text-sm font-medium text-bowling-ink">— {line.title}</span>
+                                {!collapsed && dur ? <span className="ml-auto shrink-0 text-xs text-muted-foreground">{dur} min</span> : null}
                               </span>
-                              {collapsed && <span className="mt-0.5 block truncate text-xs text-muted-foreground">{blockSummary(b)}</span>}
+                              {collapsed && (
+                                <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                                  <span className="min-w-0 sm:truncate">{line.detail}</span>
+                                  {incomplete && <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-bowling-games/10 px-2 py-0.5 text-[11px] font-medium text-bowling-games" title={incomplete}><span className="h-1.5 w-1.5 rounded-full bg-bowling-games" />À compléter</span>}
+                                </span>
+                              )}
                             </span>
                             <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${collapsed ? "" : "rotate-180"}`} />
                           </button>
@@ -1168,7 +1179,7 @@ export function BowlingSimplifiedDialog({
                           <div className="border-t border-border/60 px-3 pb-4 pt-3 sm:px-4">
                             {renderEditor(b)}
                             <div className="mt-4 flex justify-end">
-                              <Button type="button" variant="outline" size="sm" className="h-9 gap-1 rounded-xl" onClick={() => lockBlock(b.id)}><ChevronUp className="h-4 w-4" />Valider et replier</Button>
+                              <Button type="button" variant="outline" size="sm" className="h-10 gap-1.5 rounded-xl border-bowling-success/40 text-bowling-success hover:bg-bowling-success/10 hover:text-bowling-success" onClick={() => lockBlock(b.id)}><Check className="h-4 w-4" />Terminer ce bloc</Button>
                             </div>
                           </div>
                         )}
