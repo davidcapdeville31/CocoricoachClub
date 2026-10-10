@@ -25,6 +25,14 @@
 
 # Affichage mobile de l’espace athlète
 
+## UX athlète mobile V2
+- [x] Auditer contenu mental, cartes, circuits, bilans et statuts ; présenter le plan avant modification importante.
+- [ ] Donner priorité à une fiche mentale complète, lisible et liée aux réponses existantes.
+- [ ] Compacter les circuits, séparer consignes/résultats et clarifier la progression sans changer les calculs.
+- [ ] Identifier chaque bilan par sa séance et optimiser les cinq ressentis sur téléphone.
+- [ ] Séparer séances à réaliser et terminées selon les statuts réels.
+- [ ] Vérifier les écrans à 320/360/390/430 px et les allers-retours ; vérifier l’enregistrement authentifié si disponible.
+
 - [x] Corriger les pictogrammes du menu et la lisibilité du résumé wellness, toutes disciplines.
 - [x] Vérifier le menu et un wellness enregistré sur mobile en thèmes clair et sombre.
 - [x] Décaler les boutons « Ajouter une séance » et « Récupération » sous le titre « Mon calendrier » sur mobile, sans chevauchement, toutes disciplines.
