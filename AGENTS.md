@@ -1,9 +1,10 @@
 # Architecture decisions
-- Athlete-specific visual tokens stay scoped, while semantic surface/text/action roles inherit the canonical global theme so portals and shared screens remain consistent.
-- App-wide selectable controls use shared selection tokens and semantic state attributes; the global selection contract supersedes legacy sport colors without changing functional status colors or behavior.
-- Athlete mobile navigation selects the existing URL tab state and mirrors sport visibility; the secondary drawer and desktop theme command reuse FieldModeContext to preserve preferences and all modules.
-- Athlete mobile content reserves the measured bottom-navigation height via ResizeObserver, including safe areas; visualViewport hides navigation during an obstructing keyboard without changing destinations or form state.
-- The shared athlete notification dialog sends push-only requests using linked user IDs; composition announcements use an editable default message without changing global-calendar availability invitations.
+- Athlete visuals stay scoped; semantic surface/text/action roles inherit global tokens for consistent portals.
+- Selectable controls use shared tokens and semantic state attributes, overriding legacy sport colors but preserving functional statuses.
+- Athlete mobile navigation uses URL tabs and sport visibility; drawer/theme commands reuse FieldModeContext to preserve preferences.
+- Athlete content reserves ResizeObserver-measured navigation and safe-area height; visualViewport hides navigation under the keyboard, preserving form state.
+- Athlete notifications are push-only via linked user IDs; composition messages stay editable and calendar availability invitations unchanged.
+- BrandLogo uses identical artwork and transparency across themes; its CDN dark variant has light strokes to avoid checkerboards and brand drift.
 - OneSignal device registration waits for the explicit post-init readiness flag and caches only successful syncs; SDK method availability alone does not mean initialization has completed.
 - Attendance reports label notification channels active only from confirmed enabled OneSignal subscriptions; preference toggles alone never prove delivery readiness.
 - Global calendar attendance previews read only `match_participants` and minimal player display fields, never lineups or the full roster, so counts reflect invited athletes and their actual responses across all sports.

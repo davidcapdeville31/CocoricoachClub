@@ -10,6 +10,7 @@
 - [ ] Contrôler les interfaces accessibles en clair/sombre, plusieurs largeurs et états ; produire un rapport avec couverture et limites explicites.
 
 ## Identité officielle bleu blanc rouge
+- [x] Logo sombre : damier intégré remplacé par le même logo que le thème clair, traits blancs et rouge conservé ; chargement CDN et rendu connexion vérifiés, correction partagée par les en-têtes.
 - [x] Harmoniser onglets partagés, navigation, commandes, groupes et filtres exercices/tests en bleu marine opaque et blanc ; rouge notifications, Wellness vert conservé.
 - [x] Vérifier en consultation connectée les onglets Admin/Planning/Programmation/Santé et l’espace Manon : sélections #10264A, texte/icônes blancs, graisse 600 ; clair/sombre à 320/360/390/430/768/1280 px sans débordement, menu Plus et thème testés ; aucun enregistrement ni push. Contrôle non exhaustif de chaque formulaire spécifique.
 
