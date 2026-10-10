@@ -64,7 +64,7 @@ export function MatchAttendancePreview({ match, onOpenChange }: Props) {
         {isLoading ? <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" aria-label={t("common.loading")} /> : isError ? (
           <div className="space-y-2 text-sm text-destructive" role="alert">
             <p>{t("planning.calendarViews.attendancePreview.error")}</p>
-            <Button variant="outline" onClick={() => refetch()}>{t("common.retry")}</Button>
+            <Button variant="outline" onClick={() => refetch()}>{t("common.retry", "Réessayer")}</Button>
           </div>
         ) : participants.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t("planning.calendarViews.attendancePreview.empty")}</p>
