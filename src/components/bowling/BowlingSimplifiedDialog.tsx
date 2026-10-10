@@ -623,10 +623,7 @@ export function BowlingSimplifiedDialog({
       if (blocks.length === 0) {
         throw new Error("Ajoutez au moins un bloc avant d'enregistrer");
       }
-      const unlocked = blocks.filter((b) => !lockedIds.has(b.id));
-      if (unlocked.length > 0) {
-        throw new Error("Enregistrez d'abord chaque bloc avant de valider la séance");
-      }
+      // Chaque bloc est validé dans handleSave ; un bloc ouvert conserve ses données.
 
       const sessionDate = format(date, "yyyy-MM-dd");
       const totalDuration = blocks.reduce(
