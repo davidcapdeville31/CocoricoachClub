@@ -454,7 +454,7 @@ export default function Admin() {
                 {loadingUsers ? (
                   <p className="text-muted-foreground">Chargement...</p>
                 ) : (
-                  <Table>
+                  <Table className="min-w-[720px]">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Nom</TableHead>
@@ -655,7 +655,7 @@ export default function Admin() {
                   {users.filter(u => !u.is_approved && !u.is_super_admin).length === 0 ? (
                     <p className="text-muted-foreground">Aucun utilisateur en attente</p>
                   ) : (
-                    <Table>
+                    <Table className="min-w-[720px]">
                       <TableHeader>
                         <TableRow>
                           <TableHead>Nom</TableHead>
@@ -702,7 +702,7 @@ export default function Admin() {
                     <CheckCircle2 className="h-5 w-5 text-green-600" />
                     Utilisateurs approuvés
                   </h3>
-                  <Table>
+                  <Table className="min-w-[720px]">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Nom</TableHead>
@@ -816,7 +816,7 @@ export default function Admin() {
                   ) : invitations.filter(i => i.status === "pending").length === 0 ? (
                     <p className="text-muted-foreground text-sm">Aucune invitation en attente</p>
                   ) : (
-                    <Table>
+                    <Table className="min-w-[720px]">
                       <TableHeader>
                         <TableRow>
                           <TableHead>Nom</TableHead>
@@ -875,7 +875,7 @@ export default function Admin() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Table>
+                  <Table className="min-w-[720px]">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Nom</TableHead>
