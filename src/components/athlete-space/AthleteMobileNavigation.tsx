@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Activity, BarChart3, CalendarDays, Home, LogOut, MessageSquare, Moon, MoreHorizontal, Sun, X, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
@@ -30,6 +30,32 @@ export function AthleteMobileNavigation({ active, onNavigate, secondary, unreadM
   onSignOut?: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+  useEffect(() => {
+    const nav = navRef.current;
+    const shell = nav?.closest<HTMLElement>(".athlete-space");
+    if (!nav || !shell) return;
+    const measure = () => shell.style.setProperty("--athlete-nav-height", `${nav.getBoundingClientRect().height}px`);
+    const observer = new ResizeObserver(measure);
+    observer.observe(nav);
+    measure();
+    const viewport = window.visualViewport;
+    const checkKeyboard = () => {
+      const editing = document.activeElement?.matches("input, textarea, [contenteditable='true']");
+      setKeyboardOpen(Boolean(editing && viewport && window.innerHeight - viewport.height > 150));
+    };
+    viewport?.addEventListener("resize", checkKeyboard);
+    document.addEventListener("focusin", checkKeyboard);
+    document.addEventListener("focusout", checkKeyboard);
+    return () => {
+      observer.disconnect();
+      shell.style.removeProperty("--athlete-nav-height");
+      viewport?.removeEventListener("resize", checkKeyboard);
+      document.removeEventListener("focusin", checkKeyboard);
+      document.removeEventListener("focusout", checkKeyboard);
+    };
+  }, []);
   const primary: AthleteDestination[] = [
     { value: "dashboard", label: "Accueil", icon: Home },
     { value: "calendar", label: "Planning", icon: CalendarDays },
@@ -41,7 +67,7 @@ export function AthleteMobileNavigation({ active, onNavigate, secondary, unreadM
   const choose = (value: string) => { onNavigate(value); setOpen(false); };
   const badge = (count?: number) => count ? <span className="athlete-nav-count">{count > 9 ? "9+" : count}</span> : null;
   return <>
-    <nav className="athlete-bottom-nav md:hidden" aria-label="Navigation athlète">
+    <nav ref={navRef} className={cn("athlete-bottom-nav md:hidden", keyboardOpen && "athlete-keyboard-open")} aria-label="Navigation athlète">
       {primary.map(({ value, label, icon: Icon, count }) => <Button key={value} variant="ghost"
         className={cn("athlete-bottom-item", active === value && "is-active")}
         aria-current={active === value ? "page" : undefined} onClick={() => choose(value)}>
@@ -54,7 +80,7 @@ export function AthleteMobileNavigation({ active, onNavigate, secondary, unreadM
     </nav>
     <Drawer open={open} onOpenChange={setOpen} shouldScaleBackground={false}>
       <DrawerContent className="athlete-space athlete-more-panel" aria-describedby={undefined}>
-        <DrawerHeader className="flex items-center justify-between pb-3">
+        <DrawerHeader className="athlete-more-header flex items-center justify-between pb-3">
           <DrawerTitle>Mon espace</DrawerTitle>
           <DrawerClose asChild><Button size="icon" variant="ghost" aria-label="Fermer le menu"><X /></Button></DrawerClose>
         </DrawerHeader>
@@ -64,7 +90,7 @@ export function AthleteMobileNavigation({ active, onNavigate, secondary, unreadM
             <span className="relative"><Icon strokeWidth={1.8} />{badge(count)}</span><span>{label}</span>
           </Button>)}
         </div>
-        <div className="flex flex-wrap items-center gap-2 border-t border-border mx-4 mt-4 pt-4">
+        <div className="athlete-more-footer flex flex-wrap items-center gap-2 border-t border-border mx-4 mt-4 pt-4">
           <AthleteThemeCommand />
           {onBack && <Button variant="ghost" className="min-h-11" onClick={() => { setOpen(false); onBack(); }}>Retour</Button>}
           {onSignOut && <Button variant="ghost" className="min-h-11" onClick={onSignOut}><LogOut />Déconnexion</Button>}

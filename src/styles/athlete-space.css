@@ -61,10 +61,19 @@
 .athlete-space .athlete-session-section > div { padding-left: 0; padding-right: 0; }
 .athlete-space .athlete-session-section > div:first-child { padding-top: 0; padding-bottom: 12px; }
 .athlete-space .athlete-session-section h3 { font-size: 18px; line-height: 1.4; }
-.athlete-space .athlete-session-card { box-shadow: var(--shadow-md); border-radius: 20px; }
-.athlete-space .athlete-session-card:hover { box-shadow: var(--shadow-md); }
+.athlete-space .athlete-session-card { box-shadow: var(--shadow-sm); border-radius: 19px; min-height: 0; }
+.athlete-space .athlete-session-card:hover { box-shadow: var(--shadow-sm); }
 .athlete-space .athlete-session-card > div { min-width: 0; }
 .athlete-space .athlete-session-card button { min-height: 44px; }
+.athlete-space .athlete-session-heading > div { min-width: 0; flex: 1; }
+.athlete-space .athlete-session-heading > div > p { flex-wrap: nowrap; align-items: flex-start; }
+.athlete-space .athlete-session-heading > div > p > span { min-width: 0; overflow-wrap: anywhere; }
+.athlete-space .athlete-session-icon { margin-top: 3px; }
+.athlete-space .athlete-session-notes > div > div { margin: 0; }
+.athlete-space .athlete-session-notes h3,
+.athlete-space .athlete-session-preview h3 { padding-top: 0; font-size: 14px; line-height: 1.5; }
+.athlete-space .athlete-session-notes > div:has(+ button[aria-expanded="false"]) { max-height: 3rem; }
+.athlete-space .athlete-exercise-toggle { margin-top: 4px; padding: 0; }
 .athlete-space button { transition-duration: 180ms; }
 .athlete-space button[class*="bg-primary"] { border-radius: 12px; box-shadow: var(--shadow-sm); }
 .athlete-space button[class*="hover:bg-accent/10"]:hover { color: hsl(var(--foreground)); }
@@ -76,16 +85,16 @@
   border-radius: 10px;
 }
 .athlete-space .athlete-session-action { background: hsl(var(--athlete-action)); color: hsl(var(--athlete-action-foreground)); }
-.athlete-session-preview { max-height: 3.5rem; overflow: hidden; }
+.athlete-space .athlete-session-preview { max-height: 3rem; overflow: hidden; margin-top: 6px; }
 .athlete-bottom-nav {
   position: fixed; inset: auto 0 0; z-index: 60;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 3px; padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+  gap: 3px; padding: 6px max(8px, env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
   background: hsl(var(--card)); border-top: 1px solid hsl(var(--border) / 0.7);
-  border-radius: 20px 20px 0 0; box-shadow: var(--shadow-lg);
+  border-radius: 18px 18px 0 0; box-shadow: var(--shadow-sm);
 }
 .athlete-space .athlete-bottom-item {
-  min-width: 0; height: 56px; padding: 6px 2px; flex-direction: column; gap: 4px;
+  min-width: 44px; height: 52px; padding: 5px 2px; flex-direction: column; gap: 4px;
   border-radius: 14px; color: hsl(var(--muted-foreground)); font-size: 11px;
 }
 .athlete-space .athlete-bottom-item svg { width: 22px; height: 22px; }
@@ -97,24 +106,33 @@
   padding: 0 3px; border-radius: 20px; background: hsl(var(--destructive));
   color: hsl(var(--destructive-foreground)); font-size: 9px; line-height: 16px;
 }
-.athlete-more-panel { max-height: 85dvh; overflow-y: auto; border-radius: 24px 24px 0 0; padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
-.athlete-more-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 0 16px; }
-.athlete-space .athlete-more-item { height: auto; min-height: 82px; flex-direction: column; gap: 9px; padding: 12px 4px; white-space: normal; font-size: 12px; border-radius: 16px; background: hsl(var(--surface-sunken)); }
-.athlete-space .athlete-more-item svg { width: 22px; height: 22px; color: hsl(var(--accent)); }
+.athlete-space.athlete-more-panel { max-height: calc(100dvh - max(24px, env(safe-area-inset-top))); overflow-y: auto; overscroll-behavior: contain; border-radius: 24px 24px 0 0; padding-bottom: calc(16px + env(safe-area-inset-bottom)); margin-top: 24px; }
+.athlete-more-panel > div:first-child { width: 40px; height: 4px; margin-top: 10px; flex-shrink: 0; background: hsl(var(--border)); }
+.athlete-space .athlete-more-header { padding: 10px 16px 12px; gap: 8px; }
+.athlete-space .athlete-more-header button { width: 44px; height: 44px; }
+.athlete-more-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 0 16px; }
+.athlete-space .athlete-more-item { height: auto; min-height: 74px; flex-direction: column; gap: 6px; padding: 10px 4px; white-space: normal; font-size: 13px; line-height: 1.3; border-radius: 16px; background: hsl(var(--surface-sunken)); }
+.athlete-space .athlete-more-item svg { width: 24px; height: 24px; color: hsl(var(--accent)); }
+.athlete-space .athlete-more-footer { margin-top: 12px; padding-top: 12px; }
+.athlete-space .athlete-bottom-item:active, .athlete-space .athlete-more-item:active { background: hsl(var(--accent) / 0.16); }
 @media (max-width: 767px) {
-  .athlete-space:not(.athlete-more-panel) { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
-  .athlete-bottom-nav { display: grid; }
-  .athlete-header-inner { padding: 12px; gap: 6px; }
+  .athlete-space:not(.athlete-more-panel) { --athlete-nav-height: calc(65px + env(safe-area-inset-bottom)); padding-bottom: 0; }
+  .athlete-space .athlete-bottom-nav { display: grid; }
+  .athlete-space .athlete-bottom-nav.athlete-keyboard-open { display: none; }
+  .athlete-space .athlete-header-inner { padding: 10px 12px; gap: 8px; }
   .athlete-header-actions { gap: 2px; }
   .athlete-header .athlete-info-button { min-width: 44px; width: 44px; padding: 4px; gap: 2px; flex-direction: column; }
   .athlete-header .athlete-info-button span { font-size: 10px; }
-  .athlete-identity h1 { font-size: 15px; line-height: 1.3; }
+  .athlete-space .athlete-identity h1 { font-size: 15px; line-height: 1.35; }
   .athlete-identity-badges { margin-top: 3px; }
   .athlete-identity-badges [data-slot], .athlete-identity-badges > div { font-size: 9px; }
-  .athlete-main { padding: 18px 12px; }
-  .athlete-home { --home-gap: 24px; }
-  .athlete-space .athlete-session-section h3 { font-size: 16px; }
-  .athlete-all-sessions { font-size: 11px; }
+  .athlete-space .athlete-main { padding: 20px 12px calc(var(--athlete-nav-height) + 16px); }
+  .athlete-space .athlete-main > div > [role="tabpanel"] { margin-top: 0; }
+  .athlete-space .athlete-home > :not([hidden]) ~ :not([hidden]) { margin-top: 20px; }
+  .athlete-space .athlete-session-section > div:first-child { padding-bottom: 10px; align-items: center; }
+  .athlete-space .athlete-session-section h3 { font-size: 20px; line-height: 1.3; }
+  .athlete-space .athlete-session-section h3 > svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .athlete-space .athlete-all-sessions { font-size: 12px; min-height: 44px; gap: 2px; }
   .athlete-space .athlete-session-card { padding: 16px; }
 }
 @media (min-width: 768px) {
