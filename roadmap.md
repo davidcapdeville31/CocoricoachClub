@@ -2,12 +2,13 @@
 
 ## Refonte ciblée du calendrier athlète
 - [x] Auditer les composants, dépendances et données ; observer le calendrier réel connecté de Manon à 390 px et analyser les deux références.
-- [ ] Valider le plan de réorganisation avant les changements structurants.
-- [ ] Donner priorité à la grille, expliciter Calendrier / Planification et ajouter Mois / Semaine / Aujourd’hui sans changer les données.
-- [ ] Compacter événements, Wellness, cycles et confirmations ; conserver les actions réduites et les formulaires existants.
-- [ ] Fiabiliser l’affichage des présences, motifs, chargements et erreurs sans changer les règles métier.
-- [ ] Vérifier navigation, dates, thèmes, accessibilité et largeurs ; distinguer consultation staff et enregistrement en identité athlète autorisée.
-- [ ] Produire le rapport de couverture et limites ; garder l’audit global des contrastes ouvert hors de ce périmètre.
+- [x] Plan approuvé avant les changements structurants.
+- [x] Donner priorité à la grille, expliciter Calendrier / Planification et ajouter Mois / Semaine / Aujourd’hui sans changer les données.
+- [x] Compacter événements, Wellness, cycles et confirmations ; conserver les actions réduites et les formulaires existants.
+- [x] Afficher présences, motifs, chargements et erreurs sans changer les règles métier.
+- [x] Vérifier navigation et six tests de dates ; bowling clair/sombre aux six largeurs, rugby/judo/athlétisme à quatre largeurs, erreur réseau puis récupération et dernière action dégagée.
+- [x] Rapport précis dans `.lovable/athlete-calendar-verification.md` ; audit global des contrastes maintenu séparément.
+- [ ] Enregistrement présence/séance et lecture coach : nécessite une identité athlète autorisée et des données de test ; aucune réponse réelle modifiée avec le compte staff disponible.
 
 ## Actions des séances réduites
 - [x] Garder Voir la séance / Remplir les données visibles côte à côte sans déplier la carte ; restrictions existantes conservées.
