@@ -1,3 +1,4 @@
+import { getSessionDisplayTitle } from "@/lib/sessionPresentation";
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -433,7 +434,7 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[13px] sm:text-sm font-semibold truncate">
-                      {getTrainingTypeLabel(s.training_type)}
+                      {getSessionDisplayTitle({ training_type: s.training_type })}
                     </p>
                     <div className="flex items-center gap-2 text-[10px] sm:text-[11px] text-muted-foreground mt-0">
                       {s.session_start_time && <span>{s.session_start_time.slice(0, 5)}</span>}

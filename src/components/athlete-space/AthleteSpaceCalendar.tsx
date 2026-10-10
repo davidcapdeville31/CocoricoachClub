@@ -1,4 +1,4 @@
-import { getReadableNotes, getNotesSectionKey, getSessionOrigin } from "@/lib/sessionPresentation";
+import { getReadableNotes, getNotesSectionKey, getSessionOrigin, getSessionDisplayTitle } from "@/lib/sessionPresentation";
 import { FormattedText, CollapsibleFormattedText } from "@/components/ui/formatted-text";
 import { SessionAuthor } from "@/components/shared/SessionAuthor";
 import { getDateLocale } from "@/lib/i18n/dateLocale";
@@ -827,7 +827,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                       <p className="font-medium text-sm">
                                         {(() => {
                                           if (session.training_type !== "test") {
-                                            return getTrainingTypeLabel(session.training_type);
+                                            return getSessionDisplayTitle({ training_type: session.training_type });
                                           }
                                           const reminderId = (session as any).test_reminder_id;
                                           if (reminderId && testTypeByReminderId[reminderId]) {
@@ -842,7 +842,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                           // Fallback 2: legacy "Test auto-planifié: <label>" in notes
                                           const legacy = ((session as any).notes || "").match(/Test auto-planifi[ée]\s*:\s*([^\n<]+)/i);
                                           if (legacy) return t("athleteSpace.calendar.testLabel", { label: legacy[1].trim() });
-                                          return getTrainingTypeLabel(session.training_type);
+                                          return getSessionDisplayTitle({ training_type: session.training_type });
                                         })()}
                                       </p>
                                       {blocks.length > 0 && blocks.some(b => b.training_type !== session.training_type) && (

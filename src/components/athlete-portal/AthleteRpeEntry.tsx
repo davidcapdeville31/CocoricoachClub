@@ -1,3 +1,4 @@
+import { getSessionDisplayTitle } from "@/lib/sessionPresentation";
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useEffect } from "react";
 import { computeSessionDurationMinutes } from "@/lib/utils/sessionDuration";
@@ -380,7 +381,7 @@ export function AthleteRpeEntry({ token, playerId, categoryId, sportType, onRefr
                       )}
                     </div>
                   </div>
-                  <Badge variant="outline">{getTrainingTypeLabel(s.training_type)}</Badge>
+                  <Badge variant="outline">{getSessionDisplayTitle({ training_type: s.training_type })}</Badge>
                 </div>
               ))}
             </div>
@@ -431,7 +432,7 @@ export function AthleteRpeEntry({ token, playerId, categoryId, sportType, onRefr
                       </div>
                       <div className="flex items-center gap-1.5">
                         <Badge variant="outline">
-                          {getTrainingTypeLabel(session.training_type)}
+                          {getSessionDisplayTitle({ training_type: session.training_type })}
                         </Badge>
                         {exerciseLabel && (
                           <Badge variant="secondary" className="gap-1">
@@ -642,7 +643,7 @@ export function AthleteRpeEntry({ token, playerId, categoryId, sportType, onRefr
                     </span>
                   </div>
                   <Badge variant="secondary">
-                    {getTrainingTypeLabel(session.training_type)}
+                    {getSessionDisplayTitle({ training_type: session.training_type })}
                   </Badge>
                 </div>
               ))}

@@ -1,3 +1,4 @@
+import { getSessionDisplayTitle } from "@/lib/sessionPresentation";
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { SessionAuthor } from "@/components/shared/SessionAuthor";
 import { useMemo, useRef } from "react";
@@ -217,7 +218,7 @@ export function WeeklySessionsView({
                           const session = event.data;
                           const bgColor = TRAINING_TYPE_COLORS[session.training_type] || "bg-primary";
                           const label =
-                            testNameOf(session) || getTrainingTypeLabel(session.training_type);
+                            testNameOf(session) || getSessionDisplayTitle({ training_type: session.training_type });
                           return (
                             <div
                               key={session.id}
