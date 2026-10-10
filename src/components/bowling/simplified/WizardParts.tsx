@@ -9,13 +9,13 @@ const STEPS = ["Informations", "Séance", "Récapitulatif"];
 
 export function BowlingStepper({ step, onStep }: { step: number; onStep: (s: number) => void }) {
   return (
-    <div className="flex items-start pr-8">
+    <div className="flex items-start">
       {STEPS.map((label, i) => {
         const done = i < step;
         const active = i === step;
         return (
           <div key={label} className="flex flex-1 items-start last:flex-none">
-            <button type="button" onClick={() => onStep(i)} className="flex flex-col items-center gap-1 min-w-[72px]">
+            <button type="button" onClick={() => onStep(i)} className="flex flex-col items-center gap-1 min-w-[60px] sm:min-w-[84px]">
               <span
                 className={cn(
                   "flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition-colors",
@@ -26,7 +26,7 @@ export function BowlingStepper({ step, onStep }: { step: number; onStep: (s: num
               >
                 {done ? <Check className="h-4 w-4" /> : i + 1}
               </span>
-              <span className={cn("text-xs", active ? "font-semibold text-foreground" : "text-muted-foreground")}>{label}</span>
+              <span className={cn("text-[11px] sm:text-xs whitespace-nowrap", active ? "font-semibold text-foreground" : "text-muted-foreground")}>{label}</span>
             </button>
             {i < STEPS.length - 1 && (
               <div className={cn("mt-4 h-0.5 flex-1 rounded-full", i < step ? "bg-bowling-accent" : "bg-border")} />

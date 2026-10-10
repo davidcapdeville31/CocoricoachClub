@@ -911,16 +911,16 @@ export function BowlingSimplifiedDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         hideClose
-        className="flex flex-col gap-0 overflow-hidden p-0 sm:p-0 bg-bowling-canvas border-0 w-screen h-[100dvh] max-h-[100dvh] max-w-none rounded-none sm:w-[94vw] sm:h-[92vh] sm:max-h-[92vh] sm:max-w-[1000px] sm:rounded-3xl"
+        className="flex flex-col gap-0 overflow-hidden p-0 sm:p-0 bg-bowling-canvas border-0 fixed inset-0 sm:relative sm:inset-auto w-screen h-[100dvh] max-h-[100dvh] max-w-none rounded-none sm:w-[94vw] sm:h-[92vh] sm:max-h-[92vh] sm:max-w-[1000px] sm:rounded-3xl"
       >
         {/* En-tête fixe */}
         <div className="shrink-0 bg-bowling-canvas px-4 pt-4 sm:px-8 sm:pt-6">
           <div className="flex items-start gap-3">
-            <button type="button" onClick={() => (step > 0 ? goToStep(step - 1) : handleOpenChange(false))} className="mt-1 rounded-full p-1.5 text-foreground hover:bg-card" aria-label={step > 0 ? "Retour" : "Fermer"}>
+            <button type="button" onClick={() => (step > 0 ? goToStep(step - 1) : handleOpenChange(false))} className="mt-1 shrink-0 rounded-full p-1.5 text-foreground hover:bg-card" aria-label={step > 0 ? "Retour" : "Fermer"}>
               {step > 0 ? <ArrowLeft className="h-5 w-5" /> : <X className="h-5 w-5" />}
             </button>
-            <div className="flex-1"><BowlingStepper step={step} onStep={goToStep} /></div>
-            <button type="button" onClick={() => handleOpenChange(false)} className="mt-1.5 text-sm text-muted-foreground hover:text-foreground">Annuler</button>
+            <div className="min-w-0 flex-1"><BowlingStepper step={step} onStep={goToStep} /></div>
+            <button type="button" onClick={() => handleOpenChange(false)} className="mt-1.5 shrink-0 text-sm text-muted-foreground hover:text-foreground">Annuler</button>
           </div>
           <DialogHeader className="mt-5 text-left">
             <DialogTitle className="text-2xl sm:text-3xl font-bold tracking-tight text-primary">
