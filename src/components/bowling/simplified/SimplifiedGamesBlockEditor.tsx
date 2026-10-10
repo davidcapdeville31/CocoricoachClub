@@ -68,27 +68,8 @@ export function SimplifiedGamesBlockEditor({
   };
 
   return (
-    <Card className="space-y-4 rounded-[20px] border-0 bg-card p-5 shadow-[0_2px_12px_-4px_hsl(var(--foreground)/0.08)]">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0 flex-1">
-          <div className="rounded-xl bg-warning/10 p-2.5">
-            <Circle className="h-5 w-5 text-warning" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-base font-semibold text-bowling-ink">Parties #{index + 1}</p>
-            <Input
-              value={value.title}
-              onChange={(e) => update({ title: e.target.value })}
-              placeholder="Titre (facultatif)"
-              className="mt-1 h-9 rounded-xl border-0 bg-bowling-canvas text-sm"
-            />
-          </div>
-        </div>
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onRemove}>
-          <Trash2 className="h-4 w-4 text-destructive" />
-        </Button>
-      </div>
+    <div className="space-y-4">
+      <Input value={value.title} onChange={(e) => update({ title: e.target.value })} placeholder="Titre (facultatif)" className="h-10 rounded-xl border-0 bg-bowling-canvas text-sm" />
 
       <div className="grid grid-cols-2 gap-2">
         {([
@@ -99,7 +80,7 @@ export function SimplifiedGamesBlockEditor({
             key={m}
             type="button"
             onClick={() => update({ entry_mode: m })}
-            className={`rounded-xl px-3 py-2.5 text-center transition-colors ${mode === m ? "bg-bowling-ink text-card" : "bg-bowling-canvas text-foreground "}`}
+            className={`rounded-xl px-3 py-2 text-center transition-colors ${mode === m ? "bg-bowling-ink text-card" : "bg-bowling-canvas text-foreground "}`}
           >
             <span className="block text-sm font-semibold">{t}</span>
             <span className={`block text-[11px] ${mode === m ? "opacity-80" : "text-muted-foreground"}`}>{h}</span>
@@ -117,7 +98,7 @@ export function SimplifiedGamesBlockEditor({
                   key={n}
                   type="button"
                   onClick={() => setCount(n)}
-                  className={`h-11 rounded-xl text-sm font-semibold transition-colors ${value.parties.length === n ? "bg-bowling-ink text-card" : "bg-bowling-canvas "}`}
+                  className={`h-10 rounded-xl text-sm font-semibold transition-colors ${value.parties.length === n ? "bg-bowling-ink text-card" : "bg-bowling-canvas "}`}
                 >
                   {n}
                 </button>
@@ -126,7 +107,9 @@ export function SimplifiedGamesBlockEditor({
           </div>
           <div className="grid gap-3 sm:grid-cols-[1fr_160px]">
             <div className="space-y-2">
-              {value.parties.map((p, idx) => (
+              {value.parties.map((p, idx) => {
+                const isBest = !!p.stats && agg !== null && agg.count > 1 && p.stats.totalScore === best;
+                return (
                 <div key={p.id} className="flex items-center gap-3">
                   <span className="w-16 shrink-0 text-sm text-muted-foreground">Partie {idx + 1}</span>
                   <Input
@@ -135,6 +118,15 @@ export function SimplifiedGamesBlockEditor({
                     min={0}
                     max={300}
                     placeholder="Score"
+                    data-quick-score={value.id}
+                    enterKeyHint={idx < value.parties.length - 1 ? "next" : "done"}
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter") return;
+                      e.preventDefault();
+                      const all = Array.from(document.querySelectorAll<HTMLInputElement>(`input[data-quick-score="${value.id}"]`));
+                      const next = all[idx + 1];
+                      if (next) { next.focus(); next.select(); } else (e.target as HTMLInputElement).blur();
+                    }}
                     value={p.stats ? p.stats.totalScore : ""}
                     onChange={(e) => {
                       const raw = e.target.value;
@@ -142,30 +134,33 @@ export function SimplifiedGamesBlockEditor({
                       const v = Math.max(0, Math.min(300, parseInt(raw, 10) || 0));
                       updateParty(p.id, { stats: quickScoreStats(v), frames: null });
                     }}
-                    className="h-12 rounded-xl border-0 bg-bowling-canvas text-base"
+                    className={`h-11 max-w-[140px] rounded-xl border-0 bg-bowling-canvas text-base font-semibold ${isBest ? "ring-2 ring-bowling-games" : ""}`}
                   />
+                  {isBest && <span className="rounded-full bg-bowling-games/15 px-2 py-0.5 text-xs font-semibold text-bowling-games">Meilleure</span>}
+                  <span className="flex-1" />
                   {value.parties.length > 1 && (
                     <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" aria-label="Supprimer la partie" onClick={() => {
                       if (p.stats && !window.confirm("Supprimer cette partie ?")) return;
                       removeParty(p.id);
                     }}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
+                      <Trash2 className="h-4 w-4 text-muted-foreground" />
                     </Button>
                   )}
                 </div>
-              ))}
+                );
+              })}
               <Button type="button" variant="outline" size="sm" onClick={addParty} className="gap-1">
                 <Plus className="h-3.5 w-3.5" /> Ajouter une partie
               </Button>
             </div>
-            <div className="flex flex-row sm:flex-col justify-around gap-2 rounded-2xl bg-bowling-accent/10 p-4 text-center">
+            <div className="flex flex-row sm:flex-col justify-around gap-2 rounded-2xl bg-bowling-games/10 p-3 text-center">
               <div>
                 <p className="text-xs text-muted-foreground">Moyenne</p>
-                <p className="text-2xl font-bold text-foreground">{agg ? agg.avgScore.toLocaleString("fr-FR") : "—"}</p>
+                <p className="text-2xl font-bold text-bowling-ink">{agg ? agg.avgScore.toLocaleString("fr-FR", { maximumFractionDigits: 1 }) : "—"}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Meilleure partie</p>
-                <p className="text-2xl font-bold text-foreground">{agg ? best : "—"}</p>
+                <p className="text-2xl font-bold text-bowling-games">{agg ? best : "—"}</p>
               </div>
             </div>
           </div>
@@ -173,35 +168,27 @@ export function SimplifiedGamesBlockEditor({
       )}
 
       {mode === "detailed" && (<>
-      {/* Pocket toggle + global stats */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 bg-bowling-canvas p-3">
-        <div className="flex items-center gap-3">
-          <Switch
-            id={`pockets-${value.id}`}
-            checked={value.track_pockets}
-            onCheckedChange={(b) => update({ track_pockets: b })}
-          />
-          <Label htmlFor={`pockets-${value.id}`} className="text-sm cursor-pointer">
-            Statistiques de poches
-          </Label>
-          <Badge variant="outline" className="text-[10px]">
-            {value.track_pockets ? "Activé" : "Désactivé"}
-          </Badge>
-        </div>
-        {agg && (
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            <Badge variant="secondary" className="gap-1">
-              <CheckCircle2 className="h-3 w-3 text-emerald-600" />
-              {agg.count} partie{agg.count > 1 ? "s" : ""} · Moy. {agg.avgScore}
-            </Badge>
-            <Badge variant="outline">Strike {agg.strikePct}%</Badge>
-            <Badge variant="outline">Spare {agg.sparePct}%</Badge>
-            {value.track_pockets && (
-              <Badge variant="outline">Poche {agg.pocketPct}%</Badge>
-            )}
-          </div>
-        )}
+      {/* Résumé + statistiques avancées repliables */}
+      <div className="flex flex-wrap items-center gap-2 text-sm">
+        <span className="font-semibold text-bowling-ink">{agg ? `${agg.count} partie${agg.count > 1 ? "s" : ""} · Moyenne ${agg.avgScore.toLocaleString("fr-FR", { maximumFractionDigits: 1 })}` : "Aucune partie enregistrée"}</span>
+        {agg && <span className="text-muted-foreground">· Meilleure {best}</span>}
       </div>
+      <details className="rounded-xl bg-bowling-canvas px-3 py-2">
+        <summary className="cursor-pointer list-none text-sm font-medium text-muted-foreground hover:text-foreground">+ Statistiques avancées</summary>
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Switch id={`pockets-${value.id}`} checked={value.track_pockets} onCheckedChange={(b) => update({ track_pockets: b })} />
+            <Label htmlFor={`pockets-${value.id}`} className="cursor-pointer text-sm">Statistiques de poches</Label>
+          </div>
+          {agg ? (
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <Badge variant="outline">Strike {agg.strikePct}%</Badge>
+              <Badge variant="outline">Spare {agg.sparePct}%</Badge>
+              {value.track_pockets && <Badge variant="outline">Poche {agg.pocketPct}%</Badge>}
+            </div>
+          ) : <span className="text-xs text-muted-foreground">Disponibles après la première partie enregistrée.</span>}
+        </div>
+      </details>
 
       {/* Oil pattern (masqué quand défini au niveau de la séance) */}
       {!hideOilPicker && (
@@ -218,13 +205,13 @@ export function SimplifiedGamesBlockEditor({
         {value.parties.map((p, idx) => (
           <div
             key={p.id}
-            className="space-y-2 rounded-xl border border-border/60 bg-bowling-canvas p-3"
+            className="space-y-2 rounded-xl bg-bowling-canvas p-2 sm:p-3"
           >
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-semibold">Partie {idx + 1}</span>
                 {p.stats && (
-                  <Badge variant="outline" className="border-emerald-500 text-emerald-600">
+                  <Badge variant="outline" className="border-bowling-games text-bowling-games">
                     {p.stats.totalScore}
                   </Badge>
                 )}
@@ -236,7 +223,7 @@ export function SimplifiedGamesBlockEditor({
                   className="h-7 w-7"
                   onClick={() => removeParty(p.id)}
                 >
-                  <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                  <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
                 </Button>
               )}
             </div>
@@ -278,6 +265,6 @@ export function SimplifiedGamesBlockEditor({
           categoryId={categoryId}
         />
       )}
-    </Card>
+    </div>
   );
 }
