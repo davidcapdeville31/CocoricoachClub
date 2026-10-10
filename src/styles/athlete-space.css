@@ -1,0 +1,135 @@
+/* Reuses the existing .dark / .field-mode theme mechanism; athlete-only roles. */
+.athlete-space {
+  --background: 216 45% 98%;
+  --foreground: 216 45% 17%;
+  --card: 216 40% 99%;
+  --card-foreground: var(--foreground);
+  --surface: var(--card);
+  --surface-elevated: 216 35% 96%;
+  --surface-sunken: 216 30% 95%;
+  --popover: var(--card);
+  --popover-foreground: var(--foreground);
+  --primary: 218 62% 17%;
+  --primary-foreground: 216 60% 98%;
+  --secondary: 216 32% 95%;
+  --secondary-foreground: var(--foreground);
+  --muted: 216 32% 95%;
+  --muted-foreground: 215 17% 43%;
+  --accent: 186 77% 32%;
+  --accent-foreground: 216 60% 98%;
+  --border: 216 28% 90%;
+  --input: 216 28% 87%;
+  --ring: var(--accent);
+  --success: 160 66% 30%;
+  --success-foreground: 160 40% 98%;
+  --status-optimal: var(--success);
+  --warning: 30 85% 35%;
+  --warning-foreground: 30 40% 98%;
+  --radius: 1rem;
+  --gradient-card: linear-gradient(hsl(var(--card)), hsl(var(--card)));
+  --shadow-sm: 0 2px 6px hsl(218 62% 17% / 0.035);
+  --shadow-md: 0 4px 14px hsl(218 62% 17% / 0.05);
+  --shadow-lg: 0 8px 24px hsl(218 62% 17% / 0.07);
+  color: hsl(var(--foreground));
+  letter-spacing: 0;
+  padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+}
+.dark .athlete-space, .field-mode .athlete-space {
+  --background: 216 53% 9%;
+  --foreground: 214 50% 96%;
+  --card: 217 47% 15%;
+  --surface-elevated: 216 43% 19%;
+  --surface-sunken: 218 43% 12%;
+  --primary: 184 60% 60%;
+  --primary-foreground: 218 62% 12%;
+  --secondary: 216 43% 19%;
+  --muted: 216 43% 19%;
+  --muted-foreground: 212 25% 73%;
+  --accent: 184 60% 60%;
+  --accent-foreground: 218 62% 12%;
+  --border: 215 33% 25%;
+  --input: 215 33% 30%;
+  --success: 158 57% 61%;
+  --success-foreground: 218 62% 12%;
+  --warning: 33 85% 66%;
+  --warning-foreground: 218 62% 12%;
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+}
+.athlete-space h1, .athlete-space h2, .athlete-space h3,
+.athlete-space h4, .athlete-space p, .athlete-space button {
+  letter-spacing: 0;
+}
+.athlete-header { padding-top: env(safe-area-inset-top); }
+.athlete-header button { min-height: 44px; border-radius: 12px; }
+.athlete-header button:has(> svg:only-child) { min-width: 44px; }
+.athlete-header > div > div:last-child { margin-left: auto; }
+.athlete-space .athlete-tab[data-nav-color] {
+  width: auto;
+  height: auto;
+  min-width: 0;
+  min-height: 48px;
+  padding: 10px 12px;
+  gap: 6px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  background: hsl(var(--card));
+  color: hsl(var(--muted-foreground));
+  font-size: 12px;
+  font-weight: 500;
+  box-shadow: none;
+  white-space: normal;
+  transition: background-color 180ms, color 180ms, border-color 180ms;
+}
+.athlete-space .athlete-tab[data-state="active"] {
+  background: hsl(var(--accent) / 0.1) !important;
+  color: hsl(var(--accent)) !important;
+  border-color: hsl(var(--accent) / 0.4) !important;
+  box-shadow: none;
+}
+.athlete-space .athlete-tab:hover { border-color: hsl(var(--accent) / 0.4); }
+.athlete-nav-label { overflow-wrap: anywhere; line-height: 1.35; }
+.athlete-space [role="tablist"] { max-width: 100%; }
+.athlete-space [role="tab"] { white-space: normal; min-width: 0; }
+.athlete-space [role="tab"]:focus-visible,
+.athlete-space button:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; }
+.athlete-space .athlete-wellness-banner {
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--accent) / 0.25);
+  justify-content: flex-start;
+}
+.athlete-space .athlete-wellness-banner:hover {
+  background: hsl(var(--accent) / 0.04);
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--accent) / 0.5);
+}
+.athlete-space .athlete-session-section > div { padding-left: 0; padding-right: 0; }
+.athlete-space .athlete-session-section > div:first-child { padding-top: 0; padding-bottom: 12px; }
+.athlete-space .athlete-session-section h3 { font-size: 18px; line-height: 1.4; }
+.athlete-space .athlete-session-card { box-shadow: var(--shadow-sm); }
+.athlete-space .athlete-session-card:hover { box-shadow: var(--shadow-md); }
+.athlete-space button { transition-duration: 180ms; }
+.athlete-space button[class*="bg-primary"] { border-radius: 12px; box-shadow: var(--shadow-sm); }
+.athlete-space button[class*="hover:bg-accent/10"]:hover { color: hsl(var(--foreground)); }
+.athlete-space input:not([type="checkbox"]):not([type="radio"]),
+.athlete-space textarea, .athlete-space [role="combobox"] {
+  background-color: hsl(var(--surface-sunken));
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--input));
+  border-radius: 10px;
+}
+@media (max-width: 639px) {
+  .athlete-space .athlete-tab[data-nav-color] { flex-direction: column; padding: 8px 4px; gap: 5px; }
+  .athlete-header > div > div:first-child { flex-basis: 100%; }
+  .athlete-header > div > div:last-child { width: 100%; justify-content: flex-end; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .athlete-space *, .athlete-space *::before, .athlete-space *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}

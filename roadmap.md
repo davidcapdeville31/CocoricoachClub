@@ -33,8 +33,8 @@
 # Affichage mobile de l’espace athlète
 
 ## Identité visuelle premium athlète
-- [ ] Auditer les styles et le mécanisme de thème existants.
-- [ ] Harmoniser en-tête, navigation, wellness, séances et surfaces dans un périmètre athlète isolé.
+- [x] Auditer les styles et le mécanisme de thème existants.
+- [x] Harmoniser en-tête, navigation, wellness, séances et surfaces dans un périmètre athlète isolé.
 - [ ] Contrôler clair/sombre à 320/360/390/430/768/1280 px et les interactions existantes sans écrire de données.
 
 ## UX athlète mobile V2
