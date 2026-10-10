@@ -7,7 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Check, X, Lock, Clock } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 
 interface Props {
@@ -157,11 +156,10 @@ export function SessionAttendanceResponse({
           <Button
             type="button"
             size="sm"
-            variant={status === "present" ? "default" : "outline"}
-            className={cn(
-              "h-7 px-2 gap-1",
-              status === "present" && "bg-emerald-600 hover:bg-emerald-700 text-white",
-            )}
+            variant="outline"
+            data-attendance="present"
+            aria-pressed={status === "present"}
+            className="min-h-11 px-3 gap-1"
             disabled={saving || locked}
             onClick={(e) => {
               e.stopPropagation();
@@ -174,11 +172,10 @@ export function SessionAttendanceResponse({
           <Button
             type="button"
             size="sm"
-            variant={status === "absent" ? "default" : "outline"}
-            className={cn(
-              "h-7 px-2 gap-1",
-              status === "absent" && "bg-rose-600 hover:bg-rose-700 text-white",
-            )}
+            variant="outline"
+            data-attendance="absent"
+            aria-pressed={status === "absent"}
+            className="min-h-11 px-3 gap-1"
             disabled={saving || locked}
             onClick={(e) => {
               e.stopPropagation();

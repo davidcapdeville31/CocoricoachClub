@@ -32,3 +32,5 @@
 
 - The existing FieldModeContext preference activates the same canonical dark tokens and Tailwind dark variants as `.dark`; never add a parallel theme provider.
 - RPE uses `data-rpe`; form uses shared FeelingChoices and `data-feeling` tokens; selection overrides exclude both and bowling to preserve meaning.
+
+- Athlete attendance buttons use data-attendance functional status tokens outside generic selection overrides; calendar session actions render outside disclosure content to remain accessible when collapsed.
