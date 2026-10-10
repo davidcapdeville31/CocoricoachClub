@@ -98,8 +98,8 @@ const FilterCheckboxList = ({ items, selected, onToggle }: FilterCheckboxListPro
           className={cn(
             "flex items-center gap-2 p-1.5 rounded-md cursor-pointer transition-colors text-xs",
             selected.includes(item) 
-              ? "bg-primary/10 text-primary" 
-              : "hover:bg-muted"
+              ? "bg-selection text-selection-foreground font-semibold" 
+              : "text-muted-foreground hover:bg-muted"
           )}
         >
           <Checkbox
@@ -175,11 +175,12 @@ export const ExerciseFilters = ({
         <Button
           type="button"
           variant={filters.showFavoritesOnly ? "default" : "outline"}
+          aria-pressed={filters.showFavoritesOnly}
           size="sm"
           onClick={() => updateFilter('showFavoritesOnly', !filters.showFavoritesOnly)}
           className={cn(
             "gap-1.5 h-7 text-xs",
-            filters.showFavoritesOnly && "bg-yellow-500 hover:bg-yellow-600 text-white"
+            filters.showFavoritesOnly && "bg-selection text-selection-foreground font-semibold"
           )}
         >
           <Star className={cn("h-3 w-3", filters.showFavoritesOnly && "fill-current")} />
@@ -206,6 +207,7 @@ export const ExerciseFilters = ({
           <Button
             type="button"
             variant={filters.selectedCategory === "all" ? "default" : "outline"}
+            aria-pressed={filters.selectedCategory === "all"}
             size="sm"
             className="h-6 text-xs"
             onClick={() => updateFilter('selectedCategory', 'all')}
@@ -217,6 +219,7 @@ export const ExerciseFilters = ({
               key={cat}
               type="button"
               variant={filters.selectedCategory === cat ? "default" : "outline"}
+              aria-pressed={filters.selectedCategory === cat}
               size="sm"
               className="h-6 text-xs"
               onClick={() => updateFilter('selectedCategory', cat)}
@@ -238,6 +241,7 @@ export const ExerciseFilters = ({
                       key={cat}
                       type="button"
                       variant={filters.selectedCategory === cat ? "default" : "outline"}
+                      aria-pressed={filters.selectedCategory === cat}
                       size="sm"
                       className="h-6 text-xs"
                       onClick={() => updateFilter('selectedCategory', cat)}
@@ -260,10 +264,11 @@ export const ExerciseFilters = ({
             <Button 
               type="button"
               variant="outline" 
+              aria-pressed={filters.selectedMuscles.length > 0}
               size="sm"
               className={cn(
                 "w-full justify-between h-7 text-xs min-w-0",
-                filters.selectedMuscles.length > 0 && "border-red-500/50 bg-red-500/10"
+                filters.selectedMuscles.length > 0 && "border-selection bg-selection text-selection-foreground font-semibold"
               )}
             >
               <span className="truncate">
@@ -287,10 +292,11 @@ export const ExerciseFilters = ({
             <Button 
               type="button"
               variant="outline" 
+              aria-pressed={filters.selectedEquipment.length > 0}
               size="sm"
               className={cn(
                 "w-full justify-between h-7 text-xs min-w-0",
-                filters.selectedEquipment.length > 0 && "border-blue-500/50 bg-blue-500/10"
+                filters.selectedEquipment.length > 0 && "border-selection bg-selection text-selection-foreground font-semibold"
               )}
             >
               <span className="truncate">
@@ -313,7 +319,7 @@ export const ExerciseFilters = ({
       {hasActiveFilters && (
         <div className="flex flex-wrap gap-1">
           {filters.showFavoritesOnly && (
-            <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 text-xs">
+            <Badge variant="secondary" className="bg-selection text-selection-foreground text-xs font-semibold">
               <Star className="h-2.5 w-2.5 mr-1 fill-current" />
               Favoris
               <X 
@@ -323,7 +329,7 @@ export const ExerciseFilters = ({
             </Badge>
           )}
           {filters.selectedMuscles.map(muscle => (
-            <Badge key={muscle} variant="secondary" className="bg-red-500/20 text-red-700 dark:text-red-400 text-xs">
+            <Badge key={muscle} variant="secondary" className="bg-selection text-selection-foreground text-xs font-semibold">
               {muscle}
               <X 
                 className="h-2.5 w-2.5 ml-1 cursor-pointer hover:text-destructive" 
@@ -332,7 +338,7 @@ export const ExerciseFilters = ({
             </Badge>
           ))}
           {filters.selectedEquipment.map(eq => (
-            <Badge key={eq} variant="secondary" className="bg-blue-500/20 text-blue-700 dark:text-blue-400 text-xs">
+            <Badge key={eq} variant="secondary" className="bg-selection text-selection-foreground text-xs font-semibold">
               {eq}
               <X 
                 className="h-2.5 w-2.5 ml-1 cursor-pointer hover:text-destructive" 
