@@ -363,6 +363,10 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
   };
 
   const handleSave = () => {
+    if (!frames.some(frame => frame.throws.some(roll => roll.value))) {
+      toast.error("Renseignez au moins un lancer avant d’enregistrer la partie.");
+      return;
+    }
     setIsSaved(true);
     const ballData = playerId ? {
       mode: ballMode,

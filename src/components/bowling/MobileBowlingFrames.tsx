@@ -76,10 +76,10 @@ export function MobileBowlingFrames({ frames, stats, gameNumber, readOnly, track
       <summary className="flex cursor-pointer list-none items-center gap-2 text-sm font-medium text-bowling-ink"><Plus className="h-4 w-4" />Détails du lancer<ChevronDown className="ml-auto h-4 w-4 group-open:rotate-180" /></summary>
       <div className="mt-3 space-y-4">{frame.throws.map((t, ti) => hasThrow(t) && <div key={ti} className="space-y-2"><p className="text-xs font-semibold text-muted-foreground">Lancer {ti + 1} · {t.value}</p>{([
         ...(trackPockets && isFirstBall(active, ti, frame) ? [["isPocket", "Poche"]] : []),
-        ...(t.value !== "X" && t.value !== "/" ? [["isSplit", "Split"]] : []),
+        ...(isFirstBall(active, ti, frame) && t.value !== "X" ? [["isSplit", "Split"]] : []),
         ...(isFirstBall(active, ti, frame) && t.pins === 9 ? [["isSinglePin", "Quille seule"], ["isSinglePinConverted", "Quille seule convertie"]] : []),
       ] as Array<["isPocket" | "isSplit" | "isSinglePin" | "isSinglePinConverted", string]>).map(([field, label]) => {
-    const observed = t.observed === undefined || t.observed.includes(field);
+        const observed = t.observed === undefined || t.observed.includes(field);
         return <div key={field} className="space-y-1"><p className="text-xs">{label}</p><div className="grid grid-cols-3 gap-1" role="group" aria-label={`${label} lancer ${ti + 1}`}>
           {([undefined, true, false] as const).map((v, i) => <Button key={i} variant="outline" size="sm" className={cn("h-10 min-w-0 px-1 text-xs", (v === undefined ? !observed : observed && t[field] === v) && "border-bowling-accent bg-bowling-accent/10")} aria-pressed={v === undefined ? !observed : observed && t[field] === v} onClick={() => { if (!readOnly) onObservation(active, ti, field, v); }}>{i === 0 ? "Non saisi" : v ? "Oui" : "Non"}</Button>)}
         </div></div>;
