@@ -383,8 +383,7 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
     if (value === "X") return "bg-primary text-primary-foreground font-bold";
     if (value === "/") return "bg-secondary text-secondary-foreground font-bold";
     if (value === "" || value === "-") return "bg-muted/50";
-    // Red background for splits
-    if (throwData?.isSplit) return "bg-destructive text-destructive-foreground font-bold";
+    // A split is reported by its own red marker; the score itself stays neutral.
     return "bg-accent text-accent-foreground";
   };
 
