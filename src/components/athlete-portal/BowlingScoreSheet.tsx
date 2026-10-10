@@ -489,7 +489,7 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                                         onClick={() => handleCheckboxChange(frameIndex, ti, "isPocket")}
                                         className={`text-[8px] font-bold rounded px-1 py-0 border leading-tight transition-colors disabled:opacity-60 ${
                                           t.isPocket
-                                            ? "bg-primary text-primary-foreground border-primary"
+                                            ? "bg-success text-success-foreground border-success"
                                             : "bg-background border-border hover:bg-muted-foreground/10 text-muted-foreground"
                                         }`}
                                         title={`Boule en poche (lancer ${ti + 1})`}
@@ -697,7 +697,7 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                                   onClick={() => handleCheckboxChange(frameIndex, throwIndex, "isPocket")}
                                   className={`text-[10px] font-semibold rounded px-1.5 py-0.5 border transition-colors disabled:opacity-60 shrink-0 ${
                                     throwData.isPocket
-                                      ? "bg-primary text-primary-foreground border-primary"
+                                      ? "bg-success text-success-foreground border-success"
                                       : "bg-background border-border hover:bg-muted"
                                   }`}
                                   title="Boule en poche"
