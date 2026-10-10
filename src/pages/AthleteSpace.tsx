@@ -791,21 +791,21 @@ export default function AthleteSpace() {
           </TabsContent>
 
           <TabsContent value="calendar">
-            <Tabs defaultValue="my-calendar" className="space-y-4">
-              <div className="flex justify-center">
-                <TabsList>
-                  <TabsTrigger value="my-calendar" className="gap-2">
+            <Tabs defaultValue="my-calendar" className="space-y-3">
+              <h2 className="text-xl font-semibold">{t("athleteSpace.calendar.title")}</h2>
+              <div>
+                <TabsList className="grid grid-cols-2 w-full h-auto gap-1">
+                  <TabsTrigger value="my-calendar" className="gap-2 min-h-11">
                     <CalendarDays className="h-4 w-4" />
-                    <span className="hidden sm:inline">{t("athlete.calendar")}</span>
+                    <span>Calendrier</span>
                   </TabsTrigger>
-                  <TabsTrigger value="annual" className="gap-2">
+                  <TabsTrigger value="annual" className="gap-2 min-h-11">
                     <LayoutDashboard className="h-4 w-4" />
-                    <span className="hidden sm:inline">{t("athleteSpace.shell.annualPlanning")}</span>
-                    <span className="sm:hidden">{t("athleteSpace.shell.annualPlanningShort")}</span>
+                    <span>Planification</span>
                   </TabsTrigger>
                 </TabsList>
               </div>
-              <TabsContent value="my-calendar">
+              <TabsContent value="my-calendar" forceMount className="data-[state=inactive]:hidden">
                 <AthleteSpaceCalendar
                   playerId={athleteInfo.player_id}
                   categoryId={athleteInfo.category_id}

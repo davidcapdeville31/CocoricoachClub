@@ -1,5 +1,5 @@
 # Architecture decisions
-- Athlete visuals stay scoped; semantic roles inherit global tokens for consistent portals.
+- Athlete visuals inherit scoped tokens to avoid portal regressions.
 - Selectable controls use shared tokens and state attributes, preserving functional statuses.
 - Athlete mobile navigation uses URL tabs and sport visibility; drawer/theme commands reuse FieldModeContext to preserve preferences.
 - Athlete content reserves ResizeObserver-measured navigation and safe-area height; visualViewport hides navigation under the keyboard, preserving form state.
@@ -7,14 +7,14 @@
 - BrandLogo uses identical artwork and transparency across themes; its CDN dark variant has light strokes to avoid checkerboards and brand drift.
 - OneSignal registration waits for explicit post-init readiness and caches only successful syncs; available SDK methods do not prove readiness.
 - Attendance reports require confirmed enabled OneSignal subscriptions to mark push active; preferences alone never prove readiness.
-- Global attendance previews read only `match_participants` and minimal player fields, never lineups/full rosters, so all sports count invitations and actual responses.
+- Attendance previews read `match_participants` and minimal player fields, never lineups, to count actual invitations/responses.
 
 - Push permission reads the native three-state permission first; OneSignal's boolean false is never treated as denied because it also means not requested.
 
 - Athlete staff badges use unread `session_feedback` (RPE) and `wellness_submitted` (wellness) notifications as their source of truth, so read state stays user-specific without duplicating submission data.
 - The load calendar combines category training sessions and non-personal competitions over their date ranges; competition references affect only calendar summaries, never stored athlete loads.
-- The competition RPE target is a per-category setting (categories.competition_planned_rpe, default 8) read via useCompetitionPlannedRpe, so each staff adapts competition load to their discipline.
-- Athlete self-entry of competition data (results, competition RPE) is gated by the per-category flag categories.athlete_competition_entry_enabled (read via useAthleteCompetitionEntry), so each staff controls it in one click.
+- useCompetitionPlannedRpe reads the category target so staff adapts competition load to their discipline.
+- useAthleteCompetitionEntry gates athlete competition entry using the category flag, keeping staff in control.
 - Athlete navigation/wellness use semantic tokens with valid HSL alpha, never hexadecimal suffixes on HSL strings, to prevent invisible mobile content.
 - Arsenal Bank managers (`public.arsenal_bank_managers` + `is_arsenal_bank_manager()`) get the Super Admin page restricted to the arsenal-bank tab and system-ball write policies, without being super admins.
 - Bowling session kind is stored in the structured column `training_sessions.session_kind` (training/competition/personal/evaluation, nullable), never in free-text notes, so histories and stats can filter on it.
@@ -34,3 +34,6 @@
 - RPE uses `data-rpe`; form uses shared FeelingChoices and `data-feeling` tokens; selection overrides exclude both and bowling to preserve meaning.
 
 - Attendance uses `data-attendance` status tokens outside selection overrides; session actions stay outside disclosures to remain accessible when collapsed.
+
+- Athlete calendar uses scoped Day Picker/month and date-fns/week over identical data; mounted tabs preserve drafts and civil-date URL context without changing business dialogs.
+- Upcoming summaries batch attendance reads; controls retain write destinations and locks to avoid a parallel RSVP model.

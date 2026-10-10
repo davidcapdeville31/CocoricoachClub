@@ -28,6 +28,14 @@ All colors MUST be HSL.
     --selection: var(--brand-navy);
     --selection-foreground: var(--brand-white);
     --selection-border: var(--brand-navy);
+    --calendar-training: var(--primary);
+    --calendar-competition: var(--destructive);
+    --calendar-personal: 267 65% 48%;
+    --calendar-cycle: 44 88% 38%;
+    --calendar-prevention: var(--success);
+    --calendar-rehab: 28 85% 43%;
+    --calendar-wellness-done: var(--success);
+    --calendar-wellness-todo: 28 85% 43%;
     --notification: var(--brand-red);
     /* Post-session form colors are independent of effort RPE and theme. */
     --feeling-great: 151 73% 29%;
@@ -228,6 +236,10 @@ All colors MUST be HSL.
     --selection: var(--brand-white);
     --selection-foreground: var(--brand-navy);
     --selection-border: var(--brand-white);
+    --calendar-personal: 267 78% 73%;
+    --calendar-cycle: 44 88% 60%;
+    --calendar-rehab: 28 85% 63%;
+    --calendar-wellness-todo: 28 85% 63%;
     /* Dark mode - improved contrast hierarchy
        background (deepest) < card/popover < muted < secondary < border */
     --background: 216.666667 36.000000% 9.803922%;

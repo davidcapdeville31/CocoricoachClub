@@ -4,8 +4,8 @@ import { useState, useMemo, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar } from "@/components/ui/calendar";
+import { AthleteCalendarGrid, type CalendarMarker } from "./AthleteCalendarGrid";
+import { AthleteCalendarUpcoming } from "./AthleteCalendarUpcoming";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -38,8 +38,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
-import { cn } from "@/lib/utils";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 import { getTestLabel } from "@/lib/constants/testCategories";
 import { parseTestsFromNotes } from "@/lib/utils/sessionNotes";
@@ -74,19 +72,15 @@ interface Props {
   sportType?: string;
 }
 
-const ATHLETE_SESSION_COLOR = "#8B5CF6"; // Mes séances (violet)
-const PROPHYLAXIS_COLOR = "#10b981"; // Prophylaxie (vert)
-const REHAB_COLOR = "#f59e0b"; // Réhab (orange)
-const TRAINING_COLOR = "#3b82f6"; // Entraînement (bleu)
-const TEST_COLOR = "#06b6d4"; // Test (cyan)
-const MATCH_COLOR = "#ef4444"; // Match/Compétition (rouge)
-const WELLNESS_DONE_COLOR = "#22c55e"; // Wellness rempli (vert)
-const WELLNESS_TODO_COLOR = "#f97316"; // Wellness à remplir (orange)
 
 
 export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props) {
   const { t } = useTranslation();
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => {
+    const value = new URLSearchParams(window.location.search).get("calendarDate");
+    const date = value ? parseISO(value) : new Date();
+    return Number.isNaN(date.getTime()) ? new Date() : date;
+  });
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isBowlingTrainingOpen, setIsBowlingTrainingOpen] = useState(false);
   const [isBasketTrainingOpen, setIsBasketTrainingOpen] = useState(false);
@@ -172,7 +166,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
     };
   }, [categoryId, playerId, queryClient]);
 
-  const { data: sessions = [] } = useQuery({
+  const { data: sessions = [], isLoading: sessionsLoading, isError: sessionsError, refetch: refetchSessions } = useQuery({
     queryKey: ["athlete-calendar-sessions", categoryId, playerId],
     queryFn: async () => {
       const { data: ownParticipations, error: participationError } = await supabase
@@ -291,7 +285,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   }, [sessions, testTypeByReminderId]);
   const customTestMap = useCustomTestLabels(customTestTypes);
 
-  const { data: matches = [] } = useQuery({
+  const { data: matches = [], isLoading: matchesLoading, isError: matchesError, refetch: refetchMatches } = useQuery({
     queryKey: ["athlete-calendar-matches", categoryId, playerId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -339,7 +333,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
       const assignmentsByCycle = new Map<string, Set<string>>();
       for (const a of assignments || []) {
         if (!assignmentsByCycle.has(a.cycle_id)) assignmentsByCycle.set(a.cycle_id, new Set());
-        assignmentsByCycle.get(a.cycle_id)!.add(a.player_id);
+        assignmentsByCycle.get(a.cycle_id)?.add(a.player_id);
       }
       return cycleRows.filter((cycle: any) => {
         const assigned = assignmentsByCycle.get(cycle.id);
@@ -409,18 +403,18 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   const athleteSessionList = sessions.filter((s: any) => !!s.created_by_player_id && !s.test_reminder_id);
   const trainingSessions = sessions.filter((s: any) => !s.test_reminder_id && !s.created_by_player_id);
 
-  const trainingDates = trainingSessions.map(s => new Date(s.session_date));
-  const testDates = testSessions.map(s => new Date(s.session_date));
+  const trainingDates = trainingSessions.map(s => parseISO(s.session_date));
+  const testDates = testSessions.map(s => parseISO(s.session_date));
   const matchDates = matches.flatMap(m => {
     try {
       const start = parseISO(m.match_date);
       const end = m.end_date ? parseISO(m.end_date) : start;
       return eachDayOfInterval({ start, end: end < start ? start : end });
     } catch {
-      return [new Date(m.match_date)];
+      return [parseISO(m.match_date)];
     }
   });
-  const athleteSessionDates = athleteSessionList.map(s => new Date(s.session_date));
+  const athleteSessionDates = athleteSessionList.map(s => parseISO(s.session_date));
   const cycleDates = useMemo(() => {
     const dates: Date[] = [];
     periodizationCycles.forEach((cycle: any) => {
@@ -641,228 +635,34 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
 
   const hasDayEvents = daySessions.length > 0 || dayMatches.length > 0 || dayCycles.length > 0 || dayProphylaxis.length > 0 || dayRehab.length > 0 || !!dayWellnessInfo;
 
+  const calendarMarkers: CalendarMarker[] = [
+    { type: "training", label: "Entraînement", dates: trainingDates },
+    { type: "test", label: "Tests", dates: testDates },
+    { type: "match", label: "Compétition", dates: matchDates },
+    { type: "personal", label: "Séance personnelle", dates: athleteSessionDates },
+    { type: "cycle", label: "Cycle de travail", dates: cycleDates },
+    { type: "prophylaxis", label: "Prophylaxie", dates: prophylaxisDates },
+    { type: "rehab", label: "Réhabilitation", dates: rehabDates },
+    { type: "wellness-done", label: "Wellness rempli", dates: wellnessDoneDates },
+    { type: "wellness-todo", label: "Wellness à remplir", dates: wellnessTodoDates },
+  ];
+  const selectCalendarDate = (date: Date) => {
+    setSelectedDate(date);
+    const next = new URLSearchParams(searchParams);
+    next.set("calendarDate", format(date, "yyyy-MM-dd"));
+    setSearchParams(next, { replace: true });
+  };
+
   return (
-    <div className="space-y-4">
-      <Card className="bg-card border-border shadow-sm">
-        <CardHeader className="pb-3">
-          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
-            <CardTitle className="text-base flex items-center gap-2 min-w-0">
-              <Activity className="h-4 w-4 shrink-0 text-accent" />
-              {t("athleteSpace.calendar.title")}
-            </CardTitle>
-            <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-              <Button
-                size="sm"
-                onClick={() => setIsPickerOpen(true)}
-                className="gap-1.5 min-h-11 rounded-xl"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                {t("athleteSpace.calendar.addSession")}
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="gap-1.5 min-h-11 rounded-xl border-border text-foreground"
-                onClick={() => setIsRecoveryOpen(true)}
-              >
-                <Leaf className="h-3.5 w-3.5" />
-                {t("athleteSpace.calendar.recoverySession")}
-              </Button>
-            </div>
-
-          </div>
-        </CardHeader>
-        <CardContent>
-          {(() => {
-            const todayStr = format(new Date(), "yyyy-MM-dd");
-            const upcoming = sessions
-              .filter((s: any) => {
-                if (s.created_by_player_id === playerId) return false;
-                // Uniquement les séances à venir : les séances passées restent
-                // accessibles en cliquant sur leur jour dans le calendrier.
-                return s.session_date >= todayStr;
-              })
-              .sort((a: any, b: any) => a.session_date.localeCompare(b.session_date))
-              .slice(0, 5);
-            if (upcoming.length === 0) return null;
-            return (
-              <div className="mb-4 rounded-lg border border-border/60 bg-muted/20 p-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-                  {t("athleteSpace.calendar.upcomingConfirm")}
-                </p>
-                <div className="space-y-2">
-                  {upcoming.map((s: any) => (
-                    <div key={s.id} className="rounded-md border border-border/60 bg-background p-2">
-                      <div className="flex items-center justify-between gap-2 flex-wrap">
-                        <button
-                          type="button"
-                          className="text-left text-sm font-medium hover:underline"
-                          onClick={() => setSelectedDate(parseISO(s.session_date))}
-                        >
-                          {format(parseISO(s.session_date), "EEE d MMM", { locale: getDateLocale() })}
-                          {s.session_start_time && ` · ${s.session_start_time.slice(0, 5)}`}
-                          {" · "}
-                          {getTrainingTypeLabel(s.training_type)}
-                        </button>
-                      </div>
-                      <SessionAttendanceResponse
-                        sessionId={s.id}
-                        playerId={playerId}
-                        categoryId={categoryId}
-                        sessionDate={s.session_date}
-                        sessionStartTime={s.session_start_time}
-                        sessionCreatedAt={(s as any).created_at}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })()}
-          {(() => {
-            const todayStr = format(new Date(), "yyyy-MM-dd");
-            const upcomingMatches = (matches as any[])
-              .filter((m) => m.created_by_player_id !== playerId && m.match_date >= todayStr)
-              .sort((a, b) => a.match_date.localeCompare(b.match_date))
-              .slice(0, 3);
-            if (upcomingMatches.length === 0) return null;
-            return (
-              <div
-                className="mb-4 rounded-lg border p-3"
-                style={{ borderColor: `${MATCH_COLOR}55`, backgroundColor: `${MATCH_COLOR}0d` }}
-              >
-                <p
-                  className="text-xs font-semibold uppercase tracking-wide mb-2 flex items-center gap-1.5"
-                  style={{ color: MATCH_COLOR }}
-                >
-                  <Trophy className="h-3.5 w-3.5" />
-                  {t("athleteSpace.calendar.upcomingConfirmMatch")}
-                </p>
-                <div className="space-y-2">
-                  {upcomingMatches.map((m: any) => (
-                    <div
-                      key={m.id}
-                      className="rounded-md border bg-background p-2"
-                      style={{ borderColor: `${MATCH_COLOR}44` }}
-                    >
-                      <div className="flex items-center justify-between gap-2 flex-wrap">
-                        <button
-                          type="button"
-                          className="text-left text-sm font-medium hover:underline"
-                          onClick={() => setSelectedDate(parseISO(m.match_date))}
-                        >
-                          {format(parseISO(m.match_date), "EEE d MMM", { locale: getDateLocale() })}
-                          {m.match_time && ` · ${m.match_time.slice(0, 5)}`}
-                          {" · "}
-                          {m.competition || (m.opponent ? `vs ${m.opponent}` : t("athleteSpace.calendar.competitionFallback"))}
-                        </button>
-                      </div>
-                      <MatchAttendanceResponse
-                        matchId={m.id}
-                        playerId={playerId}
-                        matchDate={m.match_date}
-                        matchTime={m.match_time}
-                      />
-                      <AthleteMatchRpe
-                        matchId={m.id}
-                        playerId={playerId}
-                        categoryId={categoryId}
-                        matchDate={m.match_date}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })()}
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Calendar */}
-            <div className="flex justify-center">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                modifiers={{
-                  training: trainingDates,
-                  test: testDates,
-                  match: matchDates,
-                  athleteSession: athleteSessionDates,
-                  cycle: cycleDates,
-                  prophylaxis: prophylaxisDates,
-                  rehab: rehabDates,
-                  wellnessDone: wellnessDoneDates,
-                  wellnessTodo: wellnessTodoDates,
-                }}
-                modifiersStyles={{
-                  training: { backgroundColor: `${TRAINING_COLOR}25`, borderRadius: "6px", fontWeight: 600, color: TRAINING_COLOR, outline: `2px solid ${TRAINING_COLOR}`, outlineOffset: "-2px" },
-                  test: { backgroundColor: `${TEST_COLOR}25`, borderRadius: "6px", fontWeight: 700, color: TEST_COLOR, outline: `2px dashed ${TEST_COLOR}`, outlineOffset: "-2px" },
-                  match: { backgroundColor: `${MATCH_COLOR}25`, borderRadius: "6px", fontWeight: 700, color: MATCH_COLOR, outline: `2px solid ${MATCH_COLOR}`, outlineOffset: "-2px" },
-                  athleteSession: { borderRadius: "6px", outline: `2px solid ${ATHLETE_SESSION_COLOR}`, outlineOffset: "-2px", color: ATHLETE_SESSION_COLOR, fontWeight: 600 },
-                  cycle: { backgroundColor: "hsl(var(--brand-500) / 0.12)", borderRadius: "6px", fontWeight: 600, color: "hsl(var(--brand-500))", outline: "1px solid hsl(var(--brand-500) / 0.45)", outlineOffset: "-2px" },
-                  prophylaxis: { boxShadow: `inset 0 -3px 0 0 ${PROPHYLAXIS_COLOR}` },
-                  rehab: { boxShadow: `inset 3px 0 0 0 ${REHAB_COLOR}` },
-                  wellnessDone: { boxShadow: `inset 0 3px 0 0 ${WELLNESS_DONE_COLOR}` },
-                  wellnessTodo: { boxShadow: `inset 0 3px 0 0 ${WELLNESS_TODO_COLOR}` },
-                }}
-
-                locale={getDateLocale()}
-                weekStartsOn={1}
-                className="rounded-md border pointer-events-auto"
-              />
-            </div>
-
-            {/* Day details */}
-            <div className="space-y-3">
-              {/* Legend */}
-              <div className="flex flex-wrap gap-2 text-xs p-2 rounded-lg bg-muted/40">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded" style={{ backgroundColor: `${TRAINING_COLOR}40`, border: `1px solid ${TRAINING_COLOR}` }} />
-                  <span>{t("athleteSpace.calendar.legend.training")}</span>
-                </div>
-                {!isBowling && (
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded" style={{ backgroundColor: `${TEST_COLOR}40`, border: `1px dashed ${TEST_COLOR}` }} />
-                    <span>{t("athleteSpace.calendar.legend.test")}</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded" style={{ backgroundColor: `${MATCH_COLOR}40`, border: `1px solid ${MATCH_COLOR}` }} />
-                  <span>{t("athleteSpace.calendar.legend.match")}</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded" style={{ border: `2px solid ${ATHLETE_SESSION_COLOR}` }} />
-                  <span>{t("athleteSpace.calendar.legend.mySessions")}</span>
-                </div>
-                {!isBowling && (
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-1 h-3 rounded-full" style={{ backgroundColor: REHAB_COLOR }} />
-                    <span>{t("athleteSpace.calendar.legend.rehab")}</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded" style={{ backgroundColor: "hsl(var(--brand-500) / 0.12)", border: "1px solid hsl(var(--brand-500) / 0.45)" }} />
-                  <span>{t("athleteSpace.calendar.legend.cycle", "Cycle de travail")}</span>
-                </div>
-                {!isBowling && (
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-1 rounded-full" style={{ backgroundColor: PROPHYLAXIS_COLOR }} />
-                    <span>{t("athleteSpace.calendar.legend.prophylaxis")}</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-1 rounded-full" style={{ backgroundColor: WELLNESS_DONE_COLOR }} />
-                  <span>Wellness rempli</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-1 rounded-full" style={{ backgroundColor: WELLNESS_TODO_COLOR }} />
-                  <span>Wellness à remplir</span>
-                </div>
-              </div>
-
-
+    <div className="athlete-calendar space-y-3">
+      <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4 items-start">
+        <AthleteCalendarGrid selected={selectedDate || new Date()} onSelect={selectCalendarDate} markers={calendarMarkers} />
+        <div className="athlete-calendar-day space-y-3 min-w-0">
+          {(sessionsLoading || matchesLoading) && <p role="status" className="text-sm text-muted-foreground py-3">Chargement des événements…</p>}
+          {(sessionsError || matchesError) && <div role="alert" className="text-sm text-destructive py-3"><p>Impossible de charger tous les événements.</p><Button variant="outline" className="mt-2" onClick={() => { refetchSessions(); refetchMatches(); }}>Réessayer</Button></div>}
               {selectedDate ? (
                 <div>
-                  <h3 className="font-semibold text-sm mb-2">
+                  <h3 className="font-semibold text-base mb-3">
                     {format(selectedDate, "EEEE d MMMM yyyy", { locale: getDateLocale() })}
                   </h3>
 
@@ -872,40 +672,37 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                     </div>
 
                   ) : (
-                    <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                    <div className="space-y-2">
                       {/* Wellness du jour */}
                       {dayWellnessInfo && (
                         <div
-                          className="rounded-lg border-l-4 p-3"
-                          style={{
-                            borderLeftColor: dayWellnessInfo.done ? WELLNESS_DONE_COLOR : WELLNESS_TODO_COLOR,
-                            backgroundColor: `${dayWellnessInfo.done ? WELLNESS_DONE_COLOR : WELLNESS_TODO_COLOR}14`,
-                          }}
+                          className="athlete-calendar-event p-3"
+                          data-calendar-kind={dayWellnessInfo.done ? "wellness-done" : "wellness-todo"}
                         >
                           <div className="flex items-center justify-between gap-2 flex-wrap">
                             <div className="flex items-center gap-2">
                               <HeartPulse
-                                className="h-4 w-4 shrink-0"
-                                style={{ color: dayWellnessInfo.done ? WELLNESS_DONE_COLOR : WELLNESS_TODO_COLOR }}
+                                className="athlete-event-symbol h-5 w-5 shrink-0"
                               />
                               <div>
                                 <p className="font-medium text-sm">
                                   {dayWellnessInfo.done ? "Wellness rempli" : "Wellness à remplir"}
                                 </p>
                                 {dayWellnessInfo.done && (
-                                  <p className="text-xs text-muted-foreground">
+                                  <details className="text-xs text-muted-foreground mt-1"><summary className="cursor-pointer">Voir les indicateurs</summary><p className="mt-1">
                                     {[
                                       dayWellnessInfo.entry?.general_fatigue != null && `Fatigue ${dayWellnessInfo.entry.general_fatigue}/5`,
                                       dayWellnessInfo.entry?.sleep_quality != null && `Sommeil ${dayWellnessInfo.entry.sleep_quality}/5`,
                                       (dayWellnessInfo.entry?.soreness_upper_body != null || dayWellnessInfo.entry?.soreness_lower_body != null) &&
                                         `Courbatures ${Math.max(dayWellnessInfo.entry?.soreness_upper_body ?? 0, dayWellnessInfo.entry?.soreness_lower_body ?? 0)}/5`,
                                     ].filter(Boolean).join(" · ")}
-                                  </p>
+                                  </p></details>
                                 )}
                               </div>
                             </div>
                             <Button
                               size="sm"
+                              className="min-h-11 whitespace-normal"
                               variant={dayWellnessInfo.done ? "outline" : "default"}
                               onClick={() => {
                                 const next = new URLSearchParams(searchParams);
@@ -920,27 +717,6 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                         </div>
                       )}
 
-                      {/* Assigned work cycles */}
-
-                      {dayCycles.map((cycle: any) => (
-                        <div
-                          key={cycle.id}
-                          className="rounded-lg border-l-4 p-3"
-                          style={{ borderLeftColor: cycle.color || "hsl(var(--brand-500))", backgroundColor: "hsl(var(--brand-500) / 0.08)" }}
-                        >
-                          <div className="flex items-start gap-2">
-                            <Activity className="h-4 w-4 mt-0.5 shrink-0" style={{ color: cycle.color || "hsl(var(--brand-500))" }} />
-                            <div className="min-w-0">
-                              <p className="font-medium text-sm">{cycle.name}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {format(parseISO(cycle.start_date), "d MMM", { locale: getDateLocale() })} → {format(parseISO(cycle.end_date), "d MMM yyyy", { locale: getDateLocale() })}
-                              </p>
-                              {cycle.objective && <p className="text-xs text-muted-foreground mt-1">{cycle.objective}</p>}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-
                       {/* Matches */}
                       {dayMatches.map(match => {
                         const isPersonalMine = match.is_personal && match.created_by_player_id === playerId;
@@ -951,13 +727,13 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                             : t("athleteSpace.calendar.competitionFallback");
                         const hasScore = match.score_home != null || match.score_away != null;
                         return (
-                          <div key={match.id} className="p-3 rounded-lg border-l-4 border-rose-500 bg-rose-50 dark:bg-rose-950/20">
+                          <div key={match.id} className="athlete-calendar-event p-3" data-calendar-kind="match">
                             <div className="flex items-start gap-2">
-                              <Swords className="h-4 w-4 text-rose-500 mt-0.5 shrink-0" />
+                              <Swords className="athlete-event-symbol h-4 w-4 mt-0.5 shrink-0" />
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 flex-wrap">
                                   <p className="font-medium text-sm">{title}</p>
-                                  <Badge variant="outline" className={cn("text-[10px] h-4 px-1.5", isPersonalMine ? "border-cyan-500 text-cyan-600" : "border-rose-500 text-rose-600")}>
+                                  <Badge variant="outline" className="text-[10px] px-1.5 text-muted-foreground">
                                     {isPersonalMine ? t("athleteSpace.calendar.personal") : t("athleteSpace.calendar.club")}
                                   </Badge>
                                   {match.competition_stage && (
@@ -972,6 +748,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                     <Clock className="h-3 w-3" />{match.match_time.slice(0, 5)}
                                   </p>
                                 )}
+                                {(match.location || hasScore || match.notes) && <details className="mt-1"><summary className="text-xs text-muted-foreground cursor-pointer min-h-11 flex items-center">Voir les détails</summary>
                                 {match.location && <p className="text-xs text-muted-foreground">{match.location}</p>}
                                 {hasScore && (
                                   <p className="text-xs text-muted-foreground">{t("athleteSpace.calendar.scoreLabel")}{match.score_home ?? "-"} - {match.score_away ?? "-"}</p>
@@ -979,6 +756,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                 {match.notes && (
                                   <p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">{match.notes}</p>
                                 )}
+                                </details>}
                                 {isBowling && (
                                   <Button
                                     variant="outline"
@@ -995,7 +773,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-7 w-7 text-rose-600 hover:text-rose-700 hover:bg-rose-100 dark:hover:bg-rose-900/30 shrink-0"
+                                  className="min-h-11 min-w-11 text-destructive shrink-0"
                                   onClick={(e) => { e.stopPropagation(); setMatchToDelete(match); }}
                                   aria-label={t("athleteSpace.calendar.deleteCompetitionAria")}
                                 >
@@ -1034,17 +812,15 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                         return (
                           <div
                             key={session.id}
-                            className={cn("rounded-lg border transition-colors", isAthleteSession ? "border-l-4" : "border-border")}
-                            style={isAthleteSession ? { borderLeftColor: ATHLETE_SESSION_COLOR, backgroundColor: `${ATHLETE_SESSION_COLOR}08` } : {}}
+                            className="athlete-calendar-event"
+                            data-calendar-kind={isAthleteSession ? "personal" : "training"}
                           >
-                            <button
-                              className="w-full text-left p-3"
-                              onClick={() => setExpandedItemId(isExpanded ? null : `session-${session.id}`)}
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <Activity className="h-4 w-4 text-muted-foreground" />
-                                  <div>
+                            <div className="flex items-start p-3 gap-2">
+                            <Button variant="ghost" aria-expanded={isExpanded} className="h-auto min-h-11 flex-1 min-w-0 text-left justify-start p-0 whitespace-normal" onClick={() => setExpandedItemId(isExpanded ? null : `session-${session.id}`)}>
+                              <div className="flex items-center justify-between w-full min-w-0 gap-2">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <Activity className="athlete-event-symbol h-5 w-5 shrink-0" />
+                                  <div className="min-w-0">
                                     <div className="flex items-center gap-2 flex-wrap">
                                       <p className="font-medium text-sm">
                                         {(() => {
@@ -1077,11 +853,12 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                         </div>
                                       )}
                                       {isAthleteSession && (
-                                        <Badge className="text-[10px] h-4 px-1.5 border" style={{ backgroundColor: `${ATHLETE_SESSION_COLOR}15`, color: ATHLETE_SESSION_COLOR, borderColor: `${ATHLETE_SESSION_COLOR}40` }}>
+                                        <Badge variant="outline" className="text-[10px] px-1.5">
                                           <User className="h-2.5 w-2.5 mr-0.5" />{t("athleteSpace.calendar.mySessionBadge")}
                                         </Badge>
                                       )}
                                     </div>
+                                    <p className="text-xs text-muted-foreground">{isAthleteSession ? "Séance personnelle" : "Séance programmée"}</p>
                                     {session.session_start_time && (
                                       <p className="text-xs text-muted-foreground flex items-center gap-1">
                                         <Clock className="h-3 w-3" />
@@ -1098,6 +875,10 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                     </Badge>
                                   )}
                                   {isCompleted && <CheckCircle2 className="h-4 w-4 text-status-optimal" />}
+                                  {(exercises.length > 0 || ((session as any).notes || "").replace(/<!--[\s\S]*?-->/g, "").trim() || isBowling || isBasket) && (isExpanded ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />)}
+                                </div>
+                              </div>
+                            </Button>
                                   {isAthleteSession && !session.test_reminder_id && (
                                     <>
                                       <Button
@@ -1105,26 +886,27 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                         variant="ghost"
                                         size="icon"
                                         onClick={(e) => { e.stopPropagation(); setSessionToEdit(session); }}
-                                        className="h-7 w-7 text-muted-foreground hover:text-primary"
+                                        className="min-h-11 min-w-11 text-muted-foreground"
                                         title="Modifier ma séance"
                                         aria-label="Modifier ma séance"
                                       >
                                         <Pencil className="h-3.5 w-3.5" />
                                       </Button>
-                                      <button
+                                      <Button variant="ghost" size="icon" aria-label={t("athleteSpace.calendar.deleteSessionTitle")}
                                         type="button"
                                         onClick={(e) => { e.stopPropagation(); setSessionToDelete(session); }}
-                                        className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                                        className="min-h-11 min-w-11 text-muted-foreground hover:text-destructive"
                                         title={t("athleteSpace.calendar.deleteSessionTitle")}
                                       >
                                         <Trash2 className="h-3.5 w-3.5" />
-                                      </button>
+                                      </Button>
                                     </>
                                   )}
-                                  {(exercises.length > 0 || ((session as any).notes || "").replace(/<!--[\s\S]*?-->/g, "").trim() || isBowling || isBasket) && (isExpanded ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />)}
-                                </div>
-                              </div>
-                            </button>
+                            </div>
+                            {(() => {
+                              const preview = String(session.notes || "").replace(/<!--[\s\S]*?-->/g, "").trim().split("\n")[0];
+                              return preview ? <p className="px-3 pb-2 text-xs text-muted-foreground line-clamp-2">{preview}</p> : null;
+                            })()}
                             {!isAthleteSession && (
                               <div className="px-3 pb-2">
                                 <SessionAttendanceResponse
@@ -1240,7 +1022,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                   <Button
                                     size="sm"
                                     className="w-full gap-1.5"
-                                    style={{ backgroundColor: TRAINING_COLOR }}
+                                    
                                     onClick={() => {
                                       setSelectedDate(parseISO(session.session_date));
                                       setIsBasketTrainingOpen(true);
@@ -1256,6 +1038,23 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                         );
                       })}
 
+                      {/* Assigned work cycles */}
+
+                      {dayCycles.map((cycle: any) => (
+                        <details key={cycle.id} className="athlete-calendar-event p-3" data-calendar-kind="cycle">
+                          <summary className="flex items-start gap-2 cursor-pointer">
+                            <Activity className="athlete-event-symbol h-4 w-4 mt-0.5 shrink-0" />
+                            <div className="min-w-0">
+                              <p className="font-medium text-sm">{cycle.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {format(parseISO(cycle.start_date), "d MMM", { locale: getDateLocale() })} → {format(parseISO(cycle.end_date), "d MMM yyyy", { locale: getDateLocale() })}
+                              </p>
+                              </div>
+                          </summary>
+                          {cycle.objective && <p className="text-sm text-muted-foreground mt-2">{cycle.objective}</p>}
+                        </details>
+                      ))}
+
                       {/* Prophylaxis routines for this day */}
                       {dayProphylaxis.map((assignment: any) => {
                         const prog = assignment.prophylaxis_programs;
@@ -1264,18 +1063,18 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                         const isExpanded = expandedItemId === `prophy-${assignment.id}`;
 
                         return (
-                          <div key={`prophy-${assignment.id}`} className="rounded-lg border-l-4 border transition-colors" style={{ borderLeftColor: PROPHYLAXIS_COLOR, backgroundColor: `${PROPHYLAXIS_COLOR}08` }}>
+                          <div key={`prophy-${assignment.id}`} className="athlete-calendar-event" data-calendar-kind="prophylaxis">
                             <button className="w-full text-left p-3" onClick={() => setExpandedItemId(isExpanded ? null : `prophy-${assignment.id}`)}>
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                  <ShieldCheck className="h-4 w-4" style={{ color: PROPHYLAXIS_COLOR }} />
+                                  <ShieldCheck className="h-4 w-4"  />
                                   <div>
                                     <p className="font-medium text-sm">{prog.name}</p>
                                     <p className="text-xs text-muted-foreground">🎯 {prog.body_zone} • 📅 {prog.frequency || t("athleteSpace.calendar.daily")}</p>
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-1.5">
-                                  <Badge variant="outline" className="text-[10px] h-4 px-1.5" style={{ borderColor: `${PROPHYLAXIS_COLOR}40`, color: PROPHYLAXIS_COLOR }}>
+                                  <Badge variant="outline" className="text-[10px] h-4 px-1.5" >
                                     <Dumbbell className="h-2.5 w-2.5 mr-0.5" />{exercises.length}
                                   </Badge>
                                   {isExpanded ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />}
@@ -1321,11 +1120,11 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                         const isExpanded = expandedItemId === `rehab-${protocol.id}`;
 
                         return (
-                          <div key={`rehab-${protocol.id}`} className="rounded-lg border-l-4 border transition-colors" style={{ borderLeftColor: REHAB_COLOR, backgroundColor: `${REHAB_COLOR}08` }}>
+                          <div key={`rehab-${protocol.id}`} className="athlete-calendar-event" data-calendar-kind="rehab">
                             <button className="w-full text-left p-3" onClick={() => setExpandedItemId(isExpanded ? null : `rehab-${protocol.id}`)}>
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                  <HeartPulse className="h-4 w-4" style={{ color: REHAB_COLOR }} />
+                                  <HeartPulse className="h-4 w-4"  />
                                   <div>
                                     <p className="font-medium text-sm">{protocolName}</p>
                                     <p className="text-xs text-muted-foreground">
@@ -1334,7 +1133,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-1.5">
-                                  <Badge variant="outline" className="text-[10px] h-4 px-1.5" style={{ borderColor: `${REHAB_COLOR}40`, color: REHAB_COLOR }}>
+                                  <Badge variant="outline" className="text-[10px] h-4 px-1.5" >
                                     <Dumbbell className="h-2.5 w-2.5 mr-0.5" />{exercises.length}
                                   </Badge>
                                   {isExpanded ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />}
@@ -1377,12 +1176,6 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                         );
                       })}
 
-                      <div className="flex flex-wrap gap-2">
-                        <Button variant="ghost" size="sm" onClick={() => setIsPickerOpen(true)} className="flex-1 gap-1.5 text-muted-foreground">
-                          <Plus className="h-3.5 w-3.5" />
-                          {t("athleteSpace.calendar.addSession")}
-                        </Button>
-                      </div>
 
                     </div>
                   )}
@@ -1394,10 +1187,13 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                   </p>
                 </div>
               )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <Button className="h-auto min-h-11 gap-1.5 whitespace-normal px-2 text-xs" onClick={() => setIsPickerOpen(true)}><Plus className="h-4 w-4 shrink-0" />{t("athleteSpace.calendar.addSession")}</Button>
+        <Button variant="outline" className="h-auto min-h-11 gap-1.5 whitespace-normal px-2 text-xs" onClick={() => setIsRecoveryOpen(true)}><Leaf className="h-4 w-4 shrink-0" />{t("athleteSpace.calendar.recoverySession")}</Button>
+      </div>
+      <AthleteCalendarUpcoming playerId={playerId} selectedDate={selectedDateStr} sessions={sessions} matches={matches} onSelect={selectCalendarDate} />
 
       <CreateEventDialog
         open={isPickerOpen}

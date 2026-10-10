@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { addDays, startOfDay } from "date-fns";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,10 +35,11 @@ export function SessionAttendanceResponse({
   const { t } = useTranslation();
   const qc = useQueryClient();
   const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
   const [showComment, setShowComment] = useState(false);
   const [comment, setComment] = useState("");
 
-  const { data: participant, isLoading } = useQuery({
+  const { data: participant, isLoading, isError, refetch } = useQuery({
     queryKey: ["ep-attendance", sessionId, playerId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -72,15 +73,18 @@ export function SessionAttendanceResponse({
     };
   }, [sessionDate, sessionStartTime, sessionCreatedAt]);
 
-  if (isLoading) return null;
+  if (isLoading) return <p role="status" className="text-xs text-muted-foreground min-h-11 flex items-center">Chargement de la présence…</p>;
+  if (isError) return <div role="alert" className="text-xs text-destructive"><span>Présence indisponible. </span><Button variant="outline" size="sm" onClick={() => refetch()}>Réessayer</Button></div>;
 
   const status: Status = (participant?.attendance_status as Status) || "no_response";
 
   const respond = async (nextStatus: "present" | "absent", nextComment?: string) => {
     if (locked) {
-      t("athleteSpace.calendar.attendance.lockedSession")
+      toast.error(t("athleteSpace.calendar.attendance.lockedSession"));
       return;
     }
+    if (savingRef.current) return;
+    savingRef.current = true;
     setSaving(true);
     try {
       if (participant) {
@@ -120,6 +124,7 @@ export function SessionAttendanceResponse({
 
       toast.success(nextStatus === "present" ? t("athleteSpace.calendar.attendance.presentConfirmed") : t("athleteSpace.calendar.attendance.absentRecorded"));
       qc.invalidateQueries({ queryKey: ["ep-attendance", sessionId, playerId] });
+      qc.invalidateQueries({ queryKey: ["athlete-calendar-upcoming-attendance", playerId] });
       qc.invalidateQueries({ queryKey: ["athlete-attendance-lock"] });
       qc.invalidateQueries({ queryKey: ["athlete-space-attendance-status"] });
       qc.invalidateQueries({ queryKey: ["athlete-space-sessions"] });
@@ -128,23 +133,24 @@ export function SessionAttendanceResponse({
     } catch (e: any) {
       toast.error(e?.message || t("athleteSpace.calendar.attendance.saveError"));
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
   };
 
   return (
-    <div className="mt-2 rounded-md border border-border/60 bg-muted/30 px-3 py-2">
-      <div className="flex items-center justify-between gap-2 flex-wrap">
+    <div className="athlete-attendance" aria-busy={saving}>
+      <div className="athlete-attendance-toolbar">
         <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
           <Clock className="h-3.5 w-3.5" />
-          {t("athleteSpace.calendar.attendance.yourAttendance")}
+          <span className="sr-only">{t("athleteSpace.calendar.attendance.yourAttendance")}</span>
           {status === "present" && (
-            <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/40 h-5 px-1.5 text-[10px]">
+            <Badge variant="outline" className="text-xs px-1.5 text-foreground">
               {t("athleteSpace.calendar.attendance.present")}
             </Badge>
           )}
           {status === "absent" && (
-            <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/40 h-5 px-1.5 text-[10px]">
+            <Badge variant="outline" className="text-xs px-1.5 text-foreground">
               {t("athleteSpace.calendar.attendance.absent")}
             </Badge>
           )}
@@ -152,7 +158,7 @@ export function SessionAttendanceResponse({
             <Badge variant="outline" className="h-5 px-1.5 text-[10px]">{t("athleteSpace.calendar.attendance.noResponse")}</Badge>
           )}
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="athlete-attendance-controls">
           <Button
             type="button"
             size="sm"
@@ -160,9 +166,10 @@ export function SessionAttendanceResponse({
             data-attendance="present"
             aria-pressed={status === "present"}
             className="min-h-11 px-3 gap-1"
-            disabled={saving || locked}
+            aria-disabled={saving || locked}
             onClick={(e) => {
               e.stopPropagation();
+              if (savingRef.current) return;
               setShowComment(false);
               respond("present");
             }}
@@ -176,9 +183,10 @@ export function SessionAttendanceResponse({
             data-attendance="absent"
             aria-pressed={status === "absent"}
             className="min-h-11 px-3 gap-1"
-            disabled={saving || locked}
+            aria-disabled={saving || locked}
             onClick={(e) => {
               e.stopPropagation();
+              if (savingRef.current) return;
               setShowComment(true);
               if (status !== "absent") respond("absent");
             }}
@@ -190,7 +198,9 @@ export function SessionAttendanceResponse({
 
       {status === "absent" && showComment && !locked && (
         <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+          <label htmlFor={"absence-ep-" + sessionId} className="block text-xs font-medium mb-1">Motif de l’absence (facultatif)</label>
           <Textarea
+            id={"absence-ep-" + sessionId}
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             placeholder={t("athleteSpace.calendar.attendance.absenceReasonPlaceholder")}
@@ -201,8 +211,8 @@ export function SessionAttendanceResponse({
               type="button"
               size="sm"
               variant="outline"
-              className="h-7 px-2"
-              disabled={saving}
+              className="min-h-11 px-3"
+              aria-disabled={saving}
               onClick={() => respond("absent", comment)}
             >
               {t("athleteSpace.calendar.attendance.saveComment")}
@@ -211,6 +221,7 @@ export function SessionAttendanceResponse({
         </div>
       )}
 
+      <p role="status" aria-live="polite" className="text-xs text-muted-foreground">{saving ? "Enregistrement…" : ""}</p>
       {locked && (
         <p className="mt-1.5 flex items-center gap-1 text-[11px] text-muted-foreground">
           <Lock className="h-3 w-3" />
