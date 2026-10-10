@@ -1,6 +1,8 @@
 import logoLight from "@/assets/logo-light.png";
-import logoDark from "@/assets/logo-dark.png";
+import logoDarkAsset from "@/assets/logo-dark-brand.png.asset.json";
 import { cn } from "@/lib/utils";
+
+const logoDark = logoDarkAsset.url;
 
 interface BrandLogoProps {
   className?: string;
