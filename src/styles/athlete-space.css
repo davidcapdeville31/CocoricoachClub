@@ -166,3 +166,31 @@
     scroll-behavior: auto !important;
   }
 }
+.athlete-calendar-grid { min-width: 0; background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 16px; padding: 12px; }
+.athlete-calendar [data-calendar-kind="training"], .athlete-calendar [data-calendar-kind="test"] { --calendar-marker: var(--calendar-training); }
+.athlete-calendar [data-calendar-kind="match"] { --calendar-marker: var(--calendar-competition); }
+.athlete-calendar [data-calendar-kind="personal"] { --calendar-marker: var(--calendar-personal); }
+.athlete-calendar [data-calendar-kind="cycle"] { --calendar-marker: var(--calendar-cycle); }
+.athlete-calendar [data-calendar-kind="prophylaxis"] { --calendar-marker: var(--calendar-prevention); }
+.athlete-calendar [data-calendar-kind="rehab"] { --calendar-marker: var(--calendar-rehab); }
+.athlete-calendar [data-calendar-kind="wellness-done"] { --calendar-marker: var(--calendar-wellness-done); }
+.athlete-calendar [data-calendar-kind="wellness-todo"] { --calendar-marker: var(--calendar-wellness-todo); }
+.athlete-calendar-event { min-width: 0; border: 1px solid hsl(var(--border)); border-left: 3px solid hsl(var(--calendar-marker)); border-radius: 14px; background: hsl(var(--card)); box-shadow: var(--shadow-sm); }
+.athlete-calendar-event p, .athlete-calendar-event button { overflow-wrap: anywhere; }
+.athlete-calendar-event .athlete-event-symbol { color: hsl(var(--calendar-marker)); }
+.athlete-date-button { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; min-width: 0; height: 44px; padding: 3px 0; border: 1px solid hsl(var(--border)); border-radius: 8px; background: hsl(var(--surface-sunken)); color: hsl(var(--foreground)); font-size: 13px; font-weight: 500; gap: 3px; }
+.athlete-date-button:hover { background: hsl(var(--muted)); }
+.athlete-date-today:not([aria-selected="true"]):not([aria-pressed="true"]) { outline: 2px solid hsl(var(--primary)); outline-offset: -2px; font-weight: 700; }
+.athlete-date-outside { color: hsl(var(--muted-foreground)); background: hsl(var(--card)); }
+.athlete-date-markers { display: flex; gap: 2px; height: 5px; align-items: center; }
+.athlete-date-markers i, .athlete-calendar-dot { display: block; width: 4px; height: 4px; border-radius: 50%; background: hsl(var(--calendar-marker)); flex-shrink: 0; }
+.athlete-calendar-dot { width: 7px; height: 7px; }
+.athlete-date-markers b { font-size: 9px; line-height: 5px; }
+.athlete-calendar [aria-selected="true"] .athlete-date-markers i, .athlete-calendar [aria-pressed="true"] .athlete-date-markers i { box-shadow: 0 0 0 1px hsl(var(--selection-foreground) / 0.4); }
+.athlete-calendar-upcoming summary::-webkit-details-marker, .athlete-calendar-event summary::-webkit-details-marker { display: none; }
+.athlete-calendar-upcoming[open] > summary > svg { transform: rotate(90deg); }
+.athlete-calendar .athlete-attendance { margin-top: 0; padding: 0; border: 0; border-radius: 0; background: hsl(var(--card)); }
+.athlete-attendance-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.athlete-attendance-controls { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 6px; }
+.athlete-attendance-controls button { min-height: 44px; }
+@media (max-width: 359px) { .athlete-calendar-grid { padding: 8px; } .athlete-attendance-toolbar { display: block; } .athlete-attendance-controls { margin-top: 6px; } }
