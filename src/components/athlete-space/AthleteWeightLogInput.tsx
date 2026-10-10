@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dumbbell, Lock, Plus, Trash2, Zap, Check, SkipForward, Wrench } from "lucide-react";
 import { resolveSessionExerciseRows } from "@/lib/utils/sessionExercises";
 import { cn } from "@/lib/utils";
+import { CircuitRoundStepper, buildCircuitLog, aggregateCircuit, encodeCircuitTag, stripCircuitTag, type CircuitLog } from "./CircuitRoundStepper";
+import { ChevronDown } from "lucide-react";
 import { ReadOnlyMethodCard } from "@/components/program-builder-v2/ReadOnlyMethodCard";
 import { parseV2MethodConfig } from "@/lib/program-builder-v2/parseV2MethodConfig";
 import { getMethodColors } from "@/components/program-builder-v2/shared/MethodGroupWrapper";
@@ -37,7 +39,7 @@ export function parseNotesStatus(notes: string | null): {
   comment: string;
 } {
   if (!notes) return { status: "done", comment: "" };
-  const trimmed = stripCardioTag(notes);
+  const trimmed = stripCircuitTag(stripCardioTag(notes));
   if (trimmed.startsWith(STATUS_TAGS.skipped)) {
     return { status: "skipped", comment: trimmed.slice(STATUS_TAGS.skipped.length).trim() };
   }
@@ -113,6 +115,8 @@ export type WeightLogDetailedEntry = CommonExerciseFields & {
   /** When set, the athlete logs distance (m) and/or duration instead of kg × reps. */
   cardioFields?: CardioField[];
   series: Array<{ weight: string; reps: string; distance?: string; duration?: string }>;
+  /** Circuit V2 : charge + reps par exercice et par tour. */
+  circuit?: CircuitLog;
 };
 
 // Auto mode for special methods (drop set, cluster, rest-pause, pyramid).
@@ -333,6 +337,18 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange, tr
         };
       } else {
         const { count, label } = getPrescribedRounds(method, ex);
+        const v2 = method === "circuit" ? parseV2MethodConfig(ex.notes ?? null) : null;
+        const circuit = v2?.kind === "circuit" ? buildCircuitLog(v2.config, count) : null;
+        if (circuit) {
+          next[ex.exercise_name] = {
+            mode: "detailed",
+            seriesLabel: label,
+            series: circuit.rounds.map(() => ({ weight: "", reps: "" })),
+            circuit,
+          };
+          mutated = true;
+          return;
+        }
         const repsStr = ex.reps ? String(ex.reps) : "";
         const weightStr = ex.weight_kg ? String(ex.weight_kg) : "";
         if (count > 1) {
@@ -476,9 +492,12 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange, tr
           >
             {/* Aperçu visuel identique au calendrier (couleurs + détails de la méthode) */}
             {hasV2Config && (
-              <div className={cn("p-2", colors.bg)}>
+              <PrescriptionToggle
+                className={colors.bg}
+                summary={prescriptionSummary(ex, method, entry)}
+              >
                 <ReadOnlyMethodCard exercise={ex as any} />
-              </div>
+              </PrescriptionToggle>
             )}
 
             {/* Bandeau d'identification (si pas de carte v2 au-dessus) */}
@@ -538,7 +557,7 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange, tr
                   activeClass="bg-destructive/15 text-destructive border-destructive/40"
                 />
                 <div className="ml-auto" />
-                {!isSpecial && !isCardio && entry.status !== "skipped" && (
+                {!isSpecial && !isCardio && !(entry.mode === "detailed" && entry.circuit) && entry.status !== "skipped" && (
                   <Button
                     type="button"
                     variant="ghost"
@@ -566,7 +585,12 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange, tr
                     />
                   )}
 
-                  {entry.mode === "detailed" && entry.cardioFields?.length ? (
+                  {entry.mode === "detailed" && entry.circuit ? (
+                    <CircuitRoundStepper
+                      value={entry.circuit}
+                      onChange={(c) => updateEntry(ex.exercise_name, { ...entry, circuit: c })}
+                    />
+                  ) : entry.mode === "detailed" && entry.cardioFields?.length ? (
                     <CardioModeRows
                       entry={entry}
                       onChange={(e) => updateEntry(ex.exercise_name, e)}
@@ -628,7 +652,7 @@ function StatusPill({
       type="button"
       onClick={onClick}
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium transition",
+        "inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors motion-reduce:transition-none",
         active ? activeClass : "border-border bg-background text-muted-foreground hover:bg-muted",
       )}
     >
@@ -650,32 +674,35 @@ function QuickModeRow({
 }) {
   const { t } = useTranslation();
   return (
-    <div className="flex items-center gap-1.5 flex-wrap">
+    <div className="grid grid-cols-3 gap-2">
       <Input
         type="number"
+        inputMode="decimal"
         step="0.5"
         placeholder="kg"
-        className="h-8 w-16 text-xs"
+        aria-label="Charge (kg)"
+        className="h-10 w-full min-w-0 text-base"
         value={entry.weight}
         onChange={(e) => onChange({ ...entry, weight: e.target.value })}
       />
-      <span className="text-xs text-muted-foreground">kg</span>
       <Input
         type="number"
+        inputMode="numeric"
         placeholder={t("athleteSpace.components.weightLogInput.seriesPlaceholder")}
-        className="h-8 w-16 text-xs ml-2"
+        aria-label="Séries"
+        className="h-10 w-full min-w-0 text-base"
         value={entry.sets}
         onChange={(e) => onChange({ ...entry, sets: e.target.value })}
       />
-      <span className="text-xs text-muted-foreground">×</span>
       <Input
         type="number"
+        inputMode="numeric"
         placeholder="Reps"
-        className="h-8 w-16 text-xs"
+        aria-label="Répétitions"
+        className="h-10 w-full min-w-0 text-base"
         value={entry.reps}
         onChange={(e) => onChange({ ...entry, reps: e.target.value })}
       />
-      <span className="text-xs text-muted-foreground">reps</span>
     </div>
   );
 }
@@ -691,15 +718,17 @@ function DetailedModeRows({
   return (
     <div className="space-y-1.5">
       {entry.series.map((serie, idx) => (
-        <div key={idx} className="flex items-center gap-1.5">
-          <span className="text-[10px] text-muted-foreground w-14 shrink-0">
+        <div key={idx} className="grid grid-cols-[3.5rem_minmax(0,1fr)_minmax(0,1fr)_2rem] items-center gap-1.5">
+          <span className="text-[11px] text-muted-foreground truncate">
             {(entry.seriesLabel || t("athleteSpace.components.weightLogInput.series"))} {idx + 1}
           </span>
           <Input
             type="number"
+            inputMode="decimal"
             step="0.5"
             placeholder="kg"
-            className="h-7 w-16 text-xs"
+            aria-label="Charge (kg)"
+            className="h-10 w-full min-w-0 text-base"
             value={serie.weight}
             onChange={(e) => {
               const next = [...entry.series];
@@ -707,11 +736,12 @@ function DetailedModeRows({
               onChange({ ...entry, series: next });
             }}
           />
-          <span className="text-[10px] text-muted-foreground">kg ×</span>
           <Input
             type="number"
+            inputMode="numeric"
             placeholder="reps"
-            className="h-7 w-20 text-xs"
+            aria-label="Répétitions"
+            className="h-10 w-full min-w-0 text-base"
             value={serie.reps}
             onChange={(e) => {
               const next = [...entry.series];
@@ -723,7 +753,8 @@ function DetailedModeRows({
             type="button"
             variant="ghost"
             size="icon"
-            className="h-6 w-6 ml-auto"
+            className="h-8 w-8"
+            aria-label="Supprimer la série"
             onClick={() => {
               if (entry.series.length <= 1) return;
               onChange({ ...entry, series: entry.series.filter((_, i) => i !== idx) });
@@ -1023,6 +1054,24 @@ export function buildWeightLogRecords(
       return;
     }
 
+    // Circuit : Σ (charge × reps) de chaque exercice à chaque tour ; détail conservé dans notes.
+    if (entry.mode === "detailed" && entry.circuit) {
+      const { tonnage, reps } = aggregateCircuit(entry.circuit);
+      if (reps === 0 && !notes) return;
+      const tag = encodeCircuitTag(entry.circuit);
+      out.push({
+        player_id: ctx.playerId,
+        category_id: ctx.categoryId,
+        training_session_id: ctx.trainingSessionId,
+        exercise_name: exerciseName,
+        actual_weight_kg: reps > 0 ? Math.round((tonnage / reps) * 100) / 100 : 0,
+        actual_sets: reps > 0 ? 1 : 0,
+        actual_reps: reps,
+        notes: reps > 0 ? (notes ? `${notes} ${tag}` : tag) : notes,
+      });
+      return;
+    }
+
     // detailed OR special: aggregate exactly per sub-set
     const series = entry.series;
     let totalTonnage = 0;
@@ -1088,9 +1137,44 @@ export function countIncompleteWeightLogs(state: WeightLogState): number {
       if (!ok) incomplete += 1;
       return;
     }
+    if (entry.mode === "detailed" && entry.circuit) {
+      if (aggregateCircuit(entry.circuit).reps === 0) incomplete += 1;
+      return;
+    }
     const hasAny = entry.series.some((sr) => parseFloat(sr.weight) > 0 && parseInt(sr.reps) > 0);
     if (!hasAny) incomplete += 1;
   });
   return incomplete;
 }
 
+
+function prescriptionSummary(ex: any, method: string, entry: WeightLogEntry): string {
+  if (entry.mode === "detailed" && entry.circuit) {
+    const n = entry.circuit.exercises.length;
+    return `Circuit · ${n} exercices · ${entry.circuit.rounds.length} tours`;
+  }
+  const label = getMethodLabel(method);
+  const parts = [label !== method ? label : (ex.exercise_name as string)];
+  if (ex.sets) parts.push(`${ex.sets} séries`);
+  if (ex.reps) parts.push(`${ex.reps} reps`);
+  return parts.join(" · ");
+}
+
+function PrescriptionToggle({ summary, className, children }: { summary: string; className?: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={cn("p-2", className)}>
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center gap-2 rounded-lg px-1 py-1.5 text-left"
+      >
+        <span className="flex-1 min-w-0 text-sm font-medium break-words">{summary}</span>
+        <span className="shrink-0 text-xs text-muted-foreground">{open ? "Masquer" : "Voir le détail"}</span>
+        <ChevronDown className={cn("h-4 w-4 shrink-0 transition-transform motion-reduce:transition-none", open && "rotate-180")} />
+      </button>
+      {open && <div className="mt-2 animate-in fade-in-0 duration-150 motion-reduce:animate-none">{children}</div>}
+    </div>
+  );
+}

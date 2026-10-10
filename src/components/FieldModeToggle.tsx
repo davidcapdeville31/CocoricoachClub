@@ -12,7 +12,7 @@ export function FieldModeToggle() {
       size="sm"
       onClick={toggleFieldMode}
       className={cn(
-        "fixed bottom-4 right-4 z-50 gap-2 shadow-lg transition-all duration-300",
+        "field-mode-toggle fixed bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] right-3 z-40 h-9 w-9 p-0 sm:w-auto sm:px-3 gap-2 shadow-lg opacity-80 hover:opacity-100 transition-all duration-300",
         fieldMode 
           ? "bg-slate-800 border-slate-600 text-white hover:bg-slate-700" 
           : "bg-background border-border hover:bg-accent"

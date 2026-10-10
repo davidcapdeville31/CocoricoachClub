@@ -197,7 +197,7 @@ const App = () => (
                     <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
                     <Route path="/cgu" element={<CGU />} />
                      <Route path="/politique-cookies" element={<PolitiqueCookies />} />
-                     <Route path="*" element={<NotFound />} />
+<Route path="*" element={<NotFound />} />
                   </Routes>
                 </MaintenanceGate>
               </OfflineSyncProvider>

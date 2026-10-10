@@ -13,3 +13,4 @@
 - Athlete navigation and wellness summaries use semantic CSS tokens with valid HSL alpha syntax; never append hexadecimal alpha to an HSL string, because mobile browsers can render identical foreground and background colors.
 - Arsenal Bank managers (`public.arsenal_bank_managers` + `is_arsenal_bank_manager()`) get the Super Admin page restricted to the arsenal-bank tab and system-ball write policies, without being super admins.
 - Bowling session kind is stored in the structured column `training_sessions.session_kind` (training/competition/personal/evaluation, nullable), never in free-text notes, so histories and stats can filter on it.
+- Circuit V2 athlete logs keep one `athlete_exercise_logs` row per circuit (aggregated so tonnage = Σ charge × reps) and store per-exercise/per-round detail in a `<!--circuit-log:...-->` notes tag, so the unique key and tonnage stay unchanged.

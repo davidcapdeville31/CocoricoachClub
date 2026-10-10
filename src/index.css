@@ -691,3 +691,6 @@ All colors MUST be HSL.
     -webkit-backdrop-filter: blur(6px);
   }
 }
+
+/* Le bouton Mode Terrain ne doit jamais masquer les champs d'une fenêtre ouverte */
+body:has([role="dialog"][data-state="open"]) .field-mode-toggle { display: none; }
