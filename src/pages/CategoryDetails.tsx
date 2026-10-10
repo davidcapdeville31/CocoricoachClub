@@ -261,7 +261,7 @@ function CategoryDetailsContent() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div role="main" className="min-h-screen bg-background">
       <div className="relative py-12 px-4 bg-gradient-hero overflow-hidden">
         {(() => {
           const bgUrl = resolveHeaderBackgroundUrl((category as any)?.header_background_url);
