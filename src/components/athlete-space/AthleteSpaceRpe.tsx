@@ -1,6 +1,11 @@
+import { MentalSessionDialog } from "./MentalSessionDialog";
+import { MentalSessionContent } from "./MentalSessionContent";
+import { FeelingChoices } from "./FeelingChoices";
+import { Textarea } from "@/components/ui/textarea";
+import { getSessionTitleFromNotes } from "@/lib/utils/sessionNotes";
 import { FormattedText, CollapsibleFormattedText } from "@/components/ui/formatted-text";
 import { getDateLocale } from "@/lib/i18n/dateLocale";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { AthleteSpaceRpeHistory } from "./AthleteSpaceRpeHistory";
 import { useTranslation } from "react-i18next";
 import i18n from "@/i18n";
@@ -412,7 +417,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("awcr_tracking")
-        .select("training_session_id")
+        .select("training_session_id, auto_filled")
         .eq("player_id", playerId)
         .gte("session_date", format(addDays(new Date(), -120), "yyyy-MM-dd"));
       if (error) throw error;
@@ -420,7 +425,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
     },
   });
 
-  const completedSessionIds = new Set(submittedRpes.map((r) => r.training_session_id));
+  const completedSessionIds = new Set(submittedRpes.filter((r) => !r.auto_filled).map((r) => r.training_session_id));
 
   // Absences déclarées par l'athlète : une séance où il s'est déclaré absent ne demande
   // pas de RPE tant qu'il n'est pas revenu sur « présent » (alors la saisie reste ouverte,
@@ -539,6 +544,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
   };
 
 
+  const [mentalSession, setMentalSession] = useState<SessionRow | null>(null);
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
   const [expandedExerciseSessionId, setExpandedExerciseSessionId] = useState<string | null>(null);
   const [rpe, setRpe] = useState(5);
@@ -668,13 +674,50 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
     return `${baseLabel} — ${configuredExerciseLabel || selectedExerciseLabel || t("athleteSpace.rpe.exerciseToDefine")}`;
   };
 
+  const draftValues = { rpe, feeling, comment, duration, durationLocked, spareExerciseType, spareAttempts, spareSuccesses, showHrv, hrvMs, restingHr, avgHr, maxHr, showZones, zone1, zone2, zone3, zone4, zone5, weightLogs, testResultsInput, showBowlingSheet, savedGameScores, precisionExerciseId, precisionExerciseLabel };
+  const drafts = useRef(new Map<string, typeof draftValues>());
+  const currentDraft = useRef(draftValues);
+  currentDraft.current = draftValues;
+  useEffect(() => () => { drafts.current.clear(); }, [playerId, categoryId]);
+
   const handleSelectSession = (sessionId: string) => {
+    if (selectedSession) drafts.current.set(selectedSession, currentDraft.current);
     if (sessionId === selectedSession) {
       setSelectedSession(null);
       return;
     }
 
     setSelectedSession(sessionId);
+    const saved = drafts.current.get(sessionId);
+    if (saved) {
+      setRpe(saved.rpe);
+      setFeeling(saved.feeling);
+      setComment(saved.comment);
+      setDuration(saved.duration);
+      setDurationLocked(saved.durationLocked);
+      setSpareExerciseType(saved.spareExerciseType);
+      setSpareAttempts(saved.spareAttempts);
+      setSpareSuccesses(saved.spareSuccesses);
+      setShowHrv(saved.showHrv);
+      setHrvMs(saved.hrvMs);
+      setRestingHr(saved.restingHr);
+      setAvgHr(saved.avgHr);
+      setMaxHr(saved.maxHr);
+      setShowZones(saved.showZones);
+      setZone1(saved.zone1);
+      setZone2(saved.zone2);
+      setZone3(saved.zone3);
+      setZone4(saved.zone4);
+      setZone5(saved.zone5);
+      setWeightLogs(saved.weightLogs);
+      setTestResultsInput(saved.testResultsInput);
+      setShowBowlingSheet(saved.showBowlingSheet);
+      setSavedGameScores(saved.savedGameScores);
+      setPrecisionExerciseId(saved.precisionExerciseId);
+      setPrecisionExerciseLabel(saved.precisionExerciseLabel);
+      return;
+    }
+    setFeeling(2); setComment(""); setTestResultsInput({});
     setRpe(5);
     setSpareAttempts("");
     setSpareSuccesses("");
@@ -891,6 +934,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
       }
     },
     onSuccess: () => {
+      if (selectedSession) drafts.current.delete(selectedSession);
       toast.success(isPrecisionSession ? t("athleteSpace.rpe.savedWithStats") : t("athleteSpace.rpe.saved"));
       queryClient.invalidateQueries({ queryKey: ["athlete-space-rpes"] });
       queryClient.invalidateQueries({ queryKey: ["athlete-space-awcr"] });
@@ -1114,7 +1158,8 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
+      <MentalSessionDialog session={mentalSession} onClose={() => setMentalSession(null)} onRespond={mentalSession && !completedSessionIds.has(mentalSession.id) ? () => { const id = mentalSession.id; setMentalSession(null); if (selectedSession !== id) handleSelectSession(id); } : undefined} />
       {/* Today: agenda + sessions to fill — side by side on md+ */}
       {(infoTodaySessions.length > 0 || pendingSessions.length > 0) && (
         <div className={cn(
@@ -1157,7 +1202,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm sm:text-base flex items-center gap-2">
                   <Activity className="h-4 w-4 text-accent" />
-                  {t("athleteSpace.rpe.sessionsToFill")}
+                  Mes séances à réaliser
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 sm:space-y-4">
@@ -1166,7 +1211,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
               return (
               <div key={session.id}>
                 <div
-                  onClick={() => handleSelectSession(session.id)}
+                  onClick={() => session.training_type === "mental" ? setMentalSession(session) : handleSelectSession(session.id)}
                   className={cn(
                     "w-full text-left px-2.5 py-2 sm:p-3 rounded-lg border transition-colors cursor-pointer",
                     isTest
@@ -1178,8 +1223,8 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                         : "border-border hover:border-accent/50"
                   )}
                 >
-                  <div className="flex items-center justify-between">
-                    <div>
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
                       <p className="font-medium text-sm flex items-center gap-1.5 flex-wrap">
                         {isTest ? (
                           <FlaskConical className="h-4 w-4 text-cyan-600 dark:text-cyan-400 shrink-0" />
@@ -1199,7 +1244,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                         </p>
                       )}
                       {renderTestInfo(session)}
-                      {renderSessionNotes(session.notes, session.training_type === "test")}
+                      {session.training_type === "mental" ? <p className="mt-1 text-sm text-muted-foreground break-words">{getSessionTitleFromNotes(session.notes)?.replace(/^#+\s*|\*\*/g, "")}</p> : renderSessionNotes(session.notes, session.training_type === "test")}
                       {session.session_start_time && (
                         <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                           <Clock className="h-3 w-3" />
@@ -1229,11 +1274,14 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                       );
                     })()}
                   </div>
+                  {session.training_type === "mental" && <Button type="button" className="mt-3 h-11 w-full" onClick={(e) => { e.stopPropagation(); setMentalSession(session); }}>Découvrir ma séance</Button>}
                   {renderExerciseToggle(session.id)}
                 </div>
 
                 {selectedSession === session.id && (
-                  <div className="mt-2.5 p-3 sm:p-4 rounded-lg bg-muted/30 space-y-4">
+                  <div className="mt-2.5 min-w-0 p-3 sm:p-4 rounded-lg bg-muted/30 space-y-4">
+                    <header className="border-b border-border pb-3"><p className="text-xs font-semibold text-accent">Mon bilan · {getSessionTrainingLabel(session)}</p><p className="text-sm font-semibold break-words">{getSessionTitleFromNotes(session.notes)?.replace(/^#+\s*|\*\*/g, "")}</p><p className="text-xs text-muted-foreground">{format(parseISO(session.session_date), "dd/MM/yyyy")}</p></header>
+                    {session.training_type === "mental" && <details className="border-b border-border pb-3"><summary className="cursor-pointer text-sm font-semibold text-primary">Relire mes consignes</summary><div className="pt-3"><MentalSessionContent text={getDisplayNotes(session.notes)} /></div></details>}
                     {attendanceAbsent && isOpenCampaign(session) ? (
                       <div className="space-y-3">
                         <AthleteAbsentLockNotice />
@@ -1329,34 +1377,19 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                     {/* Ressenti global de la séance */}
                     <div>
                       <Label className="text-sm">{t("athleteSpace.rpe.overallFeeling")}</Label>
-                      <div className="mt-2 grid grid-cols-5 gap-2">
-                        {[
-                          { value: 1, label: t("athleteSpace.rpe.mood.great"), emoji: "💪" },
-                          { value: 2, label: t("athleteSpace.rpe.mood.good"), emoji: "🙂" },
-                          { value: 3, label: t("athleteSpace.rpe.mood.average"), emoji: "😐" },
-                          { value: 4, label: t("athleteSpace.rpe.mood.tired"), emoji: "😓" },
-                          { value: 5, label: t("athleteSpace.rpe.mood.exhausted"), emoji: "🥵" },
-                        ].map((f) => (
-                          <button
-                            key={f.value}
-                            type="button"
-                            onClick={() => setFeeling(f.value)}
-                            className={`rounded-lg border p-2 text-center text-xs transition-colors ${
-                              feeling === f.value
-                                ? "border-accent bg-accent/10 ring-2 ring-accent"
-                                : "border-border hover:border-accent/50"
-                            }`}
-                          >
-                            <div className="text-xl leading-none">{f.emoji}</div>
-                            <div className="mt-1 text-[10px] text-muted-foreground">{f.label}</div>
-                          </button>
-                        ))}
-                      </div>
+                      <div className="mt-2"><FeelingChoices value={feeling} onChange={setFeeling} options={[
+ { value: 1, label: t("athleteSpace.rpe.mood.great"), emoji: "💪" },
+ { value: 2, label: t("athleteSpace.rpe.mood.good"), emoji: "🙂" },
+ { value: 3, label: t("athleteSpace.rpe.mood.average"), emoji: "😐" },
+ { value: 4, label: t("athleteSpace.rpe.mood.tired"), emoji: "😓" },
+ { value: 5, label: t("athleteSpace.rpe.mood.exhausted"), emoji: "🥵" }
+]} /></div>
                     </div>
 
                     <div>
                       <Label className="text-sm">{t("athleteSpace.rpe.commentOptional")}</Label>
-                      <Input
+                      <Textarea
+                        rows={4}
                         value={comment}
                         onChange={(e) => setComment(e.target.value)}
                         placeholder={t("athleteSpace.rpe.commentPlaceholder")}
@@ -1777,6 +1810,8 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         </div>
       )}
 
+
+      {doneSessions.length > 0 && <section className="space-y-3 border-t border-border pt-5" aria-label="Mes séances terminées"><h2 className="text-base font-semibold">Mes séances terminées</h2>{doneSessions.map((session) => <div key={session.id} className="flex flex-wrap items-center justify-between gap-3 border-b border-border py-3"><div className="min-w-0"><p className="text-sm font-medium">{getSessionTrainingLabel(session)}</p><p className="text-xs text-muted-foreground">{format(parseISO(session.session_date), "dd/MM/yyyy")}</p></div><Badge variant="outline" className="text-status-optimal"><CheckCircle2 className="mr-1 h-3 w-3" />Renseignée</Badge>{session.training_type === "mental" && <Button variant="outline" size="sm" onClick={() => setMentalSession(session)}>Relire ma séance</Button>}</div>)}</section>}
 
       {pendingSessions.length === 0 && (
 

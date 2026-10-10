@@ -14,3 +14,7 @@
 - Arsenal Bank managers (`public.arsenal_bank_managers` + `is_arsenal_bank_manager()`) get the Super Admin page restricted to the arsenal-bank tab and system-ball write policies, without being super admins.
 - Bowling session kind is stored in the structured column `training_sessions.session_kind` (training/competition/personal/evaluation, nullable), never in free-text notes, so histories and stats can filter on it.
 - Circuit V2 athlete logs keep one `athlete_exercise_logs` row per circuit (aggregated so tonnage = Σ charge × reps) and store per-exercise/per-round detail in a `<!--circuit-log:...-->` notes tag, so the unique key and tonnage stay unchanged.
+
+- Athlete mental content is rendered with a safe Markdown renderer and navigation derived only from stored headings; coach content is never rewritten.
+- Circuit tour completion uses explicit confirmations persisted in the backward-compatible circuit notes tag, not visits or prescribed values; tonnage aggregation remains independent.
+- Athlete entry drafts are kept in component memory keyed by session and discarded on successful validation or account change; sensitive responses are never written to browser storage.
