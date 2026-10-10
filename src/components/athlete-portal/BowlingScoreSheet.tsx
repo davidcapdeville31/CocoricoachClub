@@ -363,6 +363,10 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
   };
 
   const handleSave = () => {
+    if (!frames.some(frame => frame.throws.some(roll => roll.value))) {
+      toast.error("Renseignez au moins un lancer avant d’enregistrer la partie.");
+      return;
+    }
     setIsSaved(true);
     const ballData = playerId ? {
       mode: ballMode,
@@ -624,23 +628,23 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      setFrames(prevFrames => {
-                        const allPocketsChecked = prevFrames.every((frame, fi) =>
+                        const allPocketsChecked = frames.every((frame, fi) =>
                           frame.throws.every((t, ti) => {
                             if (!t.value) return true;
                             if (!isPocketAllowed(fi, ti, frame)) return true;
                             return t.isPocket;
                           })
                         );
-                        return prevFrames.map((frame, fi) => ({
+                        const updated = frames.map((frame, fi) => ({
                           ...frame,
                           throws: frame.throws.map((t, ti) => {
                             if (!t.value) return t;
                             if (!isPocketAllowed(fi, ti, frame)) return t;
-                            return { ...t, isPocket: !allPocketsChecked };
+                            return { ...t, isPocket: !allPocketsChecked, observed: [...new Set([...(t.observed ?? ["isPocket", "isSplit", "isSinglePin", "isSinglePinConverted"]), "isPocket"])] };
                           }),
                         }));
-                      });
+                        setFrames(updated);
+                        onDraftChange?.(calculateStats(updated), updated);
                     }}
                     className={compact ? "h-6 px-2 text-[10px] gap-1" : "gap-1"}
                   >

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { isGameComplete } from "@/lib/bowling/scoreRules";
 import pinsIllu from "@/assets/bowling/hero-pins.png";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -80,7 +79,7 @@ export function SimplifiedGamesBlockEditor({
   };
 
   const avgFmt = agg ? agg.avgScore.toLocaleString("fr-FR", { maximumFractionDigits: 1 }) : null;
-  const firstScore = value.parties.find((p) => p.stats)?.stats?.totalScore ?? null;
+  const firstScore = value.parties.find(isFinishedGame)?.stats?.totalScore ?? null;
   const trend = agg && agg.count > 1 && firstScore !== null ? Math.round((agg.avgScore - firstScore) * 10) / 10 : null;
   const pinIcon = <img src={pinsIllu} alt="" aria-hidden width={22} height={22} className="h-[22px] w-[22px] object-contain" />;
 
