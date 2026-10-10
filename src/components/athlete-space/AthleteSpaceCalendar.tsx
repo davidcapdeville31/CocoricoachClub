@@ -1,3 +1,4 @@
+import { getReadableNotes, getNotesSectionKey, getSessionOrigin } from "@/lib/sessionPresentation";
 import { FormattedText, CollapsibleFormattedText } from "@/components/ui/formatted-text";
 import { SessionAuthor } from "@/components/shared/SessionAuthor";
 import { getDateLocale } from "@/lib/i18n/dateLocale";
@@ -965,12 +966,13 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                             {(isExpanded && (exercises.length > 0 || (session as any).notes || isBowling || isBasket)) && (
                               <div className="px-3 pb-3 border-t border-border/50 pt-2 space-y-2">
                                 {(() => {
-                                  const rawNotes = ((session as any).notes || "").replace(/<!--[\s\S]*?-->/g, "").trim();
+                                  const rawNotes = getReadableNotes((session as any).notes);
                                   if (!rawNotes) return null;
+                                  const notesKey = getNotesSectionKey(getSessionOrigin(session as any));
                                   return (
                                     <div className="rounded-md border border-primary/20 bg-primary/5 p-2">
                                       <p className="text-[10px] uppercase tracking-wide font-semibold text-primary mb-1">
-                                        {t("athleteSpace.calendar.coachInstructions")}
+                                        {t(notesKey === "myNotes" ? "athleteSpace.components.sessionDetailDialog.myNotes" : "athleteSpace.calendar.coachInstructions")}
                                       </p>
                                       <FormattedText text={rawNotes} className="text-xs text-foreground/90" />
                                     </div>

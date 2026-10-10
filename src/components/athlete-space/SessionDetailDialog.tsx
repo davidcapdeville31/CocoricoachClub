@@ -8,6 +8,7 @@ import { Activity, Clock, Calendar as CalendarIcon, CheckCircle2, Trophy, Target
 import { format, parseISO } from "date-fns";
 import { GroupedExerciseList } from "@/components/category/GroupedExerciseList";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
+import { getSessionDisplayTitle, getSessionOrigin, getReadableNotes, getNotesSectionKey, getCompletionStatus, getEntryStatus } from "@/lib/sessionPresentation";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -104,7 +105,9 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
 
   if (!session) return null;
 
-  const rawNotes = String(session.notes || "").replace(/<!--[\s\S]*?-->/g, "").trim();
+  const rawNotes = trainingType === "mental" ? String(session.notes || "").replace(/<!--[\s\S]*?-->/g, "").trim() : getReadableNotes(session.notes);
+  const origin = getSessionOrigin(session);
+  const displayTitle = getSessionDisplayTitle(session);
   const dateLabel = session.session_date
     ? format(parseISO(session.session_date), "EEEE d MMMM yyyy", { locale: getDateLocale() })
     : "";
@@ -135,7 +138,7 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Activity className="h-5 w-5 text-primary" />
-            {getTrainingTypeLabel(session.training_type)}
+            {displayTitle}
           </DialogTitle>
           <DialogDescription className="flex flex-wrap items-center gap-3 pt-1">
             <span className="inline-flex items-center gap-1">
@@ -149,7 +152,9 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
                 {session.session_end_time && ` - ${String(session.session_end_time).slice(0, 5)}`}
               </span>
             )}
-            <Badge variant="outline">{getTrainingTypeLabel(session.training_type)}</Badge>
+            <Badge variant="outline">{t(`athleteSpace.components.sessionDetailDialog.origin.${origin}`)}</Badge>
+            <Badge variant="secondary">{t(`athleteSpace.components.sessionDetailDialog.completion.${getCompletionStatus(session)}`)}</Badge>
+            {playerId && <Badge variant="outline">{t(`athleteSpace.components.sessionDetailDialog.entry.${getEntryStatus((rpes?.length || 0) > 0, (bowlingBlocks?.length || 0) > 0, isBowling)}`)}</Badge>}
             <SessionAuthor sessionId={session.id} playerId={playerId} />
           </DialogDescription>
         </DialogHeader>
@@ -158,7 +163,7 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
           {rawNotes && (
             <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
               <p className="text-xs uppercase tracking-wide font-semibold text-primary mb-1.5">
-                {t('athleteSpace.components.sessionDetailDialog.coachInstructions')}
+                {t(`athleteSpace.components.sessionDetailDialog.${getNotesSectionKey(origin)}`)}
               </p>
               {trainingType === "mental" ? <MentalSessionContent text={rawNotes} /> : <FormattedText text={rawNotes} className="text-foreground/90" />}
             </div>
