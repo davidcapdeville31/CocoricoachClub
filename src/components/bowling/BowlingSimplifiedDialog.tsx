@@ -1154,8 +1154,8 @@ export function BowlingSimplifiedDialog({
                                 {!collapsed && dur ? <span className="ml-auto shrink-0 text-xs text-muted-foreground">{dur} min</span> : null}
                               </span>
                               {collapsed && (
-                                <span className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
-                                  <span className="truncate">{line.detail}</span>
+                                <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                                  <span className="min-w-0 sm:truncate">{line.detail}</span>
                                   {incomplete && <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-bowling-games/10 px-2 py-0.5 text-[11px] font-medium text-bowling-games" title={incomplete}><span className="h-1.5 w-1.5 rounded-full bg-bowling-games" />À compléter</span>}
                                 </span>
                               )}
