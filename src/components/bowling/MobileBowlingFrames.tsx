@@ -81,7 +81,7 @@ export function MobileBowlingFrames({ frames, stats, gameNumber, readOnly, track
         </div>
       </>}
       {currentThrow && quickFields.length > 0 && <div className="grid grid-cols-2 gap-2 border-t border-border pt-3" role="group" aria-label={`Informations lancer ${roll + 1}`}>
-        {quickFields.map(field => <BowlingObservationButton key={field} label={field === "isPocket" ? "Poche" : "Split"} value={observationValue(currentThrow, field)} readOnly={readOnly} onChange={value => onObservation(active, roll, field, value)} />)}
+        {quickFields.map(field => <BowlingObservationButton key={field} label={field === "isPocket" ? "Poche" : "Split"} value={observationValue(currentThrow, field)} readOnly={readOnly} tone={field === "isPocket" ? "positive" : "negative"} clearable={field === "isPocket"} onChange={value => onObservation(active, roll, field, value)} />)}
       </div>}
       {!readOnly && hasThrow(currentThrow) && (hasNextThrow || active < 9) && <Button className="h-11 w-full gap-2" onClick={continueThrow}>{hasNextThrow ? "Lancer suivant" : "Frame suivante"}<ArrowRight className="h-4 w-4" /></Button>}
       {isFrameComplete(frame, active) && observationSummary(frame, active) && <p className="text-xs text-muted-foreground">{observationSummary(frame, active)}</p>}
