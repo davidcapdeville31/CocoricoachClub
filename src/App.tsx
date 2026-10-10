@@ -33,7 +33,6 @@ import PublicCategoryView from "./pages/PublicCategoryView";
 import AthletePortal from "./pages/AthletePortal";
 import AcceptAthleteInvitation from "./pages/AcceptAthleteInvitation";
 import Install from "./pages/Install";
-import BowlingPreviewTmp from "./pages/BowlingPreviewTmp";
 import Admin from "./pages/Admin";
 import SuperAdmin from "./pages/SuperAdmin";
 import Settings from "./pages/Settings";
@@ -185,7 +184,6 @@ const App = () => (
                     <Route path="/athlete-space" element={<AthleteSpace />} />
                     <Route path="/accept-athlete-invitation" element={<AcceptAthleteInvitation />} />
                     <Route path="/install" element={<Install />} />
-                    <Route path="/bowling-preview-tmp" element={<BowlingPreviewTmp />} />
                     <Route path="/admin" element={<Admin />} />
                      <Route path="/super-admin" element={<SuperAdmin />} />
                     <Route path="/ambassador-invitation" element={<AcceptAmbassadorInvitation />} />
