@@ -14301,6 +14301,7 @@ export type Database = {
           planned_intensity: number | null
           session_date: string
           session_end_time: string | null
+          session_kind: string | null
           session_start_time: string | null
           test_reminder_id: string | null
           training_type: string
@@ -14317,6 +14318,7 @@ export type Database = {
           planned_intensity?: number | null
           session_date: string
           session_end_time?: string | null
+          session_kind?: string | null
           session_start_time?: string | null
           test_reminder_id?: string | null
           training_type: string
@@ -14333,6 +14335,7 @@ export type Database = {
           planned_intensity?: number | null
           session_date?: string
           session_end_time?: string | null
+          session_kind?: string | null
           session_start_time?: string | null
           test_reminder_id?: string | null
           training_type?: string

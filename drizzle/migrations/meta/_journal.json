@@ -127,6 +127,13 @@
       "when": 1791541924350,
       "tag": "0017_create_player_manual_medals",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1791619007143,
+      "tag": "0018_add_training_session_kind",
+      "breakpoints": true
     }
   ]
 }
