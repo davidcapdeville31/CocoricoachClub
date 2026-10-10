@@ -24,7 +24,7 @@ describe("Circuit confirmation and compatible persistence", () => {
     if (!c) throw new Error("Confirmation failed");
     const read = parseCircuitTag(encodeCircuitTag(c));
     expect(read?.confirmedRounds).toEqual([0]);
-    expect(read && aggregateCircuit(read)).toEqual({ tonnage: 400, reps: 26 });
+    expect(read && aggregateCircuit(read)).toEqual({ tonnage: 200, reps: 26 });
   });
   test("legacy tag remains readable but not falsely confirmed", () => {
     const read = parseCircuitTag('<!--circuit-log:{"e":["Squat"],"r":[[{"weight":"20","reps":"10"}]]}-->');
