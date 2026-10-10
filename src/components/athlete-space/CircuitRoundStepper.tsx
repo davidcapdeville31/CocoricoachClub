@@ -130,12 +130,18 @@ export function CircuitRoundStepper({ value, onChange }: { value: CircuitLog; on
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        <Button type="button" variant="outline" className="h-11" disabled={idx === 0} onClick={() => setIdx(idx - 1)}>
-          <ChevronLeft className="h-4 w-4 mr-1" /> Précédent
-        </Button>
-        <Button type="button" className="h-11" disabled={idx >= total - 1} onClick={() => setIdx(idx + 1)}>
-          Tour suivant <ChevronRight className="h-4 w-4 ml-1" />
-        </Button>
+        {idx > 0 ? (
+          <Button type="button" variant="outline" className="h-11" onClick={() => setIdx(idx - 1)}>
+            <ChevronLeft className="h-4 w-4 mr-1" /> Précédent
+          </Button>
+        ) : <span />}
+        {idx < total - 1 ? (
+          <Button type="button" className="h-11" onClick={() => setIdx(idx + 1)}>
+            Tour suivant <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
+        ) : (
+          <p className="self-center text-center text-xs text-muted-foreground">Dernier tour</p>
+        )}
       </div>
     </div>
   );
