@@ -22,3 +22,4 @@
 - Bowling desktop and guided mobile share frame state and pure score/validation helpers; absent throws never resolve bonuses or cumulative scores, avoiding divergent score engines.
 - Optional bowling observations use a backward-compatible observed-fields list on existing throw JSON; omitted metadata preserves legacy meaning, while new absent observations are excluded from denominators.
 - In-progress bowling games remain in block configuration but never enter completed-game aggregates or flattened competition results; this preserves resumable input without publishing provisional scores.
+- Judo premium sessions reuse training_sessions/training_session_blocks (training_type terrain + judo_* blocks) with structured detail in backward-compatible `<!--judo-block:...-->`/`<!--judo-session:...-->` notes tags, so existing calendars, workload and history keep working without schema changes.
