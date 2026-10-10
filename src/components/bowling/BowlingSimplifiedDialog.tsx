@@ -14,7 +14,9 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sparkles, Plus, Target, Wrench, Save, Circle, Users, Loader2, Droplet, ArrowUp, ArrowDown, Copy, ArrowLeft, ArrowRight, CheckCircle2, CalendarDays, X, ChevronDown, ChevronUp, Flag, Repeat, Zap, Eye, Brain } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { BowlingStepper, BowlingSessionRecap } from "./simplified/WizardParts";
+import { BowlingStepper, BowlingSessionRecap, blockSummary } from "./simplified/WizardParts";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { MoreHorizontal, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -23,7 +25,6 @@ import type { Database } from "@/integrations/supabase/types";
 import { SimplifiedTacticalBlockEditor } from "./simplified/SimplifiedTacticalBlockEditor";
 import { SimplifiedTechnicalBlockEditor } from "./simplified/SimplifiedTechnicalBlockEditor";
 import { SimplifiedGamesBlockEditor } from "./simplified/SimplifiedGamesBlockEditor";
-import { LockedBlockSummary } from "./simplified/LockedBlockSummary";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { OFFICIAL_OIL_PATTERNS, getOilCategory } from "@/lib/constants/bowlingOilPatterns";
 import {
@@ -255,10 +256,20 @@ export function BowlingSimplifiedDialog({
     oilScope === "session" ? ({ ...b, oil_pattern: sessionOilPreset } as T) : b;
 
   /** Ajoute un bloc ouvert et replie les autres (les données restent dans le brouillon). */
+  const [scrollToId, setScrollToId] = useState<string | null>(null);
   const pushBlock = (b: SimplifiedBlock) => {
     setLockedIds(new Set(blocks.map((x) => x.id)));
     setBlocks((prev) => [...prev, withSessionOil(b)]);
+    setScrollToId(b.id);
   };
+  useEffect(() => {
+    if (!scrollToId) return;
+    const t = window.setTimeout(() => {
+      document.getElementById(`bowling-block-${scrollToId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      setScrollToId(null);
+    }, 60);
+    return () => window.clearTimeout(t);
+  }, [scrollToId]);
   const addTactical = () => pushBlock(newTacticalBlock());
   const addTechnical = () => pushBlock(newTechnicalBlock());
   const addGames = () => pushBlock(newGamesBlock());
@@ -612,10 +623,7 @@ export function BowlingSimplifiedDialog({
       if (blocks.length === 0) {
         throw new Error("Ajoutez au moins un bloc avant d'enregistrer");
       }
-      const unlocked = blocks.filter((b) => !lockedIds.has(b.id));
-      if (unlocked.length > 0) {
-        throw new Error("Enregistrez d'abord chaque bloc avant de valider la séance");
-      }
+      // Chaque bloc est validé dans handleSave ; un bloc ouvert conserve ses données.
 
       const sessionDate = format(date, "yyyy-MM-dd");
       const totalDuration = blocks.reduce(
@@ -892,7 +900,7 @@ export function BowlingSimplifiedDialog({
     { key: "Régularité", icon: Repeat, cls: "bg-success/10 text-success" },
     { key: "Spare", icon: Target, cls: "bg-warning/10 text-warning" },
     { key: "Strike", icon: Zap, cls: "bg-destructive/10 text-destructive" },
-    { key: "Lecture de piste", icon: Eye, cls: "bg-primary/10 text-primary" },
+    { key: "Lecture de piste", icon: Eye, cls: "bg-primary/10 text-bowling-ink" },
     { key: "Mental", icon: Brain, cls: "bg-muted text-foreground" },
   ];
   const oilLabel = oilPatternName === "none" ? null : oilPatternName === "__custom__" ? (customOilName || "Personnalisé") : oilPatternName;
@@ -922,8 +930,8 @@ export function BowlingSimplifiedDialog({
             <div className="min-w-0 flex-1"><BowlingStepper step={step} onStep={goToStep} /></div>
             <button type="button" onClick={() => handleOpenChange(false)} className="mt-1.5 shrink-0 text-sm text-muted-foreground hover:text-foreground">Annuler</button>
           </div>
-          <DialogHeader className="mt-5 text-left">
-            <DialogTitle className="text-2xl sm:text-3xl font-bold tracking-tight text-primary">
+          <DialogHeader className="mt-3 text-left">
+            <DialogTitle className="text-xl sm:text-2xl font-bold tracking-tight text-bowling-ink">
               {step === 0 ? (isEditMode ? "Remplir la séance bowling" : "Nouvelle séance bowling") : step === 1 ? "Contenu de la séance" : "Récapitulatif"}
             </DialogTitle>
             <p className="text-sm sm:text-base text-muted-foreground">
@@ -933,11 +941,11 @@ export function BowlingSimplifiedDialog({
         </div>
 
         {/* Contenu — défilement unique */}
-        <div key={step} className="flex-1 min-h-0 overflow-y-auto px-4 py-5 sm:px-8">
+        <div key={step} className="flex-1 min-h-0 overflow-y-auto px-4 py-4 sm:px-8">
           {step === 0 && (
             <div className="grid gap-4 md:grid-cols-2">
               <div className={`${cardCls} flex items-center gap-4`}>
-                <CalendarDays className="h-6 w-6 text-primary" />
+                <CalendarDays className="h-6 w-6 text-bowling-ink" />
                 <div>
                   <p className="text-sm text-muted-foreground">Date de la séance</p>
                   <p className="text-base font-semibold capitalize text-foreground">{format(date, "EEEE d MMMM yyyy", { locale: getDateLocale() })}</p>
@@ -947,7 +955,7 @@ export function BowlingSimplifiedDialog({
               {!isAthleteMode && !isEditMode ? (
                 <Collapsible open={athletesOpen} onOpenChange={setAthletesOpen} className={cardCls}>
                   <CollapsibleTrigger className="flex w-full items-center gap-4 text-left">
-                    <Users className="h-6 w-6 text-primary" />
+                    <Users className="h-6 w-6 text-bowling-ink" />
                     <div className="flex-1">
                       <p className="text-sm text-muted-foreground">Athlètes</p>
                       <p className="text-base font-semibold text-foreground">{selectedPlayers.length === 0 ? "Aucun sélectionné" : `${selectedPlayers.length} sélectionné${selectedPlayers.length > 1 ? "s" : ""}`}</p>
@@ -962,7 +970,7 @@ export function BowlingSimplifiedDialog({
                       {players.map((p) => {
                         const on = selectedPlayers.includes(p.id);
                         return (
-                          <button key={p.id} type="button" onClick={() => togglePlayer(p.id)} className={`rounded-full px-3 py-1.5 text-sm transition-colors ${on ? "bg-primary text-primary-foreground" : "bg-bowling-canvas text-foreground hover:bg-muted"}`}>
+                          <button key={p.id} type="button" onClick={() => togglePlayer(p.id)} className={`rounded-full px-3 py-1.5 text-sm transition-colors ${on ? "bg-bowling-ink text-card" : "bg-bowling-canvas text-foreground hover:bg-muted"}`}>
                             {[p.first_name, p.name].filter(Boolean).join(" ") || "Athlète"}
                           </button>
                         );
@@ -974,7 +982,7 @@ export function BowlingSimplifiedDialog({
               ) : <div className="hidden md:block" />}
 
               <div className={`${cardCls} md:col-span-2`}>
-                <p className="mb-3 flex items-center gap-3 text-base font-semibold text-primary"><Flag className="h-5 w-5" />Objectif principal <span className="font-normal text-muted-foreground">(facultatif)</span></p>
+                <p className="mb-3 flex items-center gap-3 text-base font-semibold text-bowling-ink"><Flag className="h-5 w-5" />Objectif principal <span className="font-normal text-muted-foreground">(facultatif)</span></p>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                   {goalOptions.map((g) => {
                     const on = objective === g.key;
@@ -989,7 +997,7 @@ export function BowlingSimplifiedDialog({
 
               <Collapsible open={oilOpen} onOpenChange={setOilOpen} className={`${cardCls} md:col-span-2`}>
                 <CollapsibleTrigger className="flex w-full items-center gap-4 text-left">
-                  <Droplet className="h-6 w-6 text-primary" />
+                  <Droplet className="h-6 w-6 text-bowling-ink" />
                   <div className="flex-1">
                     <p className="text-sm text-muted-foreground">Huilage (facultatif)</p>
                     <p className="text-base font-semibold text-foreground">{oilLabel ?? "Aucun huilage"}</p>
@@ -1016,7 +1024,7 @@ export function BowlingSimplifiedDialog({
                   )}
                   <div className="grid grid-cols-2 gap-2">
                     {([["session", "Pour toute la séance"], ["per_block", "Différent par bloc"]] as const).map(([k, l]) => (
-                      <button key={k} type="button" onClick={() => setOilScope(k)} className={`h-11 rounded-xl text-sm font-medium transition-colors ${oilScope === k ? "bg-primary text-primary-foreground" : "bg-bowling-canvas text-foreground"}`}>{l}</button>
+                      <button key={k} type="button" onClick={() => setOilScope(k)} className={`h-11 rounded-xl text-sm font-medium transition-colors ${oilScope === k ? "bg-bowling-ink text-card" : "bg-bowling-canvas text-foreground"}`}>{l}</button>
                     ))}
                   </div>
                 </CollapsibleContent>
@@ -1028,13 +1036,13 @@ export function BowlingSimplifiedDialog({
             <div className="space-y-4">
               <div className="grid grid-cols-3 gap-3">
                 {[
-                  { key: "tactical", label: "Tactique", hint: "Strike, spares, quilles", icon: Target, color: "text-bowling-accent", onClick: addTactical },
-                  { key: "technical", label: "Technique", hint: "Thématique & durée", icon: Wrench, color: "text-success", onClick: addTechnical },
-                  { key: "games", label: "Parties", hint: "Scores des parties", icon: Circle, color: "text-warning", onClick: addGames },
+                  { key: "tactical", label: "Tactique", hint: "Strike, spares, quilles", icon: Target, color: "text-bowling-tactical", onClick: addTactical },
+                  { key: "technical", label: "Technique", hint: "Thématique & durée", icon: Wrench, color: "text-bowling-technical", onClick: addTechnical },
+                  { key: "games", label: "Parties", hint: "Scores des parties", icon: Circle, color: "text-bowling-games", onClick: addGames },
                 ].map((c) => (
-                  <button key={c.key} type="button" onClick={c.onClick} className={`${cardCls} group flex flex-col items-center gap-2 !p-4 text-center transition-all hover:-translate-y-0.5 hover:shadow-md`}>
-                    <c.icon className={`h-7 w-7 ${c.color}`} />
-                    <span className="flex items-center gap-1 text-sm sm:text-base font-semibold text-primary"><Plus className="h-4 w-4" />{c.label}</span>
+                  <button key={c.key} type="button" onClick={c.onClick} className={`${cardCls} group flex flex-col items-center gap-1.5 !p-3 text-center transition-all hover:-translate-y-0.5 hover:shadow-md`}>
+                    <c.icon className={`h-6 w-6 ${c.color}`} />
+                    <span className="flex items-center gap-1 text-sm sm:text-base font-semibold text-bowling-ink"><Plus className="h-4 w-4" />{c.label}</span>
                     <span className="hidden sm:block text-xs text-muted-foreground">{c.hint}</span>
                   </button>
                 ))}
@@ -1042,26 +1050,61 @@ export function BowlingSimplifiedDialog({
 
               {blocks.length === 0 && (
                 <div className={`${cardCls} py-10 text-center`}>
-                  <p className="text-base font-semibold text-primary">Construis ta séance</p>
+                  <p className="text-base font-semibold text-bowling-ink">Construis ta séance</p>
                   <p className="mt-1 text-sm text-muted-foreground">Choisis un bloc ci-dessus pour commencer.</p>
                 </div>
               )}
 
               {blocks.map((b, posIdx) => {
                 const collapsed = lockedIds.has(b.id);
+                const meta = b.type === "tactical"
+                  ? { Icon: Target, label: "Tactique", fg: "text-bowling-tactical", bg: "bg-bowling-tactical/10", bar: "bg-bowling-tactical" }
+                  : b.type === "technical"
+                    ? { Icon: Wrench, label: "Technique", fg: "text-bowling-technical", bg: "bg-bowling-technical/10", bar: "bg-bowling-technical" }
+                    : { Icon: Circle, label: "Parties", fg: "text-bowling-games", bg: "bg-bowling-games/10", bar: "bg-bowling-games" };
+                const dur = blockDuration(b);
+                const customTitle = b.title?.trim();
                 return (
-                  <div key={b.id} className="space-y-1.5">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button type="button" variant="ghost" size="icon" className="h-8 w-8" aria-label="Monter le bloc" disabled={posIdx === 0} onClick={() => moveBlock(posIdx, -1)}><ArrowUp className="h-4 w-4" /></Button>
-                      <Button type="button" variant="ghost" size="icon" className="h-8 w-8" aria-label="Descendre le bloc" disabled={posIdx === blocks.length - 1} onClick={() => moveBlock(posIdx, 1)}><ArrowDown className="h-4 w-4" /></Button>
-                      <Button type="button" variant="ghost" size="sm" className="h-8 gap-1 text-xs" onClick={() => duplicateBlock(b.id)}><Copy className="h-3.5 w-3.5" />Dupliquer</Button>
-                      {!collapsed && (
-                        <Button type="button" variant="ghost" size="sm" className="h-8 gap-1 text-xs" onClick={() => collapseBlock(b.id)}><ChevronUp className="h-3.5 w-3.5" />Replier</Button>
-                      )}
+                  <div key={b.id} id={`bowling-block-${b.id}`} className="scroll-mt-2 overflow-hidden rounded-[20px] bg-card shadow-[0_2px_12px_-4px_hsl(var(--foreground)/0.08)]">
+                    <div className="flex">
+                      <div className={`w-1 shrink-0 ${meta.bar}`} />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 px-3 py-2.5 sm:px-4">
+                          <button type="button" onClick={() => (collapsed ? openBlock(b.id) : collapseBlock(b.id))} className="flex min-w-0 flex-1 items-center gap-3 text-left" aria-expanded={!collapsed}>
+                            <span className={`rounded-lg p-2 ${meta.bg}`}><meta.Icon className={`h-4 w-4 ${meta.fg}`} /></span>
+                            <span className="min-w-0 flex-1">
+                              <span className="flex items-baseline gap-2">
+                                <span className={`text-sm font-semibold ${meta.fg}`}>{meta.label}</span>
+                                {customTitle && <span className="truncate text-sm font-medium text-bowling-ink">{customTitle}</span>}
+                                {dur ? <span className="ml-auto shrink-0 text-xs text-muted-foreground">{dur} min</span> : null}
+                              </span>
+                              {collapsed && <span className="mt-0.5 block truncate text-xs text-muted-foreground">{blockSummary(b)}</span>}
+                            </span>
+                            <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${collapsed ? "" : "rotate-180"}`} />
+                          </button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0" aria-label="Actions du bloc"><MoreHorizontal className="h-4 w-4" /></Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="z-[200]">
+                              <DropdownMenuItem onClick={() => duplicateBlock(b.id)}><Copy className="mr-2 h-4 w-4" />Dupliquer</DropdownMenuItem>
+                              <DropdownMenuItem disabled={posIdx === 0} onClick={() => moveBlock(posIdx, -1)}><ArrowUp className="mr-2 h-4 w-4" />Monter</DropdownMenuItem>
+                              <DropdownMenuItem disabled={posIdx === blocks.length - 1} onClick={() => moveBlock(posIdx, 1)}><ArrowDown className="mr-2 h-4 w-4" />Descendre</DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => removeBlock(b.id)}><Trash2 className="mr-2 h-4 w-4" />Supprimer</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                        {!collapsed && (
+                          <div className="border-t border-border/60 px-3 pb-4 pt-3 sm:px-4">
+                            {renderEditor(b)}
+                            <div className="mt-4 flex justify-end">
+                              <Button type="button" variant="outline" size="sm" className="h-9 gap-1 rounded-xl" onClick={() => lockBlock(b.id)}><ChevronUp className="h-4 w-4" />Valider et replier</Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    {collapsed ? (
-                      <LockedBlockSummary block={b} index={posIdx} categoryId={categoryId} playerId={playerIdForEditors} onEdit={() => openBlock(b.id)} onRemove={() => removeBlock(b.id)} />
-                    ) : renderEditor(b)}
                   </div>
                 );
               })}
@@ -1083,13 +1126,13 @@ export function BowlingSimplifiedDialog({
               </div>
               {isAthleteMode && !isEditMode && (
                 <div className={`${cardCls} md:col-span-2 space-y-3`}>
-                  <p className="text-base font-semibold text-primary">RPE ressenti</p>
+                  <p className="text-base font-semibold text-bowling-ink">RPE ressenti</p>
                   <div className="grid grid-cols-10 gap-1.5">
                     {Array.from({ length: 10 }).map((_, i) => {
                       const v = i + 1;
                       const on = v === athleteRpe;
                       return (
-                        <button key={v} type="button" onClick={() => setAthleteRpe(v)} className={`h-11 rounded-xl text-sm font-semibold transition-colors ${on ? "bg-primary text-primary-foreground" : "bg-bowling-canvas text-foreground hover:bg-muted"}`}>{v}</button>
+                        <button key={v} type="button" onClick={() => setAthleteRpe(v)} className={`h-11 rounded-xl text-sm font-semibold transition-colors ${on ? "bg-bowling-ink text-card" : "bg-bowling-canvas text-foreground hover:bg-muted"}`}>{v}</button>
                       );
                     })}
                   </div>
@@ -1102,15 +1145,22 @@ export function BowlingSimplifiedDialog({
 
         {/* Pied fixe opaque */}
         <div className="shrink-0 border-t border-border bg-card px-4 py-3 sm:px-8 sm:py-4" style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
-          {step < 2 ? (
-            <Button className="h-14 w-full rounded-2xl text-base font-semibold" onClick={() => goToStep(step + 1)}>
-              Suivant <ArrowRight className="h-5 w-5 ml-2" />
-            </Button>
-          ) : (
-            <Button className="h-14 w-full rounded-2xl bg-success text-base font-semibold text-success-foreground hover:bg-success/90" onClick={handleSave} disabled={saveMutation.isPending}>
-              {saveMutation.isPending ? <><Loader2 className="h-5 w-5 mr-2 animate-spin" /> Enregistrement...</> : <><CheckCircle2 className="h-5 w-5 mr-2" />{isAthleteMode ? "Enregistrer la séance" : `Attribuer la séance (${selectedPlayers.length})`}</>}
-            </Button>
-          )}
+          <div className="flex gap-2">
+            {step > 0 && (
+              <Button variant="outline" className="h-12 rounded-2xl px-4 text-base sm:px-6" onClick={() => goToStep(step - 1)}>
+                <ArrowLeft className="h-5 w-5 sm:mr-2" /><span className="hidden sm:inline">Retour</span>
+              </Button>
+            )}
+            {step < 2 ? (
+              <Button className="h-12 flex-1 rounded-2xl text-base font-semibold" onClick={() => goToStep(step + 1)}>
+                {step === 0 ? "Suivant : contenu" : "Suivant : récapitulatif"} <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            ) : (
+              <Button className="h-12 flex-1 rounded-2xl bg-success text-base font-semibold text-success-foreground hover:bg-success/90" onClick={handleSave} disabled={saveMutation.isPending}>
+                {saveMutation.isPending ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Enregistrement...</> : <><CheckCircle2 className="mr-2 h-5 w-5" />{isAthleteMode ? "Enregistrer la séance" : `Enregistrer et attribuer (${selectedPlayers.length})`}</>}
+              </Button>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

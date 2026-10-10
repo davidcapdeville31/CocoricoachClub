@@ -33,40 +33,15 @@ export function SimplifiedTechnicalBlockEditor({ value, index, categoryId, playe
     onChange({ ...value, [k]: v });
 
   return (
-    <div className="rounded-[20px] bg-card p-5 space-y-4 shadow-[0_2px_12px_-4px_hsl(var(--foreground)/0.08)]">
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <div className="rounded-xl bg-success/10 p-2.5">
-            <Wrench className="h-5 w-5 text-success" />
-          </div>
-          <div>
-            <div className="text-base font-semibold text-primary">
-              Technique #{index + 1}
-            </div>
-            <div className="text-xs text-muted-foreground">
-              {technicalThemeLabel(value)} · {value.duration_min} min
-            </div>
-          </div>
-        </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 text-muted-foreground hover:text-destructive"
-          onClick={onRemove}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <div className="space-y-4">
+      <div className="grid grid-cols-[1fr_110px] gap-3 md:grid-cols-[1fr_140px]">
         <div className="space-y-1">
           <Label className="text-xs text-muted-foreground">Thématique travaillée</Label>
           <Select
             value={value.theme}
             onValueChange={(v) => set("theme", v as TechnicalThemeKey)}
           >
-            <SelectTrigger className="h-12 rounded-xl border-0 bg-bowling-canvas text-base">
+            <SelectTrigger className="h-11 rounded-xl border-0 bg-bowling-canvas text-base">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -89,7 +64,7 @@ export function SimplifiedTechnicalBlockEditor({ value, index, categoryId, playe
             step={1}
             value={value.duration_min || ""}
             onChange={(e) => set("duration_min", e.target.value === "" ? 0 : Math.max(0, parseInt(e.target.value, 10) || 0))}
-            className="h-12 rounded-xl border-0 bg-bowling-canvas text-base"
+            className="h-11 rounded-xl border-0 bg-bowling-canvas text-base"
           />
         </div>
       </div>
@@ -101,7 +76,7 @@ export function SimplifiedTechnicalBlockEditor({ value, index, categoryId, playe
             placeholder="ex. Equilibre dynamique"
             value={value.custom_theme ?? ""}
             onChange={(e) => set("custom_theme", e.target.value)}
-            className="h-12 rounded-xl border-0 bg-bowling-canvas text-base"
+            className="h-11 rounded-xl border-0 bg-bowling-canvas text-base"
           />
         </div>
       )}
@@ -115,7 +90,7 @@ export function SimplifiedTechnicalBlockEditor({ value, index, categoryId, playe
 
       <div className="space-y-1">
         <div className="flex items-center gap-1.5">
-          <Label className="text-sm font-semibold text-primary">Travail effectué</Label>
+          <Label className="text-sm font-semibold text-bowling-ink">Travail effectué</Label>
           <TooltipProvider delayDuration={150}>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -130,11 +105,12 @@ export function SimplifiedTechnicalBlockEditor({ value, index, categoryId, playe
           </TooltipProvider>
         </div>
         <Textarea
-          rows={4}
-          placeholder="Travail de l'axe du swing, exercices réalisés, sensations et points de vigilance."
+          rows={3}
+          placeholder="Exercices réalisés et consignes travaillées (ex. 3 × 10 lancers, travail de l'axe du swing)."
           value={value.description}
           onChange={(e) => set("description", e.target.value)}
-          className="rounded-xl border-0 bg-bowling-canvas resize-y text-base"
+          className="min-h-[84px] rounded-xl border-0 bg-bowling-canvas resize-y text-base"
+          style={{ fieldSizing: "content" } as React.CSSProperties}
         />
         <p className="text-[11px] text-muted-foreground">
           Les statistiques retiennent uniquement le temps de travail sur la thématique sélectionnée.
@@ -145,7 +121,7 @@ export function SimplifiedTechnicalBlockEditor({ value, index, categoryId, playe
         <summary className="cursor-pointer list-none text-sm font-medium text-muted-foreground hover:text-foreground">+ Observations (facultatif)</summary>
         <Textarea
           rows={3}
-          placeholder="Ressentis, observations, axes à retravailler…"
+          placeholder="Sensations, ce qui a fonctionné, points à retravailler…"
           value={value.notes ?? ""}
           onChange={(e) => set("notes", e.target.value)}
           className="mt-2 rounded-xl border-0 bg-bowling-canvas resize-y text-sm"
