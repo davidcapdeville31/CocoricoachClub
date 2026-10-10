@@ -1,5 +1,14 @@
 # Calendrier de charge
 
+## Refonte ciblée du calendrier athlète
+- [x] Auditer les composants, dépendances et données ; observer le calendrier réel connecté de Manon à 390 px et analyser les deux références.
+- [ ] Valider le plan de réorganisation avant les changements structurants.
+- [ ] Donner priorité à la grille, expliciter Calendrier / Planification et ajouter Mois / Semaine / Aujourd’hui sans changer les données.
+- [ ] Compacter événements, Wellness, cycles et confirmations ; conserver les actions réduites et les formulaires existants.
+- [ ] Fiabiliser l’affichage des présences, motifs, chargements et erreurs sans changer les règles métier.
+- [ ] Vérifier navigation, dates, thèmes, accessibilité et largeurs ; distinguer consultation staff et enregistrement en identité athlète autorisée.
+- [ ] Produire le rapport de couverture et limites ; garder l’audit global des contrastes ouvert hors de ce périmètre.
+
 ## Actions des séances réduites
 - [x] Garder Voir la séance / Remplir les données visibles côte à côte sans déplier la carte ; restrictions existantes conservées.
 - [x] Présent vert / Absent rouge hors sélection générique, séances et compétitions : rendu vérifié aux six largeurs 320/360/390/430/768/1280 en clair/sombre, sans débordement. Séance réelle en consultation : les deux fenêtres s’ouvrent depuis la carte fermée. Couleurs testées par simulation des états DOM sans écrire de réponse ; sauvegarde de présence non retestée, téléphone physique non testé. Build OK.
