@@ -1,8 +1,8 @@
 # Calendrier de charge
 
 ## Actions des séances réduites
-- [ ] Garder Voir la séance / Remplir les données visibles côte à côte sans déplier la carte ; préserver les restrictions existantes.
-- [ ] Stabiliser Présent vert / Absent rouge en clair et sombre et vérifier les actions mobiles.
+- [x] Garder Voir la séance / Remplir les données visibles côte à côte sans déplier la carte ; restrictions existantes conservées.
+- [x] Présent vert / Absent rouge hors sélection générique, séances et compétitions : rendu vérifié aux six largeurs 320/360/390/430/768/1280 en clair/sombre, sans débordement. Séance réelle en consultation : les deux fenêtres s’ouvrent depuis la carte fermée. Couleurs testées par simulation des états DOM sans écrire de réponse ; sauvegarde de présence non retestée, téléphone physique non testé. Build OK.
 
 ## Ressenti après séance
 - [x] Raccorder les cinq choix de forme aux couleurs fonctionnelles communes, hors sélection générique, sans changer les valeurs ni la sauvegarde.
