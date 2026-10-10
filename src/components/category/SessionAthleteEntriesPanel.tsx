@@ -198,7 +198,7 @@ export function SessionAthleteEntriesPanel({
       const nb = `${b.first_name || ""} ${b.name}`.trim().toLowerCase();
       return na.localeCompare(nb);
     });
-  }, [attendance, eventParticipants, categoryPlayers, rpes, bowlingBlocks]);
+  }, [attendance, eventParticipants, categoryPlayers, rpes, bowlingBlocks, awcr, exerciseLogs]);
 
   if (players.length === 0) return null;
 
