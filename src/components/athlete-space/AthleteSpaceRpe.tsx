@@ -1129,7 +1129,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory, onViewCalen
       .join("\n")
       .trim();
     if (!cleaned) return null;
-    return <CollapsibleFormattedText text={cleaned} className="mt-1 text-muted-foreground" />;
+    return <CollapsibleFormattedText text={cleaned} lines={2} className="athlete-session-notes mt-1 text-muted-foreground" />;
   };
 
   const renderExerciseToggle = (sessionId: string) => {
@@ -1143,7 +1143,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory, onViewCalen
             e.stopPropagation();
             setExpandedExerciseSessionId(isExpanded ? null : sessionId);
           }}
-          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mt-1.5"
+          className="athlete-exercise-toggle flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mt-1.5"
         >
           <Dumbbell className="h-3 w-3" />
           <span>{exercises.length} exercice{exercises.length > 1 ? "s" : ""}</span>
@@ -1225,7 +1225,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory, onViewCalen
                         : "border-border hover:border-accent/50"
                   )}
                 >
-                  <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div className="athlete-session-heading flex flex-wrap items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
                       <p className="font-semibold text-base leading-snug flex items-center gap-1.5 flex-wrap">
                         {isTest ? (
@@ -1240,20 +1240,6 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory, onViewCalen
                           </Badge>
                         )}
                       </p>
-                      {(
-                        <p className="text-xs font-medium text-muted-foreground mt-1">
-                          {format(parseISO(session.session_date), "EEEE dd/MM", { locale: getDateLocale() })}
-                        </p>
-                      )}
-                      {renderTestInfo(session)}
-                      {session.training_type === "mental" ? <FormattedText className="athlete-session-preview mt-1 text-sm text-muted-foreground" text={getSessionTitleFromNotes(session.notes) || ""} /> : renderSessionNotes(session.notes, session.training_type === "test")}
-                      {session.session_start_time && (
-                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                          <Clock className="h-3 w-3" />
-                          {session.session_start_time?.slice(0, 5)}
-                          {session.session_end_time && ` - ${session.session_end_time.slice(0, 5)}`}
-                        </p>
-                      )}
                     </div>
                     {(() => {
                       const { percent } = getSessionCompletion(session);
@@ -1276,6 +1262,12 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory, onViewCalen
                       );
                     })()}
                   </div>
+                  <div className="athlete-session-meta flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground mt-2">
+                    <span>{format(parseISO(session.session_date), "EEEE dd/MM", { locale: getDateLocale() })}</span>
+                    {session.session_start_time && <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{session.session_start_time.slice(0, 5)}{session.session_end_time && ` – ${session.session_end_time.slice(0, 5)}`}</span>}
+                  </div>
+                  {renderTestInfo(session)}
+                  {session.training_type === "mental" ? <FormattedText className="athlete-session-preview mt-1 text-sm text-muted-foreground" text={getSessionTitleFromNotes(session.notes) || ""} /> : renderSessionNotes(session.notes, session.training_type === "test")}
                   {session.training_type === "mental" && <Button type="button" className="athlete-session-action mt-3 h-11 w-full sm:w-auto sm:min-w-48 rounded-xl" onClick={(e) => { e.stopPropagation(); setMentalSession(session); }}>Découvrir ma séance<ChevronRight /></Button>}
                   {renderExerciseToggle(session.id)}
                 </div>

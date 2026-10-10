@@ -32,6 +32,11 @@
 
 # Affichage mobile de l’espace athlète
 
+## Finitions premium sans refonte
+- [x] Compacter les séances (Musculation 153 → 107 px), harmoniser l’identité et supprimer les espacements cumulés ; Wellness vert inchangé.
+- [x] Affiner navigation (73 → 65 px) et menu Plus, avec espace final mesuré incluant safe areas ; masquer la barre si le clavier réduit la zone de saisie.
+- [x] Vérifier six séances réelles en consultation Alexis, dernière carte/action, consignes mentales, exercices dépliables, Infos et toutes destinations ; clair/sombre à 320/360/390/430/768/1280 px, menu à 320×568, Arthur et Manon ; aucun débordement ni erreur d’exécution. Aucun enregistrement ou push ; clavier/safe areas sur téléphone physique et séance mentale à titre exceptionnellement long non testés.
+
 ## Accueil premium fidèle à la maquette
 - [x] Auditer navigation, thèmes, visibilité et composants réutilisables.
 - [x] Ajouter navigation mobile fixe et panneau Plus, conserver les destinations et la navigation ordinateur.
