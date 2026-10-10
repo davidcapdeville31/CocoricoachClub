@@ -1,3 +1,4 @@
+import TmpJudoPreview from "./pages/TmpJudoPreview";
 import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -197,6 +198,7 @@ const App = () => (
                     <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
                     <Route path="/cgu" element={<CGU />} />
                      <Route path="/politique-cookies" element={<PolitiqueCookies />} />
+<Route path="/__judo_preview" element={<TmpJudoPreview />} />
 <Route path="*" element={<NotFound />} />
                   </Routes>
                 </MaintenanceGate>
