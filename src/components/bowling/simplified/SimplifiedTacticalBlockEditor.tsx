@@ -11,7 +11,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, Target } from "lucide-react";
+import { Trash2, Target, Crosshair, Split, CircleDot, type LucideIcon } from "lucide-react";
+
+const SITUATION_ICONS: Record<string, LucideIcon> = { strike: Target, pocket: Crosshair, composed_spare: Split, single_pin: CircleDot };
 import { SimplifiedOilPatternPicker } from "./SimplifiedOilPatternPicker";
 import { SimplifiedBallPicker } from "./SimplifiedBallPicker";
 import {
@@ -67,36 +69,15 @@ export function SimplifiedTacticalBlockEditor({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-[1fr_110px] gap-3">
-        <div className="space-y-1">
-          <Label className="text-xs text-muted-foreground">Titre (facultatif)</Label>
-          <Input value={value.title} onChange={(e) => update({ title: e.target.value })} placeholder="ex. Spares côté gauche" className="h-11 rounded-xl border-0 bg-bowling-canvas text-sm" />
-        </div>
-        <div className="space-y-1">
-          <Label className="text-xs text-muted-foreground">Durée (min)</Label>
-          <Input type="number" inputMode="numeric" min={1} value={value.duration_min || ""}
+      <div className="flex items-center gap-3">
+        <Label htmlFor={`tac-dur-${value.id}`} className="text-sm font-medium text-bowling-ink">Durée</Label>
+        <div className="relative w-28">
+          <Input id={`tac-dur-${value.id}`} type="number" inputMode="numeric" min={1} value={value.duration_min || ""}
             onChange={(e) => update({ duration_min: e.target.value === "" ? 0 : Math.max(0, parseInt(e.target.value, 10) || 0) })}
-            className="h-11 rounded-xl border-0 bg-bowling-canvas text-base" />
+            className="h-11 rounded-xl border-0 bg-bowling-canvas pr-11 text-base" />
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">min</span>
         </div>
       </div>
-
-      {/* Boule */}
-      <SimplifiedBallPicker
-        playerId={playerId}
-        categoryId={categoryId}
-        value={value.ball_id}
-        onChange={(id) => update({ ball_id: id })}
-      />
-
-      {/* Huilage (masqué quand défini au niveau de la séance) */}
-      {!hideOilPicker && (
-        <SimplifiedOilPatternPicker
-          value={value.oil_pattern}
-          onChange={(op) => update({ oil_pattern: op })}
-          categoryId={categoryId}
-        />
-      )}
-
 
       {/* Situations */}
       <div className="space-y-3">
@@ -107,15 +88,16 @@ export function SimplifiedTacticalBlockEditor({
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {TARGET_TYPES.map((t) => {
             const count = value.items.filter((it) => it.target_type === t.value).length;
+            const Icon = SITUATION_ICONS[t.value];
             return (
               <button
                 key={t.value}
                 type="button"
                 onClick={() => addItem(t.value)}
-                className={`flex h-12 items-center justify-center gap-1.5 rounded-xl px-3 text-sm font-medium transition-colors ${count > 0 ? "bg-bowling-ink text-card" : "bg-bowling-canvas text-foreground hover:bg-muted"}`}
+                className={`flex h-12 min-w-0 items-center justify-center gap-1.5 rounded-xl px-2 text-sm font-medium transition-colors ${count > 0 ? "bg-bowling-ink text-card" : "bg-bowling-canvas text-foreground hover:bg-muted"}`}
               >
-                <Plus className="h-4 w-4" />
-                {t.label}
+                <Icon className={`h-4 w-4 shrink-0 ${count > 0 ? "" : "text-bowling-tactical"}`} />
+                <span className="truncate">{t.label}</span>
                 {count > 1 && <span className="text-xs opacity-80">×{count}</span>}
               </button>
             );
@@ -123,6 +105,7 @@ export function SimplifiedTacticalBlockEditor({
         </div>
 
         {value.items.map((item) => {
+          const over = (item.success || 0) > (item.attempts || 0);
           const pct = item.attempts > 0 ? Math.round((Math.min(item.success, item.attempts) / item.attempts) * 100) : null;
           return (
             <div key={item.id} className="space-y-2 border-t border-border/60 pt-3 first:border-t-0">
@@ -159,38 +142,43 @@ export function SimplifiedTacticalBlockEditor({
                 </Select>
               )}
 
-              <div className="grid grid-cols-[1fr_1fr_72px] items-end gap-2">
+              <div className="grid grid-cols-2 items-end gap-2 sm:grid-cols-[110px_110px_64px_1fr] sm:gap-3">
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">Lancers</Label>
-                  <Input type="number" inputMode="numeric" min={0} value={item.attempts || ""}
-                    onChange={(e) => updateItem(item.id, { attempts: Math.max(0, parseInt(e.target.value || "0", 10)) })}
+                  <Input type="number" inputMode="numeric" pattern="[0-9]*" min={0} value={item.attempts || ""}
+                    onChange={(e) => updateItem(item.id, { attempts: Math.max(0, parseInt(e.target.value || "0", 10) || 0) })}
                     className="h-11 rounded-xl border-0 bg-bowling-canvas text-base" />
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">Réussites</Label>
-                  <Input type="number" inputMode="numeric" min={0} max={item.attempts || undefined} value={item.success || ""}
-                    onChange={(e) => {
-                      const v = Math.max(0, parseInt(e.target.value || "0", 10));
-                      updateItem(item.id, { success: item.attempts ? Math.min(v, item.attempts) : v });
-                    }}
-                    className="h-11 rounded-xl border-0 bg-bowling-canvas text-base" />
+                  <Input type="number" inputMode="numeric" pattern="[0-9]*" min={0} value={item.success || ""}
+                    aria-invalid={over}
+                    onChange={(e) => updateItem(item.id, { success: Math.max(0, parseInt(e.target.value || "0", 10) || 0) })}
+                    className={`h-11 rounded-xl border-0 bg-bowling-canvas text-base ${over ? "ring-2 ring-destructive/60" : ""}`} />
                 </div>
-                <div className="pb-2.5 text-right text-base font-semibold text-bowling-tactical">{pct !== null ? `${pct} %` : "—"}</div>
+                <div className="col-span-2 flex items-center gap-3 sm:col-span-2 sm:pb-3">
+                  <span className="w-14 shrink-0 text-base font-semibold text-bowling-tactical">{pct !== null ? `${pct} %` : "—"}</span>
+                  <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-bowling-canvas">
+                    {pct !== null && <div className="h-full rounded-full bg-bowling-tactical/70 transition-all" style={{ width: `${pct}%` }} />}
+                  </div>
+                </div>
               </div>
-              {pct !== null && (
-                <div className="h-1.5 overflow-hidden rounded-full bg-bowling-canvas">
-                  <div className="h-full rounded-full bg-bowling-tactical/70 transition-all" style={{ width: `${pct}%` }} />
-                </div>
-              )}
+              {over && <p className="text-xs text-destructive">Les réussites dépassent le nombre de lancers ({item.attempts}).</p>}
             </div>
           );
         })}
       </div>
 
-      {/* Note libre */}
-      <details className="group">
-        <summary className="cursor-pointer list-none text-sm font-medium text-muted-foreground hover:text-foreground">+ Notes (facultatif)</summary>
-        <Textarea value={value.notes ?? ""} onChange={(e) => update({ notes: e.target.value })} placeholder="Ressentis, observations, axes à retravailler…" rows={3} className="mt-2 rounded-xl border-0 bg-bowling-canvas text-sm" />
+      <details className="group rounded-xl bg-bowling-canvas/60 px-3 py-2">
+        <summary className="cursor-pointer list-none text-sm font-medium text-muted-foreground hover:text-foreground">+ Boule, titre et notes (facultatif)</summary>
+        <div className="mt-3 space-y-3">
+          <Input value={value.title} onChange={(e) => update({ title: e.target.value })} placeholder="Titre (ex. Spares côté gauche)" className="h-11 rounded-xl border-0 bg-card text-sm" />
+          <SimplifiedBallPicker playerId={playerId} categoryId={categoryId} value={value.ball_id} onChange={(id) => update({ ball_id: id })} />
+          {!hideOilPicker && (
+            <SimplifiedOilPatternPicker value={value.oil_pattern} onChange={(op) => update({ oil_pattern: op })} categoryId={categoryId} />
+          )}
+          <Textarea value={value.notes ?? ""} onChange={(e) => update({ notes: e.target.value })} placeholder="Ressentis, observations, axes à retravailler…" rows={2} className="rounded-xl border-0 bg-card text-sm" />
+        </div>
       </details>
     </div>
   );

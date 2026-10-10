@@ -60,6 +60,7 @@ export function SimplifiedTechnicalBlockEditor({ value, index, categoryId, playe
           </Label>
           <Input
             type="number"
+            inputMode="numeric"
             min={1}
             step={1}
             value={value.duration_min || ""}
@@ -81,13 +82,6 @@ export function SimplifiedTechnicalBlockEditor({ value, index, categoryId, playe
         </div>
       )}
 
-      <SimplifiedBallPicker
-        playerId={playerId}
-        categoryId={categoryId}
-        value={value.ball_id}
-        onChange={(id) => set("ball_id", id)}
-      />
-
       <div className="space-y-1">
         <div className="flex items-center gap-1.5">
           <Label className="text-sm font-semibold text-bowling-ink">Travail effectué</Label>
@@ -105,11 +99,11 @@ export function SimplifiedTechnicalBlockEditor({ value, index, categoryId, playe
           </TooltipProvider>
         </div>
         <Textarea
-          rows={3}
-          placeholder="Exercices réalisés et consignes travaillées (ex. 3 × 10 lancers, travail de l'axe du swing)."
+          rows={2}
+          placeholder="3 × 10 lancers sur le relâchement, travail du timing et de la position finale."
           value={value.description}
           onChange={(e) => set("description", e.target.value)}
-          className="min-h-[84px] rounded-xl border-0 bg-bowling-canvas resize-y text-base"
+          className="min-h-[64px] rounded-xl border-0 bg-bowling-canvas resize-none text-base"
           style={{ fieldSizing: "content" } as React.CSSProperties}
         />
         <p className="text-[11px] text-muted-foreground">
@@ -117,15 +111,19 @@ export function SimplifiedTechnicalBlockEditor({ value, index, categoryId, playe
         </p>
       </div>
 
-      <details>
-        <summary className="cursor-pointer list-none text-sm font-medium text-muted-foreground hover:text-foreground">+ Observations (facultatif)</summary>
-        <Textarea
-          rows={3}
-          placeholder="Sensations, ce qui a fonctionné, points à retravailler…"
-          value={value.notes ?? ""}
-          onChange={(e) => set("notes", e.target.value)}
-          className="mt-2 rounded-xl border-0 bg-bowling-canvas resize-y text-sm"
-        />
+      <details className="rounded-xl bg-bowling-canvas/60 px-3 py-2">
+        <summary className="cursor-pointer list-none text-sm font-medium text-muted-foreground hover:text-foreground">+ Observations personnelles et boule (facultatif)</summary>
+        <div className="mt-3 space-y-3">
+          <Textarea
+            rows={2}
+            placeholder="Sensations, difficultés, points de vigilance, éléments à retenir…"
+            value={value.notes ?? ""}
+            onChange={(e) => set("notes", e.target.value)}
+            className="rounded-xl border-0 bg-card resize-none text-sm"
+            style={{ fieldSizing: "content" } as React.CSSProperties}
+          />
+          <SimplifiedBallPicker playerId={playerId} categoryId={categoryId} value={value.ball_id} onChange={(id) => set("ball_id", id)} />
+        </div>
       </details>
     </div>
   );

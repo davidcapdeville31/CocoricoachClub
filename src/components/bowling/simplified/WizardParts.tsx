@@ -59,6 +59,29 @@ export function blockSummary(b: SimplifiedBlock): string {
   return `${agg.count} partie${agg.count > 1 ? "s" : ""} — Moyenne ${fmt(agg.avgScore)}`;
 }
 
+/** Ligne compacte (titre + détail) d'un bloc replié. Aucune valeur nulle inventée. */
+export function blockCompactLine(b: SimplifiedBlock): { title: string; detail: string } {
+  const fmt = (n: number) => n.toLocaleString("fr-FR", { maximumFractionDigits: 1 });
+  const dur = b.duration_min > 0 ? `${b.duration_min} min` : null;
+  if (b.type === "tactical") {
+    const title = b.items.length ? Array.from(new Set(b.items.map(itemLabel))).join(", ") : (b.title?.trim() || "Aucune situation");
+    const items = b.items.filter((it) => (it.attempts || 0) > 0);
+    const att = items.reduce((s, it) => s + (it.attempts || 0), 0);
+    const suc = items.reduce((s, it) => s + Math.min(it.success || 0, it.attempts || 0), 0);
+    const bits = att > 0 ? [`${att} lancers`, `${suc} réussites`, `${Math.round((suc / att) * 100)} %`] : ["Résultats non saisis"];
+    if (dur) bits.push(dur);
+    return { title, detail: bits.join(" · ") };
+  }
+  if (b.type === "technical") {
+    const bits = [dur ?? "Durée à renseigner", b.description.trim() ? "Travail renseigné" : "Travail à renseigner"];
+    return { title: technicalThemeLabel(b), detail: bits.join(" · ") };
+  }
+  const agg = aggregateGamesStats(b);
+  if (!agg) return { title: "Aucun score", detail: "Scores à saisir" };
+  const best = Math.max(0, ...b.parties.map((p) => p.stats?.totalScore || 0));
+  return { title: `${agg.count} partie${agg.count > 1 ? "s" : ""}`, detail: `Moyenne ${fmt(agg.avgScore)}${best > 0 ? ` · Meilleure ${best}` : ""}` };
+}
+
 function blockLine(b: SimplifiedBlock): { icon: typeof Target; color: string; title: string; detail: string } {
   if (b.type === "tactical") {
     const items = b.items.filter((it) => (it.attempts || 0) > 0);
