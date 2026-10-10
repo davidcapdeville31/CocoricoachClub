@@ -1,5 +1,5 @@
 # Architecture decisions
-- Athlete visual tokens are scoped to the athlete shell and reuse existing theme classes, so shared coach screens and business behavior remain unchanged.
+- Athlete-specific visual tokens stay scoped, while semantic surface/text/action roles inherit the canonical global theme so portals and shared screens remain consistent.
 - App-wide selectable controls use shared selection tokens and semantic state attributes; the global selection contract supersedes legacy sport colors without changing functional status colors or behavior.
 - Athlete mobile navigation selects the existing URL tab state and mirrors sport visibility; the secondary drawer and desktop theme command reuse FieldModeContext to preserve preferences and all modules.
 - Athlete mobile content reserves the measured bottom-navigation height via ResizeObserver, including safe areas; visualViewport hides navigation during an obstructing keyboard without changing destinations or form state.
@@ -28,3 +28,6 @@
 - Poche/Split use one typed tri-state component with invariant tokens and a dedicated Button variant; null adapts to observed-fields JSON, preserving statistics. Mobile entry holds each throw until explicit continuation.
 - In-progress bowling games remain in block configuration but never enter completed-game aggregates or flattened competition results; this preserves resumable input without publishing provisional scores.
 - Judo premium sessions reuse training_sessions/training_session_blocks (training_type terrain + judo_* blocks) with structured detail in backward-compatible `<!--judo-block:...-->`/`<!--judo-session:...-->` notes tags, so existing calendars, workload and history keep working without schema changes.
+
+- The existing FieldModeContext preference activates the same canonical dark tokens and Tailwind dark variants as `.dark`; never add a parallel theme provider.
+- Genuine effort controls declare `data-rpe` and derive their appearance from the global RPE tokens; generic selected-state overrides exclude RPE and bowling observations to preserve functional meaning.

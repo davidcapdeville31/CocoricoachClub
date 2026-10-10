@@ -17,7 +17,7 @@ export function BowlingObservationButton({ label, value, readOnly, tone, clearab
   const Icon = value === true ? Check : value === false ? Minus : Circle;
   const state = value === undefined ? "Non renseigné" : value ? "Oui" : "Non";
   return <div className="flex min-w-0 items-stretch gap-1">
-    <Button variant="outline" data-observation="" aria-label={`${label} : ${state}`} aria-pressed={value === true}
+    <Button variant="outline" data-observation="" data-tone={tone} data-state={value === undefined ? "unset" : value ? "yes" : "no"} aria-label={`${label} : ${state}`} aria-pressed={value === true}
       className={cn("h-12 min-w-0 flex-1 gap-2 rounded-lg bg-card px-2 font-semibold",
         tone === undefined && value === true && "border-selection bg-selection text-selection-foreground",
         value === true && tone === "positive" && "border-success bg-success text-success-foreground",

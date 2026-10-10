@@ -203,11 +203,11 @@ export function SuperAdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="flex items-baseline gap-2">
-              <div className="text-2xl font-bold text-green-600">{stats?.currentlyActiveClients || 0}</div>
+              <div className="text-2xl font-bold text-status-optimal">{stats?.currentlyActiveClients || 0}</div>
               <span className="text-sm text-muted-foreground">/ {stats?.totalClients || 0}</span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              <span className="text-green-600 font-medium">actifs</span> sur total historique
+              <span className="text-status-optimal font-medium">actifs</span> sur total historique
             </p>
             <div className="flex gap-1 mt-2 flex-wrap">
               <Badge variant="outline" className="text-xs">{(stats?.activePayingClients || 0) + (stats?.activeFreeClients || 0)} actifs</Badge>
@@ -242,11 +242,11 @@ export function SuperAdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="flex items-baseline gap-2">
-              <div className="text-2xl font-bold text-green-600">{stats?.activeUsersCount || 0}</div>
+              <div className="text-2xl font-bold text-status-optimal">{stats?.activeUsersCount || 0}</div>
               <span className="text-sm text-muted-foreground">/ {stats?.totalUsers || 0}</span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              <span className="text-green-600 font-medium">actifs</span> sur total historique
+              <span className="text-status-optimal font-medium">actifs</span> sur total historique
             </p>
             {stats?.pendingUsers && stats.pendingUsers > 0 ? (
               <Badge variant="destructive" className="text-xs mt-2">
@@ -290,7 +290,7 @@ export function SuperAdminDashboard() {
             </div>
             <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 text-center">
               <p className="text-xs text-green-700 dark:text-green-400 uppercase tracking-wide mb-1">Clients actifs</p>
-              <div className="text-3xl font-bold text-green-600">{stats?.currentlyActiveClients || 0}</div>
+              <div className="text-3xl font-bold text-status-optimal">{stats?.currentlyActiveClients || 0}</div>
               <p className="text-xs text-muted-foreground mt-1">contrat en cours</p>
             </div>
             <div className="p-4 bg-muted/50 rounded-lg border text-center">
@@ -300,7 +300,7 @@ export function SuperAdminDashboard() {
             </div>
             <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 text-center">
               <p className="text-xs text-green-700 dark:text-green-400 uppercase tracking-wide mb-1">Utilisateurs actifs</p>
-              <div className="text-3xl font-bold text-green-600">{stats?.activeUsersCount || 0}</div>
+              <div className="text-3xl font-bold text-status-optimal">{stats?.activeUsersCount || 0}</div>
               <p className="text-xs text-muted-foreground mt-1">clients actifs</p>
             </div>
           </div>
@@ -318,7 +318,7 @@ export function SuperAdminDashboard() {
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 text-center">
             <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-              <div className="text-2xl font-bold text-green-600">{stats?.activePayingClients || 0}</div>
+              <div className="text-2xl font-bold text-status-optimal">{stats?.activePayingClients || 0}</div>
               <p className="text-sm text-muted-foreground">Clients actifs payants</p>
               <DollarSign className="h-4 w-4 mx-auto mt-1 text-green-500" />
             </div>

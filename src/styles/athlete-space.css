@@ -106,7 +106,7 @@
 .athlete-nav-count {
   position: absolute; top: -6px; right: -9px; min-width: 16px; height: 16px;
   padding: 0 3px; border-radius: 20px; background: hsl(var(--notification));
-  color: hsl(var(--destructive-foreground)); font-size: 9px; line-height: 16px;
+  color: hsl(var(--notification-foreground)); font-size: 9px; line-height: 16px;
 }
 .athlete-space.athlete-more-panel { max-height: calc(100dvh - max(24px, env(safe-area-inset-top))); overflow-y: auto; overscroll-behavior: contain; border-radius: 24px 24px 0 0; padding-bottom: calc(16px + env(safe-area-inset-bottom)); margin-top: 24px; }
 .athlete-more-panel > div:first-child { width: 40px; height: 4px; margin-top: 10px; flex-shrink: 0; background: hsl(var(--border)); }

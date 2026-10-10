@@ -62,8 +62,10 @@ export function CompetitionRpeSetting({ categoryId }: { categoryId: string }) {
                   key={v}
                   type="button"
                   size="sm"
-                  variant={v === current ? "default" : "outline"}
-                  className={cn("w-10")}
+                  variant="outline"
+                  data-rpe={v}
+                  aria-pressed={v === current}
+                  className={cn("min-h-11 min-w-11")}
                   onClick={() => choose(v)}
                 >
                   {v}

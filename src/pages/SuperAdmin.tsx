@@ -114,7 +114,7 @@ const TABS = [
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
           <div className="flex items-center gap-4 mb-8">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
+            <Button variant="ghost" size="icon" aria-label="Retour à l’accueil" onClick={() => navigate("/")}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex items-center gap-3">

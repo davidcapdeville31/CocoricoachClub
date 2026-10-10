@@ -10,7 +10,7 @@ For professional clubs, elite training centers, and federations
 
 Color Palette:
 - Deep Blue (#0B1F3A): Trust, scientific expertise
-- Cyan Performance (#17A2B8): Progression, validation, positive states  
+- Blue, white, red: official identity; green: functional Wellness states  
 - Controlled Orange (#F28C28): Load alerts, attention points, important actions
 - Light Background (#F5F7FA): Optimal data readability
 - Dark Gray Text (#1F2933): Primary text color
@@ -20,6 +20,7 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
+    color-scheme: light;
     /* Official brand primitives and selection roles, identical in both themes. */
     --brand-navy: 217.241379 64.444444% 17.647059%;
     --brand-white: 0 0% 100%;
@@ -28,8 +29,10 @@ All colors MUST be HSL.
     --selection-foreground: var(--brand-white);
     --selection-border: var(--brand-navy);
     --notification: var(--brand-red);
+    --notification-foreground: 216 36% 10%;
+    --danger-text: 353.766234 72.641509% 41.568627%;
     /* Pure White Background - Clean & Modern */
-    --background: 0 0% 100%;
+    --background: 216.000000 45.454545% 97.843137%;
     --bowling-canvas: 220 100% 98%;
     --bowling-accent: 213 80% 46%;
     --bowling-ink: 218 62% 16%;
@@ -40,8 +43,8 @@ All colors MUST be HSL.
     --bowling-games: 28 100% 57%;
     --bowling-success: 160 92% 38%;
     --bowling-coral: 0 100% 67%;
-    --observation-pocket: 160.6015037594 75.1412429379% 34.7058823529%;
-    --observation-split: 353.9568345324 56.2753036437% 51.5686274510%;
+    --observation-pocket: 160.601504 75.141243% 34.705882%;
+    --observation-split: 353.956835 56.275304% 51.568627%;
     --observation-on-foreground: 0 0% 100%;
     --observation-no: 220 10% 90%;
     --observation-no-foreground: 220 20% 20%;
@@ -53,39 +56,39 @@ All colors MUST be HSL.
     --judo-randori: 1 83% 63%;
     --judo-physical: 169 77% 41%;
     --judo-mental: 264 61% 61%;
-    --foreground: 220 20% 15%;
+    --foreground: 216.610169 59.595960% 19.411765%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 220 20% 15%;
+    --card: 0.000000 0.000000% 100.000000%;
+    --card-foreground: 216.610169 59.595960% 19.411765%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 15%;
+    --popover: 0.000000 0.000000% 100.000000%;
+    --popover-foreground: 216.610169 59.595960% 19.411765%;
 
     /* Deep Blue Primary #0B1F3A */
-    --primary: 214 70% 14%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 210.828729 79.735683% 44.509804%;
+    --primary-foreground: 0.000000 0.000000% 100.000000%;
 
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 214 70% 14%;
+    --secondary: 213.333333 36.000000% 95.098039%;
+    --secondary-foreground: 216.610169 59.595960% 19.411765%;
 
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 10% 45%;
+    --muted: 213.333333 36.000000% 95.098039%;
+    --muted-foreground: 214.545455 16.582915% 39.019608%;
 
-    /* Cyan Performance #17A2B8 - Progression & Validation */
-    --accent: 188 76% 40%;
-    --accent-foreground: 0 0% 100%;
+    /* Blue action accents, independent of functional state colors. */
+    --accent: 210.980392 80.952381% 37.058824%;
+    --accent-foreground: 0.000000 0.000000% 100.000000%;
 
-    --destructive: var(--brand-red);
+    --destructive: 354.478528 69.957082% 45.686275%;
     --destructive-foreground: 0 0% 100%;
 
     /* Controlled Orange #F28C28 - Alerts & Attention */
-    --warning: 32 89% 55%;
-    --warning-foreground: 0 0% 100%;
+    --warning: 46.097561 78.846154% 59.215686%;
+    --warning-foreground: 216.610169 59.595960% 19.411765%;
 
     /* Status colors - Performance indicators */
-    --status-optimal: 160 65% 45%;
-    --status-attention: 32 89% 55%;
-    --status-critical: 0 84% 60%;
+    --status-optimal: 160 65% 29%;
+    --status-attention: 28 85% 32%;
+    --status-critical: var(--danger-text);
     
     /* Risk gradient colors */
     --risk-low: 160 60% 42%;
@@ -93,12 +96,12 @@ All colors MUST be HSL.
     --risk-high: 0 84% 60%;
 
     /* Success/Positive states */
-    --success: 160 65% 45%;
-    --success-foreground: 0 0% 100%;
+    --success: 151 73% 29%;
+    --success-foreground: 0.000000 0.000000% 100.000000%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 188 76% 40%;
+    --border: 215.294118 23.943662% 86.078431%;
+    --input: 215.172414 12.236287% 53.529412%;
+    --ring: 210.828729 79.735683% 44.509804%;
 
     --radius: 0.75rem;
     
@@ -119,7 +122,7 @@ All colors MUST be HSL.
     /* Gradients */
     --gradient-hero: linear-gradient(135deg, hsl(214 70% 14%), hsl(214 60% 22%));
     --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 14% 98%));
-    --gradient-performance: linear-gradient(135deg, hsl(188 76% 40%), hsl(188 70% 48%));
+    --gradient-performance: linear-gradient(135deg, hsl(var(--selection)), hsl(var(--primary)));
     
     /* Shadows - Modern elevated style */
     --shadow-sm: 0 1px 2px hsl(220 20% 15% / 0.05);
@@ -139,26 +142,83 @@ All colors MUST be HSL.
     /* Sidebar - Deep blue theme */
     --sidebar-background: 214 70% 14%;
     --sidebar-foreground: 214 20% 95%;
-    --sidebar-primary: 188 76% 40%;
+    --sidebar-primary: var(--selection);
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 214 60% 22%;
     --sidebar-accent-foreground: 214 20% 95%;
     --sidebar-border: 214 50% 25%;
-    --sidebar-ring: 188 76% 40%;
+    --sidebar-ring: var(--ring);
 
     /* Chart colors */
-    --chart-1: 188 76% 40%;
+    --chart-1: var(--primary);
     --chart-2: 214 70% 50%;
     --chart-3: 160 60% 42%;
     --chart-4: 32 89% 55%;
     --chart-5: 280 55% 55%;
+
+    /* Semantic roles shared by pages, portals and sports. */
+    --surface-primary: var(--card);
+    --surface-secondary: var(--secondary);
+    --surface-tertiary: var(--muted);
+    --card-background: var(--card);
+    --elevated-background: var(--popover);
+    --input-background: var(--card);
+    --modal-background: var(--popover);
+    --text-primary: var(--foreground);
+    --text-secondary: var(--muted-foreground);
+    --text-muted: var(--muted-foreground);
+    --text-disabled: var(--muted-foreground);
+    --text-inverse: var(--brand-white);
+    --text-on-primary: var(--primary-foreground);
+    --text-on-success: var(--success-foreground);
+    --text-on-danger: var(--destructive-foreground);
+    --action-primary: var(--primary);
+    --action-primary-foreground: var(--primary-foreground);
+    --action-secondary: var(--secondary);
+    --selected-background: var(--selection);
+    --selected-foreground: var(--selection-foreground);
+    --hover-background: var(--muted);
+    --focus-ring: var(--ring);
+    --disabled-background: var(--muted);
+    --border-default: var(--border);
+    --border-subtle: var(--border);
+    --border-focus: var(--ring);
+    --danger: var(--destructive);
+    --info: var(--primary);
+    --wellness: var(--success);
+    --surface: var(--card);
+    --surface-elevated: var(--popover);
+    --surface-sunken: var(--secondary);
+    --action-primary-hover: 210.980392 80.952381% 37.058824%;
+    --border-strong: 215.172414 12.236287% 53.529412%;
+    --overlay: 220 30% 5%;
+    --rpe-1: 151.034483 72.500000% 31.372549%;
+    --rpe-1-foreground: 216.666667 36.000000% 9.803922%;
+    --rpe-2: 139.826087 52.036199% 43.333333%;
+    --rpe-2-foreground: 216.666667 36.000000% 9.803922%;
+    --rpe-3: 112.277228 42.616034% 53.529412%;
+    --rpe-3-foreground: 216.666667 36.000000% 9.803922%;
+    --rpe-4: 80.152672 55.744681% 53.921569%;
+    --rpe-4-foreground: 216.666667 36.000000% 9.803922%;
+    --rpe-5: 62.517483 65.296804% 57.058824%;
+    --rpe-5-foreground: 216.666667 36.000000% 9.803922%;
+    --rpe-6: 46.097561 78.846154% 59.215686%;
+    --rpe-6-foreground: 216.666667 36.000000% 9.803922%;
+    --rpe-7: 34.827586 80.555556% 57.647059%;
+    --rpe-7-foreground: 216.666667 36.000000% 9.803922%;
+    --rpe-8: 23.181818 78.571429% 56.078431%;
+    --rpe-8-foreground: 216.666667 36.000000% 9.803922%;
+    --rpe-9: 10.481928 70.940171% 54.117647%;
+    --rpe-9-foreground: 216.666667 36.000000% 9.803922%;
+    --rpe-10: 356.129032 62.753036% 48.431373%;
+    --rpe-10-foreground: 0.000000 0.000000% 100.000000%;
   }
 
-  .dark {
+  .dark, .field-mode {
     --selection-border: 217 45% 43%;
     /* Dark mode - improved contrast hierarchy
        background (deepest) < card/popover < muted < secondary < border */
-    --background: 220 25% 7%;
+    --background: 216.666667 36.000000% 9.803922%;
     --bowling-canvas: 220 25% 9%;
     --bowling-accent: 217 91% 62%;
     --bowling-ink: 214 40% 92%;
@@ -177,31 +237,32 @@ All colors MUST be HSL.
     --bowling-tactical: 217 85% 65%;
     --bowling-technical: 178 60% 50%;
     --bowling-games: 28 92% 60%;
-    --foreground: 210 20% 96%;
+    --foreground: 216.000000 33.333333% 97.058824%;
 
-    --card: 220 22% 12%;
-    --card-foreground: 210 20% 96%;
+    --card: 214.285714 28.000000% 14.705882%;
+    --card-foreground: 216.000000 33.333333% 97.058824%;
 
-    --popover: 220 22% 13%;
-    --popover-foreground: 210 20% 96%;
+    --popover: 214.285714 28.000000% 14.705882%;
+    --popover-foreground: 216.000000 33.333333% 97.058824%;
 
-    --primary: 188 76% 50%;
-    --primary-foreground: 220 30% 8%;
+    --primary: 213.149171 100.000000% 64.509804%;
+    --primary-foreground: 216.666667 36.000000% 9.803922%;
 
-    --secondary: 220 20% 20%;
-    --secondary-foreground: 210 20% 96%;
+    --secondary: 214.838710 29.523810% 20.588235%;
+    --secondary-foreground: 216.000000 33.333333% 97.058824%;
 
-    --muted: 220 18% 16%;
-    --muted-foreground: 215 18% 70%;
+    --muted: 214.838710 29.523810% 20.588235%;
+    --muted-foreground: 212.500000 23.529412% 80.000000%;
 
-    --accent: 188 76% 52%;
-    --accent-foreground: 220 30% 8%;
+    --accent: 213.149171 100.000000% 64.509804%;
+    --accent-foreground: 216.666667 36.000000% 9.803922%;
 
-    --destructive: var(--brand-red);
+    --danger-text: 354.827586 100.000000% 77.254902%;
+    --destructive: 354.478528 69.957082% 45.686275%;
     --destructive-foreground: 0 0% 100%;
 
-    --warning: 32 92% 58%;
-    --warning-foreground: 220 30% 8%;
+    --warning: 46.097561 78.846154% 59.215686%;
+    --warning-foreground: 216.610169 59.595960% 19.411765%;
 
     /* Status colors */
     --status-optimal: 160 60% 50%;
@@ -213,16 +274,16 @@ All colors MUST be HSL.
     --risk-medium: 32 92% 60%;
     --risk-high: 0 75% 58%;
 
-    --success: 160 60% 50%;
-    --success-foreground: 220 30% 8%;
+    --success: 151 73% 29%;
+    --success-foreground: 0.000000 0.000000% 100.000000%;
 
-    --border: 220 18% 28%;
-    --input: 220 18% 24%;
-    --ring: 188 76% 52%;
+    --border: 213.488372 22.279793% 37.843137%;
+    --input: 213.658537 18.222222% 55.882353%;
+    --ring: 213.149171 100.000000% 64.509804%;
     
     --gradient-hero: linear-gradient(135deg, hsl(214 50% 18%), hsl(214 45% 25%));
     --gradient-card: linear-gradient(180deg, hsl(214 35% 14%), hsl(214 35% 16%));
-    --gradient-performance: linear-gradient(135deg, hsl(188 76% 45%), hsl(188 70% 52%));
+    --gradient-performance: linear-gradient(135deg, hsl(var(--selection)), hsl(var(--primary)));
     
     --shadow-sm: 0 1px 3px hsl(0 0% 0% / 0.2);
     --shadow-md: 0 4px 6px hsl(0 0% 0% / 0.25);
@@ -231,15 +292,15 @@ All colors MUST be HSL.
     /* Sidebar - Dark theme */
     --sidebar-background: 214 45% 8%;
     --sidebar-foreground: 214 15% 92%;
-    --sidebar-primary: 188 76% 50%;
-    --sidebar-primary-foreground: 214 70% 10%;
+    --sidebar-primary: var(--selection);
+    --sidebar-primary-foreground: var(--selection-foreground);
     --sidebar-accent: 214 40% 16%;
     --sidebar-accent-foreground: 214 15% 92%;
     --sidebar-border: 214 35% 18%;
-    --sidebar-ring: 188 76% 50%;
+    --sidebar-ring: var(--ring);
 
     /* Chart colors - slightly brighter for dark mode */
-    --chart-1: 188 76% 50%;
+    --chart-1: var(--primary);
     --chart-2: 214 65% 55%;
     --chart-3: 160 60% 48%;
     --chart-4: 32 89% 60%;
@@ -258,83 +319,12 @@ All colors MUST be HSL.
     --nav-video: 350 80% 65%;
     --nav-communication: 210 80% 60%;
     --nav-settings: 220 15% 55%;
+    --action-primary-hover: 213.000000 100.000000% 72.549020%;
+    --border-strong: 213.658537 18.222222% 55.882353%;
+    color-scheme: dark;
   }
 
-  /* Field Mode - High contrast dark theme for outdoor use */
-  .field-mode,
-  .field-mode * {
-    --selection-border: 217 45% 43%;
-    --background: 215 28% 10%;
-    --foreground: 210 20% 95%;
 
-    --card: 215 25% 14%;
-    --card-foreground: 210 20% 95%;
-
-    --popover: 215 25% 14%;
-    --popover-foreground: 210 20% 95%;
-
-    --primary: 200 85% 55%;
-    --primary-foreground: 215 28% 10%;
-
-    --secondary: 215 25% 20%;
-    --secondary-foreground: 210 20% 95%;
-
-    --muted: 215 20% 18%;
-    --muted-foreground: 210 15% 65%;
-
-    --accent: 200 85% 55%;
-    --accent-foreground: 215 28% 10%;
-
-    --destructive: var(--brand-red);
-    --destructive-foreground: 0 0% 100%;
-
-    --warning: 38 95% 55%;
-    --warning-foreground: 0 0% 0%;
-
-    --success: 145 65% 50%;
-    --success-foreground: 0 0% 0%;
-
-    --border: 215 25% 25%;
-    --input: 215 25% 20%;
-    --ring: 200 85% 55%;
-
-    /* Chart colors for field mode */
-    --chart-1: 200 85% 55%;
-    --chart-2: 160 60% 48%;
-    --chart-3: 38 95% 55%;
-    --chart-4: 280 55% 60%;
-    --chart-5: 320 70% 55%;
-
-    /* Status colors for field mode */
-    --status-optimal: 145 65% 50%;
-    --status-attention: 38 95% 55%;
-    --status-critical: 0 85% 60%;
-
-    /* Gradient overrides */
-    --gradient-hero: linear-gradient(135deg, hsl(215 28% 12%), hsl(215 25% 18%));
-    --gradient-card: linear-gradient(180deg, hsl(215 25% 14%), hsl(215 25% 16%));
-    --gradient-performance: linear-gradient(135deg, hsl(200 85% 55%), hsl(200 80% 60%));
-  }
-
-  /* Ensure field mode applies to body */
-  body.field-mode {
-    background-color: hsl(215 28% 10%);
-    color: hsl(210 20% 95%);
-  }
-
-  /* Field mode variant classes for components that need explicit overrides */
-  .field-mode\:bg-\[hsl\(215_25\%_14\%\)\] {
-    background-color: hsl(215 25% 14%);
-  }
-  .field-mode .field-mode\:bg-\[hsl\(215_25\%_14\%\)\] {
-    background-color: hsl(215 25% 14%);
-  }
-  .field-mode\:border-\[hsl\(215_25\%_25\%\)\] {
-    border-color: hsl(215 25% 25%);
-  }
-  .field-mode .field-mode\:border-\[hsl\(215_25\%_25\%\)\] {
-    border-color: hsl(215 25% 25%);
-  }
 }
 
 @layer base {
@@ -585,97 +575,211 @@ All colors MUST be HSL.
   background-color: hsl(var(--muted));
 }
 
-/* ============================================================
-   DARK MODE CONTRAST GUARANTEES
-   ------------------------------------------------------------
-   Many legacy components use pastel Tailwind colors (bg-X-50/100,
-   text-X-700/800/900). These look great in light mode but become
-   illegible in dark mode (light fills + dark text on dark bg).
-   The rules below remap them at the CSS layer so contrast is
-   preserved everywhere without rewriting hundreds of components.
-   ============================================================ */
-.dark {
-  /* --- Pastel BACKGROUNDS (bg-{color}-50/100 / /10 /20 /30) ---
-     Replace near-white pastel fills with dark translucent tints
-     that sit clearly above the page background. */
-  --pastel-bg: 220 25% 18%;
+/* Legacy sport accents: exact class matching only; never intercept gradients,
+   hover variants or solid 500 fills. New code uses semantic tokens. */
+:root {
+  --legacy-emerald-surface: 160 35% 96%;
+  --legacy-emerald-ink: 160 60% 30%;
+  --legacy-green-surface: 145 35% 96%;
+  --legacy-green-ink: 145 60% 30%;
+  --legacy-lime-surface: 85 35% 96%;
+  --legacy-lime-ink: 85 60% 30%;
+  --legacy-teal-surface: 178 35% 96%;
+  --legacy-teal-ink: 178 60% 30%;
+  --legacy-cyan-surface: 190 35% 96%;
+  --legacy-cyan-ink: 190 60% 30%;
+  --legacy-sky-surface: 205 35% 96%;
+  --legacy-sky-ink: 205 60% 30%;
+  --legacy-blue-surface: 215 35% 96%;
+  --legacy-blue-ink: 215 60% 30%;
+  --legacy-indigo-surface: 232 35% 96%;
+  --legacy-indigo-ink: 232 60% 30%;
+  --legacy-violet-surface: 255 35% 96%;
+  --legacy-violet-ink: 255 60% 30%;
+  --legacy-purple-surface: 270 35% 96%;
+  --legacy-purple-ink: 270 60% 30%;
+  --legacy-fuchsia-surface: 290 35% 96%;
+  --legacy-fuchsia-ink: 290 60% 30%;
+  --legacy-pink-surface: 330 35% 96%;
+  --legacy-pink-ink: 330 60% 30%;
+  --legacy-rose-surface: 345 35% 96%;
+  --legacy-rose-ink: 345 60% 30%;
+  --legacy-red-surface: 0 35% 96%;
+  --legacy-red-ink: 0 60% 30%;
+  --legacy-orange-surface: 20 35% 96%;
+  --legacy-orange-ink: 20 60% 30%;
+  --legacy-amber-surface: 38 35% 96%;
+  --legacy-amber-ink: 38 60% 30%;
+  --legacy-yellow-surface: 48 35% 96%;
+  --legacy-yellow-ink: 48 60% 30%;
+  --legacy-slate-surface: 215 35% 96%;
+  --legacy-slate-ink: 215 60% 30%;
+  --legacy-gray-surface: 220 35% 96%;
+  --legacy-gray-ink: 220 60% 30%;
+  --legacy-zinc-surface: 240 35% 96%;
+  --legacy-zinc-ink: 240 60% 30%;
+  --legacy-neutral-surface: 0 35% 96%;
+  --legacy-neutral-ink: 0 60% 30%;
+  --legacy-stone-surface: 30 35% 96%;
+  --legacy-stone-ink: 30 60% 30%;
 }
-
-/* Backgrounds: opaque pastel-50 / pastel-100 → dark tinted surface */
-.dark [class*="bg-emerald-50"],  .dark [class*="bg-emerald-100"]   { background-color: hsl(160 45% 16%) !important; }
-.dark [class*="bg-green-50"],    .dark [class*="bg-green-100"]     { background-color: hsl(145 45% 16%) !important; }
-.dark [class*="bg-lime-50"],     .dark [class*="bg-lime-100"]      { background-color: hsl(85 40% 18%)  !important; }
-.dark [class*="bg-teal-50"],     .dark [class*="bg-teal-100"]      { background-color: hsl(178 45% 16%) !important; }
-.dark [class*="bg-cyan-50"],     .dark [class*="bg-cyan-100"]      { background-color: hsl(190 50% 16%) !important; }
-.dark [class*="bg-sky-50"],      .dark [class*="bg-sky-100"]       { background-color: hsl(205 50% 18%) !important; }
-.dark [class*="bg-blue-50"],     .dark [class*="bg-blue-100"]      { background-color: hsl(218 50% 20%) !important; }
-.dark [class*="bg-indigo-50"],   .dark [class*="bg-indigo-100"]    { background-color: hsl(232 45% 22%) !important; }
-.dark [class*="bg-violet-50"],   .dark [class*="bg-violet-100"]    { background-color: hsl(255 40% 22%) !important; }
-.dark [class*="bg-purple-50"],   .dark [class*="bg-purple-100"]    { background-color: hsl(270 40% 22%) !important; }
-.dark [class*="bg-fuchsia-50"],  .dark [class*="bg-fuchsia-100"]   { background-color: hsl(290 45% 22%) !important; }
-.dark [class*="bg-pink-50"],     .dark [class*="bg-pink-100"]      { background-color: hsl(330 40% 22%) !important; }
-.dark [class*="bg-rose-50"],     .dark [class*="bg-rose-100"]      { background-color: hsl(345 45% 22%) !important; }
-.dark [class*="bg-red-50"],      .dark [class*="bg-red-100"]       { background-color: hsl(0 45% 22%)   !important; }
-.dark [class*="bg-orange-50"],   .dark [class*="bg-orange-100"]    { background-color: hsl(20 50% 22%)  !important; }
-.dark [class*="bg-amber-50"],    .dark [class*="bg-amber-100"]     { background-color: hsl(38 50% 20%)  !important; }
-.dark [class*="bg-yellow-50"],   .dark [class*="bg-yellow-100"]    { background-color: hsl(48 45% 20%)  !important; }
-.dark [class*="bg-slate-50"],    .dark [class*="bg-slate-100"]     { background-color: hsl(220 18% 18%) !important; }
-.dark [class*="bg-gray-50"],     .dark [class*="bg-gray-100"]      { background-color: hsl(220 12% 18%) !important; }
-.dark [class*="bg-zinc-50"],     .dark [class*="bg-zinc-100"]      { background-color: hsl(240 5% 18%)  !important; }
-.dark [class*="bg-neutral-50"],  .dark [class*="bg-neutral-100"]   { background-color: hsl(0 0% 18%)    !important; }
-.dark [class*="bg-stone-50"],    .dark [class*="bg-stone-100"]     { background-color: hsl(30 8% 18%)   !important; }
-
-/* TEXT colors: dark text on dark bg → flip to lighter shades for legibility */
-.dark .text-emerald-900,  .dark .text-emerald-800,  .dark .text-emerald-700  { color: hsl(160 65% 70%) !important; }
-.dark .text-green-900,    .dark .text-green-800,    .dark .text-green-700    { color: hsl(145 60% 72%) !important; }
-.dark .text-lime-900,     .dark .text-lime-800,     .dark .text-lime-700     { color: hsl(85 65% 72%)  !important; }
-.dark .text-teal-900,     .dark .text-teal-800,     .dark .text-teal-700     { color: hsl(178 60% 70%) !important; }
-.dark .text-cyan-900,     .dark .text-cyan-800,     .dark .text-cyan-700     { color: hsl(190 70% 72%) !important; }
-.dark .text-sky-900,      .dark .text-sky-800,      .dark .text-sky-700      { color: hsl(205 80% 75%) !important; }
-.dark .text-blue-900,     .dark .text-blue-800,     .dark .text-blue-700     { color: hsl(215 85% 78%) !important; }
-.dark .text-indigo-900,   .dark .text-indigo-800,   .dark .text-indigo-700   { color: hsl(232 80% 80%) !important; }
-.dark .text-violet-900,   .dark .text-violet-800,   .dark .text-violet-700   { color: hsl(255 75% 80%) !important; }
-.dark .text-purple-900,   .dark .text-purple-800,   .dark .text-purple-700   { color: hsl(270 75% 80%) !important; }
-.dark .text-fuchsia-900,  .dark .text-fuchsia-800,  .dark .text-fuchsia-700  { color: hsl(290 75% 80%) !important; }
-.dark .text-pink-900,     .dark .text-pink-800,     .dark .text-pink-700     { color: hsl(330 75% 80%) !important; }
-.dark .text-rose-900,     .dark .text-rose-800,     .dark .text-rose-700     { color: hsl(345 80% 78%) !important; }
-.dark .text-red-900,      .dark .text-red-800,      .dark .text-red-700      { color: hsl(0 80% 75%)   !important; }
-.dark .text-orange-900,   .dark .text-orange-800,   .dark .text-orange-700   { color: hsl(20 85% 70%)  !important; }
-.dark .text-amber-900,    .dark .text-amber-800,    .dark .text-amber-700    { color: hsl(38 90% 68%)  !important; }
-.dark .text-yellow-900,   .dark .text-yellow-800,   .dark .text-yellow-700   { color: hsl(48 85% 68%)  !important; }
-.dark .text-slate-900,    .dark .text-slate-800,    .dark .text-slate-700    { color: hsl(210 20% 88%) !important; }
-.dark .text-gray-900,     .dark .text-gray-800,     .dark .text-gray-700     { color: hsl(220 15% 88%) !important; }
-.dark .text-zinc-900,     .dark .text-zinc-800,     .dark .text-zinc-700     { color: hsl(240 8% 88%)  !important; }
-.dark .text-neutral-900,  .dark .text-neutral-800,  .dark .text-neutral-700  { color: hsl(0 0% 88%)    !important; }
-.dark .text-stone-900,    .dark .text-stone-800,    .dark .text-stone-700    { color: hsl(30 12% 86%)  !important; }
-
-/* BORDERS: light pastel borders (200/300) → soften to keep visible separation */
-.dark [class*="border-emerald-200"],  .dark [class*="border-emerald-300"]  { border-color: hsl(160 40% 30%) !important; }
-.dark [class*="border-green-200"],    .dark [class*="border-green-300"]    { border-color: hsl(145 40% 30%) !important; }
-.dark [class*="border-teal-200"],     .dark [class*="border-teal-300"]     { border-color: hsl(178 40% 30%) !important; }
-.dark [class*="border-cyan-200"],     .dark [class*="border-cyan-300"]     { border-color: hsl(190 45% 30%) !important; }
-.dark [class*="border-sky-200"],      .dark [class*="border-sky-300"]      { border-color: hsl(205 45% 32%) !important; }
-.dark [class*="border-blue-200"],     .dark [class*="border-blue-300"]     { border-color: hsl(218 45% 35%) !important; }
-.dark [class*="border-indigo-200"],   .dark [class*="border-indigo-300"]   { border-color: hsl(232 40% 38%) !important; }
-.dark [class*="border-violet-200"],   .dark [class*="border-violet-300"]   { border-color: hsl(255 40% 38%) !important; }
-.dark [class*="border-purple-200"],   .dark [class*="border-purple-300"]   { border-color: hsl(270 40% 38%) !important; }
-.dark [class*="border-pink-200"],     .dark [class*="border-pink-300"]     { border-color: hsl(330 40% 38%) !important; }
-.dark [class*="border-rose-200"],     .dark [class*="border-rose-300"]     { border-color: hsl(345 45% 38%) !important; }
-.dark [class*="border-red-200"],      .dark [class*="border-red-300"]      { border-color: hsl(0 45% 38%)   !important; }
-.dark [class*="border-orange-200"],   .dark [class*="border-orange-300"]   { border-color: hsl(20 45% 35%)  !important; }
-.dark [class*="border-amber-200"],    .dark [class*="border-amber-300"]    { border-color: hsl(38 45% 32%)  !important; }
-.dark [class*="border-yellow-200"],   .dark [class*="border-yellow-300"]   { border-color: hsl(48 45% 32%)  !important; }
-.dark [class*="border-slate-200"],    .dark [class*="border-slate-300"]    { border-color: hsl(220 15% 30%) !important; }
-.dark [class*="border-gray-200"],     .dark [class*="border-gray-300"]     { border-color: hsl(220 12% 30%) !important; }
-
-/* Pure white text inside hero gradients / colored buttons stays readable —
-   we DO NOT touch text-white on purpose. */
-
-/* Solid white backgrounds inside cards (legacy) → fall back to card */
-.dark .bg-white:not([class*="bg-white/"]) { background-color: hsl(var(--card)) !important; }
-
-/* Subtle sheen / overlays bg-white/5..30 stay translucent (they layer over
-   colored backdrops and remain visually correct in dark mode). */
+.dark, .field-mode {
+  --legacy-emerald-surface: 160 25% 18%;
+  --legacy-emerald-ink: 160 65% 78%;
+  --legacy-green-surface: 145 25% 18%;
+  --legacy-green-ink: 145 65% 78%;
+  --legacy-lime-surface: 85 25% 18%;
+  --legacy-lime-ink: 85 65% 78%;
+  --legacy-teal-surface: 178 25% 18%;
+  --legacy-teal-ink: 178 65% 78%;
+  --legacy-cyan-surface: 190 25% 18%;
+  --legacy-cyan-ink: 190 65% 78%;
+  --legacy-sky-surface: 205 25% 18%;
+  --legacy-sky-ink: 205 65% 78%;
+  --legacy-blue-surface: 215 25% 18%;
+  --legacy-blue-ink: 215 65% 78%;
+  --legacy-indigo-surface: 232 25% 18%;
+  --legacy-indigo-ink: 232 65% 78%;
+  --legacy-violet-surface: 255 25% 18%;
+  --legacy-violet-ink: 255 65% 78%;
+  --legacy-purple-surface: 270 25% 18%;
+  --legacy-purple-ink: 270 65% 78%;
+  --legacy-fuchsia-surface: 290 25% 18%;
+  --legacy-fuchsia-ink: 290 65% 78%;
+  --legacy-pink-surface: 330 25% 18%;
+  --legacy-pink-ink: 330 65% 78%;
+  --legacy-rose-surface: 345 25% 18%;
+  --legacy-rose-ink: 345 65% 78%;
+  --legacy-red-surface: 0 25% 18%;
+  --legacy-red-ink: 0 65% 78%;
+  --legacy-orange-surface: 20 25% 18%;
+  --legacy-orange-ink: 20 65% 78%;
+  --legacy-amber-surface: 38 25% 18%;
+  --legacy-amber-ink: 38 65% 78%;
+  --legacy-yellow-surface: 48 25% 18%;
+  --legacy-yellow-ink: 48 65% 78%;
+  --legacy-slate-surface: 215 25% 18%;
+  --legacy-slate-ink: 215 65% 78%;
+  --legacy-gray-surface: 220 25% 18%;
+  --legacy-gray-ink: 220 65% 78%;
+  --legacy-zinc-surface: 240 25% 18%;
+  --legacy-zinc-ink: 240 65% 78%;
+  --legacy-neutral-surface: 0 25% 18%;
+  --legacy-neutral-ink: 0 65% 78%;
+  --legacy-stone-surface: 30 25% 18%;
+  --legacy-stone-ink: 30 65% 78%;
+}
+:is(.dark, .field-mode) .bg-emerald-50 { background-color: hsl(var(--legacy-emerald-surface)); }
+:is(.dark, .field-mode) .bg-emerald-100 { background-color: hsl(var(--legacy-emerald-surface)); }
+:is(.dark, .field-mode) .text-emerald-700 { color: hsl(var(--legacy-emerald-ink)); }
+:is(.dark, .field-mode) .text-emerald-800 { color: hsl(var(--legacy-emerald-ink)); }
+:is(.dark, .field-mode) .text-emerald-900 { color: hsl(var(--legacy-emerald-ink)); }
+:is(.dark, .field-mode) .bg-green-50 { background-color: hsl(var(--legacy-green-surface)); }
+:is(.dark, .field-mode) .bg-green-100 { background-color: hsl(var(--legacy-green-surface)); }
+:is(.dark, .field-mode) .text-green-700 { color: hsl(var(--legacy-green-ink)); }
+:is(.dark, .field-mode) .text-green-800 { color: hsl(var(--legacy-green-ink)); }
+:is(.dark, .field-mode) .text-green-900 { color: hsl(var(--legacy-green-ink)); }
+:is(.dark, .field-mode) .bg-lime-50 { background-color: hsl(var(--legacy-lime-surface)); }
+:is(.dark, .field-mode) .bg-lime-100 { background-color: hsl(var(--legacy-lime-surface)); }
+:is(.dark, .field-mode) .text-lime-700 { color: hsl(var(--legacy-lime-ink)); }
+:is(.dark, .field-mode) .text-lime-800 { color: hsl(var(--legacy-lime-ink)); }
+:is(.dark, .field-mode) .text-lime-900 { color: hsl(var(--legacy-lime-ink)); }
+:is(.dark, .field-mode) .bg-teal-50 { background-color: hsl(var(--legacy-teal-surface)); }
+:is(.dark, .field-mode) .bg-teal-100 { background-color: hsl(var(--legacy-teal-surface)); }
+:is(.dark, .field-mode) .text-teal-700 { color: hsl(var(--legacy-teal-ink)); }
+:is(.dark, .field-mode) .text-teal-800 { color: hsl(var(--legacy-teal-ink)); }
+:is(.dark, .field-mode) .text-teal-900 { color: hsl(var(--legacy-teal-ink)); }
+:is(.dark, .field-mode) .bg-cyan-50 { background-color: hsl(var(--legacy-cyan-surface)); }
+:is(.dark, .field-mode) .bg-cyan-100 { background-color: hsl(var(--legacy-cyan-surface)); }
+:is(.dark, .field-mode) .text-cyan-700 { color: hsl(var(--legacy-cyan-ink)); }
+:is(.dark, .field-mode) .text-cyan-800 { color: hsl(var(--legacy-cyan-ink)); }
+:is(.dark, .field-mode) .text-cyan-900 { color: hsl(var(--legacy-cyan-ink)); }
+:is(.dark, .field-mode) .bg-sky-50 { background-color: hsl(var(--legacy-sky-surface)); }
+:is(.dark, .field-mode) .bg-sky-100 { background-color: hsl(var(--legacy-sky-surface)); }
+:is(.dark, .field-mode) .text-sky-700 { color: hsl(var(--legacy-sky-ink)); }
+:is(.dark, .field-mode) .text-sky-800 { color: hsl(var(--legacy-sky-ink)); }
+:is(.dark, .field-mode) .text-sky-900 { color: hsl(var(--legacy-sky-ink)); }
+:is(.dark, .field-mode) .bg-blue-50 { background-color: hsl(var(--legacy-blue-surface)); }
+:is(.dark, .field-mode) .bg-blue-100 { background-color: hsl(var(--legacy-blue-surface)); }
+:is(.dark, .field-mode) .text-blue-700 { color: hsl(var(--legacy-blue-ink)); }
+:is(.dark, .field-mode) .text-blue-800 { color: hsl(var(--legacy-blue-ink)); }
+:is(.dark, .field-mode) .text-blue-900 { color: hsl(var(--legacy-blue-ink)); }
+:is(.dark, .field-mode) .bg-indigo-50 { background-color: hsl(var(--legacy-indigo-surface)); }
+:is(.dark, .field-mode) .bg-indigo-100 { background-color: hsl(var(--legacy-indigo-surface)); }
+:is(.dark, .field-mode) .text-indigo-700 { color: hsl(var(--legacy-indigo-ink)); }
+:is(.dark, .field-mode) .text-indigo-800 { color: hsl(var(--legacy-indigo-ink)); }
+:is(.dark, .field-mode) .text-indigo-900 { color: hsl(var(--legacy-indigo-ink)); }
+:is(.dark, .field-mode) .bg-violet-50 { background-color: hsl(var(--legacy-violet-surface)); }
+:is(.dark, .field-mode) .bg-violet-100 { background-color: hsl(var(--legacy-violet-surface)); }
+:is(.dark, .field-mode) .text-violet-700 { color: hsl(var(--legacy-violet-ink)); }
+:is(.dark, .field-mode) .text-violet-800 { color: hsl(var(--legacy-violet-ink)); }
+:is(.dark, .field-mode) .text-violet-900 { color: hsl(var(--legacy-violet-ink)); }
+:is(.dark, .field-mode) .bg-purple-50 { background-color: hsl(var(--legacy-purple-surface)); }
+:is(.dark, .field-mode) .bg-purple-100 { background-color: hsl(var(--legacy-purple-surface)); }
+:is(.dark, .field-mode) .text-purple-700 { color: hsl(var(--legacy-purple-ink)); }
+:is(.dark, .field-mode) .text-purple-800 { color: hsl(var(--legacy-purple-ink)); }
+:is(.dark, .field-mode) .text-purple-900 { color: hsl(var(--legacy-purple-ink)); }
+:is(.dark, .field-mode) .bg-fuchsia-50 { background-color: hsl(var(--legacy-fuchsia-surface)); }
+:is(.dark, .field-mode) .bg-fuchsia-100 { background-color: hsl(var(--legacy-fuchsia-surface)); }
+:is(.dark, .field-mode) .text-fuchsia-700 { color: hsl(var(--legacy-fuchsia-ink)); }
+:is(.dark, .field-mode) .text-fuchsia-800 { color: hsl(var(--legacy-fuchsia-ink)); }
+:is(.dark, .field-mode) .text-fuchsia-900 { color: hsl(var(--legacy-fuchsia-ink)); }
+:is(.dark, .field-mode) .bg-pink-50 { background-color: hsl(var(--legacy-pink-surface)); }
+:is(.dark, .field-mode) .bg-pink-100 { background-color: hsl(var(--legacy-pink-surface)); }
+:is(.dark, .field-mode) .text-pink-700 { color: hsl(var(--legacy-pink-ink)); }
+:is(.dark, .field-mode) .text-pink-800 { color: hsl(var(--legacy-pink-ink)); }
+:is(.dark, .field-mode) .text-pink-900 { color: hsl(var(--legacy-pink-ink)); }
+:is(.dark, .field-mode) .bg-rose-50 { background-color: hsl(var(--legacy-rose-surface)); }
+:is(.dark, .field-mode) .bg-rose-100 { background-color: hsl(var(--legacy-rose-surface)); }
+:is(.dark, .field-mode) .text-rose-700 { color: hsl(var(--legacy-rose-ink)); }
+:is(.dark, .field-mode) .text-rose-800 { color: hsl(var(--legacy-rose-ink)); }
+:is(.dark, .field-mode) .text-rose-900 { color: hsl(var(--legacy-rose-ink)); }
+:is(.dark, .field-mode) .bg-red-50 { background-color: hsl(var(--legacy-red-surface)); }
+:is(.dark, .field-mode) .bg-red-100 { background-color: hsl(var(--legacy-red-surface)); }
+:is(.dark, .field-mode) .text-red-700 { color: hsl(var(--legacy-red-ink)); }
+:is(.dark, .field-mode) .text-red-800 { color: hsl(var(--legacy-red-ink)); }
+:is(.dark, .field-mode) .text-red-900 { color: hsl(var(--legacy-red-ink)); }
+:is(.dark, .field-mode) .bg-orange-50 { background-color: hsl(var(--legacy-orange-surface)); }
+:is(.dark, .field-mode) .bg-orange-100 { background-color: hsl(var(--legacy-orange-surface)); }
+:is(.dark, .field-mode) .text-orange-700 { color: hsl(var(--legacy-orange-ink)); }
+:is(.dark, .field-mode) .text-orange-800 { color: hsl(var(--legacy-orange-ink)); }
+:is(.dark, .field-mode) .text-orange-900 { color: hsl(var(--legacy-orange-ink)); }
+:is(.dark, .field-mode) .bg-amber-50 { background-color: hsl(var(--legacy-amber-surface)); }
+:is(.dark, .field-mode) .bg-amber-100 { background-color: hsl(var(--legacy-amber-surface)); }
+:is(.dark, .field-mode) .text-amber-700 { color: hsl(var(--legacy-amber-ink)); }
+:is(.dark, .field-mode) .text-amber-800 { color: hsl(var(--legacy-amber-ink)); }
+:is(.dark, .field-mode) .text-amber-900 { color: hsl(var(--legacy-amber-ink)); }
+:is(.dark, .field-mode) .bg-yellow-50 { background-color: hsl(var(--legacy-yellow-surface)); }
+:is(.dark, .field-mode) .bg-yellow-100 { background-color: hsl(var(--legacy-yellow-surface)); }
+:is(.dark, .field-mode) .text-yellow-700 { color: hsl(var(--legacy-yellow-ink)); }
+:is(.dark, .field-mode) .text-yellow-800 { color: hsl(var(--legacy-yellow-ink)); }
+:is(.dark, .field-mode) .text-yellow-900 { color: hsl(var(--legacy-yellow-ink)); }
+:is(.dark, .field-mode) .bg-slate-50 { background-color: hsl(var(--legacy-slate-surface)); }
+:is(.dark, .field-mode) .bg-slate-100 { background-color: hsl(var(--legacy-slate-surface)); }
+:is(.dark, .field-mode) .text-slate-700 { color: hsl(var(--legacy-slate-ink)); }
+:is(.dark, .field-mode) .text-slate-800 { color: hsl(var(--legacy-slate-ink)); }
+:is(.dark, .field-mode) .text-slate-900 { color: hsl(var(--legacy-slate-ink)); }
+:is(.dark, .field-mode) .bg-gray-50 { background-color: hsl(var(--legacy-gray-surface)); }
+:is(.dark, .field-mode) .bg-gray-100 { background-color: hsl(var(--legacy-gray-surface)); }
+:is(.dark, .field-mode) .text-gray-700 { color: hsl(var(--legacy-gray-ink)); }
+:is(.dark, .field-mode) .text-gray-800 { color: hsl(var(--legacy-gray-ink)); }
+:is(.dark, .field-mode) .text-gray-900 { color: hsl(var(--legacy-gray-ink)); }
+:is(.dark, .field-mode) .bg-zinc-50 { background-color: hsl(var(--legacy-zinc-surface)); }
+:is(.dark, .field-mode) .bg-zinc-100 { background-color: hsl(var(--legacy-zinc-surface)); }
+:is(.dark, .field-mode) .text-zinc-700 { color: hsl(var(--legacy-zinc-ink)); }
+:is(.dark, .field-mode) .text-zinc-800 { color: hsl(var(--legacy-zinc-ink)); }
+:is(.dark, .field-mode) .text-zinc-900 { color: hsl(var(--legacy-zinc-ink)); }
+:is(.dark, .field-mode) .bg-neutral-50 { background-color: hsl(var(--legacy-neutral-surface)); }
+:is(.dark, .field-mode) .bg-neutral-100 { background-color: hsl(var(--legacy-neutral-surface)); }
+:is(.dark, .field-mode) .text-neutral-700 { color: hsl(var(--legacy-neutral-ink)); }
+:is(.dark, .field-mode) .text-neutral-800 { color: hsl(var(--legacy-neutral-ink)); }
+:is(.dark, .field-mode) .text-neutral-900 { color: hsl(var(--legacy-neutral-ink)); }
+:is(.dark, .field-mode) .bg-stone-50 { background-color: hsl(var(--legacy-stone-surface)); }
+:is(.dark, .field-mode) .bg-stone-100 { background-color: hsl(var(--legacy-stone-surface)); }
+:is(.dark, .field-mode) .text-stone-700 { color: hsl(var(--legacy-stone-ink)); }
+:is(.dark, .field-mode) .text-stone-800 { color: hsl(var(--legacy-stone-ink)); }
+:is(.dark, .field-mode) .text-stone-900 { color: hsl(var(--legacy-stone-ink)); }
+:is(.dark, .field-mode) .bg-white { background-color: hsl(var(--card)); }
 
 /* Ensure Radix Popper-based popups (Select, Popover, DropdownMenu, HoverCard, Tooltip)
    layer above Dialog/Sheet/Drawer wrappers (z-[121]). The Radix popper wrapper is a
@@ -734,26 +838,7 @@ body:has([role="dialog"][data-state="open"]) .field-mode-toggle { display: none;
   --athlete-action: 213 65% 17%;
   --athlete-action-foreground: 214 50% 98%;
   --gradient-wellness: linear-gradient(110deg, hsl(var(--wellness-banner)), hsl(var(--wellness-banner-end)));
-  --background: 216 45% 98%;
-  --foreground: 216 45% 17%;
-  --card: 216 40% 99%;
-  --card-foreground: var(--foreground);
   --surface: var(--card);
-  --surface-elevated: 216 35% 96%;
-  --surface-sunken: 216 30% 95%;
-  --popover: var(--card);
-  --popover-foreground: var(--foreground);
-  --primary: 218 62% 17%;
-  --primary-foreground: 216 60% 98%;
-  --secondary: 216 32% 95%;
-  --secondary-foreground: var(--foreground);
-  --muted: 216 32% 95%;
-  --muted-foreground: 215 17% 43%;
-  --accent: 186 77% 32%;
-  --accent-foreground: 216 60% 98%;
-  --border: 216 28% 90%;
-  --input: 216 28% 87%;
-  --ring: var(--accent);
   --success: 160 66% 30%;
   --success-foreground: 160 40% 98%;
   --status-optimal: var(--success);
@@ -772,20 +857,6 @@ body:has([role="dialog"][data-state="open"]) .field-mode-toggle { display: none;
   --wellness-banner: 159 75% 26%;
   --wellness-banner-end: 163 70% 30%;
   --athlete-action: 213 52% 25%;
-  --background: 216 53% 9%;
-  --foreground: 214 50% 96%;
-  --card: 217 47% 15%;
-  --surface-elevated: 216 43% 19%;
-  --surface-sunken: 218 43% 12%;
-  --primary: 184 60% 60%;
-  --primary-foreground: 218 62% 12%;
-  --secondary: 216 43% 19%;
-  --muted: 216 43% 19%;
-  --muted-foreground: 212 25% 73%;
-  --accent: 184 60% 60%;
-  --accent-foreground: 218 62% 12%;
-  --border: 215 33% 25%;
-  --input: 215 33% 30%;
   --success: 158 57% 61%;
   --success-foreground: 218 62% 12%;
   --warning: 33 85% 66%;
@@ -796,33 +867,6 @@ body:has([role="dialog"][data-state="open"]) .field-mode-toggle { display: none;
 }
 
 body:has(.athlete-space) .field-mode-toggle { display: none; }
-
-/* The shared field theme declares tokens on every descendant; athlete roles must inherit its scoped palette. */
-.field-mode .athlete-space * {
-  --background: inherit;
-  --foreground: inherit;
-  --card: inherit;
-  --card-foreground: inherit;
-  --popover: inherit;
-  --popover-foreground: inherit;
-  --primary: inherit;
-  --primary-foreground: inherit;
-  --secondary: inherit;
-  --secondary-foreground: inherit;
-  --muted: inherit;
-  --muted-foreground: inherit;
-  --accent: inherit;
-  --accent-foreground: inherit;
-  --border: inherit;
-  --input: inherit;
-  --ring: inherit;
-  --success: inherit;
-  --success-foreground: inherit;
-  --status-optimal: inherit;
-  --warning: inherit;
-  --warning-foreground: inherit;
-  --gradient-card: inherit;
-}
 
 /* Shared selection contract. Last in the cascade to supersede legacy sport
    colors and dark pastel safety rules without touching data/status badges. */
@@ -835,7 +879,7 @@ body:has(.athlete-space) .field-mode-toggle { display: none; }
 :is([role="tab"], .brand-selectable, .colored-tab-trigger, .athlete-tab):not([data-state="active"]):not([data-state="on"]):not([aria-pressed="true"]) :is(svg, .colored-tab-text) {
   color: hsl(var(--muted-foreground)) !important;
 }
-:is([role="tab"][data-state="active"], .brand-selectable[data-state="on"], [role="button"][aria-pressed="true"]:not([data-observation]), button[aria-pressed="true"]:not([data-observation]), button[aria-selected="true"], a[aria-current="page"], [data-sidebar="menu-button"][data-active="true"], [data-sidebar="menu-sub-button"][data-active="true"], .athlete-bottom-item.is-active, .athlete-more-item.is-active) {
+:is([role="tab"][data-state="active"], .brand-selectable[data-state="on"], [role="button"][aria-pressed="true"]:not([data-observation]):not([data-rpe]), button[aria-pressed="true"]:not([data-observation]):not([data-rpe]), button[aria-selected="true"], a[aria-current="page"], [data-sidebar="menu-button"][data-active="true"], [data-sidebar="menu-sub-button"][data-active="true"], .athlete-bottom-item.is-active, .athlete-more-item.is-active) {
   background: hsl(var(--selection)) !important;
   color: hsl(var(--selection-foreground)) !important;
   border-color: hsl(var(--selection-border)) !important;
@@ -843,8 +887,9 @@ body:has(.athlete-space) .field-mode-toggle { display: none; }
   opacity: 1;
   box-shadow: var(--shadow-sm);
 }
-:is([role="tab"][data-state="active"], .brand-selectable[data-state="on"], [role="button"][aria-pressed="true"]:not([data-observation]), button[aria-pressed="true"]:not([data-observation]), button[aria-selected="true"], a[aria-current="page"], [data-sidebar="menu-button"][data-active="true"], [data-sidebar="menu-sub-button"][data-active="true"], .athlete-bottom-item.is-active, .athlete-more-item.is-active) :is(svg, .colored-tab-text) {
+:is([role="tab"][data-state="active"], .brand-selectable[data-state="on"], [role="button"][aria-pressed="true"]:not([data-observation]):not([data-rpe]), button[aria-pressed="true"]:not([data-observation]):not([data-rpe]), button[aria-selected="true"], a[aria-current="page"], [data-sidebar="menu-button"][data-active="true"], [data-sidebar="menu-sub-button"][data-active="true"], .athlete-bottom-item.is-active, .athlete-more-item.is-active) :is(svg, span, p, small, strong, em, .colored-tab-text) {
   color: hsl(var(--selection-foreground)) !important;
+  opacity: 1;
 }
 /* Filled shared buttons remain on-brand even when the dark primary token is
    brighter for standalone text/link contrast. Success/Wellness are excluded. */
@@ -855,3 +900,43 @@ body:has(.athlete-space) .field-mode-toggle { display: none; }
 [data-ui-button][data-variant="default"]:hover {
   background-color: hsl(var(--selection));
 }
+
+/* Form controls and charts inherit roles, including portalled content. */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]), textarea, select {
+  color-scheme: inherit;
+}
+.recharts-cartesian-axis-tick text, .recharts-polar-angle-axis-tick text, .recharts-polar-radius-axis-tick text {
+  fill: hsl(var(--text-secondary));
+}
+.recharts-default-tooltip {
+  background: hsl(var(--elevated-background)) !important;
+  border-color: hsl(var(--border-default)) !important;
+  color: hsl(var(--text-primary)) !important;
+}
+.recharts-tooltip-label, .recharts-tooltip-item { color: hsl(var(--text-primary)) !important; }
+.recharts-cartesian-grid line { stroke: hsl(var(--border-subtle)); }
+[data-rpe] {
+  background: hsl(var(--rpe-color)) !important;
+  color: hsl(var(--rpe-foreground)) !important;
+  border: 2px solid transparent;
+  opacity: 1;
+}
+[data-rpe]:not([aria-pressed="true"]) { background: hsl(var(--rpe-color) / 0.28) !important; color: hsl(var(--foreground)) !important; }
+[data-rpe][aria-pressed="true"] { border-color: hsl(var(--foreground)); box-shadow: 0 0 0 2px hsl(var(--card)); font-weight: 700; }
+[data-rpe]:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; }
+[data-rpe="1"] { --rpe-color: var(--rpe-1); --rpe-foreground: var(--rpe-1-foreground); }
+[data-rpe="2"] { --rpe-color: var(--rpe-2); --rpe-foreground: var(--rpe-2-foreground); }
+[data-rpe="3"] { --rpe-color: var(--rpe-3); --rpe-foreground: var(--rpe-3-foreground); }
+[data-rpe="4"] { --rpe-color: var(--rpe-4); --rpe-foreground: var(--rpe-4-foreground); }
+[data-rpe="5"] { --rpe-color: var(--rpe-5); --rpe-foreground: var(--rpe-5-foreground); }
+[data-rpe="6"] { --rpe-color: var(--rpe-6); --rpe-foreground: var(--rpe-6-foreground); }
+[data-rpe="7"] { --rpe-color: var(--rpe-7); --rpe-foreground: var(--rpe-7-foreground); }
+[data-rpe="8"] { --rpe-color: var(--rpe-8); --rpe-foreground: var(--rpe-8-foreground); }
+[data-rpe="9"] { --rpe-color: var(--rpe-9); --rpe-foreground: var(--rpe-9-foreground); }
+[data-rpe="10"] { --rpe-color: var(--rpe-10); --rpe-foreground: var(--rpe-10-foreground); }
+[data-observation][data-state="yes"][data-tone="positive"],
+[data-observation][data-state="yes"][data-tone="positive"]:is(:hover,:active,:focus) { background: hsl(var(--observation-pocket)); color: hsl(var(--observation-on-foreground)); border-color: hsl(var(--observation-pocket)); }
+[data-observation][data-state="yes"][data-tone="negative"],
+[data-observation][data-state="yes"][data-tone="negative"]:is(:hover,:active,:focus) { background: hsl(var(--observation-split)); color: hsl(var(--observation-on-foreground)); border-color: hsl(var(--observation-split)); }
+[data-observation][data-state="no"], [data-observation][data-state="no"]:is(:hover,:active,:focus) { background: hsl(var(--observation-no)); color: hsl(var(--observation-no-foreground)); border-color: hsl(var(--border-strong)); }
+[data-observation][data-state="unset"], [data-observation][data-state="unset"]:is(:hover,:active,:focus) { background: hsl(var(--card)); color: hsl(var(--foreground)); border-color: hsl(var(--border-strong)); }

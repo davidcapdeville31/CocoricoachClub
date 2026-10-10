@@ -1214,7 +1214,7 @@ export function BowlingSimplifiedDialog({
                       const v = i + 1;
                       const on = v === athleteRpe;
                       return (
-                        <button key={v} type="button" onClick={() => setAthleteRpe(v)} className={`h-11 rounded-xl text-sm font-semibold transition-colors ${on ? "bg-bowling-ink text-card" : "bg-bowling-field text-bowling-ink hover:bg-muted"}`}>{v}</button>
+                        <Button variant="outline" data-rpe={v} aria-pressed={on} key={v} type="button" onClick={() => setAthleteRpe(v)} className="h-11 min-w-0 rounded-xl p-0 text-sm font-semibold">{v}</Button>
                       );
                     })}
                   </div>

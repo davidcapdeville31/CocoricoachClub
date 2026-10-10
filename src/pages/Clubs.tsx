@@ -209,14 +209,14 @@ export default function Clubs() {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
-      <div className="bg-white px-4 border-b border-border pt-[max(env(safe-area-inset-top),1.5rem)]">
+      <div className="bg-card px-4 border-b border-border pt-[max(env(safe-area-inset-top),1.5rem)]">
         <div className="container mx-auto max-w-6xl">
           {/* Header: title + actions on the same row */}
           <div className="flex items-center justify-between gap-3 sm:gap-4 min-w-0 min-h-14">
             <div className="flex items-center min-w-0 flex-1">
               <BrandLogo className="h-12 sm:h-14 md:h-16 w-auto shrink-0" />
             </div>
-            <div className="flex items-center gap-0.5 sm:gap-2 shrink-0 [&_button]:text-[#ED2939] [&_button:hover]:bg-[#ED2939]/10">
+            <div className="flex items-center gap-0.5 sm:gap-2 shrink-0 [&_button]:text-foreground [&_button:hover]:bg-muted">
               <NotificationBell variant="default" />
               {isSuperAdmin && (
                 <>
@@ -229,7 +229,7 @@ export default function Clubs() {
               <Button variant="ghost" size="icon" onClick={() => navigate("/settings")} className="h-9 w-9 sm:h-10 sm:w-10" title="Paramètres">
                 <Settings className="h-5 w-5" />
               </Button>
-              <Button variant="ghost" size="icon" onClick={signOut} className="h-9 w-9 sm:h-10 sm:w-10">
+              <Button variant="ghost" size="icon" aria-label="Se déconnecter" onClick={signOut} className="h-9 w-9 sm:h-10 sm:w-10">
                 <LogOut className="h-5 w-5" />
               </Button>
             </div>

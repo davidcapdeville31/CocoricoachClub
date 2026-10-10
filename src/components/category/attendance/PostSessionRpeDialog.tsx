@@ -448,12 +448,9 @@ export function PostSessionRpeDialog({
                   type="button"
                   variant="outline"
                   size="sm"
-                  className={cn(
-                    "w-9 h-9",
-                    rpe >= 8 && "border-red-300 hover:bg-red-50",
-                    rpe >= 6 && rpe < 8 && "border-yellow-300 hover:bg-yellow-50",
-                    rpe < 6 && "border-green-300 hover:bg-green-50"
-                  )}
+                  data-rpe={rpe}
+                  aria-pressed={false}
+                  className="min-h-11 min-w-11"
                   onClick={() => applyRpeToAll(String(rpe))}
                 >
                   {rpe}

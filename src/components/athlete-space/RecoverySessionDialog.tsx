@@ -175,9 +175,11 @@ export function RecoverySessionDialog({ open, onOpenChange, date, categoryId, pl
                 <Button
                   key={v}
                   type="button"
-                  variant={rpe === v ? "default" : "outline"}
+                  variant="outline"
+                  data-rpe={v}
+                  aria-pressed={rpe === v}
                   size="sm"
-                  className={cn("rounded-xl w-12", rpe === v && "bg-emerald-600 hover:bg-emerald-700")}
+                  className="min-h-11 rounded-xl w-12"
                   onClick={() => setRpe(v)}
                 >
                   {v}
