@@ -56,13 +56,9 @@ export function LockedBlockSummary({ block, index, categoryId, playerId, onEdit,
           </div>
           <div className="min-w-0 space-y-1">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Bloc {index + 1} · {typeLabel}
+              <span className="text-base font-semibold text-primary">
+                {index + 1}. {typeLabel}
               </span>
-              <Badge variant="secondary" className="gap-1 text-[10px]">
-                <CheckCircle2 className="h-3 w-3 text-emerald-600" />
-                Enregistré
-              </Badge>
               {ballName && (
                 <Badge variant="outline" className="gap-1 text-[10px]">
                   <CircleDot className="h-3 w-3" />

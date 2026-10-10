@@ -933,7 +933,7 @@ export function BowlingSimplifiedDialog({
         </div>
 
         {/* Contenu — défilement unique */}
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-5 sm:px-8">
+        <div key={step} ref={(el) => el && (el.scrollTop = 0)} className="flex-1 min-h-0 overflow-y-auto px-4 py-5 sm:px-8">
           {step === 0 && (
             <div className="grid gap-4 md:grid-cols-2">
               <div className={`${cardCls} flex items-center gap-4`}>
