@@ -271,6 +271,7 @@ export function BowlingSimplifiedDialog({
     setBlocks((prev) => prev.map((b) => (b.id === id ? next : b)));
 
   const removeBlock = (id: string) => {
+    if (!window.confirm("Supprimer ce bloc ? Les données saisies dans ce bloc seront perdues.")) return;
     setBlocks((prev) => prev.filter((b) => b.id !== id));
     setLockedIds((prev) => {
       const next = new Set(prev);
@@ -278,6 +279,42 @@ export function BowlingSimplifiedDialog({
       return next;
     });
   };
+
+  const moveBlock = (idx: number, dir: -1 | 1) =>
+    setBlocks((prev) => {
+      const j = idx + dir;
+      if (j < 0 || j >= prev.length) return prev;
+      const next = [...prev];
+      [next[idx], next[j]] = [next[j], next[idx]];
+      return next;
+    });
+
+  const duplicateBlock = (id: string) =>
+    setBlocks((prev) => {
+      const i = prev.findIndex((b) => b.id === id);
+      if (i < 0) return prev;
+      const copy = JSON.parse(JSON.stringify(prev[i])) as SimplifiedBlock;
+      copy.id = crypto.randomUUID();
+      if (copy.type === "games") copy.parties = copy.parties.map((p) => ({ ...p, id: crypto.randomUUID() }));
+      if (copy.type === "tactical") copy.items = copy.items.map((it: any) => ({ ...it, id: crypto.randomUUID() }));
+      const next = [...prev];
+      next.splice(i + 1, 0, copy);
+      return next;
+    });
+
+  const [step, setStep] = useState(0);
+  const goToStep = (s: number) => {
+    if (s > 0 && step === 0 && !isAthleteMode && !isEditMode && selectedPlayers.length === 0) {
+      toast.error("Sélectionnez au moins un athlète");
+      return;
+    }
+    if (s === 2 && blocks.length === 0) {
+      toast.error("Ajoutez au moins un bloc à la séance");
+      return;
+    }
+    setStep(Math.max(0, Math.min(2, s)));
+  };
+
 
   const validateBlock = (b: SimplifiedBlock): string | null => {
     if (b.type === "tactical" || b.type === "technical") {
