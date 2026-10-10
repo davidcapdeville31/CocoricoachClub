@@ -6,7 +6,7 @@
 - Athlete notifications are push-only via linked user IDs; composition messages stay editable and calendar availability invitations unchanged.
 - BrandLogo uses identical artwork and transparency across themes; its CDN dark variant has light strokes to avoid checkerboards and brand drift.
 - OneSignal registration waits for explicit post-init readiness and caches only successful syncs; available SDK methods do not prove readiness.
-- Attendance reports label notification channels active only from confirmed enabled OneSignal subscriptions; preference toggles alone never prove delivery readiness.
+- Attendance reports require confirmed enabled OneSignal subscriptions to mark push active; preferences alone never prove readiness.
 - Global attendance previews read only `match_participants` and minimal player fields, never lineups/full rosters, so all sports count invitations and actual responses.
 
 - Push permission reads the native three-state permission first; OneSignal's boolean false is never treated as denied because it also means not requested.
@@ -30,7 +30,7 @@
 - In-progress bowling games remain in block configuration but never enter completed-game aggregates or flattened competition results; this preserves resumable input without publishing provisional scores.
 - Judo premium sessions reuse training_sessions/training_session_blocks (training_type terrain + judo_* blocks) with structured detail in backward-compatible `<!--judo-block:...-->`/`<!--judo-session:...-->` notes tags, so existing calendars, workload and history keep working without schema changes.
 
-- The existing FieldModeContext preference activates the same canonical dark tokens and Tailwind dark variants as `.dark`; never add a parallel theme provider.
+- FieldModeContext activates canonical `.dark` tokens and Tailwind variants; no parallel theme provider.
 - RPE uses `data-rpe`; form uses shared FeelingChoices and `data-feeling` tokens; selection overrides exclude both and bowling to preserve meaning.
 
 - Attendance uses `data-attendance` status tokens outside selection overrides; session actions stay outside disclosures to remain accessible when collapsed.
