@@ -12,7 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sparkles, Plus, Target, Wrench, Save, Circle, Users, Loader2, Droplet } from "lucide-react";
+import { Sparkles, Plus, Target, Wrench, Save, Circle, Users, Loader2, Droplet, ArrowUp, ArrowDown, Copy, ArrowLeft, ArrowRight, CheckCircle2, CalendarDays } from "lucide-react";
+import { BowlingStepper, BowlingSessionRecap } from "./simplified/WizardParts";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -271,6 +272,7 @@ export function BowlingSimplifiedDialog({
     setBlocks((prev) => prev.map((b) => (b.id === id ? next : b)));
 
   const removeBlock = (id: string) => {
+    if (!window.confirm("Supprimer ce bloc ? Les données saisies dans ce bloc seront perdues.")) return;
     setBlocks((prev) => prev.filter((b) => b.id !== id));
     setLockedIds((prev) => {
       const next = new Set(prev);
@@ -278,6 +280,42 @@ export function BowlingSimplifiedDialog({
       return next;
     });
   };
+
+  const moveBlock = (idx: number, dir: -1 | 1) =>
+    setBlocks((prev) => {
+      const j = idx + dir;
+      if (j < 0 || j >= prev.length) return prev;
+      const next = [...prev];
+      [next[idx], next[j]] = [next[j], next[idx]];
+      return next;
+    });
+
+  const duplicateBlock = (id: string) =>
+    setBlocks((prev) => {
+      const i = prev.findIndex((b) => b.id === id);
+      if (i < 0) return prev;
+      const copy = JSON.parse(JSON.stringify(prev[i])) as SimplifiedBlock;
+      copy.id = crypto.randomUUID();
+      if (copy.type === "games") copy.parties = copy.parties.map((p) => ({ ...p, id: crypto.randomUUID() }));
+      if (copy.type === "tactical") copy.items = copy.items.map((it: any) => ({ ...it, id: crypto.randomUUID() }));
+      const next = [...prev];
+      next.splice(i + 1, 0, copy);
+      return next;
+    });
+
+  const [step, setStep] = useState(0);
+  const goToStep = (s: number) => {
+    if (s > 0 && step === 0 && !isAthleteMode && !isEditMode && selectedPlayers.length === 0) {
+      toast.error("Sélectionnez au moins un athlète");
+      return;
+    }
+    if (s === 2 && blocks.length === 0) {
+      toast.error("Ajoutez au moins un bloc à la séance");
+      return;
+    }
+    setStep(Math.max(0, Math.min(2, s)));
+  };
+
 
   const validateBlock = (b: SimplifiedBlock): string | null => {
     if (b.type === "tactical" || b.type === "technical") {
@@ -777,12 +815,14 @@ export function BowlingSimplifiedDialog({
       setSelectedPlayers([]);
       setOilPatternName("none");
       setOilScope("session");
+      setStep(0);
     }
     onOpenChange(next);
   };
 
   // Réinitialise quand on ouvre (sauf en édition : on attend la requête)
   useEffect(() => {
+    if (open) setStep(isEditMode ? 1 : 0);
     if (open && !isEditMode) {
       setBlocks([]);
       setLockedIds(new Set());
@@ -813,18 +853,33 @@ export function BowlingSimplifiedDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="w-[calc(100vw-1rem)] sm:w-[95vw] max-w-[1200px] border-border/70 bg-background/95 shadow-2xl backdrop-blur-md max-h-[92vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <Sparkles className="h-5 w-5 text-primary" />
-            {isEditMode ? "Remplir la séance bowling" : "Nouvelle séance bowling — Mode simplifié"}
-          </DialogTitle>
-          <p className="text-sm text-muted-foreground">
-            {format(date, "EEEE d MMMM yyyy", { locale: getDateLocale() })}
-          </p>
+      <DialogContent className="w-[calc(100vw-1rem)] sm:w-[95vw] max-w-[760px] border-border/70 bg-surface-sunken shadow-2xl backdrop-blur-md max-h-[92vh] overflow-y-auto">
+        <DialogHeader className="space-y-4">
+          <BowlingStepper step={step} onStep={goToStep} />
+          <div>
+            <DialogTitle className="text-2xl font-bold tracking-tight text-foreground">
+              {step === 0
+                ? isEditMode ? "Remplir la séance bowling" : "Nouvelle séance bowling"
+                : step === 1 ? "Contenu de la séance" : "Récapitulatif"}
+            </DialogTitle>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {step === 0
+                ? "En mode simplifié, ajoute rapidement ta séance en quelques étapes."
+                : step === 1 ? "Ajoute les blocs Tactique, Technique et Parties dans l'ordre de ton choix."
+                : "Vérifie ta séance avant de l'enregistrer."}
+            </p>
+          </div>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
+          {step === 0 && (<>
+          <div className="flex items-center gap-3 rounded-2xl bg-card p-4 shadow-sm">
+            <div className="rounded-xl bg-primary/10 p-2.5"><CalendarDays className="h-5 w-5 text-primary" /></div>
+            <div>
+              <p className="text-xs text-muted-foreground">Date de la séance</p>
+              <p className="font-semibold capitalize text-foreground">{format(date, "EEEE d MMMM yyyy", { locale: getDateLocale() })}</p>
+            </div>
+          </div>
           {/* Sélecteur d'athlètes (coach uniquement) */}
           {!isAthleteMode && (
             <div className="rounded-2xl border border-border/60 bg-surface-sunken/40 p-3">
@@ -948,6 +1003,27 @@ export function BowlingSimplifiedDialog({
           </div>
 
 
+          </>)}
+
+          {step === 1 && (<>
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            {[
+              { key: "tactical", label: "Tactique", hint: "Strike, spares, quilles", icon: Target, color: "text-primary", bg: "bg-primary/10", onClick: addTactical },
+              { key: "technical", label: "Technique", hint: "Thématique & durée", icon: Wrench, color: "text-success", bg: "bg-success/10", onClick: addTechnical },
+              { key: "games", label: "Parties", hint: "Scores des parties", icon: Circle, color: "text-warning", bg: "bg-warning/10", onClick: addGames },
+            ].map((c) => (
+              <button
+                key={c.key}
+                type="button"
+                onClick={c.onClick}
+                className="group flex flex-col items-center gap-1.5 rounded-2xl bg-card p-3 sm:p-4 text-center shadow-sm ring-1 ring-border/50 transition-all hover:-translate-y-0.5 hover:shadow-md hover:ring-primary/40"
+              >
+                <span className={`rounded-xl p-2.5 ${c.bg}`}><c.icon className={`h-5 w-5 ${c.color}`} /></span>
+                <span className="flex items-center gap-1 text-sm font-semibold text-foreground"><Plus className="h-3.5 w-3.5" />{c.label}</span>
+                <span className="hidden sm:block text-[11px] text-muted-foreground">{c.hint}</span>
+              </button>
+            ))}
+          </div>
 
           {blocks.length === 0 && (
             <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border/60 bg-muted/20 py-10 text-center">
@@ -963,7 +1039,14 @@ export function BowlingSimplifiedDialog({
             </div>
           )}
 
-          {blocks.map((b, posIdx) => {
+          {blocks.map((b, posIdx) => (
+            <div key={b.id} className="space-y-1.5">
+              <div className="flex items-center justify-end gap-1">
+                <Button type="button" variant="ghost" size="icon" className="h-8 w-8" aria-label="Monter le bloc" disabled={posIdx === 0} onClick={() => moveBlock(posIdx, -1)}><ArrowUp className="h-4 w-4" /></Button>
+                <Button type="button" variant="ghost" size="icon" className="h-8 w-8" aria-label="Descendre le bloc" disabled={posIdx === blocks.length - 1} onClick={() => moveBlock(posIdx, 1)}><ArrowDown className="h-4 w-4" /></Button>
+                <Button type="button" variant="ghost" size="sm" className="h-8 gap-1 text-xs" onClick={() => duplicateBlock(b.id)}><Copy className="h-3.5 w-3.5" />Dupliquer</Button>
+              </div>
+              {(() => {
             const locked = lockedIds.has(b.id);
             if (locked) {
               return (
@@ -1028,47 +1111,24 @@ export function BowlingSimplifiedDialog({
                 </div>
               </div>
             );
-          })}
+              })()}
+            </div>
+          ))}
+          </>)}
 
-          {/* Add block buttons */}
-          <div className="flex flex-wrap gap-2 pt-1">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={addTactical}
-              className="gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              <Target className="h-3.5 w-3.5 text-blue-500" />
-              Ajouter un bloc Tactique
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={addTechnical}
-              className="gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              <Wrench className="h-3.5 w-3.5 text-emerald-600" />
-              Ajouter un bloc Technique
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={addGames}
-              className="gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              <Circle className="h-3.5 w-3.5 text-amber-600" />
-              Ajouter un bloc Parties
-            </Button>
-          </div>
+          {step === 2 && (
+            <BowlingSessionRecap
+              date={date}
+              blocks={blocks}
+              totalDuration={blocks.reduce((s, b) => s + (blockDuration(b) || 0), 0)}
+              athleteCount={isAthleteMode ? null : selectedPlayers.length}
+              oilName={oilPatternName === "none" ? null : oilPatternName === "__custom__" ? (customOilName || "Personnalisé") : oilPatternName}
+              onEditStep={goToStep}
+            />
+          )}
         </div>
 
-        {isAthleteMode && !isEditMode && (
+        {step === 2 && isAthleteMode && !isEditMode && (
           <div className="mt-4 rounded-lg border bg-muted/30 p-3 space-y-2">
             <div className="flex items-center justify-between text-sm">
               <Label className="font-medium">RPE ressenti (1-10)</Label>
@@ -1104,20 +1164,28 @@ export function BowlingSimplifiedDialog({
           </div>
         )}
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => handleOpenChange(false)}>
-            Annuler
-          </Button>
-          <Button onClick={handleSave} disabled={saveMutation.isPending}>
-            {saveMutation.isPending ? (
-              <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Enregistrement...</>
-            ) : isAthleteMode ? (
-              "Enregistrer la séance"
-            ) : (
-              `Attribuer (${selectedPlayers.length})`
-            )}
-          </Button>
-        </DialogFooter>
+        <div className="sticky bottom-0 -mx-6 -mb-6 flex gap-2 border-t border-border/60 bg-background/95 px-6 py-4 backdrop-blur">
+          {step > 0 ? (
+            <Button variant="outline" className="h-12 rounded-xl" onClick={() => goToStep(step - 1)}>
+              <ArrowLeft className="h-4 w-4 mr-1" /> Retour
+            </Button>
+          ) : (
+            <Button variant="ghost" className="h-12 rounded-xl" onClick={() => handleOpenChange(false)}>Annuler</Button>
+          )}
+          {step < 2 ? (
+            <Button className="h-12 flex-1 rounded-xl text-base font-semibold" onClick={() => goToStep(step + 1)}>
+              Suivant <ArrowRight className="h-4 w-4 ml-1" />
+            </Button>
+          ) : (
+            <Button className="h-12 flex-1 rounded-xl bg-success text-base font-semibold text-success-foreground hover:bg-success/90" onClick={handleSave} disabled={saveMutation.isPending}>
+              {saveMutation.isPending ? (
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Enregistrement...</>
+              ) : (
+                <><CheckCircle2 className="h-5 w-5 mr-2" />{isAthleteMode ? "Enregistrer la séance" : `Attribuer (${selectedPlayers.length})`}</>
+              )}
+            </Button>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

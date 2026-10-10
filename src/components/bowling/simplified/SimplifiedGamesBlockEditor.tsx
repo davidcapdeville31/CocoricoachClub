@@ -10,6 +10,7 @@ import { BowlingScoreSheet } from "@/components/athlete-portal/BowlingScoreSheet
 import {
   aggregateGamesStats,
   newGameEntry,
+  quickScoreStats,
   type SimplifiedGameEntry,
   type SimplifiedGamesBlock,
 } from "./types";
@@ -52,6 +53,19 @@ export function SimplifiedGamesBlockEditor({
   };
 
   const agg = aggregateGamesStats(value);
+  const mode = value.entry_mode ?? "detailed";
+  const best = Math.max(0, ...value.parties.map((p) => p.stats?.totalScore || 0));
+
+  const setCount = (n: number) => {
+    const cur = value.parties;
+    if (n === cur.length) return;
+    if (n > cur.length) update({ parties: [...cur, ...Array.from({ length: n - cur.length }, newGameEntry)] });
+    else {
+      const dropped = cur.slice(n).some((p) => p.stats);
+      if (dropped && !window.confirm("Supprimer les dernières parties déjà saisies ?")) return;
+      update({ parties: cur.slice(0, n) });
+    }
+  };
 
   return (
     <Card className="space-y-4 rounded-2xl border-l-4 border-l-amber-500 bg-surface p-4 shadow-sm">
@@ -78,6 +92,89 @@ export function SimplifiedGamesBlockEditor({
         </Button>
       </div>
 
+      <div className="grid grid-cols-2 gap-2">
+        {([
+          ["quick", "Saisie rapide", "Juste les scores"],
+          ["detailed", "Saisie détaillée", "Poches, spares, statistiques"],
+        ] as const).map(([m, t, h]) => (
+          <button
+            key={m}
+            type="button"
+            onClick={() => update({ entry_mode: m })}
+            className={`rounded-xl px-3 py-2.5 text-center transition-colors ${mode === m ? "bg-foreground text-background" : "bg-surface-sunken text-foreground ring-1 ring-border/60"}`}
+          >
+            <span className="block text-sm font-semibold">{t}</span>
+            <span className={`block text-[11px] ${mode === m ? "opacity-80" : "text-muted-foreground"}`}>{h}</span>
+          </button>
+        ))}
+      </div>
+
+      {mode === "quick" && (
+        <div className="space-y-3">
+          <div>
+            <Label className="text-sm font-semibold">Nombre de parties</Label>
+            <div className="mt-2 grid grid-cols-6 gap-2">
+              {[1, 2, 3, 4, 5, 6].map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => setCount(n)}
+                  className={`h-11 rounded-xl text-sm font-semibold transition-colors ${value.parties.length === n ? "bg-foreground text-background" : "bg-surface-sunken ring-1 ring-border/60"}`}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-[1fr_160px]">
+            <div className="space-y-2">
+              {value.parties.map((p, idx) => (
+                <div key={p.id} className="flex items-center gap-3">
+                  <span className="w-16 shrink-0 text-sm text-muted-foreground">Partie {idx + 1}</span>
+                  <Input
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    max={300}
+                    placeholder="Score"
+                    value={p.stats ? p.stats.totalScore : ""}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      if (raw === "") return updateParty(p.id, { stats: null, frames: null });
+                      const v = Math.max(0, Math.min(300, parseInt(raw, 10) || 0));
+                      updateParty(p.id, { stats: quickScoreStats(v), frames: null });
+                    }}
+                    className="h-11 bg-surface-sunken text-base"
+                  />
+                  {value.parties.length > 1 && (
+                    <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" aria-label="Supprimer la partie" onClick={() => {
+                      if (p.stats && !window.confirm("Supprimer cette partie ?")) return;
+                      removeParty(p.id);
+                    }}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              <Button type="button" variant="outline" size="sm" onClick={addParty} className="gap-1">
+                <Plus className="h-3.5 w-3.5" /> Ajouter une partie
+              </Button>
+            </div>
+            <div className="flex flex-row sm:flex-col justify-around gap-2 rounded-2xl bg-primary/10 p-3 text-center">
+              <div>
+                <p className="text-xs text-muted-foreground">Moyenne</p>
+                <p className="text-2xl font-bold text-foreground">{agg ? agg.avgScore.toLocaleString("fr-FR") : "—"}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Meilleure partie</p>
+                <p className="text-2xl font-bold text-foreground">{agg ? best : "—"}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {mode === "detailed" && (<>
       {/* Pocket toggle + global stats */}
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 bg-surface-sunken p-3">
         <div className="flex items-center gap-3">
@@ -174,6 +271,15 @@ export function SimplifiedGamesBlockEditor({
           Ajouter une partie
         </Button>
       </div>
+      </>)}
+
+      {mode === "quick" && !hideOilPicker && (
+        <SimplifiedOilPatternPicker
+          value={value.oil_pattern}
+          onChange={(op) => update({ oil_pattern: op })}
+          categoryId={categoryId}
+        />
+      )}
     </Card>
   );
 }

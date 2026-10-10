@@ -119,6 +119,8 @@ export interface SimplifiedGamesBlock {
   title: string;
   /** Affiche/masque la colonne "poches" dans la feuille de partie. */
   track_pockets: boolean;
+  /** "quick" = seulement les scores ; "detailed" = feuille de score complète. */
+  entry_mode?: "quick" | "detailed";
   oil_pattern: SimplifiedOilPattern;
   parties: SimplifiedGameEntry[];
 }
@@ -250,6 +252,7 @@ export function newGamesBlock(): SimplifiedGamesBlock {
     type: "games",
     title: "",
     track_pockets: true,
+    entry_mode: "quick",
     oil_pattern: {
       preset_name: null,
       image_url: null,
@@ -295,5 +298,16 @@ export function aggregateGamesStats(block: SimplifiedGamesBlock) {
     pocketPct: throws > 0 ? Math.round((pockets / throws) * 100) : 0,
     strikePct: frames > 0 ? Math.round((strikes / frames) * 100) : 0,
     sparePct: frames > 0 ? Math.round((spares / frames) * 100) : 0,
+  };
+}
+
+/** Stats minimales pour une partie saisie en mode rapide (score seul). */
+export function quickScoreStats(score: number): BowlingStats {
+  return {
+    totalScore: score, strikes: 0, spares: 0, splitCount: 0, splitConverted: 0, splitOnLastThrow: 0,
+    singlePinCount: 0, singlePinConverted: 0, pocketCount: 0, totalThrows: 0, totalFrames: 0,
+    strikePercentage: 0, sparePercentage: 0, splitPercentage: 0, singlePinConversionRate: 0,
+    pocketPercentage: 0, openFrames: 0, firstBallGte8Count: 0, firstBallGte8Opportunities: 0,
+    firstBallGte8Percentage: 0,
   };
 }
