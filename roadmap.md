@@ -4,6 +4,7 @@
 - Première étape documentée dans `.lovable/theme-audit-report.md` : 84 états connectés, 7 écrans, clair/sombre et six largeurs ; aucun contraste/label/bouton sans nom détecté au dernier passage, zéro débordement et erreur JS ; 28 tests réussis. Audit exhaustif, modales, autres disciplines, états interactifs et anomalies de structure encore à traiter.
 - [ ] Inventorier routes, styles fixes, composants partagés, RPE et graphiques.
 - [x] Zone principale accessible ajoutée aux pages Clubs, Paramètres, Admin, Super Admin, catégorie, club et athlète.
+- [x] Titres de cartes hiérarchisés, tableau Admin lisible sur mobile (défilement interne), préférences de notifications empilées sur petit écran.
 - [ ] Fiabiliser tokens et contrastes, formulaires, sélections imbriquées et portails sans changement métier.
 - [ ] Déployer l’échelle RPE chromatique commune, préserver les observations bowling et Wellness.
 - [ ] Contrôler les interfaces accessibles en clair/sombre, plusieurs largeurs et états ; produire un rapport avec couverture et limites explicites.
