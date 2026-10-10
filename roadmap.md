@@ -1,5 +1,12 @@
 # Calendrier de charge
 
+## Feuille de score bowling mobile
+- [x] Examiner la feuille actuelle et les points de sauvegarde ; formaliser le plan.
+- [ ] Ajouter une saisie guidée mobile compatible avec la feuille ordinateur.
+- [ ] Préserver corrections, statistiques optionnelles, modes et parties incomplètes.
+- [ ] Vérifier les dix scénarios demandés et les quatre largeurs mobiles.
+- [ ] Vérifier sauvegarde/réouverture et statistiques sur compte connecté autorisé, si disponible.
+
 ## Notification de composition
 - [x] Préremplir un message de sélection modifiable et retirer les options et compteurs mail/SMS du dialogue partagé.
 - [x] Vérifier le dialogue sur la composition Racing (23 comptes liés), sans envoyer de push de test aux athlètes ; Push décoché bloque l'envoi avec un message explicite.
