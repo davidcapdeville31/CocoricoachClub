@@ -14290,6 +14290,8 @@ export type Database = {
       }
       training_sessions: {
         Row: {
+          author_name: string | null
+          author_user_id: string | null
           category_id: string
           created_at: string
           created_by_player_id: string | null
@@ -14307,6 +14309,8 @@ export type Database = {
           training_type: string
         }
         Insert: {
+          author_name?: string | null
+          author_user_id?: string | null
           category_id: string
           created_at?: string
           created_by_player_id?: string | null
@@ -14324,6 +14328,8 @@ export type Database = {
           training_type: string
         }
         Update: {
+          author_name?: string | null
+          author_user_id?: string | null
           category_id?: string
           created_at?: string
           created_by_player_id?: string | null
@@ -15632,6 +15638,14 @@ export type Database = {
       get_targeted_session_ids: {
         Args: { _session_ids: string[] }
         Returns: string[]
+      }
+      get_training_session_authors: {
+        Args: { session_ids: string[] }
+        Returns: {
+          author_name: string
+          author_user_id: string
+          session_id: string
+        }[]
       }
       has_club_role: {
         Args: {
