@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Trophy, PersonStanding, ClipboardCheck, Timer, Sparkles, Plus, Target, Wrench, Save, Circle, Users, Loader2, Droplet, ArrowUp, ArrowDown, Copy, ArrowLeft, ArrowRight, CheckCircle2, CalendarDays, X, ChevronDown, ChevronUp, Flag, Repeat, Zap, Eye, Brain } from "lucide-react";
+import { Trophy, Timer, Sparkles, Plus, Target, Wrench, Save, Circle, Users, Loader2, Droplet, ArrowUp, ArrowDown, Copy, ArrowLeft, ArrowRight, CheckCircle2, CalendarDays, X, ChevronDown, ChevronUp, Flag, Repeat, Zap, Eye, Brain } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { BowlingStepper, BowlingSessionRecap, blockSummary } from "./simplified/WizardParts";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -45,8 +45,6 @@ import statsIllu from "@/assets/bowling/stats.png";
 export const SESSION_KINDS = [
   { value: "training", label: "Entraînement", hint: "Séance classique", icon: "pins", color: "" },
   { value: "competition", label: "Compétition", hint: "Match / Tournoi", icon: "trophy", color: "text-bowling-games" },
-  { value: "personal", label: "Personnelle", hint: "Loisir / jeu libre", icon: "run", color: "text-bowling-coral" },
-  { value: "evaluation", label: "Évaluation", hint: "Test / bilan", icon: "check", color: "text-bowling-accent" },
 ] as const;
 export type SessionKind = (typeof SESSION_KINDS)[number]["value"];
 const DURATION_PRESETS = [30, 60, 90, 120];
@@ -358,9 +356,6 @@ export function BowlingSimplifiedDialog({
           toast.error(err);
           return;
         }
-      }
-      if (!blocks.some((b) => b.type === "games")) {
-        setBlocks((prev) => [...prev, withSessionOil({ ...newGamesBlock(), entry_mode: "quick" } as SimplifiedBlock)]);
       }
     }
     setStep(Math.max(0, Math.min(2, s)));
@@ -1044,7 +1039,7 @@ export function BowlingSimplifiedDialog({
                       return (
                         <button key={k.value} type="button" aria-pressed={on} onClick={() => setSessionKind(on ? null : k.value)} className={`flex flex-col items-center justify-center gap-1 rounded-2xl px-2 py-4 text-center transition-all duration-200 active:scale-[0.97] ${on ? "bg-bowling-ink text-card shadow-lg" : "border border-border/70 bg-card text-bowling-ink hover:-translate-y-0.5 hover:shadow-md"}`}>
                           <span className="flex h-9 items-center justify-center" aria-hidden>
-                            {k.icon === "pins" ? <img src={heroPins} alt="" width={36} height={36} className="h-9 w-9 object-contain" /> : k.icon === "trophy" ? <Trophy className={`h-7 w-7 ${on ? "text-card" : k.color}`} /> : k.icon === "run" ? <PersonStanding className={`h-7 w-7 ${on ? "text-card" : k.color}`} /> : <ClipboardCheck className={`h-7 w-7 ${on ? "text-card" : k.color}`} />}
+                            {k.icon === "pins" ? <img src={heroPins} alt="" width={36} height={36} className="h-9 w-9 object-contain" /> : <Trophy className={`h-7 w-7 ${on ? "text-card" : k.color}`} />}
                           </span>
                           <span className="mt-1 text-sm font-semibold">{k.label}</span>
                           <span className={`text-xs ${on ? "text-card/75" : "text-muted-foreground"}`}>{k.hint}</span>
@@ -1108,10 +1103,11 @@ export function BowlingSimplifiedDialog({
 
           {step === 1 && (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {[
                   { key: "tactical", label: "Tactique", hint: "Strike, spares, quilles", icon: Target, color: "text-bowling-tactical", onClick: addTactical },
                   { key: "technical", label: "Technique", hint: "Thématique & durée", icon: Wrench, color: "text-bowling-technical", onClick: addTechnical },
+                  { key: "games", label: "Parties", hint: "Scores & jeux", icon: Circle, color: "text-bowling-games", onClick: addGames },
                 ].map((c) => (
                   <button key={c.key} type="button" onClick={c.onClick} className={`${cardCls} group flex flex-col items-center gap-1.5 !p-3 text-center transition-all hover:-translate-y-0.5 hover:shadow-md`}>
                     <c.icon className={`h-6 w-6 ${c.color}`} />
@@ -1121,7 +1117,7 @@ export function BowlingSimplifiedDialog({
                 ))}
               </div>
 
-              {blocks.filter((x) => x.type !== "games").length === 0 && (
+              {blocks.length === 0 && (
                 <div className={`${cardCls} py-8 text-center`}>
                   <p className="text-base font-semibold text-bowling-ink">Construis ta séance</p>
                   <p className="mt-1 text-sm text-muted-foreground">Ajoute un bloc tactique ou technique, ou passe directement aux parties.</p>
@@ -1129,7 +1125,6 @@ export function BowlingSimplifiedDialog({
               )}
 
               {blocks.map((b, posIdx) => {
-                if (b.type === "games") return null;
                 const collapsed = lockedIds.has(b.id);
                 const meta = b.type === "tactical"
                   ? { Icon: Target, label: "Tactique", fg: "text-bowling-tactical", bg: "bg-bowling-tactical/10", bar: "bg-bowling-tactical" }
@@ -1187,10 +1182,6 @@ export function BowlingSimplifiedDialog({
 
           {step === 2 && (
             <div className="space-y-4">
-              {blocks.filter((b): b is Extract<SimplifiedBlock, { type: "games" }> => b.type === "games").map((b) => (
-                <SimplifiedGamesBlockEditor key={b.id} value={b} index={gamesIndexById.get(b.id) ?? 0} categoryId={categoryId} playerId={playerIdForEditors} hideOilPicker={oilScope === "session"} onChange={(next) => updateBlock(b.id, next)} onRemove={() => removeBlock(b.id)} premium />
-              ))}
-
               <BowlingSessionRecap
                 date={date}
                 blocks={effectiveBlocks}
@@ -1231,7 +1222,7 @@ export function BowlingSimplifiedDialog({
             )}
             {step < 2 ? (
               <Button className="h-14 flex-1 rounded-2xl bg-gradient-to-b from-bowling-ink-2 to-bowling-ink text-base font-semibold text-card shadow-[0_10px_24px_-10px_hsl(var(--bowling-ink)/0.7)] hover:opacity-95" onClick={() => goToStep(step + 1)}>
-                {step === 0 ? "Suivant" : "Suivant : parties"} <ArrowRight className="ml-2 h-5 w-5" />
+                {step === 0 ? "Suivant" : "Suivant : récapitulatif"} <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             ) : (
               <Button className="h-14 flex-1 rounded-2xl bg-bowling-success text-base font-semibold text-card shadow-[0_10px_24px_-10px_hsl(var(--bowling-success)/0.8)] hover:bg-bowling-success/90" onClick={handleSave} disabled={saveMutation.isPending}>
