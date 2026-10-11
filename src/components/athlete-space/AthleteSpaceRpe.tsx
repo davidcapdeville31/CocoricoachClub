@@ -781,6 +781,9 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory, onViewCalen
         training_session_id: selectedSession,
         post_session_feeling: feeling,
         post_session_notes: comment || null,
+        // Real athlete entry: clear the auto-fill flag so the session leaves
+        // the to-do list and the staff notification trigger fires.
+        auto_filled: false,
       };
       const { data: updatedAwcrRows, error: updateAwcrError } = await supabase
         .from("awcr_tracking")
