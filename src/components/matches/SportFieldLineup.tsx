@@ -487,7 +487,9 @@ export function SportFieldLineup({
                         // Compact: drop trailing empty slots, keep array aligned to slots
                         while (newSubs.length > 0 && newSubs[newSubs.length - 1] === "") newSubs.pop();
                         setSubstitutes(newSubs);
-                        onLineupChange?.(lineup, newSubs.filter(Boolean));
+                        // Keep empty slots in the array so each substitute keeps
+                        // her chosen number (no closing of gaps).
+                        onLineupChange?.(lineup, newSubs);
                       }}
                     >
                       <SelectTrigger className="h-8 text-sm">

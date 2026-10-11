@@ -419,10 +419,24 @@ export function MatchLineupDialog({
 
   // Get initial substitutes: only players actually saved as substitutes in the lineup.
   // Convoked-only athletes stay available to be placed on the field.
+  // Players are placed in the slot matching their saved number (16, 17…),
+  // not in alphabetical order, so reopening keeps the coach's numbering.
   const savedLineupIds = new Set((existingLineup || []).map((l: any) => l.player_id));
-  const initialSubstitutes = lineupData
+  const initialSubstitutes: string[] = [];
+  lineupData
     .filter(p => p.isSelected && !p.isStarter && savedLineupIds.has(p.playerId))
-    .map(p => p.playerId);
+    .forEach(p => {
+      const savedNumber = parseInt(p.position || "", 10);
+      const slotIndex = savedNumber - fieldConfig.starters - 1;
+      if (Number.isInteger(slotIndex) && slotIndex >= 0 && slotIndex < fieldConfig.substitutes && !initialSubstitutes[slotIndex]) {
+        initialSubstitutes[slotIndex] = p.playerId;
+      } else {
+        // No usable saved number: first free slot, without shifting the others
+        const freeIndex = initialSubstitutes.findIndex(s => !s);
+        if (freeIndex !== -1) initialSubstitutes[freeIndex] = p.playerId;
+        else if (initialSubstitutes.length < fieldConfig.substitutes) initialSubstitutes.push(p.playerId);
+      }
+    });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
