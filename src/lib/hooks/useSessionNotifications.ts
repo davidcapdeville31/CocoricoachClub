@@ -280,6 +280,35 @@ export function useSessionNotifications() {
         return;
       }
 
+      // ── Dedup: assignment trigger already notifies on creation ───────────
+      // trg_notify_event_participant_assignment (AFTER INSERT on
+      // event_participants) inserts a `session_assignment` bell notification
+      // and pushes via push-from-notification. Participant inserts happen
+      // before this hook runs, so on "created" the trigger has already fired
+      // for every convoqué. Skip bell + push here to avoid double
+      // notifications; OneSignal tagging below still runs.
+      if (action === "created" && sessionId) {
+        try {
+          const { data: existing } = await supabase
+            .from("notifications")
+            .select("id")
+            .eq("notification_type", "session_assignment")
+            .eq("metadata->>session_id", sessionId)
+            .limit(1);
+          if (existing && existing.length > 0) {
+            console.log(
+              "[SessionNotification] ⏭️  Notification d'assignation déjà créée par le trigger — cloche et push ignorés (tagging conservé)."
+            );
+            if (sessionId) {
+              void tagSessionParticipants(sessionId, participantPlayerIds!, clubId, "add");
+            }
+            return;
+          }
+        } catch {
+          // fail-open: if the check fails, keep the legacy behavior
+        }
+      }
+
       console.log(`[SessionNotification] Title: ${title}`);
       console.log(`[SessionNotification] Message: ${message}`);
 
