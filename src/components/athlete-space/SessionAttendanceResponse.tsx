@@ -86,6 +86,14 @@ export function SessionAttendanceResponse({
     if (savingRef.current) return;
     savingRef.current = true;
     setSaving(true);
+    // Mise à jour optimiste : la couleur change instantanément, annulée en cas d'erreur
+    const key = ["ep-attendance", sessionId, playerId];
+    const previous = qc.getQueryData<any>(key);
+    qc.setQueryData(key, (old: any) => ({
+      ...(old ?? { id: null, responded_at: null }),
+      attendance_status: nextStatus,
+      absence_comment: nextStatus === "absent" ? (nextComment ?? comment) || null : null,
+    }));
     try {
       if (participant) {
         const { error } = await supabase
@@ -131,6 +139,7 @@ export function SessionAttendanceResponse({
       qc.invalidateQueries({ queryKey: ["athlete-calendar-sessions"] });
 
     } catch (e: any) {
+      qc.setQueryData(key, previous);
       toast.error(e?.message || t("athleteSpace.calendar.attendance.saveError"));
     } finally {
       savingRef.current = false;

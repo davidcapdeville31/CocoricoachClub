@@ -57,6 +57,14 @@ export function MatchAttendanceResponse({ matchId, playerId, matchDate, matchTim
     if (savingRef.current) return;
     savingRef.current = true;
     setSaving(true);
+    // Mise à jour optimiste : la couleur change instantanément, annulée en cas d'erreur
+    const key = ["mp-attendance", matchId, playerId];
+    const previous = qc.getQueryData<any>(key);
+    qc.setQueryData(key, (old: any) => old ? {
+      ...old,
+      attendance_status: nextStatus,
+      absence_comment: nextStatus === "absent" ? (nextComment ?? comment) || null : null,
+    } : old);
     try {
       const { error } = await supabase
         .from("match_participants")
@@ -70,6 +78,7 @@ export function MatchAttendanceResponse({ matchId, playerId, matchDate, matchTim
       qc.invalidateQueries({ queryKey: ["mp-attendance", matchId, playerId] });
       qc.invalidateQueries({ queryKey: ["athlete-calendar-upcoming-attendance", playerId] });
     } catch (e: any) {
+      qc.setQueryData(key, previous);
       toast.error(e?.message || t("athleteSpace.calendar.attendance.saveError"));
     } finally {
       savingRef.current = false;
