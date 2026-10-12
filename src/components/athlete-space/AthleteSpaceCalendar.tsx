@@ -225,7 +225,9 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
       // (c) il a déjà répondu présent/absent,
       // ou (d) la séance est collective (aucune convocation ciblée enregistrée).
       return allSessions.filter((s: any) => {
-        if (s.created_by_player_id) return s.created_by_player_id === playerId;
+        // Séance créée par un athlète : visible par son créateur et par les
+        // participants ajoutés (par l'athlète ou par le staff).
+        if (s.created_by_player_id) return s.created_by_player_id === playerId || assignedSessionIds.has(s.id);
         if (assignedSessionIds.has(s.id) || attendedSessionIds.has(s.id)) return true;
         return !targetedSessionIds.has(s.id);
       }).sort((a, b) => b.session_date.localeCompare(a.session_date));
