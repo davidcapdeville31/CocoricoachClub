@@ -1113,16 +1113,26 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                     setLinkedDrafts((p) => {
                       const current = p[block.id];
                       if (!current) return p;
-                      return {
-                        ...p,
-                        [block.id]: {
-                          ...current,
-                          slottedExercises: current.slottedExercises.map((s) =>
+                      const exists = current.slottedExercises.some((s) => s.slotIndex === idx);
+                      const next = exists
+                        ? current.slottedExercises.map((s) =>
                             s.slotIndex === idx
                               ? { ...s, exerciseId: picked.id, exerciseName: picked.name, stationName: picked.name }
                               : s,
-                          ),
-                        },
+                          )
+                        : [
+                            ...current.slottedExercises,
+                            {
+                              id: `slot-${Date.now()}-${idx}`,
+                              exerciseId: picked.id,
+                              exerciseName: picked.name,
+                              stationName: picked.name,
+                              slotIndex: idx,
+                            },
+                          ];
+                      return {
+                        ...p,
+                        [block.id]: { ...current, slottedExercises: next.sort((a, b) => a.slotIndex - b.slotIndex) },
                       };
                     });
                   }}
