@@ -961,10 +961,12 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                 notes:
                   "coachNotes" in params
                     ? (() => {
-                        // Préserver les balises techniques cachées (<!--...-->) présentes dans la note
+                        // Préserver les balises techniques cachées (<!--...-->) présentes dans la note.
+                        // Ne pas trimmer le texte : l'espace en cours de frappe serait effacé à chaque frappe.
                         const tags = exercise.notes?.match(/<!--[\s\S]*?-->/g)?.join("") ?? "";
-                        const text = params.coachNotes?.trim() ?? "";
-                        const combined = text ? (tags ? `${text} ${tags}` : text) : tags;
+                        const raw = params.coachNotes ?? "";
+                        const hasText = raw.trim().length > 0;
+                        const combined = hasText ? (tags ? `${raw} ${tags}` : raw) : tags;
                         return combined || undefined;
                       })()
                     : exercise.notes,
