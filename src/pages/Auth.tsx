@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { signUpSchema, loginSchema } from "@/lib/validations";
 import { BrandLogo } from "@/components/BrandLogo";
+import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { getAppBaseUrl } from "@/lib/appUrl";
 
 async function getPostLoginRedirect(userId: string): Promise<string> {
@@ -419,11 +420,36 @@ export default function Auth() {
             </p>
             <Button asChild variant="secondary" className="w-full mt-2">
               <a href="mailto:contact@cocoricoachclub.com?subject=Demande%20de%20renseignements%20-%20CocoriCoach%20Club">
-                Nous contacter
+                Nous contacter par mail
               </a>
             </Button>
+            <div className="space-y-1 pt-1">
+              <p className="flex items-center justify-center gap-2 text-sm font-semibold">
+                <WhatsAppIcon className="h-4 w-4 shrink-0" />
+                Nous contacter par téléphone :
+              </p>
+              <div className="flex flex-col items-center gap-1">
+                <a
+                  href="https://wa.me/33680957628"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-full bg-primary-foreground/10 px-3 py-1 text-sm tabular-nums transition-colors hover:bg-primary-foreground/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground"
+                >
+                  David 06 80 95 76 28
+                </a>
+                <a
+                  href="https://wa.me/33606806144"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-full bg-primary-foreground/10 px-3 py-1 text-sm tabular-nums transition-colors hover:bg-primary-foreground/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground"
+                >
+                  Alexis 06 06 80 61 44
+                </a>
+              </div>
+            </div>
           </div>
         )}
+
         <Card className="w-full">
 
         <CardHeader className="pb-2 space-y-1">
