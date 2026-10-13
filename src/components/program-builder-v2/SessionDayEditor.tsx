@@ -899,6 +899,8 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
           groupId,
           variableSets: (s.params as any)?.variableSets,
           useVariableSets: (s.params as any)?.useVariableSets,
+          visibleVariables: (s.params as any)?.visibleParams,
+          notes: (s.params as any)?.coachNotes || undefined,
         } as any;
       });
 
@@ -952,6 +954,8 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                 restSeconds: params.rest ?? exercise.restSeconds,
                 variableSets: params.variableSets ?? (exercise as any).variableSets,
                 useVariableSets: params.useVariableSets ?? (exercise as any).useVariableSets,
+                visibleVariables: params.visibleParams ?? (exercise as any).visibleVariables,
+                notes: "coachNotes" in params ? (params.coachNotes || undefined) : exercise.notes,
               } as any;
             }),
 
@@ -1216,6 +1220,8 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                            rest: ex.restSeconds,
                            variableSets: (ex as any).variableSets,
                            useVariableSets: (ex as any).useVariableSets,
+                           visibleParams: (ex as any).visibleVariables,
+                           coachNotes: ex.notes ? ex.notes.replace(/<!--[\s\S]*?-->/g, "").trim() || undefined : undefined,
                          },
 
                        }))}
