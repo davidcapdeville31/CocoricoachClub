@@ -446,6 +446,7 @@ const DroppableSlot = ({
   config,
   onRemove,
   onUpdateParams,
+  onReplaceExercise,
   onSyncVisibleParam,
   method,
   isEditing = true,
@@ -457,6 +458,7 @@ const DroppableSlot = ({
   config: ReturnType<typeof getMethodConfig>;
   onRemove: () => void;
   onUpdateParams: (params: SlottedExerciseParams) => void;
+  onReplaceExercise?: (picked: ReplacedExercise) => void;
   onSyncVisibleParam: (action: 'add' | 'remove', key: string, triggerSlotIndex: number) => void;
   method: LinkedMethodType;
   isEditing?: boolean;
@@ -712,6 +714,7 @@ export const LinkedMethodSlots = ({
   slottedExercises,
   onRemoveFromSlot,
   onUpdateParams,
+  onReplaceExercise,
   onConfirm,
   onCancel,
   dayId,
@@ -726,6 +729,7 @@ export const LinkedMethodSlots = ({
       slottedExercises={slottedExercises}
       onRemoveFromSlot={onRemoveFromSlot}
       onUpdateParams={onUpdateParams}
+      onReplaceExercise={onReplaceExercise}
       onConfirm={onConfirm}
       onCancel={onCancel}
       dayId={dayId}
@@ -743,6 +747,7 @@ const LinkedMethodSlotsContent = ({
   slottedExercises,
   onRemoveFromSlot,
   onUpdateParams,
+  onReplaceExercise,
   onConfirm,
   onCancel,
   dayId,
