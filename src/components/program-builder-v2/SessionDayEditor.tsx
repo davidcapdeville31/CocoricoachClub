@@ -929,10 +929,13 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
     });
   }, []);
 
+  // Plusieurs mises à jour peuvent partir d'affilée (ex. retrait d'une variable
+  // synchronisé sur tous les exercices) : on chaîne sur le dernier état connu.
+  const latestBlocksRef = React.useRef(blocks);
+  latestBlocksRef.current = blocks;
   const handlePersistedGroupParamsUpdate = useCallback(
     (blockId: string, groupId: string, slotIndex: number, params: SlottedExerciseParams) => {
-      onChange(
-        blocks.map((block) => {
+      const nextBlocks = latestBlocksRef.current.map((block) => {
           if (block.id !== blockId) return block;
           let groupCursor = 0;
           return {
@@ -960,10 +963,11 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
             }),
 
           };
-        }),
-      );
+        });
+      latestBlocksRef.current = nextBlocks;
+      onChange(nextBlocks);
     },
-    [blocks, onChange],
+    [onChange],
   );
 
   const handlePersistedGroupRestChange = useCallback(
