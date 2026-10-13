@@ -558,6 +558,17 @@ const DroppableSlot = ({
             methodIconColor={config.color}
           />
 
+          {/* Remplacement de l'exercice en mode édition */}
+          {isEditing && onReplaceExercise && (
+            <div className="mb-1">
+              <ExercisePicker
+                mode="replace"
+                label="Changer l'exercice"
+                onPick={(picked) => onReplaceExercise({ id: picked.id, name: picked.name })}
+              />
+            </div>
+          )}
+
           {/* Weightlifting Position Selector - always available when exercise is filled */}
           <WeightliftingPositionSelector
             exerciseName={exercise.exerciseName}
