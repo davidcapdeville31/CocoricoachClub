@@ -1109,6 +1109,23 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                   onUpdateParams={(idx, params) =>
                     handleSlotParamsUpdate(block.id, idx, params)
                   }
+                  onReplaceExercise={(idx, picked) => {
+                    setLinkedDrafts((p) => {
+                      const current = p[block.id];
+                      if (!current) return p;
+                      return {
+                        ...p,
+                        [block.id]: {
+                          ...current,
+                          slottedExercises: current.slottedExercises.map((s) =>
+                            s.slotIndex === idx
+                              ? { ...s, exerciseId: picked.id, exerciseName: picked.name, stationName: picked.name }
+                              : s,
+                          ),
+                        },
+                      };
+                    });
+                  }}
                   onConfirm={() => handleLinkedConfirm(block.id)}
                   onCancel={() => handleLinkedCancel(block.id)}
                   dayId={block.id}
@@ -1260,6 +1277,9 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                       }
                       onUpdateParams={(idx, params) =>
                         handlePersistedGroupParamsUpdate(block.id, item.groupId, idx, params)
+                      }
+                      onReplaceExercise={(idx, picked) =>
+                        handlePersistedGroupReplace(block.id, item.groupId, idx, picked)
                       }
                       onConfirm={() => undefined}
                       onCancel={() => undefined}
