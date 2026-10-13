@@ -907,8 +907,8 @@ export function SessionDetailsDialog({
                           </Badge>
                         )}
                       </div>
-                      {block.notes && (
-                        <p className="text-xs text-muted-foreground mt-1">{block.notes}</p>
+                      {getReadableNotes(block.notes) && (
+                        <p className="text-xs text-muted-foreground mt-1 whitespace-pre-line">{getReadableNotes(block.notes)}</p>
                       )}
                     </div>
                   </div>
