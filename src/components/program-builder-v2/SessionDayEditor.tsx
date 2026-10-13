@@ -899,6 +899,8 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
           groupId,
           variableSets: (s.params as any)?.variableSets,
           useVariableSets: (s.params as any)?.useVariableSets,
+          visibleVariables: (s.params as any)?.visibleParams,
+          notes: (s.params as any)?.coachNotes || undefined,
         } as any;
       });
 
@@ -927,10 +929,13 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
     });
   }, []);
 
+  // Plusieurs mises à jour peuvent partir d'affilée (ex. retrait d'une variable
+  // synchronisé sur tous les exercices) : on chaîne sur le dernier état connu.
+  const latestBlocksRef = useRef(blocks);
+  latestBlocksRef.current = blocks;
   const handlePersistedGroupParamsUpdate = useCallback(
     (blockId: string, groupId: string, slotIndex: number, params: SlottedExerciseParams) => {
-      onChange(
-        blocks.map((block) => {
+      const nextBlocks = latestBlocksRef.current.map((block) => {
           if (block.id !== blockId) return block;
           let groupCursor = 0;
           return {
@@ -952,14 +957,17 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                 restSeconds: params.rest ?? exercise.restSeconds,
                 variableSets: params.variableSets ?? (exercise as any).variableSets,
                 useVariableSets: params.useVariableSets ?? (exercise as any).useVariableSets,
+                visibleVariables: params.visibleParams ?? (exercise as any).visibleVariables,
+                notes: "coachNotes" in params ? (params.coachNotes || undefined) : exercise.notes,
               } as any;
             }),
 
           };
-        }),
-      );
+        });
+      latestBlocksRef.current = nextBlocks;
+      onChange(nextBlocks);
     },
-    [blocks, onChange],
+    [onChange],
   );
 
   const handlePersistedGroupRestChange = useCallback(
@@ -1216,6 +1224,8 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                            rest: ex.restSeconds,
                            variableSets: (ex as any).variableSets,
                            useVariableSets: (ex as any).useVariableSets,
+                           visibleParams: (ex as any).visibleVariables,
+                           coachNotes: ex.notes ? ex.notes.replace(/<!--[\s\S]*?-->/g, "").trim() || undefined : undefined,
                          },
 
                        }))}
