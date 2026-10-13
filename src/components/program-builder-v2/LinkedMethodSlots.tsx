@@ -100,6 +100,11 @@ export interface SlottedExercise {
 
 export type LinkedMethodType = "superset" | "biset" | "triset" | "giant_set" | "bulgarian" | "combine_haltero";
 
+export interface ReplacedExercise {
+  id: string;
+  name: string;
+}
+
 interface LinkedMethodSlotsProps {
   method: LinkedMethodType;
   slottedExercises: SlottedExercise[];
