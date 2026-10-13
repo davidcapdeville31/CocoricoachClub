@@ -129,7 +129,10 @@ export function useSaveProgramV2() {
                 tempo: ex.tempo ?? null,
                 rest_seconds: ex.restSeconds ?? 90,
                 notes,
-                group_id: ex.groupId ?? null,
+                group_id: ex.groupId
+                  ? (groupUuidMap.get(ex.groupId) ??
+                      groupUuidMap.set(ex.groupId, crypto.randomUUID()).get(ex.groupId))
+                  : null,
                 group_order: groupOrder,
                 cluster_sets: ex.config && ex.method === "cluster" ? ex.config : null,
                 drop_sets: ex.config && ex.method === "drop_set" ? ex.config : null,
