@@ -281,7 +281,10 @@ export function CreateTrainingProgramV2({
               endTime: (s.end_time ?? "19:30").slice(0, 5),
               name: s.name || `Jour ${idx + 1}`,
               exercises: [],
-              blocks: Array.from(blocksMap.values()),
+              blocks: Array.from(blocksMap.values()).map((b) => ({
+                ...b,
+                exercises: restoreLegacyLinkedGroups(b.exercises ?? []),
+              })),
               unifiedOrder: [],
             };
           });
