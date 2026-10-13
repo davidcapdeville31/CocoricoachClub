@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { restoreLegacyLinkedGroups } from "@/lib/program-builder-v2/legacyLinkedGroups";
 import { encodeVariableSetsTag, parseVariableSetsTag, stripVariableSetsTag } from "@/lib/program-builder-v2/variableSetsNotes";
 import { encodeExtraVariablesTag, parseExtraVariablesTag, stripExtraVariablesTag } from "@/lib/program-builder-v2/extraVariablesNotes";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -225,7 +226,10 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
       } as any);
     });
 
-    return Array.from(blocksMap.values());
+    return Array.from(blocksMap.values()).map((b: any) => ({
+      ...b,
+      exercises: restoreLegacyLinkedGroups(b.exercises ?? []),
+    }));
   }, [existingExercises]);
 
   const setActiveBlock = (id: string | null) => {

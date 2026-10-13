@@ -28,6 +28,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { restoreLegacyLinkedGroups } from "@/lib/program-builder-v2/legacyLinkedGroups";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -281,7 +282,10 @@ export function CreateTrainingProgramV2({
               endTime: (s.end_time ?? "19:30").slice(0, 5),
               name: s.name || `Jour ${idx + 1}`,
               exercises: [],
-              blocks: Array.from(blocksMap.values()),
+              blocks: Array.from(blocksMap.values()).map((b) => ({
+                ...b,
+                exercises: restoreLegacyLinkedGroups(b.exercises ?? []),
+              })),
               unifiedOrder: [],
             };
           });

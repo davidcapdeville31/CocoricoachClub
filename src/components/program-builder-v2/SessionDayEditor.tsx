@@ -1264,7 +1264,12 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                             ...p,
                             [block.id]: {
                               method: m as MethodConfigType,
-                              droppedExercise: cfg.droppedExercise ?? null,
+                              // Anciennes sauvegardes : la config ne contient pas l'exercice,
+                              // on reprend celui de la carte pour ne pas ouvrir un éditeur vide.
+                              droppedExercise: cfg.droppedExercise ?? {
+                                exerciseId: item.exercise.exerciseId ?? item.exercise.id,
+                                exerciseName: item.exercise.exerciseName,
+                              },
                               droppedPhaseExercises: cfg.droppedPhaseExercises ?? {},
                               initialPayload: cfg,
                             } as any,
