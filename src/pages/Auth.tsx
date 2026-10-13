@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { signUpSchema, loginSchema } from "@/lib/validations";
 import { BrandLogo } from "@/components/BrandLogo";
+import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { getAppBaseUrl } from "@/lib/appUrl";
 
 async function getPostLoginRedirect(userId: string): Promise<string> {
