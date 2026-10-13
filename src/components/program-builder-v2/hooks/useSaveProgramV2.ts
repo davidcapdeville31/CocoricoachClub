@@ -110,13 +110,26 @@ export function useSaveProgramV2() {
                 ? (groupOrderTracker.get(ex.groupId) ?? 0)
                 : null;
               if (ex.groupId) groupOrderTracker.set(ex.groupId, (groupOrder ?? 0) + 1);
-              const baseNotes = ex.notes ?? "";
+              const CONFIG_RE = /<!--\s*v2-(fartlek|cluster|stato|intermittent|drop_set|rest_pause|pyramid_up|pyramid_down|pyramid_full|five_by_five|isometric_overcoming|isometric_yielding|amrap|for_time|death_by|circuit|tabata|emom):[\s\S]*?-->/gi;
+              // Re-serialise the method config (incl. custom instructions) from ex.config,
+              // which is the source of truth after edits; drop any stale tag in notes.
+              const baseNotes = (ex.notes ?? "").replace(CONFIG_RE, "").trim();
+              let configTag = "";
+              if (ex.method && ex.config && ex.method !== "normal") {
+                const tagKey =
+                  ex.method === "stato_dynamique" ? "stato"
+                  : ex.method === "intermittent_cardio" ? "intermittent"
+                  : ex.method;
+                if (new RegExp(`^(${CONFIG_RE.source.match(/\(([^)]+)\)/)![1]})$`).test(tagKey)) {
+                  try { configTag = `<!--v2-${tagKey}:${JSON.stringify(ex.config)}-->`; } catch { configTag = ""; }
+                }
+              }
               const isTestRef =
                 typeof ex.exerciseId === "string" && ex.exerciseId.startsWith("test:");
               const testTag = isTestRef ? `<!-- v2-test:${ex.exerciseId!.slice(5)} -->` : "";
               const setsTag = encodeVariableSetsTag(ex.variableSets as any);
               const xvarsTag = encodeExtraVariablesTag(ex as any);
-              const notes = `${blockHeader}${testTag}${setsTag}${xvarsTag}\n${baseNotes}`.trim();
+              const notes = `${blockHeader}${testTag}${setsTag}${xvarsTag}${configTag}\n${baseNotes}`.trim();
 
               exercises.push({
                 library_exercise_id: isTestRef ? null : (ex.exerciseId ?? null),
