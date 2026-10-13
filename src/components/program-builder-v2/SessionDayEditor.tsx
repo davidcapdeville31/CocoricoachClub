@@ -1007,6 +1007,32 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
     [blocks, onChange],
   );
 
+  // Remplace l'exercice d'un slot tout en conservant ses réglages
+  const handlePersistedGroupReplace = useCallback(
+    (blockId: string, groupId: string, slotIndex: number, picked: { id: string; name: string }) => {
+      onChange(
+        blocks.map((block) => {
+          if (block.id !== blockId) return block;
+          let groupCursor = 0;
+          return {
+            ...block,
+            exercises: (block.exercises ?? []).map((exercise) => {
+              if (exercise.groupId !== groupId) return exercise;
+              const isTarget = groupCursor++ === slotIndex;
+              if (!isTarget) return exercise;
+              return {
+                ...exercise,
+                exerciseId: picked.id,
+                exerciseName: picked.name,
+              } as any;
+            }),
+          };
+        }),
+      );
+    },
+    [blocks, onChange],
+  );
+
   const totalBlocks = blocks.length;
 
   return (
