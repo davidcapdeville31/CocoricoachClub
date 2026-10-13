@@ -5,6 +5,7 @@ import { Dumbbell, X, Clock, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MethodExerciseDisplay } from "./MethodExerciseDisplay";
+import { ExercisePicker } from "./ExercisePicker";
 import { WeightliftingPositionSelector } from "./WeightliftingPositionSelector";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -100,11 +101,17 @@ export interface SlottedExercise {
 
 export type LinkedMethodType = "superset" | "biset" | "triset" | "giant_set" | "bulgarian" | "combine_haltero";
 
+export interface ReplacedExercise {
+  id: string;
+  name: string;
+}
+
 interface LinkedMethodSlotsProps {
   method: LinkedMethodType;
   slottedExercises: SlottedExercise[];
   onRemoveFromSlot: (slotIndex: number) => void;
   onUpdateParams: (slotIndex: number, params: SlottedExerciseParams) => void;
+  onReplaceExercise?: (slotIndex: number, picked: ReplacedExercise) => void;
   onConfirm?: () => void;
   onCancel?: () => void;
   dayId: string;
@@ -440,6 +447,7 @@ const DroppableSlot = ({
   config,
   onRemove,
   onUpdateParams,
+  onReplaceExercise,
   onSyncVisibleParam,
   method,
   isEditing = true,
@@ -451,6 +459,7 @@ const DroppableSlot = ({
   config: ReturnType<typeof getMethodConfig>;
   onRemove: () => void;
   onUpdateParams: (params: SlottedExerciseParams) => void;
+  onReplaceExercise?: (picked: ReplacedExercise) => void;
   onSyncVisibleParam: (action: 'add' | 'remove', key: string, triggerSlotIndex: number) => void;
   method: LinkedMethodType;
   isEditing?: boolean;
@@ -549,6 +558,17 @@ const DroppableSlot = ({
             methodTextColor={config.textColor}
             methodIconColor={config.color}
           />
+
+          {/* Remplacement de l'exercice en mode édition */}
+          {isEditing && onReplaceExercise && (
+            <div className="mb-1">
+              <ExercisePicker
+                mode="replace"
+                label="Changer l'exercice"
+                onPick={(picked) => onReplaceExercise({ id: picked.id, name: picked.name })}
+              />
+            </div>
+          )}
 
           {/* Weightlifting Position Selector - always available when exercise is filled */}
           <WeightliftingPositionSelector
@@ -686,15 +706,24 @@ const DroppableSlot = ({
           )}
         </div>
       ) : (
-        <div className="flex items-center justify-center min-h-[40px] text-muted-foreground p-1.5 pt-5">
-          <Dumbbell className="h-4 w-4 mr-2 opacity-50" />
-          <span className="text-xs">
-            {slotLabel.includes("lourd") 
-              ? "Glissez un exercice lourd" 
-              : slotLabel.includes("léger") 
-              ? "Glissez un exercice léger" 
-              : "Glissez un exercice ici"}
-          </span>
+        <div className="flex flex-col items-center justify-center gap-1.5 min-h-[40px] text-muted-foreground p-1.5 pt-5">
+          <div className="flex items-center">
+            <Dumbbell className="h-4 w-4 mr-2 opacity-50" />
+            <span className="text-xs">
+              {slotLabel.includes("lourd")
+                ? "Glissez un exercice lourd"
+                : slotLabel.includes("léger")
+                ? "Glissez un exercice léger"
+                : "Glissez un exercice ici"}
+            </span>
+          </div>
+          {isEditing && onReplaceExercise && (
+            <ExercisePicker
+              mode="add"
+              label="Choisir un exercice"
+              onPick={(picked) => onReplaceExercise({ id: picked.id, name: picked.name })}
+            />
+          )}
         </div>
       )}
     </div>
@@ -706,6 +735,7 @@ export const LinkedMethodSlots = ({
   slottedExercises,
   onRemoveFromSlot,
   onUpdateParams,
+  onReplaceExercise,
   onConfirm,
   onCancel,
   dayId,
@@ -720,6 +750,7 @@ export const LinkedMethodSlots = ({
       slottedExercises={slottedExercises}
       onRemoveFromSlot={onRemoveFromSlot}
       onUpdateParams={onUpdateParams}
+      onReplaceExercise={onReplaceExercise}
       onConfirm={onConfirm}
       onCancel={onCancel}
       dayId={dayId}
@@ -737,6 +768,7 @@ const LinkedMethodSlotsContent = ({
   slottedExercises,
   onRemoveFromSlot,
   onUpdateParams,
+  onReplaceExercise,
   onConfirm,
   onCancel,
   dayId,
@@ -854,6 +886,7 @@ const LinkedMethodSlotsContent = ({
               config={config}
               onRemove={() => isEditing && onRemoveFromSlot(index)}
               onUpdateParams={(params) => isEditing && onUpdateParams(index, params)}
+              onReplaceExercise={onReplaceExercise ? (picked) => isEditing && onReplaceExercise(index, picked) : undefined}
               onSyncVisibleParam={handleSyncVisibleParam}
               method={method}
               isEditing={isEditing}

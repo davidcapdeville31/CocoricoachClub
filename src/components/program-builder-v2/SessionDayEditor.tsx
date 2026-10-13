@@ -1007,6 +1007,44 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
     [blocks, onChange],
   );
 
+  // Remplace l'exercice d'un slot tout en conservant ses réglages.
+  // Si le slot est vide (méthode dynamique), ajoute un exercice au groupe.
+  const handlePersistedGroupReplace = useCallback(
+    (blockId: string, groupId: string, slotIndex: number, picked: { id: string; name: string }) => {
+      onChange(
+        blocks.map((block) => {
+          if (block.id !== blockId) return block;
+          const groupExercises = (block.exercises ?? []).filter((e) => e.groupId === groupId);
+          const target = groupExercises[slotIndex];
+          if (target) {
+            return {
+              ...block,
+              exercises: (block.exercises ?? []).map((exercise) =>
+                exercise.id === target.id
+                  ? ({ ...exercise, exerciseId: picked.id, exerciseName: picked.name } as any)
+                  : exercise,
+              ),
+            };
+          }
+          // Slot vide : ajouter un nouvel exercice au groupe
+          const maxOrder = Math.max(0, ...groupExercises.map((e) => (e as any).groupOrder ?? 0));
+          const newExercise = {
+            id: crypto.randomUUID(),
+            exerciseId: picked.id,
+            exerciseName: picked.name,
+            method: groupExercises[0]?.method ?? "superset",
+            groupId,
+            groupOrder: maxOrder + 1,
+            sets: 3,
+            reps: "8",
+          } as any;
+          return { ...block, exercises: [...(block.exercises ?? []), newExercise] };
+        }),
+      );
+    },
+    [blocks, onChange],
+  );
+
   const totalBlocks = blocks.length;
 
   return (
@@ -1083,6 +1121,33 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                   onUpdateParams={(idx, params) =>
                     handleSlotParamsUpdate(block.id, idx, params)
                   }
+                  onReplaceExercise={(idx, picked) => {
+                    setLinkedDrafts((p) => {
+                      const current = p[block.id];
+                      if (!current) return p;
+                      const exists = current.slottedExercises.some((s) => s.slotIndex === idx);
+                      const next = exists
+                        ? current.slottedExercises.map((s) =>
+                            s.slotIndex === idx
+                              ? { ...s, exerciseId: picked.id, exerciseName: picked.name, stationName: picked.name }
+                              : s,
+                          )
+                        : [
+                            ...current.slottedExercises,
+                            {
+                              id: `slot-${Date.now()}-${idx}`,
+                              exerciseId: picked.id,
+                              exerciseName: picked.name,
+                              stationName: picked.name,
+                              slotIndex: idx,
+                            },
+                          ];
+                      return {
+                        ...p,
+                        [block.id]: { ...current, slottedExercises: next.sort((a, b) => a.slotIndex - b.slotIndex) },
+                      };
+                    });
+                  }}
                   onConfirm={() => handleLinkedConfirm(block.id)}
                   onCancel={() => handleLinkedCancel(block.id)}
                   dayId={block.id}
@@ -1234,6 +1299,9 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                       }
                       onUpdateParams={(idx, params) =>
                         handlePersistedGroupParamsUpdate(block.id, item.groupId, idx, params)
+                      }
+                      onReplaceExercise={(idx, picked) =>
+                        handlePersistedGroupReplace(block.id, item.groupId, idx, picked)
                       }
                       onConfirm={() => undefined}
                       onCancel={() => undefined}
