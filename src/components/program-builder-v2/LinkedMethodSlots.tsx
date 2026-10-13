@@ -110,6 +110,7 @@ interface LinkedMethodSlotsProps {
   slottedExercises: SlottedExercise[];
   onRemoveFromSlot: (slotIndex: number) => void;
   onUpdateParams: (slotIndex: number, params: SlottedExerciseParams) => void;
+  onReplaceExercise?: (slotIndex: number, picked: ReplacedExercise) => void;
   onConfirm?: () => void;
   onCancel?: () => void;
   dayId: string;
