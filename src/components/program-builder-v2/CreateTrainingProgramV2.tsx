@@ -265,6 +265,7 @@ export function CreateTrainingProgramV2({
                 tempo: ex.tempo ?? undefined,
                 restSeconds: ex.rest_seconds ?? 90,
                 method: ex.method ?? "normal",
+                groupId: ex.group_id ?? undefined,
                 variableSets: parsedSets,
                 notes: cleanNotes,
                 config:
