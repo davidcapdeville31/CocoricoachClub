@@ -958,7 +958,18 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                 variableSets: params.variableSets ?? (exercise as any).variableSets,
                 useVariableSets: params.useVariableSets ?? (exercise as any).useVariableSets,
                 visibleVariables: params.visibleParams ?? (exercise as any).visibleVariables,
-                notes: "coachNotes" in params ? (params.coachNotes || undefined) : exercise.notes,
+                notes:
+                  "coachNotes" in params
+                    ? (() => {
+                        // Préserver les balises techniques cachées (<!--...-->) présentes dans la note.
+                        // Ne pas trimmer le texte : l'espace en cours de frappe serait effacé à chaque frappe.
+                        const tags = exercise.notes?.match(/<!--[\s\S]*?-->/g)?.join("") ?? "";
+                        const raw = params.coachNotes ?? "";
+                        const hasText = raw.trim().length > 0;
+                        const combined = hasText ? (tags ? `${raw} ${tags}` : raw) : tags;
+                        return combined || undefined;
+                      })()
+                    : exercise.notes,
               } as any;
             }),
 
@@ -1290,7 +1301,13 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                            variableSets: (ex as any).variableSets,
                            useVariableSets: (ex as any).useVariableSets,
                            visibleParams: (ex as any).visibleVariables,
-                           coachNotes: ex.notes ? ex.notes.replace(/<!--[\s\S]*?-->/g, "").trim() || undefined : undefined,
+                           coachNotes: ex.notes
+                            ? (() => {
+                                const raw = ex.notes.replace(/<!--[\s\S]*?-->/g, "");
+                                // Pas de trim ici : sinon l'espace en cours de frappe est effacé à chaque re-rendu
+                                return raw.trim() ? raw : undefined;
+                              })()
+                            : undefined,
                          },
 
                        }))}
