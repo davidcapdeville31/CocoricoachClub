@@ -99,10 +99,15 @@ export function useSaveProgramV2() {
         sessions: w.days.map((d, idx) => {
           const blocks = (d.blocks as V2BlockWithExercises[]) ?? [];
           let order = 0;
+          const groupOrderTracker = new Map<string, number>();
           const exercises: any[] = [];
           blocks.forEach((block) => {
             const blockHeader = `<!-- v2-block:${block.type}:${block.name} -->`;
             (block.exercises ?? []).forEach((ex) => {
+              const groupOrder = ex.groupId
+                ? (groupOrderTracker.get(ex.groupId) ?? 0)
+                : null;
+              if (ex.groupId) groupOrderTracker.set(ex.groupId, (groupOrder ?? 0) + 1);
               const baseNotes = ex.notes ?? "";
               const isTestRef =
                 typeof ex.exerciseId === "string" && ex.exerciseId.startsWith("test:");
