@@ -552,13 +552,6 @@ const DroppableSlot = ({
             exerciseName={exercise.exerciseName}
             onRemove={isEditing ? onRemove : undefined}
             className="mb-1"
-            trailingAction={isEditing && onReplaceExercise ? (
-              <ExercisePicker
-                mode="replace"
-                label="Changer"
-                onPick={(picked) => onReplaceExercise({ id: picked.id, name: picked.name })}
-              />
-            ) : undefined}
             methodBgColor={config.bgActive}
             methodBorderColor={config.borderColor}
             methodTextColor={config.textColor}
