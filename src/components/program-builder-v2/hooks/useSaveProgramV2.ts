@@ -100,6 +100,8 @@ export function useSaveProgramV2() {
           const blocks = (d.blocks as V2BlockWithExercises[]) ?? [];
           let order = 0;
           const groupOrderTracker = new Map<string, number>();
+          // group_id en base = UUID : on attribue un UUID stable par groupe d'écran ("grp-…")
+          const groupUuidMap = new Map<string, string>();
           const exercises: any[] = [];
           blocks.forEach((block) => {
             const blockHeader = `<!-- v2-block:${block.type}:${block.name} -->`;
