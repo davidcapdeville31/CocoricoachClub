@@ -931,7 +931,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
 
   // Plusieurs mises à jour peuvent partir d'affilée (ex. retrait d'une variable
   // synchronisé sur tous les exercices) : on chaîne sur le dernier état connu.
-  const latestBlocksRef = React.useRef(blocks);
+  const latestBlocksRef = useRef(blocks);
   latestBlocksRef.current = blocks;
   const handlePersistedGroupParamsUpdate = useCallback(
     (blockId: string, groupId: string, slotIndex: number, params: SlottedExerciseParams) => {
