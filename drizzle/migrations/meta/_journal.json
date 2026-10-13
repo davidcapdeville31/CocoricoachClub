@@ -169,6 +169,13 @@
       "when": 1791893854306,
       "tag": "0023_session_author_name_fallback",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1791898390348,
+      "tag": "0024_save_program_v2_preserve_group_id",
+      "breakpoints": true
     }
   ]
 }

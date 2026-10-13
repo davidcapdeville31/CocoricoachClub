@@ -99,10 +99,17 @@ export function useSaveProgramV2() {
         sessions: w.days.map((d, idx) => {
           const blocks = (d.blocks as V2BlockWithExercises[]) ?? [];
           let order = 0;
+          const groupOrderTracker = new Map<string, number>();
+          // group_id en base = UUID : on attribue un UUID stable par groupe d'écran ("grp-…")
+          const groupUuidMap = new Map<string, string>();
           const exercises: any[] = [];
           blocks.forEach((block) => {
             const blockHeader = `<!-- v2-block:${block.type}:${block.name} -->`;
             (block.exercises ?? []).forEach((ex) => {
+              const groupOrder = ex.groupId
+                ? (groupOrderTracker.get(ex.groupId) ?? 0)
+                : null;
+              if (ex.groupId) groupOrderTracker.set(ex.groupId, (groupOrder ?? 0) + 1);
               const baseNotes = ex.notes ?? "";
               const isTestRef =
                 typeof ex.exerciseId === "string" && ex.exerciseId.startsWith("test:");
@@ -122,6 +129,11 @@ export function useSaveProgramV2() {
                 tempo: ex.tempo ?? null,
                 rest_seconds: ex.restSeconds ?? 90,
                 notes,
+                group_id: ex.groupId
+                  ? (groupUuidMap.get(ex.groupId) ??
+                      groupUuidMap.set(ex.groupId, crypto.randomUUID()).get(ex.groupId))
+                  : null,
+                group_order: groupOrder,
                 cluster_sets: ex.config && ex.method === "cluster" ? ex.config : null,
                 drop_sets: ex.config && ex.method === "drop_set" ? ex.config : null,
               });
