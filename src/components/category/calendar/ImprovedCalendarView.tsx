@@ -35,7 +35,7 @@ import { CreateEventDialog } from "./CreateEventDialog";
 import { FieldSessionDialog } from "./FieldSessionDialog";
 import { SimplifiedSessionDialog } from "@/components/athlete-space/SimplifiedSessionDialog";
 import { BowlingSimplifiedDialog } from "@/components/bowling/BowlingSimplifiedDialog";
-import { JudoSessionDialog } from "@/components/judo/session/JudoSessionDialog";
+import { JudoSessionEntry as JudoSessionDialog } from "@/components/judo/session/JudoSessionEntry";
 import { BowlingAdvancedDialog } from "@/components/bowling/BowlingAdvancedDialog";
 import { ScheduleTestEventDialog } from "./ScheduleTestEventDialog";
 import { DailyCalendarView } from "./DailyCalendarView";
