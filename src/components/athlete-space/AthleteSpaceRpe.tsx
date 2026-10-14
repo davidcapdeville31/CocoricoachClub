@@ -468,17 +468,20 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory, onViewCalen
   const todaySessions = visibleSessions.filter(s => {
     if (s.session_date === today) return true;
     // Rattrapage : séance passée récente sans RPE encore renseigné
+    // (une séance passée où l'athlète s'est déclaré absent ne reste pas sur l'accueil)
     if (
       s.session_date < today &&
       s.session_date >= CATCHUP_START &&
       !CATCHUP_EXCLUDED_TYPES.has(s.training_type) &&
-      !completedSessionIds.has(s.id)
+      !completedSessionIds.has(s.id) &&
+      !declaredAbsentSessionIds.has(s.id)
     )
       return true;
-    // A campaign still open stays on the home screen during the whole window
+    // A campaign still open stays on the home screen only during its window
     if (!isOpenCampaign(s)) return false;
-    const win = parseTestWindowFromNotes(s.notes)!;
-    return today >= win.start;
+    const win = parseTestWindowFromNotes(s.notes);
+    if (!win) return false;
+    return today >= win.start && today <= win.end;
   });
   const upcomingSessions = visibleSessions.filter(s => s.session_date > today && !todaySessions.includes(s));
 
