@@ -1,4 +1,5 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
+import { finalRankingNumber } from "@/lib/judo/finalRanking";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -211,14 +212,26 @@ function RelatedMatchCard({ match, sportType }: RelatedMatchCardProps) {
         )}
 
         {showStats && (
-          <MatchStatsSummary matchId={match.id} isIndividual={isIndividual} />
+          <MatchStatsSummary matchId={match.id} isIndividual={isIndividual} isJudo={isJudo} />
         )}
       </CardContent>
     </Card>
   );
 }
 
-function MatchStatsSummary({ matchId, isIndividual }: { matchId: string; isIndividual: boolean }) {
+function MatchStatsSummary({ matchId, isIndividual, isJudo = false }: { matchId: string; isIndividual: boolean; isJudo?: boolean }) {
+  const { data: judoRanks = [] } = useQuery({
+    queryKey: ["history-final-rankings", matchId],
+    enabled: isJudo,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("competition_results")
+        .select("final_ranking")
+        .eq("match_id", matchId);
+      if (error) throw error;
+      return (data || []).map((r: any) => finalRankingNumber(r.final_ranking)).filter((n): n is number => n !== null);
+    },
+  });
   // Team sports: aggregate match_events. Individual sports: aggregate competition_rounds.
   const { data: events } = useQuery({
     queryKey: ["history-match-events", matchId],
@@ -257,7 +270,9 @@ function MatchStatsSummary({ matchId, isIndividual }: { matchId: string; isIndiv
     }
     const wins = rounds.filter((r: any) => r.result === "win").length;
     const losses = rounds.filter((r: any) => r.result === "loss").length;
-    const bestRank = rounds
+    const bestRank = isJudo
+      ? [...judoRanks].sort((a, b) => a - b)[0]
+      : rounds
       .map((r: any) => r.ranking)
       .filter((n: any) => typeof n === "number" && n > 0)
       .sort((a: number, b: number) => a - b)[0];
@@ -279,7 +294,7 @@ function MatchStatsSummary({ matchId, isIndividual }: { matchId: string; isIndiv
                 {r.opponent_name ? ` · ${r.opponent_name}` : ""}
               </span>
               <span className="font-medium">
-                {r.result || (r.ranking ? `${r.ranking}e` : "—")}
+                {r.result || (!isJudo && r.ranking ? `${r.ranking}e` : "—")}
               </span>
             </li>
           ))}
