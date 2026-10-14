@@ -2768,6 +2768,68 @@ export type Database = {
           },
         ]
       }
+      competition_results: {
+        Row: {
+          created_at: string
+          final_ranking: string | null
+          id: string
+          match_id: string
+          migrated_from_rounds: boolean
+          player_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          final_ranking?: string | null
+          id?: string
+          match_id: string
+          migrated_from_rounds?: boolean
+          player_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          final_ranking?: string | null
+          id?: string
+          match_id?: string
+          migrated_from_rounds?: boolean
+          player_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competition_results_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "competition_results_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "player_tags"
+            referencedColumns: ["player_id"]
+          },
+          {
+            foreignKeyName: "competition_results_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "competition_results_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       competition_round_stats: {
         Row: {
           created_at: string
