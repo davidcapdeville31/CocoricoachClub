@@ -183,6 +183,13 @@
       "when": 1791900596115,
       "tag": "0025_tighten_translations_videos_dedupe_storage",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1791958804291,
+      "tag": "0026_restrict_role_menu_permissions_read",
+      "breakpoints": true
     }
   ]
 }
