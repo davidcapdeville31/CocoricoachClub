@@ -129,6 +129,8 @@ export interface MatchForAnalytics {
   opponent?: string | null;
   tournament_level?: string | null;
   selection_type?: string | null;
+  /** Classement final de participation (competition_results). Prioritaire sur les combats. */
+  finalRanks?: number[];
   rounds: RoundForAnalytics[];
 }
 
@@ -142,10 +144,10 @@ export interface LevelSummary {
 }
 
 function bestRankOfMatch(m: MatchForAnalytics): number | null {
+  if (m.finalRanks && m.finalRanks.length > 0) return Math.min(...m.finalRanks);
   let best: number | null = null;
   for (const r of m.rounds) {
     const candidates: number[] = [];
-    if (r.ranking && r.ranking > 0) candidates.push(r.ranking);
     const phaseRank = phaseEquivalentRank(r.phase);
     if (phaseRank !== null) candidates.push(phaseRank);
     for (const c of candidates) {

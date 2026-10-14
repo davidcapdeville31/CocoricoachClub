@@ -1,4 +1,5 @@
 import { getDateLocale } from "@/lib/i18n/dateLocale";
+import { finalRankingNumber } from "@/lib/judo/finalRanking";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -61,7 +62,8 @@ export function JudoCompetitionAnalyticsTab({ categoryId }: Props) {
           competition_rounds(
             result, ranking, phase, opponent_name, player_id,
             opponent_profile:opponent_profiles(last_name, first_name)
-          )
+          ),
+          competition_results(player_id, final_ranking)
         `)
         .eq("category_id", categoryId)
         .eq("is_personal", false)
@@ -81,10 +83,14 @@ export function JudoCompetitionAnalyticsTab({ categoryId }: Props) {
         opponent: m.opponent,
         tournament_level: m.tournament_level,
         selection_type: m.selection_type,
+        finalRanks: (m.competition_results || [])
+          .filter((r: any) => playerId === "all" || r.player_id === playerId)
+          .map((r: any) => finalRankingNumber(r.final_ranking))
+          .filter((n: number | null): n is number => n !== null),
         rounds: (m.competition_rounds || []).filter(
           (r: any) => playerId === "all" || r.player_id === playerId,
         ),
-      })).filter((m) => m.rounds.length > 0);
+      })).filter((m) => m.rounds.length > 0 || m.finalRanks.length > 0);
   }, [rawMatches, playerId, selectionFilter]);
 
   const levelSummaries = useMemo(() => summarizeByLevel(matches), [matches]);

@@ -39,6 +39,7 @@ import { getDefaultUnitForDiscipline } from "@/lib/athletics/recordsHelpers";
 import { BowlingBlockManager, type BowlingBlock, type Round as BowlingRound, BOWLING_COMPETITION_CATEGORIES, BOWLING_PHASES } from "@/components/bowling/BowlingBlockManager";
 import { BowlingCompetitionSummary } from "@/components/bowling/BowlingCompetitionSummary";
 import { JudoCombatStatsView } from "@/components/category/judo/JudoCombatStatsView";
+import { JudoFinalRankingPanel, JudoFinalRankingBanner } from "@/components/category/judo/JudoFinalRankingPanel";
 import { useCompetitionRoundsPresence } from "@/hooks/useCompetitionRoundsPresence";
 import { CompetitionRoundsPresenceBanner } from "./CompetitionRoundsPresenceBanner";
 
@@ -1904,7 +1905,13 @@ export function CompetitionRoundsDialog({
 
         {selectedPlayer && !isAthletics && (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 min-h-0 flex flex-col overflow-hidden">
-            <TabsList className={`grid w-full flex-shrink-0 ${isAviron ? 'grid-cols-4' : isBowling ? 'grid-cols-3' : 'grid-cols-3'}`}>
+            <TabsList className={`grid w-full flex-shrink-0 ${isAviron || isJudo ? 'grid-cols-4' : isBowling ? 'grid-cols-3' : 'grid-cols-3'}`}>
+              {isJudo && (
+                <TabsTrigger value="bilan" className="gap-2">
+                  <Trophy className="h-4 w-4" />
+                  Bilan de compétition
+                </TabsTrigger>
+              )}
               {isAviron && (
                 <TabsTrigger value="crew" className="gap-2">
                   <Users className="h-4 w-4" />
@@ -1919,7 +1926,7 @@ export function CompetitionRoundsDialog({
               )}
               <TabsTrigger value="rounds" className="gap-2">
                 <Target className="h-4 w-4" />
-                {roundLabelPlural}
+                {isJudo ? "Mes combats" : roundLabelPlural}
               </TabsTrigger>
               <TabsTrigger value="summary" className="gap-2">
                 <BarChart3 className="h-4 w-4" />
@@ -1932,6 +1939,17 @@ export function CompetitionRoundsDialog({
                 </TabsTrigger>
               )}
             </TabsList>
+
+            {isJudo && (
+              <TabsContent value="bilan" className="flex-1 min-h-0 mt-0 overflow-y-auto px-1 py-2">
+                <JudoFinalRankingPanel
+                  matchId={matchId}
+                  playerId={selectedPlayer.playerId}
+                  playerName={selectedPlayer.playerName}
+                  competitionName={(matchData as any)?.competition || (matchData as any)?.opponent}
+                />
+              </TabsContent>
+            )}
 
             {/* Crew Tab (Aviron only) */}
             {isAviron && (
@@ -3188,25 +3206,14 @@ export function CompetitionRoundsDialog({
                   const target = restrictToPlayerId
                     ? playerRoundsData.find((p) => p.playerId === restrictToPlayerId)
                     : playerRoundsData.find((p) => p.entryKey === selectedPlayerId) || playerRoundsData[0];
-                  // Classement final = classement du dernier combat renseigné
-                  const ranked = [...(target?.rounds || [])]
-                    .filter((r) => typeof r.ranking === "number" && r.ranking > 0)
-                    .sort((a, b) => b.round_number - a.round_number);
-                  const best = ranked.length > 0 ? ranked[0].ranking! : null;
-                  const label =
-                    best === 1 ? "🥇 1er" :
-                    best === 2 ? "🥈 2e" :
-                    best === 3 ? "🥉 3e" :
-                    best ? `${best}e` : "NC";
+                  // Classement final = donnée de participation, jamais déduite des combats
                   return (
-                    <div className="mb-3 flex items-center justify-between gap-2 rounded-xl border bg-muted/30 px-4 py-3">
-                      <span className="text-sm font-medium">
-                        Résultat de la compétition{target ? ` — ${target.playerName}` : ""}
-                      </span>
-                      <Badge variant={best !== null && best <= 3 ? "default" : "secondary"} className="text-sm">
-                        {label}
-                      </Badge>
-                    </div>
+                    <JudoFinalRankingBanner
+                      matchId={matchId}
+                      playerId={target?.playerId}
+                      playerName={target?.playerName}
+                      competitionName={(matchData as any)?.competition || (matchData as any)?.opponent}
+                    />
                   );
                 })()}
                 <CompetitionHistoryPanel

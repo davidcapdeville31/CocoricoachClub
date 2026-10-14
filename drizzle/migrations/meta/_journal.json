@@ -190,6 +190,13 @@
       "when": 1791958804291,
       "tag": "0026_restrict_role_menu_permissions_read",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1791993998303,
+      "tag": "0027_judo_competition_final_ranking",
+      "breakpoints": true
     }
   ]
 }
