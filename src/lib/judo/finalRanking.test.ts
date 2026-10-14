@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "bun:test";
 import { finalRankingLabel, finalRankingNumber, isPodium } from "./finalRanking";
 
 describe("judo final ranking", () => {
