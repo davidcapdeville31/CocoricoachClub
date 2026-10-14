@@ -1,1 +1,1 @@
-PLACEHOLDER
+PLACEHOLDER- Judo final ranking lives only in `public.competition_results` (one row per match × player, NULL = not set, NC explicit); never derive it from `competition_rounds.ranking`, so combats can be added, reordered or deleted without changing the result.
