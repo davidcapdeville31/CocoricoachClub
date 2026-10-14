@@ -15656,6 +15656,7 @@ export type Database = {
           session_id: string
         }[]
       }
+      has_any_structure_access: { Args: { _uid: string }; Returns: boolean }
       has_club_role: {
         Args: {
           _club_id: string
