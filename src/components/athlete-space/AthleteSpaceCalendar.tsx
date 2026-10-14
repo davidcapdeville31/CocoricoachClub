@@ -49,7 +49,7 @@ import { SessionEditorV2 } from "@/components/program-builder-v2/SessionEditorV2
 import { resolveSessionExerciseRows } from "@/lib/utils/sessionExercises";
 import { BowlingTrainingEntryDialog } from "@/components/bowling/BowlingTrainingEntryDialog";
 import { BowlingSimplifiedDialog } from "@/components/bowling/BowlingSimplifiedDialog";
-import { JudoSessionDialog } from "@/components/judo/session/JudoSessionDialog";
+import { JudoSessionEntry as JudoSessionDialog } from "@/components/judo/session/JudoSessionEntry";
 import { BowlingAdvancedDialog } from "@/components/bowling/BowlingAdvancedDialog";
 import { BasketballTrainingEntryDialog } from "@/components/basketball/BasketballTrainingEntryDialog";
 import { isBasketballPrecisionSport } from "@/lib/constants/basketballPrecisionExercises";
