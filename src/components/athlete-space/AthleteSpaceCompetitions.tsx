@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { finalRankingLabel, isPodium } from "@/lib/judo/finalRanking";
 import { useQuery } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
 import { getDateLocale } from "@/lib/i18n/dateLocale";
@@ -76,34 +77,36 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
   }, [playerId, refetch]);
 
 
-  const { data: roundInfo = { counts: {}, bestRanks: {} } } = useQuery({
+  const { data: roundCounts = {} } = useQuery({
     queryKey: ["athlete-space-competition-rounds-count", playerId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("competition_rounds")
-        .select("match_id, ranking, round_number")
+        .select("match_id")
         .eq("player_id", playerId);
       if (error) throw error;
       const counts: Record<string, number> = {};
-      const bestRanks: Record<string, number> = {};
-      const lastRound: Record<string, number> = {};
-      (data || []).forEach((r: any) => {
-        counts[r.match_id] = (counts[r.match_id] || 0) + 1;
-        // Classement final = classement du dernier combat renseigné
-        if (typeof r.ranking === "number" && r.ranking > 0) {
-          const rn = r.round_number ?? 0;
-          if (lastRound[r.match_id] === undefined || rn >= lastRound[r.match_id]) {
-            lastRound[r.match_id] = rn;
-            bestRanks[r.match_id] = r.ranking;
-          }
-        }
-      });
-      return { counts, bestRanks };
+      (data || []).forEach((r: any) => { counts[r.match_id] = (counts[r.match_id] || 0) + 1; });
+      return counts;
     },
     enabled: !!playerId,
   });
-  const roundCounts = roundInfo.counts;
-  const bestRanks = roundInfo.bestRanks;
+
+  // Classement final = donnée de participation (indépendante des combats)
+  const { data: finalRankings = {} } = useQuery({
+    queryKey: ["competition-final-rankings", "athlete", playerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("competition_results")
+        .select("match_id, final_ranking")
+        .eq("player_id", playerId);
+      if (error) throw error;
+      const out: Record<string, string | null> = {};
+      (data || []).forEach((r: any) => { out[r.match_id] = r.final_ranking; });
+      return out;
+    },
+    enabled: !!playerId,
+  });
 
   const { upcoming, past } = useMemo(() => {
     const today = new Date();
@@ -123,12 +126,8 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
 
   const renderMatch = (match: AthleteMatch) => {
     const count = roundCounts[match.id] || 0;
-    const bestRank = bestRanks[match.id];
-    const rankLabel =
-      bestRank === 1 ? "🥇 1er" :
-      bestRank === 2 ? "🥈 2e" :
-      bestRank === 3 ? "🥉 3e" :
-      bestRank ? `${bestRank}e` : null;
+    const finalRanking = finalRankings[match.id] ?? null;
+    const rankLabel = finalRankingLabel(finalRanking);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const matchDay = match.match_date ? parseISO(match.match_date) : null;
@@ -164,9 +163,9 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
             ) : (
               <Badge variant="outline">À renseigner</Badge>
             )}
-            {isJudo && count > 0 && (
-              <Badge variant={bestRank && bestRank <= 3 ? "default" : "outline"}>
-                {rankLabel || "NC"}
+            {isJudo && !notYetOpen && (
+              <Badge variant={isPodium(finalRanking) ? "default" : "outline"}>
+                {rankLabel || "Classement non renseigné"}
               </Badge>
             )}
           </div>
