@@ -12,7 +12,7 @@
 - Athlete staff badges use unread `session_feedback` (RPE) and `wellness_submitted` (wellness) notifications as their source of truth, so read state stays user-specific without duplicating submission data.
 - The load calendar combines category training sessions and non-personal competitions over their date ranges; competition references affect only calendar summaries, never stored athlete loads.
 - useCompetitionPlannedRpe reads the category target so staff adapts competition load to their discipline.
-- useAthleteCompetitionEntry gates athlete competition entry using the category flag, keeping staff in control.
+- useAthleteCompetitionEntry gates athlete entry via the category flag.
 - Athlete navigation/wellness use valid HSL alpha tokens, never hex suffixes, to avoid invisible mobile content.
 - Arsenal Bank managers (`public.arsenal_bank_managers` + `is_arsenal_bank_manager()`) get the Super Admin page restricted to the arsenal-bank tab and system-ball write policies, without being super admins.
 - Bowling session kind is stored in the structured column `training_sessions.session_kind` (training/competition/personal/evaluation, nullable), never in free-text notes, so histories and stats can filter on it.
