@@ -8,12 +8,12 @@
 - OneSignal registration waits for explicit post-init readiness and caches only successful syncs; available SDK methods do not prove readiness.
 - Attendance marks push active only for confirmed enabled OneSignal subscriptions, never preferences alone.
 - Attendance previews read `match_participants` and minimal player fields, never lineups, to count actual invitations/responses.
-- Push permission reads the native three-state permission first; OneSignal's boolean false is never treated as denied because it also means not requested.
+- Push permission reads native three-state permission first; OneSignal false never means denied (also not-requested).
 - Athlete staff badges use unread `session_feedback` (RPE) and `wellness_submitted` (wellness) notifications as their source of truth, so read state stays user-specific without duplicating submission data.
 - The load calendar combines category training sessions and non-personal competitions over their date ranges; competition references affect only calendar summaries, never stored athlete loads.
 - useCompetitionPlannedRpe reads the category target so staff adapts competition load to their discipline.
 - useAthleteCompetitionEntry gates athlete competition entry using the category flag, keeping staff in control.
-- Athlete navigation/wellness use semantic tokens with valid HSL alpha, never hexadecimal suffixes on HSL strings, to prevent invisible mobile content.
+- Athlete navigation/wellness use valid HSL alpha tokens, never hex suffixes, to avoid invisible mobile content.
 - Arsenal Bank managers (`public.arsenal_bank_managers` + `is_arsenal_bank_manager()`) get the Super Admin page restricted to the arsenal-bank tab and system-ball write policies, without being super admins.
 - Bowling session kind is stored in the structured column `training_sessions.session_kind` (training/competition/personal/evaluation, nullable), never in free-text notes, so histories and stats can filter on it.
 - Circuit V2 athlete logs keep one `athlete_exercise_logs` row per circuit (aggregated so tonnage = Σ charge × reps) and store per-exercise/per-round detail in a `<!--circuit-log:...-->` notes tag, so the unique key and tonnage stay unchanged.
