@@ -1,3 +1,4 @@
+import { painLabel } from "@/lib/wellness/painLabel";
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -305,8 +306,8 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
                 <AlertTriangle className="h-4 w-4" />
                 {t("health.playerWellnessTab.painReported")}
               </div>
-              {latestWellness.pain_location && (
-                <p className="text-sm mt-1">{latestWellness.pain_location}</p>
+              {painLabel(latestWellness) && (
+                <p className="text-sm mt-1">{painLabel(latestWellness)}</p>
               )}
             </div>
           )}
@@ -508,7 +509,7 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
                           {entry.has_specific_pain ? (
                             <div className="flex items-center gap-1 text-destructive">
                               <AlertTriangle className="h-4 w-4" />
-                              <span className="text-xs">{entry.pain_location || t("health.playerWellnessTab.history.painYes")}</span>
+                              <span className="text-xs">{painLabel(entry) || t("health.playerWellnessTab.history.painYes")}</span>
                             </div>
                           ) : (
                             <span className="text-muted-foreground text-xs">{t("health.playerWellnessTab.history.painNo")}</span>

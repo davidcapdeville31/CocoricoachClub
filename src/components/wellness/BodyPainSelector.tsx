@@ -167,7 +167,7 @@ function BodyDots({
                 ? "h-3 w-3 sm:h-4 sm:w-4 ring-2 ring-foreground/70 shadow-md z-10"
                 : isSelected
                   ? "h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 ring-2 ring-foreground shadow-md z-20"
-                  : "h-[5px] w-[5px] sm:h-2 sm:w-2 hover:opacity-90",
+                  : "h-2 w-2 sm:h-2 sm:w-2 hover:opacity-90 after:absolute after:-inset-1.5 after:content-['']",
               disabled && "cursor-not-allowed opacity-60",
             )}
             style={{ left: `${r.cx}%`, top: `${r.cy}%`, backgroundColor: color }}

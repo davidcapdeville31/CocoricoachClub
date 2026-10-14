@@ -1,3 +1,4 @@
+import { painLabel } from "@/lib/wellness/painLabel";
 import { TeamWeightOverview } from "@/components/weight/TeamWeightOverview";
 import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo, useEffect, type CSSProperties } from "react";
@@ -316,7 +317,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
         return q.is_sleep_duration ? sleepScoreLabel(raw) : String(raw);
       }),
       calculateWellnessScore(entry).replace(".", ","),
-      entry.has_specific_pain ? (entry.pain_location || t("health.wellness.csv.yes")) : t("health.wellness.csv.no"),
+      entry.has_specific_pain ? (painLabel(entry) || t("health.wellness.csv.yes")) : t("health.wellness.csv.no"),
     ]);
     const headers = [
       t("health.wellness.csv.player"),
@@ -524,7 +525,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                     {entry.has_specific_pain && (
                       <div className="flex items-center gap-1.5 text-destructive text-xs">
                         <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                        <span>{entry.pain_location || t("health.wellness.table.yes")}</span>
+                        <span>{painLabel(entry) || t("health.wellness.table.yes")}</span>
                       </div>
                     )}
                   </CardContent>
@@ -607,8 +608,8 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                         {entry.has_specific_pain ? (
                           <div className="flex items-center gap-1.5 text-destructive min-w-0">
                             <AlertTriangle className="h-4 w-4 shrink-0" />
-                            <span className="text-sm truncate" title={entry.pain_location || t("health.wellness.table.yes")}>
-                              {entry.pain_location || t("health.wellness.table.yes")}
+                            <span className="text-sm truncate" title={painLabel(entry) || t("health.wellness.table.yes")}>
+                              {painLabel(entry) || t("health.wellness.table.yes")}
                             </span>
                           </div>
                         ) : (
