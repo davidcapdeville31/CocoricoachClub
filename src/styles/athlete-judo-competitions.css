@@ -30,6 +30,9 @@
   .athlete-judo-dialog .judo-score-counter > div { width: 1.5rem; flex-shrink: 0; }
   .athlete-judo-dialog .judo-review-layout { flex-direction: column; }
   .athlete-judo-dialog .judo-review-layout > div { width: 100%; }
+  .athlete-judo-dialog .judo-review-layout > div > div:first-child > div:first-child { flex-wrap: wrap; }
+  .athlete-judo-dialog .judo-review-layout > div > div:first-child > div:first-child > div { min-width: 0; }
+  .athlete-judo-dialog .judo-review-layout > div > div:first-child > div:first-child > button { flex-shrink: 0; overflow-wrap: normal; }
   .athlete-judo-dialog .judo-video-dock { position: static; display: flex; width: 100%; height: auto; min-height: 20rem; }
   .athlete-judo-dialog .judo-video-dock > div { min-height: 20rem; }
   .athlete-judo-dialog .judo-video-dock input { width: 100%; }
