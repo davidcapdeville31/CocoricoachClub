@@ -1,0 +1,10 @@
+-- Restore read-only consultation for the existing full super-admin role.
+-- Do not change membership helpers, write permissions, anonymous access or medical policies.
+CREATE POLICY "Super admins can read club competitions" ON public.matches FOR SELECT TO authenticated USING (public.is_super_admin(auth.uid()) AND is_personal = false);
+CREATE POLICY "Super admins can read club training sessions" ON public.training_sessions FOR SELECT TO authenticated USING (public.is_super_admin(auth.uid()));
+CREATE POLICY "Super admins can read club session blocks" ON public.training_session_blocks FOR SELECT TO authenticated USING (public.is_super_admin(auth.uid()) AND EXISTS (SELECT 1 FROM public.training_sessions ts WHERE ts.id = training_session_blocks.training_session_id));
+CREATE POLICY "Super admins can read club competition participants" ON public.match_participants FOR SELECT TO authenticated USING (public.is_super_admin(auth.uid()) AND EXISTS (SELECT 1 FROM public.matches m WHERE m.id = match_participants.match_id AND m.is_personal = false));
+CREATE POLICY "Super admins can read club competition lineups" ON public.match_lineups FOR SELECT TO authenticated USING (public.is_super_admin(auth.uid()) AND EXISTS (SELECT 1 FROM public.matches m WHERE m.id = match_lineups.match_id AND m.is_personal = false));
+CREATE POLICY "Super admins can read club competition rounds" ON public.competition_rounds FOR SELECT TO authenticated USING (public.is_super_admin(auth.uid()) AND EXISTS (SELECT 1 FROM public.matches m WHERE m.id = competition_rounds.match_id AND m.is_personal = false));
+CREATE POLICY "Super admins can read club competition results" ON public.competition_results FOR SELECT TO authenticated USING (public.is_super_admin(auth.uid()) AND EXISTS (SELECT 1 FROM public.matches m WHERE m.id = competition_results.match_id AND m.is_personal = false));
+CREATE POLICY "Super admins can read club training loads" ON public.awcr_tracking FOR SELECT TO authenticated USING (public.is_super_admin(auth.uid()));
