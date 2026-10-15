@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { Loader2, Save, Shield, MapPin } from "lucide-react";
 import { ManualRugbyPositionDialog, type FieldPosition, type PositionableKind } from "./ManualRugbyPositionDialog";
 import { useStatPreferences } from "@/hooks/use-stat-preferences";
+import { compareLineup, saveMatchPlayingTime } from "@/lib/matchPlayingTime";
 
 interface ManualRugbyStatsDialogProps {
   open: boolean;
@@ -192,6 +193,8 @@ export function ManualRugbyStatsDialog({
   // Notes "minutes" libres : par joueur (et "opp" pour l'adversaire), par mi-temps, par catégorie
   const [notes, setNotes] = useState<Record<string, Record<Category, NotesByPeriod>>>({});
   const [saving, setSaving] = useState(false);
+  const [showTime, setShowTime] = useState(false);
+  const [minutes, setMinutes] = useState<Record<string, number>>({});
   const [confirmLiveOverwrite, setConfirmLiveOverwrite] = useState(false);
   const [posDialog, setPosDialog] = useState<{
     targetKey: string; // playerId or "opp"
@@ -205,7 +208,7 @@ export function ManualRugbyStatsDialog({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("match_lineups")
-        .select("player_id, position, is_starter, players(id, name, first_name)")
+        .select("player_id, position, is_starter, minutes_played, players(id, name, first_name)")
         .eq("match_id", matchId);
       if (error) throw error;
       return (data ?? []) as any[];
@@ -330,10 +333,23 @@ export function ManualRugbyStatsDialog({
     setCategory("points");
   }, [open, lineup, existingEvents, oppSide]);
 
-  const sortedLineup = useMemo(
-    () => [...lineup].sort((a, b) => (a.position ?? 99) - (b.position ?? 99)),
-    [lineup]
-  );
+  const sortedLineup = useMemo(() => [...lineup].sort(compareLineup), [lineup]);
+
+  // Numéro affiché : SUB1 → 16, SUB2 → 17… (remplaçants après les 15 titulaires)
+  const displayNumber = (l: any): string => {
+    const s = l.position == null ? "" : String(l.position).trim();
+    const sub = s.match(/^SUB\s*(\d+)$/i);
+    if (sub) return String(15 + parseInt(sub[1], 10));
+    return s || "?";
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    const init: Record<string, number> = {};
+    lineup.forEach((l: any) => { init[l.player_id] = Number(l.minutes_played) || 0; });
+    setMinutes(init);
+    setShowTime(false);
+  }, [open, lineup]);
 
   const truncatePositions = (row: StatRow, key: keyof StatRow, value: number): StatRow => {
     if (!(key in POSITIONABLE_KIND)) return { ...row, [key]: Math.max(0, value || 0) };
