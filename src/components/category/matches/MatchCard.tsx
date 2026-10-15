@@ -125,6 +125,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
   const [isAggregatedStatsOpen, setIsAggregatedStatsOpen] = useState(false);
   const [isRoundsOpen, setIsRoundsOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isParticipantsOpen, setIsParticipantsOpen] = useState(false);
   const [isAddSubMatchOpen, setIsAddSubMatchOpen] = useState(false);
   const [isSubMatchesExpanded, setIsSubMatchesExpanded] = useState(false);
   const [isEditingScore, setIsEditingScore] = useState(false);
@@ -900,7 +901,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
         <CompetitionParticipantsSection
           matchId={match.id}
           isIndividual={isIndividual}
-          onManageInvitations={() => setIsEditOpen(true)}
+          onManageInvitations={() => setIsParticipantsOpen(true)}
           onManageLineup={() => setIsLineupOpen(true)}
         />
 
@@ -972,6 +973,13 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
         onOpenChange={setIsEditOpen}
         match={match}
         sportType={sportType}
+      />
+      <EditMatchDialog
+        open={isParticipantsOpen}
+        onOpenChange={setIsParticipantsOpen}
+        match={match}
+        sportType={sportType}
+        participantsOnly
       />
 
       <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
