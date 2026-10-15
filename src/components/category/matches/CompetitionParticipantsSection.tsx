@@ -102,7 +102,7 @@ export function CompetitionParticipantsSection({matchId, isIndividual, onManageI
   },onError:(_error,_variables,context)=>{
     if(context?.previous) client.setQueryData(["competition-effective-participation",matchId],context.previous);
     toast.error("La participation n’a pas été enregistrée. Réessayez.");
-  },onSuccess:()=>{toast.success("Participation enregistrée");},onSettled:()=>{void client.invalidateQueries({queryKey:["competition-effective-participation",matchId]});}});
+  },onSuccess:()=>{toast.success("Participation enregistrée");void client.invalidateQueries({queryKey:["cumulative_player_stats"]});},onSettled:()=>{void client.invalidateQueries({queryKey:["competition-effective-participation",matchId]});}});
   const loading = invitations.isPending || lineup.isPending || effective.isPending || (ids.length>0 && identities.isPending);
   const error = invitations.isError || lineup.isError || effective.isError || identities.isError;
   const canManage = !isViewer && effective.data?.canManage;
@@ -117,6 +117,7 @@ export function CompetitionParticipantsSection({matchId, isIndividual, onManageI
       <span className="text-xs font-semibold">Participants : {counts.total}</span>
       <Status status="present" label={`Présents : ${counts.present}`} /><Status status="absent" label={`Absents : ${counts.absent}`} /><Status status="to_verify" label={`À vérifier : ${counts.to_verify}`} />{counts.unset>0 && <Status status="unset" label={`Non renseignés : ${counts.unset}`} />}
       <span className="text-[11px] text-muted-foreground">Convocations : {confirmed} confirmées · {noResponse} sans réponse</span>
+      {rows.some(row=>row.conflict) && <Status status="to_verify" label={`Incohérences : ${rows.filter(row=>row.conflict).length}`} />}
     </div>}
     {rows.length>0 && <div className="flex flex-wrap items-center gap-2">
       <div className="relative flex-1 min-w-32 max-w-xs"><Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground pointer-events-none" /><Input aria-label="Rechercher un participant" placeholder="Nom ou prénom" value={search} onChange={e=>setSearch(e.target.value)} className="pl-8 h-9 text-xs" /></div>
