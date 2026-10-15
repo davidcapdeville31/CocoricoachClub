@@ -391,12 +391,17 @@ export function MatchLineupDialog({
   const athleticsAthleteCount = new Set(
     athleticsEntries.filter((e) => e.isSelected).map((e) => e.playerId),
   ).size;
+  // Individual sports: an athlete with entered games/combats (lineup row) is a
+  // participant even if no convocation row exists (legacy/training flows).
+  const participantIds = new Set<string>([
+    ...(convokedIds || []),
+    ...(isIndividual ? (existingLineup || []).map((l: any) => l.player_id as string) : []),
+  ]);
   const selectedCount = isAthletics
     ? (convokedIds?.length ?? athleticsAthleteCount)
     : isIndividual
-      ? (convokedIds?.length ?? 0)
+      ? participantIds.size
       : (lineupData?.filter((p) => p.isSelected).length ?? 0);
-  const participantIds = new Set(convokedIds || []);
   const participantPlayers = (players || [])
     .filter((player: any) => participantIds.has(player.id))
     .map((player: any) => ({
