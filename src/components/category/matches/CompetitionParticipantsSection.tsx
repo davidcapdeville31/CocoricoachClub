@@ -76,7 +76,8 @@ export function CompetitionParticipantsSection({ matchId, isIndividual, onManage
         : <ul className="divide-y divide-border">
           {visible.map((participant) => {
             const identity = identities.data?.find((player) => player.id === participant.id);
-            const discipline = [identity?.discipline, identity?.specialty].filter(Boolean).join(" · ");
+            const cleanLabel = (value: string) => value.replace(/^judo_/i, "").replace(/_/g, " ");
+            const discipline = [identity?.discipline, identity?.specialty].filter((value): value is string => !!value).map(cleanLabel).join(" · ");
             return <li key={participant.id} className="flex items-center gap-3 py-2.5 min-w-0">
               <Avatar className="h-9 w-9 shrink-0"><AvatarImage src={participant.player?.avatar_url || undefined} alt="" /><AvatarFallback className="text-xs">{participant.name.split(" ").map((part) => part[0]).slice(0, 2).join("").toUpperCase()}</AvatarFallback></Avatar>
               <div className="min-w-0 flex-1 space-y-1">
@@ -86,7 +87,7 @@ export function CompetitionParticipantsSection({ matchId, isIndividual, onManage
                   {participant.composed && <Badge variant="secondary" className="text-[10px]">{isIndividual ? "Inscrit" : "Composition"}</Badge>}
                   {participant.attendance && <Badge variant="outline" data-attendance={participant.attendance} className="text-[10px]">{participant.attendance === "present" ? "Présent" : participant.attendance === "absent" ? "Absent" : "Sans réponse"}</Badge>}
                 </div>
-                {(participant.disciplines.length > 0 || discipline) && <p className="text-xs text-muted-foreground break-words">{participant.disciplines.length > 0 ? participant.disciplines.join(", ") : discipline}</p>}
+                {(participant.disciplines.length > 0 || discipline) && <p className="text-xs text-muted-foreground break-words">{participant.disciplines.length > 0 ? participant.disciplines.map(cleanLabel).join(", ") : discipline}</p>}
               </div>
             </li>;
           })}
