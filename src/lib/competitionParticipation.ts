@@ -21,7 +21,7 @@ export function hasValidCompetitionResult(round: ParticipationRound): boolean {
     return Object.entries(data).some(([key, value]) => !key.startsWith("_") && key !== "roundDate" && typeof value === "number" && Number.isFinite(value) && value > 0);
   });
 }
-export function resolveCompetitionParticipation(hasSportsResults: boolean, staffStatus?: string | null) {
+export function resolveCompetitionParticipation(hasSportsResults: boolean, staffStatus?: string | null): { status: "present" | "absent" | "pending"; source: "sports_result" | "staff" | "unknown"; hasSportsResults: boolean; conflict: boolean; staffStatus: string | null } {
   const manual = staffStatus === "present" || staffStatus === "absent" || staffStatus === "to_verify";
   return {
     status: hasSportsResults ? "present" as const : staffStatus === "present" || staffStatus === "absent" ? staffStatus : "pending" as const,
