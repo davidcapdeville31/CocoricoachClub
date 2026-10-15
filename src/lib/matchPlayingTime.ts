@@ -27,9 +27,8 @@ export function compareLineup(
  * la charge du match (RPE × minutes jouées).
  * - Si un RPE existe déjà pour ce match (saisi par l'athlète ou le staff), on
  *   recalcule sa charge avec le nouveau temps de jeu.
- * - Sinon, on crée une charge estimée avec le RPE prévu de la catégorie
- *   (marquée auto-remplie, remplacée dès que l'athlète saisit son RPE réel).
- * Un temps de jeu à 0 n'injecte aucune charge.
+ * - Sinon, la charge sera calculée quand l'athlète saisira son RPE post-match
+ *   (ses minutes sont pré-remplies avec ce temps de jeu).
  */
 export async function saveMatchPlayingTime(params: {
   matchId: string;
@@ -40,12 +39,8 @@ export async function saveMatchPlayingTime(params: {
   const entries = Object.entries(minutesByPlayer).map(([id, m]) => [id, Math.max(0, Math.round(Number(m) || 0))] as const);
   if (entries.length === 0) return;
 
-  const [{ data: match }, { data: category }] = await Promise.all([
-    supabase.from("matches").select("match_date").eq("id", matchId).maybeSingle(),
-    supabase.from("categories").select("competition_planned_rpe").eq("id", categoryId).maybeSingle(),
-  ]);
+  const { data: match } = await supabase.from("matches").select("match_date").eq("id", matchId).maybeSingle();
   const matchDate = (match as any)?.match_date?.split("T")[0];
-  const plannedRpe = Number((category as any)?.competition_planned_rpe) || 8;
 
   for (const [playerId, minutes] of entries) {
     const { error } = await supabase
@@ -69,7 +64,6 @@ export async function saveMatchPlayingTime(params: {
   const byPlayer = new Map<string, { id: string; rpe: number | null }>();
   (rows ?? []).forEach((r: any) => { if (!byPlayer.has(r.player_id)) byPlayer.set(r.player_id, r); });
 
-  const inserts: any[] = [];
   for (const [playerId, minutes] of entries) {
     const row = byPlayer.get(playerId);
     if (row) {
@@ -78,20 +72,6 @@ export async function saveMatchPlayingTime(params: {
         .from("awcr_tracking")
         .update({ duration_minutes: minutes, training_load: rpe * minutes })
         .eq("id", row.id);
-    } else if (minutes > 0) {
-      inserts.push({
-        player_id: playerId,
-        category_id: categoryId,
-        session_date: matchDate,
-        rpe: plannedRpe,
-        duration_minutes: minutes,
-        training_load: plannedRpe * minutes,
-        auto_filled: true,
-      });
     }
-  }
-  if (inserts.length > 0) {
-    const { error } = await supabase.from("awcr_tracking").insert(inserts);
-    if (error) throw error;
   }
 }

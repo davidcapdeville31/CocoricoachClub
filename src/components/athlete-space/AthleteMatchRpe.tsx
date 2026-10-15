@@ -47,12 +47,28 @@ export function AthleteMatchRpe({ matchId, playerId, categoryId, matchDate }: Pr
     },
   });
 
+  // Composition : une athlète composée peut saisir son RPE même sans convocation
+  const { data: lineupRow, isLoading: loadingLineup } = useQuery({
+    queryKey: ["athlete-match-lineup", matchId, playerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("match_lineups")
+        .select("id, minutes_played")
+        .eq("match_id", matchId)
+        .eq("player_id", playerId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+  const staffMinutes = Number(lineupRow?.minutes_played) || 0;
+
   const { data: existing, isLoading: loadingRpe } = useQuery({
     queryKey: ["athlete-match-rpe", matchId, playerId, matchDate],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("awcr_tracking")
-        .select("id, rpe, duration_minutes")
+        .select("id, rpe, duration_minutes, auto_filled")
         .eq("player_id", playerId)
         .eq("session_date", matchDate)
         .is("training_session_id", null)
@@ -60,21 +76,22 @@ export function AthleteMatchRpe({ matchId, playerId, categoryId, matchDate }: Pr
       if (error) throw error;
       return data;
     },
-    enabled: isMatchDayReached && !!participant,
+    enabled: isMatchDayReached && (!!participant || !!lineupRow),
   });
 
   useEffect(() => {
-    if (existing) {
+    if (existing && !existing.auto_filled) {
       setRpe(existing.rpe?.toString() ?? "");
-      setDuration(existing.duration_minutes?.toString() ?? "");
     }
-  }, [existing?.id, existing?.rpe, existing?.duration_minutes]);
+    const d = staffMinutes || existing?.duration_minutes;
+    if (d) setDuration(d.toString());
+  }, [existing?.id, existing?.rpe, existing?.duration_minutes, staffMinutes]);
 
-  if (loadingParticipant || loadingRpe) return null;
+  if (loadingParticipant || loadingLineup || loadingRpe) return null;
   if (!entryEnabled) return null;
   // Not convoked, match not played yet, or athlete declared absent → no RPE entry
-  if (!participant || !isMatchDayReached) return null;
-  if (participant.attendance_status === "absent") return null;
+  if ((!participant && !lineupRow) || !isMatchDayReached) return null;
+  if (participant?.attendance_status === "absent" && !lineupRow) return null;
 
   const save = async () => {
     const rpeNum = parseInt(rpe, 10);
@@ -92,6 +109,7 @@ export function AthleteMatchRpe({ matchId, playerId, categoryId, matchDate }: Pr
         training_session_id: null,
         rpe: rpeNum,
         duration_minutes: durationNum,
+        training_load: rpeNum * durationNum,
         auto_filled: false,
       };
       if (existing) {
@@ -119,7 +137,7 @@ export function AthleteMatchRpe({ matchId, playerId, categoryId, matchDate }: Pr
       <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground mb-2">
         <Activity className="h-3.5 w-3.5" />
         {t("athleteSpace.calendar.matchRpe.title")}
-        {existing && (
+        {existing && !existing.auto_filled && (
           <span className="text-[10px] text-emerald-600 dark:text-emerald-400">
             ✓ RPE {existing.rpe} · {existing.duration_minutes} min
           </span>
