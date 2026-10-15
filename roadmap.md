@@ -1,8 +1,8 @@
 # Calendrier de charge
 
 ## Rendez-vous médical dans l’espace athlète
-- [ ] Rendre le type médical existant accessible dans l’ajout du calendrier athlète, toutes disciplines.
-- [ ] Vérifier l’ouverture du formulaire et la relecture du rendez-vous après création, sans charge RPE.
+- [x] Rendre le type médical existant accessible dans l’ajout du calendrier athlète, toutes disciplines, via le formulaire partagé existant.
+- [x] Test automatique de disponibilité réussi ; compte connecté dans l’espace athlète : ouverture, création temporaire sans RPE, rechargement/lecture et suppression confirmée réussis. Session staff en consultation athlète, pas connexion distincte comme propriétaire athlète ; téléphone physique non testé.
 
 ## Participants intégrés aux compétitions
 - [x] Intégrer la liste réelle dédoublonnée, recherche et expansion dans les fiches staff utilisant convocations/compositions.
