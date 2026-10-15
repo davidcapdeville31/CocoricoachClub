@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
-import { Search, UserPlus, Users, Settings2, Check, X, CircleHelp, Minus, ChevronDown, ArrowUpDown, Sparkles, Loader2 } from "lucide-react";
+import { Search, UserPlus, Users, Settings2, Check, X, CircleHelp, Minus, ChevronDown, ArrowUpDown, Sparkles, Loader2, TriangleAlert } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { filterCompetitionParticipants, INITIAL_COMPETITION_PARTICIPANTS } from "@/lib/competitionParticipants";
 import { buildParticipationRows, participationCounts, participationLabels, type ParticipationStatus, type ParticipationCorrection } from "@/lib/competitionParticipation";
 import { toast } from "sonner";
@@ -33,7 +34,15 @@ export function CompetitionParticipantsSection({matchId, isIndividual, onManageI
   const effective = useQuery({queryKey:["competition-effective-participation",matchId], refetchInterval:15000, queryFn:async()=>{
     const [results, rounds, match, permission] = await Promise.all([
       supabase.from("competition_results").select("player_id, participation_status").eq("match_id",matchId),
-      supabase.from("competition_rounds").select("player_id, result, final_time_seconds, ranking, competition_round_stats(id)").eq("match_id",matchId),
+      (async () => {
+        const all = [];
+        for (let offset = 0; ; offset += 500) {
+          const page = await supabase.from("competition_rounds").select("id, player_id, result, final_time_seconds, ranking, competition_round_stats(id, stat_data)").eq("match_id",matchId).order("id").range(offset,offset+499);
+          if (page.error) return page;
+          all.push(...page.data);
+          if (page.data.length < 500) return { data: all, error: null };
+        }
+      })(),
       supabase.from("matches").select("match_date, end_date").eq("id",matchId).single(),
       supabase.rpc("can_manage_competition_participation",{_match_id:matchId}),
     ]);
@@ -49,8 +58,16 @@ export function CompetitionParticipantsSection({matchId, isIndividual, onManageI
         void client.invalidateQueries({queryKey:["competition-effective-participation",matchId]});
       });
     }
+    // Stats have only round_id, not match_id. Match against the loaded round IDs;
+    // DELETE may contain only the primary key, in which case refetch safely.
+    channel.on("postgres_changes", {event:"*",schema:"public",table:"competition_round_stats"}, payload => {
+      const record = payload.eventType === "DELETE" ? payload.old : payload.new;
+      if (!("round_id" in record) || effective.data?.rounds.some(r=>r.id===record.round_id)) {
+        void client.invalidateQueries({queryKey:["competition-effective-participation",matchId]});
+      }
+    });
     channel.subscribe(); return ()=>{void supabase.removeChannel(channel);};
-  },[matchId,client]);
+  },[matchId,client,effective.data?.rounds]);
   const ids = Array.from(new Set([...(invitations.data || []),...(lineup.data || []),...(effective.data?.rounds || []),...(effective.data?.corrections || [])].map(r=>r.player_id))).sort();
   const identities = useQuery({queryKey:["competition-participant-identities",ids], enabled:ids.length>0, queryFn:async()=>{
     const batches = [];
@@ -65,6 +82,7 @@ export function CompetitionParticipantsSection({matchId, isIndividual, onManageI
     const category = row.disciplines.length ? row.disciplines.map(clean).join(", ") : [identity?.discipline,identity?.specialty].filter((v):v is string=>Boolean(v)).map(clean).join(" · ");
     return {...row,category:category || "—"};
   });
+  const origin = (row:typeof rows[number]) => row.automatic ? "Participation confirmée automatiquement : résultats sportifs enregistrés." : row.manual && row.participation === "present" ? "Participation confirmée par le staff." : row.manual && row.participation === "absent" ? "Absence confirmée par le staff." : "Participation à vérifier.";
   const counts = participationCounts(rows);
   const confirmed = rows.filter(r=>r.invited && r.attendance === "present").length;
   const noResponse = rows.filter(r=>r.invited && (!r.attendance || r.attendance === "no_response")).length;
@@ -84,7 +102,7 @@ export function CompetitionParticipantsSection({matchId, isIndividual, onManageI
   },onError:(_error,_variables,context)=>{
     if(context?.previous) client.setQueryData(["competition-effective-participation",matchId],context.previous);
     toast.error("La participation n’a pas été enregistrée. Réessayez.");
-  },onSuccess:()=>{toast.success("Participation enregistrée");},onSettled:()=>{void client.invalidateQueries({queryKey:["competition-effective-participation",matchId]});}});
+  },onSuccess:()=>{toast.success("Participation enregistrée");void client.invalidateQueries({queryKey:["cumulative_player_stats"]});},onSettled:()=>{void client.invalidateQueries({queryKey:["competition-effective-participation",matchId]});}});
   const loading = invitations.isPending || lineup.isPending || effective.isPending || (ids.length>0 && identities.isPending);
   const error = invitations.isError || lineup.isError || effective.isError || identities.isError;
   const canManage = !isViewer && effective.data?.canManage;
@@ -99,6 +117,7 @@ export function CompetitionParticipantsSection({matchId, isIndividual, onManageI
       <span className="text-xs font-semibold">Participants : {counts.total}</span>
       <Status status="present" label={`Présents : ${counts.present}`} /><Status status="absent" label={`Absents : ${counts.absent}`} /><Status status="to_verify" label={`À vérifier : ${counts.to_verify}`} />{counts.unset>0 && <Status status="unset" label={`Non renseignés : ${counts.unset}`} />}
       <span className="text-[11px] text-muted-foreground">Convocations : {confirmed} confirmées · {noResponse} sans réponse</span>
+      {rows.some(row=>row.conflict) && <Status status="to_verify" label={`Incohérences : ${rows.filter(row=>row.conflict).length}`} />}
     </div>}
     {rows.length>0 && <div className="flex flex-wrap items-center gap-2">
       <div className="relative flex-1 min-w-32 max-w-xs"><Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground pointer-events-none" /><Input aria-label="Rechercher un participant" placeholder="Nom ou prénom" value={search} onChange={e=>setSearch(e.target.value)} className="pl-8 h-9 text-xs" /></div>
@@ -109,7 +128,7 @@ export function CompetitionParticipantsSection({matchId, isIndividual, onManageI
       <tbody>{visible.map(row=><tr key={row.id}>
         <td><div className="flex items-center gap-1.5 min-w-0"><Avatar className="hidden md:flex h-5 w-5 shrink-0"><AvatarImage src={row.player?.avatar_url || undefined} alt="" /><AvatarFallback className="text-[9px]">{row.name.slice(0,2).toUpperCase()}</AvatarFallback></Avatar><span className="truncate font-medium" title={row.name}>{row.name}</span></div><details className="sm:hidden text-[10px] text-muted-foreground"><summary className="cursor-pointer">Convocation</summary>{rsvp(row)}</details></td>
         <td className="truncate" title={row.category}>{row.category}</td><td className="hidden sm:table-cell">{rsvp(row)}</td>
-        <td>{canManage ? <DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" className="competition-participation-trigger gap-0.5 max-w-full" aria-label={`Participation de ${row.name} : ${participationLabels[row.participation]}`} onClick={e=>e.stopPropagation()}><Status status={row.participation} label={participationLabels[row.participation]} />{mutation.isPending && mutation.variables?.playerId===row.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <ChevronDown className="h-3 w-3 shrink-0" />}</Button></DropdownMenuTrigger><DropdownMenuContent align="end">{(["present","absent","to_verify"] as const).map(status=><DropdownMenuItem key={status} onSelect={()=>{if(mutation.isPending){toast.info("Enregistrement en cours");return;}mutation.mutate({playerId:row.id,status});}}><Status status={status} label={participationLabels[status]} /></DropdownMenuItem>)}</DropdownMenuContent></DropdownMenu> : <Status status={row.participation} label={participationLabels[row.participation]} />}{row.automatic && <span title="Présence déduite de résultats individuels enregistrés" aria-label="Présence déduite automatiquement" className="inline-flex items-center text-muted-foreground ml-1 text-[9px]"><Sparkles className="h-3 w-3" /><span className="hidden lg:inline">Auto</span></span>}</td>
+        <td>{canManage ? <DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" className="competition-participation-trigger gap-0.5 max-w-full" aria-label={`Participation de ${row.name} : ${participationLabels[row.participation]}`} onClick={e=>e.stopPropagation()}><Status status={row.participation} label={participationLabels[row.participation]} />{mutation.isPending && mutation.variables?.playerId===row.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <ChevronDown className="h-3 w-3 shrink-0" />}</Button></DropdownMenuTrigger><DropdownMenuContent align="end">{(["present","absent","to_verify"] as const).map(status=><DropdownMenuItem key={status} onSelect={()=>{if(mutation.isPending){toast.info("Enregistrement en cours");return;}mutation.mutate({playerId:row.id,status});}}><Status status={status} label={participationLabels[status]} /></DropdownMenuItem>)}</DropdownMenuContent></DropdownMenu> : <Status status={row.participation} label={participationLabels[row.participation]} />}<Tooltip><TooltipTrigger asChild><span tabIndex={0} aria-label={origin(row)} className="inline-flex items-center text-muted-foreground ml-1 text-[9px]">{row.automatic ? <Sparkles className="h-3 w-3" /> : row.manual ? <Check className="h-3 w-3" /> : <CircleHelp className="h-3 w-3" />}<span className="hidden lg:inline">{row.automatic ? "Auto" : row.manual ? "Staff" : ""}</span></span></TooltipTrigger><TooltipContent>{origin(row)}</TooltipContent></Tooltip>{row.conflict && <Tooltip><TooltipTrigger asChild><span tabIndex={0} aria-label="Incohérence : absence saisie par le staff, mais résultats sportifs enregistrés." className="inline-flex ml-1"><Status status="to_verify" label="!" /><TriangleAlert className="sr-only" /></span></TooltipTrigger><TooltipContent>Incohérence : absence saisie par le staff, mais résultats sportifs enregistrés. L’absence historique est conservée.</TooltipContent></Tooltip>}</td>
       </tr>)}</tbody></table>
       {filtered.length===0 && <p className="text-xs text-muted-foreground py-2">Aucun participant trouvé</p>}
       {filtered.length>INITIAL_COMPETITION_PARTICIPANTS && <Button variant="outline" className="w-full h-9 text-xs" onClick={()=>setShowAll(value=>!value)}>{showAll ? "Réduire la liste" : `Voir les ${filtered.length} participants`}</Button>}

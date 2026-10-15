@@ -886,6 +886,7 @@ export function CompetitionRoundsDialog({
       setDeletedRoundIds([]);
       setLastSavedAt(new Date());
       queryClient.invalidateQueries({ queryKey: ["competition_rounds", matchId] });
+      queryClient.invalidateQueries({ queryKey: ["competition-effective-participation", matchId] });
       if (isAviron) {
         queryClient.invalidateQueries({ queryKey: ["competition_match_lineup", matchId] });
         queryClient.invalidateQueries({ queryKey: ["match_lineup", matchId] });

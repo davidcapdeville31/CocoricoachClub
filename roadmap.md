@@ -1,5 +1,11 @@
 # Calendrier de charge
 
+## Détection automatique de participation réelle
+- [x] Sources competition_rounds/competition_round_stats : résolution centralisée résultats > staff > à vérifier, présence automatique et contradiction historique conservée.
+- [x] Tableau et compteurs dérivés ; invalidation des sauvegardes staff/athlète bowling, écoute des statistiques et polling ; nombre de compétitions disputées réutilise la détection sans modifier les métriques sportives.
+- [x] 25 tests / 50 assertions dont les dix règles, zéro modification de données ni notification ; compilation OK.
+- [ ] Consultation connectée bowling/judo et ajout/suppression réels : Lovable Cloud indisponible, deux lectures échouées et page réelle bloquée au chargement. Synchronisation entre appareils et téléphone physique non vérifiés.
+
 ## Tableau de participation aux compétitions
 - [x] Analyser sources, permissions et distinction convocation/participation.
 - [x] Tableau compact partagé multisport, compteurs globaux, filtres/tri et correction directe persistante sans toucher aux convocations ni résultats.
