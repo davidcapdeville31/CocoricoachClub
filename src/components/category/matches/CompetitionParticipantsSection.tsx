@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
-import { Search, UserPlus, Users, Settings2, Check, X, CircleHelp, Minus, ChevronDown, ArrowUpDown, Sparkles, Loader2 } from "lucide-react";
+import { Search, UserPlus, Users, Settings2, Check, X, CircleHelp, Minus, ChevronDown, ArrowUpDown, Sparkles, Loader2, TriangleAlert } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { filterCompetitionParticipants, INITIAL_COMPETITION_PARTICIPANTS } from "@/lib/competitionParticipants";
 import { buildParticipationRows, participationCounts, participationLabels, type ParticipationStatus, type ParticipationCorrection } from "@/lib/competitionParticipation";
 import { toast } from "sonner";
@@ -33,7 +34,15 @@ export function CompetitionParticipantsSection({matchId, isIndividual, onManageI
   const effective = useQuery({queryKey:["competition-effective-participation",matchId], refetchInterval:15000, queryFn:async()=>{
     const [results, rounds, match, permission] = await Promise.all([
       supabase.from("competition_results").select("player_id, participation_status").eq("match_id",matchId),
-      supabase.from("competition_rounds").select("player_id, result, final_time_seconds, ranking, competition_round_stats(id)").eq("match_id",matchId),
+      (async () => {
+        const all = [];
+        for (let offset = 0; ; offset += 500) {
+          const page = await supabase.from("competition_rounds").select("id, player_id, result, final_time_seconds, ranking, competition_round_stats(id, stat_data)").eq("match_id",matchId).order("id").range(offset,offset+499);
+          if (page.error) return page;
+          all.push(...page.data);
+          if (page.data.length < 500) return { data: all, error: null };
+        }
+      })(),
       supabase.from("matches").select("match_date, end_date").eq("id",matchId).single(),
       supabase.rpc("can_manage_competition_participation",{_match_id:matchId}),
     ]);
@@ -49,8 +58,16 @@ export function CompetitionParticipantsSection({matchId, isIndividual, onManageI
         void client.invalidateQueries({queryKey:["competition-effective-participation",matchId]});
       });
     }
+    // Stats have only round_id, not match_id. Match against the loaded round IDs;
+    // DELETE may contain only the primary key, in which case refetch safely.
+    channel.on("postgres_changes", {event:"*",schema:"public",table:"competition_round_stats"}, payload => {
+      const record = payload.eventType === "DELETE" ? payload.old : payload.new;
+      if (!("round_id" in record) || effective.data?.rounds.some(r=>r.id===record.round_id)) {
+        void client.invalidateQueries({queryKey:["competition-effective-participation",matchId]});
+      }
+    });
     channel.subscribe(); return ()=>{void supabase.removeChannel(channel);};
-  },[matchId,client]);
+  },[matchId,client,effective.data?.rounds]);
   const ids = Array.from(new Set([...(invitations.data || []),...(lineup.data || []),...(effective.data?.rounds || []),...(effective.data?.corrections || [])].map(r=>r.player_id))).sort();
   const identities = useQuery({queryKey:["competition-participant-identities",ids], enabled:ids.length>0, queryFn:async()=>{
     const batches = [];
@@ -65,6 +82,7 @@ export function CompetitionParticipantsSection({matchId, isIndividual, onManageI
     const category = row.disciplines.length ? row.disciplines.map(clean).join(", ") : [identity?.discipline,identity?.specialty].filter((v):v is string=>Boolean(v)).map(clean).join(" · ");
     return {...row,category:category || "—"};
   });
+  const origin = (row:typeof rows[number]) => row.automatic ? "Participation confirmée automatiquement : résultats sportifs enregistrés." : row.manual && row.participation === "present" ? "Participation confirmée par le staff." : row.manual && row.participation === "absent" ? "Absence confirmée par le staff." : "Participation à vérifier.";
   const counts = participationCounts(rows);
   const confirmed = rows.filter(r=>r.invited && r.attendance === "present").length;
   const noResponse = rows.filter(r=>r.invited && (!r.attendance || r.attendance === "no_response")).length;
