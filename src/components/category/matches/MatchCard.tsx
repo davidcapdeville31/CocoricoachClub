@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { MedalsDialog } from "./MedalsDialog";
 import { MatchLineupDialog } from "./MatchLineupDialog";
+import { CompetitionParticipantsSection } from "./CompetitionParticipantsSection";
 import { isSurfCategory, isSkiCategory, getMainSportFromType, isRugbyType } from "@/lib/constants/sportTypes";
 import { useNavigate } from "react-router-dom";
 import { Play } from "lucide-react";
@@ -532,7 +533,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
         )}
         {isExpanded && (
         <div className={compact ? 'mt-3' : ''}>
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               {compTag && (
@@ -748,7 +749,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
 
           </div>
 
-          <div className="relative z-20 flex shrink-0 flex-col gap-1.5 items-end pointer-events-auto">
+          <div className="relative z-20 flex w-full sm:w-auto shrink-0 flex-col gap-1.5 items-end pointer-events-auto">
             {isRugby && (
               <>
                 <Button
@@ -803,10 +804,6 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
             </div>
-            <Button variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start" onPointerDown={stopCardAction} onClick={(e) => { stopCardAction(e); setIsLineupOpen(true); }}>
-              <Users className="h-3.5 w-3.5" />
-              {isIndividual ? t("competition.card.participantsCount", { count: lineupCount || 0 }) : t("competition.card.lineupCount", { count: lineupCount || 0 })}
-            </Button>
             {(isTeamSport || isJudo) && !isFinalized && (
               <PrepareMatchButton matchId={match.id} isJudo={isJudo} />
             )}
@@ -899,6 +896,13 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
             </DropdownMenu>
           </div>
         </div>
+
+        <CompetitionParticipantsSection
+          matchId={match.id}
+          isIndividual={isIndividual}
+          onManageInvitations={() => setIsEditOpen(true)}
+          onManageLineup={() => setIsLineupOpen(true)}
+        />
 
         {/* Surf conditions */}
         {isSurfCategory(sportType) && (

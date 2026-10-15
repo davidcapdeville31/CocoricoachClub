@@ -11,9 +11,8 @@
 - Push permission reads native three-state permission first; OneSignal false never means denied (also not-requested).
 - Athlete staff badges use unread `session_feedback` (RPE) and `wellness_submitted` (wellness) notifications as their source of truth, so read state stays user-specific without duplicating submission data.
 - The load calendar combines category training sessions and non-personal competitions over their date ranges; competition references affect only calendar summaries, never stored athlete loads.
-- useCompetitionPlannedRpe reads the category target so staff adapts competition load to their discipline.
-- useAthleteCompetitionEntry gates athlete entry via the category flag.
-- Athlete navigation/wellness use valid HSL alpha tokens, never hex suffixes, to avoid invisible mobile content.
+- Competition RPE and athlete entry use category settings to preserve discipline rules.
+- Navigation/wellness use HSL alpha tokens, not hex suffixes, for visibility.
 - Arsenal Bank managers (`public.arsenal_bank_managers` + `is_arsenal_bank_manager()`) get the Super Admin page restricted to the arsenal-bank tab and system-ball write policies, without being super admins.
 - Bowling session kind is stored in the structured column `training_sessions.session_kind` (training/competition/personal/evaluation, nullable), never in free-text notes, so histories and stats can filter on it.
 - Circuit V2 athlete logs keep one `athlete_exercise_logs` row per circuit (aggregated so tonnage = Σ charge × reps) and store per-exercise/per-round detail in a `<!--circuit-log:...-->` notes tag, so the unique key and tonnage stay unchanged.
@@ -24,7 +23,8 @@
 - Optional bowling observations use a backward-compatible observed-fields list on existing throw JSON; omitted metadata preserves legacy meaning, while new absent observations are excluded from denominators.
 - Poche/Split use one typed tri-state component with invariant tokens and a dedicated Button variant; null adapts to observed-fields JSON, preserving statistics. Mobile entry holds each throw until explicit continuation.
 - In-progress bowling games remain in block configuration but never enter completed-game aggregates or flattened competition results; this preserves resumable input without publishing provisional scores.
-- Judo sessions use training_sessions/blocks and judo notes tags to preserve calendars and workload.
+- Judo uses training_sessions/blocks and notes tags to preserve calendars/workload.
+- Competition cards deduplicate convocations/compositions for display, reuse separate existing edit dialogs and query keys, and never alter results.
 - Session authors are immutable, separate from assignment: DB stamps authenticated actors, functions pass validated JWT subjects, labels batch RLS reads; unknown legacy authors stay unknown.
 - FieldModeContext activates canonical `.dark` tokens and Tailwind variants; no parallel theme provider.
 - RPE uses `data-rpe`; form uses shared FeelingChoices and `data-feeling` tokens; selection overrides exclude both and bowling to preserve meaning.
