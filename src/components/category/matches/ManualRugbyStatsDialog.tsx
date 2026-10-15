@@ -679,7 +679,7 @@ export function ManualRugbyStatsDialog({
                           <td className="px-2 py-1.5 sticky left-0 bg-background z-10 border-r">
                             <div className="flex items-center gap-1.5">
                               <Badge variant={isSub ? "outline" : "default"} className="text-[10px] font-mono px-1.5 py-0 h-5">
-                                {isSub ? `R` : `#${l.position ?? "?"}`}
+                                {`#${displayNumber(l)}`}
                               </Badge>
                               <span className="text-xs font-medium truncate max-w-[140px]">{name}</span>
                             </div>
@@ -696,7 +696,8 @@ export function ManualRugbyStatsDialog({
                               f.key === "drops" || f.key === "dropsMissed"
                             );
                             const pos = l.position ?? null;
-                            const isForward = pos !== null && pos >= 1 && pos <= 8;
+                            const posNum = pos !== null && /^\d+$/.test(String(pos).trim()) ? parseInt(String(pos), 10) : null;
+                            const isForward = l.is_starter && posNum !== null && posNum >= 1 && posNum <= 8;
                             if (isKickerStat && isForward) {
                               return (
                                 <td key={f.key} className="px-0.5 py-0.5 text-center text-muted-foreground/40 text-xs" title="Les avants (1-8) ne tirent pas">
