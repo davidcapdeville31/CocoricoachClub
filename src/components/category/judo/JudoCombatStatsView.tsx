@@ -180,11 +180,11 @@ export function JudoCombatStatsView({
         <StatPill label="À compléter" value={totals.pending} />
       </div>
 
-      <div className="flex flex-wrap items-center gap-1.5">
+      <div className="judo-combat-navigation flex flex-wrap items-center gap-1.5">
         {selectedPlayer.rounds.map((round) => {
           const active = round.round_number === activeRoundNumber;
           return (
-            <div key={round.round_number} className="group relative inline-flex">
+            <div key={round.round_number} className="judo-round-control group relative inline-flex">
               <Button
                 variant={active ? "default" : "outline"}
                 size="sm"
@@ -284,7 +284,7 @@ function CombatReviewPanel({
   const standingRate = standingAttempts > 0 ? Math.round((standingSuccess / standingAttempts) * 100) : 0;
 
   return (
-    <div className="flex items-start gap-4">
+    <div className="judo-review-layout flex items-start gap-4">
       <div className="min-w-0 flex-1 space-y-4">
         <Card className="space-y-3 border-l-4 border-l-primary p-3 shadow-sm">
           <div className="flex items-center justify-between gap-2">
@@ -305,7 +305,7 @@ function CombatReviewPanel({
 
             <div className="space-y-1 md:col-span-2">
               <Label className="text-[10px] uppercase text-muted-foreground">Adversaire</Label>
-              <div className="flex gap-1">
+              <div className="judo-opponent-fields flex gap-1">
                 <Select
                   value={round.opponent_profile_id || "__manual__"}
                   onValueChange={(value) => {
@@ -385,7 +385,7 @@ function CombatReviewPanel({
         </Card>
 
         <Tabs defaultValue="score" className="space-y-3">
-          <TabsList className="grid h-auto w-full grid-cols-4">
+          <TabsList className="judo-combat-subtabs grid h-auto w-full grid-cols-4">
             <TabsTrigger value="score" className="py-1.5 text-[11px]">Score</TabsTrigger>
             <TabsTrigger value="newaza" className="py-1.5 text-[11px]">Ne-waza</TabsTrigger>
             <TabsTrigger value="tactique" className="py-1.5 text-[11px]">Tactique</TabsTrigger>
@@ -395,7 +395,7 @@ function CombatReviewPanel({
           <TabsContent value="score" className="mt-0">
             <Card className="space-y-3 p-3">
               <SectionHeader icon={<Zap className="h-4 w-4 text-primary" />} title="Score" />
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="judo-score-grid grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <ScoreColumn
                   label="Athlète"
                   ippon={num(round.stats?.[K.ipponMe])}
@@ -473,7 +473,7 @@ function CombatReviewPanel({
           <TabsContent value="details" className="mt-0 space-y-3">
             <Card className="space-y-3 p-3">
               <SectionHeader icon={<Zap className="h-4 w-4 text-primary" />} title="Techniques debout" />
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+              <div className="judo-standing-grid grid grid-cols-1 gap-2 sm:grid-cols-3">
                 <CounterStat label="Techniques tentées" value={standingAttempts} onChange={(value) => {
                   onUpdateStat(K.standingAttempts, value);
                   if (standingSuccess > value) onUpdateStat(K.standingSuccess, value);
@@ -501,7 +501,7 @@ function CombatReviewPanel({
       </div>
 
       {videoOpen && (
-        <aside className="sticky top-4 hidden h-[calc(100vh-7rem)] w-[380px] shrink-0 self-start lg:flex xl:w-[440px]">
+        <aside className="judo-video-dock sticky top-4 hidden h-[calc(100vh-7rem)] w-[380px] shrink-0 self-start lg:flex xl:w-[440px]">
           <VideoCompanionDock
             open={videoOpen}
             onClose={() => setVideoOpen(false)}
@@ -570,7 +570,7 @@ function ScoreColumn({
   onHansoku: (value: boolean) => void;
 }) {
   return (
-    <div className={cn("space-y-2 rounded-lg border p-3", opponent ? "bg-destructive/5" : "bg-primary/5")}>
+    <div data-side={opponent ? "opponent" : "athlete"} className={cn("judo-score-column space-y-2 rounded-lg border p-3", opponent ? "bg-destructive/5" : "bg-primary/5")}>
       <p className="text-center text-[11px] font-bold uppercase">{label}</p>
       <CounterRow label="Ippon" value={ippon} max={1} onChange={onIppon} />
       <CounterRow label="Waza-ari" value={wazari} max={2} onChange={onWazari} />
@@ -654,7 +654,7 @@ function CounterRow({ label, value, max, onChange }: { label: string; value: num
   return (
     <div className="flex items-center justify-between gap-2">
       <p className="text-xs font-semibold">{label}</p>
-      <div className="flex items-center gap-1">
+      <div className="judo-score-counter flex items-center gap-1">
         <Button type="button" size="icon" variant="outline" className="h-8 w-8" onClick={() => onChange(Math.max(0, value - 1))}>−</Button>
         <div className="w-8 text-center font-bold tabular-nums">{value}</div>
         <Button type="button" size="icon" variant="outline" className="h-8 w-8" onClick={() => onChange(Math.min(max, value + 1))}>+</Button>

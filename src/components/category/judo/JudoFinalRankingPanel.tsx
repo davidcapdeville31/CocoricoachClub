@@ -41,7 +41,7 @@ export function JudoFinalRankingBanner({
   const { data: ranking } = useFinalRanking(matchId, playerId);
   const label = finalRankingLabel(ranking);
   return (
-    <div className="mb-3 flex items-center justify-between gap-2 rounded-xl border bg-muted/30 px-4 py-3">
+    <div className="judo-final-ranking-banner mb-3 flex items-center justify-between gap-2 rounded-xl border bg-muted/30 px-4 py-3">
       <div className="min-w-0">
         <p className="text-sm font-medium truncate">{playerName || "Athlète"}</p>
         {competitionName && <p className="text-xs text-muted-foreground truncate">{competitionName}</p>}
@@ -97,7 +97,7 @@ export function JudoFinalRankingPanel({
         <p className="text-xs text-muted-foreground">
           Le classement est saisi une seule fois pour toute la compétition. Il ne dépend ni du nombre, ni de l'ordre, ni du résultat des combats.
         </p>
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+        <div className="judo-ranking-options grid grid-cols-3 gap-2 sm:grid-cols-6">
           {FINAL_RANKING_OPTIONS.map((opt) => {
             const active = ranking === opt.value;
             return (
@@ -115,7 +115,7 @@ export function JudoFinalRankingPanel({
             );
           })}
         </div>
-        <div className="flex items-center justify-between gap-2 text-xs">
+        <div className="judo-ranking-status flex items-center justify-between gap-2 text-xs">
           <span className="text-muted-foreground">
             {isLoading ? "Chargement…" : save.isPending ? "Sauvegarde en cours…" : ranking ? (
               <span className="inline-flex items-center gap-1"><CheckCircle className="h-3.5 w-3.5" /> Enregistré</span>

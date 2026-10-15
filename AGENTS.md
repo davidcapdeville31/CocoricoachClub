@@ -4,7 +4,7 @@
 - Athlete navigation uses URL tabs and sport visibility; drawer/theme commands reuse FieldModeContext to preserve preferences.
 - Athlete content reserves ResizeObserver-measured navigation and safe-area height; visualViewport hides navigation under the keyboard, preserving form state.
 - Athlete notifications are push-only via linked user IDs; composition messages stay editable and calendar availability invitations unchanged.
-- BrandLogo uses identical artwork and transparency across themes; its CDN dark variant has light strokes to avoid checkerboards and brand drift.
+- BrandLogo shares transparent artwork across themes; dark CDN strokes remain light.
 - OneSignal registration waits for explicit post-init readiness and caches only successful syncs; available SDK methods do not prove readiness.
 - Attendance marks push active only for confirmed enabled OneSignal subscriptions, never preferences alone.
 - Attendance previews read `match_participants` and minimal player fields, never lineups, to count actual invitations/responses.
@@ -23,7 +23,7 @@
 - Optional bowling observations use a backward-compatible observed-fields list on existing throw JSON; omitted metadata preserves legacy meaning, while new absent observations are excluded from denominators.
 - Poche/Split use one typed tri-state component with invariant tokens and a dedicated Button variant; null adapts to observed-fields JSON, preserving statistics. Mobile entry holds each throw until explicit continuation.
 - In-progress bowling games remain in block configuration but never enter completed-game aggregates or flattened competition results; this preserves resumable input without publishing provisional scores.
-- Judo uses training_sessions/blocks and notes tags to preserve calendars/workload.
+- Judo sessions reuse training_sessions/notes; athlete competition responsive styles opt in on shared forms, preserving staff, desktop, other sports and actions.
 - Competition participation uses a shared derived resolver: valid sports results > staff > unknown; preserve RSVP, ranking and conflicting corrections without storing inferred attendance.
 - Session authors are immutable, separate from assignment: DB stamps authenticated actors, functions pass validated JWT subjects, labels batch RLS reads; unknown legacy authors stay unknown.
 - FieldModeContext activates canonical `.dark` tokens and Tailwind variants; no parallel theme provider.
