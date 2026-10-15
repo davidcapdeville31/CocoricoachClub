@@ -218,6 +218,20 @@
       "when": 1792056178422,
       "tag": "0030_skip_past_competition_convocation_notifications",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1792057817531,
+      "tag": "0031_competition_effective_participation",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1792058100160,
+      "tag": "0032_protect_participation_corrections_on_delete",
+      "breakpoints": true
     }
   ]
 }

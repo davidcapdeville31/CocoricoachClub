@@ -1,5 +1,12 @@
 # Calendrier de charge
 
+## Tableau de participation aux compétitions
+- [x] Analyser sources, permissions et distinction convocation/participation.
+- [x] Tableau compact partagé multisport, compteurs globaux, filtres/tri et correction directe persistante sans toucher aux convocations ni résultats.
+- [x] 12 tests/23 assertions ; bowling réel 17 personnes/146 parties ; sauvegarde Présent/Absent et relecture sur compétition temporaire supprimée, convocation confirmée préservée ; clair/sombre 320/390/768/1280 px, lignes 41–44 px sans débordement de la section. Build OK.
+- [ ] Vérifier visuellement judo/rugby et 30 personnes réelles : données d’essai multisport manquantes ; 30 personnes testées uniquement par transformation. Téléphone physique indisponible.
+- [ ] Préserver explicitement les suppressions en cascade après correction de participation : migration de complément bloquée par indisponibilité de connexion Lovable Cloud (trois tentatives sans application). Protection actuelle des corrections appliquée ; suppression de compétition/athlète comportant une correction reste à vérifier.
+
 ## Consultation super admin Toulouse Balma
 - [x] Reproduire connecté : 0 compétition affichée alors que 45 existent ; accès super admin absent des politiques de consultation.
 - [x] Rétablir uniquement la lecture compétitions non personnelles, participants, compositions, combats, résultats, séances/blocs et charges ; aucune donnée ni droit d’écriture modifié.
