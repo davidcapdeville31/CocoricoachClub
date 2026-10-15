@@ -83,16 +83,16 @@ export function CompetitionParticipantsSection({ matchId, isIndividual, onManage
               <div className="min-w-0 flex-1 space-y-1">
                 <p className="text-sm font-medium break-words">{participant.name}</p>
                 <div className="flex gap-1 flex-wrap">
-                  {participant.invited && <Badge variant="outline" className="text-[10px] text-foreground">Convoqué</Badge>}
-                  {participant.composed && <Badge variant="outline" className="text-[10px] bg-muted text-foreground">{isIndividual ? "Inscrit" : "Composition"}</Badge>}
-                  {participant.attendance && <Badge variant="outline" data-attendance={participant.attendance} className="text-[10px] text-foreground">{participant.attendance === "present" ? "Présent" : participant.attendance === "absent" ? "Absent" : "Sans réponse"}</Badge>}
+                  {participant.invited && <span className="text-[10px] text-muted-foreground">Convoqué</span>}
+                  {participant.composed && <span className="text-[10px] text-muted-foreground">{isIndividual ? "Inscrit" : "Composition"}</span>}
+                  {participant.attendance && <span data-attendance={participant.attendance} className="text-[10px] text-muted-foreground">{participant.attendance === "present" ? "Présent" : participant.attendance === "absent" ? "Absent" : "Sans réponse"}</span>}
                 </div>
                 {(participant.disciplines.length > 0 || discipline) && <p className="text-xs text-muted-foreground break-words">{participant.disciplines.length > 0 ? participant.disciplines.map(cleanLabel).join(", ") : discipline}</p>}
               </div>
             </li>;
           })}
         </ul>}
-      {!search.trim() && participants.length > INITIAL_COMPETITION_PARTICIPANTS && <Button variant="ghost" className="w-full min-h-10" onClick={() => setShowAll((value) => !value)}>{showAll ? "Réduire la liste" : `Voir tous les participants (${participants.length})`}</Button>}
+      {!search.trim() && participants.length > INITIAL_COMPETITION_PARTICIPANTS && <Button variant="outline" className="w-full min-h-10" onClick={() => setShowAll((value) => !value)}>{showAll ? "Réduire la liste" : `Voir tous les participants (${participants.length})`}</Button>}
     </section>
   );
 }
