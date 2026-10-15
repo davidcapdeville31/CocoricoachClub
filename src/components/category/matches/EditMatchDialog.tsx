@@ -30,6 +30,7 @@ import { TOURNAMENT_LEVELS, SELECTION_TYPES } from "@/lib/judo/competitionAnalyt
 import { useSeasonGuard } from "@/hooks/use-season-guard";
 import { MatchParticipantsSelector, syncMatchParticipants } from "./MatchParticipantsSelector";
 import { getJudoAgeCategories, isJudoSport } from "@/lib/constants/judoAgeCategories";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 
 interface Match {
   id: string;
@@ -57,6 +58,7 @@ interface EditMatchDialogProps {
   onOpenChange: (open: boolean) => void;
   match: Match;
   sportType?: string;
+  participantsOnly?: boolean;
 }
 
 const CUSTOM_COMPETITION_VALUE = "__custom__";
@@ -85,6 +87,7 @@ export function EditMatchDialog({
   onOpenChange,
   match,
   sportType = "XV",
+  participantsOnly = false,
 }: EditMatchDialogProps) {
   const competitions = getCompetitionsBySport(sportType);
   const isIndividual = isIndividualSport(sportType);
@@ -109,6 +112,7 @@ export function EditMatchDialog({
   const [selectionType, setSelectionType] = useState<string>(match.selection_type || "club");
   
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
+  const [confirmRemoval, setConfirmRemoval] = useState(false);
 
   const seasonYear = matchDate ? new Date(matchDate).getFullYear() : new Date().getFullYear();
   const ageCategoryOptions = isJudo ? getJudoAgeCategories(seasonYear) : AGE_CATEGORIES;
@@ -160,6 +164,8 @@ export function EditMatchDialog({
   const updateMatch = useMutation({
     mutationFn: async () => {
       if (!guard.assertDate(matchDate)) throw new Error("guard:date");
+      if (!existingParticipants) throw new Error("Participants non chargés");
+      if (!participantsOnly) {
       const { error } = await supabase
         .from("matches")
         .update({
@@ -181,6 +187,7 @@ export function EditMatchDialog({
         } as any)
         .eq("id", match.id);
       if (error) throw error;
+      }
 
       // Delta-sync convocations (keeps already-given answers untouched)
       await syncMatchParticipants(
@@ -207,6 +214,13 @@ export function EditMatchDialog({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (updateMatch.isPending) return;
+    if (participantsOnly) {
+      if (!existingParticipants) { toast.error("Veuillez attendre le chargement des participants"); return; }
+      if (existingParticipants.some((p) => !selectedParticipants.includes(p.player_id))) { setConfirmRemoval(true); return; }
+      updateMatch.mutate();
+      return;
+    }
     if (!matchDate) {
       toast.error("Veuillez remplir les champs obligatoires");
       return;
@@ -219,18 +233,21 @@ export function EditMatchDialog({
       toast.error("Veuillez saisir le nom de la compétition");
       return;
     }
+    if (existingParticipants?.some((p) => !selectedParticipants.includes(p.player_id))) { setConfirmRemoval(true); return; }
     updateMatch.mutate();
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {isIndividual ? "Modifier la compétition" : "Modifier le match"}
+            {participantsOnly ? "Gérer les convocations" : isIndividual ? "Modifier la compétition" : "Modifier le match"}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {!participantsOnly && <>
           {isAviron && (
             <div className="space-y-2">
               <Label>Type d'épreuve</Label>
@@ -475,6 +492,7 @@ export function EditMatchDialog({
             </div>
           )}
 
+          </>}
           <MatchParticipantsSelector
             categoryId={match.category_id}
             value={selectedParticipants}
@@ -485,7 +503,7 @@ export function EditMatchDialog({
             referenceYear={seasonYear}
           />
 
-          <div className="space-y-2">
+          {!participantsOnly && <div className="space-y-2">
             <Label htmlFor="notes">Notes</Label>
             <Textarea
               id="notes"
@@ -494,18 +512,25 @@ export function EditMatchDialog({
               placeholder="Informations complémentaires..."
               rows={3}
             />
-          </div>
+          </div>}
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Annuler
             </Button>
-            <Button type="submit" disabled={updateMatch.isPending}>
+            <Button type="submit">
               {updateMatch.isPending ? "Mise à jour..." : "Enregistrer"}
             </Button>
           </div>
         </form>
       </DialogContent>
     </Dialog>
+    <AlertDialog open={confirmRemoval} onOpenChange={setConfirmRemoval}>
+      <AlertDialogContent>
+        <AlertDialogHeader><AlertDialogTitle>Retirer les convocations décochées ?</AlertDialogTitle><AlertDialogDescription>Les réponses des athlètes retirés ne seront plus associées à ces convocations. La composition, les combats, les parties, les résultats et les statistiques sont conservés.</AlertDialogDescription></AlertDialogHeader>
+        <AlertDialogFooter><AlertDialogCancel>Annuler</AlertDialogCancel><AlertDialogAction onClick={() => updateMatch.mutate()}>Confirmer et enregistrer</AlertDialogAction></AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }
