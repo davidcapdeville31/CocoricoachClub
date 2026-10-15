@@ -318,6 +318,7 @@ export function AthleteBowlingCompetitionDialog({
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["athlete-bowling-competition", matchId, playerId] }),
         queryClient.invalidateQueries({ queryKey: ["competition_rounds", matchId] }),
+        queryClient.invalidateQueries({ queryKey: ["competition-effective-participation", matchId] }),
         queryClient.invalidateQueries({ queryKey: ["competition_rounds_count", matchId] }),
         queryClient.invalidateQueries({ queryKey: ["competition_rounds_phases", matchId] }),
       ]);
@@ -436,6 +437,7 @@ export function AthleteBowlingCompetitionDialog({
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["athlete-calendar-matches", categoryId, playerId] }),
+        queryClient.invalidateQueries({ queryKey: ["competition-effective-participation", matchId] }),
         queryClient.invalidateQueries({ queryKey: ["athlete-bowling-competition", matchId, playerId] }),
         queryClient.invalidateQueries({ queryKey: ["competition_rounds", matchId] }),
         queryClient.invalidateQueries({ queryKey: ["competition_rounds_count", matchId] }),
