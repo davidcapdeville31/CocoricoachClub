@@ -41,6 +41,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
+import { ATHLETE_CALENDAR_EVENT_TYPES } from "@/lib/athleteCalendarEventTypes";
 import { getTestLabel } from "@/lib/constants/testCategories";
 import { parseTestsFromNotes } from "@/lib/utils/sessionNotes";
 import { labelizeTestType, useCustomTestLabels } from "@/hooks/useCustomTestLabels";
@@ -1204,7 +1205,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         }}
         date={editingMentalSession?.date || selectedDate || new Date()}
         categoryId={categoryId}
-        allowedTypeIds={["session", "field_session", "match", "mental"]}
+        allowedTypeIds={ATHLETE_CALENDAR_EVENT_TYPES}
         athletePlayerId={playerId}
         editingMentalSession={editingMentalSession}
         onAddSession={() => {
