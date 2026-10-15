@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { Loader2, Save, Shield, MapPin } from "lucide-react";
 import { ManualRugbyPositionDialog, type FieldPosition, type PositionableKind } from "./ManualRugbyPositionDialog";
 import { useStatPreferences } from "@/hooks/use-stat-preferences";
+import { compareLineup, saveMatchPlayingTime } from "@/lib/matchPlayingTime";
 
 interface ManualRugbyStatsDialogProps {
   open: boolean;
@@ -192,6 +193,8 @@ export function ManualRugbyStatsDialog({
   // Notes "minutes" libres : par joueur (et "opp" pour l'adversaire), par mi-temps, par catégorie
   const [notes, setNotes] = useState<Record<string, Record<Category, NotesByPeriod>>>({});
   const [saving, setSaving] = useState(false);
+  const [showTime, setShowTime] = useState(false);
+  const [minutes, setMinutes] = useState<Record<string, number>>({});
   const [confirmLiveOverwrite, setConfirmLiveOverwrite] = useState(false);
   const [posDialog, setPosDialog] = useState<{
     targetKey: string; // playerId or "opp"
@@ -205,7 +208,7 @@ export function ManualRugbyStatsDialog({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("match_lineups")
-        .select("player_id, position, is_starter, players(id, name, first_name)")
+        .select("player_id, position, is_starter, minutes_played, players(id, name, first_name)")
         .eq("match_id", matchId);
       if (error) throw error;
       return (data ?? []) as any[];
@@ -330,10 +333,23 @@ export function ManualRugbyStatsDialog({
     setCategory("points");
   }, [open, lineup, existingEvents, oppSide]);
 
-  const sortedLineup = useMemo(
-    () => [...lineup].sort((a, b) => (a.position ?? 99) - (b.position ?? 99)),
-    [lineup]
-  );
+  const sortedLineup = useMemo(() => [...lineup].sort(compareLineup), [lineup]);
+
+  // Numéro affiché : SUB1 → 16, SUB2 → 17… (remplaçants après les 15 titulaires)
+  const displayNumber = (l: any): string => {
+    const s = l.position == null ? "" : String(l.position).trim();
+    const sub = s.match(/^SUB\s*(\d+)$/i);
+    if (sub) return String(15 + parseInt(sub[1], 10));
+    return s || "?";
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    const init: Record<string, number> = {};
+    lineup.forEach((l: any) => { init[l.player_id] = Number(l.minutes_played) || 0; });
+    setMinutes(init);
+    setShowTime(false);
+  }, [open, lineup]);
 
   const truncatePositions = (row: StatRow, key: keyof StatRow, value: number): StatRow => {
     if (!(key in POSITIONABLE_KIND)) return { ...row, [key]: Math.max(0, value || 0) };
@@ -525,7 +541,14 @@ export function ManualRugbyStatsDialog({
         : { score_away: clubScore, score_home: opponentScore };
       const { error: matchErr } = await supabase.from("matches").update(scorePatch as any).eq("id", matchId);
       if (matchErr) throw matchErr;
-      toast.success("Statistiques enregistrées");
+      if (categoryId) {
+        await saveMatchPlayingTime({ matchId, categoryId, minutesByPlayer: minutes });
+        qc.invalidateQueries({ queryKey: ["awcr_tracking"] });
+        qc.invalidateQueries({ queryKey: ["manual-stats-lineup", matchId] });
+        qc.invalidateQueries({ queryKey: ["match_lineup", matchId] });
+        qc.invalidateQueries({ queryKey: ["match-lineup", matchId] });
+      }
+      toast.success("Statistiques et charge du match enregistrées");
       qc.invalidateQueries({ queryKey: ["match_events", matchId] });
       qc.invalidateQueries({ queryKey: ["analytics_match_events", matchId] });
       qc.invalidateQueries({ queryKey: ["manual-stats-events", matchId] });
@@ -580,11 +603,19 @@ export function ManualRugbyStatsDialog({
           </Tabs>
 
           {/* Category selector */}
-          <Tabs value={category} onValueChange={(v) => setCategory(v as Category)}>
-            <TabsList className="grid w-full grid-cols-5">
+          <Tabs
+            value={showTime ? "playing_time" : category}
+            onValueChange={(v) => {
+              if (v === "playing_time") { setShowTime(true); return; }
+              setShowTime(false);
+              setCategory(v as Category);
+            }}
+          >
+            <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 h-auto">
               {(Object.keys(CATEGORY_LABELS) as Category[]).map((c) => (
                 <TabsTrigger key={c} value={c}>{CATEGORY_LABELS[c]}</TabsTrigger>
               ))}
+              <TabsTrigger value="playing_time">Temps de jeu</TabsTrigger>
             </TabsList>
           </Tabs>
 
@@ -595,6 +626,33 @@ export function ManualRugbyStatsDialog({
               <p className="text-center text-muted-foreground py-6">
                 Aucun joueur dans la composition. Ajoutez d'abord la composition du match.
               </p>
+            ) : showTime ? (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  Minutes jouées sur tout le match. La charge du match est calculée automatiquement : RPE × temps de jeu.
+                </p>
+                {sortedLineup.map((l) => {
+                  const p = l.players;
+                  const name = [p?.first_name, p?.name].filter(Boolean).join(" ") || "Joueur";
+                  const value = minutes[l.player_id] ?? 0;
+                  return (
+                    <div key={l.player_id} className="flex items-center gap-2 rounded-md border bg-card px-2 py-1.5">
+                      <Badge variant={l.is_starter ? "default" : "outline"} className="text-[10px] font-mono px-1.5 py-0 h-5 min-w-[2.25rem] justify-center">
+                        #{displayNumber(l)}
+                      </Badge>
+                      <span className="flex-1 truncate text-sm">{name}</span>
+                      <Input
+                        type="number" min={0} max={999} inputMode="numeric"
+                        value={value}
+                        onChange={(e) => setMinutes((m) => ({ ...m, [l.player_id]: Math.max(0, Math.min(999, parseInt(e.target.value || "0", 10) || 0)) }))}
+                        className="h-8 w-20 text-center font-mono"
+                        aria-label={`Temps de jeu de ${name}`}
+                      />
+                      <span className="text-xs text-muted-foreground w-7">min</span>
+                    </div>
+                  );
+                })}
+              </div>
             ) : (
               <>
                 <table className="w-full text-sm border-collapse">
@@ -621,7 +679,7 @@ export function ManualRugbyStatsDialog({
                           <td className="px-2 py-1.5 sticky left-0 bg-background z-10 border-r">
                             <div className="flex items-center gap-1.5">
                               <Badge variant={isSub ? "outline" : "default"} className="text-[10px] font-mono px-1.5 py-0 h-5">
-                                {isSub ? `R` : `#${l.position ?? "?"}`}
+                                {`#${displayNumber(l)}`}
                               </Badge>
                               <span className="text-xs font-medium truncate max-w-[140px]">{name}</span>
                             </div>
@@ -638,7 +696,8 @@ export function ManualRugbyStatsDialog({
                               f.key === "drops" || f.key === "dropsMissed"
                             );
                             const pos = l.position ?? null;
-                            const isForward = pos !== null && pos >= 1 && pos <= 8;
+                            const posNum = pos !== null && /^\d+$/.test(String(pos).trim()) ? parseInt(String(pos), 10) : null;
+                            const isForward = l.is_starter && posNum !== null && posNum >= 1 && posNum <= 8;
                             if (isKickerStat && isForward) {
                               return (
                                 <td key={f.key} className="px-0.5 py-0.5 text-center text-muted-foreground/40 text-xs" title="Les avants (1-8) ne tirent pas">
