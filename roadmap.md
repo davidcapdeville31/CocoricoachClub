@@ -1,9 +1,10 @@
 # Calendrier de charge
 
 ## Participants intégrés aux compétitions
-- [ ] Intégrer la liste réelle dédoublonnée, recherche et expansion dans les fiches staff, toutes disciplines utilisant convocations/compositions.
-- [ ] Réutiliser les formulaires et suppressions confirmées, actualiser listes/compteurs et préserver les autres fonctions.
-- [ ] Vérifier les règles de dédoublonnage et le parcours connecté sur ordinateur/mobile ; préciser la couverture.
+- [x] Intégrer la liste réelle dédoublonnée, recherche et expansion dans les fiches staff utilisant convocations/compositions.
+- [x] Réutiliser les formulaires et suppressions confirmées, actualiser listes/compteurs et préserver les autres fonctions.
+- [x] Vérifier 4 tests / 11 assertions et consultation connectée bowling/judo/rugby, ordinateur/mobile, recherche/expansion et gestion ; rapport `.lovable/competition-participants-verification.md`.
+- [ ] Ajout/retrait réels et lecture après sauvegarde : nécessite une compétition d’essai autorisée ; aucune compétition existante modifiée. Téléphone physique non disponible.
 
 ## Auteur des séances toutes disciplines
 - [x] Enregistrer le créateur réel : trigger immuable pour les créations connectées et identité JWT validée dans les trois fonctions ; associations et accès inchangés. Anciennes séances staff sans preuve : Auteur non renseigné.
