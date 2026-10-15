@@ -525,7 +525,14 @@ export function ManualRugbyStatsDialog({
         : { score_away: clubScore, score_home: opponentScore };
       const { error: matchErr } = await supabase.from("matches").update(scorePatch as any).eq("id", matchId);
       if (matchErr) throw matchErr;
-      toast.success("Statistiques enregistrées");
+      if (categoryId) {
+        await saveMatchPlayingTime({ matchId, categoryId, minutesByPlayer: minutes });
+        qc.invalidateQueries({ queryKey: ["awcr_tracking"] });
+        qc.invalidateQueries({ queryKey: ["manual-stats-lineup", matchId] });
+        qc.invalidateQueries({ queryKey: ["match_lineup", matchId] });
+        qc.invalidateQueries({ queryKey: ["match-lineup", matchId] });
+      }
+      toast.success("Statistiques et charge du match enregistrées");
       qc.invalidateQueries({ queryKey: ["match_events", matchId] });
       qc.invalidateQueries({ queryKey: ["analytics_match_events", matchId] });
       qc.invalidateQueries({ queryKey: ["manual-stats-events", matchId] });
@@ -580,11 +587,19 @@ export function ManualRugbyStatsDialog({
           </Tabs>
 
           {/* Category selector */}
-          <Tabs value={category} onValueChange={(v) => setCategory(v as Category)}>
-            <TabsList className="grid w-full grid-cols-5">
+          <Tabs
+            value={showTime ? "playing_time" : category}
+            onValueChange={(v) => {
+              if (v === "playing_time") { setShowTime(true); return; }
+              setShowTime(false);
+              setCategory(v as Category);
+            }}
+          >
+            <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 h-auto">
               {(Object.keys(CATEGORY_LABELS) as Category[]).map((c) => (
                 <TabsTrigger key={c} value={c}>{CATEGORY_LABELS[c]}</TabsTrigger>
               ))}
+              <TabsTrigger value="playing_time">Temps de jeu</TabsTrigger>
             </TabsList>
           </Tabs>
 
@@ -595,6 +610,33 @@ export function ManualRugbyStatsDialog({
               <p className="text-center text-muted-foreground py-6">
                 Aucun joueur dans la composition. Ajoutez d'abord la composition du match.
               </p>
+            ) : showTime ? (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  Minutes jouées sur tout le match. La charge du match est calculée automatiquement : RPE × temps de jeu.
+                </p>
+                {sortedLineup.map((l) => {
+                  const p = l.players;
+                  const name = [p?.first_name, p?.name].filter(Boolean).join(" ") || "Joueur";
+                  const value = minutes[l.player_id] ?? 0;
+                  return (
+                    <div key={l.player_id} className="flex items-center gap-2 rounded-md border bg-card px-2 py-1.5">
+                      <Badge variant={l.is_starter ? "default" : "outline"} className="text-[10px] font-mono px-1.5 py-0 h-5 min-w-[2.25rem] justify-center">
+                        #{displayNumber(l)}
+                      </Badge>
+                      <span className="flex-1 truncate text-sm">{name}</span>
+                      <Input
+                        type="number" min={0} max={999} inputMode="numeric"
+                        value={value}
+                        onChange={(e) => setMinutes((m) => ({ ...m, [l.player_id]: Math.max(0, Math.min(999, parseInt(e.target.value || "0", 10) || 0)) }))}
+                        className="h-8 w-20 text-center font-mono"
+                        aria-label={`Temps de jeu de ${name}`}
+                      />
+                      <span className="text-xs text-muted-foreground w-7">min</span>
+                    </div>
+                  );
+                })}
+              </div>
             ) : (
               <>
                 <table className="w-full text-sm border-collapse">
