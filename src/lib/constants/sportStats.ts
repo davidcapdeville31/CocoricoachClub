@@ -75,7 +75,7 @@ export const RUGBY_STATS: StatField[] = [
   { key: "penaltiesConceded", label: "Pénalités concédées", shortLabel: "Pén. conc.", category: "defense", type: "number", enterable: false },
   { key: "jackalWins", label: "Grattages réussis", shortLabel: "Grattages", category: "defense", type: "number", enterable: false },
   { key: "defenseCollisions", label: "Nombre de collisions", shortLabel: "Collisions", category: "defense", type: "number", enterable: false },
-  { key: "minutesPlayed", label: "Minutes jouées", shortLabel: "Min.", category: "general", type: "number", enterable: false },
+  { key: "minutesPlayed", label: "Temps de jeu (min)", shortLabel: "Temps jeu", category: "general", type: "number" },
   { key: "totalCollisions", label: "Collisions totales", shortLabel: "Collisions", category: "general", type: "number", enterable: false },
   { key: "collisionsOver5m", label: "Collision +5m (élan ≥5m)", shortLabel: "Coll. +5m", category: "general", type: "number", enterable: false },
   { key: "collisionsUnder5m", label: "Collision -5m (quasi statique)", shortLabel: "Coll. -5m", category: "general", type: "number", enterable: false },
@@ -84,7 +84,7 @@ export const RUGBY_STATS: StatField[] = [
 // Football stats - Enriched
 export const FOOTBALL_STATS: StatField[] = [
   // Individual Stats - General
-  { key: "minutesPlayed", label: "Minutes jouées", shortLabel: "Min.", category: "general", type: "number" },
+  { key: "minutesPlayed", label: "Temps de jeu (min)", shortLabel: "Temps jeu", category: "general", type: "number" },
   { key: "effectivePlayingTime", label: "Temps de jeu effectif (min)", shortLabel: "TJE", category: "general", type: "number" },
   { key: "longestSequence", label: "Séquence la plus longue (min)", shortLabel: "Séq. max", category: "general", type: "number" },
   { key: "averageSequence", label: "Séquence moyenne (min)", shortLabel: "Séq. moy.", category: "general", type: "number" },
@@ -139,7 +139,7 @@ export const FOOTBALL_STATS: StatField[] = [
 
 // Football goalkeeper stats
 export const FOOTBALL_GOALKEEPER_STATS: StatField[] = [
-  { key: "minutesPlayed", label: "Minutes jouées", shortLabel: "Min.", category: "general", type: "number" },
+  { key: "minutesPlayed", label: "Temps de jeu (min)", shortLabel: "Temps jeu", category: "general", type: "number" },
   { key: "effectivePlayingTime", label: "Temps de jeu effectif (min)", shortLabel: "TJE", category: "general", type: "number" },
   { key: "longestSequence", label: "Séquence la plus longue (min)", shortLabel: "Séq. max", category: "general", type: "number" },
   { key: "averageSequence", label: "Séquence moyenne (min)", shortLabel: "Séq. moy.", category: "general", type: "number" },
@@ -259,7 +259,7 @@ export const VOLLEYBALL_STATS: StatField[] = [
 // Basketball stats - Enriched
 export const BASKETBALL_STATS: StatField[] = [
   // Individual Stats - General
-  { key: "minutesPlayed", label: "Minutes jouées", shortLabel: "Min.", category: "general", type: "number" },
+  { key: "minutesPlayed", label: "Temps de jeu (min)", shortLabel: "Temps jeu", category: "general", type: "number" },
   { key: "effectivePlayingTime", label: "Temps de jeu effectif (min)", shortLabel: "TJE", category: "general", type: "number" },
   { key: "longestSequence", label: "Séquence la plus longue (min)", shortLabel: "Séq. max", category: "general", type: "number" },
   { key: "averageSequence", label: "Séquence moyenne (min)", shortLabel: "Séq. moy.", category: "general", type: "number" },
@@ -310,7 +310,7 @@ export const BASKETBALL_STATS: StatField[] = [
 export const BASKETBALL_3X3_STATS: StatField[] = [
   // General
   { key: "matchDurationSeconds", label: "Durée du match (sec)", shortLabel: "Durée", category: "general", type: "number", max: 600 },
-  { key: "minutesPlayed", label: "Minutes jouées", shortLabel: "Min.", category: "general", type: "number" },
+  { key: "minutesPlayed", label: "Temps de jeu (min)", shortLabel: "Temps jeu", category: "general", type: "number" },
   { key: "starts", label: "Titularisations", shortLabel: "Titu.", category: "general", type: "number" },
   { key: "personalFouls", label: "Fautes personnelles", shortLabel: "Fautes", category: "general", type: "number" },
   { key: "technicalFouls", label: "Fautes techniques", shortLabel: "F. tech.", category: "general", type: "number" },

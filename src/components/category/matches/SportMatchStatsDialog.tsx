@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { compareLineup, saveMatchPlayingTime } from "@/lib/matchPlayingTime";
 import { supabase } from "@/integrations/supabase/client";
 import { NotifyStatsButton } from "./NotifyStatsButton";
 import {
@@ -219,7 +220,7 @@ export function SportMatchStatsDialog({
         }));
       } else {
         // Full initialization
-        const stats = lineup.map((l) => {
+        const stats = [...lineup].sort(compareLineup).map((l) => {
           const existing = existingStats?.find((s) => s.player_id === l.player_id);
           const player = l.players as { id: string; name: string; first_name?: string } | null;
           const position = l.position || "";
@@ -365,40 +366,14 @@ export function SportMatchStatsDialog({
         if (error) throw error;
       }
 
-      // Auto-inject RPE 10/10
-      if (matchData && statsData.length > 0) {
-        const matchDate =
-          matchData.match_date?.split("T")[0] || new Date().toISOString().split("T")[0];
-
-        const playerIds = statsData.map((s) => s.playerId);
-        for (const playerId of playerIds) {
-          await supabase
-            .from("awcr_tracking")
-            .delete()
-            .eq("player_id", playerId)
-            .eq("category_id", categoryId)
-            .eq("session_date", matchDate)
-            .is("training_session_id", null)
-            .gte("rpe", 10);
-        }
-
-        const rpeEntries = statsData.map((s) => {
-          const minutes =
-            Number(s.minutesPlayed) || Number(s.playingTime) || Number(s.setsPlayed) || 80;
-          return {
-            player_id: s.playerId,
-            category_id: categoryId,
-            session_date: matchDate,
-            rpe: 10,
-            duration_minutes: minutes,
-            training_load: 10 * minutes,
-          };
+      // Temps de jeu → charge du match (RPE × minutes)
+      if (statsData.length > 0) {
+        const minutesByPlayer: Record<string, number> = {};
+        statsData.forEach((s) => {
+          const m = Number(s.minutesPlayed) || Number(s.playingTime) || 0;
+          if (m > 0) minutesByPlayer[s.playerId] = m;
         });
-
-        if (rpeEntries.length > 0) {
-          const { error: rpeError } = await supabase.from("awcr_tracking").insert(rpeEntries);
-          if (rpeError) console.error("Error inserting match RPE:", rpeError);
-        }
+        await saveMatchPlayingTime({ matchId, categoryId, minutesByPlayer });
       }
     },
     onSuccess: () => {
