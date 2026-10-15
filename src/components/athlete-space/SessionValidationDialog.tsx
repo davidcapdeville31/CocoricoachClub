@@ -154,6 +154,8 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
         training_session_id: session.id,
         post_session_feeling: feeling,
         post_session_notes: comment || null,
+        // Saisie réelle : remplace une éventuelle ligne auto-complétée
+        auto_filled: false,
       };
       const { data: updatedAwcrRows, error: updateAwcrErr } = await supabase
         .from("awcr_tracking")

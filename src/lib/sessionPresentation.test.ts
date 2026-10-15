@@ -37,4 +37,10 @@ describe("sessionPresentation", () => {
     expect(getEntryStatus(false, false, true)).toBe("toComplete");
     expect(getEntryStatus(true, true, true)).toBe("recorded");
   });
+  it("teammate-created session is shared, not personal nor coach", () => {
+    const o = getSessionOrigin({ created_by_player_id: "p1" }, "p2");
+    expect(o).toBe("shared");
+    expect(getNotesSectionKey(o)).toBe("sessionNotes");
+    expect(getSessionOrigin({ created_by_player_id: "p1" }, "p1")).toBe("personal");
+  });
 });
