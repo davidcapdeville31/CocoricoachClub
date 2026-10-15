@@ -106,6 +106,8 @@ All colors MUST be HSL.
     --status-optimal: 160 65% 29%;
     --status-attention: 28 85% 32%;
     --status-critical: var(--danger-text);
+    --participation-pending: 28 90% 82%;
+    --participation-pending-foreground: 22 75% 23%;
     
     /* Risk gradient colors */
     --risk-low: 160 60% 42%;

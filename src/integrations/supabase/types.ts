@@ -2775,6 +2775,9 @@ export type Database = {
           id: string
           match_id: string
           migrated_from_rounds: boolean
+          participation_status: string | null
+          participation_updated_at: string | null
+          participation_updated_by: string | null
           player_id: string
           updated_at: string
           updated_by: string | null
@@ -2785,6 +2788,9 @@ export type Database = {
           id?: string
           match_id: string
           migrated_from_rounds?: boolean
+          participation_status?: string | null
+          participation_updated_at?: string | null
+          participation_updated_by?: string | null
           player_id: string
           updated_at?: string
           updated_by?: string | null
@@ -2795,6 +2801,9 @@ export type Database = {
           id?: string
           match_id?: string
           migrated_from_rounds?: boolean
+          participation_status?: string | null
+          participation_updated_at?: string | null
+          participation_updated_by?: string | null
           player_id?: string
           updated_at?: string
           updated_by?: string | null
@@ -15526,6 +15535,10 @@ export type Database = {
         Args: { _category_id: string; _user_id: string }
         Returns: boolean
       }
+      can_manage_competition_participation: {
+        Args: { _match_id: string }
+        Returns: boolean
+      }
       can_modify_club_data: {
         Args: { _club_id: string; _user_id: string }
         Returns: boolean
@@ -15869,6 +15882,10 @@ export type Database = {
       }
       seed_default_program_themes: {
         Args: { p_club_id: string }
+        Returns: undefined
+      }
+      set_competition_participation: {
+        Args: { _match_id: string; _player_id: string; _status: string }
         Returns: undefined
       }
       snapshot_category_full: {

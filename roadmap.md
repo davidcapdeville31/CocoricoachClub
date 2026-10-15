@@ -1,5 +1,10 @@
 # Calendrier de charge
 
+## Tableau de participation aux compétitions
+- [ ] Analyser sources, permissions et distinction convocation/participation.
+- [ ] Tableau compact multisport, compteurs globaux, filtres/tri et correction directe persistante sans toucher aux convocations ni résultats.
+- [ ] Vérifier règles métier, sauvegarde/relecture connectée et rendu clair/sombre ordinateur/mobile.
+
 ## Consultation super admin Toulouse Balma
 - [x] Reproduire connecté : 0 compétition affichée alors que 45 existent ; accès super admin absent des politiques de consultation.
 - [x] Rétablir uniquement la lecture compétitions non personnelles, participants, compositions, combats, résultats, séances/blocs et charges ; aucune donnée ni droit d’écriture modifié.
