@@ -2,6 +2,7 @@ import { getDateLocale } from "@/lib/i18n/dateLocale";
 import { useState, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { hasValidCompetitionResult, resolveCompetitionParticipation } from "@/lib/competitionParticipation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -254,7 +255,7 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
       if (isIndividualCompetitionSport) {
         const { data: rounds, error: roundsError } = await supabase
           .from("competition_rounds")
-          .select("player_id, final_time_seconds, ranking, is_personal_record, competition_round_stats(stat_data), players(id, name, first_name, avatar_url, position)")
+          .select("player_id, match_id, result, final_time_seconds, ranking, is_personal_record, competition_round_stats(stat_data), players(id, name, first_name, avatar_url, position)")
           .in("match_id", activeMatchIds);
         if (roundsError) throw roundsError;
 
@@ -270,15 +271,25 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
         (rounds || []).forEach((r: any) => {
           if (!roundsByPlayer[r.player_id]) roundsByPlayer[r.player_id] = { player: r.players, matches: new Set(), rounds: [] };
           roundsByPlayer[r.player_id].rounds.push(r);
+          if (hasValidCompetitionResult(r)) roundsByPlayer[r.player_id].matches.add(r.match_id);
         });
 
-        // We need match_id per round to count distinct matches — re-fetch with match_id
-        const { data: roundsWithMatch } = await supabase
-          .from("competition_rounds")
-          .select("player_id, match_id")
+        // Apply the same derived presence rules to participation counts only;
+        // keep every sports metric below untouched.
+        const { data: corrections, error: correctionError } = await supabase
+          .from("competition_results")
+          .select("player_id, match_id, participation_status, players(id, name, first_name, avatar_url, position)")
           .in("match_id", activeMatchIds);
-        (roundsWithMatch || []).forEach((r: any) => {
-          if (roundsByPlayer[r.player_id]) roundsByPlayer[r.player_id].matches.add(r.match_id);
+        if (correctionError) throw correctionError;
+        (corrections || []).forEach(r => {
+          if (!roundsByPlayer[r.player_id]) roundsByPlayer[r.player_id] = {player:r.players, matches:new Set(), rounds:[]};
+          const entry = roundsByPlayer[r.player_id];
+          if (resolveCompetitionParticipation(entry.matches.has(r.match_id),r.participation_status).status === "present") entry.matches.add(r.match_id);
+        });
+        Object.entries(aggregated).forEach(([playerId,p]) => {
+          // Empty flattened individual stats are not attendance evidence.
+          p.matchesPlayed = 0;
+          matchesSeenByPlayer[playerId] = new Set();
         });
 
         const mergeBest = (
