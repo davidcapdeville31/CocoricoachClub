@@ -1,5 +1,10 @@
 # Calendrier de charge
 
+## Détection automatique de participation réelle
+- [ ] Identifier parties/combats valides et centraliser résultats > staff > à vérifier, avec contradiction conservée.
+- [ ] Synchroniser tableau, compteurs et usages après ajout/modification/suppression, sans écriture historique ni notifications.
+- [ ] Vérifier les dix règles, consultation connectée bowling/judo et documenter les limites.
+
 ## Tableau de participation aux compétitions
 - [x] Analyser sources, permissions et distinction convocation/participation.
 - [x] Tableau compact partagé multisport, compteurs globaux, filtres/tri et correction directe persistante sans toucher aux convocations ni résultats.
