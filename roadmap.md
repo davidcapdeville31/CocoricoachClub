@@ -1,5 +1,9 @@
 # Calendrier de charge
 
+## Rendez-vous médical dans l’espace athlète
+- [ ] Rendre le type médical existant accessible dans l’ajout du calendrier athlète, toutes disciplines.
+- [ ] Vérifier l’ouverture du formulaire et la relecture du rendez-vous après création, sans charge RPE.
+
 ## Participants intégrés aux compétitions
 - [x] Intégrer la liste réelle dédoublonnée, recherche et expansion dans les fiches staff utilisant convocations/compositions.
 - [x] Réutiliser les formulaires et suppressions confirmées, actualiser listes/compteurs et préserver les autres fonctions.
