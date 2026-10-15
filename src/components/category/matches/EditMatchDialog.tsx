@@ -134,11 +134,28 @@ export function EditMatchDialog({
     enabled: open && !!match.id,
   });
 
+  // Individual sports: athletes already holding games/combats (lineup rows)
+  // are shown as convoked so the selector never looks empty for them.
+  const { data: lineupPlayerIds } = useQuery({
+    queryKey: ["match_lineup_player_ids", match.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("match_lineups")
+        .select("player_id")
+        .eq("match_id", match.id);
+      if (error) throw error;
+      return (data || []).map((r: any) => r.player_id as string);
+    },
+    enabled: open && !!match.id && isIndividual,
+  });
+
   useEffect(() => {
-    if (open && existingParticipants) {
-      setSelectedParticipants(existingParticipants.map((p: any) => p.player_id));
+    if (open && existingParticipants && (!isIndividual || lineupPlayerIds)) {
+      const ids = new Set<string>(existingParticipants.map((p: any) => p.player_id));
+      if (isIndividual) (lineupPlayerIds || []).forEach((id) => ids.add(id));
+      setSelectedParticipants(Array.from(ids));
     }
-  }, [open, existingParticipants]);
+  }, [open, existingParticipants, lineupPlayerIds, isIndividual]);
 
   const participantStatuses: Record<string, string> = Object.fromEntries(
     (existingParticipants || []).map((p: any) => [p.player_id, p.attendance_status]),
