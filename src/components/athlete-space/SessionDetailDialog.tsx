@@ -106,7 +106,7 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
   if (!session) return null;
 
   const rawNotes = trainingType === "mental" ? String(session.notes || "").replace(/<!--[\s\S]*?-->/g, "").trim() : getReadableNotes(session.notes);
-  const origin = getSessionOrigin(session);
+  const origin = getSessionOrigin(session, playerId);
   const displayTitle = getSessionDisplayTitle(session);
   const dateLabel = session.session_date
     ? format(parseISO(session.session_date), "EEEE d MMMM yyyy", { locale: getDateLocale() })

@@ -857,7 +857,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                         </div>
                                       )}
                                     </div>
-                                    <p className="text-xs text-muted-foreground">{t(`athleteSpace.components.sessionDetailDialog.origin.${isAthleteSession ? "personal" : "prescribed"}`)} · {t(`athleteSpace.components.sessionDetailDialog.completion.${getCompletionStatus(session as any)}`)}</p>
+                                    <p className="text-xs text-muted-foreground">{t(`athleteSpace.components.sessionDetailDialog.origin.${getSessionOrigin(session as any, playerId)}`)} · {t(`athleteSpace.components.sessionDetailDialog.completion.${getCompletionStatus(session as any)}`)}</p>
                                     <SessionAuthor sessionId={session.id} playerId={playerId} />
                                     {session.session_start_time && (
                                       <p className="text-xs text-muted-foreground flex items-center gap-1">
@@ -965,11 +965,11 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                 {(() => {
                                   const rawNotes = getReadableNotes((session as any).notes);
                                   if (!rawNotes) return null;
-                                  const notesKey = getNotesSectionKey(getSessionOrigin(session as any));
+                                  const notesKey = getNotesSectionKey(getSessionOrigin(session as any, playerId));
                                   return (
                                     <div className="rounded-md border border-primary/20 bg-primary/5 p-2">
                                       <p className="text-[10px] uppercase tracking-wide font-semibold text-primary mb-1">
-                                        {t(notesKey === "myNotes" ? "athleteSpace.components.sessionDetailDialog.myNotes" : "athleteSpace.calendar.coachInstructions")}
+                                        {t(notesKey === "coachInstructions" ? "athleteSpace.calendar.coachInstructions" : `athleteSpace.components.sessionDetailDialog.${notesKey}`)}
                                       </p>
                                       <FormattedText text={rawNotes} className="text-xs text-foreground/90" />
                                     </div>

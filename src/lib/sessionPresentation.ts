@@ -38,11 +38,13 @@ export function getSessionDisplayTitle(session: { training_type?: string | null;
   return label || "Séance";
 }
 
-export type SessionOrigin = "personal" | "prescribed" | "unknown";
+export type SessionOrigin = "personal" | "shared" | "prescribed" | "unknown";
 
 /** Origine réelle : créée par l'athlète (personnelle) ou par le staff (prescrite). */
-export function getSessionOrigin(session: { created_by_player_id?: string | null; notes?: string | null; author_user_id?: string | null } | null | undefined): SessionOrigin {
+export function getSessionOrigin(session: { created_by_player_id?: string | null; notes?: string | null; author_user_id?: string | null } | null | undefined, viewerPlayerId?: string | null): SessionOrigin {
   if (!session) return "unknown";
+  // Séance créée par un·e partenaire qui a ajouté l'athlète : ni personnelle, ni du coach.
+  if (session.created_by_player_id && viewerPlayerId && session.created_by_player_id !== viewerPlayerId) return "shared";
   if (session.created_by_player_id) return "personal";
   if (/\[Séance athlète\]/i.test(String(session.notes || ""))) return "personal";
   if (session.author_user_id) return "prescribed";
@@ -64,7 +66,8 @@ export function getReadableNotes(notes: string | null | undefined): string {
 }
 
 /** Intitulé de la section de notes selon l'origine : jamais « Consignes du coach » pour une séance personnelle. */
-export function getNotesSectionKey(origin: SessionOrigin): "coachInstructions" | "myNotes" {
+export function getNotesSectionKey(origin: SessionOrigin): "coachInstructions" | "myNotes" | "sessionNotes" {
+  if (origin === "shared") return "sessionNotes";
   return origin === "personal" ? "myNotes" : "coachInstructions";
 }
 
