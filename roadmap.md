@@ -1,9 +1,10 @@
 # Calendrier de charge
 
 ## Présentation mobile des compétitions judo athlète
-- [ ] Analyser les écrans et styles partagés ; isoler le périmètre athlète judo sans changer onglets, actions ni logique.
-- [ ] Adapter fenêtre, navigation, formulaires, scores et actions aux petits écrans ; ordinateur/staff/autres sports inchangés.
-- [ ] Vérifier les huit largeurs, thèmes et interactions ; documenter sauvegardes, clavier et appareils réellement testés.
+- [x] Analyser les écrans et styles partagés ; isoler le périmètre athlète judo sans changer onglets, actions ni logique.
+- [x] Adapter fenêtre, navigation, formulaires, scores et actions aux petits écrans ; ordinateur/staff/autres sports inchangés.
+- [x] Huit largeurs et deux thèmes en simulation du dialogue réel : 85 états mobile/tablette sans chevauchement ni débordement, 28 états ordinateur ; navigation, brouillon entre combats, vidéo, confirmation et erreur simulée vérifiés. Compilation OK ; rapport `.lovable/judo-athlete-responsive-verification.md`.
+- [ ] Sauvegarde/réouverture en identité athlète et sélection persistée du classement : accès aux données judo indisponible lors de la consultation connectée. Clavier natif et appareils physiques iPhone/Android indisponibles ; liste Mes compétitions non vérifiée connectée.
 
 ## Détection automatique de participation réelle
 - [x] Sources competition_rounds/competition_round_stats : résolution centralisée résultats > staff > à vérifier, présence automatique et contradiction historique conservée.
