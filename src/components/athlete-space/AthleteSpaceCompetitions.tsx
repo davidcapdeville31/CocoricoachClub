@@ -150,7 +150,7 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
     return (
       <div
         key={match.id}
-        className="flex flex-col gap-3 rounded-xl border bg-muted/20 p-4 sm:flex-row sm:items-center sm:justify-between"
+        className="judo-competition-card flex flex-col gap-3 rounded-xl border bg-muted/20 p-4 sm:flex-row sm:items-center sm:justify-between"
       >
         <div className="space-y-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -206,7 +206,7 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
   }
 
   return (
-    <div className="space-y-6">
+    <div className={isJudo ? "athlete-judo-competitions space-y-6" : "space-y-6"}>
       <Card className="bg-gradient-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

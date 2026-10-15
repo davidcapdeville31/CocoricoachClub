@@ -1,6 +1,7 @@
 import { getLocaleTag } from "@/lib/i18n/dateLocale";
 import { useTranslation } from "react-i18next";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import "@/styles/athlete-judo-competitions.css";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { NotifyStatsButton } from "./NotifyStatsButton";
@@ -194,6 +195,30 @@ export function CompetitionRoundsDialog({
   const statCategories = allStatCategories.filter(cat => sportStats.some(s => s.category === cat.key));
   const aggregatedStats = getAggregatedStatsForSport(sportType);
   const isJudo = sportType.toLowerCase().includes("judo");
+  const isAthleteJudo = isJudo && Boolean(restrictToPlayerId);
+  const judoDialogRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open || !isAthleteJudo) return;
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+    const resize = () => {
+      const dialog = judoDialogRef.current;
+      if (!dialog) return;
+      dialog.style.setProperty("--judo-viewport-height", `${viewport.height}px`);
+      dialog.style.setProperty("--judo-viewport-top", `${viewport.offsetTop}px`);
+      const active = document.activeElement;
+      if (active instanceof HTMLElement && dialog.contains(active) && active.matches("input, textarea")) {
+        requestAnimationFrame(() => active.scrollIntoView({ block: "nearest" }));
+      }
+    };
+    resize();
+    viewport.addEventListener("resize", resize);
+    viewport.addEventListener("scroll", resize);
+    return () => {
+      viewport.removeEventListener("resize", resize);
+      viewport.removeEventListener("scroll", resize);
+    };
+  }, [open, isAthleteJudo]);
   const isBowling = sportType.toLowerCase().includes("bowling");
   const isAviron = sportType.toLowerCase().includes("aviron");
   const isAthletics = isAthletismeCategory(sportType);
@@ -1637,16 +1662,17 @@ export function CompetitionRoundsDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className={
+        ref={judoDialogRef}
+        className={(isAthleteJudo ? "athlete-judo-dialog " : "") + (
           isJudo
             ? "!max-w-none w-full h-[calc(100vh-1rem)] sm:h-[calc(100vh-2rem)] !max-h-none !rounded-2xl !p-4 sm:!p-6 grid grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden relative"
             : hasMultiBowling
               ? "!max-w-[1800px] w-[98vw] h-[95vh] max-h-[95vh] grid grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden relative"
               : "sm:max-w-[900px] h-[95vh] max-h-[95vh] grid grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden relative"
-        }
+        )}
       >
-        <DialogHeader className="flex-shrink-0">
-          <DialogTitle className="flex items-center gap-2">
+        <DialogHeader className="judo-dialog-header flex-shrink-0">
+          <DialogTitle className="judo-dialog-title flex items-center gap-2">
             {isJudo && (
               <Button
                 variant="ghost"
@@ -1905,8 +1931,8 @@ export function CompetitionRoundsDialog({
 
 
         {selectedPlayer && !isAthletics && (
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 min-h-0 flex flex-col overflow-hidden">
-            <TabsList className={`grid w-full flex-shrink-0 ${isAviron || isJudo ? 'grid-cols-4' : isBowling ? 'grid-cols-3' : 'grid-cols-3'}`}>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="judo-main-tabs w-full flex-1 min-h-0 flex flex-col overflow-hidden">
+            <TabsList className={`judo-main-tab-list grid w-full flex-shrink-0 ${isAviron || isJudo ? 'grid-cols-4' : isBowling ? 'grid-cols-3' : 'grid-cols-3'}`}>
               {isJudo && (
                 <TabsTrigger value="bilan" className="gap-2">
                   <Trophy className="h-4 w-4" />
@@ -3228,9 +3254,9 @@ export function CompetitionRoundsDialog({
           </Tabs>
         )}
 
-        <div className="flex flex-wrap items-center justify-end gap-2 pt-4 border-t flex-shrink-0 bg-background/95 backdrop-blur-sm">
+        <div className="judo-dialog-actions flex flex-wrap items-center justify-end gap-2 pt-4 border-t flex-shrink-0 bg-background/95 backdrop-blur-sm">
           {/* Indicateur de statut de sauvegarde */}
-          <div className="mr-auto flex items-center gap-2 text-sm">
+          <div className="judo-save-status mr-auto flex items-center gap-2 text-sm">
             {saveRounds.isPending ? (
               <span className="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-medium">
                 <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
