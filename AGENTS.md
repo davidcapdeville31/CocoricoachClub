@@ -23,7 +23,7 @@
 - Optional bowling observations use a backward-compatible observed-fields list on existing throw JSON; omitted metadata preserves legacy meaning, while new absent observations are excluded from denominators.
 - Poche/Split use one typed tri-state component with invariant tokens and a dedicated Button variant; null adapts to observed-fields JSON, preserving statistics. Mobile entry holds each throw until explicit continuation.
 - In-progress bowling games remain in block configuration but never enter completed-game aggregates or flattened competition results; this preserves resumable input without publishing provisional scores.
-- Judo sessions reuse training_sessions/notes; athlete competition responsive styles opt in on shared forms, preserving staff, desktop, other sports and actions.
+- Judo reuses training_sessions/notes; athlete competition styles opt in on shared forms, preserving staff, desktop, other sports and actions.
 - Competition participation uses a shared derived resolver: valid sports results > staff > unknown; preserve RSVP, ranking and conflicting corrections without storing inferred attendance.
 - Session authors are immutable, separate from assignment: DB stamps authenticated actors, functions pass validated JWT subjects, labels batch RLS reads; unknown legacy authors stay unknown.
 - FieldModeContext activates canonical `.dark` tokens and Tailwind variants; no parallel theme provider.
