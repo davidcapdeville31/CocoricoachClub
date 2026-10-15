@@ -214,6 +214,7 @@ export function EditMatchDialog({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (updateMatch.isPending) return;
     if (participantsOnly) {
       if (!existingParticipants) { toast.error("Veuillez attendre le chargement des participants"); return; }
       if (existingParticipants.some((p) => !selectedParticipants.includes(p.player_id))) { setConfirmRemoval(true); return; }
@@ -232,6 +233,7 @@ export function EditMatchDialog({
       toast.error("Veuillez saisir le nom de la compétition");
       return;
     }
+    if (existingParticipants?.some((p) => !selectedParticipants.includes(p.player_id))) { setConfirmRemoval(true); return; }
     updateMatch.mutate();
   };
 

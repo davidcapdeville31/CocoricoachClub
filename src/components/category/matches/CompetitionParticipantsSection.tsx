@@ -67,7 +67,7 @@ export function CompetitionParticipantsSection({ matchId, isIndividual, onManage
       </div>
       {participants.length > 0 && <div className="relative max-w-sm">
         <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
-        <Input aria-label="Rechercher un participant" placeholder="Rechercher par nom ou prénom" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-10" />
+        <Input aria-label="Rechercher un participant" placeholder="Nom ou prénom" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-10" />
       </div>}
       {error ? <div role="alert" className="text-sm text-destructive">Impossible de charger les participants. <Button variant="ghost" size="sm" onClick={() => { void invitations.refetch(); void lineup.refetch(); if (ids.length > 0) void identities.refetch(); }}>Réessayer</Button></div>
         : loading ? <p role="status" className="text-sm text-muted-foreground">Chargement des participants…</p>

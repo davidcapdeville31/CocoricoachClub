@@ -74,7 +74,7 @@ export function MatchParticipantsSelector({
 
   // Retire automatiquement les athlètes devenus hors catégorie
   useEffect(() => {
-    if (!judoFilterActive) return;
+    if (!judoFilterActive || !players) return;
     const eligibleIds = new Set(list.map((p) => p.id));
     const filtered = value.filter((id) => eligibleIds.has(id));
     if (filtered.length !== value.length) onChange(filtered);
