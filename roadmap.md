@@ -1,5 +1,10 @@
 # Calendrier de charge
 
+## Participants intégrés aux compétitions
+- [ ] Intégrer la liste réelle dédoublonnée, recherche et expansion dans les fiches staff, toutes disciplines utilisant convocations/compositions.
+- [ ] Réutiliser les formulaires et suppressions confirmées, actualiser listes/compteurs et préserver les autres fonctions.
+- [ ] Vérifier les règles de dédoublonnage et le parcours connecté sur ordinateur/mobile ; préciser la couverture.
+
 ## Auteur des séances toutes disciplines
 - [x] Enregistrer le créateur réel : trigger immuable pour les créations connectées et identité JWT validée dans les trois fonctions ; associations et accès inchangés. Anciennes séances staff sans preuve : Auteur non renseigné.
 - [x] Mention partagée sur accueil, calendrier athlète, prochaines séances, détails/bilan/mental, calendriers coach global/semaine/jour, planification hebdomadaire et infobulles Charge ; toutes disciplines.
