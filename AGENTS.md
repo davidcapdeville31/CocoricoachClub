@@ -1,5 +1,5 @@
 # Architecture decisions
-- Athlete visuals inherit scoped tokens to avoid portal regressions; Documents reads existing ownership/management RPCs for contextual upload UI, never new grants.
+- Athlete visuals use scoped tokens; Documents reuses ownership RPCs without new grants.
 - Selectable controls use shared tokens and state attributes, preserving functional statuses.
 - Athlete navigation uses URL tabs and sport visibility; drawer/theme commands reuse FieldModeContext to preserve preferences.
 - Athlete content reserves ResizeObserver-measured navigation and safe-area height; visualViewport hides navigation under the keyboard, preserving form state.
@@ -32,3 +32,4 @@
 - Athlete calendar uses Day Picker/month and date-fns/week on identical data; mounted tabs keep drafts/dates. Its shared event allowlist reuses CreateEventDialog, including medical without RPE.
 - Upcoming summaries batch attendance reads; preserve RSVP write destinations and locks.
 - Judo final ranking lives only in `competition_results` (NULL unset, NC explicit), never from combats, so combat edits never change it.
+- Super-admin reads use SELECT policies, not membership helpers, preserving write limits.

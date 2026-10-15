@@ -1,5 +1,11 @@
 # Calendrier de charge
 
+## Consultation super admin Toulouse Balma
+- [x] Reproduire connecté : 0 compétition affichée alors que 45 existent ; accès super admin absent des politiques de consultation.
+- [x] Rétablir uniquement la lecture compétitions non personnelles, participants, compositions, combats, résultats, séances/blocs et charges ; aucune donnée ni droit d’écriture modifié.
+- [x] Vérifier connecté : 42 compétitions non personnelles affichées (37 à venir, 5 passées), compilation OK.
+- [ ] Vérifier par test la lecture des séances et le refus d’accès anonyme.
+
 ## Rendez-vous médical dans l’espace athlète
 - [x] Rendre le type médical existant accessible dans l’ajout du calendrier athlète, toutes disciplines, via le formulaire partagé existant.
 - [x] Test automatique de disponibilité réussi ; compte connecté dans l’espace athlète : ouverture, création temporaire sans RPE, rechargement/lecture et suppression confirmée réussis. Session staff en consultation athlète, pas connexion distincte comme propriétaire athlète ; téléphone physique non testé.
