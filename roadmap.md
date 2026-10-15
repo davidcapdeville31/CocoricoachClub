@@ -1,5 +1,10 @@
 # Calendrier de charge
 
+## Présentation mobile des compétitions judo athlète
+- [ ] Analyser les écrans et styles partagés ; isoler le périmètre athlète judo sans changer onglets, actions ni logique.
+- [ ] Adapter fenêtre, navigation, formulaires, scores et actions aux petits écrans ; ordinateur/staff/autres sports inchangés.
+- [ ] Vérifier les huit largeurs, thèmes et interactions ; documenter sauvegardes, clavier et appareils réellement testés.
+
 ## Détection automatique de participation réelle
 - [x] Sources competition_rounds/competition_round_stats : résolution centralisée résultats > staff > à vérifier, présence automatique et contradiction historique conservée.
 - [x] Tableau et compteurs dérivés ; invalidation des sauvegardes staff/athlète bowling, écoute des statistiques et polling ; nombre de compétitions disputées réutilise la détection sans modifier les métriques sportives.
