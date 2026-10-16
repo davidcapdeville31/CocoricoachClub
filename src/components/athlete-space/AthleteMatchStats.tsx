@@ -35,15 +35,37 @@ interface AthleteMatchStatsProps {
 /**
  * Petite icône « i » qui explique à quoi sert une statistique. Les athlètes
  * découvrent le sens de chaque champ sans avoir à interroger le staff.
+ *
+ * L'infobulle est pilotée par un état partagé : un seul texte est visible à la
+ * fois, un tap suffit sur mobile et le survol fonctionne à la souris.
  */
-function StatInfo({ label, text }: { label: string; text: string }) {
+function StatInfo({
+  id,
+  label,
+  text,
+  active,
+  onToggle,
+}: {
+  id: string;
+  label: string;
+  text: string;
+  active: boolean;
+  onToggle: (id: string | null) => void;
+}) {
   return (
-    <StatTooltip delayDuration={150}>
+    <StatTooltip
+      open={active}
+      onOpenChange={(open) => onToggle(open ? id : null)}
+      delayDuration={150}
+    >
       <StatTooltipTrigger asChild>
         <button
           type="button"
           aria-label={`Expliquer : ${label}`}
-          onPointerDown={(e) => e.preventDefault()}
+          onClick={(e) => {
+            e.preventDefault();
+            onToggle(active ? null : id);
+          }}
           className="shrink-0 rounded-full p-0.5 text-muted-foreground/70 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <Info className="h-3.5 w-3.5" />
