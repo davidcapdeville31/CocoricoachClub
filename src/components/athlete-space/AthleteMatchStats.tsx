@@ -62,10 +62,6 @@ function StatInfo({
         <button
           type="button"
           aria-label={`Expliquer : ${label}`}
-          onClick={(e) => {
-            e.preventDefault();
-            onToggle(active ? null : id);
-          }}
           className="shrink-0 rounded-full p-0.5 text-muted-foreground/70 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <Info className="h-3.5 w-3.5" />
