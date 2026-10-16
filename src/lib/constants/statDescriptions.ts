@@ -274,15 +274,16 @@ function labelFor(key: string, allStats?: StatField[]): string {
 }
 
 /**
- * Clé du dictionnaire de descriptions pour un sport. getBaseSport écrase les
- * variantes (basketball_3x3 -> basketball), donc on traite ici les règles
- * réellement distinctes.
+ * Clés des dictionnaires de descriptions, par ordre de priorité. getBaseSport
+ * écrase les variantes (basketball_3x3 -> basketball), donc on garde d'abord
+ * la variante puis le sport de base.
  */
-function sportMapKey(sportType?: string): string {
-  if (!sportType) return "";
-  const raw = String(sportType).toLowerCase();
-  if (raw === "basketball_3x3") return "basketball_3x3";
-  return getBaseSport(raw);
+function sportMapKeys(sportType?: string): string[] {
+  if (!sportType) return [];
+  const raw = String(sportType);
+  const base = getBaseSport(raw);
+  const variant = raw.toLowerCase() === "basketball_3x3" ? "basketball_3x3" : base;
+  return variant === base ? [base] : [variant, base];
 }
 
 /** Description affichée dans l'infobulle d'une statistique. */
@@ -301,8 +302,10 @@ export function getStatDescription(
     return `Calculé automatiquement : ${success} sur ${total}. Tu n'as rien à saisir ici.`;
   }
 
-  const sportDesc = SPORT_DESC[sportMapKey(sportType)]?.[stat.key];
-  if (sportDesc) return sportDesc;
+  for (const mapKey of sportMapKeys(sportType)) {
+    const sportDesc = SPORT_DESC[mapKey]?.[stat.key];
+    if (sportDesc) return sportDesc;
+  }
 
   const shared = SHARED[stat.key];
   if (shared) return shared;
