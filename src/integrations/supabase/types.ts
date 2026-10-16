@@ -2770,6 +2770,7 @@ export type Database = {
       }
       competition_results: {
         Row: {
+          athlete_context_notes: string | null
           created_at: string
           final_ranking: string | null
           id: string
@@ -2783,6 +2784,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          athlete_context_notes?: string | null
           created_at?: string
           final_ranking?: string | null
           id?: string
@@ -2796,6 +2798,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          athlete_context_notes?: string | null
           created_at?: string
           final_ranking?: string | null
           id?: string
