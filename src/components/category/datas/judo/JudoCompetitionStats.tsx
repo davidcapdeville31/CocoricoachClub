@@ -588,7 +588,15 @@ function EmptyDataPanel({ message }: { message: string }) {
   );
 }
 
-function GeneralView({ tournaments }: { tournaments: JudoMatchRow[] }) {
+function GeneralView({
+  tournaments,
+  notesByMatch,
+  playerName,
+}: {
+  tournaments: JudoMatchRow[];
+  notesByMatch: Map<string, { player_id: string; notes: string }[]>;
+  playerName: (playerId: string) => string;
+}) {
   if (tournaments.length === 0) {
     return (
       <p className="text-sm text-muted-foreground text-center py-8">
@@ -646,9 +654,70 @@ function GeneralView({ tournaments }: { tournaments: JudoMatchRow[] }) {
         );
       })}
 
+      <AthleteContextNotesSection
+        tournaments={tournaments}
+        notesByMatch={notesByMatch}
+        playerName={playerName}
+      />
+
       {/* Détails par combat */}
       <CombatsDetailSection tournaments={tournaments} />
     </div>
+  );
+}
+
+/** Notes de bilan écrites par les athlètes (contexte du tournoi), visibles par le staff. */
+function AthleteContextNotesSection({
+  tournaments,
+  notesByMatch,
+  playerName,
+}: {
+  tournaments: JudoMatchRow[];
+  notesByMatch: Map<string, { player_id: string; notes: string }[]>;
+  playerName: (playerId: string) => string;
+}) {
+  const entries = useMemo(() => {
+    return tournaments
+      .map((t) => ({
+        tournament: t,
+        notes: (notesByMatch.get(t.id) || []).slice().sort((a, b) => playerName(a.player_id).localeCompare(playerName(b.player_id))),
+      }))
+      .filter((e) => e.notes.length > 0);
+  }, [tournaments, notesByMatch, playerName]);
+
+  if (entries.length === 0) return null;
+
+  return (
+    <Card className="rounded-2xl overflow-hidden border-0 shadow-sm ring-1 ring-primary/10">
+      <div className="h-1 w-full bg-gradient-to-r from-primary via-primary/80 to-primary/50" />
+      <div className="flex items-center gap-3 px-4 py-3 bg-primary/[0.04]">
+        <div className="h-8 w-8 rounded-xl flex items-center justify-center bg-primary/10">
+          <NotebookPen className="h-3.5 w-3.5 text-primary" />
+        </div>
+        <div>
+          <div className="text-sm font-semibold tracking-tight">Bilan de la compétition — notes des athlètes</div>
+          <div className="text-[11px] text-muted-foreground">
+            Contexte partagé par les athlètes : stress, trajet, fatigue, poids, sommeil…
+          </div>
+        </div>
+      </div>
+      <CardContent className="pt-3 space-y-3">
+        {entries.map(({ tournament, notes }) => (
+          <div key={tournament.id} className="rounded-xl border bg-card/50 p-3 space-y-2">
+            <div className="text-xs font-medium text-muted-foreground truncate">
+              {tournament.opponent || tournament.competition || "Tournoi"} ·{" "}
+              {format(new Date(tournament.match_date), "d MMM yyyy", { locale: getDateLocale() })}
+            </div>
+            {notes.map((n) => (
+              <div key={n.player_id} className="rounded-lg bg-muted/40 border p-2.5">
+                <div className="text-xs font-semibold mb-1">{playerName(n.player_id)}</div>
+                <p className="text-sm whitespace-pre-wrap break-words">{n.notes}</p>
+              </div>
+            ))}
+          </div>
+        ))}
+      </CardContent>
+    </Card>
   );
 }
 
