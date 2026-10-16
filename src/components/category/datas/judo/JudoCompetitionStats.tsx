@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { BarChart3, GitCompare, ChevronDown, Check, Trophy, Layers, Award, Gavel, Swords, Brain, Flame, FileDown, Loader2 } from "lucide-react";
+import { BarChart3, GitCompare, ChevronDown, Check, Trophy, Layers, Award, Gavel, Swords, Brain, Flame, FileDown, Loader2, NotebookPen } from "lucide-react";
 import { toast } from "sonner";
 import { exportJudoCompetitionPdf, type JudoPdfMode } from "@/lib/judo/judoCompetitionPdfExport";
 import { extractFilledRoundStats, formatStatValue, resultLabel } from "@/lib/judo/roundDetail";
