@@ -9146,6 +9146,7 @@ export type Database = {
       }
       player_match_stats: {
         Row: {
+          athlete_feedback: string | null
           breakthroughs: number | null
           carries: number | null
           conversions: number | null
@@ -9169,6 +9170,7 @@ export type Database = {
           yellow_cards: number | null
         }
         Insert: {
+          athlete_feedback?: string | null
           breakthroughs?: number | null
           carries?: number | null
           conversions?: number | null
@@ -9192,6 +9194,7 @@ export type Database = {
           yellow_cards?: number | null
         }
         Update: {
+          athlete_feedback?: string | null
           breakthroughs?: number | null
           carries?: number | null
           conversions?: number | null

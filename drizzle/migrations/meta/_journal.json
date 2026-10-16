@@ -232,6 +232,13 @@
       "when": 1792058100160,
       "tag": "0032_protect_participation_corrections_on_delete",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1792137251767,
+      "tag": "0033_athlete_competition_feedback_notifications",
+      "breakpoints": true
     }
   ]
 }
