@@ -7,7 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, Trophy, MapPin, CalendarDays, Swords, BarChart3 } from "lucide-react";
+import { Loader2, Trophy, MapPin, CalendarDays, Swords, BarChart3, FileDown } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { exportAthleteMatchStatsPdf } from "@/lib/athleteMatchStatsPdfExport";
 import { CompetitionRoundsDialog } from "@/components/category/matches/CompetitionRoundsDialog";
 import { AthleteMatchStats } from "@/components/athlete-space/AthleteMatchStats";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
@@ -32,7 +34,24 @@ interface AthleteMatch {
 export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: AthleteSpaceCompetitionsProps) {
   const [selected, setSelected] = useState<AthleteMatch | null>(null);
   const [statsMatch, setStatsMatch] = useState<AthleteMatch | null>(null);
+  const [exportSelection, setExportSelection] = useState<Set<string>>(new Set());
+  const [exporting, setExporting] = useState(false);
   const entryEnabled = useAthleteCompetitionEntry(categoryId);
+
+  // Nom de l'athlète pour l'en-tête du PDF
+  const { data: playerName = "" } = useQuery({
+    queryKey: ["athlete-space-player-name", playerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("players")
+        .select("first_name, last_name")
+        .eq("id", playerId)
+        .single();
+      if (error) throw error;
+      return `${(data as any).first_name || ""} ${(data as any).last_name || ""}`.trim();
+    },
+    enabled: !!playerId,
+  });
 
   // Matchs où l'athlète est dans la composition d'équipe (match_lineups)
   const { data: lineupMatchIds = new Set<string>() } = useQuery({
