@@ -541,7 +541,14 @@ export function JudoCompetitionStats({ categoryId }: Props) {
           {noTournaments ? (
             <EmptyDataPanel message={emptyMessage} />
           ) : (
-            <GeneralView tournaments={selected} />
+            <GeneralView
+              tournaments={selected}
+              notesByMatch={notesByMatch}
+              playerName={(pid) => {
+                const p = players.find((pl: any) => pl.id === pid);
+                return p ? `${(p.name || "").toUpperCase()} ${p.first_name || ""}`.trim() : "Athlète";
+              }}
+            />
           )}
         </TabsContent>
 
