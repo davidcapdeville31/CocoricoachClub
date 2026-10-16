@@ -420,7 +420,8 @@ serve(async (req) => {
       );
 
       const title = "🏋️ Nouvelle séance d'athlète";
-      const message = `${playerName} vient de se créer une séance ${training_type} le ${session_date}${catInfo?.name ? ` (${catInfo.name})` : ""}`;
+      const typeLabel = training_type === "kine" ? "kiné" : training_type;
+      const message = `${playerName} vient de se créer une séance ${typeLabel} le ${session_date}${catInfo?.name ? ` (${catInfo.name})` : ""}`;
 
       if (staffIds.length > 0) {
         const records = staffIds.map((uid) => ({
