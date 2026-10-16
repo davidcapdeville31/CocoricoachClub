@@ -144,22 +144,28 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
     enabled: !!playerId,
   });
 
+  const isJudo = (sportType || "").toLowerCase().includes("judo");
+  const isTeamSport = !isJudo && !isIndividualSport(sportType || "");
+
   const { upcoming, past } = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const up: AthleteMatch[] = [];
     const pa: AthleteMatch[] = [];
-    matches.forEach((m) => {
+    // Sports collectifs : seules les compétitions où l'athlète est dans la
+    // composition d'équipe (match_lineups) sont affichées — les simples
+    // convocations sans assignation n'apparaissent pas.
+    const visible = isTeamSport
+      ? matches.filter((m) => lineupMatchIds.has(m.id))
+      : matches;
+    visible.forEach((m) => {
       const d = m.match_date ? parseISO(m.match_date) : null;
       if (d && d >= today) up.push(m);
       else pa.push(m);
     });
     up.sort((a, b) => a.match_date.localeCompare(b.match_date));
     return { upcoming: up, past: pa };
-  }, [matches]);
-
-  const isJudo = (sportType || "").toLowerCase().includes("judo");
-  const isTeamSport = !isJudo && !isIndividualSport(sportType || "");
+  }, [matches, isTeamSport, lineupMatchIds]);
 
   const toggleExportSelection = (matchId: string, checked: boolean) => {
     setExportSelection((prev) => {
