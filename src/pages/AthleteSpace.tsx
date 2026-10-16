@@ -492,7 +492,8 @@ export default function AthleteSpace() {
     ...(isSurf ? [{ value: "equipment", label: t("athlete.equipment"), icon: Waves }] : []),
     ...(isSki ? [{ value: "ski-equipment", label: t("athlete.material"), icon: Waves }] : []),
     ...(isPadel ? [{ value: "padel-equipment", label: t("athlete.material"), icon: EquipmentIcon }] : []),
-    ...(isJudo ? [{ value: "competitions", label: "Compétitions", icon: Trophy }, { value: "opponents", label: t("athlete.opponents"), icon: Users }] : []),
+    { value: "competitions", label: "Compétitions", icon: Trophy },
+    ...(isJudo ? [{ value: "opponents", label: t("athlete.opponents"), icon: Users }] : []),
     { value: "documents", label: t("athlete.documents"), icon: FileText, count: docNotifCount },
     { value: "settings", label: t("athlete.settings"), icon: Settings },
   ];
@@ -677,16 +678,14 @@ export default function AthleteSpace() {
                    <span className="athlete-nav-label">{t("athlete.material")}</span>
                  </TabsTrigger>
                 )}
-                {isJudo && (
-                  <TabsTrigger
-                    value="competitions"
-                    className="athlete-tab relative"
-                    data-nav-color="competition"
-                  >
-                    <Trophy className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                    <span className="athlete-nav-label">Compétitions</span>
-                  </TabsTrigger>
-                )}
+                <TabsTrigger
+                  value="competitions"
+                  className="athlete-tab relative"
+                  data-nav-color="competition"
+                >
+                  <Trophy className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
+                  <span className="athlete-nav-label">Compétitions</span>
+                </TabsTrigger>
                 {isJudo && (
                   <TabsTrigger
                     value="opponents"
@@ -988,15 +987,13 @@ export default function AthleteSpace() {
               />
             </TabsContent>
           )}
-          {isJudo && (
-            <TabsContent value="competitions">
-              <AthleteSpaceCompetitions
-                playerId={athleteInfo.player_id}
-                categoryId={athleteInfo.category_id}
-                sportType={athleteInfo.sport_type}
-              />
-            </TabsContent>
-          )}
+          <TabsContent value="competitions">
+            <AthleteSpaceCompetitions
+              playerId={athleteInfo.player_id}
+              categoryId={athleteInfo.category_id}
+              sportType={athleteInfo.sport_type}
+            />
+          </TabsContent>
           {isJudo && (
             <TabsContent value="opponents">
               <AthleteOpponentProfiles
