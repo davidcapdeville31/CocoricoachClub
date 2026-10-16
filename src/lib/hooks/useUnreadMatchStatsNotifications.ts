@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useId } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 export function useUnreadMatchStatsNotifications(categoryId?: string) {
   const { user } = useAuth();
   const client = useQueryClient();
+  const instanceId = useId();
   const query = useQuery({
     queryKey: ["unread-match-stats", categoryId, user?.id],
     enabled: !!categoryId && !!user,
@@ -21,13 +22,13 @@ export function useUnreadMatchStatsNotifications(categoryId?: string) {
   });
   useEffect(() => {
     if (!user || !categoryId) return;
-    const channel = supabase.channel(`match-stats-unread-${categoryId}-${user.id}`)
+    const channel = supabase.channel(`match-stats-unread-${categoryId}-${user.id}-${instanceId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` }, () => {
         client.invalidateQueries({ queryKey: ["unread-match-stats", categoryId, user.id] });
         client.invalidateQueries({ queryKey: ["staff-athlete-match-feedback"] });
       }).subscribe();
     return () => { void supabase.removeChannel(channel); };
-  }, [user?.id, categoryId, client]);
+  }, [user?.id, categoryId, client, instanceId]);
   const rows = query.data || [];
   return { rows, count: rows.length, countForMatch: (id: string) => rows.filter(r => {
     const meta = r.metadata;
