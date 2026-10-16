@@ -1,17 +1,17 @@
 # Architecture decisions
-- Athlete visuals use scoped tokens; Documents reuses ownership RPCs without new grants.
+- Athlete visuals use scoped tokens; Documents reuses ownership RPCs without grants.
 - Selectable controls use shared tokens and state attributes, preserving functional statuses.
 - Athlete navigation uses URL tabs and sport visibility; drawer/theme commands reuse FieldModeContext to preserve preferences.
 - Athlete content reserves ResizeObserver-measured navigation and safe-area height; visualViewport hides navigation under the keyboard, preserving form state.
-- Athlete notifications are push-only via linked user IDs; composition messages stay editable and calendar availability invitations unchanged.
+- Athlete notifications are push-only via linked users; composition messages stay editable; calendar availability invitations unchanged.
 - BrandLogo shares transparent artwork across themes; dark CDN strokes remain light.
-- OneSignal registration waits for explicit post-init readiness and caches only successful syncs; available SDK methods do not prove readiness.
+- OneSignal registration requires explicit post-init readiness; cache only successful syncs. SDK methods alone do not prove readiness.
 - Attendance marks push active only for confirmed enabled OneSignal subscriptions, never preferences alone.
 - Attendance previews read `match_participants` and minimal player fields, never lineups, to count actual invitations/responses.
 - Push permission reads native three-state permission first; OneSignal false never means denied (also not-requested).
-- Athlete staff badges use unread `session_feedback` (RPE) and `wellness_submitted` (wellness) notifications as their source of truth, so read state stays user-specific without duplicating submission data.
+- Athlete badges derive from unread `session_feedback`/`wellness_submitted` notifications: per-user read state, no duplicate submissions.
 - Load calendar combines sessions and non-personal competitions; references affect summaries, never stored loads.
-- Competition RPE and athlete entry use category settings to preserve discipline rules.
+- Competition RPE/athlete entry use category settings, preserving discipline rules.
 - Navigation/wellness use HSL alpha tokens, not hex suffixes, for visibility.
 - Arsenal Bank managers (`public.arsenal_bank_managers` + `is_arsenal_bank_manager()`) get the Super Admin page restricted to the arsenal-bank tab and system-ball write policies, without being super admins.
 - Bowling session kind is stored in the structured column `training_sessions.session_kind` (training/competition/personal/evaluation, nullable), never in free-text notes, so histories and stats can filter on it.
@@ -26,10 +26,12 @@
 - Judo reuses training_sessions/notes; athlete competition styles opt in on shared forms, preserving staff, desktop, other sports and actions.
 - Competition participation uses a shared derived resolver: valid sports results > staff > unknown; preserve RSVP, ranking and conflicting corrections without storing inferred attendance.
 - Session authors are immutable, separate from assignment: DB stamps authenticated actors, functions pass validated JWT subjects, labels batch RLS reads; unknown legacy authors stay unknown.
-- FieldModeContext activates canonical `.dark` tokens and Tailwind variants; no parallel theme provider.
+- FieldModeContext activates canonical `.dark` tokens/Tailwind variants; no parallel theme provider.
 - RPE uses `data-rpe`; form uses shared FeelingChoices and `data-feeling` tokens; selection overrides exclude both and bowling to preserve meaning.
 - Attendance reuses SessionAttendanceResponse on home/calendar cards; `data-attendance` bypasses selection overrides and actions stay outside disclosures.
 - Athlete calendar uses Day Picker/month and date-fns/week on identical data; mounted tabs keep drafts/dates. Its shared event allowlist reuses CreateEventDialog, including medical without RPE.
 - Upcoming summaries batch attendance reads; preserve RSVP write destinations and locks.
 - Judo final ranking lives only in `competition_results` (NULL unset, NC explicit), never from combats, so combat edits never change it.
 - Super-admin reads use SELECT policies, not membership helpers, preserving write limits.
+
+- Athlete rugby uses scoped fields/scoring aliases to preserve staff definitions and historical meanings.
