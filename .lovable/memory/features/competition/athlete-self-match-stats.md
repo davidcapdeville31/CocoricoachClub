@@ -11,3 +11,4 @@ type: feature
 - Composant `AthleteMatchStats` : réutilise `useStatPreferences` + `getStatsForSport` + `groupStatsByTheme`, mêmes champs et pourcentages calculés que la saisie staff.
 - L'athlète ne lit/modifie/supprime que sa propre ligne `player_match_stats` (policies RLS dédiées via `is_player_owner` + composition + flag catégorie). Les autres joueuses restent au staff.
 - Si le bouton est décoché côté staff : l'athlète ne saisit que son RPE (AthleteMatchRpe), le temps de jeu et les stats restent côté staff.
+- Export PDF personnel : cases à cocher sur les compétitions passées + bouton « Exporter mes stats » → `exportAthleteMatchStatsPdf` (jsPDF, logo club, stats groupées par catégorie, uniquement les propres lignes de l'athlète).
