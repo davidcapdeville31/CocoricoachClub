@@ -97,6 +97,8 @@ export function AthleteMatchStats({
   const [values, setValues] = useState<Record<string, number>>({});
   const [initialized, setInitialized] = useState(false);
   const [saving, setSaving] = useState(false);
+  // Une seule explication visible à la fois dans la fenêtre.
+  const [infoId, setInfoId] = useState<string | null>(null);
 
   const { stats: filteredStats, hasCustomPreferences, isLoading: loadingPrefs } = useStatPreferences({
     categoryId,
@@ -151,6 +153,7 @@ export function AthleteMatchStats({
     if (!open) {
       setInitialized(false);
       setValues({});
+      setInfoId(null);
       return;
     }
     if (initialized || loadingPrefs || loadingExisting) return;
@@ -295,7 +298,7 @@ export function AthleteMatchStats({
                             {group.label}
                           </p>
                         )}
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                           {group.items.map((stat) => {
                             const raw = values[stat.key] ?? 0;
                             if (stat.computedFrom) {
@@ -304,8 +307,11 @@ export function AthleteMatchStats({
                                   <span className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
                                     <span className="truncate">{stat.shortLabel}</span>
                                     <StatInfo
+                                      id={stat.key}
                                       label={stat.label}
                                       text={getStatDescription(stat, sportType, allStats)}
+                                      active={infoId === stat.key}
+                                      onToggle={setInfoId}
                                     />
                                   </span>
                                   <span className="text-sm font-semibold text-primary">{raw || 0}%</span>
@@ -323,8 +329,11 @@ export function AthleteMatchStats({
                                 <span className="flex min-w-0 flex-1 items-center gap-1 text-xs text-muted-foreground">
                                   <span className="truncate">{displayLabel}</span>
                                   <StatInfo
+                                    id={stat.key}
                                     label={displayLabel}
                                     text={getStatDescription(stat, sportType, allStats)}
+                                    active={infoId === stat.key}
+                                    onToggle={setInfoId}
                                   />
                                 </span>
                                 <Input
