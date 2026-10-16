@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle, Trophy } from "lucide-react";
+import { CheckCircle, NotebookPen, Trophy } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -128,6 +130,70 @@ export function JudoFinalRankingPanel({
           )}
         </div>
       </Card>
+      <JudoContextNotesCard matchId={matchId} playerId={playerId} />
     </div>
+  );
+}
+
+/** Notes libres de l'athlète sur le contexte du tournoi (stress, trajet…), visibles par le staff. */
+function JudoContextNotesCard({ matchId, playerId }: { matchId: string; playerId: string }) {
+  const qc = useQueryClient();
+  const key = ["competition-context-notes", matchId, playerId];
+  const { data: saved } = useQuery({
+    queryKey: key,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("competition_results")
+        .select("athlete_context_notes")
+        .eq("match_id", matchId)
+        .eq("player_id", playerId)
+        .maybeSingle();
+      if (error) throw error;
+      return data?.athlete_context_notes ?? "";
+    },
+  });
+  const [text, setText] = useState<string | null>(null);
+  useEffect(() => { setText(null); }, [matchId, playerId]);
+  const value = text ?? saved ?? "";
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("competition_results")
+        .upsert(
+          { match_id: matchId, player_id: playerId, athlete_context_notes: value.trim() || null },
+          { onConflict: "match_id,player_id" },
+        );
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.setQueryData(key, value.trim());
+      setText(null);
+      toast.success("Notes enregistrées");
+    },
+    onError: (e: any) => toast.error(e?.message || "Échec de l'enregistrement des notes"),
+  });
+
+  return (
+    <Card className="space-y-3 p-4">
+      <div className="flex items-center gap-2">
+        <NotebookPen className="h-4 w-4 text-primary" />
+        <h3 className="text-sm font-semibold">Notes</h3>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Contexte du tournoi : stress, trajet, fatigue, poids, sommeil… Ces notes sont visibles par le staff.
+      </p>
+      <Textarea
+        value={value}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="Ex : long trajet la veille, peu dormi, stress avant le premier combat…"
+        className="min-h-[100px]"
+      />
+      <div className="flex justify-end">
+        <Button type="button" size="sm" onClick={() => { if (!save.isPending) save.mutate(); }}>
+          {save.isPending ? "Sauvegarde…" : "Enregistrer les notes"}
+        </Button>
+      </div>
+    </Card>
   );
 }

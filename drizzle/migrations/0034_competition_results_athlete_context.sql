@@ -1,0 +1,1 @@
+ALTER TABLE public.competition_results ADD COLUMN IF NOT EXISTS athlete_context_notes text;
