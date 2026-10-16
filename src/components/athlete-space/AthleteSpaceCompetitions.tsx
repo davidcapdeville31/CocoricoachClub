@@ -7,8 +7,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, Trophy, MapPin, CalendarDays, Swords } from "lucide-react";
+import { Loader2, Trophy, MapPin, CalendarDays, Swords, BarChart3 } from "lucide-react";
 import { CompetitionRoundsDialog } from "@/components/category/matches/CompetitionRoundsDialog";
+import { AthleteMatchStats } from "@/components/athlete-space/AthleteMatchStats";
+import { isIndividualSport } from "@/lib/constants/sportTypes";
 import { toast } from "sonner";
 import { useAthleteCompetitionEntry } from "@/hooks/useAthleteCompetitionEntry";
 
@@ -29,7 +31,22 @@ interface AthleteMatch {
 
 export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: AthleteSpaceCompetitionsProps) {
   const [selected, setSelected] = useState<AthleteMatch | null>(null);
+  const [statsMatch, setStatsMatch] = useState<AthleteMatch | null>(null);
   const entryEnabled = useAthleteCompetitionEntry(categoryId);
+
+  // Matchs où l'athlète est dans la composition d'équipe (match_lineups)
+  const { data: lineupMatchIds = new Set<string>() } = useQuery({
+    queryKey: ["athlete-space-lineup-matches", playerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("match_lineups")
+        .select("match_id")
+        .eq("player_id", playerId);
+      if (error) throw error;
+      return new Set((data || []).map((r: any) => r.match_id as string));
+    },
+    enabled: !!playerId,
+  });
 
   const { data: matches = [], isLoading, refetch } = useQuery({
     queryKey: ["athlete-space-competitions", playerId],
