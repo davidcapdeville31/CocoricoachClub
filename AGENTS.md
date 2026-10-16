@@ -5,11 +5,11 @@
 - Athlete content reserves ResizeObserver-measured navigation and safe-area height; visualViewport hides navigation under the keyboard, preserving form state.
 - Athlete notifications are push-only via linked users; composition messages stay editable; calendar availability invitations unchanged.
 - BrandLogo shares transparent artwork across themes; dark CDN strokes remain light.
-- OneSignal registration waits for explicit post-init readiness and caches only successful syncs; available SDK methods do not prove readiness.
+- OneSignal registration requires explicit post-init readiness; cache only successful syncs. SDK methods alone do not prove readiness.
 - Attendance marks push active only for confirmed enabled OneSignal subscriptions, never preferences alone.
 - Attendance previews read `match_participants` and minimal player fields, never lineups, to count actual invitations/responses.
 - Push permission reads native three-state permission first; OneSignal false never means denied (also not-requested).
-- Athlete badges use unread `session_feedback`/`wellness_submitted` notifications, preserving per-user read state without duplicating submissions.
+- Athlete badges derive from unread `session_feedback`/`wellness_submitted` notifications: per-user read state, no duplicate submissions.
 - Load calendar combines sessions and non-personal competitions; references affect summaries, never stored loads.
 - Competition RPE/athlete entry use category settings, preserving discipline rules.
 - Navigation/wellness use HSL alpha tokens, not hex suffixes, for visibility.
@@ -34,4 +34,4 @@
 - Judo final ranking lives only in `competition_results` (NULL unset, NC explicit), never from combats, so combat edits never change it.
 - Super-admin reads use SELECT policies, not membership helpers, preserving write limits.
 
-- Athlete rugby uses scoped fields and scoring aliases, preserving staff definitions and historical meanings.
+- Athlete rugby uses scoped fields/scoring aliases to preserve staff definitions and historical meanings.
