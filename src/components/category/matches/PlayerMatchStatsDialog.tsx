@@ -188,6 +188,7 @@ export function PlayerMatchStatsDialog({
             total_contacts: s.totalContacts,
             yellow_cards: s.yellowCards,
             red_cards: s.redCards,
+            athlete_feedback: existingStats?.find((row) => row.player_id === s.playerId)?.athlete_feedback ?? null,
           }))
         );
         if (error) throw error;

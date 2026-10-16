@@ -13,6 +13,7 @@ import { usePendingWeightLogsCount } from "@/lib/hooks/usePendingWeightLogsCount
 import { usePendingTestResultsCount } from "@/lib/hooks/usePendingTestResultsCount";
 import { useUnreadAthleteSessionsCount } from "@/lib/hooks/useUnreadAthleteSessionsCount";
 import { useUnreadRpeNotificationsCount } from "@/lib/hooks/useUnreadRpeNotificationsCount";
+import { useUnreadMatchStatsNotifications } from "@/lib/hooks/useUnreadMatchStatsNotifications";
 import { useUnreadWellnessNotificationsCount } from "@/lib/hooks/useUnreadWellnessNotificationsCount";
 import { OverviewTab } from "@/components/category/OverviewTab";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
@@ -183,6 +184,7 @@ function CategoryDetailsContent() {
   const pendingTestResultsCount = usePendingTestResultsCount(categoryId);
   const unreadRpeCount = useUnreadRpeNotificationsCount(categoryId);
   const unreadWellnessCount = useUnreadWellnessNotificationsCount(categoryId);
+  const { count: unreadMatchStatsCount } = useUnreadMatchStatsNotifications(categoryId);
   const workloadBadge = pendingWeightLogsCount + pendingTestResultsCount + unreadRpeCount;
   const athleteSessionsBadge = useUnreadAthleteSessionsCount(categoryId);
 
@@ -545,6 +547,7 @@ function CategoryDetailsContent() {
                   icon={<BarChart3 className="h-5 w-5" />}
                   label={t("nav.stats.label")}
                   shortLabel={t("nav.stats.short")}
+                  badge={isViewer ? 0 : unreadMatchStatsCount}
                   tooltip={t("nav.stats.tooltip")}
                 />
               )}
