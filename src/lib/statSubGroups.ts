@@ -39,7 +39,7 @@ export const STAT_SUB_GROUPS: Record<
   ],
   defense: [
     { key: "tackling", label: "Plaquages", match: (k) => /^(tackles|tacklesMissed|tackleSuccess|dominantTackles|tacklesWon)$/i.test(k) },
-    { key: "collisions", label: "Collisions", match: (k) => /^defenseCollisions/i.test(k) },
+    { key: "collisions", label: "Collisions", match: (k) => /collision/i.test(k) },
     { key: "recoveries", label: "Récupérations", match: (k) => /^(defensiveRecoveries|jackalWins|turnoversLost|steals|interceptions|forcedTurnovers|offsidesCaught)$/i.test(k) },
     { key: "blocks", label: "Contres & Blocages", match: (k) => /^(blocks|blockedShots|clearances)$/i.test(k) },
     { key: "discipline", label: "Discipline", match: (k) => /^(penaltiesConceded|foulsCommitted|foulsWon|errorsLeadingToGoal|ownGoals)$/i.test(k) },
