@@ -213,7 +213,7 @@ export function AthleteMatchStats({
             Aucune statistique activée pour cette catégorie.
           </p>
         ) : (
-          <ScrollArea className="flex-1 min-h-0 -mx-1 px-1">
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain -mx-1 px-1">
             <div className="space-y-3 pb-2">
               {hasData && (
                 <Badge variant="secondary" className="text-xs">
@@ -272,7 +272,7 @@ export function AthleteMatchStats({
                 );
               })}
             </div>
-          </ScrollArea>
+          </div>
         )}
 
         <div className="flex justify-end gap-2 pt-3 border-t">
