@@ -108,10 +108,11 @@ export function AthleteMatchStats({
     const init: Record<string, number> = {};
     allStats.forEach((stat) => {
       const snakeKey = stat.key.replace(/([A-Z])/g, "_$1").toLowerCase();
+      const row = (existing || {}) as Record<string, unknown>;
       const v =
         sportData[stat.key] ??
-        (existing as Record<string, number> | null)?.[stat.key] ??
-        (existing as Record<string, number> | null)?.[snakeKey] ??
+        (row[stat.key] as number | undefined) ??
+        (row[snakeKey] as number | undefined) ??
         0;
       init[stat.key] = typeof v === "number" ? v : 0;
     });
