@@ -12,3 +12,4 @@ type: feature
 - L'athlète ne lit/modifie/supprime que sa propre ligne `player_match_stats` (policies RLS dédiées via `is_player_owner` + composition + flag catégorie). Les autres joueuses restent au staff.
 - Si le bouton est décoché côté staff : l'athlète ne saisit que son RPE (AthleteMatchRpe), le temps de jeu et les stats restent côté staff.
 - Export PDF personnel : cases à cocher sur les compétitions passées + bouton « Exporter mes stats » → `exportAthleteMatchStatsPdf` (jsPDF, logo club, stats groupées par catégorie, uniquement les propres lignes de l'athlète).
+- L'onglet « Compétitions » de l'espace athlète (AthleteSpace.tsx) est désormais rendu pour TOUS les sports (auparavant judo uniquement) — sans lui, le bouton « Mes stats » était invisible pour les sports collectifs. L'onglet « Adversaires » reste judo-only.
