@@ -1,4 +1,8 @@
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
+import { getDateLocale } from "@/lib/i18n/dateLocale";
 import {
   useMultiMatchEvents,
   useCategoryPlayers,
@@ -28,6 +32,7 @@ import {
   Sparkles,
   AlertTriangle,
   Crown,
+  MessageSquareText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -184,6 +189,29 @@ export function PlayerStatsTab({ matches, categoryId }: Props) {
   const isMulti = matches.length > 1;
   const { data: events = [] } = useMultiMatchEvents(matchIds);
   const { data: players = [] } = useCategoryPlayers(categoryId);
+  // Statistiques saisies manuellement (staff ou athlète depuis son espace) + ressentis.
+  const { data: manualRows = [] } = useQuery({
+    queryKey: ["player_match_stats", "analytics", [...matchIds].sort().join(",")],
+    enabled: matchIds.length > 0,
+    refetchInterval: 30_000,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("player_match_stats")
+        .select("match_id, player_id, tries, conversions, penalties_scored, drop_goals, tackles, tackles_missed, yellow_cards, red_cards, sport_data, athlete_feedback")
+        .in("match_id", matchIds);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const manualByKey = useMemo(() => new Map(manualRows.map(r => [`${r.match_id}:${r.player_id}`, r])), [manualRows]);
+  const feedbackByPlayer = useMemo(() => {
+    const map = new Map<string, { match: MatchRow; text: string }[]>();
+    manualRows.forEach(r => {
+      const text = r.athlete_feedback?.trim(); const match = matches.find(m => m.id === r.match_id);
+      if (!text || !match) return;
+      map.set(r.player_id, [...(map.get(r.player_id) || []), { match, text }]);
+    });
+    return map;
+  }, [manualRows, matches]);
 
   // Regroupe les events par match pour calculer les analytics par match,
   // puis moyenner les valeurs par joueur sur les matchs auxquels il a participé.
@@ -222,9 +250,29 @@ export function PlayerStatsTab({ matches, categoryId }: Props) {
           tackles: 0, missedTackles: 0, tackleEff: 0, knockOns: 0, fouls: 0, cards: 0, score: 0,
         };
         let participations = 0;
-        perMatchAnalytics.forEach((analytics) => {
+        perMatchAnalytics.forEach((analytics, index) => {
           const s = analytics.players[player.id];
-          if (!s) return;
+          if (!s) {
+            // Pas d'événement live pour ce joueur : utiliser sa fiche de stats manuelle (sans double comptage).
+            const m = manualByKey.get(`${matchIds[index]}:${player.id}`);
+            if (!m) return;
+            const d = (m.sport_data || {}) as Record<string, number>;
+            const n = (v: unknown) => Number(v) || 0;
+            const tackles = n(d.tackles ?? m.tackles), missed = n(d.tacklesMissed ?? m.tackles_missed);
+            participations += 1;
+            acc.playTimeMinutes += n(d.minutesPlayed ?? d.playingTime);
+            acc.tries += n(d.tries ?? m.tries);
+            acc.conversions += n(d.conversionsMade ?? m.conversions);
+            acc.penalties += n(d.penaltiesMade ?? m.penalties_scored);
+            acc.drops += n(d.dropsMade ?? m.drop_goals);
+            acc.tackles += tackles;
+            acc.missedTackles += missed;
+            acc.tackleEff += tackles + missed > 0 ? Math.round(tackles / (tackles + missed) * 100) : 0;
+            acc.knockOns += n(d.knockOns);
+            acc.fouls += n(d.fouls);
+            acc.cards += n(d.yellowCards ?? m.yellow_cards) + n(d.redCards ?? m.red_cards);
+            return;
+          }
           participations += 1;
           acc.playTimeMinutes += s.playTimeMinutes;
           acc.tries += s.tries;
@@ -258,7 +306,7 @@ export function PlayerStatsTab({ matches, categoryId }: Props) {
         return { player, values };
       })
       .filter(Boolean) as Row[];
-  }, [involved, perMatchAnalytics]);
+  }, [involved, perMatchAnalytics, manualByKey, matchIds]);
 
   const filteredRows = useMemo(() => {
     return rows.filter((r) => {
@@ -449,6 +497,9 @@ export function PlayerStatsTab({ matches, categoryId }: Props) {
                           </Avatar>
                           <div className="min-w-0">
                             <p className="font-medium truncate">{fullName(r.player)}</p>
+                            {feedbackByPlayer.has(r.player.id) && (
+                              <span className="inline-flex items-center gap-1 text-[10px] text-primary"><MessageSquareText className="h-3 w-3" />Ressenti</span>
+                            )}
                             {r.player.position && (
                               <Badge variant="outline" className="text-[9px] h-4 px-1">
                                 {r.player.position}
@@ -554,6 +605,17 @@ export function PlayerStatsTab({ matches, categoryId }: Props) {
                     </div>
                   );
                 })}
+              </div>
+              <div className="mt-6 space-y-3">
+                <h3 className="text-sm font-semibold">Ressenti de l'athlète</h3>
+                {(feedbackByPlayer.get(drawerPlayer.player.id) || []).length === 0 ? (
+                  <p className="text-xs text-muted-foreground">Aucun ressenti écrit sur les compétitions sélectionnées.</p>
+                ) : (feedbackByPlayer.get(drawerPlayer.player.id) || []).map(f => (
+                  <article key={f.match.id} className="rounded-lg border bg-muted/30 p-3">
+                    <p className="text-xs text-muted-foreground">{format(new Date(f.match.match_date), "d MMM yyyy", { locale: getDateLocale() })} · {f.match.opponent}</p>
+                    <p className="mt-1 whitespace-pre-wrap break-words text-sm">{f.text}</p>
+                  </article>
+                ))}
               </div>
             </>
           )}
