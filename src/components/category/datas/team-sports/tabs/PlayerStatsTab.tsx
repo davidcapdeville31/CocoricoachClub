@@ -252,10 +252,9 @@ export function PlayerStatsTab({ matches, categoryId }: Props) {
         let participations = 0;
         perMatchAnalytics.forEach((analytics, index) => {
           const s = analytics.players[player.id];
-          if (!s) {
-            // Pas d'événement live pour ce joueur : utiliser sa fiche de stats manuelle (sans double comptage).
-            const m = manualByKey.get(`${matchIds[index]}:${player.id}`);
-            if (!m) return;
+          const m = period === "all" ? manualByKey.get(`${matchIds[index]}:${player.id}`) : undefined;
+          if (m) {
+            // Fiche individuelle du match entier : remplace les événements, jamais additionnée.
             const d = (m.sport_data || {}) as Record<string, number>;
             const n = (v: unknown) => Number(v) || 0;
             const tackles = n(d.tackles ?? m.tackles), missed = n(d.tacklesMissed ?? m.tackles_missed);
@@ -273,6 +272,7 @@ export function PlayerStatsTab({ matches, categoryId }: Props) {
             acc.cards += n(d.yellowCards ?? m.yellow_cards) + n(d.redCards ?? m.red_cards);
             return;
           }
+          if (!s) return;
           participations += 1;
           acc.playTimeMinutes += s.playTimeMinutes;
           acc.tries += s.tries;
@@ -306,7 +306,7 @@ export function PlayerStatsTab({ matches, categoryId }: Props) {
         return { player, values };
       })
       .filter(Boolean) as Row[];
-  }, [involved, perMatchAnalytics, manualByKey, matchIds]);
+  }, [involved, perMatchAnalytics, manualByKey, matchIds, period]);
 
   const filteredRows = useMemo(() => {
     return rows.filter((r) => {

@@ -593,6 +593,7 @@ export function SportMatchStatsDialog({
 
             <PlayerStatsGrid
               players={statsData}
+              feedbackByPlayer={Object.fromEntries((existingStats || []).filter(r => r.athlete_feedback?.trim()).map(r => [r.player_id, r.athlete_feedback || ""]))}
               stats={activeCategoryStats}
               categoryKey={activeCategory?.key}
               sportType={sportType}

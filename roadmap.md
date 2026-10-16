@@ -1,9 +1,9 @@
 # Calendrier de charge
 
 ## Statistiques staff : sélection et retours personnels
-- [ ] Corriger le double basculement des cases et permettre une sélection vide avec Aucun.
-- [ ] Vérifier les statistiques athlètes dans Statistiques par joueur et y afficher le ressenti par compétition.
-- [ ] Vérifier le parcours connecté sans modifier les données réelles.
+- [x] Corriger le double basculement des cases et permettre une sélection vide avec Aucun.
+- [x] Utiliser les statistiques athlètes dans Statistiques par joueur et afficher le ressenti par compétition et dans la fiche de saisie staff.
+- [x] Parcours staff connecté : cocher/décocher/Aucun et fiche joueuse vérifiés, sans écriture ; Racing n’a actuellement aucune ligne de statistiques personnelles.
 
 ## Retours des compétitions athlètes
 - [x] Ressenti libre en bas des stats personnelles, champ distinct enregistré atomiquement avec sa propre ligne ; préservé lors des corrections staff.

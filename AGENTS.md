@@ -34,4 +34,4 @@
 - Judo final ranking lives only in `competition_results` (NULL unset, NC explicit), never from combats, so combat edits never change it.
 - Super-admin reads use SELECT policies, not membership helpers, preserving write limits.
 
-- Athlete rugby uses scoped fields/scoring aliases to preserve staff definitions and historical meanings.
+- Rugby full-match personal stats replace live events; halves use events, never sums.
