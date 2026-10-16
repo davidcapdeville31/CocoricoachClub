@@ -7,9 +7,9 @@
 - BrandLogo shares transparent artwork across themes; dark CDN strokes remain light.
 - OneSignal registration requires explicit post-init readiness; cache only successful syncs. SDK methods alone do not prove readiness.
 - Attendance marks push active only for confirmed enabled OneSignal subscriptions, never preferences alone.
-- Attendance previews read `match_participants` and minimal player fields, never lineups, to count actual invitations/responses.
+- Attendance previews count invitations/responses via `match_participants` and minimal player fields, never lineups.
 - Push permission reads native three-state permission first; OneSignal false never means denied (also not-requested).
-- Athlete badges derive from unread `session_feedback`/`wellness_submitted` notifications: per-user read state, no duplicate submissions.
+- Athlete badges derive from unread notifications; read state is per-user. Match feedback uses its own column and atomic personal upserts.
 - Load calendar combines sessions and non-personal competitions; references affect summaries, never stored loads.
 - Competition RPE/athlete entry use category settings, preserving discipline rules.
 - Navigation/wellness use HSL alpha tokens, not hex suffixes, for visibility.
