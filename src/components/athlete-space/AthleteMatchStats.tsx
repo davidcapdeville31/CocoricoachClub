@@ -277,14 +277,14 @@ export function AthleteMatchStats({
                           {group.items.map((stat) => {
                             const raw = values[stat.key] ?? 0;
                             if (stat.computedFrom) {
-                              const { successKey, totalKey, failureKey } = stat.computedFrom;
-                              const hint = totalKey
-                                ? `${successKey} / ${totalKey}`
-                                : `${successKey} / (${successKey} + ${failureKey})`;
                               return (
                                 <div key={stat.key} className="flex items-center justify-between gap-1">
-                                  <span className="text-xs text-muted-foreground truncate" title={hint}>
-                                    {stat.shortLabel}
+                                  <span className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
+                                    <span className="truncate">{stat.shortLabel}</span>
+                                    <StatInfo
+                                      label={stat.label}
+                                      text={getStatDescription(stat, sportType, allStats)}
+                                    />
                                   </span>
                                   <span className="text-sm font-semibold text-primary">{raw || 0}%</span>
                                 </div>
@@ -298,7 +298,13 @@ export function AthleteMatchStats({
                                 : stat.shortLabel;
                             return (
                               <div key={stat.key} className="flex items-center gap-1">
-                                <span className="text-xs text-muted-foreground truncate flex-1">{displayLabel}</span>
+                                <span className="flex min-w-0 flex-1 items-center gap-1 text-xs text-muted-foreground">
+                                  <span className="truncate">{displayLabel}</span>
+                                  <StatInfo
+                                    label={displayLabel}
+                                    text={getStatDescription(stat, sportType, allStats)}
+                                  />
+                                </span>
                                 <Input
                                   type="number"
                                   value={raw === 0 ? "" : String(raw)}
