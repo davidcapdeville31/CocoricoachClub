@@ -247,16 +247,28 @@ export function AthleteMatchStats({
                           {group.items.map((stat) => {
                             const raw = values[stat.key] ?? 0;
                             if (stat.computedFrom) {
+                              const { successKey, totalKey, failureKey } = stat.computedFrom;
+                              const hint = totalKey
+                                ? `${successKey} / ${totalKey}`
+                                : `${successKey} / (${successKey} + ${failureKey})`;
                               return (
                                 <div key={stat.key} className="flex items-center justify-between gap-1">
-                                  <span className="text-xs text-muted-foreground truncate">{stat.shortLabel}</span>
+                                  <span className="text-xs text-muted-foreground truncate" title={hint}>
+                                    {stat.shortLabel}
+                                  </span>
                                   <span className="text-sm font-semibold text-primary">{raw || 0}%</span>
                                 </div>
                               );
                             }
+                            // Libellés complets pour les plaquages afin d'éviter la confusion
+                            // entre « plaquages réussis » et « plaquages tentés ».
+                            const displayLabel =
+                              stat.key === "tackles" || stat.key === "tacklesMissed"
+                                ? stat.label
+                                : stat.shortLabel;
                             return (
                               <div key={stat.key} className="flex items-center gap-1">
-                                <span className="text-xs text-muted-foreground truncate flex-1">{stat.shortLabel}</span>
+                                <span className="text-xs text-muted-foreground truncate flex-1">{displayLabel}</span>
                                 <Input
                                   type="number"
                                   value={raw === 0 ? "" : String(raw)}
