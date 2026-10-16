@@ -117,6 +117,19 @@ export function AthleteMatchStats({
       ? filteredStats
       : getStatsForSport(sportType, false);
 
+  // Côté athlète : les collisions classées dans « Général » sont présentées
+  // dans le bloc « Collisions » de la Défense (affichage seul, rien ne change
+  // côté staff ni dans les données enregistrées).
+  const athleteStats = useMemo(
+    () =>
+      sportStats.map((s) =>
+        s.category === "general" && /collision/i.test(s.key)
+          ? { ...s, category: "defense" as const }
+          : s,
+      ),
+    [sportStats],
+  );
+
   // Liste complète (standard + préférences) pour initialiser toutes les clés
   const allStats = useMemo(() => {
     const standard = [
