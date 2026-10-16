@@ -218,7 +218,40 @@ export function JudoCompetitionStats({ categoryId }: Props) {
     },
   });
 
-  // Realtime: invalidate on any change to matches or competition_rounds for this category
+  // Athlete context notes ("Bilan de la compétition") — one per match+player.
+  const { data: athleteNotes = [] } = useQuery({
+    queryKey: ["judo_comp_stats_athlete_notes", categoryId],
+    queryFn: async () => {
+      const { data: matchIds, error: mErr } = await supabase
+        .from("matches")
+        .select("id")
+        .eq("category_id", categoryId)
+        .eq("is_personal", false);
+      if (mErr) throw mErr;
+      const ids = (matchIds || []).map((m: any) => m.id);
+      if (ids.length === 0) return [];
+      const { data, error } = await supabase
+        .from("competition_results")
+        .select("match_id, player_id, athlete_context_notes")
+        .in("match_id", ids)
+        .not("athlete_context_notes", "is", null);
+      if (error) throw error;
+      return (data || []) as { match_id: string; player_id: string; athlete_context_notes: string }[];
+    },
+  });
+
+  const notesByMatch = useMemo(() => {
+    const map = new Map<string, { player_id: string; notes: string }[]>();
+    for (const n of athleteNotes) {
+      if (!n.athlete_context_notes?.trim()) continue;
+      const list = map.get(n.match_id) || [];
+      list.push({ player_id: n.player_id, notes: n.athlete_context_notes.trim() });
+      map.set(n.match_id, list);
+    }
+    return map;
+  }, [athleteNotes]);
+
+  // Realtime: invalidate on any change to matches, competition_rounds or competition_results for this category
   useEffect(() => {
     const channel = supabase
       .channel(`judo-comp-stats-${categoryId}`)
@@ -231,6 +264,11 @@ export function JudoCompetitionStats({ categoryId }: Props) {
         "postgres_changes",
         { event: "*", schema: "public", table: "competition_rounds" },
         () => queryClient.invalidateQueries({ queryKey: ["judo_comp_stats_matches", categoryId] }),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "competition_results" },
+        () => queryClient.invalidateQueries({ queryKey: ["judo_comp_stats_athlete_notes", categoryId] }),
       )
       .subscribe();
     return () => {
