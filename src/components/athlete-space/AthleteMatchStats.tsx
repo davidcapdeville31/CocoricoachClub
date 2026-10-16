@@ -282,10 +282,15 @@ export function AthleteMatchStats({
                 const catStats = sportStats.filter((s) => s.category === cat.key);
                 if (catStats.length === 0) return null;
                 // Côté athlète : uniquement les statistiques individuelles.
-                // On masque les blocs collectifs/secondaires (Autres, Récupérations, Discipline).
-                const HIDDEN_GROUPS = new Set(["_others", "recoveries", "discipline"]);
+                // On masque les blocs collectifs/secondaires (Récupérations, Discipline).
+                // Exception : dans « Général », les stats individuelles (fautes,
+                // cartons, temps de jeu…) tombent dans le bloc « Autres » faute de
+                // sous-groupe dédié — on le conserve pour cette catégorie.
+                const HIDDEN_GROUPS = new Set(["recoveries", "discipline"]);
                 const groups = groupStatsByTheme(cat.key, catStats, { sportType }).filter(
-                  (g) => !HIDDEN_GROUPS.has(g.key),
+                  (g) =>
+                    !HIDDEN_GROUPS.has(g.key) &&
+                    !(g.key === "_others" && cat.key !== "general"),
                 );
                 return (
                   <div key={cat.key} className="rounded-lg border bg-card p-3 space-y-2">
