@@ -1,5 +1,9 @@
 # Calendrier de charge
 
+## Champs des statistiques personnelles rugby
+- [ ] Adapter les champs manuels, collisions et tirs sans modifier la saisie staff ni les historiques.
+- [ ] Vérifier les pourcentages et le rendu de la fenêtre.
+
 ## Présentation mobile des compétitions judo athlète
 - [x] Analyser les écrans et styles partagés ; isoler le périmètre athlète judo sans changer onglets, actions ni logique.
 - [x] Adapter fenêtre, navigation, formulaires, scores et actions aux petits écrans ; ordinateur/staff/autres sports inchangés.
