@@ -222,7 +222,12 @@ export function AthleteMatchStats({
               {statCategories.map((cat) => {
                 const catStats = sportStats.filter((s) => s.category === cat.key);
                 if (catStats.length === 0) return null;
-                const groups = groupStatsByTheme(cat.key, catStats, { sportType });
+                // Côté athlète : uniquement les statistiques individuelles.
+                // On masque les blocs collectifs/secondaires (Autres, Récupérations, Discipline).
+                const HIDDEN_GROUPS = new Set(["_others", "recoveries", "discipline"]);
+                const groups = groupStatsByTheme(cat.key, catStats, { sportType }).filter(
+                  (g) => !HIDDEN_GROUPS.has(g.key),
+                );
                 return (
                   <div key={cat.key} className="rounded-lg border bg-card p-3 space-y-2">
                     <p className="text-xs font-semibold uppercase tracking-wide text-primary">
@@ -242,16 +247,28 @@ export function AthleteMatchStats({
                           {group.items.map((stat) => {
                             const raw = values[stat.key] ?? 0;
                             if (stat.computedFrom) {
+                              const { successKey, totalKey, failureKey } = stat.computedFrom;
+                              const hint = totalKey
+                                ? `${successKey} / ${totalKey}`
+                                : `${successKey} / (${successKey} + ${failureKey})`;
                               return (
                                 <div key={stat.key} className="flex items-center justify-between gap-1">
-                                  <span className="text-xs text-muted-foreground truncate">{stat.shortLabel}</span>
+                                  <span className="text-xs text-muted-foreground truncate" title={hint}>
+                                    {stat.shortLabel}
+                                  </span>
                                   <span className="text-sm font-semibold text-primary">{raw || 0}%</span>
                                 </div>
                               );
                             }
+                            // Libellés complets pour les plaquages afin d'éviter la confusion
+                            // entre « plaquages réussis » et « plaquages tentés ».
+                            const displayLabel =
+                              stat.key === "tackles" || stat.key === "tacklesMissed"
+                                ? stat.label
+                                : stat.shortLabel;
                             return (
                               <div key={stat.key} className="flex items-center gap-1">
-                                <span className="text-xs text-muted-foreground truncate flex-1">{stat.shortLabel}</span>
+                                <span className="text-xs text-muted-foreground truncate flex-1">{displayLabel}</span>
                                 <Input
                                   type="number"
                                   value={raw === 0 ? "" : String(raw)}
