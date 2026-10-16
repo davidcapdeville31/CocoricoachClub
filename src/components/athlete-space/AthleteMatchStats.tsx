@@ -148,7 +148,7 @@ export function AthleteMatchStats({
   }, [sportType, sportStats]);
 
   const statCategories = getStatCategories(sportType).filter((cat) =>
-    sportStats.some((s) => s.category === cat.key),
+    athleteStats.some((s) => s.category === cat.key),
   );
 
   const { data: existing, isLoading: loadingExisting } = useQuery({
@@ -279,7 +279,7 @@ export function AthleteMatchStats({
           <div className="flex justify-center py-10">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
-        ) : sportStats.length === 0 ? (
+        ) : athleteStats.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-6">
             Aucune statistique activée pour cette catégorie.
           </p>
@@ -292,7 +292,7 @@ export function AthleteMatchStats({
                 </Badge>
               )}
               {statCategories.map((cat) => {
-                const catStats = sportStats.filter((s) => s.category === cat.key);
+                const catStats = athleteStats.filter((s) => s.category === cat.key);
                 if (catStats.length === 0) return null;
                 // Côté athlète : uniquement les statistiques individuelles.
                 // On masque les blocs collectifs/secondaires (Récupérations, Discipline).
