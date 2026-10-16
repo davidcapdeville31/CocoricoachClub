@@ -12,10 +12,10 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { BarChart3, Info, Loader2 } from "lucide-react";
-import { getStatsForSport, getStatCategories } from "@/lib/constants/sportStats";
+import { getStatsForSport, getStatCategories, getBaseSport } from "@/lib/constants/sportStats";
 import { getStatDescription } from "@/lib/constants/statDescriptions";
 import { useStatPreferences } from "@/hooks/use-stat-preferences";
-import { groupStatsByTheme } from "@/lib/statSubGroups";
+import { athleteStatFields, athleteStatGroups, athletePercentages, rugbyScoringAliases, athleteStatDescription } from "@/lib/athleteRugbyStats";
 import {
   Popover as StatInfoPopover,
   PopoverContent as StatInfoPopoverContent,
@@ -121,13 +121,8 @@ export function AthleteMatchStats({
   // dans le bloc « Collisions » de la Défense (affichage seul, rien ne change
   // côté staff ni dans les données enregistrées).
   const athleteStats = useMemo(
-    () =>
-      sportStats.map((s) =>
-        s.category === "general" && /collision/i.test(s.key)
-          ? { ...s, category: "defense" as const }
-          : s,
-      ),
-    [sportStats],
+    () => athleteStatFields(sportStats, sportType),
+    [sportStats, sportType],
   );
 
   // Liste complète (standard + préférences) pour initialiser toutes les clés
@@ -138,14 +133,14 @@ export function AthleteMatchStats({
     ];
     const keys = new Set(standard.map((s) => s.key));
     const merged = [...standard];
-    sportStats.forEach((s) => {
+    athleteStats.forEach((s) => {
       if (!keys.has(s.key)) {
         merged.push(s);
         keys.add(s.key);
       }
     });
     return merged;
-  }, [sportType, sportStats]);
+  }, [sportType, athleteStats]);
 
   const statCategories = getStatCategories(sportType).filter((cat) =>
     athleteStats.some((s) => s.category === cat.key),
@@ -187,46 +182,35 @@ export function AthleteMatchStats({
         0;
       init[stat.key] = typeof v === "number" ? v : 0;
     });
-    setValues(init);
+    if (getBaseSport(sportType) === "rugby") {
+      for (const [made, legacy] of [["conversionsMade", "conversions"], ["penaltiesMade", "penaltiesScored"], ["dropsMade", "dropGoals"]]) {
+        if (sportData[made] === undefined) init[made] = init[legacy] || 0;
+      }
+    }
+    setValues(athletePercentages(init, allStats));
     setInitialized(true);
-  }, [open, initialized, loadingPrefs, loadingExisting, allStats, existing]);
+  }, [open, initialized, loadingPrefs, loadingExisting, allStats, existing, sportType]);
 
   const updateValue = (statKey: string, value: number) => {
-    setValues((prev) => {
-      const updated = { ...prev, [statKey]: value };
-      // Recalcule les pourcentages dérivés, comme côté staff
-      allStats.forEach((s) => {
-        if (s.computedFrom) {
-          const { successKey, totalKey, failureKey } = s.computedFrom;
-          if (statKey === successKey || statKey === totalKey || statKey === failureKey) {
-            const success = Number(updated[successKey]) || 0;
-            const total = totalKey
-              ? Number(updated[totalKey]) || 0
-              : success + (Number(updated[failureKey!]) || 0);
-            updated[s.key] = total > 0 ? Math.round((success / total) * 100) : 0;
-          }
-        }
-      });
-      return updated;
-    });
+    setValues((prev) => athletePercentages({ ...prev, [statKey]: value }, allStats));
   };
 
   const save = async () => {
     setSaving(true);
     try {
-      const sportData: Record<string, number> = {};
+      const savedValues = getBaseSport(sportType) === "rugby" ? rugbyScoringAliases(values) : values;
+      const sportData: Record<string, number> = { ...((existing as { sport_data?: Record<string, number> } | null)?.sport_data || {}) };
       allStats.forEach((stat) => {
-        const v = Number(values[stat.key]) || 0;
-        if (v !== 0) sportData[stat.key] = v;
+        sportData[stat.key] = Number(savedValues[stat.key]) || 0;
       });
 
       const payload = {
         match_id: matchId,
         player_id: playerId,
         tries: Number(values.tries) || 0,
-        conversions: Number(values.conversions) || 0,
-        penalties_scored: Number(values.penaltiesScored) || 0,
-        drop_goals: Number(values.dropGoals) || 0,
+        conversions: Number(savedValues.conversions) || 0,
+        penalties_scored: Number(savedValues.penaltiesScored) || 0,
+        drop_goals: Number(savedValues.dropGoals) || 0,
         tackles: Number(values.tackles) || 0,
         tackles_missed: Number(values.tacklesMissed) || 0,
         defensive_recoveries: Number(values.defensiveRecoveries) || 0,
@@ -300,7 +284,7 @@ export function AthleteMatchStats({
                 // cartons, temps de jeu…) tombent dans le bloc « Autres » faute de
                 // sous-groupe dédié — on le conserve pour cette catégorie.
                 const HIDDEN_GROUPS = new Set(["recoveries", "discipline"]);
-                const groups = groupStatsByTheme(cat.key, catStats, { sportType }).filter(
+                const groups = athleteStatGroups(cat.key, catStats, sportType).filter(
                   (g) =>
                     !HIDDEN_GROUPS.has(g.key) &&
                     !(g.key === "_others" && cat.key !== "general"),
@@ -331,7 +315,7 @@ export function AthleteMatchStats({
                                     <StatInfo
                                       id={stat.key}
                                       label={stat.label}
-                                      text={getStatDescription(stat, sportType, allStats)}
+                                      text={athleteStatDescription(stat, sportType, getStatDescription(stat, sportType, allStats))}
                                       active={infoId === stat.key}
                                       onToggle={setInfoId}
                                     />
@@ -343,23 +327,24 @@ export function AthleteMatchStats({
                             // Libellés complets pour les plaquages afin d'éviter la confusion
                             // entre « plaquages réussis » et « plaquages tentés ».
                             const displayLabel =
-                              stat.key === "tackles" || stat.key === "tacklesMissed"
+                              getBaseSport(sportType) === "rugby" || stat.key === "tackles" || stat.key === "tacklesMissed"
                                 ? stat.label
                                 : stat.shortLabel;
                             return (
                               <div key={stat.key} className="flex items-center gap-1">
                                 <span className="flex min-w-0 flex-1 items-center gap-1 text-xs text-muted-foreground">
-                                  <span className="truncate">{displayLabel}</span>
+                                  <span className="break-words">{displayLabel}</span>
                                   <StatInfo
                                     id={stat.key}
                                     label={displayLabel}
-                                    text={getStatDescription(stat, sportType, allStats)}
+                                    text={athleteStatDescription(stat, sportType, getStatDescription(stat, sportType, allStats))}
                                     active={infoId === stat.key}
                                     onToggle={setInfoId}
                                   />
                                 </span>
                                 <Input
                                   type="number"
+                                  aria-label={displayLabel}
                                   value={raw === 0 ? "" : String(raw)}
                                   onChange={(e) => updateValue(stat.key, parseFloat(e.target.value) || 0)}
                                   min={stat.min ?? 0}

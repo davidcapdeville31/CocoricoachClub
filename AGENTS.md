@@ -1,5 +1,5 @@
 # Architecture decisions
-- Athlete visuals use scoped tokens; Documents reuses ownership RPCs without new grants.
+- Athlete visuals use scoped tokens; Documents reuses ownership RPCs without grants.
 - Selectable controls use shared tokens and state attributes, preserving functional statuses.
 - Athlete navigation uses URL tabs and sport visibility; drawer/theme commands reuse FieldModeContext to preserve preferences.
 - Athlete content reserves ResizeObserver-measured navigation and safe-area height; visualViewport hides navigation under the keyboard, preserving form state.
@@ -9,7 +9,7 @@
 - Attendance marks push active only for confirmed enabled OneSignal subscriptions, never preferences alone.
 - Attendance previews read `match_participants` and minimal player fields, never lineups, to count actual invitations/responses.
 - Push permission reads native three-state permission first; OneSignal false never means denied (also not-requested).
-- Athlete staff badges use unread `session_feedback` (RPE) and `wellness_submitted` (wellness) notifications as their source of truth, so read state stays user-specific without duplicating submission data.
+- Athlete badges use unread `session_feedback`/`wellness_submitted` notifications, preserving per-user read state without duplicating submissions.
 - Load calendar combines sessions and non-personal competitions; references affect summaries, never stored loads.
 - Competition RPE and athlete entry use category settings to preserve discipline rules.
 - Navigation/wellness use HSL alpha tokens, not hex suffixes, for visibility.
@@ -33,3 +33,5 @@
 - Upcoming summaries batch attendance reads; preserve RSVP write destinations and locks.
 - Judo final ranking lives only in `competition_results` (NULL unset, NC explicit), never from combats, so combat edits never change it.
 - Super-admin reads use SELECT policies, not membership helpers, preserving write limits.
+
+- Athlete rugby uses scoped fields and scoring aliases, preserving staff definitions and historical meanings.
