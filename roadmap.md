@@ -1,9 +1,9 @@
 # Calendrier de charge
 
 ## Retours des compétitions athlètes
-- [ ] Ajouter un ressenti libre personnel, enregistré avec les statistiques et consultable au staff.
-- [ ] Signaler les nouvelles saisies via des notifications non lues et une pastille dans les statistiques de compétition.
-- [ ] Vérifier sauvegarde, relecture et états de la pastille sans modifier les résultats existants.
+- [x] Ressenti libre en bas des stats personnelles, champ distinct enregistré atomiquement avec sa propre ligne ; préservé lors des corrections staff.
+- [x] Notification serveur réservée à l’auteur athlète, dédoublonnée tant que non lue ; pastille Stats et Stats de compétition, texte sous Retours des athlètes, lecture par utilisateur.
+- [x] Compte Léa : sauvegarde/réouverture réelle et lecture compte staff, pastille puis Marquer comme lus réussis ; saisie temporaire supprimée, aucune ligne existante modifiée. Compilation OK. Téléphones physiques non testés.
 
 ## Champs des statistiques personnelles rugby
 - [x] Champs manuels, trois collisions sans doublon, suppression assists/contacts/franchissement legacy, tirs détaillés et aliases existants ; définitions staff inchangées.
