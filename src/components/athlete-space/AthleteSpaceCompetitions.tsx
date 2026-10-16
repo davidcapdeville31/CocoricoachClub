@@ -140,6 +140,7 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
   }, [matches]);
 
   const isJudo = (sportType || "").toLowerCase().includes("judo");
+  const isTeamSport = !isJudo && !isIndividualSport(sportType || "");
 
   const renderMatch = (match: AthleteMatch) => {
     const count = roundCounts[match.id] || 0;
@@ -201,15 +202,28 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
             )}
           </div>
         </div>
-        <Button
-          size="sm"
-          className="gap-1.5"
-          variant={notYetOpen ? "outline" : "default"}
-          onClick={handleOpen}
-        >
-          <Swords className="h-4 w-4" />
-          {count > 0 ? "Voir / modifier" : "Saisir mes combats"}
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {isTeamSport && entryEnabled && !notYetOpen && lineupMatchIds.has(match.id) && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5"
+              onClick={() => setStatsMatch(match)}
+            >
+              <BarChart3 className="h-4 w-4" />
+              Mes stats
+            </Button>
+          )}
+          <Button
+            size="sm"
+            className="gap-1.5"
+            variant={notYetOpen ? "outline" : "default"}
+            onClick={handleOpen}
+          >
+            <Swords className="h-4 w-4" />
+            {count > 0 ? "Voir / modifier" : isTeamSport ? "Voir la compétition" : "Saisir mes combats"}
+          </Button>
+        </div>
       </div>
     );
   };
@@ -271,6 +285,20 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
           categoryId={selected.category_id || categoryId}
           sportType={sportType || ""}
           restrictToPlayerId={playerId}
+        />
+      )}
+
+      {statsMatch && (
+        <AthleteMatchStats
+          open={!!statsMatch}
+          onOpenChange={(open) => {
+            if (!open) setStatsMatch(null);
+          }}
+          matchId={statsMatch.id}
+          playerId={playerId}
+          categoryId={statsMatch.category_id || categoryId}
+          sportType={sportType || ""}
+          matchLabel={statsMatch.competition || statsMatch.opponent || "Compétition"}
         />
       )}
     </div>
