@@ -7,8 +7,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, Trophy, MapPin, CalendarDays, Swords } from "lucide-react";
+import { Loader2, Trophy, MapPin, CalendarDays, Swords, BarChart3 } from "lucide-react";
 import { CompetitionRoundsDialog } from "@/components/category/matches/CompetitionRoundsDialog";
+import { AthleteMatchStats } from "@/components/athlete-space/AthleteMatchStats";
+import { isIndividualSport } from "@/lib/constants/sportTypes";
 import { toast } from "sonner";
 import { useAthleteCompetitionEntry } from "@/hooks/useAthleteCompetitionEntry";
 
@@ -29,7 +31,22 @@ interface AthleteMatch {
 
 export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: AthleteSpaceCompetitionsProps) {
   const [selected, setSelected] = useState<AthleteMatch | null>(null);
+  const [statsMatch, setStatsMatch] = useState<AthleteMatch | null>(null);
   const entryEnabled = useAthleteCompetitionEntry(categoryId);
+
+  // Matchs où l'athlète est dans la composition d'équipe (match_lineups)
+  const { data: lineupMatchIds = new Set<string>() } = useQuery({
+    queryKey: ["athlete-space-lineup-matches", playerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("match_lineups")
+        .select("match_id")
+        .eq("player_id", playerId);
+      if (error) throw error;
+      return new Set((data || []).map((r: any) => r.match_id as string));
+    },
+    enabled: !!playerId,
+  });
 
   const { data: matches = [], isLoading, refetch } = useQuery({
     queryKey: ["athlete-space-competitions", playerId],
@@ -123,6 +140,7 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
   }, [matches]);
 
   const isJudo = (sportType || "").toLowerCase().includes("judo");
+  const isTeamSport = !isJudo && !isIndividualSport(sportType || "");
 
   const renderMatch = (match: AthleteMatch) => {
     const count = roundCounts[match.id] || 0;
@@ -184,15 +202,28 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
             )}
           </div>
         </div>
-        <Button
-          size="sm"
-          className="gap-1.5"
-          variant={notYetOpen ? "outline" : "default"}
-          onClick={handleOpen}
-        >
-          <Swords className="h-4 w-4" />
-          {count > 0 ? "Voir / modifier" : "Saisir mes combats"}
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {isTeamSport && entryEnabled && !notYetOpen && lineupMatchIds.has(match.id) && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5"
+              onClick={() => setStatsMatch(match)}
+            >
+              <BarChart3 className="h-4 w-4" />
+              Mes stats
+            </Button>
+          )}
+          <Button
+            size="sm"
+            className="gap-1.5"
+            variant={notYetOpen ? "outline" : "default"}
+            onClick={handleOpen}
+          >
+            <Swords className="h-4 w-4" />
+            {count > 0 ? "Voir / modifier" : isTeamSport ? "Voir la compétition" : "Saisir mes combats"}
+          </Button>
+        </div>
       </div>
     );
   };
@@ -254,6 +285,20 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
           categoryId={selected.category_id || categoryId}
           sportType={sportType || ""}
           restrictToPlayerId={playerId}
+        />
+      )}
+
+      {statsMatch && (
+        <AthleteMatchStats
+          open={!!statsMatch}
+          onOpenChange={(open) => {
+            if (!open) setStatsMatch(null);
+          }}
+          matchId={statsMatch.id}
+          playerId={playerId}
+          categoryId={statsMatch.category_id || categoryId}
+          sportType={sportType || ""}
+          matchLabel={statsMatch.competition || statsMatch.opponent || "Compétition"}
         />
       )}
     </div>
