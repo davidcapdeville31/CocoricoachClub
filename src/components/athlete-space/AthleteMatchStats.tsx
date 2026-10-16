@@ -222,7 +222,12 @@ export function AthleteMatchStats({
               {statCategories.map((cat) => {
                 const catStats = sportStats.filter((s) => s.category === cat.key);
                 if (catStats.length === 0) return null;
-                const groups = groupStatsByTheme(cat.key, catStats, { sportType });
+                // Côté athlète : uniquement les statistiques individuelles.
+                // On masque les blocs collectifs/secondaires (Autres, Récupérations, Discipline).
+                const HIDDEN_GROUPS = new Set(["_others", "recoveries", "discipline"]);
+                const groups = groupStatsByTheme(cat.key, catStats, { sportType }).filter(
+                  (g) => !HIDDEN_GROUPS.has(g.key),
+                );
                 return (
                   <div key={cat.key} className="rounded-lg border bg-card p-3 space-y-2">
                     <p className="text-xs font-semibold uppercase tracking-wide text-primary">
