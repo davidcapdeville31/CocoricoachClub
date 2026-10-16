@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { BarChart3, GitCompare, ChevronDown, Check, Trophy, Layers, Award, Gavel, Swords, Brain, Flame, FileDown, Loader2 } from "lucide-react";
+import { BarChart3, GitCompare, ChevronDown, Check, Trophy, Layers, Award, Gavel, Swords, Brain, Flame, FileDown, Loader2, NotebookPen } from "lucide-react";
 import { toast } from "sonner";
 import { exportJudoCompetitionPdf, type JudoPdfMode } from "@/lib/judo/judoCompetitionPdfExport";
 import { extractFilledRoundStats, formatStatValue, resultLabel } from "@/lib/judo/roundDetail";
@@ -218,7 +218,40 @@ export function JudoCompetitionStats({ categoryId }: Props) {
     },
   });
 
-  // Realtime: invalidate on any change to matches or competition_rounds for this category
+  // Athlete context notes ("Bilan de la compétition") — one per match+player.
+  const { data: athleteNotes = [] } = useQuery({
+    queryKey: ["judo_comp_stats_athlete_notes", categoryId],
+    queryFn: async () => {
+      const { data: matchIds, error: mErr } = await supabase
+        .from("matches")
+        .select("id")
+        .eq("category_id", categoryId)
+        .eq("is_personal", false);
+      if (mErr) throw mErr;
+      const ids = (matchIds || []).map((m: any) => m.id);
+      if (ids.length === 0) return [];
+      const { data, error } = await supabase
+        .from("competition_results")
+        .select("match_id, player_id, athlete_context_notes")
+        .in("match_id", ids)
+        .not("athlete_context_notes", "is", null);
+      if (error) throw error;
+      return (data || []) as { match_id: string; player_id: string; athlete_context_notes: string }[];
+    },
+  });
+
+  const notesByMatch = useMemo(() => {
+    const map = new Map<string, { player_id: string; notes: string }[]>();
+    for (const n of athleteNotes) {
+      if (!n.athlete_context_notes?.trim()) continue;
+      const list = map.get(n.match_id) || [];
+      list.push({ player_id: n.player_id, notes: n.athlete_context_notes.trim() });
+      map.set(n.match_id, list);
+    }
+    return map;
+  }, [athleteNotes]);
+
+  // Realtime: invalidate on any change to matches, competition_rounds or competition_results for this category
   useEffect(() => {
     const channel = supabase
       .channel(`judo-comp-stats-${categoryId}`)
@@ -231,6 +264,11 @@ export function JudoCompetitionStats({ categoryId }: Props) {
         "postgres_changes",
         { event: "*", schema: "public", table: "competition_rounds" },
         () => queryClient.invalidateQueries({ queryKey: ["judo_comp_stats_matches", categoryId] }),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "competition_results" },
+        () => queryClient.invalidateQueries({ queryKey: ["judo_comp_stats_athlete_notes", categoryId] }),
       )
       .subscribe();
     return () => {
@@ -503,7 +541,14 @@ export function JudoCompetitionStats({ categoryId }: Props) {
           {noTournaments ? (
             <EmptyDataPanel message={emptyMessage} />
           ) : (
-            <GeneralView tournaments={selected} />
+            <GeneralView
+              tournaments={selected}
+              notesByMatch={notesByMatch}
+              playerName={(pid) => {
+                const p = players.find((pl: any) => pl.id === pid);
+                return p ? `${(p.name || "").toUpperCase()} ${p.first_name || ""}`.trim() : "Athlète";
+              }}
+            />
           )}
         </TabsContent>
 
@@ -543,7 +588,15 @@ function EmptyDataPanel({ message }: { message: string }) {
   );
 }
 
-function GeneralView({ tournaments }: { tournaments: JudoMatchRow[] }) {
+function GeneralView({
+  tournaments,
+  notesByMatch,
+  playerName,
+}: {
+  tournaments: JudoMatchRow[];
+  notesByMatch: Map<string, { player_id: string; notes: string }[]>;
+  playerName: (playerId: string) => string;
+}) {
   if (tournaments.length === 0) {
     return (
       <p className="text-sm text-muted-foreground text-center py-8">
@@ -601,9 +654,70 @@ function GeneralView({ tournaments }: { tournaments: JudoMatchRow[] }) {
         );
       })}
 
+      <AthleteContextNotesSection
+        tournaments={tournaments}
+        notesByMatch={notesByMatch}
+        playerName={playerName}
+      />
+
       {/* Détails par combat */}
       <CombatsDetailSection tournaments={tournaments} />
     </div>
+  );
+}
+
+/** Notes de bilan écrites par les athlètes (contexte du tournoi), visibles par le staff. */
+function AthleteContextNotesSection({
+  tournaments,
+  notesByMatch,
+  playerName,
+}: {
+  tournaments: JudoMatchRow[];
+  notesByMatch: Map<string, { player_id: string; notes: string }[]>;
+  playerName: (playerId: string) => string;
+}) {
+  const entries = useMemo(() => {
+    return tournaments
+      .map((t) => ({
+        tournament: t,
+        notes: (notesByMatch.get(t.id) || []).slice().sort((a, b) => playerName(a.player_id).localeCompare(playerName(b.player_id))),
+      }))
+      .filter((e) => e.notes.length > 0);
+  }, [tournaments, notesByMatch, playerName]);
+
+  if (entries.length === 0) return null;
+
+  return (
+    <Card className="rounded-2xl overflow-hidden border-0 shadow-sm ring-1 ring-primary/10">
+      <div className="h-1 w-full bg-gradient-to-r from-primary via-primary/80 to-primary/50" />
+      <div className="flex items-center gap-3 px-4 py-3 bg-primary/[0.04]">
+        <div className="h-8 w-8 rounded-xl flex items-center justify-center bg-primary/10">
+          <NotebookPen className="h-3.5 w-3.5 text-primary" />
+        </div>
+        <div>
+          <div className="text-sm font-semibold tracking-tight">Bilan de la compétition — notes des athlètes</div>
+          <div className="text-[11px] text-muted-foreground">
+            Contexte partagé par les athlètes : stress, trajet, fatigue, poids, sommeil…
+          </div>
+        </div>
+      </div>
+      <CardContent className="pt-3 space-y-3">
+        {entries.map(({ tournament, notes }) => (
+          <div key={tournament.id} className="rounded-xl border bg-card/50 p-3 space-y-2">
+            <div className="text-xs font-medium text-muted-foreground truncate">
+              {tournament.opponent || tournament.competition || "Tournoi"} ·{" "}
+              {format(new Date(tournament.match_date), "d MMM yyyy", { locale: getDateLocale() })}
+            </div>
+            {notes.map((n) => (
+              <div key={n.player_id} className="rounded-lg bg-muted/40 border p-2.5">
+                <div className="text-xs font-semibold mb-1">{playerName(n.player_id)}</div>
+                <p className="text-sm whitespace-pre-wrap break-words">{n.notes}</p>
+              </div>
+            ))}
+          </div>
+        ))}
+      </CardContent>
+    </Card>
   );
 }
 
