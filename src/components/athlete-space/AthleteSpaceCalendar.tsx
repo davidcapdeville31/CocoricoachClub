@@ -61,6 +61,8 @@ import { AthleteBowlingCompetitionDialog } from "@/components/category/matches/A
 import { SessionValidationDialog } from "@/components/athlete-space/SessionValidationDialog";
 import { SimplifiedSessionDialog } from "@/components/athlete-space/SimplifiedSessionDialog";
 import { RecoverySessionDialog } from "@/components/athlete-space/RecoverySessionDialog";
+import { KineSessionDialog } from "@/components/athlete-space/KineSessionDialog";
+import { HeartPulse } from "lucide-react";
 import { SessionDetailDialog } from "@/components/athlete-space/SessionDetailDialog";
 import { SessionAttendanceResponse } from "@/components/athlete-space/SessionAttendanceResponse";
 import { MatchAttendanceResponse } from "@/components/athlete-space/MatchAttendanceResponse";
@@ -89,6 +91,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   const [isBasketTrainingOpen, setIsBasketTrainingOpen] = useState(false);
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [isRecoveryOpen, setIsRecoveryOpen] = useState(false);
+  const [isKineOpen, setIsKineOpen] = useState(false);
   const [fieldSessionDate, setFieldSessionDate] = useState<Date | null>(null);
   const [matchDialogDate, setMatchDialogDate] = useState<Date | null>(null);
   const [isBowlingSimplifiedOpen, setIsBowlingSimplifiedOpen] = useState(false);
@@ -1191,9 +1194,10 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
               )}
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         <Button className="h-auto min-h-11 gap-1.5 whitespace-normal px-2 text-xs" onClick={() => setIsPickerOpen(true)}><Plus className="h-4 w-4 shrink-0" />{t("athleteSpace.calendar.addSession")}</Button>
         <Button variant="outline" className="h-auto min-h-11 gap-1.5 whitespace-normal px-2 text-xs" onClick={() => setIsRecoveryOpen(true)}><Leaf className="h-4 w-4 shrink-0" />{t("athleteSpace.calendar.recoverySession")}</Button>
+        <Button variant="outline" className="h-auto min-h-11 gap-1.5 whitespace-normal px-2 text-xs" onClick={() => setIsKineOpen(true)}><HeartPulse className="h-4 w-4 shrink-0" />Kiné</Button>
       </div>
       <AthleteCalendarUpcoming playerId={playerId} selectedDate={selectedDateStr} sessions={sessions} matches={matches} onSelect={selectCalendarDate} />
 
@@ -1246,6 +1250,14 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         categoryId={categoryId}
         athletePlayerId={playerId}
         defaultDate={selectedDate ? format(selectedDate, "yyyy-MM-dd") : undefined}
+      />
+
+      <KineSessionDialog
+        open={isKineOpen}
+        onOpenChange={setIsKineOpen}
+        date={selectedDate || new Date()}
+        categoryId={categoryId}
+        playerId={playerId}
       />
 
       <RecoverySessionDialog
