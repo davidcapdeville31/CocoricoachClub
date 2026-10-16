@@ -1,5 +1,10 @@
 # Calendrier de charge
 
+## Statistiques staff : sélection et retours personnels
+- [ ] Corriger le double basculement des cases et permettre une sélection vide avec Aucun.
+- [ ] Vérifier les statistiques athlètes dans Statistiques par joueur et y afficher le ressenti par compétition.
+- [ ] Vérifier le parcours connecté sans modifier les données réelles.
+
 ## Retours des compétitions athlètes
 - [x] Ressenti libre en bas des stats personnelles, champ distinct enregistré atomiquement avec sa propre ligne ; préservé lors des corrections staff.
 - [x] Notification serveur réservée à l’auteur athlète, dédoublonnée tant que non lue ; pastille Stats et Stats de compétition, texte sous Retours des athlètes, lecture par utilisateur.

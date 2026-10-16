@@ -29,6 +29,7 @@ export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
   const { isDateInActiveSeason } = useSeasonRosterFilter();
   const [activeTab, setActiveTab] = useState("general");
   const [selectedMatchIds, setSelectedMatchIds] = useState<string[]>([]);
+  const [selectionCategory, setSelectionCategory] = useState<string | null>(null);
   const [exportFormat, setExportFormat] = useState<"pdf" | "excel" | null>(null);
   const [exportingAggregate, setExportingAggregate] = useState<"pdf" | "excel" | null>(null);
   const { data: ourTeamName = "Notre équipe" } = useCategoryTeamName(categoryId);
@@ -40,10 +41,11 @@ export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
 
   // Initialise la sélection multi-matchs quand la liste arrive
   useEffect(() => {
-    if (playable.length > 0 && selectedMatchIds.length === 0) {
+    if (playable.length > 0 && selectionCategory !== categoryId) {
       setSelectedMatchIds([playable[0].id]);
+      setSelectionCategory(categoryId);
     }
-  }, [playable, selectedMatchIds.length]);
+  }, [playable, categoryId, selectionCategory]);
 
   const selectedMatches = useMemo(
     () => playable.filter(m => selectedMatchIds.includes(m.id)),
@@ -164,7 +166,7 @@ export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
                       variant="ghost"
                       size="sm"
                       className="h-7 text-xs"
-                      onClick={() => setSelectedMatchIds(playable[0] ? [playable[0].id] : [])}
+                      onClick={() => setSelectedMatchIds([])}
                     >
                       Aucun
                     </Button>
@@ -174,13 +176,11 @@ export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
                   {playable.map((m) => {
                     const checked = selectedMatchIds.includes(m.id);
                     return (
-                      <button
+                      <label
                         key={m.id}
-                        type="button"
-                        onClick={() => toggleMatchId(m.id)}
-                        className="flex w-full items-center gap-3 px-3 py-2 text-sm hover:bg-accent text-left"
+                        className="flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-sm hover:bg-accent text-left"
                       >
-                        <Checkbox checked={checked} onCheckedChange={() => toggleMatchId(m.id)} />
+                        <Checkbox aria-label={`Sélectionner ${m.opponent}`} checked={checked} onCheckedChange={() => toggleMatchId(m.id)} />
                         <div className="flex-1 min-w-0">
                           <div className="truncate">
                             {format(new Date(m.match_date), "d MMM yyyy", { locale: getDateLocale() })} · {m.is_home ? "vs" : "@"} {m.opponent}
@@ -192,7 +192,7 @@ export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
                           )}
                         </div>
                         {checked && <Check className="h-4 w-4 text-primary" />}
-                      </button>
+                      </label>
                     );
                   })}
                 </div>
