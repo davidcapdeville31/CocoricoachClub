@@ -1,5 +1,10 @@
 # Calendrier de charge
 
+## Statistiques staff : sélection et retours personnels
+- [x] Corriger le double basculement des cases et permettre une sélection vide avec Aucun.
+- [x] Utiliser les statistiques athlètes dans Statistiques par joueur et afficher le ressenti par compétition et dans la fiche de saisie staff.
+- [x] Parcours staff connecté : cocher/décocher/Aucun et fiche joueuse vérifiés, sans écriture ; Racing n’a actuellement aucune ligne de statistiques personnelles.
+
 ## Retours des compétitions athlètes
 - [x] Ressenti libre en bas des stats personnelles, champ distinct enregistré atomiquement avec sa propre ligne ; préservé lors des corrections staff.
 - [x] Notification serveur réservée à l’auteur athlète, dédoublonnée tant que non lue ; pastille Stats et Stats de compétition, texte sous Retours des athlètes, lecture par utilisateur.

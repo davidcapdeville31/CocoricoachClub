@@ -25,6 +25,7 @@ interface PlayerStatsGridProps {
   supportsGoalkeeper: boolean;
   isRugby?: boolean;
   onOpenKickingField?: (playerId: string, playerName: string) => void;
+  feedbackByPlayer?: Record<string, string>;
 }
 
 const KICKING_STAT_KEYS = new Set([
@@ -34,7 +35,7 @@ const KICKING_STAT_KEYS = new Set([
   "points",
 ]);
 
-export function PlayerStatsGrid({ players, stats, categoryKey, sportType, onUpdateStat, supportsGoalkeeper, isRugby, onOpenKickingField }: PlayerStatsGridProps) {
+export function PlayerStatsGrid({ players, stats, categoryKey, sportType, onUpdateStat, supportsGoalkeeper, isRugby, onOpenKickingField, feedbackByPlayer }: PlayerStatsGridProps) {
   const isMobile = useIsMobile();
 
   // Sort players by position number (starters first 1-15/23, then subs)
@@ -92,6 +93,7 @@ export function PlayerStatsGrid({ players, stats, categoryKey, sportType, onUpda
                 </Button>
               )}
             </div>
+            {feedbackByPlayer?.[player.playerId] && <details className="text-sm"><summary className="cursor-pointer text-primary">Ressenti de l'athlète</summary><p className="mt-1 whitespace-pre-wrap break-words text-foreground">{feedbackByPlayer[player.playerId]}</p></details>}
             {groups.map(group => (
               <div
                 key={group.key}
@@ -216,6 +218,7 @@ export function PlayerStatsGrid({ players, stats, categoryKey, sportType, onUpda
                       <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4">GK</Badge>
                     )}
                   </div>
+                  {feedbackByPlayer?.[player.playerId] && <details className="mt-1 max-w-[240px] text-xs"><summary className="cursor-pointer text-primary">Ressenti de l'athlète</summary><p className="mt-1 whitespace-pre-wrap break-words text-foreground">{feedbackByPlayer[player.playerId]}</p></details>}
                 </td>
                 {hasKickingStats && (
                   <td className="px-0.5 py-0.5 text-center">
