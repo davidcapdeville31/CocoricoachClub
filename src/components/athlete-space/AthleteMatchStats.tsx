@@ -17,10 +17,10 @@ import { getStatDescription } from "@/lib/constants/statDescriptions";
 import { useStatPreferences } from "@/hooks/use-stat-preferences";
 import { groupStatsByTheme } from "@/lib/statSubGroups";
 import {
-  Tooltip as StatTooltip,
-  TooltipContent as StatTooltipContent,
-  TooltipTrigger as StatTooltipTrigger,
-} from "@/components/ui/tooltip";
+  Popover as StatInfoPopover,
+  PopoverContent as StatInfoPopoverContent,
+  PopoverTrigger as StatInfoPopoverTrigger,
+} from "@/components/ui/popover";
 
 interface AthleteMatchStatsProps {
   open: boolean;
@@ -35,24 +35,50 @@ interface AthleteMatchStatsProps {
 /**
  * Petite icône « i » qui explique à quoi sert une statistique. Les athlètes
  * découvrent le sens de chaque champ sans avoir à interroger le staff.
+ *
+ * L'infobulle est pilotée par un état partagé : un seul texte est visible à la
+ * fois, un tap suffit sur mobile et le survol fonctionne à la souris.
  */
-function StatInfo({ label, text }: { label: string; text: string }) {
+function StatInfo({
+  id,
+  label,
+  text,
+  active,
+  onToggle,
+}: {
+  id: string;
+  label: string;
+  text: string;
+  active: boolean;
+  onToggle: (id: string | null) => void;
+}) {
   return (
-    <StatTooltip delayDuration={150}>
-      <StatTooltipTrigger asChild>
+    <StatInfoPopover open={active} onOpenChange={(open) => onToggle(open ? id : null)}>
+      <StatInfoPopoverTrigger asChild>
         <button
           type="button"
           aria-label={`Expliquer : ${label}`}
-          onPointerDown={(e) => e.preventDefault()}
+          onPointerEnter={(e) => {
+            if (e.pointerType === "mouse") onToggle(id);
+          }}
+          onPointerLeave={(e) => {
+            if (e.pointerType === "mouse") onToggle(null);
+          }}
           className="shrink-0 rounded-full p-0.5 text-muted-foreground/70 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <Info className="h-3.5 w-3.5" />
         </button>
-      </StatTooltipTrigger>
-      <StatTooltipContent side="top" className="max-w-[240px] text-xs leading-relaxed">
+      </StatInfoPopoverTrigger>
+      <StatInfoPopoverContent
+        side="top"
+        align="center"
+        sideOffset={6}
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        className="z-[1000] w-64 rounded-lg p-2.5 text-xs leading-relaxed"
+      >
         {text}
-      </StatTooltipContent>
-    </StatTooltip>
+      </StatInfoPopoverContent>
+    </StatInfoPopover>
   );
 }
 
@@ -75,6 +101,8 @@ export function AthleteMatchStats({
   const [values, setValues] = useState<Record<string, number>>({});
   const [initialized, setInitialized] = useState(false);
   const [saving, setSaving] = useState(false);
+  // Une seule explication visible à la fois dans la fenêtre.
+  const [infoId, setInfoId] = useState<string | null>(null);
 
   const { stats: filteredStats, hasCustomPreferences, isLoading: loadingPrefs } = useStatPreferences({
     categoryId,
@@ -129,6 +157,7 @@ export function AthleteMatchStats({
     if (!open) {
       setInitialized(false);
       setValues({});
+      setInfoId(null);
       return;
     }
     if (initialized || loadingPrefs || loadingExisting) return;
@@ -273,7 +302,7 @@ export function AthleteMatchStats({
                             {group.label}
                           </p>
                         )}
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                           {group.items.map((stat) => {
                             const raw = values[stat.key] ?? 0;
                             if (stat.computedFrom) {
@@ -282,8 +311,11 @@ export function AthleteMatchStats({
                                   <span className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
                                     <span className="truncate">{stat.shortLabel}</span>
                                     <StatInfo
+                                      id={stat.key}
                                       label={stat.label}
                                       text={getStatDescription(stat, sportType, allStats)}
+                                      active={infoId === stat.key}
+                                      onToggle={setInfoId}
                                     />
                                   </span>
                                   <span className="text-sm font-semibold text-primary">{raw || 0}%</span>
@@ -301,8 +333,11 @@ export function AthleteMatchStats({
                                 <span className="flex min-w-0 flex-1 items-center gap-1 text-xs text-muted-foreground">
                                   <span className="truncate">{displayLabel}</span>
                                   <StatInfo
+                                    id={stat.key}
                                     label={displayLabel}
                                     text={getStatDescription(stat, sportType, allStats)}
+                                    active={infoId === stat.key}
+                                    onToggle={setInfoId}
                                   />
                                 </span>
                                 <Input
