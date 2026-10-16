@@ -1,8 +1,8 @@
 # Calendrier de charge
 
 ## Champs des statistiques personnelles rugby
-- [ ] Adapter les champs manuels, collisions et tirs sans modifier la saisie staff ni les historiques.
-- [ ] Vérifier les pourcentages et le rendu de la fenêtre.
+- [x] Champs manuels, trois collisions sans doublon, suppression assists/contacts/franchissement legacy, tirs détaillés et aliases existants ; définitions staff inchangées.
+- [x] Tests champs/groupes/formules/explications réussis ; fenêtre connectée en consultation staff à 393×600, 10 transformations tentées/5 réussies = 50 %, annulation sans sauvegarde. Sauvegarde en identité athlète non testée (aucune statistique réelle modifiée).
 
 ## Présentation mobile des compétitions judo athlète
 - [x] Analyser les écrans et styles partagés ; isoler le périmètre athlète judo sans changer onglets, actions ni logique.
