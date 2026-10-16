@@ -161,6 +161,35 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
   const isJudo = (sportType || "").toLowerCase().includes("judo");
   const isTeamSport = !isJudo && !isIndividualSport(sportType || "");
 
+  const toggleExportSelection = (matchId: string, checked: boolean) => {
+    setExportSelection((prev) => {
+      const next = new Set(prev);
+      if (checked) next.add(matchId);
+      else next.delete(matchId);
+      return next;
+    });
+  };
+
+  const handleExportPdf = async () => {
+    const selectedMatches = past.filter((m) => exportSelection.has(m.id));
+    if (selectedMatches.length === 0) return;
+    setExporting(true);
+    try {
+      await exportAthleteMatchStatsPdf({
+        playerId,
+        playerName,
+        categoryId,
+        sportType: sportType || "",
+        matches: selectedMatches,
+      });
+      toast.success("Ton PDF a été téléchargé");
+    } catch (e: any) {
+      toast.error(e?.message || "Erreur lors de la génération du PDF");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const renderMatch = (match: AthleteMatch) => {
     const count = roundCounts[match.id] || 0;
     const finalRanking = finalRankings[match.id] ?? null;
@@ -189,7 +218,20 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
         key={match.id}
         className="judo-competition-card flex flex-col gap-3 rounded-xl border bg-muted/20 p-4 sm:flex-row sm:items-center sm:justify-between"
       >
-        <div className="space-y-1">
+        {isTeamSport && entryEnabled && !notYetOpen && lineupMatchIds.has(match.id) && (
+          <label
+            className="flex items-center gap-2 self-start sm:self-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Checkbox
+              checked={exportSelection.has(match.id)}
+              onCheckedChange={(c) => toggleExportSelection(match.id, c === true)}
+              aria-label={`Sélectionner ${match.competition || match.opponent || "cette compétition"} pour l'export PDF`}
+            />
+            <span className="text-[11px] text-muted-foreground">PDF</span>
+          </label>
+        )}
+        <div className="space-y-1 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <Trophy className="h-4 w-4 text-primary" />
             <span className="font-semibold">{match.competition || match.opponent || "Compétition"}</span>
@@ -284,7 +326,25 @@ export function AthleteSpaceCompetitions({ playerId, categoryId, sportType }: At
 
           {past.length > 0 && (
             <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Passées</p>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Passées</p>
+                {isTeamSport && entryEnabled && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5"
+                    disabled={exportSelection.size === 0 || exporting}
+                    onClick={handleExportPdf}
+                  >
+                    {exporting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <FileDown className="h-4 w-4" />
+                    )}
+                    Exporter mes stats{exportSelection.size > 0 ? ` (${exportSelection.size})` : ""}
+                  </Button>
+                )}
+              </div>
               {past.map(renderMatch)}
             </div>
           )}
