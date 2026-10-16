@@ -19,6 +19,8 @@ import { isRugbyType, isAthletismeCategory } from "@/lib/constants/sportTypes";
 import { TeamSportsAnalytics } from "@/components/category/datas/team-sports/TeamSportsAnalytics";
 import { JudoCompetitionStats } from "@/components/category/datas/judo/JudoCompetitionStats";
 import { getAthleteGroups, type AthleticsGroup } from "@/lib/athletics/athleteDisciplines";
+import { AthleteMatchFeedback } from "@/components/category/matches/AthleteMatchFeedback";
+import { useUnreadMatchStatsNotifications } from "@/lib/hooks/useUnreadMatchStatsNotifications";
 import { SeasonRosterFilterToggle } from "@/components/category/SeasonRosterFilterToggle";
 
 interface DatasTabProps {
@@ -129,6 +131,7 @@ export function DatasTab({ categoryId, sportType }: DatasTabProps) {
   const isRugby = isRugbyType(sportType || "");
   const isAthletics = isAthletismeCategory(sportType || "");
   const isJudo = (sportType || "").toLowerCase().includes("judo");
+  const { count: unreadStats } = useUnreadMatchStatsNotifications(categoryId);
 
   return (
     <Tabs defaultValue="competition" className="space-y-4">
@@ -145,6 +148,7 @@ export function DatasTab({ categoryId, sportType }: DatasTabProps) {
           >
             <span className="hidden sm:inline">{t("subnav.stats.competition")}</span>
             <span className="sm:hidden">{t("subnav.stats.competitionShort")}</span>
+            {unreadStats > 0 && <span aria-label={`${unreadStats} nouvelles statistiques athlètes`} className="ml-1 rounded-full bg-destructive px-1.5 text-[10px] font-semibold text-destructive-foreground">{unreadStats}</span>}
           </ColoredSubTabsTrigger>
           <ColoredSubTabsTrigger
             value="training"
@@ -159,6 +163,7 @@ export function DatasTab({ categoryId, sportType }: DatasTabProps) {
       </div>
 
       <TabsContent value="competition">
+        <AthleteMatchFeedback categoryId={categoryId} />
         {isBowling ? (
           <BowlingCumulativeStats categoryId={categoryId} />
         ) : isJudo ? (

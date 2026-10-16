@@ -1,5 +1,10 @@
 # Calendrier de charge
 
+## Retours des compétitions athlètes
+- [ ] Ajouter un ressenti libre personnel, enregistré avec les statistiques et consultable au staff.
+- [ ] Signaler les nouvelles saisies via des notifications non lues et une pastille dans les statistiques de compétition.
+- [ ] Vérifier sauvegarde, relecture et états de la pastille sans modifier les résultats existants.
+
 ## Champs des statistiques personnelles rugby
 - [x] Champs manuels, trois collisions sans doublon, suppression assists/contacts/franchissement legacy, tirs détaillés et aliases existants ; définitions staff inchangées.
 - [x] Tests champs/groupes/formules/explications réussis ; fenêtre connectée en consultation staff à 393×600, 10 transformations tentées/5 réussies = 50 %, annulation sans sauvegarde. Sauvegarde en identité athlète non testée (aucune statistique réelle modifiée).

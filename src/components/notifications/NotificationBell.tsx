@@ -82,6 +82,8 @@ export function NotificationBell({ variant = "hero", categoryIds }: Notification
       return `/categories/${categoryId}?tab=sante&subtab=wellness-health${date ? `&wellnessDate=${date}` : ""}`;
     }
 
+    if (n.notification_type === "match_stats_submission" && categoryId) return `/categories/${categoryId}?tab=stats`;
+
     // Wellness renseigné par un athlète → onglet Santé › Wellness à la date saisie
     if (n.notification_type === "wellness_submitted" && categoryId) {
       const date = meta.tracking_date;
@@ -184,6 +186,7 @@ export function NotificationBell({ variant = "hero", categoryIds }: Notification
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
       queryClient.invalidateQueries({ queryKey: ["unread-rpe-notifications-count"] });
       queryClient.invalidateQueries({ queryKey: ["unread-wellness-notifications-count"] });
+      queryClient.invalidateQueries({ queryKey: ["unread-match-stats"] });
     },
   });
 
@@ -201,6 +204,7 @@ export function NotificationBell({ variant = "hero", categoryIds }: Notification
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
       queryClient.invalidateQueries({ queryKey: ["unread-rpe-notifications-count"] });
       queryClient.invalidateQueries({ queryKey: ["unread-wellness-notifications-count"] });
+      queryClient.invalidateQueries({ queryKey: ["unread-match-stats"] });
       toast.success("Toutes les notifications ont été marquées comme lues");
     },
   });
@@ -217,6 +221,7 @@ export function NotificationBell({ variant = "hero", categoryIds }: Notification
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
       queryClient.invalidateQueries({ queryKey: ["unread-rpe-notifications-count"] });
       queryClient.invalidateQueries({ queryKey: ["unread-wellness-notifications-count"] });
+      queryClient.invalidateQueries({ queryKey: ["unread-match-stats"] });
       toast.success("Notification supprimée");
     },
   });
@@ -234,6 +239,7 @@ export function NotificationBell({ variant = "hero", categoryIds }: Notification
       case "category_link_request": return "🔗";
       case "athlete_session": return "🏋️";
       case "session_feedback": return "📈";
+      case "match_stats_submission": return "📊";
       case "athlete_document": return "📄";
       case "global": return "📣";
       default: return "ℹ️";

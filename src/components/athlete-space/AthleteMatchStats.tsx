@@ -9,6 +9,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { BarChart3, Info, Loader2 } from "lucide-react";
@@ -101,6 +103,7 @@ export function AthleteMatchStats({
   const [values, setValues] = useState<Record<string, number>>({});
   const [initialized, setInitialized] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [feedback, setFeedback] = useState("");
   // Une seule explication visible à la fois dans la fenêtre.
   const [infoId, setInfoId] = useState<string | null>(null);
 
@@ -165,6 +168,7 @@ export function AthleteMatchStats({
     if (!open) {
       setInitialized(false);
       setValues({});
+      setFeedback("");
       setInfoId(null);
       return;
     }
@@ -188,6 +192,7 @@ export function AthleteMatchStats({
       }
     }
     setValues(athletePercentages(init, allStats));
+    setFeedback(existing?.athlete_feedback || "");
     setInitialized(true);
   }, [open, initialized, loadingPrefs, loadingExisting, allStats, existing, sportType]);
 
@@ -196,6 +201,8 @@ export function AthleteMatchStats({
   };
 
   const save = async () => {
+    if (saving) return;
+    if (!initialized) { toast.error("Patiente pendant le chargement des statistiques"); return; }
     setSaving(true);
     try {
       const savedValues = getBaseSport(sportType) === "rugby" ? rugbyScoringAliases(values) : values;
@@ -223,21 +230,19 @@ export function AthleteMatchStats({
         yellow_cards: Number(values.yellowCards) || 0,
         red_cards: Number(values.redCards) || 0,
         sport_data: sportData,
+        athlete_feedback: feedback.trim() || null,
       };
 
-      // Ne touche qu'à la propre ligne de l'athlète
-      await supabase
-        .from("player_match_stats")
-        .delete()
-        .eq("match_id", matchId)
-        .eq("player_id", playerId);
-      const { error } = await supabase.from("player_match_stats").insert(payload);
+      // Atomic write to the athlete's own row; no delete/reinsert or lost feedback.
+      const { error } = await supabase.from("player_match_stats").upsert(payload, { onConflict: "match_id,player_id" });
       if (error) throw error;
 
       queryClient.invalidateQueries({ queryKey: ["player_match_stats", matchId] });
       queryClient.invalidateQueries({ queryKey: ["athlete-own-match-stats", matchId, playerId] });
       queryClient.invalidateQueries({ queryKey: ["cumulative_player_stats", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["player_all_match_stats"] });
+      queryClient.invalidateQueries({ queryKey: ["staff-athlete-match-feedback", matchId] });
+      queryClient.invalidateQueries({ queryKey: ["unread-match-stats", categoryId] });
       toast.success("Tes statistiques ont été enregistrées");
       onOpenChange(false);
     } catch (e: any) {
@@ -361,6 +366,11 @@ export function AthleteMatchStats({
                   </div>
                 );
               })}
+              <div className="space-y-2 border-t border-border pt-3">
+                <Label htmlFor="athlete-match-feedback">Mon ressenti sur la compétition</Label>
+                <Textarea id="athlete-match-feedback" value={feedback} onChange={e => setFeedback(e.target.value)}
+                  placeholder="Comment as-tu vécu cette compétition ?" className="min-h-28 resize-y" />
+              </div>
             </div>
           </div>
         )}
@@ -369,7 +379,7 @@ export function AthleteMatchStats({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Annuler
           </Button>
-          <Button onClick={save} disabled={saving || !initialized}>
+          <Button onClick={save} aria-busy={saving}>
             {saving ? "Enregistrement..." : hasData ? "Mettre à jour" : "Enregistrer"}
           </Button>
         </div>

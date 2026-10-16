@@ -359,6 +359,7 @@ export function SportMatchStatsDialog({
             yellow_cards: Number(s.yellowCards) || 0,
             red_cards: Number(s.redCards) || 0,
             sport_data: sportData,
+            athlete_feedback: existingStats?.find((row) => row.player_id === s.playerId)?.athlete_feedback ?? null,
           };
         });
 
