@@ -11,10 +11,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { BarChart3, Loader2 } from "lucide-react";
+import { BarChart3, Info, Loader2 } from "lucide-react";
 import { getStatsForSport, getStatCategories } from "@/lib/constants/sportStats";
+import { getStatDescription } from "@/lib/constants/statDescriptions";
 import { useStatPreferences } from "@/hooks/use-stat-preferences";
 import { groupStatsByTheme } from "@/lib/statSubGroups";
+import {
+  Tooltip as StatTooltip,
+  TooltipContent as StatTooltipContent,
+  TooltipTrigger as StatTooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface AthleteMatchStatsProps {
   open: boolean;
@@ -24,6 +30,30 @@ interface AthleteMatchStatsProps {
   categoryId: string;
   sportType: string;
   matchLabel: string;
+}
+
+/**
+ * Petite icône « i » qui explique à quoi sert une statistique. Les athlètes
+ * découvrent le sens de chaque champ sans avoir à interroger le staff.
+ */
+function StatInfo({ label, text }: { label: string; text: string }) {
+  return (
+    <StatTooltip delayDuration={150}>
+      <StatTooltipTrigger asChild>
+        <button
+          type="button"
+          aria-label={`Expliquer : ${label}`}
+          onPointerDown={(e) => e.preventDefault()}
+          className="shrink-0 rounded-full p-0.5 text-muted-foreground/70 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <Info className="h-3.5 w-3.5" />
+        </button>
+      </StatTooltipTrigger>
+      <StatTooltipContent side="top" className="max-w-[240px] text-xs leading-relaxed">
+        {text}
+      </StatTooltipContent>
+    </StatTooltip>
+  );
 }
 
 /**
